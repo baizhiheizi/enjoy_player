@@ -65,6 +65,15 @@ class FfmpegMediaProbe {
     return const [];
   }
 
+  /// Whether the `ffmpeg_kit_flutter_new` method channels are registered:
+  /// the vendored plugin ships Android / iOS / macOS implementations only,
+  /// so Windows and Linux must run the CLI binary instead.
+  static bool ffmpegKitRegistered({
+    required bool isAndroid,
+    required bool isIOS,
+    required bool isMacOS,
+  }) => isAndroid || isIOS || isMacOS;
+
   /// Test seam: clears the memoized resolution so the next call re-probes.
   @visibleForTesting
   static void debugResetFfmpegExecutableCache() {

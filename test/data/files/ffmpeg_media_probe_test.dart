@@ -204,6 +204,46 @@ Stream #0:5(en): Subtitle: subrip
     });
   });
 
+  group('FfmpegMediaProbe.ffmpegKitRegistered', () {
+    test('registered on Android, iOS, and macOS', () {
+      expect(
+        FfmpegMediaProbe.ffmpegKitRegistered(
+          isAndroid: true,
+          isIOS: false,
+          isMacOS: false,
+        ),
+        isTrue,
+      );
+      expect(
+        FfmpegMediaProbe.ffmpegKitRegistered(
+          isAndroid: false,
+          isIOS: true,
+          isMacOS: false,
+        ),
+        isTrue,
+      );
+      expect(
+        FfmpegMediaProbe.ffmpegKitRegistered(
+          isAndroid: false,
+          isIOS: false,
+          isMacOS: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('not registered on Windows or Linux', () {
+      expect(
+        FfmpegMediaProbe.ffmpegKitRegistered(
+          isAndroid: false,
+          isIOS: false,
+          isMacOS: false,
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('shellEscape', () {
     test('returns plain paths unchanged', () {
       expect(shellEscape('/tmp/audio.wav'), '/tmp/audio.wav');
