@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Share your practice</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--shadow:0 1px 2px rgba(18,20,26,.05),0 24px 64px rgba(18,20,26,.18);color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--shadow:0 1px 2px rgba(0,0,0,.4),0 24px 64px rgba(0,0,0,.6);color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.e-btn{height:46px;padding:0 20px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;font-weight:600;white-space:nowrap}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 8px 22px rgba(79,70,229,.3)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; position: relative; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--ui)">
+  <div aria-hidden="true" style="position: absolute; inset: 0; padding: 120px 15% 0; filter: blur(2px); opacity: .5">
+    <div style="font-family: var(--content); font-size: 20px; line-height: 1.6; color: var(--ink3)">Nobody was on their phone; they were just watching the water.</div>
+    <div style="font-family: var(--content); font-size: 30px; line-height: 1.4; margin-top: 24px">You don't take the ferry to save time; you take it to slow down.</div>
+    <div style="font-family: var(--content); font-size: 20px; line-height: 1.6; color: var(--ink3); margin-top: 24px">By the second week, I knew the faces of the regulars.</div>
+  </div>
+  <div style="position: absolute; inset: 0; background: rgba(12,14,18,.5)"></div>
+
+  <div aria-label="Share your practice" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(760px, calc(100% - 32px)); border-radius: 28px; background: var(--raised); box-shadow: var(--shadow); padding: 26px; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 28px">
+    <div style="aspect-ratio: 9 / 16; border-radius: 20px; overflow: hidden; position: relative; background: #0C0E14; color: #FFFFFF; padding: 22px 20px; display: flex; flex-direction: column">
+      <svg viewBox="0 0 300 300" aria-hidden="true" style="position: absolute; right: -90px; top: -40px; width: 320px; height: 320px">
+        <defs><linearGradient id="pp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4797F5"></stop><stop offset="1" stop-color="#A855F7"></stop></linearGradient></defs>
+        <g stroke="url(#pp)" stroke-width="16" stroke-linejoin="round" fill="url(#pp)"><polygon points="50,40 170,100 50,160" opacity=".25"></polygon><polygon points="50,100 170,160 50,220" opacity=".45"></polygon><polygon points="110,70 230,130 110,190" opacity=".75"></polygon></g>
+      </svg>
+      <div style="position: relative; display: flex; align-items: center; gap: 8px"><img src="/_blob/747775ae97e736fcc52ae3074fe11fa4" alt="" style="width: 22px; height: 22px"><span style="font-size: 12.5px; font-weight: 600">Enjoy Player</span></div>
+      <div style="position: relative; font: 600 10px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; opacity: .7; margin-top: 120px">Shadow reading</div>
+      <div style="position: relative; font-size: 13px; font-weight: 600; margin-top: 8px">The Ferry at Six</div>
+      <div style="position: relative; font-family: var(--content); font-size: 21px; line-height: 1.35; margin-top: 14px">“You don't take the ferry to save time; you take it to slow down.”</div>
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" style="position: relative; width: 100%; height: 36px; margin-top: 16px; overflow: visible">
+        <path d="M2 24 C12 10, 20 10, 28 20 S44 34, 52 22 S68 6, 78 16 S92 30, 98 22" fill="none" stroke="#4797F5" stroke-width="7" stroke-linecap="round" opacity=".4" vector-effect="non-scaling-stroke"></path>
+        <path d="M2 26 C12 14, 20 13, 28 21 S44 31, 52 23 S68 11, 78 18 S92 28, 98 24" fill="none" stroke="#A855F7" stroke-width="2.5" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+      </svg>
+      <span style="flex: 1"></span>
+      <div style="position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div><div style="font-family: var(--content); font-size: 22px">4</div><div style="font-size: 10.5px; opacity: .7; margin-top: 2px">Takes</div></div>
+        <div><div style="font-family: var(--content); font-size: 22px">3</div><div style="font-size: 10.5px; opacity: .7; margin-top: 2px">Sentences</div></div>
+        <div><div style="font-family: var(--content); font-size: 22px">1m 12s</div><div style="font-size: 10.5px; opacity: .7; margin-top: 2px">Spoken</div></div>
+      </div>
+      <div style="position: relative; display: flex; align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.14)">
+        <span aria-label="QR code" style="width: 44px; height: 44px; border-radius: 6px; background: #FFFFFF; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 5px">
+          <span style="background: #0C0E14"></span><span></span><span style="background: #0C0E14"></span><span style="background: #0C0E14"></span><span style="background: #0C0E14"></span>
+          <span></span><span style="background: #0C0E14"></span><span></span><span style="background: #0C0E14"></span><span></span>
+          <span style="background: #0C0E14"></span><span style="background: #0C0E14"></span><span></span><span></span><span style="background: #0C0E14"></span>
+          <span></span><span></span><span style="background: #0C0E14"></span><span style="background: #0C0E14"></span><span></span>
+          <span style="background: #0C0E14"></span><span></span><span style="background: #0C0E14"></span><span></span><span style="background: #0C0E14"></span>
+        </span>
+        <span style="font-size: 10.5px; line-height: 1.4; opacity: .75; white-space: pre-line">Scan to download Enjoy Player
+player.enjoy.bot</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; min-width: 0; padding: 6px 2px">
+      <h2 style="margin: 0; font-family: var(--content); font-size: 32px; font-weight: 500; letter-spacing: -0.015em">Share your practice</h2>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--ink2)">A 9:16 poster of this lesson: the line you practised, your pitch against the original, and your takes so far.</p>
+      <span style="flex: 1"></span>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <button class="e-btn e-brand">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px"><path d="M12 3v12"></path><path d="m8 7 4-4 4 4"></path><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"></path></svg>
+          Share poster
+        </button>
+        <button class="e-btn e-sec">Save image</button>
+        <a href="DScored.dc.html" class="e-btn" style="color: var(--ink2); text-decoration: none">Close</a>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { var t = this.props.theme === 'dark' ? 'dark' : 'light'; return { themeClass: 'e-' + t }; }
+}
+</script>
+</body>
+</html>

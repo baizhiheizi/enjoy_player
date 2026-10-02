@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) :is(button,input){font:inherit;color:inherit}
+:where(.e) button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible,.e input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:50px;padding:0 18px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:600;width:100%}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 8px 22px rgba(79,70,229,.28)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover{background:var(--sunk)}
+.s-art{display:flex}
+@media (max-width:899px){.s-art{display:none!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden">
+  <aside class="s-art" style="flex: 1 1 52%; position: relative; overflow: hidden; background: #0C0E14; flex-direction: column; justify-content: space-between; padding: 44px 48px">
+    <svg viewBox="0 0 700 700" aria-hidden="true" style="position: absolute; right: -120px; top: 50%; transform: translateY(-50%); width: 760px; height: 760px">
+      <defs><linearGradient id="sArt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4797F5"></stop><stop offset="1" stop-color="#A855F7"></stop></linearGradient></defs>
+      <g stroke="url(#sArt)" stroke-width="34" stroke-linejoin="round" fill="url(#sArt)">
+        <polygon points="120,90 400,230 120,370" opacity=".35"></polygon>
+        <polygon points="120,230 400,370 120,510" opacity=".65"></polygon>
+        <polygon points="260,160 540,300 260,440"></polygon>
+      </g>
+    </svg>
+    <div style="position: relative; display: flex; align-items: center; gap: 10px; color: #FFFFFF">
+      <img src="/_blob/747775ae97e736fcc52ae3074fe11fa4" alt="" style="width: 30px; height: 30px">
+      <span style="font-size: 16px; font-weight: 600">Enjoy Player</span>
+    </div>
+    <div style="position: relative; max-width: 440px; color: #FFFFFF">
+      <div style="font-family: var(--content); font-size: 40px; line-height: 1.18; font-weight: 500; letter-spacing: -0.02em">First the original voice. Then yours.</div>
+      <div style="font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.72); margin-top: 16px">Listen line by line, echo every sentence, and hear how close you are.</div>
+    </div>
+  </aside>
+
+  <main style="flex: 1 1 48%; display: flex; align-items: center; justify-content: center; padding: 40px 24px">
+    <div style="width: 100%; max-width: 400px">
+      <img src="/_blob/747775ae97e736fcc52ae3074fe11fa4" alt="Enjoy Player" style="width: 56px; height: 56px">
+
+      <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+        <h1 style="margin: 26px 0 0; font-family: var(--content); font-size: 40px; line-height: 1.1; font-weight: 500; letter-spacing: -0.02em">Welcome to Enjoy</h1>
+        <p style="margin: 12px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink2)">Sign in to sync your library, track learning progress, and pick up where you left off.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 30px">
+          <button class="e-btn e-sec">
+            <svg viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z" fill="#4285F4"></path><path d="M12 22c2.7 0 5-.9 6.6-2.5l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22Z" fill="#34A853"></path><path d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9Z" fill="#FBBC05"></path><path d="M12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.8 9.4 6 12 6Z" fill="#EA4335"></path></svg>
+            Continue with Google
+          </button>
+          <button class="e-btn" style="background: var(--ink); color: var(--paper)">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="width: 19px; height: 19px"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7a4.5 4.5 0 0 0-3.5-1.9c-1.5-.2-2.9.9-3.7.9s-1.9-.9-3.2-.8A4.8 4.8 0 0 0 4 9.6c-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8 2.1-1.2 2.9-2.4a10 10 0 0 0 1.3-2.7 4.2 4.2 0 0 1-2.4-4ZM14 5.4a4.3 4.3 0 0 0 1-3.1 4.4 4.4 0 0 0-2.9 1.5 4 4 0 0 0-1 3 3.7 3.7 0 0 0 2.9-1.4Z"></path></svg>
+            Continue with Apple
+          </button>
+          <div style="display: flex; align-items: center; gap: 12px; margin: 8px 0; font-size: 12.5px; color: var(--ink3)"><span style="flex: 1; height: 1px; background: var(--line)"></span>or<span style="flex: 1; height: 1px; background: var(--line)"></span></div>
+          <button class="e-btn e-sec" onClick="{{ toOtp }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 19px; height: 19px"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg>
+            Continue with Email
+          </button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isOtp }}" hint-placeholder-val="{{ false }}">
+        <h1 style="margin: 26px 0 0; font-family: var(--content); font-size: 36px; line-height: 1.1; font-weight: 500; letter-spacing: -0.02em">Enter verification code</h1>
+        <p style="margin: 12px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink2)">Code sent to <span style="font-weight: 600; color: var(--ink)">alex@example.com</span></p>
+        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--ink2); margin-top: 28px">6-digit code</label>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 10px">
+          <sc-for list="{{ digits }}" as="d" hint-placeholder-count="6">
+            <span style="height: 58px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font: 500 24px/1 var(--mono); background: var(--paper); border: {{ d.border }}">{{ d.v }}</span>
+          </sc-for>
+        </div>
+        <button class="e-btn e-brand" style="margin-top: 22px">Verify</button>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 18px; font-size: 13.5px">
+          <button onClick="{{ toWelcome }}" style="font-weight: 600; color: var(--brand-ink)">Change email</button>
+          <span style="color: var(--ink3); font-family: var(--mono); font-size: 12.5px">Resend in 42s</span>
+        </div>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"step":{"editor":"enum","options":["welcome","otp"],"default":"welcome"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var p = this.props || {};
+    var s = this.state || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var step = s.step || p.step || 'welcome';
+    var digits = ['4', '8', '1', '', '', ''].map(function (v, i) { return { v: v, border: i === 3 ? '2px solid var(--brand-ink)' : '1px solid var(--line)' }; });
+    return {
+      theme: theme, themeClass: 'e-' + theme, isWelcome: step === 'welcome', isOtp: step === 'otp', digits: digits,
+      toOtp: function () { self.setState({ step: 'otp' }); }, toWelcome: function () { self.setState({ step: 'welcome' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

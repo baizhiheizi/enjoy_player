@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Subscription</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--shadow:0 1px 2px rgba(18,20,26,.05),0 14px 44px rgba(18,20,26,.12);--scrim:rgba(18,20,26,.32);color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--shadow:0 1px 2px rgba(0,0,0,.4),0 18px 52px rgba(0,0,0,.55);--scrim:rgba(0,0,0,.55);color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:42px;padding:0 18px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-ib:hover{background:var(--sunk)}
+.e-ib{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:22px}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+.s-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.s-status{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:1000px){.s-plans{grid-template-columns:1fr}.s-status{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden; position: relative">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="profile" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <header style="flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 20px; border-bottom: 1px solid var(--line)">
+      <a href="Profile.dc.html" class="e-ib" aria-label="Back to Profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="font-size: 16px; font-weight: 600">Subscription</span>
+    </header>
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 1000px; margin: 0 auto; padding: 36px 32px 72px">
+        <p style="margin: 0; font-size: 15px; color: var(--ink2)">Manage your subscription plan and Pro benefits.</p>
+
+        <section class="e-card s-status" style="margin-top: 20px; padding: 22px 24px">
+          <div><div class="e-ov">Current plan</div><div style="font-family: var(--content); font-size: 26px; font-weight: 500; margin-top: 10px">Free</div></div>
+          <div><div class="e-ov">Status</div><div style="font-size: 15px; font-weight: 600; margin-top: 14px; display: flex; align-items: center; gap: 7px"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--blue)"></span>Active</div></div>
+          <div><div class="e-ov">Expiration</div><div style="font-size: 15px; font-weight: 600; margin-top: 14px">Never expires</div></div>
+          <div><div class="e-ov">Daily credits limit</div><div style="font-size: 15px; font-weight: 600; margin-top: 14px; font-family: var(--mono)">1,000 credits</div></div>
+        </section>
+
+        <h2 style="margin: 40px 0 0; font-family: var(--content); font-size: 30px; font-weight: 500; letter-spacing: -0.015em">Choose your plan</h2>
+        <div class="s-plans" style="margin-top: 18px">
+          <sc-for list="{{ plans }}" as="pl" hint-placeholder-count="3">
+            <section style="border-radius: 24px; padding: 2px; background: {{ pl.frame }}">
+              <div style="height: 100%; border-radius: 22px; background: var(--paper); padding: 24px 24px 22px; display: flex; flex-direction: column">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 26px">
+                  <span style="font-size: 16px; font-weight: 600">{{ pl.name }}</span>
+                  <sc-if value="{{ pl.hasTag }}" hint-placeholder-val="{{ false }}"><span style="height: 24px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: {{ pl.tagFg }}; background: {{ pl.tagBg }}">{{ pl.tag }}</span></sc-if>
+                </div>
+                <div style="font-size: 13px; color: var(--ink3); margin-top: 6px">{{ pl.desc }}</div>
+                <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 18px"><span style="font-family: var(--content); font-size: 40px; line-height: 1; font-weight: 500; letter-spacing: -0.02em">{{ pl.amount }}</span><span style="font-size: 13px; color: var(--ink3)">{{ pl.unit }}</span></div>
+                <div style="font: 500 12.5px/1.4 var(--mono); color: var(--ink2); margin-top: 6px">{{ pl.credits }}</div>
+                <div style="height: 1px; background: var(--line); margin: 18px 0 14px"></div>
+                <div style="display: flex; flex-direction: column; gap: 9px; flex: 1">
+                  <sc-for list="{{ pl.feats }}" as="f" hint-placeholder-count="6">
+                    <span style="display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: {{ f.color }}">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0; color: {{ f.icon }}"><path d="M20 6 9 17l-5-5"></path></svg>{{ f.t }}
+                    </span>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ pl.cta }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openSheet }}" class="e-btn e-brand" style="margin-top: 20px; width: 100%">Upgrade to Pro</button></sc-if>
+              </div>
+            </section>
+          </sc-for>
+        </div>
+
+        <a href="Credits.dc.html" class="e-card" style="margin-top: 20px; padding: 18px 22px; display: flex; align-items: center; gap: 14px; color: var(--ink)">
+          <span style="width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: var(--sunk); color: var(--ink2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 19px; height: 19px"><ellipse cx="12" cy="6" rx="7" ry="3"></ellipse><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"></path><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"></path></svg></span>
+          <span style="flex: 1"><span style="display: block; font-size: 14.5px; font-weight: 600">Credits packages</span><span style="display: block; font-size: 12.5px; color: var(--ink3); margin-top: 3px">One-time permanent credits — not a subscription</span></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><path d="m9 6 6 6-6 6"></path></svg>
+        </a>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="profile" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+
+  <sc-if value="{{ showSheet }}" hint-placeholder-val="{{ false }}">
+    <button aria-label="Close" onClick="{{ closeSheet }}" style="position: absolute; inset: 0; z-index: 8; background: var(--scrim); cursor: default"></button>
+    <div aria-label="Auto-renew Pro" style="position: absolute; z-index: 9; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(480px, calc(100% - 32px)); border-radius: 26px; background: var(--raised); box-shadow: var(--shadow); padding: 26px 26px 22px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <h2 style="margin: 0; font-family: var(--content); font-size: 26px; font-weight: 500">Auto-renew Pro</h2>
+        <button class="e-ib" aria-label="Close" onClick="{{ closeSheet }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" style="width: 20px; height: 20px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px">
+        <sc-for list="{{ intervals }}" as="iv" hint-placeholder-count="2">
+          <button role="radio" aria-checked="{{ iv.checked }}" onClick="{{ iv.pick }}" style="display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; text-align: left; border: {{ iv.border }}; background: {{ iv.bg }}">
+            <span style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid {{ iv.dot }}; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{ iv.fill }}"></span></span>
+            <span><span style="display: block; font-size: 15px; font-weight: 600">{{ iv.name }}</span><span style="display: block; font-size: 12.5px; color: var(--ink3); margin-top: 3px">{{ iv.note }}</span></span>
+            <span style="font: 500 14px/1 var(--mono)">{{ iv.price }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <button class="e-btn e-brand" style="width: 100%; height: 48px; margin-top: 20px">Subscribe with auto-renew</button>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; font-size: 13px">
+        <span style="color: var(--ink3)">Billed via Stripe</span>
+        <button style="font-weight: 600; color: var(--brand-ink)">Pay for months once</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var p = this.props || {};
+    var s = this.state || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var sheet = s.sheet != null ? s.sheet : p.sheet === 'plans';
+    var base = ['Translation', 'Dictionary', 'Speech recognition', 'Speech synthesis', 'Pronunciation assessment'];
+    function feats(extra, dim) { return base.concat(extra).map(function (t, i) { var off = dim && i >= base.length; return { t: t, color: off ? 'var(--ink3)' : 'var(--ink2)', icon: off ? 'var(--line)' : 'var(--brand-ink)' }; }); }
+    var plans = [
+      { name: 'Free', desc: 'Perfect for light usage', amount: 'Free', unit: '', credits: '1,000 credits/day', tag: 'Current plan', tagFg: 'var(--ink2)', tagBg: 'var(--sunk)', frame: 'var(--line)', feats: feats(['Smart translation'], false), cta: false },
+      { name: 'Lite', desc: 'For daily learners', amount: '1.99', unit: 'USD / month', credits: '12,000 credits/day (12× Free)', tag: '', frame: 'var(--line)', feats: feats(['Smart translation'], false), cta: false },
+      { name: 'Pro', desc: 'For serious learners', amount: '9.99', unit: 'USD / month', credits: '60,000 credits/day (60× Free)', tag: 'Recommended', tagFg: '#FFFFFF', tagBg: 'var(--brand)', frame: 'var(--logo)', feats: feats(['Smart translation', 'Download vocabulary flashcards', 'More features coming'], false), cta: true }
+    ].map(function (x) { x.hasTag = !!x.tag; return x; });
+    var sel = s.iv || 'year';
+    var intervals = [
+      { id: 'month', name: 'Monthly', note: 'Monthly plan · cancel anytime', price: '9.99 USD/month' },
+      { id: 'year', name: 'Yearly', note: 'Yearly plan · two months free', price: '99.99 USD/year' }
+    ].map(function (x) { var on = x.id === sel; return { name: x.name, note: x.note, price: x.price, checked: on ? 'true' : 'false', border: on ? '2px solid var(--brand-ink)' : '1px solid var(--line)', bg: on ? 'var(--brand-soft)' : 'transparent', dot: on ? 'var(--brand-ink)' : 'var(--line)', fill: on ? 'var(--brand-ink)' : 'transparent', pick: function () { self.setState({ iv: x.id }); } }; });
+    return {
+      theme: theme, themeClass: 'e-' + theme, plans: plans, intervals: intervals, showSheet: sheet,
+      openSheet: function () { self.setState({ sheet: true }); }, closeSheet: function () { self.setState({ sheet: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

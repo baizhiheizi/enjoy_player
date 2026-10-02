@@ -1,6 +1,6 @@
 # ADR-0007 — Dynamic color from media artwork
 
-**Status**: Accepted  
+**Status**: Superseded by [ADR-0091](0091-duet-design-language.md) — artwork no longer tints any chrome  
 **Date**: 2026-05-09
 
 ## Context

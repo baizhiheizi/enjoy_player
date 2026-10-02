@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sync status</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.e-btn{height:42px;padding:0 18px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-ib:hover{background:var(--sunk)}
+.e-ib{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.sy-meta{display:none!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="settings" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <header style="flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 20px; border-bottom: 1px solid var(--line)">
+      <a href="Settings.dc.html" class="e-ib" aria-label="Back to Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="font-size: 16px; font-weight: 600">Sync status</span>
+    </header>
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 840px; margin: 0 auto; padding: 32px 24px 64px">
+        <section class="e-card" style="padding: 24px">
+          <div style="display: flex; align-items: center; gap: 16px">
+            <span style="width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; background: var(--blue-soft); color: var(--blue-ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px"><path d="M17.5 19H7a5 5 0 1 1 1.6-9.7A6 6 0 0 1 20 11a4 4 0 0 1-2.5 8Z"></path><path d="M12 12v5"></path><path d="m9.5 14.5 2.5 2.5 2.5-2.5"></path></svg></span>
+            <span><span class="e-ov" style="display: block">Last successful sync</span><span style="display: block; font-family: var(--content); font-size: 24px; font-weight: 500; margin-top: 8px">Today, 21:04</span></span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 22px">
+            <div style="padding: 16px; border-radius: 16px; background: var(--ground)"><div style="font-family: var(--content); font-size: 30px; font-weight: 500">3</div><div style="font-size: 13px; color: var(--ink3); margin-top: 4px">Waiting to upload</div></div>
+            <div style="padding: 16px; border-radius: 16px; background: var(--ground)"><div style="font-family: var(--content); font-size: 30px; font-weight: 500">1</div><div style="font-size: 13px; color: var(--ink3); margin-top: 4px">Failed permanently</div></div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap">
+            <button class="e-btn e-brand">Sync now</button>
+            <button class="e-btn e-sec">Retry failed items</button>
+          </div>
+        </section>
+        <div class="e-ov" style="margin: 30px 4px 12px">Queue details</div>
+        <section class="e-card">
+          <sc-for list="{{ queue }}" as="q" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line)">
+              <span style="width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--sunk); color: var(--ink2); font: 600 10.5px/1 var(--mono)">{{ q.kind }}</span>
+              <span style="min-width: 0"><span style="display: block; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ q.title }}</span><span class="sy-meta" style="display: block; font-size: 12.5px; color: var(--ink3); margin-top: 3px">{{ q.meta }}</span></span>
+              <span style="height: 24px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; background: {{ q.bg }}; color: {{ q.fg }}">{{ q.state }}</span>
+            </div>
+          </sc-for>
+        </section>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="profile" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var p = this.props || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var q = [
+      ['REC', 'Take 4 · The Ferry at Six', 'Recording · create · just now', 'Waiting', false],
+      ['VOC', 'regulars', 'Vocabulary item · update · 2 min ago', 'Waiting', false],
+      ['VID', 'Harbour interview, part 2', 'Video · update · 5 min ago', 'Waiting', false],
+      ['AUD', 'Notes from a Night Train', 'Audio · create · 5 attempts', 'Failed', true]
+    ].map(function (r) { return { kind: r[0], title: r[1], meta: r[2], state: r[3], bg: r[4] ? 'var(--ink)' : 'var(--sunk)', fg: r[4] ? 'var(--paper)' : 'var(--ink2)' }; });
+    return { theme: theme, themeClass: 'e-' + theme, queue: q };
+  }
+}
+</script>
+</body>
+</html>

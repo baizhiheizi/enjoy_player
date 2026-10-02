@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Edit profile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-soft:#E9F2FE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-soft:rgba(90,162,255,.15);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) :is(button,input){font:inherit;color:inherit}
+:where(.e) button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible,.e input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:42px;padding:0 18px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-ib:hover{background:var(--sunk)}
+.e-ib{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+.e-label{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:8px}
+.e-input{height:46px;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 14px;color:var(--ink);width:100%;font-size:15px;outline:none}
+.e-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.e-select{height:46px;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px 0 14px;width:100%;display:flex;align-items:center;justify-content:space-between;font-size:15px;color:var(--ink)}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="profile" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <header style="flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 20px; border-bottom: 1px solid var(--line)">
+      <a href="Profile.dc.html" class="e-ib" aria-label="Back to Profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="font-size: 16px; font-weight: 600">{{ title }}</span>
+    </header>
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <form class="e-pad" style="max-width: 680px; margin: 0 auto; padding: 40px 24px 64px; display: flex; flex-direction: column; gap: 22px">
+
+        <sc-if value="{{ isEdit }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: center; gap: 20px">
+            <span style="width: 88px; height: 88px; border-radius: 50%; padding: 3px; background: var(--logo); flex-shrink: 0">
+              <span style="width: 82px; height: 82px; border-radius: 50%; border: 3px solid var(--ground); display: flex; align-items: center; justify-content: center; background: var(--sunk); font-family: var(--content); font-size: 34px; font-weight: 500">A</span>
+            </span>
+            <div>
+              <button type="button" class="e-btn e-sec">Change avatar</button>
+              <div style="font-size: 12.5px; color: var(--ink3); margin-top: 8px">JPEG, PNG or WebP, 2 MB or smaller</div>
+            </div>
+          </div>
+          <div>
+            <label class="e-label" for="pe-name">Username</label>
+            <input id="pe-name" class="e-input" value="Alex Chen">
+          </div>
+          <div style="border-radius: 18px; border: 1px solid var(--line); background: var(--paper); overflow: hidden">
+            <sc-for list="{{ ids }}" as="r" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line)">
+                <span style="font-size: 13px; color: var(--ink3)">{{ r.k }}</span>
+                <span style="font: 500 14px/1.3 {{ r.font }}; color: {{ r.color }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.v }}</span>
+                <sc-if value="{{ r.copy }}" hint-placeholder-val="{{ false }}"><button type="button" aria-label="Copy" style="width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg></button></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPrefs }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <label class="e-label" for="pp-goal">Daily goal (minutes)</label>
+            <input id="pp-goal" class="e-input" value="15" inputmode="numeric" style="max-width: 200px; font-family: var(--mono)">
+          </div>
+          <div>
+            <span class="e-label">Display language</span>
+            <button type="button" class="e-select">English<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><path d="m6 9 6 6 6-6"></path></svg></button>
+          </div>
+          <div>
+            <span class="e-label">Learning language</span>
+            <button type="button" class="e-select">English (US)<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><path d="m6 9 6 6 6-6"></path></svg></button>
+            <div style="font-size: 12.5px; color: var(--ink3); margin-top: 8px">Choose the language you are learning.</div>
+          </div>
+          <div>
+            <span class="e-label">Native language</span>
+            <button type="button" class="e-select">中文（简体）<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><path d="m6 9 6 6 6-6"></path></svg></button>
+          </div>
+        </sc-if>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px">
+          <a href="Profile.dc.html" class="e-btn e-sec">Cancel</a>
+          <button type="button" class="e-btn e-brand" style="min-width: 120px">Save</button>
+        </div>
+      </form>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="profile" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"form":{"editor":"enum","options":["edit","prefs"],"default":"edit"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var p = this.props || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var form = p.form || 'edit';
+    return {
+      theme: theme, themeClass: 'e-' + theme, isEdit: form === 'edit', isPrefs: form === 'prefs',
+      title: form === 'edit' ? 'Edit profile' : 'Preferences',
+      ids: [
+        { k: 'Enjoy ID', v: '1048 2231', font: 'var(--mono)', color: 'var(--ink)', copy: true },
+        { k: 'Email', v: 'alex@example.com', font: 'var(--ui)', color: 'var(--ink)', copy: false },
+        { k: 'Mixin ID', v: 'Not linked', font: 'var(--ui)', color: 'var(--ink3)', copy: false }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ Guidance for humans and AI coding agents working in this repository.
 3. [docs/architecture.md](docs/architecture.md) — modules & data flow
 4. [docs/conventions.md](docs/conventions.md) — Dart / Flutter rules
 5. [docs/decisions/README.md](docs/decisions/README.md) — ADR index
+6. [docs/design/duet/](docs/design/duet/README.md) — the Duet design ([ADR-0091](docs/decisions/0091-duet-design-language.md)); all UI work follows it. While the redesign is in flight on `design-duet`, take tasks from [PLAN.md](docs/design/duet/PLAN.md) and keep [STATUS.md](docs/design/duet/STATUS.md) current
 
 ## Hard rules
 

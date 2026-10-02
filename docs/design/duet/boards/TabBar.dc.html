@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tab bar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;display=swap">
+<style>
+body{margin:0}
+.tb,.tb *{box-sizing:border-box}
+.tb-light{--tb-paper:#FFFFFF;--tb-line:#E3E6EB;--tb-ink3:#5E6573;--tb-brand-ink:#4F46E5;--tb-brand-soft:#EEEBFE}
+.tb-dark{--tb-paper:#16191F;--tb-line:#2A2F38;--tb-ink3:#8A91A0;--tb-brand-ink:#B4AFFF;--tb-brand-soft:rgba(124,58,237,.2)}
+.tb{--tb-ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif}
+.tb a:focus-visible{outline:2px solid #4797F5;outline-offset:2px}
+</style>
+</helmet>
+
+<nav aria-label="Main" class="tb {{ themeClass }}" style="width: 100%; height: 84px; box-sizing: border-box; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px 26px; background: var(--tb-paper); border-top: 1px solid var(--tb-line); font-family: var(--tb-ui)">
+  <sc-for list="{{ items }}" as="it" hint-placeholder-count="4">
+    <a href="{{ it.href }}" aria-current="{{ it.cur }}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: {{ it.fg }}">
+      <span style="width: 52px; height: 30px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{ it.bg }}">
+        <sc-if value="{{ it.isHome }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px"><path d="M3.5 10.5 12 3.5l8.5 7V20a1 1 0 0 1-1 1H15v-6.5H9V21H4.5a1 1 0 0 1-1-1Z"></path></svg></sc-if>
+        <sc-if value="{{ it.isDiscover }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px"><circle cx="12" cy="12" r="9"></circle><path d="m15.5 8.5-2 5-5 2 2-5Z"></path></svg></sc-if>
+        <sc-if value="{{ it.isLibrary }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px"><rect x="3.5" y="3.5" width="5" height="17" rx="1.2"></rect><rect x="10.5" y="3.5" width="5" height="17" rx="1.2"></rect><path d="m17.6 5 3.4 15"></path></svg></sc-if>
+        <sc-if value="{{ it.isProfile }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></sc-if>
+      </span>
+      <span style="font-size: 11.5px; font-weight: {{ it.fw }}">{{ it.label }}</span>
+    </a>
+  </sc-for>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"current":{"editor":"enum","options":["home","discover","library","profile","none"],"default":"home"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":390,"height":84}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var cur = this.props.current ?? 'home';
+    var theme = this.props.theme === 'dark' ? 'dark' : 'light';
+    var defs = [
+      { id: 'home', label: 'Home', href: 'Home.dc.html' },
+      { id: 'discover', label: 'Discover', href: 'Discover.dc.html' },
+      { id: 'library', label: 'Library', href: 'Library.dc.html' },
+      { id: 'profile', label: 'Profile', href: 'Profile.dc.html' }
+    ];
+    return { themeClass: 'tb-' + theme, items: defs.map(function (d) {
+      var on = d.id === cur;
+      return { label: d.label, href: d.href, cur: on ? 'page' : 'false', fg: on ? 'var(--tb-brand-ink)' : 'var(--tb-ink3)', bg: on ? 'var(--tb-brand-soft)' : 'transparent', fw: on ? 600 : 500,
+        isHome: d.id === 'home', isDiscover: d.id === 'discover', isLibrary: d.id === 'library', isProfile: d.id === 'profile' };
+    }) };
+  }
+}
+</script>
+</body>
+</html>

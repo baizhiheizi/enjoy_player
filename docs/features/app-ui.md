@@ -2,6 +2,8 @@
 
 **Status**: Implemented (Aurora redesign 2026-09-28, [ADR-0089](../decisions/0089-aurora-design-language.md); supersedes the 2026-05 "cinematic editorial" pass)
 
+> **Being replaced by Duet** ([ADR-0091](../decisions/0091-duet-design-language.md)) on the `design-duet` branch. This page describes the code as it is. Each section is rewritten as its phase lands ([PLAN.md → Documentation map](../design/duet/PLAN.md#documentation-map)). Build new UI to [`docs/design/duet/`](../design/duet/README.md), not to the Aurora descriptions below.
+
 ## Design direction
 
 **Aurora — quiet chrome, luminous content.** Material is the widget toolkit, not the look: no ink ripples, continuous (superellipse) corners, hairline + ambient-light depth instead of elevation, one icon family, and one motion language on every platform.

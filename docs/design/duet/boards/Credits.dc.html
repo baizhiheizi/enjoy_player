@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Credits usage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--you-ink:#7E22CE;--you-soft:#F4ECFE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--you-ink:#C7A0FF;--you-soft:rgba(143,85,240,.16);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:38px;padding:0 14px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:600;white-space:nowrap}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-ib:hover{background:var(--sunk)}
+.e-ib{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:22px}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-field{height:38px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--paper);display:inline-flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink)}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+.cr-pk{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}.cr-wide{display:none!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.cr-pk{grid-template-columns:1fr}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="profile" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <header style="flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 20px; border-bottom: 1px solid var(--line)">
+      <a href="Profile.dc.html" class="e-ib" aria-label="Back to Profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="font-size: 16px; font-weight: 600">Credits usage</span>
+    </header>
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 1000px; margin: 0 auto; padding: 32px 32px 72px">
+
+        <section class="e-card" style="padding: 22px 24px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+            <div><div style="font-size: 16px; font-weight: 600">Credits packages</div><div style="font-size: 13px; color: var(--ink3); margin-top: 4px">One-time permanent credits — not a subscription</div></div>
+            <span style="font: 500 13px/1 var(--mono); color: var(--brand-ink); padding: 7px 10px; border-radius: 9px; background: var(--brand-soft)">2,400 permanent credits available</span>
+          </div>
+          <div class="cr-pk" style="margin-top: 16px">
+            <sc-for list="{{ packs }}" as="pk" hint-placeholder-count="3">
+              <div style="padding: 16px; border-radius: 16px; border: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <div><div style="font-family: var(--content); font-size: 26px; font-weight: 500">{{ pk.credits }}</div><div style="font: 500 12.5px/1 var(--mono); color: var(--ink3); margin-top: 6px">{{ pk.price }}</div></div>
+                <button class="e-btn e-sec">Buy credits</button>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 30px; flex-wrap: wrap">
+          <span class="e-field"><span style="color: var(--ink3)">Start date</span><span style="font-family: var(--mono); font-size: 13px">2026-09-24</span></span>
+          <span class="e-field"><span style="color: var(--ink3)">End date</span><span style="font-family: var(--mono); font-size: 13px">2026-10-01</span></span>
+          <span class="e-field"><span style="color: var(--ink3)">Service</span>All<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--ink3)"><path d="m6 9 6 6 6-6"></path></svg></span>
+          <button class="e-btn" style="color: var(--brand-ink)">Clear filters</button>
+          <span style="flex: 1"></span>
+          <span style="font-size: 12.5px; color: var(--ink3)">UTC dates</span>
+        </div>
+
+        <section class="e-card" style="margin-top: 14px; overflow: hidden">
+          <div style="display: grid; grid-template-columns: 110px 70px 110px minmax(0, 1fr) 90px 90px 80px; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: var(--ground)">
+            <span class="e-ov">Date</span><span class="e-ov">Time</span><span class="e-ov">Service</span><span class="e-ov cr-wide">Tier</span><span class="e-ov" style="text-align: right">Required</span><span class="e-ov cr-wide" style="text-align: right">Used after</span><span class="e-ov" style="text-align: right">Status</span>
+          </div>
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+            <div style="display: grid; grid-template-columns: 110px 70px 110px minmax(0, 1fr) 90px 90px 80px; gap: 12px; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--line); font-size: 13.5px">
+              <span style="font-family: var(--mono); font-size: 12.5px">{{ r.d }}</span>
+              <span style="font-family: var(--mono); font-size: 12.5px; color: var(--ink3)">{{ r.t }}</span>
+              <span style="font-weight: 600">{{ r.s }}</span>
+              <span class="cr-wide" style="color: var(--ink3)">Free</span>
+              <span style="font-family: var(--mono); font-size: 12.5px; text-align: right">{{ r.req }}</span>
+              <span class="cr-wide" style="font-family: var(--mono); font-size: 12.5px; text-align: right; color: var(--ink3)">{{ r.after }}</span>
+              <span style="justify-self: end; height: 24px; padding: 0 9px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; background: {{ r.bg }}; color: {{ r.fg }}">{{ r.st }}</span>
+            </div>
+          </sc-for>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; font-size: 13px; color: var(--ink3)">
+            <span>Page 1 · 10 shown</span>
+            <span style="display: flex; gap: 8px"><button class="e-btn e-sec" disabled="{{ yes }}" style="opacity: .45">Previous</button><button class="e-btn e-sec">Next</button></span>
+          </div>
+        </section>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="profile" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var p = this.props || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var raw = [
+      ['2026-10-01', '13:04', 'Assessment', 60, 640, true], ['2026-10-01', '12:58', 'Translation', 24, 580, true], ['2026-10-01', '12:57', 'LLM', 120, 556, true],
+      ['2026-10-01', '09:12', 'ASR', 380, 436, true], ['2026-09-30', '22:40', 'TTS', 90, 1000, true], ['2026-09-30', '22:31', 'Assessment', 60, 910, true],
+      ['2026-09-30', '22:30', 'Assessment', 60, 850, true], ['2026-09-29', '23:55', 'ASR', 1400, 1000, false], ['2026-09-29', '21:10', 'Translation', 30, 970, true],
+      ['2026-09-29', '21:09', 'LLM', 140, 830, true]
+    ];
+    var rows = raw.map(function (r) { return { d: r[0], t: r[1], s: r[2], req: r[3].toLocaleString('en-US'), after: r[4].toLocaleString('en-US'), st: r[5] ? 'Allowed' : 'Denied', bg: r[5] ? 'var(--sunk)' : 'var(--ink)', fg: r[5] ? 'var(--ink2)' : 'var(--paper)' }; });
+    return { theme: theme, themeClass: 'e-' + theme, rows: rows, yes: true,
+      packs: [{ credits: '200,000', price: '2 USD' }, { credits: '500,000', price: '5 USD' }, { credits: '5,000,000', price: '50 USD' }] };
+  }
+}
+</script>
+</body>
+</html>

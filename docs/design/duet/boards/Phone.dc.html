@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Enjoy Player · Phone player</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;family=Noto+Sans:wght@400&amp;display=swap">
+<style>
+body{margin:0}
+.ph,.ph *{box-sizing:border-box}
+.ph-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--you:#8B2FE0;--you-ink:#7E22CE;--you-soft:#F4ECFE;--you-line:#D8B4FE;--on-you:#FFFFFF;--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--primary:#12141A;--on-primary:#FFFFFF;--shape:#DCE0E6;--tick:rgba(18,20,26,.26);--shadow:0 -8px 40px rgba(18,20,26,.14);--lift:0 1px 2px rgba(18,20,26,.08),0 0 0 1px rgba(18,20,26,.05);--scrim:rgba(18,20,26,.32);color-scheme:light}
+.ph-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--you:#8F55F0;--you-ink:#C7A0FF;--you-soft:rgba(143,85,240,.16);--you-line:rgba(167,120,250,.5);--on-you:#FFFFFF;--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--primary:#EEF0F4;--on-primary:#0E1014;--shape:#2C313B;--tick:rgba(238,240,244,.28);--shadow:0 -8px 40px rgba(0,0,0,.6);--lift:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);--scrim:rgba(0,0,0,.55);color-scheme:dark}
+.ph{--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace;--ipa:'Noto Sans','Segoe UI',system-ui,sans-serif}
+:where(.ph) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:where(.ph) button:disabled{cursor:default;opacity:.38}
+.ph button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.ph-ib{width:44px;height:44px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2);flex-shrink:0}
+.ph-ib svg{width:22px;height:22px}
+.ph-ov{font:600 10.5px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase}
+.ph-scroll{scrollbar-width:none}
+.ph-scroll::-webkit-scrollbar{display:none}
+@keyframes phpulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ph-pulse{animation:phpulse 1.2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.ph-pulse{animation:none}}
+</style>
+</helmet>
+
+<div class="ph {{ themeClass }}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px">
+
+  <header style="height: 60px; flex-shrink: 0; display: grid; grid-template-columns: 88px minmax(0, 1fr) 88px; align-items: center; gap: 4px; padding: 6px 8px 0">
+    <button class="ph-ib" aria-label="Collapse player" style="justify-self: start">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+    </button>
+    <div style="justify-self: center; display: flex; gap: 2px; padding: 3px; border-radius: 14px; background: var(--sunk)">
+      <button onClick="{{ toListen }}" aria-pressed="{{ listenPressed }}" disabled="{{ locked }}" style="height: 38px; padding: 0 18px; border-radius: 11px; font-size: 14px; font-weight: 600; background: {{ segListenBg }}; color: {{ segListenFg }}; box-shadow: {{ segListenSh }}">Listen</button>
+      <button onClick="{{ toEcho }}" aria-pressed="{{ echoPressed }}" disabled="{{ locked }}" style="height: 38px; padding: 0 18px; border-radius: 11px; font-size: 14px; font-weight: 600; background: {{ segEchoBg }}; color: {{ segEchoFg }}; box-shadow: {{ segEchoSh }}">Echo</button>
+    </div>
+    <div style="justify-self: end; display: flex; align-items: center">
+      <sc-if value="{{ showShare }}" hint-placeholder-val="{{ false }}">
+        <button class="ph-ib" aria-label="Share practice poster">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m8 7 4-4 4 4"></path><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"></path></svg>
+        </button>
+      </sc-if>
+      <button class="ph-ib" aria-label="Subtitles and display">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"></rect><path d="M7 15h4"></path><path d="M14 15h3"></path><path d="M7 11h2"></path><path d="M12 11h5"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <sc-if value="{{ isVideo }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-shrink: 0; width: 390px; height: 219px; position: relative; background: #000000; margin-top: 6px">
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Video: a ferry crossing the river at sunrise" style="position: absolute; inset: 0; width: 100%; height: 100%">
+        <defs><linearGradient id="phsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B2438"></stop><stop offset="0.6" stop-color="#584C69"></stop><stop offset="1" stop-color="#E4A06B"></stop></linearGradient></defs>
+        <rect width="1600" height="560" fill="url(#phsky)"></rect>
+        <circle cx="1060" cy="548" r="78" fill="#F6C27E"></circle>
+        <rect y="548" width="1600" height="352" fill="#131A28"></rect>
+        <rect x="960" y="574" width="200" height="5" rx="2.5" fill="#F6C27E" opacity=".75"></rect>
+        <rect x="1000" y="600" width="120" height="4" rx="2" fill="#F6C27E" opacity=".55"></rect>
+        <path d="M0 440 H1600" stroke="#0D1220" stroke-width="14"></path>
+        <path d="M80 548 Q 300 446 520 548 M520 548 Q 740 446 960 548 M960 548 Q 1180 446 1400 548 M1400 548 Q 1520 488 1600 520" fill="none" stroke="#0D1220" stroke-width="10"></path>
+        <rect x="512" y="440" width="16" height="110" fill="#0D1220"></rect>
+        <rect x="952" y="440" width="16" height="110" fill="#0D1220"></rect>
+        <path d="M250 720 h420 l-48 50 h-330 z" fill="#0A0E18"></path>
+        <rect x="330" y="676" width="210" height="46" rx="6" fill="#0A0E18"></rect>
+        <rect x="350" y="690" width="26" height="12" rx="2" fill="#F6C27E" opacity=".8"></rect>
+        <rect x="388" y="690" width="26" height="12" rx="2" fill="#F6C27E" opacity=".8"></rect>
+      </svg>
+    </div>
+  </sc-if>
+
+  <div style="padding: {{ overPad }}; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0">
+    <span style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">The Ferry at Six</span>
+    <span style="font-size: 12px; color: var(--ink3); white-space: nowrap">{{ lineMeta }}</span>
+  </div>
+
+  <sc-if value="{{ showHideHint }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; justify-content: center; padding: 6px 0 2px; flex-shrink: 0">
+      <span style="height: 30px; padding: 0 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--ink2); background: var(--raised); box-shadow: var(--lift)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><path d="M10.7 5.1A10.8 10.8 0 0 1 12 5c7 0 10 7 10 7a13 13 0 0 1-1.7 2.7"></path><path d="M6.6 6.6A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.4-1.6"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path><path d="m2 2 20 20"></path></svg>
+        Text hidden · press and hold a line to peek
+      </span>
+    </div>
+  </sc-if>
+
+  <div class="ph-scroll" ref="{{ setScroller }}" style="flex: 1; min-height: 0; overflow-y: auto; position: relative; padding: {{ scrollPad }}">
+
+    <sc-if value="{{ isListen }}" hint-placeholder-val="{{ true }}">
+      <sc-for list="{{ lines }}" as="L" hint-placeholder-count="8">
+        <div data-line="{{ L.idx }}" onPointerDown="{{ L.hold }}" onPointerUp="{{ L.release }}" onPointerLeave="{{ L.release }}" style="display: grid; grid-template-columns: 10px minmax(0, 1fr); column-gap: 8px; padding: {{ L.pad }}">
+          <span style="padding-top: {{ L.dotTop }}">
+            <sc-if value="{{ L.practiced }}" hint-placeholder-val="{{ false }}"><span style="display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--you)"></span></sc-if>
+          </span>
+          <div style="min-width: 0">
+            <sc-if value="{{ L.showTime }}" hint-placeholder-val="{{ false }}">
+              <div style="font: 500 11.5px/1 var(--mono); color: var(--blue-ink); margin-bottom: 8px">{{ L.time }}</div>
+            </sc-if>
+            <sc-if value="{{ L.showWords }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: 0.26em; row-gap: {{ L.rgap }}; font-family: var(--content); font-size: 23px; line-height: 1.34; font-weight: 500; letter-spacing: -0.008em">
+                <sc-for list="{{ L.words }}" as="w" hint-placeholder-count="12">
+                  <span style="display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px">
+                    <button onClick="{{ w.pick }}" aria-label="{{ w.aria }}" style="padding: 0 2px; margin: 0 -2px; border-radius: 6px; color: {{ w.color }}; background: {{ w.bg }}; text-decoration-line: {{ w.ul }}; text-decoration-style: {{ w.ulStyle }}; text-decoration-color: {{ w.ulColor }}; text-decoration-thickness: {{ w.ulW }}; text-underline-offset: 0.24em">{{ w.text }}</button>
+                    <sc-if value="{{ w.showIpa }}" hint-placeholder-val="{{ false }}"><span style="font: 400 12.5px/1.2 var(--ipa); color: var(--ink3); padding-left: 1px">{{ w.ipa }}</span></sc-if>
+                  </span>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ L.showPlain }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: block; width: 100%; text-align: left; font-family: var(--content); font-size: 18px; line-height: 1.5; color: {{ L.color }}">{{ L.en }}</button>
+            </sc-if>
+            <sc-if value="{{ L.showShapes }}" hint-placeholder-val="{{ false }}">
+              <div aria-label="Hidden line" style="display: flex; flex-wrap: wrap; column-gap: 0.3em; row-gap: 9px; padding: 0.42em 0; font-size: {{ L.fs }}">
+                <sc-for list="{{ L.shapes }}" as="sh" hint-placeholder-count="10"><span style="display: inline-block; height: 0.62em; width: {{ sh.w }}; border-radius: 0.2em; background: var(--shape)"></span></sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ L.showZh }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top: 4px; font-size: {{ L.zhFs }}; line-height: 1.55; color: {{ L.zhColor }}">{{ L.zh }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </sc-if>
+
+    <sc-if value="{{ isEcho }}" hint-placeholder-val="{{ false }}">
+      <sc-for list="{{ above }}" as="L" hint-placeholder-count="2">
+        <button data-line="{{ L.idx }}" onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: block; width: 100%; text-align: left; padding: 6px 24px; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.45; color: var(--ink3); opacity: {{ L.op }}">{{ L.shown }}</button>
+      </sc-for>
+
+      <section data-line="{{ loopFirst }}" aria-label="Echo loop" style="position: relative; margin: 30px 14px 6px; padding: 26px 20px 28px">
+        <span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-left: 2px solid var(--you); border-top: 2px solid var(--you); border-top-left-radius: 9px"></span>
+        <span aria-hidden="true" style="position: absolute; right: 0; top: 0; width: 22px; height: 22px; border-right: 2px solid var(--you); border-top: 2px solid var(--you); border-top-right-radius: 9px"></span>
+        <span aria-hidden="true" style="position: absolute; left: 0; bottom: 0; width: 22px; height: 22px; border-left: 2px solid var(--you); border-bottom: 2px solid var(--you); border-bottom-left-radius: 9px"></span>
+        <span aria-hidden="true" style="position: absolute; right: 0; bottom: 0; width: 22px; height: 22px; border-right: 2px solid var(--you); border-bottom: 2px solid var(--you); border-bottom-right-radius: 9px"></span>
+
+        <sc-if value="{{ showHandles }}" hint-placeholder-val="{{ true }}">
+          <div style="position: absolute; top: -21px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; border-radius: 999px; background: var(--paper); border: 1px solid var(--you-line)">
+            <button onClick="{{ expandBack }}" disabled="{{ cantExpandBack }}" aria-label="Expand echo backward" style="height: 40px; padding: 0 12px 0 10px; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--you-ink)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 14px; height: 14px"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+              Earlier
+            </button>
+            <span style="width: 1px; height: 16px; background: var(--you-line)"></span>
+            <button onClick="{{ shrinkBack }}" disabled="{{ cantShrink }}" aria-label="Shrink echo backward" style="width: 44px; height: 40px; display: inline-flex; align-items: center; justify-content: center; color: var(--you-ink)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 14px; height: 14px"><path d="M5 12h14"></path></svg>
+            </button>
+          </div>
+        </sc-if>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px">
+          <sc-if value="{{ rec }}" hint-placeholder-val="{{ false }}"><span class="ph-pulse" style="width: 8px; height: 8px; border-radius: 50%; background: var(--you)"></span></sc-if>
+          <span class="ph-ov" style="color: var(--you-ink)">{{ loopLabel }}</span>
+        </div>
+
+        <sc-for list="{{ loopLines }}" as="L" hint-placeholder-count="1">
+          <div onPointerDown="{{ L.hold }}" onPointerUp="{{ L.release }}" onPointerLeave="{{ L.release }}">
+            <sc-if value="{{ L.showWords }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: 0.25em; row-gap: {{ L.rgap }}; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.3; font-weight: 500; letter-spacing: -0.01em">
+                <sc-for list="{{ L.words }}" as="w" hint-placeholder-count="12">
+                  <span style="display: inline-flex; align-items: flex-start; gap: 0.16em">
+                    <sc-if value="{{ w.brk }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ w.pickMark }}" aria-label="Missing break before this word" style="height: 1.3em; display: inline-flex; align-items: center; gap: 3px; padding: 0 2px">
+                        <span style="width: 4px; height: 0.5em; border-radius: 2px; background: var(--you)"></span>
+                        <span style="width: 4px; height: 0.5em; border-radius: 2px; background: var(--you)"></span>
+                      </button>
+                    </sc-if>
+                    <span style="display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px">
+                      <button onClick="{{ w.pick }}" aria-label="{{ w.aria }}" style="padding: 0 2px; margin: 0 -2px; border-radius: 6px; color: {{ w.color }}; background: {{ w.bg }}; text-decoration-line: {{ w.ul }}; text-decoration-style: {{ w.ulStyle }}; text-decoration-color: {{ w.ulColor }}; text-decoration-thickness: {{ w.ulW }}; text-underline-offset: 0.2em">{{ w.text }}</button>
+                      <sc-if value="{{ w.showIpa }}" hint-placeholder-val="{{ false }}"><span style="font: 400 12.5px/1.2 var(--ipa); color: var(--ink3); padding-left: 1px">{{ w.ipa }}</span></sc-if>
+                    </span>
+                  </span>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ L.showShapes }}" hint-placeholder-val="{{ false }}">
+              <div aria-label="Hidden line" style="display: flex; flex-wrap: wrap; column-gap: 0.28em; row-gap: 12px; padding: 0.36em 0; font-size: {{ L.fs }}">
+                <sc-for list="{{ L.shapes }}" as="sh" hint-placeholder-count="10"><span style="display: inline-block; height: 0.6em; width: {{ sh.w }}; border-radius: 0.18em; background: var(--shape)"></span></sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ L.showZh }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top: 10px; font-size: 15px; line-height: 1.55; color: var(--ink2)">{{ L.zh }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ rec }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 18px; display: flex; align-items: center; gap: 10px">
+            <div style="position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--you-soft)"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{ recPct }}; border-radius: 2px; background: var(--you)"></span></div>
+            <span style="font: 500 12.5px/1 var(--mono); color: var(--you-ink); white-space: nowrap">{{ recCaption }}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showPitch }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 20px">
+            <div style="display: flex; align-items: center; gap: 14px; font-size: 11.5px; color: var(--ink3); margin-bottom: 8px">
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 7px; border-radius: 4px; background: var(--blue); opacity: .35"></span>Reference</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 3px; border-radius: 2px; background: var(--you)"></span>Yours · {{ selLabel }}</span>
+            </div>
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Pitch contour: the original in blue, your take in violet" style="display: block; width: 100%; height: 64px; overflow: visible">
+              <path d="{{ refPath }}" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="stroke: var(--blue); opacity: .35"></path>
+              <path d="{{ userPath }}" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="stroke: var(--you)"></path>
+            </svg>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showHandles }}" hint-placeholder-val="{{ true }}">
+          <div style="position: absolute; bottom: -21px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; border-radius: 999px; background: var(--paper); border: 1px solid var(--you-line)">
+            <button onClick="{{ shrinkFwd }}" disabled="{{ cantShrink }}" aria-label="Shrink echo forward" style="width: 44px; height: 40px; display: inline-flex; align-items: center; justify-content: center; color: var(--you-ink)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 14px; height: 14px"><path d="M5 12h14"></path></svg>
+            </button>
+            <span style="width: 1px; height: 16px; background: var(--you-line)"></span>
+            <button onClick="{{ expandFwd }}" disabled="{{ cantExpandFwd }}" aria-label="Expand echo forward" style="height: 40px; padding: 0 10px 0 12px; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--you-ink)">
+              Later
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 14px; height: 14px"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+            </button>
+          </div>
+        </sc-if>
+      </section>
+
+      <sc-if value="{{ showScoreStrip }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ openSel }}" style="display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; width: calc(100% - 28px); margin: 34px 14px 0; padding: 12px 14px; border-radius: 16px; background: var(--paper); border: 1px solid var(--line); text-align: left">
+          <span style="font-family: var(--content); font-size: 34px; line-height: 1; font-weight: 500; letter-spacing: -0.03em">{{ aOverall }}</span>
+          <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+            <span style="font-size: 14px; font-weight: 600">{{ aLevel }} · {{ selLabel }}</span>
+            <span style="font-size: 12px; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ aLine }}</span>
+          </span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><path d="m9 6 6 6-6 6"></path></svg>
+        </button>
+      </sc-if>
+
+      <sc-if value="{{ showTakes }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: {{ takesPad }}">
+          <sc-for list="{{ takes }}" as="tk" hint-placeholder-count="3">
+            <div style="flex-shrink: 0; display: inline-flex; align-items: center; height: 44px; border-radius: 999px; border: 1px solid {{ tk.border }}; background: {{ tk.bg }}; padding-right: 5px">
+              <button onClick="{{ tk.play }}" aria-label="{{ tk.aria }}" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px 0 7px; font-size: 13.5px; font-weight: 500">
+                <span style="width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: {{ tk.iconBg }}; color: {{ tk.iconFg }}">
+                  <sc-if value="{{ tk.notPlaying }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 12px; height: 12px; margin-left: 2px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></sc-if>
+                  <sc-if value="{{ tk.playing }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 12px; height: 12px"><rect x="6" y="4.5" width="4" height="15" rx="1.2"></rect><rect x="14" y="4.5" width="4" height="15" rx="1.2"></rect></svg></sc-if>
+                </span>
+                {{ tk.label }}
+              </button>
+              <sc-if value="{{ tk.hasScore }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ tk.open }}" aria-label="{{ tk.scoreAria }}" style="height: 32px; min-width: 40px; padding: 0 9px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font: 600 13px/1 var(--mono)">{{ tk.score }}</button>
+              </sc-if>
+              <sc-if value="{{ tk.canScore }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ tk.doScore }}" style="height: 32px; padding: 0 11px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--ink2); background: var(--sunk)">Score</button>
+              </sc-if>
+              <sc-if value="{{ tk.isScoring }}" hint-placeholder-val="{{ false }}">
+                <span style="height: 32px; padding: 0 10px; display: inline-flex; align-items: center; font-size: 12.5px; color: var(--ink3)">Scoring…</span>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noTakes }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 13px; color: var(--ink3)">No recordings for this segment yet.</span>
+          </sc-if>
+          <button onClick="{{ togglePitch }}" aria-pressed="{{ pitchPressed }}" disabled="{{ noTakes }}" aria-label="Pitch contour" style="flex-shrink: 0; width: 44px; height: 44px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); background: {{ pitchBg }}; color: {{ pitchFg }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="M2 14c2.2 0 2.8-6 5-6s2.8 9 5 9 2.8-12 5-12 2.8 9 5 9"></path></svg>
+          </button>
+        </div>
+      </sc-if>
+
+      <sc-for list="{{ below }}" as="L" hint-placeholder-count="2">
+        <button data-line="{{ L.idx }}" onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: block; width: 100%; text-align: left; padding: 6px 24px; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.45; color: var(--ink3); opacity: {{ L.op }}">{{ L.shown }}</button>
+      </sc-for>
+    </sc-if>
+  </div>
+
+  <footer style="flex-shrink: 0; background: var(--paper); border-top: 1px solid var(--line); padding: 2px 14px 30px">
+    <div style="display: flex; align-items: center; gap: 10px; height: 34px">
+      <span style="font: 500 11.5px/1 var(--mono); color: var(--ink2); width: 32px; text-align: right">{{ timeNow }}</span>
+      <div style="position: relative; flex: 1; height: 34px">
+        <span style="position: absolute; left: 0; right: 0; top: 19px; height: 4px; border-radius: 2px; background: var(--sunk)"></span>
+        <span style="position: absolute; top: 15px; height: 12px; left: {{ bandLeft }}; width: {{ bandWidth }}; border-radius: 4px; background: {{ bandBg }}"></span>
+        <span style="position: absolute; left: 0; top: 19px; height: 4px; border-radius: 2px; width: {{ playedPct }}; background: var(--blue)"></span>
+        <sc-for list="{{ ticks }}" as="k" hint-placeholder-count="13"><span style="position: absolute; top: 16px; height: 10px; width: 1.5px; margin-left: -0.75px; left: {{ k.left }}; background: var(--tick)"></span></sc-for>
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="3"><span style="position: absolute; top: 3px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; left: {{ d.left }}; background: var(--you)"></span></sc-for>
+        <sc-if value="{{ isEcho }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: 10px; height: 8px; left: {{ bandLeft }}; width: {{ bandWidth }}; border: 2px solid var(--you); border-bottom: 0; border-radius: 3px 3px 0 0"></span></sc-if>
+        <span style="position: absolute; top: 14px; width: 14px; height: 14px; margin-left: -7px; left: {{ playedPct }}; border-radius: 50%; background: var(--paper); border: 3px solid var(--blue)"></span>
+        <input type="range" min="0" max="{{ rangeMax }}" step="1" value="{{ rangeVal }}" onChange="{{ onSeek }}" aria-label="Seek" aria-valuetext="{{ seekText }}" style="position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0">
+      </div>
+      <span style="font: 500 11.5px/1 var(--mono); color: var(--ink3); width: 32px">{{ timeTotal }}</span>
+    </div>
+
+    <sc-if value="{{ listenControls }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: center; justify-content: space-between; height: 78px; padding: 0 2px">
+        <button class="ph-ib" onClick="{{ toggleHide }}" aria-pressed="{{ hidePressed }}" aria-label="Hide text" style="background: {{ hideBg }}; color: {{ hideFg }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.7 5.1A10.8 10.8 0 0 1 12 5c7 0 10 7 10 7a13 13 0 0 1-1.7 2.7"></path><path d="M6.6 6.6A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.4-1.6"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path><path d="m2 2 20 20"></path></svg>
+        </button>
+        <button class="ph-ib" onClick="{{ prev }}" aria-label="Previous line" style="width: 52px; height: 52px">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M19 19.5 9 12l10-7.5v15Z"></path><path d="M5 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
+        </button>
+        <button onClick="{{ togglePlay }}" aria-label="{{ playLabel }}" style="width: 68px; height: 68px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--brand); color: #FFFFFF; box-shadow: 0 8px 24px rgba(79,70,229,.32)">
+          <sc-if value="{{ showPlayIcon }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 26px; height: 26px; margin-left: 3px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></sc-if>
+          <sc-if value="{{ showPauseIcon }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px"><rect x="6" y="4.5" width="4.2" height="15" rx="1.3"></rect><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.3"></rect></svg></sc-if>
+        </button>
+        <button class="ph-ib" onClick="{{ next }}" aria-label="Next line" style="width: 52px; height: 52px">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 4.5 15 12 5 19.5v-15Z"></path><path d="M19 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
+        </button>
+        <button onClick="{{ cycleSpeed }}" aria-label="{{ speedAria }}" style="width: 44px; height: 44px; border-radius: 14px; font: 500 13px/1 var(--mono); color: var(--ink2)">{{ speedLabel }}</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ echoControls }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; height: 92px; padding: 6px 4px 0">
+        <button class="ph-ib" onClick="{{ prev }}" aria-label="Previous line" style="margin-top: 16px">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M19 19.5 9 12l10-7.5v15Z"></path><path d="M5 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
+        </button>
+        <span style="display: flex; align-items: flex-start; gap: 18px">
+        <button onClick="{{ replay }}" aria-label="Hear the original" style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 72px">
+          <span style="width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--blue-soft); color: var(--blue-ink); margin-top: 10px">
+            <sc-if value="{{ showPlayIcon }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px; margin-left: 2px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></sc-if>
+            <sc-if value="{{ showPauseIcon }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px"><rect x="6" y="4.5" width="4" height="15" rx="1.2"></rect><rect x="14" y="4.5" width="4" height="15" rx="1.2"></rect></svg></sc-if>
+          </span>
+          <span style="font-size: 11.5px; font-weight: 600; color: var(--blue-ink)">Original</span>
+        </button>
+        <button onClick="{{ toggleRec }}" aria-label="Record a take" style="display: flex; flex-direction: column; align-items: center; gap: 0; width: 84px">
+          <span style="width: 76px; height: 76px; border-radius: 50%; position: relative; display: inline-flex; align-items: center; justify-content: center">
+            <svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true" style="position: absolute; inset: 0"><circle cx="38" cy="38" r="35" fill="none" stroke-width="2.5" style="stroke: var(--you-line)"></circle></svg>
+            <span style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--you); color: var(--on-you); box-shadow: 0 8px 22px rgba(124,58,237,.3)"><span style="width: 20px; height: 20px; border-radius: 50%; background: currentColor"></span></span>
+          </span>
+          <span style="font-size: 11.5px; font-weight: 600; color: var(--you-ink)">Record</span>
+        </button>
+        </span>
+        <button class="ph-ib" onClick="{{ next }}" aria-label="Next line" style="margin-top: 16px">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 4.5 15 12 5 19.5v-15Z"></path><path d="M19 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
+        </button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ recControls }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; height: 92px; padding: 6px 4px 0">
+        <span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0"></span>
+        <span style="display: flex; align-items: flex-start; gap: 18px">
+          <button onClick="{{ cancelRec }}" aria-label="Cancel and discard this take" style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 72px">
+            <span style="width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--sunk); color: var(--ink2); margin-top: 10px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 20px; height: 20px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </span>
+            <span style="font-size: 11.5px; font-weight: 600; color: var(--ink2)">Cancel</span>
+          </button>
+          <button onClick="{{ toggleRec }}" aria-label="Stop recording" style="display: flex; flex-direction: column; align-items: center; gap: 0; width: 84px">
+            <span style="width: 76px; height: 76px; border-radius: 50%; position: relative; display: inline-flex; align-items: center; justify-content: center">
+              <svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true" style="position: absolute; inset: 0; transform: rotate(-90deg)">
+                <circle cx="38" cy="38" r="35" fill="none" stroke-width="3" style="stroke: var(--you-line)"></circle>
+                <circle cx="38" cy="38" r="35" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="{{ ringOffset }}" style="stroke: var(--you)"></circle>
+              </svg>
+              <span style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--you); color: var(--on-you)"><span style="width: 20px; height: 20px; border-radius: 5px; background: currentColor"></span></span>
+            </span>
+            <span style="font-size: 11.5px; font-weight: 600; color: var(--you-ink)">Stop</span>
+          </button>
+        </span>
+        <span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0"></span>
+      </div>
+    </sc-if>
+  </footer>
+
+  <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+    <button aria-label="Close" onClick="{{ closeSheet }}" style="position: absolute; inset: 0; z-index: 8; background: var(--scrim); cursor: default"></button>
+    <div aria-label="{{ sheetLabel }}" style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 9; max-height: 74%; display: flex; flex-direction: column; background: var(--raised); border-radius: 26px 26px 0 0; box-shadow: var(--shadow)">
+      <div style="display: flex; justify-content: center; padding: 8px 0 2px"><span style="width: 36px; height: 5px; border-radius: 3px; background: var(--line)"></span></div>
+
+      <sc-if value="{{ isWordSheet }}" hint-placeholder-val="{{ true }}">
+        <div class="ph-scroll" style="overflow-y: auto; padding: 6px 20px 34px">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+            <div>
+              <div style="font-family: var(--content); font-size: 36px; line-height: 1.1; font-weight: 500; letter-spacing: -0.02em">{{ wTerm }}</div>
+              <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 8px">
+                <span style="font: 400 16px/1 var(--ipa); color: var(--ink2)">{{ wIpa }}</span>
+                <span style="font-size: 12.5px; color: var(--ink3)">{{ wPos }}</span>
+              </div>
+            </div>
+            <button class="ph-ib" aria-label="Close" onClick="{{ closeSheet }}" style="margin: -2px -10px 0 0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px">
+            <button style="height: 48px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: 13.5px; font-weight: 600; background: var(--blue-soft); color: var(--blue-ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px"><path d="M11 5 6 9H3v6h3l5 4V5Z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>Pronounce</button>
+            <button style="height: 48px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: 13.5px; font-weight: 600; background: var(--sunk)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px"><path d="M6.5 3h11a1 1 0 0 1 1 1v17l-6.5-4-6.5 4V4a1 1 0 0 1 1-1Z"></path></svg>Save</button>
+            <button style="height: 48px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: 13.5px; font-weight: 600; background: var(--sunk)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg>Copy</button>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 4px; margin-top: 14px; padding: 4px; border-radius: 14px; background: var(--sunk)">
+            <button style="height: 40px; border-radius: 10px; font-size: 13.5px; font-weight: 500">English</button>
+            <button aria-label="Swap languages" style="width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg></button>
+            <button style="height: 40px; border-radius: 10px; font-size: 13.5px; font-weight: 500; background: var(--raised); box-shadow: var(--lift)">中文</button>
+          </div>
+          <div style="margin-top: 12px; border: 1px solid var(--line); border-radius: 16px">
+            <div style="height: 46px; display: flex; align-items: center; padding: 0 16px; font-size: 13.5px; font-weight: 600">Translation</div>
+            <div style="padding: 0 16px 16px; font-size: 20px; line-height: 1.5; color: {{ wTrColor }}">{{ wTr }}</div>
+          </div>
+          <button aria-expanded="false" style="margin-top: 8px; width: 100%; height: 50px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border: 1px solid var(--line); border-radius: 16px; font-size: 13.5px; font-weight: 600"><span style="flex: 1; text-align: left">Definition</span><span style="font-size: 12.5px; font-weight: 400; color: var(--ink3)">Expand to load</span></button>
+          <button aria-expanded="false" style="margin-top: 8px; width: 100%; height: 50px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border: 1px solid var(--line); border-radius: 16px; font-size: 13.5px; font-weight: 600"><span style="flex: 1; text-align: left">Contextual translation</span><span style="font-size: 12.5px; font-weight: 400; color: var(--ink3)">Expand to load</span></button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTakeSheet }}" hint-placeholder-val="{{ false }}">
+        <div class="ph-scroll" style="overflow-y: auto; padding: 8px 20px 34px">
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span class="ph-ov" style="color: var(--you-ink)">{{ selLabel }} · Assessment</span>
+            <button class="ph-ib" aria-label="Close" onClick="{{ closeSheet }}" style="margin-right: -10px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+          <div style="display: flex; align-items: flex-end; gap: 12px">
+            <span style="font-family: var(--content); font-size: 64px; line-height: 0.86; font-weight: 500; letter-spacing: -0.035em">{{ aOverall }}</span>
+            <span style="font-size: 15px; font-weight: 600; padding-bottom: 4px">{{ aLevel }}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px">
+            <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 30px; align-items: center; gap: 10px; font-size: 13px">
+                <span style="color: var(--ink2)">{{ m.name }}</span>
+                <span style="position: relative; height: 6px; border-radius: 3px; background: var(--sunk)"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{ m.w }}; border-radius: 3px; background: var(--ink)"></span></span>
+                <span style="font: 500 12.5px/1 var(--mono); text-align: right">{{ m.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: 18px; padding: 14px; border-radius: 16px; border: 1px solid var(--you-line); background: var(--you-soft)">
+            <div style="display: flex; align-items: baseline; gap: 10px">
+              <span style="font-family: var(--content); font-size: 22px; font-weight: 500; text-decoration-line: underline; text-decoration-style: wavy; text-decoration-color: var(--you); text-decoration-thickness: 2px; text-underline-offset: 6px">ferry</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--you-ink)">Mispronunciation</span>
+              <span style="flex: 1"></span>
+              <span style="font: 600 12.5px/1 var(--mono)">58</span>
+            </div>
+            <button style="margin-top: 12px; height: 44px; padding: 0 14px 0 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--you-ink); background: var(--paper)"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 12px; height: 12px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg>Play my recording of this word</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"media":{"editor":"enum","options":["audio","video"],"default":"audio"},"mode":{"editor":"enum","options":["listen","echo"],"default":"listen"},"$preview":{"width":390,"height":844}}'>
+var DL = [
+  { en: 'Every morning at six, the ferry leaves before the city wakes up.', zh: '每天早上六点，渡轮总在城市醒来之前出发。', d: 4.4 },
+  { en: 'I started taking it last spring, mostly by accident.', zh: '我是去年春天开始坐渡轮的，多半是出于偶然。', d: 3.9 },
+  { en: 'My usual train was cancelled, and the ferry was the only way across.', zh: '我常坐的那班火车停运了，渡轮是唯一能过河的办法。', d: 4.6 },
+  { en: 'The first thing I noticed was how quiet everyone was.', zh: '我注意到的第一件事，是大家有多安静。', d: 3.6 },
+  { en: 'Nobody was on their phone; they were just watching the water.', zh: '没有人在看手机，他们只是望着水面。', d: 4.4 },
+  { en: "You don't take the ferry to save time; you take it to slow down.", zh: '坐渡轮不是为了省时间，而是为了慢下来。', d: 4.2 },
+  { en: 'By the second week, I knew the faces of the regulars.', zh: '到了第二周，我已经认得那些常客的脸了。', d: 4.1 },
+  { en: 'The man with the thermos always offered me a cup.', zh: '那个带保温瓶的男人总会请我喝一杯。', d: 3.7 },
+  { en: 'We never talked much, but we always nodded.', zh: '我们从不多聊，但总会点点头。', d: 3.3 },
+  { en: 'Somewhere in the middle of the river, the sun comes up behind the bridge.', zh: '船行到河中央时，太阳从桥后升起。', d: 4.8 },
+  { en: 'For about a minute, the whole boat goes gold.', zh: '大约有一分钟，整条船都被染成金色。', d: 3.4 },
+  { en: "Then the engines change their sound, and we're almost there.", zh: '接着引擎的声音变了，我们快到了。', d: 4.3 },
+  { en: "I could take the train again now, but I don't.", zh: '我现在又可以坐火车了，但我没有。', d: 3.5 },
+  { en: 'Some mornings are worth the long way around.', zh: '有些早晨，值得绕远路。', d: 3.6 }
+];
+(function () { var t = 0; for (var i = 0; i < DL.length; i++) { DL[i].s = t; t += DL[i].d; DL[i].e = t; DL[i].w = DL[i].en.split(' '); } })();
+var DT = DL[DL.length - 1].e;
+var DIPA = { 'you': 'juː', "don't": 'doʊnt', 'take': 'teɪk', 'the': 'ðə', 'ferry': 'ˈfɛri', 'to': 'tə', 'save': 'seɪv', 'time': 'taɪm', 'it': 'ɪt', 'slow': 'sloʊ', 'down': 'daʊn' };
+var DDICT = {
+  ferry: { pos: 'noun', ipa: 'ˈfɛri', tr: '渡轮；渡船' }, save: { pos: 'verb', ipa: 'seɪv', tr: '节省；省下' }, time: { pos: 'noun', ipa: 'taɪm', tr: '时间' },
+  slow: { pos: 'verb', ipa: 'sloʊ', tr: '放慢；减速' }, down: { pos: 'adverb', ipa: 'daʊn', tr: '（放）慢下来；向下' }, take: { pos: 'verb', ipa: 'teɪk', tr: '乘坐；搭乘' }
+};
+var DMARK = { 4: { brk: false }, 8: { brk: true } };
+var DPRACTICED = { 1: true, 3: true, 5: true };
+function dFmt(t) { t = Math.max(0, t); var m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
+function dNorm(w) { return w.toLowerCase().replace(/[’]/g, "'").replace(/[^a-z']/g, ''); }
+function dBool(v) { return v === true || v === 'true'; }
+function dWordTimes(L) {
+  var tot = 0; var lens = L.w.map(function (w) { var n = dNorm(w).length + 1.6; tot += n; return n; });
+  var acc = 0; return lens.map(function (n) { var a = acc / tot; acc += n; return [a, acc / tot]; });
+}
+function dShapes(L) { return L.w.map(function (w) { return { w: (Math.max(1.4, dNorm(w).length) * 0.5 + 0.1).toFixed(2) + 'em' }; }); }
+function dLevel(v) { return v >= 91 ? 'Excellent' : v >= 81 ? 'Good' : v >= 61 ? 'Fair' : 'Poor'; }
+function dAssess(x) {
+  if (!x || x.score == null) return null;
+  if (x.n === 2) return { overall: 71, acc: 74, flu: 69, comp: 100, pros: 62 };
+  var o = x.score; return { overall: o, acc: Math.min(100, o + 4), flu: o - 3, comp: 100, pros: o - 8 };
+}
+function dContour(L, flat, stretch, withGap) {
+  var wt = dWordTimes(L); var accents = [];
+  L.w.forEach(function (w, k) { if (dNorm(w).length >= 4) accents.push((wt[k][0] + wt[k][1]) / 2); });
+  var gapA = 2, gapB = 2;
+  for (var k = 0; k < L.w.length - 1; k++) { if (/[;,]$/.test(L.w[k])) { gapA = wt[k][1] - 0.012; gapB = wt[k + 1][0] + 0.03; break; } }
+  var d = '', pen = false;
+  for (var j = 0; j <= 96; j++) {
+    var x = 0.012 + 0.976 * j / 96;
+    if (withGap && x > gapA && x < gapB) { pen = false; continue; }
+    var y = 0.56 - 0.34 * x + 0.1 * Math.sin(x * 6.6 + 0.4);
+    accents.forEach(function (c, ci) { y += (ci % 2 ? 0.17 : 0.24) * Math.exp(-Math.pow((x - c) / 0.03, 2)); });
+    y += 0.015 * Math.sin(x * 61);
+    y = 0.5 + (y - 0.5) * flat;
+    var px = Math.min(99.5, x * stretch * 100), py = (1 - Math.max(0.05, Math.min(0.95, y))) * 100;
+    d += (pen ? 'L' : 'M') + px.toFixed(2) + ' ' + py.toFixed(2) + ' ';
+    pen = true;
+  }
+  return d;
+}
+var P_RING = 219.9;
+
+class Component extends DCLogic {
+  defaults() {
+    var p = this.props || {};
+    return {
+      mode: p.mode || 'listen', playing: false, t: p.t != null ? +p.t : 22.6,
+      hide: dBool(p.hide), reveal: p.reveal != null ? +p.reveal : -1,
+      sheet: p.sheet || 'none', word: p.word || 'ferry', wordLine: 5, wordIdx: p.wordIdx != null ? +p.wordIdx : 4,
+      es: 5, ee: 5,
+      takes: { '5-5': [{ n: 1, dur: 3.9, score: null }, { n: 2, dur: 4.6, score: 71 }, { n: 3, dur: 4.0, score: 84 }] },
+      sel: { '5-5': p.sel != null ? +p.sel : 3 },
+      rec: p.take === 'recording', recT: p.recT != null ? +p.recT : 2.4, recFrozen: dBool(p.frozen),
+      scoring: null, pitch: dBool(p.pitch), ipa: p.ipa != null ? dBool(p.ipa) : false,
+      speed: 1, playingTake: null, playT: 0
+    };
+  }
+  st() { return Object.assign({}, this.defaults(), this.state || {}); }
+  lineAt(t) { for (var i = 0; i < DL.length; i++) { if (t < DL[i].e) return i; } return DL.length - 1; }
+  componentDidMount() {
+    var self = this;
+    this._iv = setInterval(function () { self.tick(); }, 100);
+    this._mt = setTimeout(function () { self.follow(true); }, 120);
+    this._mt2 = setTimeout(function () { self.follow(true); }, 900);
+  }
+  componentWillUnmount() { clearInterval(this._iv); clearTimeout(this._mt); clearTimeout(this._mt2); clearTimeout(this._sct); }
+  componentDidUpdate() { this.follow(false); }
+  follow(force) {
+    if (!this.scroller) return;
+    var s = this.st();
+    var idx = s.mode === 'echo' ? s.es : this.lineAt(s.t);
+    var k = s.mode + ':' + idx + ':' + s.ee;
+    if (!force && k === this._last) return;
+    this._last = k;
+    var el = this.scroller.querySelector('[data-line="' + idx + '"]');
+    if (!el) return;
+    var top = Math.max(0, el.offsetTop - this.scroller.clientHeight * (s.mode === 'echo' ? 0.16 : 0.26));
+    try { this.scroller.scrollTo({ top: top, behavior: force ? 'auto' : 'smooth' }); } catch (e) { this.scroller.scrollTop = top; }
+  }
+  tick() {
+    var s = this.st();
+    if (s.rec) { if (!s.recFrozen) this.setState({ recT: s.recT + 0.1 }); return; }
+    if (s.playingTake != null) {
+      var key = s.es + '-' + s.ee; var x = (s.takes[key] || []).filter(function (y) { return y.n === s.playingTake; })[0];
+      var pt = s.playT + 0.1;
+      if (!x || pt >= x.dur) this.setState({ playingTake: null, playT: 0 }); else this.setState({ playT: pt });
+      return;
+    }
+    if (!s.playing) return;
+    var t = s.t + 0.1 * s.speed; var patch = {};
+    if (s.mode === 'echo') { var a = DL[s.es].s, b = DL[s.ee].e; if (t >= b) { t = a + 0.001; patch.playing = false; } }
+    if (t >= DT) { t = DT; patch.playing = false; }
+    patch.t = t; this.setState(patch);
+  }
+  togglePlay() { var s = this.st(); if (s.rec) return; var patch = { playing: !s.playing, playingTake: null }; if (!s.playing && s.t >= DT - 0.05) patch.t = 0; this.setState(patch); }
+  seekLine(i) { var s = this.st(); if (s.rec) return; var patch = { t: DL[i].s + 0.001 }; if (s.mode === 'echo') { patch.es = i; patch.ee = i; patch.playing = false; } this.setState(patch); }
+  step(d) {
+    var s = this.st(); var N = DL.length; if (s.rec) return;
+    if (s.mode === 'echo') { var len = s.ee - s.es; var ns = Math.min(Math.max(0, s.es + d), N - 1 - len); this.setState({ es: ns, ee: ns + len, t: DL[ns].s + 0.001, playing: false }); }
+    else { var ni = Math.min(Math.max(0, this.lineAt(s.t) + d), N - 1); this.setState({ t: DL[ni].s + 0.001 }); }
+  }
+  replay() { var s = this.st(); if (s.rec) return; if (s.mode === 'echo' && s.playing) { this.setState({ playing: false }); return; } var start = s.mode === 'echo' ? DL[s.es].s : DL[this.lineAt(s.t)].s; this.setState({ t: start + 0.001, playing: true, playingTake: null }); }
+  setMode(m) {
+    var s = this.st(); if (s.rec || s.mode === m) return;
+    var idx = this.lineAt(s.t); var patch = { mode: m, sheet: 'none' };
+    if (m === 'echo') { patch.es = idx; patch.ee = idx; patch.t = DL[idx].s + 0.001; patch.playing = false; }
+    this.setState(patch);
+  }
+  editLoop(kind) {
+    var s = this.st(); var N = DL.length; var es = s.es, ee = s.ee;
+    if (kind === 'eb') es = Math.max(0, es - 1);
+    if (kind === 'sb' && es < ee) es = es + 1;
+    if (kind === 'ef') ee = Math.min(N - 1, ee + 1);
+    if (kind === 'sf' && ee > es) ee = ee - 1;
+    this.setState({ es: es, ee: ee, t: DL[es].s + 0.001, playing: false });
+  }
+  toggleRec() {
+    var s = this.st();
+    if (!s.rec) { this.setState({ rec: true, recT: 0, recFrozen: false, playingTake: null, sheet: 'none' }); return; }
+    var key = s.es + '-' + s.ee; var list = (s.takes[key] || []).slice();
+    var n = list.reduce(function (m, x) { return Math.max(m, x.n); }, 0) + 1;
+    list.push({ n: n, dur: Math.max(0.6, s.recT), score: null });
+    var takes = Object.assign({}, s.takes); takes[key] = list;
+    var sel = Object.assign({}, s.sel); sel[key] = n;
+    this.setState({ rec: false, takes: takes, sel: sel });
+  }
+  selectTake(n) { var s = this.st(); var sel = Object.assign({}, s.sel); sel[s.es + '-' + s.ee] = n; return sel; }
+  playTake(n) { var s = this.st(); var sel = this.selectTake(n); if (s.playingTake === n) { this.setState({ playingTake: null, sel: sel }); return; } this.setState({ playingTake: n, playT: 0, playing: false, sel: sel }); }
+  playSel() { var s = this.st(); var n = s.sel[s.es + '-' + s.ee]; if (n != null) this.playTake(n); }
+  openTake(n) { this.setState({ sel: this.selectTake(n), sheet: 'take' }); }
+  scoreTake(n) {
+    var self = this; this.setState({ scoring: n, sel: this.selectTake(n) });
+    clearTimeout(this._sct);
+    this._sct = setTimeout(function () {
+      var s = self.st(); var key = s.es + '-' + s.ee;
+      var list = (s.takes[key] || []).map(function (x) { return x.n === n ? Object.assign({}, x, { score: 82 }) : x; });
+      var takes = Object.assign({}, s.takes); takes[key] = list;
+      self.setState({ takes: takes, scoring: null });
+    }, 1300);
+  }
+
+  renderVals() {
+    var self = this;
+    var s = this.st();
+    var p = this.props || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var isVideo = p.media === 'video';
+    var isEcho = s.mode === 'echo';
+    var isListen = !isEcho;
+    var N = DL.length;
+    var act = this.lineAt(s.t);
+    var key = s.es + '-' + s.ee;
+    var tkList = s.takes[key] || [];
+    var selN = s.sel[key] != null ? s.sel[key] : (tkList.length ? tkList[tkList.length - 1].n : null);
+    var selTake = null; tkList.forEach(function (x) { if (x.n === selN) selTake = x; });
+    var scored = !!(selTake && selTake.score != null && s.scoring !== selTake.n);
+    var showMarks = isEcho && scored && !s.rec && s.es <= 5 && s.ee >= 5;
+    var loopDur = DL[s.ee].e - DL[s.es].s;
+    var recFrac = Math.min(1, s.recT / loopDur);
+    var over = s.rec && s.recT > loopDur;
+    var ipaOn = s.ipa;
+
+    function wordsFor(i) {
+      var L = DL[i]; var wt = dWordTimes(L);
+      var lineFrac = (s.t - L.s) / L.d; var here = s.t >= L.s && s.t < L.e;
+      return L.w.map(function (w, k) {
+        var n = dNorm(w);
+        var cur = here && !s.rec && (!isEcho || s.playing) && lineFrac >= wt[k][0] && lineFrac < wt[k][1];
+        var mark = showMarks && i === 5 ? DMARK[k] : null;
+        var paced = s.rec && isEcho && i >= s.es && i <= s.ee && recFrac > (L.s - DL[s.es].s + wt[k][0] * L.d) / loopDur;
+        var looked = s.sheet === 'word' && s.wordLine === i && s.wordIdx === k;
+        var o = { color: 'var(--ink)', bg: 'transparent', ul: 'none', ulStyle: 'solid', ulColor: 'transparent', ulW: '2px' };
+        if (cur) { o.color = 'var(--blue-ink)'; o.ul = 'underline'; o.ulColor = 'var(--blue)'; o.ulW = '3px'; }
+        if (paced) { o.ul = 'underline'; o.ulColor = 'var(--you)'; o.ulW = '3px'; }
+        if (mark && !mark.brk) { o.ul = 'underline'; o.ulStyle = 'wavy'; o.ulColor = 'var(--you)'; o.ulW = '2px'; }
+        if (looked) o.bg = 'var(--blue-soft)';
+        return {
+          text: w, color: o.color, bg: o.bg, ul: o.ul, ulStyle: o.ulStyle, ulColor: o.ulColor, ulW: o.ulW,
+          ipa: DIPA[n] || '', showIpa: ipaOn && !!DIPA[n], brk: !!(mark && mark.brk), aria: 'Look up ' + n,
+          pick: function () { if (mark && !mark.brk) self.openTake(selN); else self.setState({ sheet: 'word', word: n, wordLine: i, wordIdx: k }); },
+          pickMark: function () { self.openTake(selN); }
+        };
+      });
+    }
+    function holdFns(i) {
+      return {
+        hold: function () { if (self.st().hide) self.setState({ reveal: i }); },
+        release: function () { if (self.st().reveal === i && !self.props.reveal) self.setState({ reveal: -1 }); }
+      };
+    }
+
+    var lines = [], above = [], below = [], loopLines = [];
+    if (isListen) {
+      lines = DL.map(function (L, i) {
+        var active = i === act; var past = s.t >= L.e; var hidden = s.hide && s.reveal !== i; var h = holdFns(i);
+        return {
+          idx: i, time: dFmt(L.s), en: L.en, zh: L.zh, hold: h.hold, release: h.release,
+          seek: function () { self.seekLine(i); }, seekLabel: 'Play from ' + dFmt(L.s),
+          practiced: !!DPRACTICED[i], showTime: active && !hidden,
+          showWords: active && !hidden, showPlain: !active && !hidden, showShapes: hidden, showZh: !hidden,
+          words: active && !hidden ? wordsFor(i) : [], shapes: hidden ? dShapes(L) : [],
+          fs: active ? '23px' : '18px', color: past ? 'var(--ink3)' : 'var(--ink2)',
+          zhFs: active ? '14.5px' : '13.5px', zhColor: active ? 'var(--ink2)' : 'var(--ink3)',
+          pad: active ? '16px 20px 18px 12px' : '9px 20px 9px 12px', dotTop: active ? '30px' : '11px',
+          rgap: ipaOn ? '10px' : '2px'
+        };
+      });
+    } else {
+      DL.forEach(function (L, i) {
+        var hidden = s.hide && s.reveal !== i;
+        if (i >= s.es && i <= s.ee) {
+          var h = holdFns(i); var cnt = s.ee - s.es + 1;
+          loopLines.push({ idx: i, hold: h.hold, release: h.release, zh: L.zh, showWords: !hidden, showShapes: hidden, showZh: !hidden, words: !hidden ? wordsFor(i) : [], shapes: hidden ? dShapes(L) : [], fs: cnt === 1 ? '28px' : '23px', rgap: ipaOn ? '12px' : '4px' });
+          return;
+        }
+        var dist = i < s.es ? s.es - i : i - s.ee;
+        if (dist > 3) return;
+        var item = {
+          idx: i, shown: hidden ? L.w.map(function (w) { return '▬'.repeat(Math.max(1, Math.round(dNorm(w).length / 2))); }).join(' ') : L.en,
+          seek: function () { self.seekLine(i); }, seekLabel: 'Move the loop to ' + dFmt(L.s),
+          op: dist === 1 ? 0.65 : dist === 2 ? 0.35 : 0.2, fs: dist === 1 ? '16px' : '15px'
+        };
+        (i < s.es ? above : below).push(item);
+      });
+    }
+
+    var takes = tkList.slice().reverse().map(function (x) {
+      var on = x.n === selN; var pl = s.playingTake === x.n;
+      return {
+        label: 'Take ' + x.n, border: on ? 'var(--you-line)' : 'var(--line)', bg: on ? 'var(--you-soft)' : 'var(--paper)',
+        iconBg: on ? 'var(--you)' : 'var(--sunk)', iconFg: on ? 'var(--on-you)' : 'var(--ink2)',
+        playing: pl, notPlaying: !pl, hasScore: x.score != null && s.scoring !== x.n, canScore: x.score == null && s.scoring !== x.n, isScoring: s.scoring === x.n,
+        score: x.score, aria: (pl ? 'Pause' : 'Play') + ' take ' + x.n, scoreAria: 'Take ' + x.n + ', score ' + x.score,
+        play: function () { self.playTake(x.n); }, open: function () { self.openTake(x.n); }, doScore: function () { self.scoreTake(x.n); }
+      };
+    });
+    var A = scored ? dAssess(selTake) : null;
+    var pct = function (t) { return (t / DT * 100).toFixed(3) + '%'; };
+    var bandStart = isEcho ? DL[s.es].s : DL[act].s; var bandEnd = isEcho ? DL[s.ee].e : DL[act].e;
+    var cnt = s.ee - s.es + 1;
+    var wd = DDICT[s.word];
+    var speeds = [0.75, 1, 1.25, 0.5];
+
+    return {
+      themeClass: 'ph-' + theme, isVideo: isVideo, locked: s.rec,
+      showShare: isEcho && tkList.length > 0 && !s.rec,
+      toListen: function () { self.setMode('listen'); }, toEcho: function () { self.setMode('echo'); },
+      listenPressed: isListen ? 'true' : 'false', echoPressed: isEcho ? 'true' : 'false',
+      segListenBg: isListen ? 'var(--raised)' : 'transparent', segListenFg: isListen ? 'var(--blue-ink)' : 'var(--ink2)', segListenSh: isListen ? 'var(--lift)' : 'none',
+      segEchoBg: isEcho ? 'var(--raised)' : 'transparent', segEchoFg: isEcho ? 'var(--you-ink)' : 'var(--ink2)', segEchoSh: isEcho ? 'var(--lift)' : 'none',
+      overPad: isVideo ? '12px 20px 4px' : '4px 20px 4px',
+      lineMeta: isEcho ? (cnt > 1 ? 'Lines ' + (s.es + 1) + '–' + (s.ee + 1) : 'Line ' + (s.es + 1)) + ' of ' + N + ' · looping' : 'Line ' + (act + 1) + ' of ' + N,
+      showHideHint: s.hide,
+      setScroller: this._ref || (this._ref = function (el) { self.scroller = el; }),
+      scrollPad: isEcho ? (isVideo ? '6px 0 40px' : '40px 0 60px') : '8px 0 40vh',
+      isListen: isListen, isEcho: isEcho, lines: lines, above: above, below: below, loopLines: loopLines,
+      loopFirst: s.es, rec: s.rec && isEcho, showHandles: isEcho && !s.rec,
+      loopLabel: s.rec ? 'Recording take ' + (tkList.reduce(function (m, x) { return Math.max(m, x.n); }, 0) + 1) : 'Loop · ' + (cnt > 1 ? 'Lines ' + (s.es + 1) + '–' + (s.ee + 1) : 'Line ' + (s.es + 1)) + ' · ' + loopDur.toFixed(1) + ' s',
+      expandBack: function () { self.editLoop('eb'); }, shrinkBack: function () { self.editLoop('sb'); },
+      expandFwd: function () { self.editLoop('ef'); }, shrinkFwd: function () { self.editLoop('sf'); },
+      cantExpandBack: s.es === 0, cantExpandFwd: s.ee === N - 1, cantShrink: s.es === s.ee,
+      recPct: (recFrac * 100).toFixed(1) + '%',
+      recCaption: over ? '+' + (s.recT - loopDur).toFixed(1) + 's over target' : s.recT.toFixed(1) + ' s / ' + loopDur.toFixed(1) + ' s',
+      recShort: over ? '+' + (s.recT - loopDur).toFixed(1) + 's\nover' : s.recT.toFixed(1) + ' s\nof ' + loopDur.toFixed(1),
+      showPitch: isEcho && s.pitch && scored && !s.rec, selLabel: selTake ? 'Take ' + selTake.n : '',
+      refPath: dContour(DL[s.es], 1, 1, true), userPath: dContour(DL[s.es], 0.58, 0.965, false),
+      showScoreStrip: isEcho && scored && !s.rec && !!p.strip,
+      openSel: function () { if (selN != null) self.openTake(selN); },
+      aOverall: A ? A.overall : '', aLevel: A ? dLevel(A.overall) : '',
+      aLine: A ? 'Accuracy ' + A.acc + ' · Fluency ' + A.flu + ' · Prosody ' + A.pros : '',
+      metrics: A ? [['Accuracy', A.acc], ['Fluency', A.flu], ['Completeness', A.comp], ['Prosody', A.pros]].map(function (m) { return { name: m[0], v: m[1], w: m[1] + '%' }; }) : [],
+      showTakes: isEcho && !s.rec, takes: takes, noTakes: tkList.length === 0,
+      takesPad: p.strip ? '14px 14px 6px' : '34px 14px 6px',
+      togglePitch: function () { self.setState({ pitch: !self.st().pitch }); },
+      pitchPressed: s.pitch ? 'true' : 'false', pitchBg: s.pitch ? 'var(--sunk)' : 'var(--paper)', pitchFg: s.pitch ? 'var(--ink)' : 'var(--ink2)',
+
+      timeNow: dFmt(s.t), timeTotal: dFmt(DT),
+      bandLeft: pct(bandStart), bandWidth: ((bandEnd - bandStart) / DT * 100).toFixed(3) + '%', bandBg: isEcho ? 'var(--you-soft)' : 'var(--blue-soft)',
+      playedPct: pct(s.t),
+      ticks: DL.slice(1).map(function (L) { return { left: pct(L.s) }; }),
+      dots: Object.keys(DPRACTICED).map(function (i) { return { left: pct((DL[i].s + DL[i].e) / 2) }; }),
+      rangeMax: Math.round(DT * 10), rangeVal: Math.round(s.t * 10),
+      onSeek: function (e) { var v = +e.target.value / 10; var c = self.st(); var patch = { t: v }; if (c.mode === 'echo') { var li = self.lineAt(v); patch.es = li; patch.ee = li; } self.setState(patch); },
+      seekText: dFmt(s.t) + ' of ' + dFmt(DT),
+
+      listenControls: isListen, echoControls: isEcho && !s.rec, recControls: isEcho && s.rec,
+      toggleHide: function () { self.setState({ hide: !self.st().hide, reveal: -1 }); },
+      hidePressed: s.hide ? 'true' : 'false', hideBg: s.hide ? 'var(--ink)' : 'transparent', hideFg: s.hide ? 'var(--paper)' : 'var(--ink2)',
+      prev: function () { self.step(-1); }, next: function () { self.step(1); }, replay: function () { self.replay(); },
+      togglePlay: function () { self.togglePlay(); }, playLabel: s.playing ? 'Pause' : 'Play', showPlayIcon: !s.playing, showPauseIcon: s.playing,
+      cycleSpeed: function () { var c = self.st(); var i = speeds.indexOf(c.speed); self.setState({ speed: speeds[(i + 1) % speeds.length] }); },
+      speedLabel: (s.speed === 1 ? '1.0' : String(s.speed)) + '×', speedAria: 'Playback speed ' + s.speed + 'x',
+      toggleRec: function () { self.toggleRec(); }, cancelRec: function () { self.setState({ rec: false, recT: 0 }); },
+      playSel: function () { self.playSel(); }, ringOffset: (P_RING * (1 - recFrac)).toFixed(2),
+
+      sheetOpen: s.sheet !== 'none', closeSheet: function () { self.setState({ sheet: 'none' }); },
+      sheetLabel: s.sheet === 'word' ? 'Look up' : 'Pronunciation assessment',
+      isWordSheet: s.sheet === 'word', isTakeSheet: s.sheet === 'take' && !!A,
+      wTerm: s.word, wIpa: wd ? wd.ipa : (DIPA[s.word] || ''), wPos: wd ? wd.pos : '',
+      wTr: wd ? wd.tr : 'Loading…', wTrColor: wd ? 'var(--ink)' : 'var(--ink3)'
+    };
+  }
+}
+</script>
+</body>
+</html>

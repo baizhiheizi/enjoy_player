@@ -21,6 +21,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [superpowers/](superpowers/) | Contributors + agents | Large mechanical refactor specs & implementation plans |
 | [features/](features/) | Product + dev | Feature behavior changes |
 | [features/app-ui.md](features/app-ui.md) | Product + dev | Shell, navigation chrome, or design tokens change |
+| [design/duet/](design/duet/README.md) | Product + dev | The Duet redesign (renders, boards, tokens, board → screen map) changes on the canvas — re-render with `tool/render_design_boards.mjs`; [PLAN.md](design/duet/PLAN.md) / [STATUS.md](design/duet/STATUS.md) as tasks land |
 | [features/skeleton-loading.md](features/skeleton-loading.md) | Product + dev | Skeleton widget API, prebuilt placeholders, or sliver-safe placement rules change |
 | [features/hotkeys.md](features/hotkeys.md) | Product + dev | Keyboard shortcuts or customization behavior changes |
 | [features/auth.md](features/auth.md) | Product + dev | Sign-in, profile, API base URL, or settings sync behavior changes |

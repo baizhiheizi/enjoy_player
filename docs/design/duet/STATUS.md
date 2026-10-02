@@ -1,0 +1,149 @@
+# Duet — status
+
+Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the work. Open PRs against `design-duet` show what is in flight; this file shows what has merged.
+
+**Status values**: `todo` · `in progress` · `review` · `done` · `blocked` · `needs decision`
+
+**Branch**: `design-duet` · **Started**: 2026-10-02 · **Last `main` merge**: — (merge `main` in at least weekly; record the date here)
+
+## Progress
+
+| Phase | Tasks | Done |
+|---|---|---|
+| 0 · Ready | 2 | 1 |
+| 1 · Foundations | 8 | 0 |
+| 2 · Shell | 3 | 0 |
+| 3 · Player | 13 | 0 |
+| 4 · App screens | 11 | 0 |
+| 5 · Cleanup, proof, merge | 6 | 0 |
+| **Total** | **43** | **1** |
+
+## Decisions
+
+Questions a board raises that the rules can't settle. A task gated by an open decision may start, but must leave the gated part out until the decision is `decided`.
+
+| ID | Question | Recommendation | Status | Gates |
+|---|---|---|---|---|
+| R1 | The Listen dock on `Main` draws a **Repeat** button. Repeat mode exists (`RepeatMode` none / single / segment, `PlayerPreferences.setRepeatMode`) but has no UI today, so the button would expose a hidden setting. Ship it? | Leave it out (feature freeze); revisit after the merge. | open | D3.2 |
+| S1 | The desktop sidebar on `Sidebar` adds **Vocabulary** (due count) and **Craft** rows, a **Settings** row, and a **sync status** line. It drops `SidebarContinuePracticeCard`; Home keeps Continue practicing. These are navigation changes only, on existing routes and state. | Build as drawn. | open | D2.1 |
+| L1 | Violet replaces coral for "you"; scores lose their colors; Literata replaces Source Serif 4 and Instrument Serif; Hide text renders as word shapes. | Accepted in ADR-0091. | decided | — |
+
+## Tasks
+
+### Phase 0 · Ready
+
+| ID | Task | Boards | Depends | Status | Owner | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| D0.1 | Design reference, ADR-0091, plan, tracker | all | — | done | — | — | Renders + boards + tokens in `docs/design/duet/`; fonts bundled |
+| D0.2 | Gallery harness (opt-in screenshots + compare) | — | — | todo | | | |
+
+### Phase 1 · Foundations
+
+| ID | Task | Boards | Depends | Status | Owner | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| D1.1 | Duet tokens + `tokens.json` parity test | `System` | — | todo | | | |
+| D1.2 | Color scheme + component themes | `System` | D1.1 | todo | | | |
+| D1.3 | Typography (Literata / Geist / Mono / IPA) | `System` | D1.1 | todo | | | |
+| D1.4 | Buttons | `System`, `SignIn`, `DLocate`, `LibraryDelete` | D1.2, D1.3 | todo | | | |
+| D1.5 | Controls (segmented, chips, keycap, inputs, toggles, ring, badges) | `System`, `Library`, `Settings`, `VocabularyReview`, `Keyboard` | D1.2, D1.3 | todo | | | |
+| D1.6 | Surfaces + page furniture (cards, modals, headers, empty, skeleton, notices) | `System`, `NotFound`, `LibraryDelete`, `SubscriptionPlans` | D1.2, D1.3 | todo | | | |
+| D1.7 | Generated covers + media cards | `Home`, `Library`, `LibraryAudio`, `Discover`, `CraftHistory` | D1.2, D1.3 | todo | | | |
+| D1.8 | Flat ground (remove the glow) | `Home` | D1.1 | todo | | | `AuroraGlow` deleted after D4.7 |
+
+### Phase 2 · Shell
+
+| ID | Task | Boards | Depends | Status | Owner | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| D2.1 | Desktop shell + sidebar | `Sidebar`, `Home`, `HomeDark` | Phase 1 | todo | | | Gated by S1 |
+| D2.2 | Phone tab bar | `TabBar`, `PhHome`, `PhLibrary` | Phase 1 | todo | | | |
+| D2.3 | Page metrics + subpage chrome + Not found | `Home`, `Profile`, `ProfileEdit`, `Craft`, `Settings`, `NotFound` | Phase 1 | todo | | | |
+
+### Phase 3 · Player
+
+| ID | Task | Boards | Depends | Status | Owner | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| D3.1 | Player frame + top bar (drop ambient tint, floating chrome) | `Main`, `DEcho`, `DVideo`, `DYoutubeDark`, `DCompact`, `Phone`, `PVideo` | Phase 1 | todo | | | |
+| D3.2 | Dock (Listen / Echo / Recording) | `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording` | D3.1 | todo | | | Gated by R1 |
+| D3.3 | Sentence ruler | `Main`, `DEcho`, `Phone`, `PEcho` | D3.2 | todo | | | |
+| D3.4 | Listen lens | `Main`, `DDark`, `Phone`, `PDark` | D3.1 | todo | | | |
+| D3.5 | Echo lens | `DEcho`, `PEcho`, `DCompact` | D3.4 | todo | | | |
+| D3.6 | Takes, pitch, recording in the loop | `DEcho`, `DRecording`, `DScored`, `PEcho`, `PRecording`, `PScored` | D3.5, D3.2 | todo | | | |
+| D3.7 | Side margin + word lookup | `DWord`, `DCompact`, `PWord` | D3.1 | todo | | | |
+| D3.8 | Assessment in the margin + feedback on words | `DScored`, `PScored` | D3.6, D3.7 | todo | | | |
+| D3.9 | Hide text as word shapes | `DHide`, `PHide` | D3.4 | todo | | | |
+| D3.10 | Subtitles & display popover | `DSubtitles` | D3.1 | todo | | | |
+| D3.11 | Player states (empty, generating, locate, loading, errors) | `DEmpty`, `DGenerating`, `DLocate` | D3.1 | todo | | | |
+| D3.12 | Share poster | `Poster` | D3.6 | todo | | | |
+| D3.13 | Player pass: dark, compact, video, phone | `DDark`, `DYoutubeDark`, `DCompact`, `DVideo`, `PVideo`, `PVideoEcho`, `PDark` | D3.1–D3.12 | todo | | | |
+
+### Phase 4 · App screens
+
+| ID | Task | Boards | Depends | Status | Owner | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| D4.1 | Home | `Home`, `HomeImport`, `HomeFirstRun`, `HomeDark`, `PhHome`, `PhHomeDark` | Phase 1, D2.1, D2.2 | todo | | | |
+| D4.2 | Discover | `Discover`, `DiscoverChannel`, `DiscoverManage`, `PhDiscover` | Phase 1, D2.3 | todo | | | |
+| D4.3 | Library | `Library`, `LibraryAudio`, `LibraryCloud`, `LibraryDelete`, `LibraryImporting`, `PhLibrary` | Phase 1, D2.3 | todo | | | |
+| D4.4 | Vocabulary | `Vocabulary`, `VocabularyReview`, `PhVocabulary` | Phase 1, D2.3 | todo | | | |
+| D4.5 | Review session | `Review`, `ReviewBack`, `ReviewDone`, `PhReview` | Phase 1 | todo | | | |
+| D4.6 | Craft | `Craft`, `CraftRewrite`, `CraftAudio`, `CraftAdvanced`, `CraftHistory`, `PhCraft` | Phase 1, D2.3 | todo | | | |
+| D4.7 | Sign-in | `SignIn`, `SignInCode`, `PhSignIn` | Phase 1 | todo | | | Then delete `AuroraGlow` |
+| D4.8 | Profile, Edit profile, Preferences | `Profile`, `ProfileEdit`, `ProfilePrefs`, `PhProfile` | Phase 1, D2.3 | todo | | | |
+| D4.9 | Subscription + Credits | `Subscription`, `SubscriptionPlans`, `Credits` | Phase 1, D2.3 | todo | | | |
+| D4.10 | Settings, Sync, Keyboard, AI providers, update dialog | `Settings`, `SettingsAbout`, `SettingsDark`, `Sync`, `Keyboard`, `KeyboardCheatsheet`, `AiProviders`, `PhSettings` | Phase 1, D2.3 | todo | | | |
+| D4.11 | Surfaces not drawn (apply the system) | `System` | Phase 1 | todo | | | List each surface in the PR |
+
+### Phase 5 · Cleanup, proof, merge
+
+| ID | Task | Boards | Depends | Status | Owner | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| D5.1 | Rename pass + delete Aurora | — | Phases 1–4 | todo | | | |
+| D5.2 | Design-language invariant test | — | D5.1 | todo | | | |
+| D5.3 | Docs (app-ui.md rewrite, feature docs) | — | D5.1 | todo | | | |
+| D5.4 | Performance evidence | — | D5.1 | todo | | | |
+| D5.5 | Platform QA matrix | all | D5.1 | todo | | | Record results here |
+| D5.6 | Merge `design-duet` → `main` | — | D5.2–D5.5 | todo | | | |
+
+## Board → task index
+
+Every board has an owner task. A board drawn for more than one state appears under each task that builds part of it.
+
+| Board | Task | | Board | Task |
+|---|---|---|---|---|
+| `Sidebar` | D2.1 | | `Home` | D4.1 (D1.7, D1.8, D2.1, D2.3) |
+| `TabBar` | D2.2 | | `HomeImport` | D4.1 |
+| `Main` | D3.1–D3.4 | | `HomeFirstRun` | D4.1 |
+| `DEcho` | D3.1, D3.2, D3.5, D3.6 | | `HomeDark` | D4.1, D2.1 |
+| `DRecording` | D3.2, D3.6 | | `Discover` | D4.2 (D1.7) |
+| `DScored` | D3.6, D3.8 | | `DiscoverChannel` | D4.2 |
+| `DWord` | D3.7 | | `DiscoverManage` | D4.2 |
+| `DHide` | D3.9 | | `Library` | D4.3 (D1.5, D1.7) |
+| `DSubtitles` | D3.10 | | `LibraryAudio` | D4.3 (D1.7) |
+| `DCompact` | D3.1, D3.5, D3.7, D3.13 | | `LibraryCloud` | D4.3 |
+| `DVideo` | D3.1, D3.2, D3.13 | | `LibraryDelete` | D4.3 (D1.4, D1.6) |
+| `DYoutubeDark` | D3.1, D3.13 | | `LibraryImporting` | D4.3 |
+| `DDark` | D3.4, D3.13 | | `Vocabulary` | D4.4 |
+| `DEmpty` | D3.11 | | `VocabularyReview` | D4.4 (D1.5) |
+| `DGenerating` | D3.11 | | `Review` | D4.5 |
+| `DLocate` | D3.11 (D1.4) | | `ReviewBack` | D4.5 |
+| `Poster` | D3.12 | | `ReviewDone` | D4.5 |
+| `Phone` | D3.1–D3.4 | | `Craft` | D4.6 (D2.3) |
+| `PEcho` | D3.2, D3.3, D3.5, D3.6 | | `CraftRewrite` | D4.6 |
+| `PRecording` | D3.2, D3.6 | | `CraftAudio` | D4.6 |
+| `PScored` | D3.6, D3.8 | | `CraftAdvanced` | D4.6 |
+| `PWord` | D3.7 | | `CraftHistory` | D4.6 (D1.7) |
+| `PHide` | D3.9 | | `SignIn` | D4.7 (D1.4) |
+| `PVideo` | D3.1, D3.13 | | `SignInCode` | D4.7 |
+| `PVideoEcho` | D3.13 | | `Profile` | D4.8 (D2.3) |
+| `PDark` | D3.4, D3.13 | | `ProfileEdit` | D4.8 (D2.3) |
+| `System` | D1.1–D1.6, D4.11 | | `ProfilePrefs` | D4.8 |
+| `NotFound` | D2.3 (D1.6) | | `Subscription` | D4.9 |
+| `PhSignIn` | D4.7 | | `SubscriptionPlans` | D4.9 (D1.6) |
+| `PhHome` | D4.1 (D2.2) | | `Credits` | D4.9 |
+| `PhHomeDark` | D4.1 | | `Settings` | D4.10 (D1.5, D2.3) |
+| `PhDiscover` | D4.2 | | `SettingsAbout` | D4.10 |
+| `PhLibrary` | D4.3 (D2.2) | | `SettingsDark` | D4.10 |
+| `PhVocabulary` | D4.4 | | `Sync` | D4.10 |
+| `PhReview` | D4.5 | | `Keyboard` | D4.10 (D1.5) |
+| `PhCraft` | D4.6 | | `KeyboardCheatsheet` | D4.10 |
+| `PhProfile` | D4.8 | | `AiProviders` | D4.10 |
+| `PhSettings` | D4.10 | | | |
