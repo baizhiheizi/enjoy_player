@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
 import 'package:enjoy_player/core/webview/webview_environment_gate.dart';
 
@@ -115,6 +116,10 @@ void main() {
   testWidgets(
     'default future resolves to null off Windows without stalling the gate',
     (tester) async {
+      final previous = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = _ThrowingPathProviderPlatform();
+      addTearDown(() => PathProviderPlatform.instance = previous);
+
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,
@@ -129,4 +134,11 @@ void main() {
       expect(find.text('resolved=true'), findsOneWidget);
     },
   );
+}
+
+class _ThrowingPathProviderPlatform extends PathProviderPlatform {
+  @override
+  Future<String?> getApplicationSupportPath() async {
+    throw StateError('test seam: no support directory in widget tests');
+  }
 }
