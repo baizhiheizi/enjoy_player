@@ -346,6 +346,51 @@ void main() {
     },
   );
 
+  testWidgets('side-by-side stage ends above the extendBody transport strip', (
+    tester,
+  ) async {
+    final fake = FakePlayerEngine();
+    addTearDown(() async {
+      await fake.dispose();
+    });
+    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
+    const barHeight = 100.0;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [playerEngineTestDoubleProvider.overrideWithValue(fake)],
+        child: MaterialApp(
+          theme: ThemeData(
+            colorScheme: scheme,
+            extensions: [EnjoyThemeTokens.build(scheme)],
+          ),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            extendBody: true,
+            bottomNavigationBar: const SizedBox(height: barHeight),
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                VideoPlayerLayout(
+                  engine: fake,
+                  transcript: const Text('TR_STUB'),
+                ),
+                const PlayerSurfaceHost(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final stage = tester.getRect(find.byType(PlayerSurfaceTarget).first);
+    expect(stage.bottom, 600 - barHeight);
+    expect(find.text('TR_STUB'), findsOneWidget);
+  });
+
   /// Mirrors [ExpandedPlayerChromeBody] narrow video layout: [VideoPlayerLayout]
   /// fills the stack; paused title chrome is an overlay and must not change the
   /// 16:9 stage geometry.
