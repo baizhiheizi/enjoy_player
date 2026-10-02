@@ -67,3 +67,24 @@ the four result rows in the PR. All `behaviorDiff: none` required (US5).
 | SC-006 | Phase 2 step 2 |
 | SC-007 | Platform smoke rows |
 | SC-008 | ADR + packaging docs (R7) landed in the same change |
+
+## Spike evidence (2026-10-02, S1 executed)
+
+- **S1 PASS (with caveat)**: Arch dev machine (amdgpu, Hyprland/Wayland, wpewebkit
+  2.52.6). Watch page loads, availability probe passes, JS bridge live (events,
+  pause/play, volume restore, position tracking all verified in logs), audio and
+  playback state work end-to-end. Picture requires `LIBGL_ALWAYS_SOFTWARE=1` on
+  this stack: with hardware GL, WPE 2.52's frame export delivers **zero frames**
+  to the plugin (both EGL zero-copy and SHM readback stall); with software GL the
+  full chain renders and animates (verified via screenshot diff + pixel stats in
+  a standalone plugin-example reproduction, not just the app).
+- **Codec set confirmed** (research D3): `gst-plugins-good` + `gst-plugins-bad` +
+  `gst-libav` required (`base` arrives with wpewebkit); without them playback
+  spins forever (no demux/decode).
+- **Two upstream bugs filed as evidence**: `initialUrlRequest` is a no-op on the
+  Linux backend (must `loadUrl` from `onWebViewCreated`); WebView teardown can
+  hit `Fatal glibc error: pthread_mutex_lock ... ESRCH` (dispose race).
+- **Rollout consequence**: hardware-frame export is the T030 matrix's first
+  checkpoint (per-GPU/driver); the software-GL fallback is the verified safety
+  net, and T027's bundled-WPE version choice (known-good 2.4x from the Ubuntu
+  build environment) is the likely hardware fix.

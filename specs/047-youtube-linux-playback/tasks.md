@@ -66,7 +66,7 @@ Single Flutter project: `lib/` and `test/` at repository root (test/ mirrors lib
 - [x] T012 [US1] Wire controller plumbing in `lib/features/player/application/engines/youtube/youtube_webview_controller.dart` and `lib/features/player/application/engines/youtube/youtube_js_channel.dart`: environment handoff, `addJavaScriptHandler` registration (`onVideoEvent`, `onAdReload`), `evaluateJavascript` path; `youtube_webview_bridge.dart` poll loop and JS call set stay untouched (contract invariant — no Linux-only bridge dialect)
 - [x] T013 [US1] Rewire the gate call sites to the runtime decision, allow-path: `lib/features/player/application/player_open_coordinator.dart` (~line 266), `lib/features/player/application/engine_swap_coordinator.dart` (~line 230), `lib/features/player/application/player_controller.dart` `warmYoutubeSurface` (~line 383), `lib/features/player/presentation/widgets/youtube_video_stage.dart` (~line 48) — same call-site shape, new decision source
 - [x] T014 [US1] Widget test in `test/features/player/`: with the availability provider overridden to available, the video stage mounts the YouTube engine and the open coordinator proceeds; with a non-Linux platform fake, behavior is identical to today (contract A1/A5 regression guard)
-- [ ] T015 [US1] Run quickstart spike **S1** on a dev machine: paste-URL → plays in debug build; if m.youtube.com misbehaves under the WPE user agent, apply the engine's existing user-agent setting per research D7 and retry once; record evidence for the PR
+- [x] T015 [US1] Run quickstart spike **S1** on a dev machine: paste-URL → plays in debug build; if m.youtube.com misbehaves under the WPE user agent, apply the engine's existing user-agent setting per research D7 and retry once; record evidence for the PR
 - [ ] T016 [P] [US1] Run quickstart spike **S3** (after S1 passes): Wayland session, X11 session, and GPU-less/llvmpipe rendering — video renders in all three, software fallback engages without crash; record evidence
 - [ ] T017 [P] [US1] Run quickstart spike **S5** (after S1 passes): 10-minute video with transcript open, side-by-side vs Windows — no visible highlight drift (SC-003)
 - [ ] T018 [US1] Walk spec US1 acceptance scenarios 1–5 end-to-end on the Linux build (paste URL, controls ≤ 300 ms, transcript tracking, metadata display, resume) and file the evidence block in the PR
@@ -234,3 +234,10 @@ Engine work (US1→US3, Phases 3–5) and packaging/verification (T027–T034, U
 - Quickstart scenario IDs (S1–S6) and checklist IDs (C1–C12) are stable evidence keys referenced from the spec and future ADR — do not renumber
 - Every code task ends green: `flutter analyze` + `flutter test` (AGENTS.md hard rule); platform compile smoke via `flutter build linux` and the CI matrix
 - Commit after each task or logical group; the two go/no-go points (T015, T027) are explicit stopping points where continuing means a recorded decision, not momentum
+
+---
+
+## Phase 9: Convergence
+
+- [ ] T044 Add per-reason unavailable message keys (`runtimeMissing` / `runtimeInitFailed` / `disabledByBuild`) to `lib/l10n/app_en.arb` (+ `app_zh.arb`, `app_zh_CN.arb`), regenerate l10n, and map `YouTubeUnavailableReason` → message in `ExpandedPlayerYoutubeUnavailableBody` and `YoutubeLoginScreen` per FR-005 and data-model Entity 1/Entity 3 (partial)
+- [ ] T045 Reflect the bundled Linux WPE runtime in developer docs: add the WPE dev packages (`wpewebkit`/`libwpe`/`wpebackend-fdo` per distro) to the apt list in `docs/features/linux-platform.md` (Developer setup) and the toolchain notes in `README.md`, and add a Linux cookie-folder line (`{applicationSupport}/WPEWebView`) to the Login section of `docs/features/youtube.md` per FR-011 and contracts/release-artifact.md R7 (partial)
