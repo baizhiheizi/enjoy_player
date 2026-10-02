@@ -9,7 +9,7 @@ The single runtime answer to "can this device play YouTube right now?" (spec Key
 | Field | Type | Meaning |
 |-------|------|---------|
 | `state` | enum `available` / `unavailable` | Final decision for the session once resolved |
-| `reason` | `null` when available; else `UnsupportedPlatform` / `RuntimeMissing` / `RuntimeInitFailed` / `DisabledByBuild` | Drives the localized message variant and diagnostics (FR-005, FR-013) |
+| `reason` | `null` when available; else `runtimeMissing` / `runtimeInitFailed` / `disabledByBuild` | Drives the localized message variant and diagnostics (FR-005, FR-013). (`unsupportedPlatform` from the first draft is unreachable — non-Linux targets short-circuit to available under A1 — and was dropped.) |
 | `resolution` | `lazy` — resolved on first YouTube entry-point consultation, cached for process lifetime | A failed probe must not re-run per keystroke |
 | `killSwitch` | build-time constant ANDed into the result | Rollback posture (SC-008): flip to off = one line, ships as a normal release |
 

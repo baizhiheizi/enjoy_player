@@ -21,8 +21,8 @@ sealed class YouTubeAvailability {
 class YouTubeAvailable extends YouTubeAvailability { const YouTubeAvailable(); ... }
 
 class YouTubeUnavailable extends YouTubeAvailability {
-  final YouTubeUnavailableReason reason;   // UnsupportedPlatform | RuntimeMissing |
-  const YouTubeUnavailable(this.reason);   //   RuntimeInitFailed | DisabledByBuild
+  final YouTubeUnavailableReason reason;   // runtimeMissing | runtimeInitFailed |
+  const YouTubeUnavailable(this.reason);   //   disabledByBuild
 }
 ```
 
