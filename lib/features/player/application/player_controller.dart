@@ -4,7 +4,8 @@ library;
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform, visibleForTesting;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
@@ -380,9 +381,24 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
 
   void warmYoutubeSurface() {
     if (ref.read(playerEngineTestDoubleProvider) != null) return;
-    if (youTubeEngineOptedOutHere) return;
+    final resolved = resolvedYouTubeAvailability;
+    if (resolved != null && !resolved.canPlay) return;
     if (_disposed || state != null || _engineSwap.isOpenInFlight) return;
+    if (defaultTargetPlatform != TargetPlatform.linux) {
+      _installWarmedYoutubeEngine(const YouTubeAvailable());
+      return;
+    }
+    unawaited(_warmYoutubeSurfaceAfterDecision());
+  }
 
+  Future<void> _warmYoutubeSurfaceAfterDecision() async {
+    final availability = await resolveYouTubeAvailability();
+    if (!availability.canPlay) return;
+    if (_disposed || state != null || _engineSwap.isOpenInFlight) return;
+    _installWarmedYoutubeEngine(availability);
+  }
+
+  void _installWarmedYoutubeEngine(YouTubeAvailability availability) {
     final owned = ownedEngine;
     if (owned != null && owned is YoutubePlayerEngine) {
       owned.warmVideoSurface();
@@ -392,7 +408,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     if (owned != null) {
       return;
     }
-    final engine = YoutubePlayerEngine();
+    final engine = YoutubePlayerEngine(availability: availability);
     _engineSwap.install(engine);
     engine.warmVideoSurface();
     _scheduleWarmedYoutubeEviction(engine);

@@ -4,7 +4,6 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_host.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
@@ -45,7 +44,7 @@ class YoutubeVideoStage extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Colors.black),
-            if (!youTubeEngineOptedOutHere && session.shouldMountWebView)
+            if (engine.availability.canPlay && session.shouldMountWebView)
               _webViewHost(),
             _StageBufferingLeaf(engine: engine),
           ],

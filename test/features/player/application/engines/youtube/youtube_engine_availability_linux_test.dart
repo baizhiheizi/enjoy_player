@@ -3,88 +3,101 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/domain/youtube_playback_unavailable_exception.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_stage_resolver.dart';
-import 'package:flutter/foundation.dart'
-    show debugDefaultTargetPlatformOverride, TargetPlatform;
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_host.dart';
 import 'package:flutter/material.dart' show MaterialApp, Scaffold;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  tearDown(() {
-    debugDefaultTargetPlatformOverride = null;
-  });
+  group('YoutubePlayerEngine with an unavailable runtime (specs/047)', () {
+    const unavailable = YouTubeUnavailable(
+      YouTubeUnavailableReason.runtimeMissing,
+    );
 
-  group('YoutubePlayerEngine on Linux', () {
     test(
-      'open throws the typed unavailable exception on Linux (ADR-0048)',
+      'open throws the typed unavailable exception carrying the watch URL',
       () async {
-        debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-        final engine = YoutubePlayerEngine();
+        final engine = YoutubePlayerEngine(availability: unavailable);
 
         await expectLater(
           () => engine.open(const YoutubePlayableSource('dQw4w9WgXcQ')),
           throwsA(
-            isA<YouTubePlaybackUnavailableException>().having(
-              (e) => e.message,
-              'message',
-              contains('YouTube is not yet available on Linux'),
-            ),
+            isA<YouTubePlaybackUnavailableException>()
+                .having((e) => e.message, 'message', contains('runtimeMissing'))
+                .having(
+                  (e) => e.youtubeUrl,
+                  'youtubeUrl',
+                  'https://m.youtube.com/watch?v=dQw4w9WgXcQ',
+                ),
           ),
         );
         await engine.dispose();
       },
     );
 
-    test('youtubeEngineAvailableOnLinux is false (v1 opt-out)', () {
-      expect(
-        youtubeEngineAvailableOnLinux,
-        false,
-        reason:
-            'YouTube engine is not available on Linux for v1 per ADR-0048 '
-            '(webview2gtk-4.0 dependency).',
+    test('awaitSurfaceReady resolves promptly without a mount', () async {
+      final engine = YoutubePlayerEngine(availability: unavailable);
+
+      await expectLater(
+        engine.awaitSurfaceReady().timeout(const Duration(seconds: 1)),
+        completes,
       );
+      await engine.dispose();
     });
 
-    test(
-      'awaitSurfaceReady resolves promptly on Linux instead of polling 8s',
-      () async {
-        debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-        final engine = YoutubePlayerEngine();
+    test('warmVideoSurface never requests a mount', () {
+      final engine = YoutubePlayerEngine(availability: unavailable);
 
-        await expectLater(
-          engine.awaitSurfaceReady().timeout(const Duration(seconds: 1)),
-          completes,
-        );
-        await engine.dispose();
-      },
-    );
+      engine.warmVideoSurface();
+
+      expect(engine.session.shouldMountWebView, isFalse);
+      expect(engine.availability.canPlay, isFalse);
+    });
 
     testWidgets(
-      'warmVideoSurface + the video stage never mount the WebView host on Linux',
+      'the video stage never mounts the WebView host when unavailable',
       (tester) async {
-        final engine = YoutubePlayerEngine();
-        debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-        try {
-          engine.warmVideoSurface();
+        final engine = YoutubePlayerEngine(availability: unavailable);
+        engine.warmVideoSurface();
 
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: buildPlayerVideoStage(
-                  engine,
-                  maxWidth: 400,
-                  maxHeight: 300,
-                ),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: buildPlayerVideoStage(
+                engine,
+                maxWidth: 400,
+                maxHeight: 300,
               ),
             ),
-          );
-          await tester.pump();
+          ),
+        );
+        await tester.pump();
 
-          expect(tester.takeException(), isNull);
-        } finally {
-          debugDefaultTargetPlatformOverride = null;
-        }
+        expect(find.byType(YoutubeWebViewHost), findsNothing);
+        expect(tester.takeException(), isNull);
         await engine.dispose();
       },
     );
+  });
+
+  group('YoutubePlayerEngine kill-switch mapping', () {
+    test('disabledByBuild maps onto the linuxOptedOut exception', () async {
+      final engine = YoutubePlayerEngine(
+        availability: const YouTubeUnavailable(
+          YouTubeUnavailableReason.disabledByBuild,
+        ),
+      );
+
+      await expectLater(
+        () => engine.open(const YoutubePlayableSource('abc123')),
+        throwsA(
+          isA<YouTubePlaybackUnavailableException>().having(
+            (e) => e.youtubeUrl,
+            'youtubeUrl',
+            'https://m.youtube.com/watch?v=abc123',
+          ),
+        ),
+      );
+      await engine.dispose();
+    });
   });
 }

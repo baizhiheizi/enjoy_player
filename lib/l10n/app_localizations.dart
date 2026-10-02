@@ -843,11 +843,11 @@ abstract class AppLocalizations {
   /// **'Sign out (clear cookies)'**
   String get youtubeLogout;
 
-  /// No description provided for @youtubeLinuxUnavailable.
+  /// No description provided for @youtubeUnavailableOnDevice.
   ///
   /// In en, this message translates to:
-  /// **'YouTube is not yet available on Linux — coming soon.'**
-  String get youtubeLinuxUnavailable;
+  /// **'YouTube is not available on this device.'**
+  String get youtubeUnavailableOnDevice;
 
   /// Overlay when YouTube autoplay needs a user gesture or playback stopped immediately after play
   ///

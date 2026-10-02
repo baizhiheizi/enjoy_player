@@ -165,7 +165,7 @@
   "youtubeLoginClose": "Close",
   "youtubeLoginScreenTitle": "YouTube sign-in",
   "youtubeLogout": "Sign out (clear cookies)",
-  "youtubeLinuxUnavailable": "YouTube is not yet available on Linux — coming soon.",
+  "youtubeUnavailableOnDevice": "YouTube is not available on this device.",
   "youtubeTapToPlayHint": "Tap the video to play",
   "@youtubeTapToPlayHint": {
     "description": "Overlay when YouTube autoplay needs a user gesture or playback stopped immediately after play"

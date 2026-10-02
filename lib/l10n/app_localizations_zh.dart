@@ -418,7 +418,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get youtubeLogout => '退出登录（清除 Cookie）';
 
   @override
-  String get youtubeLinuxUnavailable => 'YouTube 在 Linux 上尚無法使用——即將推出。';
+  String get youtubeUnavailableOnDevice => '此裝置無法播放 YouTube 影片。';
 
   @override
   String get youtubeTapToPlayHint => '點一下影片即可播放';
@@ -4191,7 +4191,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get youtubeLogout => '退出登录（清除 Cookie）';
 
   @override
-  String get youtubeLinuxUnavailable => 'YouTube 在 Linux 上暂不可用——即将推出。';
+  String get youtubeUnavailableOnDevice => '此设备无法播放 YouTube 视频。';
 
   @override
   String get youtubeTapToPlayHint => '点一下视频即可播放';

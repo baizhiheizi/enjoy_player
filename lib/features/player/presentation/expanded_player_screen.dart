@@ -51,7 +51,10 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
         return LocateMediaScreen(info: err);
       }
       if (err is YouTubePlaybackUnavailableException) {
-        return ExpandedPlayerYoutubeUnavailableBody(colorScheme: cs);
+        return ExpandedPlayerYoutubeUnavailableBody(
+          colorScheme: cs,
+          youtubeUrl: err.youtubeUrl,
+        );
       }
       return ExpandedPlayerGenericErrorBody(colorScheme: cs);
     }

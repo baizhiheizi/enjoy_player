@@ -19,6 +19,8 @@ import 'package:enjoy_player/features/player/domain/media_relocate_exception.dar
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
 import 'package:enjoy_player/features/player/domain/youtube_playback_unavailable_exception.dart';
+import 'package:enjoy_player/core/platform/linux_platform_availability.dart'
+    as linux_avail;
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride, TargetPlatform;
@@ -589,6 +591,12 @@ void main() {
       () async {
         debugDefaultTargetPlatformOverride = TargetPlatform.linux;
         addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        linux_avail.debugYouTubeAvailabilityProbe = () async =>
+            const linux_avail.YouTubeUnavailable(
+              linux_avail.YouTubeUnavailableReason.runtimeMissing,
+            );
+        addTearDown(() => linux_avail.debugYouTubeAvailabilityProbe = null);
+        addTearDown(linux_avail.debugResetYouTubeAvailability);
         final now = DateTime.now();
         await db.videoDao.insertRow(
           VideoRow(
@@ -961,7 +969,7 @@ void main() {
     );
   });
 
-  group('PlayerController.warmYoutubeSurface Linux opt-out (ADR-0048)', () {
+  group('PlayerController.warmYoutubeSurface Linux runtime gate (specs/047)', () {
     late AppDatabase db;
     late ProviderContainer container;
 
@@ -973,22 +981,32 @@ void main() {
     });
 
     tearDown(() async {
+      linux_avail.debugYouTubeAvailabilityProbe = null;
+      linux_avail.debugResetYouTubeAvailability();
       debugDefaultTargetPlatformOverride = null;
       await pumpEventQueue();
       container.dispose();
       await db.close();
     });
 
-    test('does not install the YouTube engine when opted out', () {
+    test('does not install the YouTube engine when the runtime is unavailable',
+        () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      linux_avail.debugYouTubeAvailabilityProbe = () async =>
+          const linux_avail.YouTubeUnavailable(
+            linux_avail.YouTubeUnavailableReason.runtimeMissing,
+          );
 
       final n = container.read(playerControllerProvider.notifier);
       n.warmYoutubeSurface();
+      await pumpEventQueue();
 
       expect(
         n.ownedEngine,
         isNull,
-        reason: 'feed-scroll warm must not install a YouTube engine on Linux',
+        reason:
+            'feed-scroll warm must not install a YouTube engine without a '
+            'usable runtime',
       );
       expect(
         container.read(playerEngineRevProvider),
@@ -1023,9 +1041,13 @@ void main() {
         ],
       );
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      linux_avail.debugYouTubeAvailabilityProbe = () async =>
+          const linux_avail.YouTubeAvailable();
     });
 
     tearDown(() async {
+      linux_avail.debugYouTubeAvailabilityProbe = null;
+      linux_avail.debugResetYouTubeAvailability();
       debugDefaultTargetPlatformOverride = null;
       await pumpEventQueue();
       container.dispose();
@@ -1199,12 +1221,16 @@ void main() {
         ],
       );
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      linux_avail.debugYouTubeAvailabilityProbe = () async =>
+          const linux_avail.YouTubeAvailable();
       PlayerController.warmedYoutubeEvictionDelay = const Duration(
         milliseconds: 50,
       );
     });
 
     tearDown(() async {
+      linux_avail.debugYouTubeAvailabilityProbe = null;
+      linux_avail.debugResetYouTubeAvailability();
       debugDefaultTargetPlatformOverride = null;
       PlayerController.warmedYoutubeEvictionDelay =
           kWarmedYoutubeSurfaceEvictionDelay;
