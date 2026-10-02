@@ -969,62 +969,67 @@ void main() {
     );
   });
 
-  group('PlayerController.warmYoutubeSurface Linux runtime gate (specs/047)', () {
-    late AppDatabase db;
-    late ProviderContainer container;
+  group(
+    'PlayerController.warmYoutubeSurface Linux runtime gate (specs/047)',
+    () {
+      late AppDatabase db;
+      late ProviderContainer container;
 
-    setUp(() {
-      db = AppDatabase(executor: NativeDatabase.memory());
-      container = ProviderContainer(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
-      );
-    });
+      setUp(() {
+        db = AppDatabase(executor: NativeDatabase.memory());
+        container = ProviderContainer(
+          overrides: [appDatabaseProvider.overrideWithValue(db)],
+        );
+      });
 
-    tearDown(() async {
-      linux_avail.debugYouTubeAvailabilityProbe = null;
-      linux_avail.debugResetYouTubeAvailability();
-      debugDefaultTargetPlatformOverride = null;
-      await pumpEventQueue();
-      container.dispose();
-      await db.close();
-    });
+      tearDown(() async {
+        linux_avail.debugYouTubeAvailabilityProbe = null;
+        linux_avail.debugResetYouTubeAvailability();
+        debugDefaultTargetPlatformOverride = null;
+        await pumpEventQueue();
+        container.dispose();
+        await db.close();
+      });
 
-    test('does not install the YouTube engine when the runtime is unavailable',
+      test(
+        'does not install the YouTube engine when the runtime is unavailable',
         () async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-      linux_avail.debugYouTubeAvailabilityProbe = () async =>
-          const linux_avail.YouTubeUnavailable(
-            linux_avail.YouTubeUnavailableReason.runtimeMissing,
+          debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+          linux_avail.debugYouTubeAvailabilityProbe = () async =>
+              const linux_avail.YouTubeUnavailable(
+                linux_avail.YouTubeUnavailableReason.runtimeMissing,
+              );
+
+          final n = container.read(playerControllerProvider.notifier);
+          n.warmYoutubeSurface();
+          await pumpEventQueue();
+
+          expect(
+            n.ownedEngine,
+            isNull,
+            reason:
+                'feed-scroll warm must not install a YouTube engine without a '
+                'usable runtime',
           );
-
-      final n = container.read(playerControllerProvider.notifier);
-      n.warmYoutubeSurface();
-      await pumpEventQueue();
-
-      expect(
-        n.ownedEngine,
-        isNull,
-        reason:
-            'feed-scroll warm must not install a YouTube engine without a '
-            'usable runtime',
+          expect(
+            container.read(playerEngineRevProvider),
+            0,
+            reason: 'no engine swap happened, so the host rev must not bump',
+          );
+        },
       );
-      expect(
-        container.read(playerEngineRevProvider),
-        0,
-        reason: 'no engine swap happened, so the host rev must not bump',
-      );
-    });
 
-    test('installs and warms a YouTube engine on other targets', () {
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      test('installs and warms a YouTube engine on other targets', () {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
-      final n = container.read(playerControllerProvider.notifier);
-      n.warmYoutubeSurface();
+        final n = container.read(playerControllerProvider.notifier);
+        n.warmYoutubeSurface();
 
-      expect(n.ownedEngine, isA<YoutubePlayerEngine>());
-      expect(container.read(playerEngineRevProvider), 1);
-    });
-  });
+        expect(n.ownedEngine, isA<YoutubePlayerEngine>());
+        expect(container.read(playerEngineRevProvider), 1);
+      });
+    },
+  );
 
   group('PlayerController.warmYoutubeSurface idle gate (issue #657)', () {
     late AppDatabase db;
