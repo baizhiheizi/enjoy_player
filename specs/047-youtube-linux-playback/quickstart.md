@@ -88,3 +88,21 @@ the four result rows in the PR. All `behaviorDiff: none` required (US5).
   checkpoint (per-GPU/driver); the software-GL fallback is the verified safety
   net, and T027's bundled-WPE version choice (known-good 2.4x from the Ubuntu
   build environment) is the likely hardware fix.
+
+## T046 verdict (2026-10-02 evening)
+
+- Hardware frame export stalls on **both** wpewebkit 2.48.7 and 2.52.6 on the
+  dev stack (amdgpu + Hyprland/Wayland): page loads, resources fetch, audio and
+  JS run — zero texture frames (screenshot-diff verified per version). There is
+  **no known-good WPE version on Arch**; the breakage follows WPEPlatform's
+  hardware dmabuf export (software GL renders and exports fine through the same
+  path).
+- Consequence: **T047's software-GL webview is the primary Linux v1 vehicle**
+  (with the media_kit GL conflict resolution), and the Ubuntu-built artifact's
+  legacy FDO backend is the remaining hardware hypothesis — T030's Ubuntu
+  22.04 clean-VM matrix is the empirical gate.
+- Packaging fix shipped alongside (T027 iteration): the dependency closure was
+  pulling the host Mesa/GL family into `usr/lib`, and `LD_LIBRARY_PATH`
+  preferred it — a bundled Mesa cannot find its DRI drivers, breaking ALL GL
+  (even software) inside the AppImage. GL/Mesa/vulkan libs are now excluded
+  from bundling (host GL is used); 0 GL libs remain in the image.

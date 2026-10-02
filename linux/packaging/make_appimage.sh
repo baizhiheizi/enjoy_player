@@ -74,6 +74,19 @@ is_glibc_core() {
   esac
 }
 
+# The GL/Mesa family must come from the host: its DRI/VA drivers are dlopened
+# from compiled-in host paths that a bundled copy cannot see, so a bundled Mesa
+# breaks GL entirely (verified: black webview even under LIBGL_ALWAYS_SOFTWARE).
+# Every desktop that runs the image has a host GL stack.
+is_host_gl() {
+  case "$(basename "$1")" in
+    libGL.so*|libEGL.so*|libGLESv1*|libGLESv2*|libGLX.so*|libGLdispatch.so*|\
+    libglapi.so*|libOSMesa*|libgbm.so*|libGLU.so*|libglut.so*|libglslang*|\
+    libdrm.so*|libvulkan.so*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 APP_USR_LIB="$APPDIR/usr/lib"
 mkdir -p "$APP_USR_LIB"
 
@@ -81,7 +94,7 @@ link_soname() {
   local real="$1"
   command -v readelf >/dev/null 2>&1 || return 0
   local soname
-  soname="$(readelf -d "$real" 2>/dev/null | awk -F'[][]' '/SONAME/ {print $2; exit}')"
+  soname="$(readelf -d "$real" 2>/dev/null | awk -F'[][]' '/SONAME/ {print $2}')"
   [[ -n "$soname" ]] || return 0
   [[ -e "$APP_USR_LIB/$soname" || -e "$APPDIR/lib/$soname" ]] && return 0
   ln -s "$(basename "$real")" "$APP_USR_LIB/$soname"
@@ -96,6 +109,7 @@ for _ in $(seq 1 12); do
     while read -r lib; do
       [[ -n "$lib" ]] || continue
       is_glibc_core "$lib" && continue
+      is_host_gl "$lib" && continue
       [[ -e "$APPDIR/lib/$(basename "$lib")" ]] && continue
       [[ -e "$APP_USR_LIB/$(basename "$lib")" ]] && continue
       echo "$lib" >> "$DEP_LIST"
