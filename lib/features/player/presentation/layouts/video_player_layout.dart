@@ -107,6 +107,7 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final transportInset = MediaQuery.paddingOf(context).bottom;
     return LayoutBuilder(
       builder: (context, constraints) {
         final useSideBySide = constraints.maxWidth > constraints.maxHeight;
@@ -129,7 +130,10 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
                       bottom: false,
                       left: false,
                       right: false,
-                      child: _VideoColumn(engine: widget.engine),
+                      child: _VideoColumn(
+                        engine: widget.engine,
+                        bottomInset: transportInset,
+                      ),
                     ),
                   ),
                   ValueListenableBuilder<bool>(
@@ -204,15 +208,21 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
 
 /// Wraps the video stage with persistent back + paused title overlay.
 class _VideoColumn extends StatelessWidget {
-  const _VideoColumn({required this.engine});
+  const _VideoColumn({required this.engine, this.bottomInset = 0});
 
   final PlayerEngine engine;
+
+  /// Height of the floating transport capsule strip the surface must clear.
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
       color: Colors.black,
-      child: _VideoStageWithChrome(engine: engine),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: _VideoStageWithChrome(engine: engine),
+      ),
     );
   }
 }

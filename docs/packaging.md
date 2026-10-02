@@ -513,10 +513,14 @@ Platform CI setup (secrets, runners):
 #### Windows FFmpeg provisioning
 
 `ffmpeg_kit_flutter_new` (under `packages/`) ships Android / iOS / macOS
-platform implementations but **no Windows implementation**. The Windows
-build does not bundle ffmpeg via a Flutter plugin; instead the release
+platform implementations but **no Windows or Linux implementation**. The
+Windows build does not bundle ffmpeg via a Flutter plugin; instead the release
 script downloads a GPL `ffmpeg.exe` into `windows/ffmpeg/` before
-`flutter build windows --release`.
+`flutter build windows --release`. Linux shares the CLI contract
+([`FfmpegMediaProbe`](../lib/data/files/ffmpeg_media_probe.dart) looks for
+`ffmpeg` next to the executable or under `lib/`, then on PATH); the AppImage
+does not bundle a CLI `ffmpeg` today, so extraction degrades to a no-op on
+machines without one.
 
 | Step | Script | Source | Verified by |
 |------|--------|--------|-------------|

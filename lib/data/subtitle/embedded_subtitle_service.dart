@@ -24,6 +24,12 @@ class EmbeddedSubtitleService {
 
   static final _log = logNamed('EmbeddedSubtitleService');
 
+  static bool get _runsFfmpegKit => FfmpegMediaProbe.ffmpegKitRegistered(
+    isAndroid: Platform.isAndroid,
+    isIOS: Platform.isIOS,
+    isMacOS: Platform.isMacOS,
+  );
+
   /// Extracts text lines from [mediaSourceUri] for each [SubtitleTrack] that
   /// is embedded (not loaded from an external URI / data string).
   ///
@@ -48,10 +54,10 @@ class EmbeddedSubtitleService {
   }) async {
     final mediaInput = FfmpegMediaProbe.mediaInputForFfmpeg(mediaSourceUri);
 
-    List<({String? language})>? nonWindowsSubtitleProbe;
-    if (!Platform.isWindows) {
-      nonWindowsSubtitleProbe = await _probeSubtitleStreams(mediaInput);
-      if (nonWindowsSubtitleProbe.isEmpty) {
+    List<({String? language})>? ffmpegKitProbe;
+    if (_runsFfmpegKit) {
+      ffmpegKitProbe = await _probeSubtitleStreams(mediaInput);
+      if (ffmpegKitProbe.isEmpty) {
         if (tracks.isNotEmpty) {
           _log.fine(
             'Embedded extract skipped: container has no subtitle streams '
@@ -68,15 +74,17 @@ class EmbeddedSubtitleService {
         targetTypeDexie: targetTypeDexie,
         mediaInput: mediaInput,
         existingTrackIndices: existingTrackIndices,
-        subtitleStreams: nonWindowsSubtitleProbe,
+        subtitleStreams: ffmpegKitProbe,
       );
     }
 
-    final ffmpegExe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-    if (Platform.isWindows && ffmpegExe == null) {
+    final ffmpegExe = _runsFfmpegKit
+        ? null
+        : await FfmpegMediaProbe.resolveFfmpegExecutable();
+    if (!_runsFfmpegKit && ffmpegExe == null) {
       _log.fine(
-        'Embedded subtitle extraction skipped on Windows: '
-        'no ffmpeg.exe next to the app and no ffmpeg on PATH',
+        'Embedded subtitle extraction skipped: '
+        'no ffmpeg next to the app and no ffmpeg on PATH',
       );
       return const [];
     }
@@ -96,13 +104,10 @@ class EmbeddedSubtitleService {
         continue;
       }
 
-      final srtText = Platform.isWindows
-          ? await _extractTrackAsSrtProcess(
+      final srtText = _runsFfmpegKit
+          ? await _extractTrackAsSrtFfmpegKit(mediaInput, ffmpegSubtitleOrdinal)
+          : await _extractTrackAsSrtProcess(
               ffmpegExe!,
-              mediaInput,
-              ffmpegSubtitleOrdinal,
-            )
-          : await _extractTrackAsSrtFfmpegKit(
               mediaInput,
               ffmpegSubtitleOrdinal,
             );
@@ -143,7 +148,7 @@ class EmbeddedSubtitleService {
         targetTypeDexie: targetTypeDexie,
         mediaInput: mediaInput,
         existingTrackIndices: existingTrackIndices,
-        subtitleStreams: nonWindowsSubtitleProbe,
+        subtitleStreams: ffmpegKitProbe,
       );
     }
     return results;
@@ -159,11 +164,13 @@ class EmbeddedSubtitleService {
     final probe = subtitleStreams ?? await _probeSubtitleStreams(mediaInput);
     if (probe.isEmpty) return const [];
 
-    final ffmpegExe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-    if (Platform.isWindows && ffmpegExe == null) {
+    final ffmpegExe = _runsFfmpegKit
+        ? null
+        : await FfmpegMediaProbe.resolveFfmpegExecutable();
+    if (!_runsFfmpegKit && ffmpegExe == null) {
       _log.fine(
-        'Embedded subtitle probe skipped on Windows: '
-        'no ffmpeg.exe next to the app and no ffmpeg on PATH',
+        'Embedded subtitle probe skipped: '
+        'no ffmpeg next to the app and no ffmpeg on PATH',
       );
       return const [];
     }
@@ -174,9 +181,9 @@ class EmbeddedSubtitleService {
     for (var i = 0; i < probe.length; i++) {
       if (existingTrackIndices.contains(i)) continue;
 
-      final srtText = Platform.isWindows
-          ? await _extractTrackAsSrtProcess(ffmpegExe!, mediaInput, i)
-          : await _extractTrackAsSrtFfmpegKit(mediaInput, i);
+      final srtText = _runsFfmpegKit
+          ? await _extractTrackAsSrtFfmpegKit(mediaInput, i)
+          : await _extractTrackAsSrtProcess(ffmpegExe!, mediaInput, i);
       if (srtText == null || srtText.trim().isEmpty) {
         _log.warning('Embedded subtitle stream $i produced no SRT text');
         continue;
@@ -228,7 +235,7 @@ class EmbeddedSubtitleService {
   Future<List<({String? language})>> _probeSubtitleStreams(
     String mediaInput,
   ) async {
-    if (Platform.isWindows) {
+    if (!_runsFfmpegKit) {
       final stderr = await _loadFfmpegIdentifyStderr(mediaInput);
       if (stderr == null || stderr.isEmpty) return const [];
       final hints = FfmpegMediaProbe.subtitleLanguageHints(stderr);
@@ -294,7 +301,7 @@ class EmbeddedSubtitleService {
     if (ffmpegExe != null) {
       return FfmpegMediaProbe.loadIdentifyStderr(ffmpegExe, mediaInput);
     }
-    if (!Platform.isWindows) {
+    if (_runsFfmpegKit) {
       try {
         final session = await FFmpegKit.execute(
           '-hide_banner -i "$mediaInput"',
