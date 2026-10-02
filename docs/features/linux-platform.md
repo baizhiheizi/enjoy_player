@@ -62,8 +62,17 @@ sudo apt-get install -y \
   clang cmake curl git jq ninja-build pkg-config unzip xz-utils zip \
   libgtk-3-dev liblzma-dev libsqlite3-dev \
   libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-  libsecret-1-dev libmpv-dev ffmpeg
+  libsecret-1-dev libmpv-dev ffmpeg \
+  libwpewebkit-2.0-dev libwpe-1.0-1 libwpebackend-fdo-1.0-dev
 ```
+
+The trailing WPE line is required by the `flutter_inappwebview_linux` plugin
+(YouTube playback, [ADR-0091](../decisions/0091-youtube-linux-playback.md)) —
+build-time only; release artifacts bundle the runtime. On Arch:
+`wpewebkit libwpe wpebackend-fdo`. At runtime, YouTube playback also needs the
+GStreamer plugin set (`gst-plugins-good`, `gst-plugins-bad`, `gst-libav`) —
+bundled inside the release AppImage, so the packages above are for source
+builds and debugging only.
 
 Then follow the standard README build instructions:
 

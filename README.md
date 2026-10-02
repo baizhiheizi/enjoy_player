@@ -126,7 +126,7 @@ dart run build_runner build   # after Drift / Riverpod annotation changes
 flutter run
 ```
 
-Platform toolchain notes: macOS needs Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`; Windows needs the NuGet CLI on `PATH` for `flutter_inappwebview`; Linux needs `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg`. Full release prerequisites: [docs/packaging.md](docs/packaging.md). CI gates and agent rules: [AGENTS.md](AGENTS.md).
+Platform toolchain notes: macOS needs Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`; Windows needs the NuGet CLI on `PATH` for `flutter_inappwebview`; Linux needs `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg` plus the WPE WebKit dev packages for the YouTube playback plugin (`libwpewebkit-2.0-dev libwpe-1.0-1 libwpebackend-fdo-1.0-dev` on Ubuntu, `wpewebkit libwpe wpebackend-fdo` on Arch — see [docs/features/linux-platform.md](docs/features/linux-platform.md)). Full release prerequisites: [docs/packaging.md](docs/packaging.md). CI gates and agent rules: [AGENTS.md](AGENTS.md).
 
 ---
 

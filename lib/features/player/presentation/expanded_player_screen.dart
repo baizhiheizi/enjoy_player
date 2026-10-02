@@ -54,6 +54,7 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
         return ExpandedPlayerYoutubeUnavailableBody(
           colorScheme: cs,
           youtubeUrl: err.youtubeUrl,
+          reason: err.reason,
         );
       }
       return ExpandedPlayerGenericErrorBody(colorScheme: cs);

@@ -421,6 +421,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get youtubeUnavailableOnDevice => '此裝置無法播放 YouTube 影片。';
 
   @override
+  String get youtubeUnavailableRuntimeMissing => '此裝置缺少 YouTube 播放執行環境。';
+
+  @override
+  String get youtubeUnavailableRuntimeInitFailed => 'YouTube 播放環境啟動失敗。';
+
+  @override
+  String get youtubeUnavailableDisabledByBuild => '此組建已停用 YouTube 播放。';
+
+  @override
   String get youtubeTapToPlayHint => '點一下影片即可播放';
 
   @override
@@ -4192,6 +4201,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get youtubeUnavailableOnDevice => '此设备无法播放 YouTube 视频。';
+
+  @override
+  String get youtubeUnavailableRuntimeMissing => '此设备缺少 YouTube 播放运行时。';
+
+  @override
+  String get youtubeUnavailableRuntimeInitFailed => 'YouTube 播放环境启动失败。';
+
+  @override
+  String get youtubeUnavailableDisabledByBuild => '此构建已停用 YouTube 播放。';
 
   @override
   String get youtubeTapToPlayHint => '点一下视频即可播放';

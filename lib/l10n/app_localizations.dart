@@ -849,6 +849,24 @@ abstract class AppLocalizations {
   /// **'YouTube is not available on this device.'**
   String get youtubeUnavailableOnDevice;
 
+  /// No description provided for @youtubeUnavailableRuntimeMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The YouTube playback runtime is not installed on this device.'**
+  String get youtubeUnavailableRuntimeMissing;
+
+  /// No description provided for @youtubeUnavailableRuntimeInitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube playback failed to start on this device.'**
+  String get youtubeUnavailableRuntimeInitFailed;
+
+  /// No description provided for @youtubeUnavailableDisabledByBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube playback is disabled in this build.'**
+  String get youtubeUnavailableDisabledByBuild;
+
   /// Overlay when YouTube autoplay needs a user gesture or playback stopped immediately after play
   ///
   /// In en, this message translates to:

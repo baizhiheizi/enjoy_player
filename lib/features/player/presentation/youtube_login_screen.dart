@@ -16,6 +16,7 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
 import 'package:enjoy_player/core/webview/webview_environment_gate.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_unavailable_message.dart';
 import 'package:enjoy_player/features/player/application/youtube_auth_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -86,7 +87,10 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              l10n.youtubeUnavailableOnDevice,
+              youtubeUnavailableMessage(
+                l10n,
+                availability is YouTubeUnavailable ? availability.reason : null,
+              ),
               textAlign: TextAlign.center,
             ),
           ),

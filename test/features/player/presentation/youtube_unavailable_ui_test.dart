@@ -37,6 +37,30 @@ void main() {
       },
     );
 
+    testWidgets(
+      'maps the runtimeMissing reason onto its message variant (T044)',
+      (tester) async {
+        await tester.pumpWidget(
+          await host(
+            ExpandedPlayerYoutubeUnavailableBody(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+              reason: YouTubeUnavailableReason.runtimeMissing,
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final context = tester.element(find.byType(Scaffold).first);
+        final l10n = AppLocalizations.of(context)!;
+        expect(
+          find.text(l10n.youtubeUnavailableRuntimeMissing),
+          findsOneWidget,
+        );
+        expect(find.text(l10n.youtubeUnavailableOnDevice), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
     testWidgets('omits the browser fallback when the video URL is unknown', (
       tester,
     ) async {
@@ -81,7 +105,7 @@ void main() {
 
       final context = tester.element(find.byType(Scaffold).first);
       final l10n = AppLocalizations.of(context)!;
-      expect(find.text(l10n.youtubeUnavailableOnDevice), findsOneWidget);
+      expect(find.text(l10n.youtubeUnavailableRuntimeMissing), findsOneWidget);
       expect(find.byType(YoutubeLoginScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

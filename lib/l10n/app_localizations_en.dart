@@ -437,6 +437,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'YouTube is not available on this device.';
 
   @override
+  String get youtubeUnavailableRuntimeMissing =>
+      'The YouTube playback runtime is not installed on this device.';
+
+  @override
+  String get youtubeUnavailableRuntimeInitFailed =>
+      'YouTube playback failed to start on this device.';
+
+  @override
+  String get youtubeUnavailableDisabledByBuild =>
+      'YouTube playback is disabled in this build.';
+
+  @override
   String get youtubeTapToPlayHint => 'Tap the video to play';
 
   @override

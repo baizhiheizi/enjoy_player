@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/widgets/app_background.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
@@ -22,6 +23,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/application/youtube_open_preview_provider.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_collapse_control.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_unavailable_message.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_loading_stage.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_loading_video_stage.dart';
 
@@ -153,11 +155,14 @@ class ExpandedPlayerYoutubeUnavailableBody extends StatelessWidget {
     super.key,
     required this.colorScheme,
     this.youtubeUrl,
+    this.reason,
   });
 
   final ColorScheme colorScheme;
 
   final String? youtubeUrl;
+
+  final YouTubeUnavailableReason? reason;
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +180,7 @@ class ExpandedPlayerYoutubeUnavailableBody extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    l10n.youtubeUnavailableOnDevice,
+                    youtubeUnavailableMessage(l10n, reason),
                     textAlign: TextAlign.center,
                   ),
                   if (youtubeUrl != null) ...[
