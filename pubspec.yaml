@@ -64,7 +64,7 @@ dependencies:
   # AUTO_INIT=false in each platform manifest; token arrives via --dart-define
   # (lib/core/analytics/analytics_config.dart). No token ⇒ fully inert.
   posthog_flutter: ^5.39.0
-  flutter_inappwebview: ^6.1.5
+  flutter_inappwebview: 6.2.0-beta.3
   flutter_markdown_plus: ^1.0.12
   flutter_svg: ^2.2.3
   qr_flutter: ^4.1.0

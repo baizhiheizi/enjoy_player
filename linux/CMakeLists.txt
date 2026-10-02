@@ -54,6 +54,29 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
 
+# The flutter_inappwebview_linux plugin builds against WPE WebKit and fails
+# with its own error deep in plugin configure; surface the dev-package fix
+# up front instead. Build-time only — release artifacts bundle the runtime.
+pkg_check_modules(WPE_WEBKIT_DEV QUIET wpe-webkit-2.0)
+if(NOT WPE_WEBKIT_DEV_FOUND)
+  pkg_check_modules(WPE_WEBKIT_DEV QUIET wpe-webkit-1.1)
+endif()
+if(NOT WPE_WEBKIT_DEV_FOUND)
+  pkg_check_modules(WPE_WEBKIT_DEV QUIET wpe-webkit-1.0)
+endif()
+if(NOT WPE_WEBKIT_DEV_FOUND)
+  message(FATAL_ERROR
+    "WPE WebKit development files not found — required to build the "
+    "flutter_inappwebview_linux plugin (YouTube playback). Install one of:\n"
+    "  Arch:     sudo pacman -S wpewebkit libwpe wpebackend-fdo\n"
+    "  Ubuntu:   sudo apt install libwpewebkit-2.0-dev libwpe-1.0-1 "
+    "libwpebackend-fdo-1.0-dev\n"
+    "  Debian:   sudo apt install libwpewebkit-2.0-dev libwpe-1.0-dev "
+    "libwpebackend-fdo-1.0-dev\n"
+    "  Fedora:   sudo dnf install wpewebkit-devel libwpe-devel "
+    "wpebackend-fdo-devel")
+endif()
+
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
