@@ -106,3 +106,16 @@ the four result rows in the PR. All `behaviorDiff: none` required (US5).
   preferred it — a bundled Mesa cannot find its DRI drivers, breaking ALL GL
   (even software) inside the AppImage. GL/Mesa/vulkan libs are now excluded
   from bundling (host GL is used); 0 GL libs remain in the image.
+
+## S2/T028 verdict (2026-10-02 evening, user-confirmed)
+
+- **PASS**: the rebuilt AppImage (bundled GStreamer plugin set + scanner +
+  dependency closure, WPE stripped per ADR-0092) plays YouTube **with picture
+  and audio** under `LIBGL_ALWAYS_SOFTWARE=1` — decoders load from inside the
+  image (host GStreamer is shadowed via `GST_PLUGIN_SYSTEM_PATH`), proving the
+  bundled codec set is complete.
+- **Without** the env the picture is black on the dev stack — the T046
+  hardware-export stall, which makes **T047 (frame-watchdog → software-GL
+  rebuild) a shipping requirement**, not an optional polish.
+- Remaining verification: X11 visual pass (engine verified under XWayland),
+  clean-VM matrix (T030), CI + four-platform smoke (T036/T037), soak (T042).

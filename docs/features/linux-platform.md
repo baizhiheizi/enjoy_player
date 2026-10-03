@@ -109,6 +109,20 @@ Performance budgets for playback, scrolling, and transcript rendering are identi
 
 YouTube availability is decided at runtime ([ADR-0091](../decisions/0091-youtube-linux-playback.md)): the app probes the bundled WPE WebKit runtime the first time a YouTube flow runs. When the probe fails — damaged bundle, missing system graphics stack — every YouTube entry point shows this notice with an **Open in browser** action, and the rest of the app keeps working. The open fails **before any engine swap**: a YouTube open never installs the WebView engine and never disposes the running `media_kit` engine, so audio/video playback opened afterwards keeps working (the 2026-08-29 regression briefly left every later open stuck on the loading skeleton after a failed YouTube open). Local/URL opens are additionally bounded by a 30 s `engine.open` timeout that surfaces a wedged native layer as an open failure instead of an infinite spinner. If the notice appears on a stock install of the official AppImage, file a report with the diagnostic log (Settings → About → Export diagnostic report).
 
+### YouTube plays audio but the video area is black
+
+Some GPU driver + compositor combinations hit a WPE WebKit hardware frame
+export stall (verified on AMD + Hyprland with wpewebkit 2.48–2.52). Launch the
+app with software GL for the embedded browser:
+
+```bash
+LIBGL_ALWAYS_SOFTWARE=1 ./enjoy-player-*.AppImage
+```
+
+An automatic detection-and-relaunch fallback is planned (specs/047 T047). If
+YouTube shows the unavailable notice instead, install the runtime: `wpewebkit`
+plus `gst-plugins-good gst-plugins-bad gst-libav` ([ADR-0092](../decisions/0092-linux-youtube-host-runtime.md)).
+
 ### AppImage won't run: "Permission denied"
 
 Run `chmod +x enjoy-player-*.AppImage` first.
