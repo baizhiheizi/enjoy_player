@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
 import 'client_profile.dart';
+import '../../../core/application/app_language_catalog.dart';
 import '../../../core/json/gated_json_decode.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../../../core/logging/log.dart';
@@ -269,9 +270,15 @@ class YoutubeCaptionFetcher {
         final allResults = await Future.wait(futures);
 
         final sorted = [...allResults];
+        final prefPrimary = primaryLanguageSubtag(preferredLang);
         sorted.sort((a, b) {
-          if (a.language == preferredLang) return -1;
-          if (b.language == preferredLang) return 1;
+          final aIsPref =
+              a.language.isNotEmpty &&
+              primaryLanguageSubtag(a.language) == prefPrimary;
+          final bIsPref =
+              b.language.isNotEmpty &&
+              primaryLanguageSubtag(b.language) == prefPrimary;
+          if (aIsPref != bIsPref) return aIsPref ? -1 : 1;
           return a.language.compareTo(b.language);
         });
 
@@ -384,7 +391,8 @@ class YoutubeCaptionFetcher {
 
   /// Returns true when [candidate] is a better choice than [current] for a
   /// given language. Prefers manual captions over auto, and prefers tracks
-  /// matching [preferredLang].
+  /// matching [preferredLang] (matching by primary subtag, so `no` counts as
+  /// `nb` via [kLanguageTagAliases]).
   bool _isBetterMatch(
     CaptionTrack candidate,
     CaptionTrack current, {
@@ -396,12 +404,30 @@ class YoutubeCaptionFetcher {
     final curIsManual = curVss.startsWith('.');
     if (cIsManual && !curIsManual) return true;
     if (!cIsManual && curIsManual) return false;
-    final cIsPref =
-        candidate.languageCode == preferredLang || cVss == '.$preferredLang';
-    final curIsPref =
-        current.languageCode == preferredLang || curVss == '.$preferredLang';
+    final prefPrimary = primaryLanguageSubtag(preferredLang);
+    final cIsPref = _matchesPreferred(
+      candidate,
+      preferredLang: preferredLang,
+      preferredPrimary: prefPrimary,
+    );
+    final curIsPref = _matchesPreferred(
+      current,
+      preferredLang: preferredLang,
+      preferredPrimary: prefPrimary,
+    );
     if (cIsPref && !curIsPref) return true;
     return false;
+  }
+
+  bool _matchesPreferred(
+    CaptionTrack track, {
+    required String preferredLang,
+    required String preferredPrimary,
+  }) {
+    if (track.vssId == '.$preferredLang') return true;
+    final code = track.languageCode;
+    if (code == null || code.isEmpty) return false;
+    return primaryLanguageSubtag(code) == preferredPrimary;
   }
 
   /// Fetches the caption track data in json3 format and parses to segments.
