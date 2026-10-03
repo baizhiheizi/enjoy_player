@@ -64,13 +64,15 @@ if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
   if [ -n "${GITHUB_ENV:-}" ]; then
     echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
   fi
-  # Bare -lwpe-1.0 / -lWPEBackend-fdo-1.0 leak through the pkg-config Requires
-  # chain without an -L, so the runtime libraries must sit in the system search
-  # path. Same effect as apt-installing them; the runner is self-hosted.
-  if ! ldconfig -p 2>/dev/null | grep -q "libwpe-1.0.so"; then
-    sudo cp -a "$WPE_ROOT/usr/lib/x86_64-linux-gnu/." /usr/lib/x86_64-linux-gnu/
-    sudo ldconfig
+  # Noble's library versions are older than what WPE 2.5x was built against
+  # (icu 78, libjpeg-turbo 3, gst 1.26 symbols), so linking the plugin on the
+  # runner cannot resolve every shlib symbol. CI only proves compilation — the
+  # shipped artifact resolves WPE + its symbol closure from the HOST runtime
+  # (ADR-0092) — so unresolved shared-library symbols are expected here.
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "CXXFLAGS=${CXXFLAGS:-} -Wl,--allow-shlib-undefined" >> "$GITHUB_ENV"
   fi
+  export CXXFLAGS="${CXXFLAGS:-} -Wl,--allow-shlib-undefined"
 fi
 
 missing=()
