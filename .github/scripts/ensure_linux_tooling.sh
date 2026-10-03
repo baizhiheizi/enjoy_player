@@ -39,13 +39,15 @@ packages=(
 # pinned Debian bookworm build extracted into a runner-local prefix. Compile-
 # time only: the shipped artifact resolves WPE from the host (ADR-0092).
 if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
-  WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-2.54}"
+  WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-2.54b}"
   if [ ! -e "$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig/wpe-webkit-2.0.pc" ]; then
     echo "WPE WebKit not installed — extracting pinned Debian build into $WPE_ROOT"
     mkdir -p "$WPE_ROOT"
     for deb in \
       https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-dev_2.54.0-2_amd64.deb \
       https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-1_2.54.0-2_amd64.deb \
+      https://deb.debian.org/debian/pool/main/libw/libwpe/libwpe-1.0-1_1.16.3-2_amd64.deb \
+      https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-1_1.16.1-1+b1_amd64.deb \
       https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-dev_1.16.1-1+b1_amd64.deb \
       https://deb.debian.org/debian/pool/main/libw/libwpe/libwpe-1.0-dev_1.16.3-2_amd64.deb \
     ; do
