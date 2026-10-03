@@ -130,3 +130,14 @@ first playing, Linux + available-runtime only) + FFI
 media, once per controller). Verdict = three consecutive near-black static
 sample pairs while playback reports live. Upstream issues filed (see
 ADR-0092): flutter_inappwebview#2903, #2904.
+
+## T049 CI status (2026-10-03, in progress)
+
+- noble runners: no wpewebkit packages at all; provisioning = pinned Debian
+  2.54 deb extraction + pc-path rewrite + system install of the runtime libs.
+- The plugin now compiles fully on CI (2.54 headers, FDO legacy backend); the
+  final executable link still fails on WPE 2.54's dependency closure (icu 78 /
+  libjpeg-turbo 3 / gst 1.26 / libxslt+libinput version nodes) — absent on
+  noble by design. Remaining fix = extend the extracted+installed set with the
+  trixie versions of those libraries (bounded, verified pattern).
+- All other PR #847 checks (analyze-test, apk, build-windows, check) green.
