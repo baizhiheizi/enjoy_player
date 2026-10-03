@@ -70,9 +70,9 @@ if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
   # shipped artifact resolves WPE + its symbol closure from the HOST runtime
   # (ADR-0092) — so unresolved shared-library symbols are expected here.
   if [ -n "${GITHUB_ENV:-}" ]; then
-    echo "CXXFLAGS=${CXXFLAGS:-} -Wl,--allow-shlib-undefined" >> "$GITHUB_ENV"
+    echo "LDFLAGS=${LDFLAGS:-} -Wl,--allow-shlib-undefined" >> "$GITHUB_ENV"
   fi
-  export CXXFLAGS="${CXXFLAGS:-} -Wl,--allow-shlib-undefined"
+  export LDFLAGS="${LDFLAGS:-} -Wl,--allow-shlib-undefined"
 fi
 
 missing=()
