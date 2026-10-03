@@ -719,6 +719,53 @@ void main() {
       expect(result.results[0].subtitles[0].text, 'manual text');
     });
 
+    test('matches preferred lang via macrolanguage alias (no → nb)', () async {
+      const noUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=no';
+      const enUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=en';
+
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': enUrl, 'vssId': '.en', 'languageCode': 'en'},
+                  {'baseUrl': noUrl, 'vssId': '.no', 'languageCode': 'no'},
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          _cannedJson3Response([
+            {
+              'tStartMs': 0,
+              'dDurationMs': 1000,
+              'segs': [
+                {'utf8': 'text'},
+              ],
+              'aAppend': 0,
+            },
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchAllSubtitles(
+        videoId: 'test1234567',
+        preferredLang: 'nb-NO',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.results.length, 2);
+      expect(result.results[0].language, 'no');
+      expect(result.results[1].language, 'en');
+    });
+
     test('skip tracks without language code', () async {
       const enUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=en';
 
