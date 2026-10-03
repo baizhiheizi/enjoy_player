@@ -10,6 +10,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
+import 'package:enjoy_player/core/platform/webview_software_gl.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/player/application/completion_loop.dart';
@@ -413,6 +414,26 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     engine.warmVideoSurface();
     _scheduleWarmedYoutubeEviction(engine);
   }
+
+  /// Recovers the Linux webview from the hardware frame-export stall
+  /// (specs/047 T047): flips the software-GL environment flag for newly
+  /// created GL contexts, then re-opens the current media on a fresh engine.
+  /// Once per controller — the verdict already implies a broken hardware path
+  /// and a loop would thrash playback.
+  Future<void> restartWithSoftwareGl() async {
+    if (defaultTargetPlatform != TargetPlatform.linux) return;
+    if (_softwareGlRestartUsed || _disposed) return;
+    final mediaId = state?.mediaId;
+    if (mediaId == null) return;
+    _softwareGlRestartUsed = true;
+    enableSoftwareGlForNewContexts();
+    _log.info('frame stall detected — rebuilding webview with software GL');
+    await clear();
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await openMedia(mediaId);
+  }
+
+  bool _softwareGlRestartUsed = false;
 
   void _scheduleWarmedYoutubeEviction(YoutubePlayerEngine engine) {
     _warmedYoutubeEviction?.cancel();

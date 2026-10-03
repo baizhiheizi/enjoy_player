@@ -69,6 +69,8 @@ dependencies:
   flutter_svg: ^2.2.3
   qr_flutter: ^4.1.0
   share_plus: ^13.3.0
+  # FFI setenv for the Linux webview software-GL fallback (specs/047 T047).
+  ffi: ^2.1.0
   showcaseview: ^5.1.0
   window_manager: ^0.5.1
   ai_sdk_dart: ^1.2.0
