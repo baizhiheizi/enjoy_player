@@ -40,7 +40,7 @@ jobs:
         run: flutter pub get
 
       - name: Flutter build linux (debug)
-        run: flutter build linux --debug
+        run: flutter build linux --debug -v
 
       - name: Flutter build linux (release)
         run: flutter build linux --release
