@@ -28,6 +28,11 @@ packages=(
   libgstreamer-plugins-base1.0-dev
   libsecret-1-dev
   libmpv-dev
+  libepoxy-dev
+  libwayland-dev
+  libwpewebkit-2.0-dev
+  libwpe-1.0-dev
+  libwpebackend-fdo-1.0-dev
 )
 
 missing=()
