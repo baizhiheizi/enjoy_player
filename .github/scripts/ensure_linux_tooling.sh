@@ -40,7 +40,7 @@ packages=(
 # time only: the shipped artifact resolves WPE from the host (ADR-0092).
 if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
   WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-bookworm}"
-  if [ ! -e "$WPE_ROOT/lib/pkgconfig/wpe-webkit-2.0.pc" ]; then
+  if [ ! -e "$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig/wpe-webkit-2.0.pc" ]; then
     echo "WPE WebKit not installed — extracting pinned Debian build into $WPE_ROOT"
     mkdir -p "$WPE_ROOT"
     for deb in \
@@ -54,7 +54,11 @@ if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
       rm -f "$WPE_ROOT/pkg.deb"
     done
   fi
-  export PKG_CONFIG_PATH="$WPE_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+  # Debian pc files bake prefix=/usr and multiarch libdirs; repoint every /usr
+  # reference at the extraction root so Cflags/Libs stay inside the prefix.
+  find "$WPE_ROOT/usr" -name '*.pc' -print0 2>/dev/null |
+    xargs -0 -r sed -i "s|=/usr|=$WPE_ROOT/usr|g"
+  export PKG_CONFIG_PATH="$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig:$WPE_ROOT/usr/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
   if [ -n "${GITHUB_ENV:-}" ]; then
     echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
   fi
