@@ -52,6 +52,15 @@ host**, while everything else in the image stays self-contained:
   user namespaces (disabled on hardened/enterprise kernels) and adds a launch
   wrapper failure mode. Revisit if host-install friction proves real.
 
+## Upstream issues
+
+Filed with the S1 reproduction evidence: [initialUrlRequest is ignored on
+Linux](https://github.com/pichillilorenzo/flutter_inappwebview/issues/2903)
+(why the probe and the player navigate via `loadUrl`) and [teardown race
+crashing the process with a glibc robust-mutex
+assertion](https://github.com/pichillilorenzo/flutter_inappwebview/issues/2904)
+(watched under the 24h soak, specs/047 T042).
+
 ## Consequences
 
 - Ubuntu users need one apt line for YouTube playback; the app tells them

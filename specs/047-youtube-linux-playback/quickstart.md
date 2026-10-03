@@ -119,3 +119,14 @@ the four result rows in the PR. All `behaviorDiff: none` required (US5).
   rebuild) a shipping requirement**, not an optional polish.
 - Remaining verification: X11 visual pass (engine verified under XWayland),
   clean-VM matrix (T030), CI + four-platform smoke (T036/T037), soak (T042).
+
+## T047 implementation (2026-10-02)
+
+Frame-watchdog shipped: `YoutubeFrameWatchdog` (pure state machine, 4
+fake_async tests) + RepaintBoundary luminance sampler in the stage (arms after
+first playing, Linux + available-runtime only) + FFI
+`setenv(LIBGL_ALWAYS_SOFTWARE)` for newly created GL contexts +
+`PlayerController.restartWithSoftwareGl` (env flip + clear + re-open current
+media, once per controller). Verdict = three consecutive near-black static
+sample pairs while playback reports live. Upstream issues filed (see
+ADR-0092): flutter_inappwebview#2903, #2904.
