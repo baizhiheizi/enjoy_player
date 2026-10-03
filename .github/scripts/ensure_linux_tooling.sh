@@ -30,10 +30,35 @@ packages=(
   libmpv-dev
   libepoxy-dev
   libwayland-dev
-  libwpewebkit-2.0-dev
-  libwpe-1.0-dev
-  libwpebackend-fdo-1.0-dev
+  libsoup-3.0-dev
+  libjavascriptcoregtk-4.1-dev
+  libglvnd-dev
 )
+
+# WPE WebKit has no Ubuntu packages (noble), so the plugin compiles against a
+# pinned Debian bookworm build extracted into a runner-local prefix. Compile-
+# time only: the shipped artifact resolves WPE from the host (ADR-0092).
+if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
+  WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-bookworm}"
+  if [ ! -e "$WPE_ROOT/lib/pkgconfig/wpe-webkit-2.0.pc" ]; then
+    echo "WPE WebKit not installed — extracting pinned Debian build into $WPE_ROOT"
+    mkdir -p "$WPE_ROOT"
+    for deb in \
+      https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-dev_2.48.3-1_amd64.deb \
+      https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-1_2.48.3-1_amd64.deb \
+      https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-dev_1.16.1-1+b1_amd64.deb \
+      https://deb.debian.org/debian/pool/main/libw/libwpe/libwpe-1.0-dev_1.16.3-2_amd64.deb \
+    ; do
+      curl -fsSL -o "$WPE_ROOT/pkg.deb" "$deb"
+      dpkg-deb -x "$WPE_ROOT/pkg.deb" "$WPE_ROOT"
+      rm -f "$WPE_ROOT/pkg.deb"
+    done
+  fi
+  export PKG_CONFIG_PATH="$WPE_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
+  fi
+fi
 
 missing=()
 for pkg in "${packages[@]}"; do
