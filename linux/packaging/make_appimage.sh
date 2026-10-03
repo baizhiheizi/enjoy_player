@@ -90,6 +90,35 @@ is_host_gl() {
 APP_USR_LIB="$APPDIR/usr/lib"
 mkdir -p "$APP_USR_LIB"
 
+# Bundled libraries are copied under their full versioned name
+# (libWPEWebKit-2.0.so.1.9.10) but DT_NEEDED entries reference the soname
+# (libWPEWebKit-2.0.so.1). Without a soname symlink inside lib/, the loader
+# skips the bundled copy and resolves against the HOST's version — which may be
+# a completely different WebKit (verified: host 2.48 shadowed the bundled 2.52
+# and needed a different ICU). $ORIGIN rpath then prefers the bundled copy.
+link_bundle_sonames() {
+  command -v readelf >/dev/null 2>&1 || return 0
+  local real soname
+  for real in "$APPDIR"/lib/*.so*; do
+    [[ -f "$real" ]] || continue
+    soname="$(readelf -d "$real" 2>/dev/null | awk -F'[][]' '/SONAME/ {print $2}')"
+    [[ -n "$soname" ]] || continue
+    [[ -e "$APPDIR/lib/$soname" ]] || ln -s "$(basename "$real")" "$APPDIR/lib/$soname"
+  done
+}
+link_bundle_sonames
+
+# True when the AppDir already ships this soname family (libFoo.so.*) — the
+# soname a requester asks for is then satisfied by the bundled copy, and
+# resolving it against the HOST would pull a foreign second version into
+# usr/lib (verified: host WPE 2.48 landed beside the bundled 2.52).
+soname_family_bundled() {
+  local soname
+  soname="$(basename "$1")"
+  local prefix="${soname%%.so*}.so"
+  compgen -G "$APPDIR/lib/$prefix.*" >/dev/null 2>&1
+}
+
 link_soname() {
   local real="$1"
   command -v readelf >/dev/null 2>&1 || return 0
@@ -111,6 +140,7 @@ for _ in $(seq 1 12); do
       is_glibc_core "$lib" && continue
       is_host_gl "$lib" && continue
       [[ -e "$APPDIR/lib/$(basename "$lib")" ]] && continue
+      soname_family_bundled "$lib" && continue
       [[ -e "$APP_USR_LIB/$(basename "$lib")" ]] && continue
       echo "$lib" >> "$DEP_LIST"
     done < <(ldd "$f" 2>/dev/null | awk '$2 == "=>" && $3 ~ /^\// {print $3}; !($2 == "=>") && $1 ~ /^\// {print $1}')
@@ -174,6 +204,20 @@ fi
 exec "$HERE/enjoy_player" "$@"
 EOF
 chmod +x "$APPDIR/AppRun"
+
+# --- WPE WebKit stays a HOST dependency (ADR-0092) ---
+#
+# WebKit spawns WebProcess/NetworkProcess from a compile-time absolute path
+# (/usr/lib/wpe-webkit-2.0/...) with no override, so a bundled WPE would still
+# launch the HOST's helper binaries — a guaranteed version mismatch. v1 ships
+# with the webview runtime resolved from the host instead: the availability
+# probe detects its presence and the player degrades gracefully when missing.
+# The WPE family copied into bundle/lib by the plugin's bundling is therefore
+# removed here; host GStreamer plugins are still shadowed by our bundled set.
+if [[ -n "$(find "$APPDIR/lib" -maxdepth 1 -name 'libWPE*' -o -maxdepth 1 -name 'libwpe*' 2>/dev/null)" ]]; then
+  echo "==> Removing bundled WPE libraries (host wpewebkit is the runtime, ADR-0092)"
+  rm -f "$APPDIR"/lib/libWPE* "$APPDIR"/lib/libwpe* "$APPDIR"/lib/libwpewebkit*
+fi
 
 echo "==> AppDir contents: $(du -sh "$APPDIR" | awk '{ print $1 }')"
 

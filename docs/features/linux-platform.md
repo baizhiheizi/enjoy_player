@@ -43,7 +43,7 @@ No `apt install`, no `sudo`, no Snap/Flatpak abstraction layer. The AppImage is 
 | Recording uploads | Upload `client_platform=linux` to the existing endpoint |
 | Keyboard hotkeys | Full support (desktop shortcuts) |
 | Settings / preferences | Full support (libsecret / GNOME Keyring backed secure storage) |
-| YouTube import / playback | **Supported** (rolling out — [ADR-0091](../decisions/0091-youtube-linux-playback.md)). The same embedded-browser engine as Windows/macOS; the WPE WebKit runtime ships inside the AppImage. Availability is decided at runtime: systems where the runtime cannot initialize show the localized unavailable notice with an "open in browser" fallback instead of failing. YouTube sign-in stays disabled on Linux for now. |
+| YouTube import / playback | **Supported** (rolling out — [ADR-0091](../decisions/0091-youtube-linux-playback.md), [ADR-0092](../decisions/0092-linux-youtube-host-runtime.md)). The same embedded-browser engine as Windows/macOS. The GStreamer codec set ships inside the AppImage; the WPE WebKit runtime itself is resolved from the host — install `wpewebkit` (Arch) / `wpewebkit` + GStreamer plugins (Ubuntu/Debian) if YouTube shows the unavailable notice. Availability is decided at runtime, and systems without a usable runtime show a localized notice with an "open in browser" fallback. YouTube sign-in stays disabled on Linux for now. |
 
 ## What is not yet available
 
