@@ -4,9 +4,93 @@
     "labelling_after": null,
     "investigation_after": 797
   },
-  "issues": [],
-  "fixes": [],
-  "completed_actions": [],
+  "issues": [
+    {
+      "number": 786,
+      "state": "resolution_recommended",
+      "updated_at": "2026-10-04",
+      "note": "Bokmål catalog shipped (#788); YouTube caption-code gap closed by draft PR #848. Recommend close once #848 lands."
+    },
+    {
+      "number": 761,
+      "state": "resolution_recommended",
+      "updated_at": "2026-10-04",
+      "note": "Byte-identical duplicate of closed #762 (Sept activity). Already labelled duplicate; safe to close."
+    },
+    {
+      "number": 793,
+      "state": "deferred",
+      "updated_at": "2026-10-04",
+      "note": "macOS integrated title bar follow-up needs hardware; wall-clock flake already addressed by #845."
+    },
+    {
+      "number": 797,
+      "state": "deferred",
+      "updated_at": "2026-10-04",
+      "note": "[repo-map] documentation label — auto-managed snapshot."
+    },
+    {
+      "number": 840,
+      "state": "deferred",
+      "updated_at": "2026-10-04",
+      "note": "[aw] automation-managed daily-credit report."
+    },
+    {
+      "number": 841,
+      "state": "commented",
+      "updated_at": "2026-10-04",
+      "note": "Monthly activity summary for October 2026 — updated each run by Task 11."
+    },
+    {
+      "number": 850,
+      "state": "deferred",
+      "updated_at": "2026-10-04",
+      "note": "[repo-status] daily status report — auto-managed."
+    },
+    {
+      "number": 771,
+      "state": "deferred",
+      "updated_at": "2026-10-04",
+      "note": "[aw] detection runs — auto-managed."
+    }
+  ],
+  "fixes": [
+    {
+      "issue": 786,
+      "pr": 848,
+      "branch": "repo-assist/fix-786-youtube-caption-alias-matching-628499ea392178eb",
+      "status": "open",
+      "updated_at": "2026-10-04",
+      "note": "YouTube caption matcher uses primary-subtag aliasing. 25/25 youtube_caption_fetcher_test, 476/476 test/features/transcript/. Format + analyze clean."
+    }
+  ],
   "checks": [],
-  "priorities": []
+  "completed_actions": [],
+  "priorities": [
+    {
+      "task": 6,
+      "item": "PR #848 YouTube caption alias gap",
+      "note": "Draft PR awaiting maintainer review; closes #786 residual caption-code gap. Land and close #786."
+    },
+    {
+      "task": 7,
+      "item": "PR #849 CHANGELOG October fixes",
+      "note": "Draft PR covering #838/#839/#843/#844 — pure markdown drift fix."
+    },
+    {
+      "task": 5,
+      "item": "PR #851 timeline codec shared threshold",
+      "note": "Draft PR collapsing duplicate kEncodeTimelineJsonBytes to kPreloadTimelineJsonBytes."
+    },
+    {
+      "task": 9,
+      "item": "PR #852 language descriptor tests",
+      "note": "Draft PR adding direct unit coverage for splitLanguageTag, normalizeLanguageAlias, firstTagPerPrimary, isLookupRow."
+    },
+    {
+      "task": 2,
+      "item": "Close #761 duplicate",
+      "note": "Byte-identical duplicate of closed #762 — labelled duplicate already."
+    }
+  ]
 }
