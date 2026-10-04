@@ -44,7 +44,6 @@ class VocabularyEmptyState extends StatelessWidget {
     };
 
     return EmptyState(
-      icon: icon,
       title: title,
       subtitle: body,
       action: action,

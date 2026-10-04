@@ -125,7 +125,7 @@ Legacy:     `auroraStart`/`auroraEnd`/`aurora` = logo stops · `shadowCard`=lift
 | `EnjoyTappableSurface` / `EnjoyTappableIcon` | `core/interaction/enjoy_tappable.dart` | Legacy API over `EnjoyPressable` / `IconButton` |
 | `EnjoyButton` (`brand` / `primary` / `secondary` / `ghost` / `destructive`, `small` / `medium` / `large`, `expand`) | `core/theme/widgets/enjoy_button.dart` | Action buttons at 32 / 40 / 50, radius 12, Geist 600 14: `brand` is the gradient with a white label and the brand-button shadow (one per screen), `primary` is the ink fill, `secondary` paper + line (legacy `tonal` aliases it), `ghost` ink2 text, `destructive` solid danger with a white label |
 | `EnjoyIconButton` | same | Square icon-only action in the same variants; 40 on desktop, 44 on phone |
-| `EnjoyCard` / `enjoyCardDecoration` | `core/theme/widgets/enjoy_card.dart` | Hairline card with ambient depth |
+| `EnjoyCard` / `enjoyCardDecoration` | `core/theme/widgets/enjoy_card.dart` | Paper card with a line outline and the lift shadow, radius 20 |
 | `EnjoyAvatar` / `EnjoyTierBadge` / `EnjoyKeycap` | `core/theme/widgets/enjoy_avatar.dart` | Gradient-initial avatar with an optional logo-gradient ring, brand-gradient tier pill (`leading` icon, `padding` scale, `shape`, solid `color` override — also the sidebar Upgrade pill and the tier-catalog badges), paper keycap with a line border and 1px drop |
 | `EnjoyProgressRingPainter` | `core/theme/widgets/enjoy_progress_ring.dart` | Track circle + progress arc (solid color or aurora sweep gradient) — Today's Goal ring, record FAB countdown |
 | `EnjoyIconTile` / `EnjoyTint` / `enjoyTintForIcon` | `core/theme/widgets/enjoy_icon_tile.dart` | Colored icon tiles for grouped lists |
@@ -133,8 +133,8 @@ Legacy:     `auroraStart`/`auroraEnd`/`aurora` = logo stops · `shadowCard`=lift
 | `AppBackground` / `AuroraGlow` / `PlayerAmbientBackdrop` | `core/theme/widgets/app_background.dart` | Page color + aurora glow; player artwork tint |
 | `EnjoyPage` / `EnjoyPageKind` | `core/theme/widgets/enjoy_page.dart`, `core/layout/enjoy_page_kind.dart` | Adaptive page scaffold + width metrics |
 | `EnjoySubpageAppBar` / `EnjoyBackButton` | `core/theme/widgets/enjoy_subpage_app_bar.dart` | Push-route chrome |
-| `EditorialHeader` / `EnjoyOverline` / `EnjoySectionHeader` | `core/theme/widgets/editorial_header.dart` | Serif page title (+ `overline`, `subtitle`), eyebrow label, in-page section heading |
-| `EmptyState` / `EnjoyIconOrb` | `core/theme/widgets/empty_state.dart` | Icon orb + serif title + actions |
+| `EditorialHeader` / `EnjoyOverline` / `EnjoySectionHeader` | `core/theme/widgets/editorial_header.dart` | Literata 42 / 32 page title (+ `overline`, `subtitle`), Geist 600 11 caps eyebrow in ink3, Literata 24 section heading |
+| `EmptyState` / `EnjoyIconOrb` / `EnjoyLogoMark` | `core/theme/widgets/empty_state.dart`, `core/theme/widgets/enjoy_logo.dart` | The logo's three planes at low opacity + serif title + actions (`EnjoyIconOrb` survives only for surfaces not yet rebuilt) |
 | `EnjoyBottomNav` | `core/theme/widgets/enjoy_bottom_nav.dart` | Glass capsule tab bar with gliding lens |
 | `NavItemPill` | `core/theme/widgets/nav_item_pill.dart` | Sidebar / settings-rail row (ADR-0018) |
 | `showEnjoySheet` / `showEnjoyAdaptiveSheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Popover-surface sheets / dialogs, shared scrim + `enjoyDialogAnimationStyle` |

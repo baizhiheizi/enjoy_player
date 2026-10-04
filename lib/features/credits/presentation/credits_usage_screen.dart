@@ -449,7 +449,6 @@ class _PageErrorBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     return EmptyState(
-      icon: EnjoyIcons.error,
       title: l10n.creditsUsageError,
       subtitle: l10n.creditsUsageErrorDescription,
       action: () => ref.invalidate(creditsUsagePageProvider),
@@ -640,7 +639,6 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return EmptyState(
-      icon: EnjoyIcons.inbox,
       title: l10n.creditsUsageNoRecords,
       subtitle: hasFilters
           ? l10n.creditsUsageNoRecordsWithFilters

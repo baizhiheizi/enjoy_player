@@ -102,7 +102,6 @@ class AuthRequiredCallout extends ConsumerWidget {
           );
         }
         return EmptyState(
-          icon: EnjoyIcons.lockPerson,
           title: title,
           subtitle: body,
           action: () => _openSignIn(context),
@@ -136,7 +135,6 @@ class AuthRequiredCallout extends ConsumerWidget {
           );
         }
         return EmptyState(
-          icon: EnjoyIcons.lockPerson,
           title: title,
           subtitle: body,
           action: () => _openSignIn(context),

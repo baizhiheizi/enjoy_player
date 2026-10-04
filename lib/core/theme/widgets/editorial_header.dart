@@ -1,5 +1,5 @@
-/// Editorial page header — large Instrument Serif title, optional overline,
-/// trailing actions. The signature voice of Aurora page chrome (ADR-0089).
+/// Editorial page header — large Literata title, optional overline,
+/// trailing actions. The signature voice of Duet page chrome (ADR-0091).
 library;
 
 import 'package:flutter/material.dart';
@@ -82,12 +82,10 @@ class EditorialHeader extends StatelessWidget {
 
         final titleStyle = compact
             ? tt.headlineMedium
-            : (narrow
-                  ? tt.displaySmall?.copyWith(fontSize: 34, letterSpacing: -0.6)
-                  : tt.displaySmall?.copyWith(
-                      fontSize: 40,
-                      letterSpacing: -0.8,
-                    ));
+            : tt.displaySmall?.copyWith(
+                fontSize: narrow ? 32 : 42,
+                letterSpacing: narrow ? -0.64 : -0.84,
+              );
 
         return Padding(
           padding:
@@ -173,10 +171,10 @@ class EnjoyOverline extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        letterSpacing: 1.3,
+        letterSpacing: 0.88,
         fontSize: 11,
         fontWeight: FontWeight.w600,
-        color: color ?? t.textFaint,
+        color: color ?? t.ink3,
       ),
     );
   }
@@ -216,10 +214,11 @@ class EnjoySectionHeader extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tt.titleMedium?.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.25,
+                    style: tt.displaySmall?.copyWith(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.24,
+                      height: 1.2,
                     ),
                   ),
                 ),

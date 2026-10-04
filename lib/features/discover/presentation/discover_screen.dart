@@ -104,7 +104,6 @@ class DiscoverScreen extends ConsumerWidget {
                   return SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyState(
-                      icon: EnjoyIcons.rss,
                       title: l10n.discoverFeedEmptyTitle,
                       subtitle: l10n.discoverNoSubscriptionsHint,
                       action: () =>
@@ -177,7 +176,6 @@ class _DiscoverFeedSliver extends StatelessWidget {
       ),
       error: (_, _) => SliverToBoxAdapter(
         child: EmptyState(
-          icon: EnjoyIcons.cloudOff,
           title: l10n.discoverFeedErrorTitle,
           subtitle: l10n.discoverFeedErrorHint,
           action: () => unawaited(onRefresh()),
@@ -188,7 +186,6 @@ class _DiscoverFeedSliver extends StatelessWidget {
         if (entries.isEmpty) {
           return SliverToBoxAdapter(
             child: EmptyState(
-              icon: EnjoyIcons.rss,
               title: l10n.discoverFeedEmptyTitle,
               subtitle: l10n.discoverFeedEmptyHint,
               action: () => unawaited(onRefresh()),

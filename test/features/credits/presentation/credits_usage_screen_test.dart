@@ -259,7 +259,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
     expect(find.byType(EmptyState), findsOneWidget);
   });
 

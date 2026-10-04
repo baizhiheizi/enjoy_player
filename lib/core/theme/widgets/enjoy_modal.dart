@@ -3,14 +3,13 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 Color enjoyModalBarrierColor([BuildContext? context]) {
   final light =
       context != null && Theme.of(context).brightness == Brightness.light;
-  return (light ? const Color(0xFF16161D) : Colors.black).withValues(
-    alpha: light ? 0.24 : 0.56,
-  );
+  return light ? AppColors.scrimLight : AppColors.scrimDark;
 }
 
 /// Aurora dialog motion: a quick soft fade (Material's dialog transition with

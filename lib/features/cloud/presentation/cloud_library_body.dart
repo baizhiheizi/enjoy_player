@@ -283,7 +283,6 @@ class _CloudAudioListState extends ConsumerState<_CloudAudioList> {
           child: SizedBox(
             height: MediaQuery.sizeOf(context).height * 0.55,
             child: EmptyState(
-              icon: EnjoyIcons.waveform,
               title: l10n.cloudEmptyAudioTitle,
               subtitle: l10n.cloudEmptyAudioSubtitle,
             ),
@@ -452,7 +451,6 @@ class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
           child: SizedBox(
             height: MediaQuery.sizeOf(context).height * 0.55,
             child: EmptyState(
-              icon: EnjoyIcons.video,
               title: l10n.cloudEmptyVideoTitle,
               subtitle: l10n.cloudEmptyVideoSubtitle,
             ),

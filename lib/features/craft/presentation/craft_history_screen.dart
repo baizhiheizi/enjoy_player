@@ -45,7 +45,6 @@ class CraftHistoryScreen extends ConsumerWidget {
         data: (items) {
           if (items.isEmpty) {
             return EmptyState(
-              icon: EnjoyIcons.sparkle,
               title: l10n.craftHistoryEmptyTitle,
               subtitle: l10n.craftHistoryEmptyHint,
               action: () => context.go('/craft'),

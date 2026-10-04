@@ -1,20 +1,20 @@
-/// Editorial empty-state primitive (Aurora).
+/// Editorial empty-state primitive (Duet).
 ///
-/// A softly lit icon orb, a serif title, a measured line of copy, and up to
-/// two actions — centered with generous breathing room.
+/// The logo's three planes at low intensity, a serif title, a measured line
+/// of copy, and up to two actions — centered with generous breathing room.
 library;
 
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 
 import '../enjoy_tokens.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
-    required this.icon,
     required this.title,
     required this.subtitle,
     this.action,
@@ -23,7 +23,6 @@ class EmptyState extends StatelessWidget {
     this.secondaryActionLabel,
   });
 
-  final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback? action;
@@ -52,7 +51,7 @@ class EmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              EnjoyIconOrb(icon: icon),
+              const EnjoyLogoMark(size: 88, opacity: 0.4),
               SizedBox(height: t.space24),
               Text(
                 title,

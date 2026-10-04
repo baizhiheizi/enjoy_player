@@ -111,7 +111,6 @@ class LocalAudioLibraryBody extends StatelessWidget {
           searchQuery.isNotEmpty && totalInLibraryOfKind > 0;
       if (filteredBySearch) {
         return EmptyState(
-          icon: EnjoyIcons.searchOff,
           title: l10n.librarySearchNoMatchesTitle,
           subtitle: l10n.librarySearchNoMatchesHint,
           action: () {
@@ -124,7 +123,6 @@ class LocalAudioLibraryBody extends StatelessWidget {
         );
       }
       return EmptyState(
-        icon: EnjoyIcons.waveform,
         title: l10n.libraryEmptyAudioTitle,
         subtitle: l10n.libraryEmptyAudioHint,
       );
@@ -226,7 +224,6 @@ class LocalVideoLibraryBody extends StatelessWidget {
           searchQuery.isNotEmpty && totalInLibraryOfKind > 0;
       if (filteredBySearch) {
         return EmptyState(
-          icon: EnjoyIcons.searchOff,
           title: l10n.librarySearchNoMatchesTitle,
           subtitle: l10n.librarySearchNoMatchesHint,
           action: () {
@@ -239,7 +236,6 @@ class LocalVideoLibraryBody extends StatelessWidget {
         );
       }
       return EmptyState(
-        icon: EnjoyIcons.video,
         title: l10n.libraryEmptyVideoTitle,
         subtitle: l10n.libraryEmptyVideoHint,
       );

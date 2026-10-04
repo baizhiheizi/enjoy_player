@@ -83,7 +83,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyState(
-                      icon: EnjoyIcons.library,
                       title: l10n.homeEmptyTitle,
                       subtitle: l10n.homeEmptyHint,
                       action: () => showImportChooser(context, ref),

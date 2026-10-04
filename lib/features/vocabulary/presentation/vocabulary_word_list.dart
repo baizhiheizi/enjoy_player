@@ -47,7 +47,6 @@ class _VocabularyWordListState extends ConsumerState<VocabularyWordList> {
     return itemsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => EmptyState(
-        icon: EnjoyIcons.error,
         title: l10n.vocabularyListLoadFailed,
         subtitle: l10n.vocabularyAiFetchFailed,
         action: () => ref.invalidate(vocabularyItemsProvider),
