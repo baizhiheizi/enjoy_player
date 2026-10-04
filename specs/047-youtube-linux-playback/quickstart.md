@@ -141,3 +141,15 @@ ADR-0092): flutter_inappwebview#2903, #2904.
   noble by design. Remaining fix = extend the extracted+installed set with the
   trixie versions of those libraries (bounded, verified pattern).
 - All other PR #847 checks (analyze-test, apk, build-windows, check) green.
+
+## T049 final form (2026-10-03, build-linux PASS)
+
+`ensure_linux_tooling.sh` on noble: extract pinned Debian wpewebkit 2.54
+headers+runtime into a runner-local prefix (pc prefix/multiarch rewrite,
+PKG_CONFIG_PATH + LDFLAGS via GITHUB_ENV), install the runtime libs into the
+default linker path, linker = gold + allow-shlib-undefined (noble's library
+versions predate WPE 2.5x's dep closure: icu 78 / libjpeg-turbo 3 / gst 1.26 /
+xslt+libinput version nodes), plus a header-only compat define for
+WPE_SETTING_DISABLE_ANIMATIONS (Debian 2.54 headers predate it; runtime
+tolerates unregistered keys). Build-linux job: PASS 3m9s. The shipped AppImage
+still strips WPE (ADR-0092, host runtime at user machines).
