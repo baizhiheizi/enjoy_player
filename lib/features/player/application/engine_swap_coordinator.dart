@@ -227,12 +227,18 @@ class EngineSwapCoordinator {
     final owned = _getOwnedEngine();
     final haveYt = owned is YoutubePlaybackEngine;
 
-    if (wantYt && youTubeEngineOptedOutHere) return false;
+    YouTubeAvailability? youtubeAvailability;
+    if (wantYt) {
+      youtubeAvailability = await resolveYouTubeAvailability();
+      if (!youtubeAvailability.canPlay) return false;
+    }
 
     if (owned != null && haveYt == wantYt) return false;
     if (steps.isStale()) return false;
 
-    final next = wantYt ? YoutubePlayerEngine() : MediaKitPlayerEngine();
+    final next = wantYt
+        ? YoutubePlayerEngine(availability: youtubeAvailability)
+        : MediaKitPlayerEngine();
     install(next);
     final landed = await _runSupersededSwapSteps(
       steps: steps,

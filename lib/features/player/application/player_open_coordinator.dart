@@ -262,10 +262,14 @@ Future<void> runPlayerOpen(
     final language = resolved.language;
     final durationSec = resolved.durationSeconds;
 
-    await steps.run('gate Linux YouTube open (ADR-0048)', () async {
-      if (playable is YoutubePlayableSource && youTubeEngineOptedOutHere) {
-        throw const YouTubePlaybackUnavailableException.linuxOptedOut();
-      }
+    await steps.run('gate YouTube availability (specs/047)', () async {
+      if (playable is! YoutubePlayableSource) return;
+      final availability = await resolveYouTubeAvailability();
+      if (availability.canPlay) return;
+      throw YouTubePlaybackUnavailableException.fromAvailability(
+        availability as YouTubeUnavailable,
+        videoId: playable.videoId,
+      );
     });
 
     deps.scheduleOpenSideEffects(

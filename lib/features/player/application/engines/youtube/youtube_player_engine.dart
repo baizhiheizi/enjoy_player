@@ -24,9 +24,17 @@ final _logYoutube = logNamed('YouTubePlayerEngine');
 class YoutubePlayerEngine
     implements PlayerEngine, PlayerEngineMetadata, YoutubePlaybackEngine {
   /// [session] is injectable so tests can drive the mount signal without a
-  /// WebView backend.
-  YoutubePlayerEngine({YoutubeSession? session})
-    : _session = session ?? YoutubeSession() {
+  /// WebView backend. [availability] is the resolved runtime decision
+  /// (specs/047); it defaults to the process snapshot when known, else to
+  /// available — production constructors always pass it explicitly.
+  YoutubePlayerEngine({
+    YoutubeSession? session,
+    YouTubeAvailability? availability,
+  }) : _session = session ?? YoutubeSession(),
+       _availability =
+           availability ??
+           resolvedYouTubeAvailability ??
+           const YouTubeAvailable() {
     _webView = YoutubeWebViewController(
       session: _session,
       onStallRecovery: () => _webView.recoverStalledPlayback(),
@@ -35,6 +43,10 @@ class YoutubePlayerEngine
   }
 
   final YoutubeSession _session;
+  final YouTubeAvailability _availability;
+
+  /// The runtime availability decision this engine was constructed with.
+  YouTubeAvailability get availability => _availability;
 
   /// Last logged video-stage size (park/unpark marker — see
   /// [noteStageViewportSize]).
@@ -118,7 +130,7 @@ class YoutubePlayerEngine
   void markOpenTimingStart() => _webView.markOpenTimingStart();
 
   void _ensureWebViewAttached() {
-    if (youTubeEngineOptedOutHere) return;
+    if (!_availability.canPlay) return;
     _session.requestMount();
     _logInitPhase('mount_requested');
   }
@@ -134,7 +146,7 @@ class YoutubePlayerEngine
   Future<bool> _awaitWebViewMounted({
     Duration timeout = const Duration(seconds: 8),
   }) async {
-    if (youTubeEngineOptedOutHere) return false;
+    if (!_availability.canPlay) return false;
     _ensureWebViewAttached();
     if (_session.webViewMounted) return true;
     await _session.awaitWebViewMounted().timeout(timeout, onTimeout: () {});
@@ -156,8 +168,15 @@ class YoutubePlayerEngine
 
   @override
   Future<void> open(PlayableSource source) async {
-    if (youTubeEngineOptedOutHere) {
-      throw const YouTubePlaybackUnavailableException.linuxOptedOut();
+    final unavailable = switch (_availability) {
+      final YouTubeUnavailable u => u,
+      _ => null,
+    };
+    if (unavailable != null) {
+      throw YouTubePlaybackUnavailableException.fromAvailability(
+        unavailable,
+        videoId: source is YoutubePlayableSource ? source.videoId : '',
+      );
     }
     if (source is! YoutubePlayableSource) {
       throw UnsupportedError(
