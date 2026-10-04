@@ -28,6 +28,7 @@ packages=(
   libgstreamer-plugins-base1.0-dev
   libsecret-1-dev
   libmpv-dev
+  binutils-gold
   libepoxy-dev
   libwayland-dev
   libsoup-3.0-dev
