@@ -25,7 +25,7 @@ EnjoyThemeTokens _tokens(WidgetTester tester) =>
     EnjoyThemeTokens.of(tester.element(find.byType(EnjoyTierBadge)));
 
 void main() {
-  testWidgets('default badge rides the aurora with compact padding', (
+  testWidgets('default badge rides the brand gradient with compact padding', (
     tester,
   ) async {
     await tester.pumpWidget(_host(const EnjoyTierBadge(label: 'Pro')));
@@ -39,7 +39,7 @@ void main() {
     );
     final decoration = container.decoration as ShapeDecoration;
     expect(decoration.shape, const StadiumBorder());
-    expect(decoration.gradient, t.aurora);
+    expect(decoration.gradient, t.brand);
     expect(decoration.color, isNull);
 
     final text = tester.widget<Text>(find.text('Pro'));
@@ -48,7 +48,7 @@ void main() {
     expect(text.style?.fontWeight, FontWeight.w700);
   });
 
-  testWidgets('muted badge swaps the aurora for a neutral fill', (
+  testWidgets('muted badge swaps the brand gradient for a neutral fill', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -79,7 +79,7 @@ void main() {
     expect(icon.color, Colors.white);
   });
 
-  testWidgets('padding override and solid color drop the aurora', (
+  testWidgets('padding override and solid color drop the brand gradient', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -119,7 +119,7 @@ void main() {
 
     final decoration = _badgeContainer(tester).decoration as ShapeDecoration;
     expect(decoration.shape, shape);
-    expect(decoration.gradient, _tokens(tester).aurora);
+    expect(decoration.gradient, _tokens(tester).brand);
   });
 
   testWidgets('EnjoyKeycap renders mono on one tight line', (
@@ -133,9 +133,9 @@ void main() {
     final mono = enjoyMonoStyle(
       ctx,
       size: 10.5,
-      weight: FontWeight.w600,
-      color: tokens.textFaint,
-      height: 1.35,
+      weight: FontWeight.w500,
+      color: tokens.ink,
+      height: 1,
     );
     expect(text.style?.fontFamily, mono.fontFamily);
     expect(text.style, mono);

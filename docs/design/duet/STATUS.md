@@ -11,12 +11,12 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | Phase | Tasks | Done |
 |---|---|---|
 | 0 · Ready | 2 | 2 |
-| 1 · Foundations | 8 | 3 |
+| 1 · Foundations | 8 | 4 |
 | 2 · Shell | 3 | 0 |
 | 3 · Player | 13 | 0 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **4** |
+| **Total** | **43** | **5** |
 
 ## Decisions
 
