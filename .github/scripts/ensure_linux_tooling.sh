@@ -69,10 +69,13 @@ if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
   # runner cannot resolve every shlib symbol. CI only proves compilation — the
   # shipped artifact resolves WPE + its symbol closure from the HOST runtime
   # (ADR-0092) — so unresolved shared-library symbols are expected here.
+  # GNU ld hard-fails on the versioned shlib references (icu 78 / libjpeg 3 /
+  # gst 1.26 / xslt nodes); gold binds them lazily and is still in binutils on
+  # noble.
   if [ -n "${GITHUB_ENV:-}" ]; then
-    echo "LDFLAGS=${LDFLAGS:-} -Wl,--allow-shlib-undefined -Wl,--undefined-version" >> "$GITHUB_ENV"
+    echo "LDFLAGS=${LDFLAGS:-} -fuse-ld=gold -Wl,--allow-shlib-undefined" >> "$GITHUB_ENV"
   fi
-  export LDFLAGS="${LDFLAGS:-} -Wl,--allow-shlib-undefined -Wl,--undefined-version"
+  export LDFLAGS="${LDFLAGS:-} -fuse-ld=gold -Wl,--allow-shlib-undefined"
 
   # Bare -lwpe-1.0 / -lWPEBackend-fdo-1.0 leak through the pkg-config Requires
   # chain without an -L, so the runtime libraries must sit in the default
