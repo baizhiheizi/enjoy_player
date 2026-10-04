@@ -8,12 +8,13 @@
 
 **Aurora — quiet chrome, luminous content.** Material is the widget toolkit, not the look: no ink ripples, continuous (superellipse) corners, hairline + ambient-light depth instead of elevation, one icon family, and one motion language on every platform.
 
-**Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`):
-- **Neutrals** — cool, with a faint iris cast. **Porcelain** light: page `#F7F7F9`, canvas `#ECECF1`, cards / popovers white. **Midnight** dark: page `#111115`, canvas `#09090B`, cards `#17171C`, popovers `#1E1E24`. Address surfaces by role: `t.canvas`, `cs.surface` (page), `t.card`, `t.popover`, `t.fill` (control fills), `t.hairline`, `t.textFaint`.
-- **Iris accent** — fills `#5B4BE8` (light) / `#6D5DFC` (dark), white labels ≥ 4.5:1; inks `#4F3FD6` / `#A99BFF` (`t.accentInk`) for small text. `t.accentSoft` for selected washes.
-- **Aurora** — the logo's blue `#4797F5` → violet `#A855F7` (`t.aurora`). Signature moments only: the page glow (`AuroraGlow`), goal ring, Pro badge (`EnjoyTierBadge`), credits meter, profile avatar ring, sign-in stage. The signature treatments live in one **aurora signature kit** in `core/theme/widgets/`: the lit fill (`enjoyLitFillBuilder` / `enjoyLitFillDecoration` / `enjoyLitShadow` / `enjoyLitHighlightSide`), the gradient pill (`EnjoyTierBadge`), and the ring (`EnjoyProgressRingPainter`). It is the single home of the ADR-0089 §2/§6 decisions — consume the kit instead of hand-rolling `t.aurora` gradients, lit fills, or progress rings.
-- **Semantic inks** — echo coral (`t.echoActive` / `t.echoInk`), intelligence blue (`t.intelligenceInk`), listening-focus teal (`t.blurActive`), scores (`t.scoreGood` / `scoreWarn` / `scoreBad`).
-- **Dynamic accent** — artwork palette (ADR-0007) still tints the play button and the player's ambient backdrop **on top of** these neutrals.
+**Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`; Duet values per [ADR-0091](../decisions/0091-duet-design-language.md) — Aurora-named fields alias them until the rename pass, values from [`tokens.json`](../../design/duet/tokens.json)):
+- **Flat neutrals** — one **ground** for sidebar and pages (light `#F5F6F8`, dark `#0E1014`), `paper` cards, `raised` menus / dialogs, `sunk` control fills, `line` separators; text inks `ink` / `ink2` / `ink3`. No floating content panel, no glass surfaces.
+- **Two voices** — **original** blue (`original` / `originalInk` / `originalSoft`) is the original speaker: playback, the spoken word, reference pitch, Listen. **You** violet (`you` / `youInk` / `youSoft` / `youLine` / `onYou`) is the learner: the Echo loop, Record, takes, your pitch, notes. The voices keep a ~1.9:1 lightness gap in both themes and never rely on hue alone (translucent layer vs solid).
+- **Brand** — the gradient between the voices: `brand` `#2563EB → #7C3AED` (`t.brand`) for Play, primary buttons, Pro, Upgrade; `logo` `#4797F5 → #A855F7` (`t.logo`) for the mark, goal ring, credits meter, avatar ring, generated covers. `brandInk` / `brandSoft` carry selected rows and tabs.
+- **Material `ColorScheme`** (`AppColors.colorScheme`) maps onto Duet: `primary`/`onPrimary` = `brandInk` / white (dark `ground`), `primaryContainer` = `brandSoft`, `secondary` = `original`, `tertiary`/`onTertiary` = `you`/`onYou`, `error` = `danger`, `surface` = `ground`, `surfaceContainer*` = `paper`/`raised`/`sunk`, `onSurface`/`onSurfaceVariant` = `ink`/`ink2`, `outline`/`outlineVariant` = `ink3`/`line`, `scrim` = the `scrim` token. Filled action buttons never take `ColorScheme.primary` — `EnjoyButton` owns its fills.
+- **Component accents** — switches, radios, checkboxes, and input focus borders use `brandInk`; sliders, text selection, and the sentence ruler use `original`. Dialogs sit on `raised` at radius 24 with the `scrim` token; sheets use radius 26; menus use `raised` + the float shadow; tooltips are ink-on-ground. `AppNotice` stays a dark toast in `ink`.
+- **Semantic inks** — `danger` for destructive actions and errors. Scores are **uncolored**: an ink number plus a four-step meter.
 
 ### Typography
 
@@ -43,7 +44,7 @@ One stroke family — **Phosphor** (MIT) vendored as `PhosphorRegular` / `Phosph
 
 ## Theme mode
 
-Porcelain light + midnight dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0089). `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
+Duet light + dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0091); `duet_tokens_test.dart` pins each theme's values to `tokens.json`. `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
 
 ## Navigation
 

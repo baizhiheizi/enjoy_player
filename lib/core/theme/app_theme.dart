@@ -170,7 +170,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     overlayColor: overlay(),
   );
 
-  final inputRadius = BorderRadius.circular(t.radiusMd - 2);
+  final inputRadius = BorderRadius.circular(t.radiusControl);
   OutlineInputBorder inputBorder(Color color, [double width = 1]) =>
       OutlineInputBorder(
         borderRadius: inputRadius,
@@ -230,7 +230,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       color: t.card,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
-      shape: enjoyShape(t.radiusLg, side: BorderSide(color: t.hairline)),
+      shape: enjoyShape(t.radiusCard, side: BorderSide(color: t.line)),
     ),
     listTileTheme: ListTileThemeData(
       contentPadding: EdgeInsets.symmetric(horizontal: t.space16),
@@ -279,25 +279,23 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
         pressedElevation: 3,
       ),
       overlayShape: SliderComponentShape.noOverlay,
-      activeTrackColor: cs.primary,
-      inactiveTrackColor: t.fill,
+      activeTrackColor: t.original,
+      inactiveTrackColor: t.sunk,
       thumbColor: Colors.white,
       overlayColor: Colors.transparent,
-      valueIndicatorColor: light ? AppColors.onSurfaceLight : t.popover,
-      valueIndicatorTextStyle: tt.labelSmall?.copyWith(color: Colors.white),
+      valueIndicatorColor: t.ink,
+      valueIndicatorTextStyle: tt.labelSmall?.copyWith(color: t.ground),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       elevation: 8,
       shape: enjoyShape(
         t.radiusLg,
-        side: BorderSide(color: light ? Colors.transparent : t.hairline),
+        side: BorderSide(color: light ? Colors.transparent : t.line),
       ),
-      backgroundColor: light ? AppColors.onSurfaceLight : t.popover,
-      contentTextStyle: tt.bodyMedium?.copyWith(
-        color: light ? AppColors.onSurfaceDark : cs.onSurface,
-      ),
-      actionTextColor: AppColors.brandOnDark,
+      backgroundColor: t.ink,
+      contentTextStyle: tt.bodyMedium?.copyWith(color: t.ground),
+      actionTextColor: t.originalInk,
       showCloseIcon: false,
       closeIconColor: light ? AppColors.onSurfaceDark : cs.onSurface,
       dismissDirection: DismissDirection.horizontal,
@@ -311,7 +309,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       modalElevation: 0,
       shadowColor: Colors.transparent,
       shape: RoundedSuperellipseBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(t.radius2xl)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(t.radiusSheet),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       dragHandleColor: cs.onSurfaceVariant.withValues(alpha: 0.35),
@@ -411,12 +411,12 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       elevation: 16,
       shadowColor: Colors.black.withValues(alpha: light ? 0.32 : 0.8),
       shape: enjoyShape(
-        t.radiusXl,
-        side: BorderSide(color: light ? Colors.transparent : t.hairline),
+        t.radiusDialog,
+        side: BorderSide(color: light ? Colors.transparent : t.line),
       ),
-      backgroundColor: t.popover,
+      backgroundColor: t.raised,
       surfaceTintColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: light ? 0.22 : 0.55),
+      barrierColor: t.scrim,
       titleTextStyle: tt.titleLarge,
       contentTextStyle: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
       insetPadding: EdgeInsets.symmetric(
@@ -462,11 +462,11 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     ),
     tooltipTheme: TooltipThemeData(
       decoration: ShapeDecoration(
-        color: light ? const Color(0xF216161D) : const Color(0xF22A2A33),
+        color: t.ink,
         shape: enjoyShape(t.radiusSm - 1),
       ),
       textStyle: tt.labelSmall?.copyWith(
-        color: const Color(0xFFF4F4F7),
+        color: t.ground,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
@@ -566,9 +566,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       tilePadding: EdgeInsets.symmetric(horizontal: t.space16),
     ),
     textSelectionTheme: TextSelectionThemeData(
-      cursorColor: cs.primary,
-      selectionColor: cs.primary.withValues(alpha: light ? 0.22 : 0.38),
-      selectionHandleColor: cs.primary,
+      cursorColor: t.original,
+      selectionColor: t.originalSoft,
+      selectionHandleColor: t.original,
     ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
@@ -586,12 +586,12 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       ),
       radius: Radius.circular(t.radiusFull),
       thumbColor: WidgetStateProperty.resolveWith(
-        (s) => cs.onSurface.withValues(
+        (s) => t.ink3.withValues(
           alpha: s.contains(WidgetState.dragged)
-              ? 0.42
+              ? 0.6
               : s.contains(WidgetState.hovered)
-              ? 0.32
-              : 0.2,
+              ? 0.5
+              : 0.4,
         ),
       ),
       crossAxisMargin: 3,
@@ -608,8 +608,8 @@ SystemUiOverlayStyle enjoySystemUiOverlayStyle(Brightness brightness) {
     statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
     statusBarBrightness: dark ? Brightness.dark : Brightness.light,
     systemNavigationBarColor: dark
-        ? AppColors.surfaceDark
-        : AppColors.surfaceLight,
+        ? AppColors.groundDark
+        : AppColors.groundLight,
     systemNavigationBarIconBrightness: dark
         ? Brightness.light
         : Brightness.dark,

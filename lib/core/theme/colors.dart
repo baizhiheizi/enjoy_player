@@ -161,57 +161,58 @@ abstract final class AppColors {
 
   static ColorScheme colorScheme(Brightness brightness) {
     final light = brightness == Brightness.light;
+    final brandInk = light ? brandInkLight : brandInkDark;
+    final danger = light ? dangerLight : dangerDark;
+    final ground = light ? groundLight : groundDark;
+    final paper = light ? paperLight : paperDark;
+    final raised = light ? raisedLight : raisedDark;
+    final sunk = light ? sunkLight : sunkDark;
+    final line = light ? lineLight : lineDark;
+    final ink = light ? inkLight : inkDark;
+    final ink2 = light ? ink2Light : ink2Dark;
+    final ink3 = light ? ink3Light : ink3Dark;
+    final original = light ? originalLight : originalDark;
+    final originalInk = light ? originalInkLight : originalInkDark;
+    final originalSoft = light ? originalSoftLight : originalSoftDark;
+    final you = light ? youLight : youDark;
+    final onYou = light ? onYouLight : onYouDark;
+    final youSoft = light ? youSoftLight : youSoftDark;
+    final youInk = light ? youInkLight : youInkDark;
     return ColorScheme(
       brightness: brightness,
-      primary: light ? brand : brandDark,
-      onPrimary: onAccent,
-      primaryContainer: light
-          ? const Color(0xFFE9E6FD)
-          : const Color(0xFF26214D),
-      onPrimaryContainer: light ? brandOnLight : brandOnDark,
-      secondary: intelligenceFill,
-      onSecondary: onAccent,
-      secondaryContainer: light
-          ? const Color(0xFFE0EBFC)
-          : const Color(0xFF142A4D),
-      onSecondaryContainer: light ? intelligenceInkLight : intelligenceInkDark,
-      tertiary: echoActive,
-      onTertiary: onAccent,
-      tertiaryContainer: light
-          ? const Color(0xFFFCE6DD)
-          : const Color(0xFF3F1C10),
-      onTertiaryContainer: light ? echoInkLight : echoInkDark,
-      error: light ? scoreBadLight : scoreBadDark,
-      onError: onAccent,
-      errorContainer: light ? const Color(0xFFFBE3E4) : const Color(0xFF3D1518),
-      onErrorContainer: light ? scoreBadLight : scoreBadDark,
-      surface: light ? surfaceLight : surfaceDark,
-      onSurface: light ? onSurfaceLight : onSurfaceDark,
-      onSurfaceVariant: light ? mutedLight : mutedDark,
-      surfaceDim: light ? canvasLight : canvasDark,
-      surfaceBright: light
-          ? surfaceContainerLowestLight
-          : surfaceContainerHighDark,
-      surfaceContainerLowest: light
-          ? surfaceContainerLowestLight
-          : surfaceContainerLowestDark,
-      surfaceContainerLow: light
-          ? surfaceContainerLowLight
-          : surfaceContainerLowDark,
-      surfaceContainer: light ? surfaceContainerLight : surfaceContainerDark,
-      surfaceContainerHigh: light
-          ? surfaceContainerHighLight
-          : surfaceContainerHighDark,
-      surfaceContainerHighest: light
-          ? surfaceContainerHighestLight
-          : surfaceContainerHighestDark,
-      outline: light ? borderStrongLight : borderStrongDark,
-      outlineVariant: light ? borderLight : borderDark,
-      inverseSurface: light ? onSurfaceLight : onSurfaceDark,
-      onInverseSurface: light ? surfaceLight : surfaceDark,
-      inversePrimary: light ? brandOnDark : brand,
-      scrim: const Color(0xFF050507),
-      shadow: const Color(0xFF050507),
+      primary: brandInk,
+      onPrimary: light ? onPrimaryInkLight : onPrimaryInkDark,
+      primaryContainer: light ? brandSoftLight : brandSoftDark,
+      onPrimaryContainer: brandInk,
+      secondary: original,
+      onSecondary: onYou,
+      secondaryContainer: originalSoft,
+      onSecondaryContainer: originalInk,
+      tertiary: you,
+      onTertiary: onYou,
+      tertiaryContainer: youSoft,
+      onTertiaryContainer: youInk,
+      error: danger,
+      onError: onYou,
+      errorContainer: danger.withValues(alpha: 0.12),
+      onErrorContainer: danger,
+      surface: ground,
+      onSurface: ink,
+      onSurfaceVariant: ink2,
+      surfaceDim: ground,
+      surfaceBright: paper,
+      surfaceContainerLowest: ground,
+      surfaceContainerLow: sunk,
+      surfaceContainer: sunk,
+      surfaceContainerHigh: sunk,
+      surfaceContainerHighest: raised,
+      outline: ink3,
+      outlineVariant: line,
+      inverseSurface: ink,
+      onInverseSurface: ground,
+      inversePrimary: light ? brandInkDark : brandInkLight,
+      scrim: light ? scrimLight : scrimDark,
+      shadow: const Color(0xFF000000),
     );
   }
 }

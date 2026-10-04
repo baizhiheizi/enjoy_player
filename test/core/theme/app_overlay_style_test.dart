@@ -6,21 +6,21 @@ import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/core/theme/colors.dart';
 
 void main() {
-  test('dark overlay uses the midnight page surface for the nav bar', () {
+  test('dark overlay uses the Duet ground for the nav bar', () {
     final style = enjoySystemUiOverlayStyle(Brightness.dark);
-    expect(style.systemNavigationBarColor, AppColors.surfaceDark);
+    expect(style.systemNavigationBarColor, AppColors.groundDark);
     expect(style.systemNavigationBarIconBrightness, Brightness.light);
     expect(style.statusBarIconBrightness, Brightness.light);
     expect(style.statusBarColor, Colors.transparent);
   });
 
-  test('light overlay uses the porcelain page surface for the nav bar', () {
+  test('light overlay uses the Duet ground for the nav bar', () {
     final style = enjoySystemUiOverlayStyle(Brightness.light);
-    expect(style.systemNavigationBarColor, AppColors.surfaceLight);
+    expect(style.systemNavigationBarColor, AppColors.groundLight);
     expect(style.systemNavigationBarIconBrightness, Brightness.dark);
     expect(style.statusBarIconBrightness, Brightness.dark);
-    expect(AppColors.surfaceLight, const Color(0xFFF7F7F9));
-    expect(AppColors.surfaceDark, const Color(0xFF111115));
+    expect(AppColors.groundLight, const Color(0xFFF5F6F8));
+    expect(AppColors.groundDark, const Color(0xFF0E1014));
   });
 
   testWidgets('AnnotatedRegion follows Theme brightness', (tester) async {
@@ -39,7 +39,7 @@ void main() {
         ),
       ),
     );
-    expect(captured.systemNavigationBarColor, AppColors.surfaceLight);
+    expect(captured.systemNavigationBarColor, AppColors.groundLight);
     expect(captured.systemNavigationBarIconBrightness, Brightness.dark);
   });
 }
