@@ -49,6 +49,21 @@ CI uploads `coverage/lcov.info` to [Codecov](https://codecov.io) and fails when 
 | Drift smoke | `test/data/db/app_database_test.dart` |
 | Logging test infrastructure (`TestLoggingScope`) | `test/support/test_logging.dart` |
 
+## Gallery (opt-in screenshots)
+
+The Duet gallery ([docs/design/duet/](design/duet/README.md)) renders app screens to PNGs so they can be compared with the design boards. Plain `flutter test` skips these tests:
+
+```bash
+flutter test                                              # gallery reported as skipped
+flutter test --tags gallery --run-skipped test/duet_gallery   # writes build/duet_gallery/<Board>.png
+bash tool/duet_compare.sh Main DEcho                      # → build/duet_gallery/compare/<Board>.png
+```
+
+- `test/duet_gallery/gallery_support.dart` holds the board presets (desktop 1440 × 900 at 1×, compact 880 × 560 at 1×, phone 390 × 844 at 2×), the light/dark switch, and the capture. Fonts load from the bundled assets only — no network.
+- `test/duet_gallery/fixtures.dart` holds the `ProviderScope` fixtures (in-memory Drift, signed-in profile, sample library) shared by the scenes.
+- One test per board; the capture file name must match the board name in `docs/design/duet/renders/` so `tool/duet_compare.sh` can pair them.
+- A maintainer-local prototype may exist at `test/_gallery/` (git-excluded); the committed harness does not depend on it.
+
 ## Pre-release (platform compile)
 
 CI runs debug smoke builds plus **release compile** for Android (`apk` + `appbundle`), Windows (`--release`), iOS (`--release --no-codesign`), and macOS (`--release` with ad-hoc signing) — see `.github/workflows/`. Locally, before tagging:

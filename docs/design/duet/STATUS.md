@@ -10,7 +10,7 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 
 | Phase | Tasks | Done |
 |---|---|---|
-| 0 · Ready | 2 | 1 |
+| 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 0 |
 | 2 · Shell | 3 | 0 |
 | 3 · Player | 13 | 0 |
@@ -35,7 +35,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
 | D0.1 | Design reference, ADR-0091, plan, tracker | all | — | done | — | — | Renders + boards + tokens in `docs/design/duet/`; fonts bundled |
-| D0.2 | Gallery harness (opt-in screenshots + compare) | — | — | todo | | | |
+| D0.2 | Gallery harness (opt-in screenshots + compare) | — | — | done | | | `test/duet_gallery/` + `dart_test.yaml` gallery tag + `tool/duet_compare.sh`; seeded Home, Library, Settings, player Listen |
 
 ### Phase 1 · Foundations
 

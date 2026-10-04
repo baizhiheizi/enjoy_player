@@ -1,0 +1,3 @@
+tags:
+  gallery:
+    skip: "Opt-in screenshots: flutter test --tags gallery --run-skipped test/duet_gallery"
