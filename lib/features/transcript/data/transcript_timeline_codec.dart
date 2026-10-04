@@ -79,14 +79,9 @@ List<TranscriptLine>? tryDecodeTimelineJson(String timelineJson) {
 String encodeTimelineJson(List<TranscriptLine> lines) =>
     jsonEncode([for (final line in lines) line.toJson()]);
 
-/// Timelines whose encoded size is estimated above this are encoded in a
-/// background isolate by [encodeTimelineJsonGated] (issue #810 D4 — the
-/// read side already had this gate, the write side had none).
-const int kEncodeTimelineJsonBytes = 16 * 1024;
-
 /// Encodes [lines] in a background isolate when the payload is large
-/// (mirroring the read-side [kPreloadTimelineJsonBytes] gate), inline
-/// otherwise.
+/// (above the read-side [kPreloadTimelineJsonBytes] gate, which the write
+/// side now also uses — issue #810 D4), inline otherwise.
 Future<String> encodeTimelineJsonGated(List<TranscriptLine> lines) {
   if (timelineEncodeNeedsIsolate(lines)) {
     return compute(encodeTimelineJson, lines);
@@ -97,7 +92,7 @@ Future<String> encodeTimelineJsonGated(List<TranscriptLine> lines) {
 /// Whether [encodeTimelineJsonGated] would leave the calling isolate for
 /// [lines].
 bool timelineEncodeNeedsIsolate(List<TranscriptLine> lines) =>
-    estimatedTimelineJsonBytes(lines) > kEncodeTimelineJsonBytes;
+    estimatedTimelineJsonBytes(lines) > kPreloadTimelineJsonBytes;
 
 /// Upper-bound estimate of the encoded byte length of [lines] — a UTF-8
 /// code unit costs at most three bytes, and every JSON field name and
