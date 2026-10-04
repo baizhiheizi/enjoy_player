@@ -18,14 +18,14 @@
 
 ### Typography
 
-- UI (body, labels, buttons, nav): **Geist**.
-- Display (page titles, hero figures, empty-state titles): **Instrument Serif**, regular weight only — never embolden. `enjoyDisplayStyle(size:)` for one-off display moments.
-- Mono (timestamps, durations, scores): **Geist Mono** with tabular figures — `enjoyMonoStyle()`.
-- Transcript body: **Source Serif 4** (default on, toggleable) + Noto Serif CJK; secondary track Noto Sans.
+- UI (body, labels, buttons, nav): **Geist** 400 / 500 / 600.
+- Display (page titles, hero figures, empty-state titles): **Literata** 500. `enjoyDisplayStyle(size:)` for one-off display moments (defaults to weight 500).
+- Mono (timestamps, durations, scores, keycaps): **Geist Mono** 500 / 600 with tabular figures — `enjoyMonoStyle()`.
+- Transcript body: **Literata** 400 / 500 (default on, toggleable) + Noto Serif CJK; secondary track and IPA: Noto Sans 400.
 - CJK UI falls back to installed platform faces (`kCjkSansFallbacks` / `kCjkSerifFallbacks`) — no extra downloads.
-- Scale: `11.5 / 12.5 / 13.5 / 14 / 15 / 15.5 / 17 / 18 / 21 / 30 / 38 / 44 / 56`.
+- Scale (tokens.json → typography.scale): body 14.5 / 1.55, button 14 / 600, nav 14 / 500, caption 12.5, overline 11 / 600 caps 0.08em, time 12.5 mono / 500, score 13 mono / 600, keycap 10.5 mono / 500.
 
-**Font delivery** (issue #810, #818): every variant the app requests — Geist 400/500, Geist Mono 500, Instrument Serif 400, Source Serif 4 400/500/600, Playfair Display 700 + 600-italic (share poster), Noto Sans 400 (transcript secondary track + IPA layer) — ships in `assets/fonts/google_fonts/` in the google_fonts asset layout (filenames use the package's camelCase family ids, e.g. `GeistMono-Medium.ttf`), so the first theme build loads them from the bundle instead of fetching fonts.gstatic.com: no first-run FOUT / full-app relayout, correct fonts offline. `OFL-*.txt` files carry each family's license.
+**Font delivery** (issue #810, #818): every variant the app requests — Geist 400/500/600, Geist Mono 500/600, Literata 400/500/600, Playfair Display 700 + 600-italic (share poster, retired with D3.12), Noto Sans 400 — ships in `assets/fonts/google_fonts/` in the google_fonts asset layout (filenames use the package's camelCase family ids, e.g. `GeistMono-Medium.ttf`), so the first theme build loads them from the bundle instead of fetching fonts.gstatic.com: no first-run FOUT / full-app relayout, correct fonts offline. `OFL-*.txt` files carry each family's license.
 
 `GoogleFonts.config.allowRuntimeFetching = false` is set in `lib/main.dart`, so no font can ever trigger a runtime download. This is possible because **CJK is addressed by name, never through `google_fonts`**: the ~40 MB Noto SC/Kr/Jp variants are neither bundled nor loaded, and instead appear in `fontFamilyFallback` as the plain family ids `kCjkNotoSansFallbacks` / `kCjkNotoSerifFallbacks` (`NotoSansKR`, `NotoSansSC`, `NotoSansJP`, `NotoSerifKR`, `NotoSerifSC`, `NotoSerifJP`) plus the assembled `_kTranscriptCjkSansFallbacks` / `_kTranscriptCjkSerifFallbacks`. A `fontFamilyFallback` entry is resolved by the platform font matcher, so an absent family is skipped at no cost and the installed-platform lists `kCjkSansFallbacks` / `kCjkSerifFallbacks` take over. Do **not** reintroduce `GoogleFonts.notoSerifSc().fontFamily`-style lookups to "get" a family name — building the `TextStyle` to read `.fontFamily` is what forced the multi-megabyte fetch and a font registration on the text build path, once per transcript line. **Every** entry in those two lists must be a literal, including `'Geist'`, for the same reason. When adding a weight or family to `typography.dart`, bundle the matching file and extend `test/core/theme/bundled_google_fonts_test.dart`.
 

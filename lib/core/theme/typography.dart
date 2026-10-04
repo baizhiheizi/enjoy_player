@@ -1,12 +1,11 @@
-/// Typography tokens — **Aurora** type system (ADR-0089).
+/// Typography tokens — **Duet** type system (ADR-0091).
 ///
 /// - **Geist** for all UI (body, labels, buttons, nav) — crisp, neutral,
 ///   excellent tabular figures.
-/// - **Instrument Serif** for editorial display titles (page heroes, hero
-///   numbers) — the signature voice. Regular weight only; never embolden.
+/// - **Literata** for editorial display titles (page heroes, hero numbers)
+///   and transcript reading, weight 500 for display and 400 / 500 for
+///   transcript lines.
 /// - **Geist Mono** for timestamps, durations, and scores.
-/// - Transcript reading keeps **Source Serif 4** (runtime toggle via
-///   [TranscriptTypographyTokens]).
 ///
 /// CJK falls back to installed platform faces (PingFang / YaHei / Noto CJK)
 /// so Chinese UI renders natively without extra font downloads.
@@ -91,9 +90,9 @@ TextStyle _display(
   required double height,
   required double letterSpacing,
 }) {
-  final style = GoogleFonts.instrumentSerif(
+  final style = GoogleFonts.literata(
     fontSize: size,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     height: height,
     letterSpacing: letterSpacing,
     color: base?.color,
@@ -106,9 +105,9 @@ TextStyle _display(
 /// Editorial display style at an arbitrary [size] — for hero numbers and
 /// one-off display moments outside the [TextTheme] scale.
 ///
-/// Derived from the active theme's `displaySmall` (Instrument Serif under
-/// [buildBaseTextTheme]) so widgets never fetch fonts themselves. Regular
-/// weight only: the face ships no bold.
+/// Derived from the active theme's `displaySmall` (Literata under
+/// [buildBaseTextTheme]) so widgets never fetch fonts themselves. Defaults
+/// to the display weight 500.
 TextStyle enjoyDisplayStyle(
   BuildContext context, {
   required double size,
@@ -119,7 +118,7 @@ TextStyle enjoyDisplayStyle(
   final base = Theme.of(context).textTheme.displaySmall ?? const TextStyle();
   return base.copyWith(
     fontSize: size,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
     height: height,
     letterSpacing: letterSpacing ?? -size * 0.018,
     color: color,
@@ -231,10 +230,10 @@ TextTheme buildBaseTextTheme(TextTheme base, ColorScheme scheme) {
     ),
     bodyMedium: _ui(
       ui.bodyMedium?.copyWith(
-        fontSize: 14,
+        fontSize: 14.5,
         fontWeight: FontWeight.w400,
         letterSpacing: -0.05,
-        height: 1.5,
+        height: 1.55,
       ),
     ),
     bodySmall: _ui(
@@ -248,7 +247,7 @@ TextTheme buildBaseTextTheme(TextTheme base, ColorScheme scheme) {
     labelLarge: _ui(
       ui.labelLarge?.copyWith(
         fontSize: 14,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
         letterSpacing: -0.1,
       ),
     ),
@@ -320,7 +319,7 @@ class TranscriptTypographyTokens
     required ColorScheme scheme,
   }) {
     if (useSerif) {
-      final serif = GoogleFonts.sourceSerif4TextTheme(
+      final serif = GoogleFonts.literataTextTheme(
         base,
       ).apply(bodyColor: scheme.onSurface);
       return TranscriptTypographyTokens(

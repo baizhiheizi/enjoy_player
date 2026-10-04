@@ -11,12 +11,12 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | Phase | Tasks | Done |
 |---|---|---|
 | 0 · Ready | 2 | 2 |
-| 1 · Foundations | 8 | 1 |
+| 1 · Foundations | 8 | 2 |
 | 2 · Shell | 3 | 0 |
 | 3 · Player | 13 | 0 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **2** |
+| **Total** | **43** | **3** |
 
 ## Decisions
 
@@ -43,7 +43,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 |---|---|---|---|---|---|---|---|
 | D1.1 | Duet tokens + `tokens.json` parity test | `System` | — | done | | | Aurora fields alias the Duet values; `duet_tokens_test.dart` pins every tokens.json value (light + dark). Also added `radiusSegmentThumb` 9 beyond the plan's radius list for full parity |
 | D1.2 | Color scheme + component themes | `System` | D1.1 | todo | | | |
-| D1.3 | Typography (Literata / Geist / Mono / IPA) | `System` | D1.1 | todo | | | |
+| D1.3 | Typography (Literata / Geist / Mono / IPA) | `System` | D1.1 | done | | | Display + transcript on Literata 500 / 400; body 14.5, button label 600, Geist Mono 600; Instrument Serif + Source Serif 4 files deleted; Playfair stays for the poster |
 | D1.4 | Buttons | `System`, `SignIn`, `DLocate`, `LibraryDelete` | D1.2, D1.3 | todo | | | |
 | D1.5 | Controls (segmented, chips, keycap, inputs, toggles, ring, badges) | `System`, `Library`, `Settings`, `VocabularyReview`, `Keyboard` | D1.2, D1.3 | todo | | | |
 | D1.6 | Surfaces + page furniture (cards, modals, headers, empty, skeleton, notices) | `System`, `NotFound`, `LibraryDelete`, `SubscriptionPlans` | D1.2, D1.3 | todo | | | |
