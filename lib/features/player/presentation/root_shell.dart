@@ -228,10 +228,7 @@ class _RootShellState extends ConsumerState<RootShell> {
                     )
                   : RootShellBottomInset(
                       bottomClearance: bottomClearance,
-                      child: AppBackground(
-                        glow: !onPlayer && !onReview,
-                        child: mobileShellScaffold(),
-                      ),
+                      child: AppBackground(child: mobileShellScaffold()),
                     );
 
               final parkForYoutubeLogin = path.startsWith('/youtube/login');
@@ -276,16 +273,7 @@ class _ContentPanel extends StatelessWidget {
           ),
           shadows: light ? t.shadowFloat : const [],
         ),
-        child: ClipRSuperellipse(
-          borderRadius: radius,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              const Positioned.fill(child: IgnorePointer(child: AuroraGlow())),
-              child,
-            ],
-          ),
-        ),
+        child: ClipRSuperellipse(borderRadius: radius, child: child),
       ),
     );
   }

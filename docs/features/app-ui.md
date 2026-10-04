@@ -130,7 +130,7 @@ Legacy:     `auroraStart`/`auroraEnd`/`aurora` = logo stops · `shadowCard`=lift
 | `EnjoyProgressRingPainter` | `core/theme/widgets/enjoy_progress_ring.dart` | Track circle + progress arc (solid color or aurora sweep gradient) — Today's Goal ring, record FAB countdown |
 | `EnjoyIconTile` / `EnjoyTint` / `enjoyTintForIcon` | `core/theme/widgets/enjoy_icon_tile.dart` | Colored icon tiles for grouped lists |
 | `EnjoySegmentedControl` / `EnjoySegment` | `core/theme/widgets/enjoy_segmented_control.dart` | Sliding-thumb segmented control — 38 sunk track (radius 12) with a raised thumb (radius 9, lift shadow); 30 compact (+ shared track/thumb helpers for segmented `TabBar`s) |
-| `AppBackground` / `AuroraGlow` / `PlayerAmbientBackdrop` | `core/theme/widgets/app_background.dart` | Page color + aurora glow; player artwork tint |
+| `AppBackground` / `AuroraGlow` / `PlayerAmbientBackdrop` | `core/theme/widgets/app_background.dart` | Flat ground fill (no glow in Duet; `AuroraGlow` is a no-op kept for the sign-in stage until its rebuild); player artwork tint |
 | `EnjoyPage` / `EnjoyPageKind` | `core/theme/widgets/enjoy_page.dart`, `core/layout/enjoy_page_kind.dart` | Adaptive page scaffold + width metrics |
 | `EnjoySubpageAppBar` / `EnjoyBackButton` | `core/theme/widgets/enjoy_subpage_app_bar.dart` | Push-route chrome |
 | `EditorialHeader` / `EnjoyOverline` / `EnjoySectionHeader` | `core/theme/widgets/editorial_header.dart` | Literata 42 / 32 page title (+ `overline`, `subtitle`), Geist 600 11 caps eyebrow in ink3, Literata 24 section heading |

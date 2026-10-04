@@ -11,12 +11,12 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | Phase | Tasks | Done |
 |---|---|---|
 | 0 · Ready | 2 | 2 |
-| 1 · Foundations | 8 | 6 |
+| 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 0 |
 | 3 · Player | 13 | 0 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **7** |
+| **Total** | **43** | **9** |
 
 ## Decisions
 
@@ -48,7 +48,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D1.5 | Controls (segmented, chips, keycap, inputs, toggles, ring, badges) | `System`, `Library`, `Settings`, `VocabularyReview`, `Keyboard` | D1.2, D1.3 | todo | | | |
 | D1.6 | Surfaces + page furniture (cards, modals, headers, empty, skeleton, notices) | `System`, `NotFound`, `LibraryDelete`, `SubscriptionPlans` | D1.2, D1.3 | todo | | | |
 | D1.7 | Generated covers + media cards | `Home`, `Library`, `LibraryAudio`, `Discover`, `CraftHistory` | D1.2, D1.3 | done | | | Logo-plane cover painter, 8 palettes via FNV-1a of the id (the web-parity hash only read the first 8 chars and collapsed prefixed ids onto one palette); tiles radius 14; brandSoft chip |
-| D1.8 | Flat ground (remove the glow) | `Home` | D1.1 | todo | | | `AuroraGlow` deleted after D4.7 |
+| D1.8 | Flat ground (remove the glow) | `Home` | D1.1 | done | | | `AppBackground` paints ground only; `AuroraGlow` is a no-op kept for the sign-in stage until D4.7; shell panel glow removed |
 
 ### Phase 2 · Shell
 
