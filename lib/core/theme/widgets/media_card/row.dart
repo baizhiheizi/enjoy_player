@@ -143,7 +143,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
             )
           : null,
       onHoverChanged: (h) => _hover.value = h,
-      borderRadius: BorderRadius.circular(t.radiusMd),
+      borderRadius: BorderRadius.circular(t.radiusTile),
       pressedScale: 0.99,
       child: Padding(
         padding: EdgeInsets.symmetric(

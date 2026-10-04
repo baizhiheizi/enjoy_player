@@ -176,11 +176,11 @@ class MediaCardBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final interactive = onTap != null;
-    final fg = interactive ? t.accentInk : cs.onSurfaceVariant;
+    final fg = interactive ? t.brandInk : cs.onSurfaceVariant;
     final child = Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: ShapeDecoration(
-        color: interactive ? t.accentSoft : t.fill,
+        color: interactive ? t.brandSoft : t.sunk,
         shape: const StadiumBorder(),
       ),
       child: Row(

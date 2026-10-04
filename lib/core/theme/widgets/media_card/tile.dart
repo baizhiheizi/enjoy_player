@@ -1,6 +1,6 @@
 /// Vertical [MediaCardTile] for grids (video / home) — Aurora.
 ///
-/// The artwork *is* the card: continuous corners, a hairline edge, and a
+/// The artwork *is* the card: continuous corners, a line edge, and a
 /// hover that gently zooms the frame and reveals a glass play button. Meta
 /// sits below on the page (no container), like a poster wall.
 library;
@@ -137,7 +137,7 @@ class _MediaCardTileState extends State<MediaCardTile> {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final light = Theme.of(context).brightness == Brightness.light;
-    final radius = BorderRadius.circular(t.radiusMd);
+    final radius = BorderRadius.circular(t.radiusTile);
     final instant = MediaQuery.disableAnimationsOf(context);
     final pointerDelete =
         widget.onDelete != null && showMediaCardPointerDeleteButton();

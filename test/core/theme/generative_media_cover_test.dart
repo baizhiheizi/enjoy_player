@@ -2,15 +2,21 @@ import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('hashToNumber', () {
-    test('empty string yields zero', () {
-      expect(hashToNumber(''), 0);
+  group('coverHash', () {
+    test('is stable for a sample seed', () {
+      const s = 'abc123deadbeef';
+      expect(coverHash(s), coverHash(s));
     });
 
-    test('stable for sample seed', () {
-      const s = 'abc123deadbeef';
-      expect(hashToNumber(s, 0), hashToNumber(s, 0));
-      expect(hashToNumber(s, 4), isNot(hashToNumber(s, 0)));
+    test('spreads ids that share a prefix', () {
+      expect(coverHash('media-1'), isNot(coverHash('media-2')));
+      expect(
+        coverHash('media-1') % kGeneratedCoverPalettes.length,
+        isNot(coverHash('media-2') % kGeneratedCoverPalettes.length),
+        reason:
+            'nearby ids should not systematically collapse onto one '
+            'palette, though a collision is legal',
+      );
     });
   });
 
