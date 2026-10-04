@@ -39,8 +39,8 @@ packages=(
 # WPE WebKit has no Ubuntu packages (noble), so the plugin compiles against a
 # pinned Debian bookworm build extracted into a runner-local prefix. Compile-
 # time only: the shipped artifact resolves WPE from the host (ADR-0092).
+WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-2.54b}"
 if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
-  WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-2.54b}"
   if [ ! -e "$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig/wpe-webkit-2.0.pc" ]; then
     echo "WPE WebKit not installed — extracting pinned Debian build into $WPE_ROOT"
     mkdir -p "$WPE_ROOT"
@@ -65,6 +65,14 @@ if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
   if [ -n "${GITHUB_ENV:-}" ]; then
     echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
   fi
+fi
+
+# Compat: the plugin (0.1.0-beta.1) uses WPE_SETTING_DISABLE_ANIMATIONS, which
+# Debian's 2.54 headers predate; the runtime tolerates unregistered keys, so a
+# header-only define is sufficient (animations simply stay enabled).
+settings_h="$WPE_ROOT/usr/include/wpe-webkit-2.0/wpe-platform/wpe/WPESettings.h"
+if [ -e "$settings_h" ] && ! grep -q WPE_SETTING_DISABLE_ANIMATIONS "$settings_h"; then
+  printf '\n#ifndef WPE_SETTING_DISABLE_ANIMATIONS\n#define WPE_SETTING_DISABLE_ANIMATIONS "/wpe-platform/disable-animations"\n#endif\n' >> "$settings_h"
 fi
 
 # Linker posture for the WPE-backed plugin (ADR-0092), set unconditionally on
