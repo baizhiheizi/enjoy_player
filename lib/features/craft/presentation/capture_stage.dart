@@ -444,21 +444,14 @@ class _IdleView extends StatelessWidget {
                     duration: t.motionFast,
                     width: buttonSize,
                     height: buttonSize,
-                    decoration: enjoyLitFillDecoration(
-                      base: scheme.primary,
-                      shape: CircleBorder(
-                        side: enjoyLitHighlightSide(alpha: 0.16),
-                      ),
-                      shadow: enjoyLitShadow(
-                        scheme.primary,
-                        alpha: 0.36,
-                        blurRadius: 24,
-                        spreadRadius: 1,
-                      ),
+                    decoration: ShapeDecoration(
+                      color: t.you,
+                      shape: const CircleBorder(),
+                      shadows: t.shadowRecordButton,
                     ),
                     child: Icon(
                       EnjoyIcons.micFill,
-                      color: scheme.onPrimary,
+                      color: t.onYou,
                       size: buttonSize * 0.46,
                     ),
                   ),
@@ -589,17 +582,12 @@ class _RecordingViewState extends State<_RecordingView>
                 duration: t.motionFast,
                 width: 80,
                 height: 80,
-                decoration: enjoyLitFillDecoration(
-                  base: scheme.error,
-                  shape: CircleBorder(side: enjoyLitHighlightSide(alpha: 0.16)),
-                  shadow: enjoyLitShadow(
-                    scheme.error,
-                    alpha: 0.38,
-                    blurRadius: 18,
-                    spreadRadius: 0,
-                  ),
+                decoration: ShapeDecoration(
+                  color: t.danger,
+                  shape: const CircleBorder(),
+                  shadows: t.shadowRecordButton,
                 ),
-                child: Icon(EnjoyIcons.stop, size: 40, color: scheme.onError),
+                child: Icon(EnjoyIcons.stop, size: 40, color: t.onYou),
               ),
             ),
           ),
@@ -740,7 +728,7 @@ class _TextFallback extends StatelessWidget {
           ),
         ),
         SizedBox(height: t.space16),
-        EnjoyButton.primary(
+        EnjoyButton.brand(
           onPressed: onSubmit,
           icon: EnjoyIcons.arrowRight,
           expand: true,

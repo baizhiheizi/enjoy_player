@@ -125,7 +125,7 @@ class ProfileHeroCard extends ConsumerWidget {
               ),
               if (tier == SubscriptionTier.free) ...[
                 SizedBox(width: t.space12),
-                EnjoyButton.primary(
+                EnjoyButton.brand(
                   size: EnjoyButtonSize.small,
                   icon: EnjoyIcons.crown,
                   onPressed: () => context.push('/subscription'),

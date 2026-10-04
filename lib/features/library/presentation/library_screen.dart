@@ -168,10 +168,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                   ? EnjoyIconButton(
                       icon: EnjoyIcons.add,
                       tooltip: l10n.actionImport,
-                      variant: EnjoyButtonVariant.primary,
+                      variant: EnjoyButtonVariant.brand,
                       onPressed: () => showImportChooser(context, ref),
                     )
-                  : EnjoyButton.primary(
+                  : EnjoyButton.brand(
                       size: EnjoyButtonSize.small,
                       icon: EnjoyIcons.add,
                       onPressed: () => showImportChooser(context, ref),

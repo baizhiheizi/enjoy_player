@@ -1,4 +1,4 @@
-/// Aurora action buttons — consistent haptics, sizes, and a lit primary.
+/// Duet action buttons — consistent haptics, sizes, and one brand gradient.
 library;
 
 import 'package:flutter/material.dart';
@@ -6,99 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
-enum EnjoyButtonVariant { primary, secondary, tonal, ghost, destructive }
+enum EnjoyButtonVariant { brand, primary, secondary, tonal, ghost, destructive }
 
 enum EnjoyButtonSize { small, medium, large }
-
-/// The lit fill's 1px inner top highlight (ADR-0089 §6), exposed as the
-/// [ShapeBorder.side] of the fill's shape.
-BorderSide enjoyLitHighlightSide({double alpha = 0.14}) =>
-    BorderSide(color: Colors.white.withValues(alpha: alpha));
-
-/// The lit fill's tinted drop shadow — pooled light under the control rather
-/// than Material elevation. Circular signature controls (the record FAB, the
-/// transport play ring) tune the intensity; buttons use the defaults.
-BoxShadow enjoyLitShadow(
-  Color base, {
-  double alpha = 0.32,
-  double blurRadius = 14,
-  double spreadRadius = -5,
-  Offset offset = const Offset(0, 5),
-}) => BoxShadow(
-  color: base.withValues(alpha: alpha),
-  blurRadius: blurRadius,
-  spreadRadius: spreadRadius,
-  offset: offset,
-);
-
-/// The lit fill (ADR-0089 §6) as one [ShapeDecoration]: a gentle top sheen
-/// over [fill] (defaults to [base]) plus a single tinted drop shadow. This is
-/// the decoration-level export behind [enjoyLitFillBuilder] — circular
-/// signature controls paint it with a [CircleBorder] (highlight attached via
-/// [enjoyLitHighlightSide]), while the button builder layers the highlight in
-/// front so the shadow stays cast by the un-stroked path. Pass `shadow: null`
-/// to suppress the glow (pressed states).
-ShapeDecoration enjoyLitFillDecoration({
-  required Color base,
-  required ShapeBorder shape,
-  Color? fill,
-  double sheen = 0.10,
-  BoxShadow? shadow,
-}) {
-  final resolved = fill ?? base;
-  return ShapeDecoration(
-    gradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [Color.lerp(resolved, Colors.white, sheen)!, resolved],
-    ),
-    shape: shape,
-    shadows: shadow == null ? const [] : [shadow],
-  );
-}
-
-/// Background painter for lit (primary / destructive-solid) fills: a gentle
-/// top sheen, a 1px inner top highlight, and a soft tinted drop shadow. Hover
-/// brightens and press deepens the fill itself so the label never fades.
-Widget enjoyLitFillBuilder(
-  BuildContext context,
-  Set<WidgetState> states,
-  Widget? child, {
-  required Color base,
-  required double radius,
-}) {
-  if (states.contains(WidgetState.disabled)) {
-    return child ?? const SizedBox.shrink();
-  }
-  final pressed = states.contains(WidgetState.pressed);
-  final hovered = states.contains(WidgetState.hovered);
-  final fill = pressed
-      ? Color.lerp(base, Colors.black, 0.10)!
-      : hovered
-      ? Color.lerp(base, Colors.white, 0.08)!
-      : base;
-  return DecoratedBox(
-    decoration: enjoyLitFillDecoration(
-      base: base,
-      shape: RoundedSuperellipseBorder(
-        borderRadius: BorderRadius.circular(radius),
-      ),
-      fill: fill,
-      sheen: pressed ? 0.02 : 0.10,
-      shadow: pressed ? null : enjoyLitShadow(base),
-    ),
-    child: DecoratedBox(
-      position: DecorationPosition.foreground,
-      decoration: ShapeDecoration(
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(radius),
-          side: enjoyLitHighlightSide(),
-        ),
-      ),
-      child: child,
-    ),
-  );
-}
 
 class EnjoyButton extends StatefulWidget {
   const EnjoyButton._({
@@ -111,6 +21,25 @@ class EnjoyButton extends StatefulWidget {
     required this.child,
   });
 
+  /// The brand gradient with a white label — the one brand action per screen.
+  factory EnjoyButton.brand({
+    Key? key,
+    required VoidCallback? onPressed,
+    required Widget child,
+    IconData? icon,
+    EnjoyButtonSize size = EnjoyButtonSize.medium,
+    bool expand = false,
+  }) => EnjoyButton._(
+    variant: EnjoyButtonVariant.brand,
+    onPressed: onPressed,
+    icon: icon,
+    size: size,
+    expand: expand,
+    key: key,
+    child: child,
+  );
+
+  /// Ink fill (`Choose file`, `Continue with Apple`, `Create`).
   factory EnjoyButton.primary({
     Key? key,
     required VoidCallback? onPressed,
@@ -145,7 +74,7 @@ class EnjoyButton extends StatefulWidget {
     child: child,
   );
 
-  /// Soft accent wash — secondary emphasis that still reads as "brand".
+  /// Legacy name of [secondary]; removed in the D5.1 rename pass.
   factory EnjoyButton.tonal({
     Key? key,
     required VoidCallback? onPressed,
@@ -246,28 +175,10 @@ class _EnjoyButtonState extends State<EnjoyButton> {
     final tt = Theme.of(context).textTheme;
     final light = Theme.of(context).brightness == Brightness.light;
 
-    final (height, hPad, iconSize, fontSize, radius) = switch (widget.size) {
-      EnjoyButtonSize.small => (
-        t.controlHeightSm,
-        t.space12,
-        15.0,
-        13.0,
-        t.radiusSm + 1,
-      ),
-      EnjoyButtonSize.medium => (
-        t.controlHeight,
-        t.space16 + 2,
-        17.0,
-        14.0,
-        t.radiusMd,
-      ),
-      EnjoyButtonSize.large => (
-        t.controlHeightLg,
-        t.space24,
-        18.0,
-        15.0,
-        t.radiusMd + 2,
-      ),
+    final (height, hPad, iconSize, fontSize) = switch (widget.size) {
+      EnjoyButtonSize.small => (t.controlHeightSm, t.space12, 15.0, 13.0),
+      EnjoyButtonSize.medium => (t.controlHeight, t.space16 + 2, 17.0, 14.0),
+      EnjoyButtonSize.large => (t.controlHeightLg, t.space24, 18.0, 15.0),
     };
 
     final label = widget.icon != null
@@ -283,7 +194,7 @@ class _EnjoyButtonState extends State<EnjoyButton> {
 
     final tap = widget.onPressed == null ? null : () => _handleTap(context);
     final shape = RoundedSuperellipseBorder(
-      borderRadius: BorderRadius.circular(radius),
+      borderRadius: BorderRadius.circular(t.radiusControl),
     );
     final disabledFg = cs.onSurface.withValues(alpha: 0.36);
     final disabledBg = cs.onSurface.withValues(alpha: light ? 0.06 : 0.08);
@@ -323,7 +234,7 @@ class _EnjoyButtonState extends State<EnjoyButton> {
             ? null
             : WidgetStateProperty.resolveWith(
                 (s) => s.contains(WidgetState.disabled)
-                    ? BorderSide(color: t.hairline)
+                    ? BorderSide(color: t.line)
                     : side,
               ),
         padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: hPad)),
@@ -352,44 +263,38 @@ class _EnjoyButtonState extends State<EnjoyButton> {
 
     Widget button;
     switch (widget.variant) {
-      case EnjoyButtonVariant.primary:
+      case EnjoyButtonVariant.brand:
         button = FilledButton(
           onPressed: tap,
           statesController: _states,
           style: base(
             background: Colors.transparent,
-            foreground: cs.onPrimary,
-            backgroundBuilder: (context, states, child) => enjoyLitFillBuilder(
-              context,
-              states,
-              child,
-              base: cs.primary,
-              radius: radius,
+            foreground: Colors.white,
+            backgroundBuilder: (context, states, child) => _BrandFill(
+              t: t,
+              states: states,
+              radius: t.radiusControl,
+              child: child,
             ),
           ),
           child: label,
         );
-      case EnjoyButtonVariant.secondary:
+      case EnjoyButtonVariant.primary:
         button = FilledButton(
           onPressed: tap,
           statesController: _states,
-          style: base(
-            background: t.card,
-            foreground: cs.onSurface,
-            side: BorderSide(
-              color: light ? cs.outline.withValues(alpha: 0.7) : cs.outline,
-            ),
-          ),
+          style: base(background: t.primary, foreground: t.onPrimary),
           child: label,
         );
+      case EnjoyButtonVariant.secondary:
       case EnjoyButtonVariant.tonal:
         button = FilledButton(
           onPressed: tap,
           statesController: _states,
           style: base(
-            background: t.accentSoft,
-            foreground: t.accentInk,
-            hoverWash: t.accentInk,
+            background: t.paper,
+            foreground: cs.onSurface,
+            side: BorderSide(color: t.line),
           ),
           child: label,
         );
@@ -397,18 +302,14 @@ class _EnjoyButtonState extends State<EnjoyButton> {
         button = TextButton(
           onPressed: tap,
           statesController: _states,
-          style: base(background: Colors.transparent, foreground: cs.onSurface),
+          style: base(background: Colors.transparent, foreground: t.ink2),
           child: label,
         );
       case EnjoyButtonVariant.destructive:
         button = FilledButton(
           onPressed: tap,
           statesController: _states,
-          style: base(
-            background: cs.error.withValues(alpha: light ? 0.09 : 0.14),
-            foreground: cs.error,
-            hoverWash: cs.error,
-          ),
+          style: base(background: t.danger, foreground: Colors.white),
           child: label,
         );
     }
@@ -423,6 +324,50 @@ class _EnjoyButtonState extends State<EnjoyButton> {
   }
 }
 
+class _BrandFill extends StatelessWidget {
+  const _BrandFill({
+    required this.t,
+    required this.states,
+    required this.radius,
+    required this.child,
+  });
+
+  final EnjoyThemeTokens t;
+  final Set<WidgetState> states;
+  final double radius;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final wash = states.contains(WidgetState.pressed)
+        ? Colors.black.withValues(alpha: 0.08)
+        : states.contains(WidgetState.hovered)
+        ? Colors.white.withValues(alpha: 0.06)
+        : null;
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        gradient: t.brand,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        shadows: states.contains(WidgetState.disabled)
+            ? const []
+            : t.shadowBrandButton,
+      ),
+      child: DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: ShapeDecoration(
+          color: wash,
+          shape: RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.circular(radius),
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
 /// Square icon-only action (continuous corners) in the same variants as
 /// [EnjoyButton] — for compact headers and toolbars.
 class EnjoyIconButton extends StatelessWidget {
@@ -432,44 +377,69 @@ class EnjoyIconButton extends StatelessWidget {
     required this.onPressed,
     required this.tooltip,
     this.variant = EnjoyButtonVariant.secondary,
-    this.size = 36,
+    this.size,
   });
 
   final IconData icon;
   final VoidCallback? onPressed;
   final String tooltip;
   final EnjoyButtonVariant variant;
-  final double size;
+
+  /// Fixed edge; defaults to 40 on desktop and 44 on phone.
+  final double? size;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final light = Theme.of(context).brightness == Brightness.light;
-    final radius = size * 0.32;
-    final (Color bg, Color fg, BorderSide side) = switch (variant) {
-      EnjoyButtonVariant.primary => (
+    final resolvedSize =
+        size ??
+        (MediaQuery.sizeOf(context).width < t.breakpointCompact
+            ? t.iconButtonSizePhone
+            : t.iconButtonSize);
+    final radius = resolvedSize * 0.32;
+    final (
+      Color bg,
+      Color fg,
+      BorderSide side,
+      ButtonLayerBuilder? builder,
+    ) = switch (variant) {
+      EnjoyButtonVariant.brand => (
         Colors.transparent,
-        cs.onPrimary,
+        Colors.white,
         BorderSide.none,
+        (context, states, child) =>
+            _BrandFill(t: t, states: states, radius: radius, child: child),
+      ),
+      EnjoyButtonVariant.primary => (
+        t.primary,
+        t.onPrimary,
+        BorderSide.none,
+        null,
       ),
       EnjoyButtonVariant.secondary => (
-        t.card,
+        t.paper,
         cs.onSurface,
-        BorderSide(
-          color: light ? cs.outline.withValues(alpha: 0.7) : cs.outline,
-        ),
+        BorderSide(color: t.line),
+        null,
       ),
-      EnjoyButtonVariant.tonal => (t.accentSoft, t.accentInk, BorderSide.none),
+      EnjoyButtonVariant.tonal => (
+        t.paper,
+        cs.onSurface,
+        BorderSide(color: t.line),
+        null,
+      ),
       EnjoyButtonVariant.ghost => (
         Colors.transparent,
-        cs.onSurfaceVariant,
+        t.ink2,
         BorderSide.none,
+        null,
       ),
       EnjoyButtonVariant.destructive => (
-        cs.error.withValues(alpha: light ? 0.09 : 0.14),
-        cs.error,
+        t.danger,
+        Colors.white,
         BorderSide.none,
+        null,
       ),
     };
     return IconButton(
@@ -480,10 +450,10 @@ class EnjoyIconButton extends StatelessWidget {
               Haptics.selection(context);
               onPressed!();
             },
-      icon: Icon(icon, size: size * 0.48),
+      icon: Icon(icon, size: resolvedSize * 0.48),
       style: ButtonStyle(
-        fixedSize: WidgetStatePropertyAll(Size(size, size)),
-        minimumSize: WidgetStatePropertyAll(Size(size, size)),
+        fixedSize: WidgetStatePropertyAll(Size(resolvedSize, resolvedSize)),
+        minimumSize: WidgetStatePropertyAll(Size(resolvedSize, resolvedSize)),
         padding: const WidgetStatePropertyAll(EdgeInsets.zero),
         backgroundColor: WidgetStatePropertyAll(bg),
         foregroundColor: WidgetStatePropertyAll(fg),
@@ -495,15 +465,7 @@ class EnjoyIconButton extends StatelessWidget {
         ),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         splashFactory: NoSplash.splashFactory,
-        backgroundBuilder: variant == EnjoyButtonVariant.primary
-            ? (context, states, child) => enjoyLitFillBuilder(
-                context,
-                states,
-                child,
-                base: cs.primary,
-                radius: radius,
-              )
-            : null,
+        backgroundBuilder: builder,
       ),
     );
   }

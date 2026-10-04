@@ -332,10 +332,10 @@ class _HomeHeaderActions extends ConsumerWidget {
               ? EnjoyIconButton(
                   icon: EnjoyIcons.add,
                   tooltip: l10n.actionImport,
-                  variant: EnjoyButtonVariant.primary,
+                  variant: EnjoyButtonVariant.brand,
                   onPressed: import,
                 )
-              : EnjoyButton.primary(
+              : EnjoyButton.brand(
                   size: EnjoyButtonSize.small,
                   icon: EnjoyIcons.add,
                   onPressed: import,

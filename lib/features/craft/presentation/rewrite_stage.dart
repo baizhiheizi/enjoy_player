@@ -490,7 +490,7 @@ class _ActionButtons extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        EnjoyButton.primary(
+        EnjoyButton.brand(
           onPressed: onGenerateAudio,
           icon: EnjoyIcons.waveform,
           expand: true,

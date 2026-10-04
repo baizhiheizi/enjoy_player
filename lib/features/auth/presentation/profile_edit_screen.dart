@@ -263,7 +263,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     copyable: mixinCopyable,
                   ),
                   SizedBox(height: t.space32),
-                  EnjoyButton.primary(
+                  EnjoyButton.brand(
                     onPressed: _saving ? null : () => _save(p, l10n),
                     child: _saving
                         ? const LoadingIcon(size: 22)

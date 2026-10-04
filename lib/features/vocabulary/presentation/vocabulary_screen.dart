@@ -203,7 +203,7 @@ class _ReviewTab extends ConsumerWidget {
                 SizedBox(height: t.space24),
                 SizedBox(
                   width: double.infinity,
-                  child: EnjoyButton.primary(
+                  child: EnjoyButton.brand(
                     onPressed: () => _startReview(context, ref),
                     child: Text(l10n.vocabularyStartReview),
                   ),

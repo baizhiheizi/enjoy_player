@@ -235,7 +235,7 @@ class _PracticePosterPreviewSheetState
                   ),
                 ),
                 SizedBox(height: t.space12),
-                EnjoyButton.primary(
+                EnjoyButton.brand(
                   onPressed: _canExport ? _onExport : null,
                   child: _exporting
                       ? LoadingIcon(size: 20, color: cs.onPrimary)

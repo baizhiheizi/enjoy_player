@@ -52,7 +52,7 @@ class NotFoundScreen extends StatelessWidget {
                   SizedBox(height: t.space32),
                   SizedBox(
                     width: double.infinity,
-                    child: EnjoyButton.primary(
+                    child: EnjoyButton.brand(
                       onPressed: () => context.go('/'),
                       child: Text(l10n.notFoundBackHome),
                     ),

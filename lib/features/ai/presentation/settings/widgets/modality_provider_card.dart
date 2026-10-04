@@ -345,7 +345,7 @@ class _ModalityProviderCardState extends ConsumerState<ModalityProviderCard> {
                   SizedBox(width: t.space8),
                   ConstrainedBox(
                     constraints: const BoxConstraints(minWidth: 132),
-                    child: EnjoyButton.primary(
+                    child: EnjoyButton.brand(
                       onPressed: _saving ? null : _save,
                       child: _saving
                           ? const SizedBox(

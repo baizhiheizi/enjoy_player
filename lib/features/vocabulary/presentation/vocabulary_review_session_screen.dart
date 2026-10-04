@@ -512,7 +512,7 @@ class _CompleteBody extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: t.space24),
-                EnjoyButton.primary(
+                EnjoyButton.brand(
                   onPressed: onDone,
                   child: Text(l10n.vocabularyDone),
                 ),

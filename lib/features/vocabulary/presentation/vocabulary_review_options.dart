@@ -183,7 +183,7 @@ class _VocabularyReviewOptionsSheetState
             ],
             SizedBox(
               height: 48,
-              child: EnjoyButton.primary(
+              child: EnjoyButton.brand(
                 onPressed: () {
                   final options = ReviewSelectionOptions(
                     mode: _mode,

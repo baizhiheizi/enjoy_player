@@ -127,7 +127,7 @@ class _SubscriptionBody extends ConsumerWidget {
             SizedBox(height: t.space8),
             Text(l10n.errorGenericLoadFailed),
             SizedBox(height: t.space16),
-            EnjoyButton.primary(
+            EnjoyButton.brand(
               onPressed: () => ref.invalidate(subscriptionStatusProvider),
               child: Text(l10n.retry),
             ),

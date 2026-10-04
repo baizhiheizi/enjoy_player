@@ -193,7 +193,7 @@ class _AudioStageState extends ConsumerState<AudioStage> {
             children: [
               Text(l10n.craftAudioPreview, style: theme.textTheme.bodyLarge),
               SizedBox(height: t.space16),
-              EnjoyButton.primary(
+              EnjoyButton.brand(
                 onPressed: () =>
                     ref.read(craftControllerProvider.notifier).generateAudio(),
                 child: Text(l10n.craftRewriteGenerateAudio),
@@ -353,7 +353,7 @@ class _AudioActions extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        EnjoyButton.primary(
+        EnjoyButton.brand(
           onPressed: onPractice,
           icon: EnjoyIcons.libraryAdded,
           expand: true,
@@ -616,20 +616,15 @@ class _PreviewPlayer extends StatelessWidget {
               duration: t.motionFast,
               width: 56,
               height: 56,
-              decoration: enjoyLitFillDecoration(
-                base: theme.colorScheme.primary,
-                shape: CircleBorder(side: enjoyLitHighlightSide(alpha: 0.16)),
-                shadow: enjoyLitShadow(
-                  theme.colorScheme.primary,
-                  alpha: 0.32,
-                  blurRadius: 12,
-                  spreadRadius: -4,
-                ),
+              decoration: ShapeDecoration(
+                gradient: t.brand,
+                shape: const CircleBorder(),
+                shadows: t.shadowBrandButton,
               ),
               child: Icon(
                 isPlaying ? EnjoyIcons.pause : EnjoyIcons.play,
                 size: 26,
-                color: theme.colorScheme.onPrimary,
+                color: Colors.white,
               ),
             ),
           ),

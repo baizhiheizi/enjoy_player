@@ -607,7 +607,7 @@ class _PaidTierCard extends StatelessWidget {
           : l10n.subscriptionTierCatalogSelectedInterval(amount, unitLabel),
       features: _paidTierFeatures(l10n),
       emphasizeFeatures: !_isLite,
-      cta: EnjoyButton.primary(
+      cta: EnjoyButton.brand(
         onPressed: ctaEnabled ? onChoose : null,
         child: Text(ctaLabelActual),
       ),

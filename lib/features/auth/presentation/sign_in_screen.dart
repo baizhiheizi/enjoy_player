@@ -93,7 +93,7 @@ class SignInScreen extends ConsumerWidget {
                     style: tt.titleLarge,
                   ),
                   SizedBox(height: t.space24),
-                  EnjoyButton.primary(
+                  EnjoyButton.brand(
                     onPressed: () => ref.invalidate(authCtrlProvider),
                     child: Text(l10n.retry),
                   ),
@@ -215,7 +215,7 @@ class _SignInHub extends ConsumerWidget {
                   ),
                   SizedBox(height: t.space12 - 2),
                 ],
-                EnjoyButton.primary(
+                EnjoyButton.brand(
                   size: EnjoyButtonSize.large,
                   expand: true,
                   icon: EnjoyIcons.mail,

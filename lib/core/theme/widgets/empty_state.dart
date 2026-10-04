@@ -80,7 +80,7 @@ class EmptyState extends StatelessWidget {
                   runSpacing: t.space8,
                   children: [
                     if (hasPrimary)
-                      EnjoyButton.primary(
+                      EnjoyButton.brand(
                         onPressed: action,
                         child: Text(actionLabel!),
                       ),

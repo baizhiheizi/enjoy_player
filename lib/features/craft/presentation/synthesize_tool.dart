@@ -114,7 +114,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
             onChanged: controller.setSynthText,
           ),
           SizedBox(height: tokens.space16),
-          EnjoyButton.primary(
+          EnjoyButton.brand(
             onPressed: canSynthesize
                 ? () => _synthesizeWithOverlay(l10n)
                 : null,

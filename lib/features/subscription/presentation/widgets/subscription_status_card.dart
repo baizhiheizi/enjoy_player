@@ -309,7 +309,7 @@ class _PaidMembershipCard extends StatelessWidget {
             ],
             if (onExtend != null) ...[
               SizedBox(height: t.space16),
-              EnjoyButton.primary(
+              EnjoyButton.brand(
                 onPressed: onExtend,
                 child: Text(l10n.subscriptionExtend),
               ),

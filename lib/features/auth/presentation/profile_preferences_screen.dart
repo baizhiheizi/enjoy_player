@@ -218,7 +218,7 @@ class _ProfilePreferencesScreenState
                         error: (_, _) => const SizedBox.shrink(),
                       ),
                   SizedBox(height: t.space32),
-                  EnjoyButton.primary(
+                  EnjoyButton.brand(
                     onPressed: _saving
                         ? null
                         : () async {

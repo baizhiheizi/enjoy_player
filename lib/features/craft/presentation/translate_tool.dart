@@ -135,7 +135,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
             onChanged: controller.setSourceText,
           ),
           SizedBox(height: tokens.space16),
-          EnjoyButton.primary(
+          EnjoyButton.brand(
             onPressed: canTranslate ? controller.translate : null,
             icon: state.isTranslating ? null : EnjoyIcons.translate,
             child: state.isTranslating
