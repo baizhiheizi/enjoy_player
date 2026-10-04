@@ -77,6 +77,10 @@ if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
     echo "LDFLAGS=${LDFLAGS:-} -fuse-ld=gold -Wl,--allow-shlib-undefined" >> "$GITHUB_ENV"
   fi
   export LDFLAGS="${LDFLAGS:-} -fuse-ld=gold -Wl,--allow-shlib-undefined"
+  # CMake caches linker flags at first configure; the runner's build dir
+  # persists between runs, so a stale cache would silently ignore the env.
+  rm -f /runner-state/_work/enjoy_player/enjoy_player/build/linux/x64/*/CMakeCache.txt 2>/dev/null || true
+  rm -rf /runner-state/_work/enjoy_player/enjoy_player/build/linux/x64/*/CMakeFiles 2>/dev/null || true
 
   # Bare -lwpe-1.0 / -lWPEBackend-fdo-1.0 leak through the pkg-config Requires
   # chain without an -L, so the runtime libraries must sit in the default
