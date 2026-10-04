@@ -1,5 +1,6 @@
 /// Design tokens: spacing, radii, motion, elevation, surfaces, shadows,
-/// breakpoints (ThemeExtension) — Aurora design language (ADR-0089).
+/// breakpoints (ThemeExtension). Duet design language (ADR-0091) values;
+/// Aurora-named fields (ADR-0089) alias the Duet values until the rename pass.
 library;
 
 import 'dart:ui' show lerpDouble;
@@ -8,11 +9,10 @@ import 'package:flutter/material.dart';
 
 import 'colors.dart';
 
-/// Aurora design tokens (porcelain light / midnight dark); use
-/// [EnjoyThemeTokens.of] from widgets.
+/// Design tokens; use [EnjoyThemeTokens.of] from widgets.
 @immutable
 class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
-  /// Tokens for [scheme]'s brightness (porcelain light / midnight dark).
+  /// Tokens for [scheme]'s brightness.
   factory EnjoyThemeTokens.build(ColorScheme scheme) {
     final light = scheme.brightness == Brightness.light;
     return EnjoyThemeTokens(
@@ -39,49 +39,44 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       breakpointCompact: 600,
       breakpointRail: 900,
       breakpointTranscriptSideBySide: 720,
+      breakpointMarginDrawer: 1100,
       motionFast: const Duration(milliseconds: 160),
       motionStandard: const Duration(milliseconds: 280),
       motionEnter: const Duration(milliseconds: 260),
       motionExit: const Duration(milliseconds: 160),
       motionMedium: const Duration(milliseconds: 220),
-      echoActive: AppColors.echoActive,
-      blurActive: AppColors.blurActive,
-      scoreGood: light ? AppColors.scoreGoodLight : AppColors.scoreGoodDark,
-      scoreWarn: light ? AppColors.scoreWarnLight : AppColors.scoreWarnDark,
-      scoreBad: light ? AppColors.scoreBadLight : AppColors.scoreBadDark,
-      scoreGoodContainer: AppColors.scoreGoodContainer,
-      scoreWarnContainer: AppColors.scoreWarnContainer,
-      scoreBadContainer: AppColors.scoreBadContainer,
-      accentSoft: light ? const Color(0x175B4BE8) : AppColors.accentSoft,
-      accentInk: light ? AppColors.brandOnLight : AppColors.brandOnDark,
+      motionLens: const Duration(milliseconds: 280),
+      motionMargin: const Duration(milliseconds: 220),
+      echoActive: light ? AppColors.youLight : AppColors.youDark,
+      blurActive: light ? AppColors.inkLight : AppColors.inkDark,
+      scoreGood: light ? AppColors.ink2Light : AppColors.ink2Dark,
+      scoreWarn: light ? AppColors.ink2Light : AppColors.ink2Dark,
+      scoreBad: light ? AppColors.dangerLight : AppColors.dangerDark,
+      scoreGoodContainer: light ? AppColors.sunkLight : AppColors.sunkDark,
+      scoreWarnContainer: light ? AppColors.sunkLight : AppColors.sunkDark,
+      scoreBadContainer: light ? AppColors.sunkLight : AppColors.sunkDark,
+      accentSoft: light ? AppColors.brandSoftLight : AppColors.brandSoftDark,
+      accentInk: light ? AppColors.brandInkLight : AppColors.brandInkDark,
       intelligenceInk: light
-          ? AppColors.intelligenceInkLight
-          : AppColors.intelligenceInkDark,
-      echoInk: light ? AppColors.echoInkLight : AppColors.echoInkDark,
+          ? AppColors.originalInkLight
+          : AppColors.originalInkDark,
+      echoInk: light ? AppColors.youInkLight : AppColors.youInkDark,
       ccBadge: scheme.primary,
       transcriptLinePadding: const EdgeInsets.symmetric(horizontal: 16),
-      contentMaxWidth: 720,
+      contentMaxWidth: 780,
       formMaxWidth: 680,
       hubMaxWidth: 840,
       pageGutterCompact: 16,
-      pageGutter: 24,
+      pageGutter: 40,
       miniBarBlurSigma: 24,
-      sidebarWidth: 236,
+      sidebarWidth: 244,
       sidebarBrandHeight: 52,
       transportHeight: 88,
       heroTitleLetterSpacing: -0.9,
-      glassTint: light
-          ? const Color(0xFFFFFFFF).withValues(alpha: 0.8)
-          : const Color(0xFF1C1C22).withValues(alpha: 0.62),
-      glassBorder: light
-          ? const Color(0xFF16161D).withValues(alpha: 0.08)
-          : const Color(0xFFFFFFFF).withValues(alpha: 0.09),
-      gradientStart: light
-          ? AppColors.gradientStartLight
-          : AppColors.gradientStartDark,
-      gradientEnd: light
-          ? AppColors.gradientEndLight
-          : AppColors.gradientEndDark,
+      glassTint: light ? AppColors.paperLight : AppColors.paperDark,
+      glassBorder: light ? AppColors.lineLight : AppColors.lineDark,
+      gradientStart: light ? AppColors.groundLight : AppColors.groundDark,
+      gradientEnd: light ? AppColors.groundLight : AppColors.groundDark,
       bottomNavHeight: 64,
       desktopGutter: 24,
       modalMaxWidth: 400,
@@ -89,23 +84,110 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       focusRingWidth: 2,
       radiusXs: 6,
       radius2xl: 30,
-      canvas: light ? AppColors.canvasLight : AppColors.canvasDark,
-      card: light ? AppColors.cardLight : AppColors.cardDark,
-      popover: light ? AppColors.popoverLight : AppColors.popoverDark,
-      hairline: light ? AppColors.borderLight : AppColors.borderDark,
-      fill: light ? AppColors.fillLight : AppColors.fillDark,
-      textFaint: light ? AppColors.faintLight : AppColors.faintDark,
-      auroraStart: AppColors.auroraBlue,
-      auroraEnd: AppColors.auroraViolet,
-      topHighlight: light ? const Color(0x00FFFFFF) : const Color(0x0DFFFFFF),
-      shellInset: 8,
-      panelRadius: 14,
+      canvas: light ? AppColors.groundLight : AppColors.groundDark,
+      card: light ? AppColors.paperLight : AppColors.paperDark,
+      popover: light ? AppColors.raisedLight : AppColors.raisedDark,
+      hairline: light ? AppColors.lineLight : AppColors.lineDark,
+      fill: light ? AppColors.sunkLight : AppColors.sunkDark,
+      textFaint: light ? AppColors.ink3Light : AppColors.ink3Dark,
+      auroraStart: AppColors.logoStart,
+      auroraEnd: AppColors.logoEnd,
+      topHighlight: Colors.transparent,
+      shellInset: 0,
+      panelRadius: 0,
       controlHeightSm: 32,
       controlHeight: 40,
-      controlHeightLg: 48,
-      shadowCard: _shadowCard(light),
+      controlHeightLg: 50,
+      shadowCard: _shadowLift(light),
       shadowFloat: _shadowFloat(light),
-      shadowPopover: _shadowPopover(light),
+      shadowPopover: _shadowFloat(light),
+      ground: light ? AppColors.groundLight : AppColors.groundDark,
+      paper: light ? AppColors.paperLight : AppColors.paperDark,
+      raised: light ? AppColors.raisedLight : AppColors.raisedDark,
+      sunk: light ? AppColors.sunkLight : AppColors.sunkDark,
+      line: light ? AppColors.lineLight : AppColors.lineDark,
+      ink: light ? AppColors.inkLight : AppColors.inkDark,
+      ink2: light ? AppColors.ink2Light : AppColors.ink2Dark,
+      ink3: light ? AppColors.ink3Light : AppColors.ink3Dark,
+      original: light ? AppColors.originalLight : AppColors.originalDark,
+      originalInk: light
+          ? AppColors.originalInkLight
+          : AppColors.originalInkDark,
+      originalSoft: light
+          ? AppColors.originalSoftLight
+          : AppColors.originalSoftDark,
+      you: light ? AppColors.youLight : AppColors.youDark,
+      youInk: light ? AppColors.youInkLight : AppColors.youInkDark,
+      youSoft: light ? AppColors.youSoftLight : AppColors.youSoftDark,
+      youLine: light ? AppColors.youLineLight : AppColors.youLineDark,
+      onYou: light ? AppColors.onYouLight : AppColors.onYouDark,
+      brandInk: light ? AppColors.brandInkLight : AppColors.brandInkDark,
+      brandSoft: light ? AppColors.brandSoftLight : AppColors.brandSoftDark,
+      primary: light ? AppColors.primaryInkLight : AppColors.primaryInkDark,
+      onPrimary: light
+          ? AppColors.onPrimaryInkLight
+          : AppColors.onPrimaryInkDark,
+      danger: light ? AppColors.dangerLight : AppColors.dangerDark,
+      shape: light ? AppColors.shapeLight : AppColors.shapeDark,
+      tick: light ? AppColors.tickLight : AppColors.tickDark,
+      scrim: light ? AppColors.scrimLight : AppColors.scrimDark,
+      video: light ? AppColors.videoLight : AppColors.videoDark,
+      vocabNew: light ? AppColors.vocabNewLight : AppColors.vocabNewDark,
+      vocabLearning: light
+          ? AppColors.vocabLearningLight
+          : AppColors.vocabLearningDark,
+      vocabReviewing: light
+          ? AppColors.vocabReviewingLight
+          : AppColors.vocabReviewingDark,
+      vocabMastered: light
+          ? AppColors.vocabMasteredLight
+          : AppColors.vocabMasteredDark,
+      radiusKeycap: 5,
+      radiusBadge: 7,
+      radiusSegmentThumb: 9,
+      radiusControl: 12,
+      radiusTile: 14,
+      radiusCard: 20,
+      radiusCardLarge: 24,
+      radiusDialog: 24,
+      radiusSheet: 26,
+      touchTargetMin: 44,
+      iconButtonSize: 40,
+      iconButtonSizePhone: 44,
+      segmentHeight: 38,
+      chipHeight: 34,
+      takeChipHeight: 42,
+      playButtonSize: 60,
+      playButtonSizePhone: 68,
+      recordButtonSize: 62,
+      recordButtonSizePhone: 76,
+      originalPillWidth: 150,
+      originalPillHeight: 52,
+      originalButtonPhoneSize: 56,
+      tabBarHeight: 84,
+      tabBarSafeInset: 26,
+      playerTopBarHeight: 60,
+      subpageHeaderHeight: 64,
+      rulerHitHeight: 34,
+      marginWidth: 380,
+      transcriptMaxListen: 780,
+      transcriptMaxEcho: 880,
+      videoColumnMax: 520,
+      videoColumnShare: 0.46,
+      pageMaxBrowse: 1180,
+      pageMaxCraft: 1080,
+      pageMaxHub: 840,
+      pageMaxForm: 680,
+      gutter: 40,
+      gutterPhone: 16,
+      echoLensOpacity: const [1, 0.65, 0.35, 0.2],
+      referencePitchOpacity: 0.35,
+      strokeReferencePitch: 9,
+      strokeYourPitch: 3,
+      strokeLoopBracket: 2,
+      strokeRulerTrack: 4,
+      shadowBrandButton: _shadowBrandButton(light),
+      shadowRecordButton: _shadowRecordButton(light),
     );
   }
   const EnjoyThemeTokens({
@@ -132,6 +214,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.breakpointCompact,
     required this.breakpointRail,
     required this.breakpointTranscriptSideBySide,
+    required this.breakpointMarginDrawer,
     required this.motionFast,
     required this.motionStandard,
     required this.motionEnter,
@@ -139,6 +222,8 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
     /// Transport / layout morphs: 220ms (between [motionFast] and [motionStandard]).
     required this.motionMedium,
+    required this.motionLens,
+    required this.motionMargin,
     required this.echoActive,
     required this.blurActive,
     required this.scoreGood,
@@ -191,20 +276,105 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.shadowCard,
     required this.shadowFloat,
     required this.shadowPopover,
+    required this.ground,
+    required this.paper,
+    required this.raised,
+    required this.sunk,
+    required this.line,
+    required this.ink,
+    required this.ink2,
+    required this.ink3,
+    required this.original,
+    required this.originalInk,
+    required this.originalSoft,
+    required this.you,
+    required this.youInk,
+    required this.youSoft,
+    required this.youLine,
+    required this.onYou,
+    required this.brandInk,
+    required this.brandSoft,
+    required this.primary,
+    required this.onPrimary,
+    required this.danger,
+    required this.shape,
+    required this.tick,
+    required this.scrim,
+    required this.video,
+    required this.vocabNew,
+    required this.vocabLearning,
+    required this.vocabReviewing,
+    required this.vocabMastered,
+    required this.radiusKeycap,
+    required this.radiusBadge,
+    required this.radiusSegmentThumb,
+    required this.radiusControl,
+    required this.radiusTile,
+    required this.radiusCard,
+    required this.radiusCardLarge,
+    required this.radiusDialog,
+    required this.radiusSheet,
+    required this.touchTargetMin,
+    required this.iconButtonSize,
+    required this.iconButtonSizePhone,
+    required this.segmentHeight,
+    required this.chipHeight,
+    required this.takeChipHeight,
+    required this.playButtonSize,
+    required this.playButtonSizePhone,
+    required this.recordButtonSize,
+    required this.recordButtonSizePhone,
+    required this.originalPillWidth,
+    required this.originalPillHeight,
+    required this.originalButtonPhoneSize,
+    required this.tabBarHeight,
+    required this.tabBarSafeInset,
+    required this.playerTopBarHeight,
+    required this.subpageHeaderHeight,
+    required this.rulerHitHeight,
+    required this.marginWidth,
+    required this.transcriptMaxListen,
+    required this.transcriptMaxEcho,
+    required this.videoColumnMax,
+    required this.videoColumnShare,
+    required this.pageMaxBrowse,
+    required this.pageMaxCraft,
+    required this.pageMaxHub,
+    required this.pageMaxForm,
+    required this.gutter,
+    required this.gutterPhone,
+    required this.echoLensOpacity,
+    required this.referencePitchOpacity,
+    required this.strokeReferencePitch,
+    required this.strokeYourPitch,
+    required this.strokeLoopBracket,
+    required this.strokeRulerTrack,
+    required this.shadowBrandButton,
+    required this.shadowRecordButton,
   });
 
-  /// Aurora easing: a soft-landing curve, cubic-bezier(.2, .8, .2, 1).
+  /// Soft-landing curve, cubic-bezier(.2, .8, .2, 1).
   static const Curve ease = Cubic(0.2, 0.8, 0.2, 1);
 
   /// Emphasized ease for selection indicators and sheet travel.
   static const Curve emphasized = Cubic(0.3, 0.0, 0.0, 1.0);
 
-  /// Aurora gradient (logo blue → violet) for signature moments.
-  LinearGradient get aurora => LinearGradient(
+  /// Brand gradient (blue → violet) for Play, primary buttons, Pro, Upgrade.
+  LinearGradient get brand => const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [AppColors.brandStart, AppColors.brandEnd],
+  );
+
+  /// Logo gradient (blue → violet) for the mark, rings, meters, covers.
+  LinearGradient get logo => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [auroraStart, auroraEnd],
   );
+
+  /// Legacy name of [logo]; removed in the D5.1 rename pass.
+  LinearGradient get aurora => logo;
 
   final double space4;
   final double space8;
@@ -240,42 +410,46 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Width at which player shows transcript side-by-side vs stacked.
   final double breakpointTranscriptSideBySide;
 
-  /// Micro-interactions: 180ms.
+  /// Player width below which the side margin opens as a drawer.
+  final double breakpointMarginDrawer;
+
+  /// Micro-interactions: 160ms.
   final Duration motionFast;
 
-  /// Standard transitions: 260ms.
+  /// Standard transitions: 280ms.
   final Duration motionStandard;
 
-  /// Screen enter: 240ms.
+  /// Screen enter: 260ms.
   final Duration motionEnter;
 
   /// Screen exit: 160ms (faster than enter for responsiveness).
   final Duration motionExit;
 
-  /// Transport compact/expanded and similar layout transitions.
+  /// Transport / layout morphs: 220ms (between [motionFast] and [motionStandard]).
   final Duration motionMedium;
+
+  /// Listen ↔ Echo lens transition: 280ms.
+  final Duration motionLens;
+
+  /// Side margin open/close slide: 220ms.
+  final Duration motionMargin;
 
   final Color echoActive;
 
-  /// Accent used for the listening-focus (blur practice) toggle when active.
+  /// Accent used for the listening-focus (hide text) toggle when active.
   final Color blurActive;
 
-  /// Evaluation & assessment good color (emerald green).
+  /// Evaluation & assessment good color (ink in Duet — scores are uncolored).
   final Color scoreGood;
 
-  /// Evaluation & assessment warn color (amber gold).
+  /// Evaluation & assessment warn color (ink in Duet — scores are uncolored).
   final Color scoreWarn;
 
-  /// Evaluation & assessment bad color (coral red).
+  /// Evaluation & assessment bad color (danger).
   final Color scoreBad;
 
-  /// Evaluation & assessment good container background.
   final Color scoreGoodContainer;
-
-  /// Evaluation & assessment warn container background.
   final Color scoreWarnContainer;
-
-  /// Evaluation & assessment bad container background.
   final Color scoreBadContainer;
 
   /// Soft translucent brand accent background.
@@ -284,17 +458,17 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Violet used as text/icon ink (deep on paper, bright on graphite).
   final Color accentInk;
 
-  /// Intelligence / lookup blue ink.
+  /// Original-speaker blue ink.
   final Color intelligenceInk;
 
-  /// Echo / speaking warm ink.
+  /// Learner violet ink.
   final Color echoInk;
 
   final Color ccBadge;
 
   final EdgeInsets transcriptLinePadding;
 
-  /// Reading column / empty-state cap (legacy content column).
+  /// Listen transcript column cap.
   final double contentMaxWidth;
 
   /// Centered max width for form pages (Preferences, Edit Profile, …).
@@ -345,10 +519,10 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Hero artwork, sheets, and large modal corners.
   final double radius2xl;
 
-  /// Window canvas behind the sidebar and the floating content panel.
+  /// Window canvas behind the sidebar and the content area.
   final Color canvas;
 
-  /// Card / grouped-list surface (white on porcelain, lifted on midnight).
+  /// Card / grouped-list surface.
   final Color card;
 
   /// Menus, popovers, dialogs, and sheets.
@@ -360,22 +534,22 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Subtle control fill (search fields, segmented tracks, chips).
   final Color fill;
 
-  /// Tertiary text (timestamps, hints) — decorative-contrast only.
+  /// Tertiary text (timestamps, hints).
   final Color textFaint;
 
-  /// Aurora gradient start (logo blue).
+  /// Logo gradient start (original blue).
   final Color auroraStart;
 
-  /// Aurora gradient end (logo violet).
+  /// Logo gradient end (you violet).
   final Color auroraEnd;
 
-  /// Inner 1px top highlight that gives dark surfaces a lit edge.
+  /// Legacy dark-surface lit edge; transparent in Duet.
   final Color topHighlight;
 
-  /// Gap between the desktop canvas and the floating content panel.
+  /// Legacy gap between the canvas and the floating content panel; 0 in Duet.
   final double shellInset;
 
-  /// Corner radius of the desktop floating content panel.
+  /// Legacy floating content panel corner radius; 0 in Duet.
   final double panelRadius;
 
   /// Compact control height (toolbar buttons, chips).
@@ -384,17 +558,156 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Default control height (buttons, fields, segmented).
   final double controlHeight;
 
-  /// Prominent control height (primary CTAs on mobile).
+  /// Prominent control height (primary CTAs, dock play button).
   final double controlHeightLg;
 
-  /// Resting card shadow (soft, wide, low).
+  /// Resting card shadow.
   final List<BoxShadow> shadowCard;
 
-  /// Floating chrome shadow (tab bar, transport, panel).
+  /// Floating chrome shadow (tab bar, dock, popovers).
   final List<BoxShadow> shadowFloat;
 
   /// Menus / dialogs shadow.
   final List<BoxShadow> shadowPopover;
+
+  /// Page and sidebar ground.
+  final Color ground;
+
+  /// Cards and content tiles.
+  final Color paper;
+
+  /// Menus, popovers, dialogs, and sheets.
+  final Color raised;
+
+  /// Sunk control fill (search fields, segmented tracks, chips).
+  final Color sunk;
+
+  /// 1px separators, card outlines, and the you-soft boundary.
+  final Color line;
+
+  /// Primary text.
+  final Color ink;
+
+  /// Secondary text.
+  final Color ink2;
+
+  /// Tertiary text (timestamps, hints) — readable in both themes.
+  final Color ink3;
+
+  /// Original-speaker blue: playback, spoken word, reference pitch, Listen.
+  final Color original;
+
+  /// Original blue as text/icon ink.
+  final Color originalInk;
+
+  /// Translucent original wash (selected rows, soft pills).
+  final Color originalSoft;
+
+  /// Learner violet: Echo loop, Record, takes, your pitch.
+  final Color you;
+
+  /// Learner violet as text/icon ink.
+  final Color youInk;
+
+  /// Translucent you wash (selected rows, soft pills).
+  final Color youSoft;
+
+  /// You-tinted outline (loop brackets, wavy underlines).
+  final Color youLine;
+
+  /// Label/icon color on [you] fills.
+  final Color onYou;
+
+  /// Brand ink — the readable end of the brand gradient.
+  final Color brandInk;
+
+  /// Soft brand wash (selected rows, tab-bar pill, radio fill).
+  final Color brandSoft;
+
+  /// Ink-fill primary buttons.
+  final Color primary;
+
+  /// Label color on [primary] fills.
+  final Color onPrimary;
+
+  /// Destructive actions and errors.
+  final Color danger;
+
+  /// Hidden-word shape bars.
+  final Color shape;
+
+  /// Sentence-ruler track ticks.
+  final Color tick;
+
+  /// Modal and drawer scrims.
+  final Color scrim;
+
+  /// Video stage letterbox.
+  final Color video;
+
+  /// Vocabulary status scale (new / learning / reviewing / mastered).
+  final Color vocabNew;
+  final Color vocabLearning;
+  final Color vocabReviewing;
+  final Color vocabMastered;
+
+  final double radiusKeycap;
+  final double radiusBadge;
+  final double radiusSegmentThumb;
+  final double radiusControl;
+  final double radiusTile;
+  final double radiusCard;
+  final double radiusCardLarge;
+  final double radiusDialog;
+  final double radiusSheet;
+
+  /// Smallest tappable dimension.
+  final double touchTargetMin;
+  final double iconButtonSize;
+  final double iconButtonSizePhone;
+  final double segmentHeight;
+  final double chipHeight;
+  final double takeChipHeight;
+  final double playButtonSize;
+  final double playButtonSizePhone;
+  final double recordButtonSize;
+  final double recordButtonSizePhone;
+  final double originalPillWidth;
+  final double originalPillHeight;
+  final double originalButtonPhoneSize;
+  final double tabBarHeight;
+  final double tabBarSafeInset;
+  final double playerTopBarHeight;
+  final double subpageHeaderHeight;
+  final double rulerHitHeight;
+  final double marginWidth;
+  final double transcriptMaxListen;
+  final double transcriptMaxEcho;
+  final double videoColumnMax;
+  final double videoColumnShare;
+  final double pageMaxBrowse;
+  final double pageMaxCraft;
+  final double pageMaxHub;
+  final double pageMaxForm;
+  final double gutter;
+  final double gutterPhone;
+
+  /// Listen ↔ Echo neighbour fade steps, by distance from the loop.
+  final List<double> echoLensOpacity;
+
+  /// Reference-pitch band opacity in the pitch duet.
+  final double referencePitchOpacity;
+
+  final double strokeReferencePitch;
+  final double strokeYourPitch;
+  final double strokeLoopBracket;
+  final double strokeRulerTrack;
+
+  /// Brand-gradient button shadow.
+  final List<BoxShadow> shadowBrandButton;
+
+  /// Record button shadow.
+  final List<BoxShadow> shadowRecordButton;
 
   static EnjoyThemeTokens of(BuildContext context) {
     return Theme.of(context).extension<EnjoyThemeTokens>() ??
@@ -426,11 +739,14 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     double? breakpointCompact,
     double? breakpointRail,
     double? breakpointTranscriptSideBySide,
+    double? breakpointMarginDrawer,
     Duration? motionFast,
     Duration? motionStandard,
     Duration? motionEnter,
     Duration? motionExit,
     Duration? motionMedium,
+    Duration? motionLens,
+    Duration? motionMargin,
     Color? echoActive,
     Color? blurActive,
     Color? scoreGood,
@@ -483,6 +799,81 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     List<BoxShadow>? shadowCard,
     List<BoxShadow>? shadowFloat,
     List<BoxShadow>? shadowPopover,
+    Color? ground,
+    Color? paper,
+    Color? raised,
+    Color? sunk,
+    Color? line,
+    Color? ink,
+    Color? ink2,
+    Color? ink3,
+    Color? original,
+    Color? originalInk,
+    Color? originalSoft,
+    Color? you,
+    Color? youInk,
+    Color? youSoft,
+    Color? youLine,
+    Color? onYou,
+    Color? brandInk,
+    Color? brandSoft,
+    Color? primary,
+    Color? onPrimary,
+    Color? danger,
+    Color? shape,
+    Color? tick,
+    Color? scrim,
+    Color? video,
+    Color? vocabNew,
+    Color? vocabLearning,
+    Color? vocabReviewing,
+    Color? vocabMastered,
+    double? radiusKeycap,
+    double? radiusBadge,
+    double? radiusSegmentThumb,
+    double? radiusControl,
+    double? radiusTile,
+    double? radiusCard,
+    double? radiusCardLarge,
+    double? radiusDialog,
+    double? radiusSheet,
+    double? touchTargetMin,
+    double? iconButtonSize,
+    double? iconButtonSizePhone,
+    double? segmentHeight,
+    double? chipHeight,
+    double? takeChipHeight,
+    double? playButtonSize,
+    double? playButtonSizePhone,
+    double? recordButtonSize,
+    double? recordButtonSizePhone,
+    double? originalPillWidth,
+    double? originalPillHeight,
+    double? originalButtonPhoneSize,
+    double? tabBarHeight,
+    double? tabBarSafeInset,
+    double? playerTopBarHeight,
+    double? subpageHeaderHeight,
+    double? rulerHitHeight,
+    double? marginWidth,
+    double? transcriptMaxListen,
+    double? transcriptMaxEcho,
+    double? videoColumnMax,
+    double? videoColumnShare,
+    double? pageMaxBrowse,
+    double? pageMaxCraft,
+    double? pageMaxHub,
+    double? pageMaxForm,
+    double? gutter,
+    double? gutterPhone,
+    List<double>? echoLensOpacity,
+    double? referencePitchOpacity,
+    double? strokeReferencePitch,
+    double? strokeYourPitch,
+    double? strokeLoopBracket,
+    double? strokeRulerTrack,
+    List<BoxShadow>? shadowBrandButton,
+    List<BoxShadow>? shadowRecordButton,
   }) {
     return EnjoyThemeTokens(
       space4: space4 ?? this.space4,
@@ -509,11 +900,15 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       breakpointRail: breakpointRail ?? this.breakpointRail,
       breakpointTranscriptSideBySide:
           breakpointTranscriptSideBySide ?? this.breakpointTranscriptSideBySide,
+      breakpointMarginDrawer:
+          breakpointMarginDrawer ?? this.breakpointMarginDrawer,
       motionFast: motionFast ?? this.motionFast,
       motionStandard: motionStandard ?? this.motionStandard,
       motionEnter: motionEnter ?? this.motionEnter,
       motionExit: motionExit ?? this.motionExit,
       motionMedium: motionMedium ?? this.motionMedium,
+      motionLens: motionLens ?? this.motionLens,
+      motionMargin: motionMargin ?? this.motionMargin,
       echoActive: echoActive ?? this.echoActive,
       blurActive: blurActive ?? this.blurActive,
       scoreGood: scoreGood ?? this.scoreGood,
@@ -568,6 +963,84 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       shadowCard: shadowCard ?? this.shadowCard,
       shadowFloat: shadowFloat ?? this.shadowFloat,
       shadowPopover: shadowPopover ?? this.shadowPopover,
+      ground: ground ?? this.ground,
+      paper: paper ?? this.paper,
+      raised: raised ?? this.raised,
+      sunk: sunk ?? this.sunk,
+      line: line ?? this.line,
+      ink: ink ?? this.ink,
+      ink2: ink2 ?? this.ink2,
+      ink3: ink3 ?? this.ink3,
+      original: original ?? this.original,
+      originalInk: originalInk ?? this.originalInk,
+      originalSoft: originalSoft ?? this.originalSoft,
+      you: you ?? this.you,
+      youInk: youInk ?? this.youInk,
+      youSoft: youSoft ?? this.youSoft,
+      youLine: youLine ?? this.youLine,
+      onYou: onYou ?? this.onYou,
+      brandInk: brandInk ?? this.brandInk,
+      brandSoft: brandSoft ?? this.brandSoft,
+      primary: primary ?? this.primary,
+      onPrimary: onPrimary ?? this.onPrimary,
+      danger: danger ?? this.danger,
+      shape: shape ?? this.shape,
+      tick: tick ?? this.tick,
+      scrim: scrim ?? this.scrim,
+      video: video ?? this.video,
+      vocabNew: vocabNew ?? this.vocabNew,
+      vocabLearning: vocabLearning ?? this.vocabLearning,
+      vocabReviewing: vocabReviewing ?? this.vocabReviewing,
+      vocabMastered: vocabMastered ?? this.vocabMastered,
+      radiusKeycap: radiusKeycap ?? this.radiusKeycap,
+      radiusBadge: radiusBadge ?? this.radiusBadge,
+      radiusSegmentThumb: radiusSegmentThumb ?? this.radiusSegmentThumb,
+      radiusControl: radiusControl ?? this.radiusControl,
+      radiusTile: radiusTile ?? this.radiusTile,
+      radiusCard: radiusCard ?? this.radiusCard,
+      radiusCardLarge: radiusCardLarge ?? this.radiusCardLarge,
+      radiusDialog: radiusDialog ?? this.radiusDialog,
+      radiusSheet: radiusSheet ?? this.radiusSheet,
+      touchTargetMin: touchTargetMin ?? this.touchTargetMin,
+      iconButtonSize: iconButtonSize ?? this.iconButtonSize,
+      iconButtonSizePhone: iconButtonSizePhone ?? this.iconButtonSizePhone,
+      segmentHeight: segmentHeight ?? this.segmentHeight,
+      chipHeight: chipHeight ?? this.chipHeight,
+      takeChipHeight: takeChipHeight ?? this.takeChipHeight,
+      playButtonSize: playButtonSize ?? this.playButtonSize,
+      playButtonSizePhone: playButtonSizePhone ?? this.playButtonSizePhone,
+      recordButtonSize: recordButtonSize ?? this.recordButtonSize,
+      recordButtonSizePhone:
+          recordButtonSizePhone ?? this.recordButtonSizePhone,
+      originalPillWidth: originalPillWidth ?? this.originalPillWidth,
+      originalPillHeight: originalPillHeight ?? this.originalPillHeight,
+      originalButtonPhoneSize:
+          originalButtonPhoneSize ?? this.originalButtonPhoneSize,
+      tabBarHeight: tabBarHeight ?? this.tabBarHeight,
+      tabBarSafeInset: tabBarSafeInset ?? this.tabBarSafeInset,
+      playerTopBarHeight: playerTopBarHeight ?? this.playerTopBarHeight,
+      subpageHeaderHeight: subpageHeaderHeight ?? this.subpageHeaderHeight,
+      rulerHitHeight: rulerHitHeight ?? this.rulerHitHeight,
+      marginWidth: marginWidth ?? this.marginWidth,
+      transcriptMaxListen: transcriptMaxListen ?? this.transcriptMaxListen,
+      transcriptMaxEcho: transcriptMaxEcho ?? this.transcriptMaxEcho,
+      videoColumnMax: videoColumnMax ?? this.videoColumnMax,
+      videoColumnShare: videoColumnShare ?? this.videoColumnShare,
+      pageMaxBrowse: pageMaxBrowse ?? this.pageMaxBrowse,
+      pageMaxCraft: pageMaxCraft ?? this.pageMaxCraft,
+      pageMaxHub: pageMaxHub ?? this.pageMaxHub,
+      pageMaxForm: pageMaxForm ?? this.pageMaxForm,
+      gutter: gutter ?? this.gutter,
+      gutterPhone: gutterPhone ?? this.gutterPhone,
+      echoLensOpacity: echoLensOpacity ?? this.echoLensOpacity,
+      referencePitchOpacity:
+          referencePitchOpacity ?? this.referencePitchOpacity,
+      strokeReferencePitch: strokeReferencePitch ?? this.strokeReferencePitch,
+      strokeYourPitch: strokeYourPitch ?? this.strokeYourPitch,
+      strokeLoopBracket: strokeLoopBracket ?? this.strokeLoopBracket,
+      strokeRulerTrack: strokeRulerTrack ?? this.strokeRulerTrack,
+      shadowBrandButton: shadowBrandButton ?? this.shadowBrandButton,
+      shadowRecordButton: shadowRecordButton ?? this.shadowRecordButton,
     );
   }
 
@@ -585,6 +1058,9 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       b.inMilliseconds.toDouble(),
       t,
     )!.roundToDouble();
+
+    List<double> lerpDoubles(List<double> a, List<double> b) =>
+        List.generate(a.length, (i) => lerpDouble(a[i], b[i], t)!);
 
     return EnjoyThemeTokens(
       space4: lerpDouble(space4, other.space4, t)!,
@@ -622,6 +1098,11 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
         other.breakpointTranscriptSideBySide,
         t,
       )!,
+      breakpointMarginDrawer: lerpDouble(
+        breakpointMarginDrawer,
+        other.breakpointMarginDrawer,
+        t,
+      )!,
       motionFast: Duration(
         milliseconds: ms(motionFast, other.motionFast).round(),
       ),
@@ -636,6 +1117,12 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       ),
       motionMedium: Duration(
         milliseconds: ms(motionMedium, other.motionMedium).round(),
+      ),
+      motionLens: Duration(
+        milliseconds: ms(motionLens, other.motionLens).round(),
+      ),
+      motionMargin: Duration(
+        milliseconds: ms(motionMargin, other.motionMargin).round(),
       ),
       echoActive: Color.lerp(echoActive, other.echoActive, t)!,
       blurActive: Color.lerp(blurActive, other.blurActive, t)!,
@@ -725,84 +1212,221 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       shadowCard: BoxShadow.lerpList(shadowCard, other.shadowCard, t)!,
       shadowFloat: BoxShadow.lerpList(shadowFloat, other.shadowFloat, t)!,
       shadowPopover: BoxShadow.lerpList(shadowPopover, other.shadowPopover, t)!,
+      ground: Color.lerp(ground, other.ground, t)!,
+      paper: Color.lerp(paper, other.paper, t)!,
+      raised: Color.lerp(raised, other.raised, t)!,
+      sunk: Color.lerp(sunk, other.sunk, t)!,
+      line: Color.lerp(line, other.line, t)!,
+      ink: Color.lerp(ink, other.ink, t)!,
+      ink2: Color.lerp(ink2, other.ink2, t)!,
+      ink3: Color.lerp(ink3, other.ink3, t)!,
+      original: Color.lerp(original, other.original, t)!,
+      originalInk: Color.lerp(originalInk, other.originalInk, t)!,
+      originalSoft: Color.lerp(originalSoft, other.originalSoft, t)!,
+      you: Color.lerp(you, other.you, t)!,
+      youInk: Color.lerp(youInk, other.youInk, t)!,
+      youSoft: Color.lerp(youSoft, other.youSoft, t)!,
+      youLine: Color.lerp(youLine, other.youLine, t)!,
+      onYou: Color.lerp(onYou, other.onYou, t)!,
+      brandInk: Color.lerp(brandInk, other.brandInk, t)!,
+      brandSoft: Color.lerp(brandSoft, other.brandSoft, t)!,
+      primary: Color.lerp(primary, other.primary, t)!,
+      onPrimary: Color.lerp(onPrimary, other.onPrimary, t)!,
+      danger: Color.lerp(danger, other.danger, t)!,
+      shape: Color.lerp(shape, other.shape, t)!,
+      tick: Color.lerp(tick, other.tick, t)!,
+      scrim: Color.lerp(scrim, other.scrim, t)!,
+      video: Color.lerp(video, other.video, t)!,
+      vocabNew: Color.lerp(vocabNew, other.vocabNew, t)!,
+      vocabLearning: Color.lerp(vocabLearning, other.vocabLearning, t)!,
+      vocabReviewing: Color.lerp(vocabReviewing, other.vocabReviewing, t)!,
+      vocabMastered: Color.lerp(vocabMastered, other.vocabMastered, t)!,
+      radiusKeycap: lerpDouble(radiusKeycap, other.radiusKeycap, t)!,
+      radiusBadge: lerpDouble(radiusBadge, other.radiusBadge, t)!,
+      radiusSegmentThumb: lerpDouble(
+        radiusSegmentThumb,
+        other.radiusSegmentThumb,
+        t,
+      )!,
+      radiusControl: lerpDouble(radiusControl, other.radiusControl, t)!,
+      radiusTile: lerpDouble(radiusTile, other.radiusTile, t)!,
+      radiusCard: lerpDouble(radiusCard, other.radiusCard, t)!,
+      radiusCardLarge: lerpDouble(radiusCardLarge, other.radiusCardLarge, t)!,
+      radiusDialog: lerpDouble(radiusDialog, other.radiusDialog, t)!,
+      radiusSheet: lerpDouble(radiusSheet, other.radiusSheet, t)!,
+      touchTargetMin: lerpDouble(touchTargetMin, other.touchTargetMin, t)!,
+      iconButtonSize: lerpDouble(iconButtonSize, other.iconButtonSize, t)!,
+      iconButtonSizePhone: lerpDouble(
+        iconButtonSizePhone,
+        other.iconButtonSizePhone,
+        t,
+      )!,
+      segmentHeight: lerpDouble(segmentHeight, other.segmentHeight, t)!,
+      chipHeight: lerpDouble(chipHeight, other.chipHeight, t)!,
+      takeChipHeight: lerpDouble(takeChipHeight, other.takeChipHeight, t)!,
+      playButtonSize: lerpDouble(playButtonSize, other.playButtonSize, t)!,
+      playButtonSizePhone: lerpDouble(
+        playButtonSizePhone,
+        other.playButtonSizePhone,
+        t,
+      )!,
+      recordButtonSize: lerpDouble(
+        recordButtonSize,
+        other.recordButtonSize,
+        t,
+      )!,
+      recordButtonSizePhone: lerpDouble(
+        recordButtonSizePhone,
+        other.recordButtonSizePhone,
+        t,
+      )!,
+      originalPillWidth: lerpDouble(
+        originalPillWidth,
+        other.originalPillWidth,
+        t,
+      )!,
+      originalPillHeight: lerpDouble(
+        originalPillHeight,
+        other.originalPillHeight,
+        t,
+      )!,
+      originalButtonPhoneSize: lerpDouble(
+        originalButtonPhoneSize,
+        other.originalButtonPhoneSize,
+        t,
+      )!,
+      tabBarHeight: lerpDouble(tabBarHeight, other.tabBarHeight, t)!,
+      tabBarSafeInset: lerpDouble(tabBarSafeInset, other.tabBarSafeInset, t)!,
+      playerTopBarHeight: lerpDouble(
+        playerTopBarHeight,
+        other.playerTopBarHeight,
+        t,
+      )!,
+      subpageHeaderHeight: lerpDouble(
+        subpageHeaderHeight,
+        other.subpageHeaderHeight,
+        t,
+      )!,
+      rulerHitHeight: lerpDouble(rulerHitHeight, other.rulerHitHeight, t)!,
+      marginWidth: lerpDouble(marginWidth, other.marginWidth, t)!,
+      transcriptMaxListen: lerpDouble(
+        transcriptMaxListen,
+        other.transcriptMaxListen,
+        t,
+      )!,
+      transcriptMaxEcho: lerpDouble(
+        transcriptMaxEcho,
+        other.transcriptMaxEcho,
+        t,
+      )!,
+      videoColumnMax: lerpDouble(videoColumnMax, other.videoColumnMax, t)!,
+      videoColumnShare: lerpDouble(
+        videoColumnShare,
+        other.videoColumnShare,
+        t,
+      )!,
+      pageMaxBrowse: lerpDouble(pageMaxBrowse, other.pageMaxBrowse, t)!,
+      pageMaxCraft: lerpDouble(pageMaxCraft, other.pageMaxCraft, t)!,
+      pageMaxHub: lerpDouble(pageMaxHub, other.pageMaxHub, t)!,
+      pageMaxForm: lerpDouble(pageMaxForm, other.pageMaxForm, t)!,
+      gutter: lerpDouble(gutter, other.gutter, t)!,
+      gutterPhone: lerpDouble(gutterPhone, other.gutterPhone, t)!,
+      echoLensOpacity: lerpDoubles(echoLensOpacity, other.echoLensOpacity),
+      referencePitchOpacity: lerpDouble(
+        referencePitchOpacity,
+        other.referencePitchOpacity,
+        t,
+      )!,
+      strokeReferencePitch: lerpDouble(
+        strokeReferencePitch,
+        other.strokeReferencePitch,
+        t,
+      )!,
+      strokeYourPitch: lerpDouble(strokeYourPitch, other.strokeYourPitch, t)!,
+      strokeLoopBracket: lerpDouble(
+        strokeLoopBracket,
+        other.strokeLoopBracket,
+        t,
+      )!,
+      strokeRulerTrack: lerpDouble(
+        strokeRulerTrack,
+        other.strokeRulerTrack,
+        t,
+      )!,
+      shadowBrandButton: BoxShadow.lerpList(
+        shadowBrandButton,
+        other.shadowBrandButton,
+        t,
+      )!,
+      shadowRecordButton: BoxShadow.lerpList(
+        shadowRecordButton,
+        other.shadowRecordButton,
+        t,
+      )!,
     );
   }
 }
 
-List<BoxShadow> _shadowCard(bool light) => light
+List<BoxShadow> _shadowLift(bool light) => light
     ? const [
         BoxShadow(
-          color: Color(0x0A16161D),
+          color: Color.fromRGBO(18, 20, 26, 0.08),
           blurRadius: 2,
           offset: Offset(0, 1),
         ),
-        BoxShadow(
-          color: Color(0x0F16161D),
-          blurRadius: 16,
-          spreadRadius: -4,
-          offset: Offset(0, 6),
-        ),
+        BoxShadow(color: Color.fromRGBO(18, 20, 26, 0.05), spreadRadius: 1),
       ]
     : const [
         BoxShadow(
-          color: Color(0x40000000),
+          color: Color.fromRGBO(0, 0, 0, 0.5),
           blurRadius: 2,
           offset: Offset(0, 1),
         ),
+        BoxShadow(color: Color.fromRGBO(255, 255, 255, 0.06), spreadRadius: 1),
       ];
 
 List<BoxShadow> _shadowFloat(bool light) => light
     ? const [
         BoxShadow(
-          color: Color(0x0D16161D),
-          blurRadius: 3,
+          color: Color.fromRGBO(18, 20, 26, 0.05),
+          blurRadius: 2,
           offset: Offset(0, 1),
         ),
         BoxShadow(
-          color: Color(0x1F16161D),
-          blurRadius: 32,
-          spreadRadius: -8,
-          offset: Offset(0, 12),
+          color: Color.fromRGBO(18, 20, 26, 0.12),
+          blurRadius: 44,
+          offset: Offset(0, 14),
         ),
       ]
     : const [
         BoxShadow(
-          color: Color(0x66000000),
-          blurRadius: 3,
+          color: Color.fromRGBO(0, 0, 0, 0.4),
+          blurRadius: 2,
           offset: Offset(0, 1),
         ),
         BoxShadow(
-          color: Color(0x80000000),
-          blurRadius: 40,
-          spreadRadius: -6,
-          offset: Offset(0, 16),
+          color: Color.fromRGBO(0, 0, 0, 0.55),
+          blurRadius: 52,
+          offset: Offset(0, 18),
         ),
       ];
 
-List<BoxShadow> _shadowPopover(bool light) => light
+List<BoxShadow> _shadowBrandButton(bool light) => light
     ? const [
         BoxShadow(
-          color: Color(0x1416161D),
-          blurRadius: 1,
-          offset: Offset(0, 0),
-        ),
-        BoxShadow(
-          color: Color(0x2416161D),
-          blurRadius: 48,
-          spreadRadius: -12,
-          offset: Offset(0, 20),
+          color: Color.fromRGBO(79, 70, 229, 0.26),
+          blurRadius: 18,
+          offset: Offset(0, 6),
         ),
       ]
-    : const [
+    : const [];
+
+List<BoxShadow> _shadowRecordButton(bool light) => light
+    ? const [
         BoxShadow(
-          color: Color(0x80000000),
-          blurRadius: 1,
-          offset: Offset(0, 0),
+          color: Color.fromRGBO(124, 58, 237, 0.32),
+          blurRadius: 18,
+          offset: Offset(0, 6),
         ),
-        BoxShadow(
-          color: Color(0x99000000),
-          blurRadius: 56,
-          spreadRadius: -8,
-          offset: Offset(0, 24),
-        ),
-      ];
+      ]
+    : const [];

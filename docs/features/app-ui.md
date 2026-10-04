@@ -88,19 +88,30 @@ Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-sc
 
 ## Design token reference (`EnjoyThemeTokens`)
 
+Duet tokens ([ADR-0091](../decisions/0091-duet-design-language.md)) come from [`docs/design/duet/tokens.json`](../../design/duet/tokens.json); `test/core/theme/duet_tokens_test.dart` pins every color, radius, size, breakpoint, motion, opacity, and stroke value to that file in light and dark. Aurora-named fields (`canvas`, `card`, `popover`, `fill`, `hairline`, `textFaint`, …) alias the Duet values until the rename pass.
+
 ```
-Spacing:   4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48
-Radii:     6 / 8 / 12 / 16 / 22 / 30 / pill   (radiusXs … radius2xl, superellipse)
-Controls:  32 / 40 / 48                        (controlHeightSm / controlHeight / controlHeightLg)
-Surfaces:  canvas / card / popover / fill / hairline / textFaint / topHighlight
-Aurora:    auroraStart #4797F5 → auroraEnd #A855F7 (t.aurora gradient)
-Shadows:   shadowCard / shadowFloat / shadowPopover
-Motion:    160 fast / 220 medium / 280 standard / 260 enter / 160 exit; ease + emphasized curves
-Shell:     sidebar 236 · brand row 52 · shellInset 8 · panelRadius 14 · bottom nav 64 (58 capsule)
-Widths:    content 720 · form 680 · hub 840 · modal 400 / 560
-Gutters:   pageGutter 24 · pageGutterCompact 16 (< 600)
-Breakpoints: compact 600 · rail 900 · transcript side-by-side 720
-Focus ring: 2px iris ink
+Surfaces:   ground / paper / raised / sunk / line         (sidebar+pages / cards / menus / control fill / separators)
+Inks:       ink / ink2 / ink3 · primary + onPrimary (ink fill) · danger · shape · tick · scrim · video
+Voices:     original · originalInk · originalSoft          (blue — playback, spoken word, reference pitch, Listen)
+            you · youInk · youSoft · youLine · onYou       (violet — Echo loop, Record, takes, your pitch)
+            brandInk · brandSoft                           (readable brand-gradient end)
+Gradients:  brand #2563EB → #7C3AED (buttons, Pro) · logo #4797F5 → #A855F7 (mark, rings, covers) — `t.brand` / `t.logo`
+Vocabulary: vocabNew / vocabLearning / vocabReviewing / vocabMastered
+Spacing:    4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48
+Radii:      keycap 5 · badge 7 · segment thumb 9 · control / segment track / input 12 · tile 14
+            card 20 · cardLarge / dialog 24 · sheet 26 · pill (legacy radiusXs 6 … radius2xl 30)
+Controls:   32 / 40 / 50                        (controlHeightSm / controlHeight / controlHeightLg)
+Sizes:      touch 44 · icon button 40 (44 phone) · segment 38 · chip 34 · take chip 42
+            play 60 (68 phone) · record 62 (76 phone) · Original pill 150 × 52 (56 phone)
+Shell:      sidebar 244 · brand row 52 · tab bar 84 + 26 safe inset · player top bar 60 · subpage header 64
+Player:     ruler hit 34 · margin 380 · Listen column 780 · Echo column 880 · video column min(520 px, 46 %)
+Pages:      browse 1180 · craft 1080 · hub 840 · form 680 · gutter 40 (16 phone)
+Breakpoints: compact 600 · rail 900 · margin drawer 1100 · transcript side-by-side 720
+Motion:     160 fast / 220 margin / 280 lens · echo lens opacity 1 / .65 / .35 / .2 · reference pitch band .35
+Strokes:    reference pitch 9 · your pitch 3 · loop bracket 2 · ruler track 4 · focus ring 2
+Shadows:    lift (cards) · float (chrome, popovers) · brandButton · recordButton
+Legacy:     `auroraStart`/`auroraEnd`/`aurora` = logo stops · `shadowCard`=lift · `shadowFloat`=`shadowPopover`=float
 ```
 
 ## Widgets reference

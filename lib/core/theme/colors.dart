@@ -94,6 +94,71 @@ abstract final class AppColors {
   static const gradientStartDark = Color(0xFF111115);
   static const gradientEndDark = Color(0xFF0E0E12);
 
+  static const groundLight = Color(0xFFF5F6F8);
+  static const paperLight = Color(0xFFFFFFFF);
+  static const raisedLight = Color(0xFFFFFFFF);
+  static const sunkLight = Color(0xFFEDEFF2);
+  static const lineLight = Color(0xFFE3E6EB);
+  static const inkLight = Color(0xFF12141A);
+  static const ink2Light = Color(0xFF3D4350);
+  static const ink3Light = Color(0xFF5E6573);
+  static const originalLight = Color(0xFF4797F5);
+  static const originalInkLight = Color(0xFF1D64C8);
+  static const originalSoftLight = Color(0xFFE9F2FE);
+  static const youLight = Color(0xFF8B2FE0);
+  static const youInkLight = Color(0xFF7E22CE);
+  static const youSoftLight = Color(0xFFF4ECFE);
+  static const youLineLight = Color(0xFFD8B4FE);
+  static const onYouLight = Color(0xFFFFFFFF);
+  static const brandInkLight = Color(0xFF4F46E5);
+  static const brandSoftLight = Color(0xFFEEEBFE);
+  static const primaryInkLight = Color(0xFF12141A);
+  static const onPrimaryInkLight = Color(0xFFFFFFFF);
+  static const dangerLight = Color(0xFFB42318);
+  static const shapeLight = Color(0xFFDCE0E6);
+  static const Color tickLight = Color.fromRGBO(18, 20, 26, 0.26);
+  static const Color scrimLight = Color.fromRGBO(18, 20, 26, 0.32);
+  static const videoLight = Color(0xFF0B0D11);
+  static const vocabNewLight = Color(0xFFC7D2FE);
+  static const vocabLearningLight = Color(0xFFA5B4FC);
+  static const vocabReviewingLight = Color(0xFF6366F1);
+  static const vocabMasteredLight = Color(0xFF3730A3);
+
+  static const groundDark = Color(0xFF0E1014);
+  static const paperDark = Color(0xFF16191F);
+  static const raisedDark = Color(0xFF1F232B);
+  static const sunkDark = Color(0xFF23272F);
+  static const lineDark = Color(0xFF2A2F38);
+  static const inkDark = Color(0xFFEEF0F4);
+  static const ink2Dark = Color(0xFFB8BEC9);
+  static const ink3Dark = Color(0xFF8A91A0);
+  static const originalDark = Color(0xFF6AAEFF);
+  static const originalInkDark = Color(0xFF7DB8FF);
+  static const Color originalSoftDark = Color.fromRGBO(90, 162, 255, 0.15);
+  static const youDark = Color(0xFF8F55F0);
+  static const youInkDark = Color(0xFFC7A0FF);
+  static const Color youSoftDark = Color.fromRGBO(143, 85, 240, 0.16);
+  static const Color youLineDark = Color.fromRGBO(167, 120, 250, 0.5);
+  static const onYouDark = Color(0xFFFFFFFF);
+  static const brandInkDark = Color(0xFFB4AFFF);
+  static const Color brandSoftDark = Color.fromRGBO(124, 58, 237, 0.2);
+  static const primaryInkDark = Color(0xFFEEF0F4);
+  static const onPrimaryInkDark = Color(0xFF0E1014);
+  static const dangerDark = Color(0xFFFF8A80);
+  static const shapeDark = Color(0xFF2C313B);
+  static const Color tickDark = Color.fromRGBO(238, 240, 244, 0.28);
+  static const Color scrimDark = Color.fromRGBO(0, 0, 0, 0.55);
+  static const videoDark = Color(0xFF000000);
+  static const vocabNewDark = Color(0xFF312E81);
+  static const vocabLearningDark = Color(0xFF4338CA);
+  static const vocabReviewingDark = Color(0xFF818CF8);
+  static const vocabMasteredDark = Color(0xFFC7D2FE);
+
+  static const brandStart = Color(0xFF2563EB);
+  static const brandEnd = Color(0xFF7C3AED);
+  static const logoStart = Color(0xFF4797F5);
+  static const logoEnd = Color(0xFFA855F7);
+
   static ColorScheme colorScheme(Brightness brightness) {
     final light = brightness == Brightness.light;
     return ColorScheme(

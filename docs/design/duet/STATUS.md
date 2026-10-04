@@ -11,12 +11,12 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | Phase | Tasks | Done |
 |---|---|---|
 | 0 · Ready | 2 | 2 |
-| 1 · Foundations | 8 | 0 |
+| 1 · Foundations | 8 | 1 |
 | 2 · Shell | 3 | 0 |
 | 3 · Player | 13 | 0 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **1** |
+| **Total** | **43** | **2** |
 
 ## Decisions
 
@@ -41,7 +41,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| D1.1 | Duet tokens + `tokens.json` parity test | `System` | — | todo | | | |
+| D1.1 | Duet tokens + `tokens.json` parity test | `System` | — | done | | | Aurora fields alias the Duet values; `duet_tokens_test.dart` pins every tokens.json value (light + dark). Also added `radiusSegmentThumb` 9 beyond the plan's radius list for full parity |
 | D1.2 | Color scheme + component themes | `System` | D1.1 | todo | | | |
 | D1.3 | Typography (Literata / Geist / Mono / IPA) | `System` | D1.1 | todo | | | |
 | D1.4 | Buttons | `System`, `SignIn`, `DLocate`, `LibraryDelete` | D1.2, D1.3 | todo | | | |
