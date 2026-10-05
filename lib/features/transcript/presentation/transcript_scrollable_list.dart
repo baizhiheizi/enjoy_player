@@ -589,6 +589,12 @@ class _TranscriptScrollableListState
                 }
 
                 final selectable = isActive;
+                final lensDistance = !echo.active || inEcho
+                    ? 0
+                    : (lineIndex < echo.startLineIndex
+                              ? echo.startLineIndex - lineIndex
+                              : lineIndex - echo.endLineIndex)
+                          .clamp(1, 3);
                 Widget tile = TranscriptLineTile(
                   line: line,
                   lineIndex: lineIndex,
@@ -600,6 +606,7 @@ class _TranscriptScrollableListState
                   selectable: selectable,
                   dimWhenInactive: activeForUi >= 0,
                   recordingCount: lineRecordingCounts?[lineIndex],
+                  lensDistance: lensDistance,
                   onLookupRequested: selectable
                       ? (t) => openTranscriptLookup(
                           ref: ref,
