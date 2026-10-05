@@ -439,10 +439,8 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
               label: semanticsLabel,
               focusable: true,
               child: MouseRegion(
-                onEnter: (_) =>
-                    setValueNotifierOutsideMouseTracker(_hover, true),
-                onExit: (_) =>
-                    setValueNotifierOutsideMouseTracker(_hover, false),
+                onEnter: (_) => _setHoverSafe(true),
+                onExit: (_) => _setHoverSafe(false),
                 child: widget.groupedInEcho
                     ? ColoredBox(
                         color: bg ?? Colors.transparent,
@@ -491,8 +489,8 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             label: semanticsLabel,
             button: true,
             child: MouseRegion(
-              onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
-              onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
+              onEnter: (_) => _setHoverSafe(true),
+              onExit: (_) => _setHoverSafe(false),
               child: EnjoyPressable(
                 shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
                 onTap: () => _handleTap(context),
@@ -511,6 +509,13 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           ),
         );
       },
+    );
+  }
+
+  void _setHoverSafe(bool value) {
+    runOutsideMouseTrackerIfMounted(
+      () => mounted,
+      () => setValueNotifierOutsideMouseTracker(_hover, value),
     );
   }
 

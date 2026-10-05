@@ -500,16 +500,16 @@ class _LoopRecordingProgress extends StatefulWidget {
 }
 
 class _LoopRecordingProgressState extends State<_LoopRecordingProgress>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _elapsedSec = AnimationController.unbounded(
-    vsync: this,
-  );
-  late final Ticker _ticker = createTicker(_onTick);
+    with TickerProviderStateMixin {
+  late final AnimationController _elapsedSec;
+  late final Ticker _ticker;
   final ValueNotifier<int> _elapsedTenths = ValueNotifier<int>(0);
 
   @override
   void initState() {
     super.initState();
+    _elapsedSec = AnimationController.unbounded(vsync: this);
+    _ticker = createTicker(_onTick);
     unawaited(_ticker.start());
   }
 
