@@ -10,7 +10,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
-import 'package:enjoy_player/core/theme/dynamic_color/dynamic_color_provider.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/glass_surface.dart';
@@ -249,15 +248,13 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
     final bufferingAsync = ref.watch(playerIsBufferingProvider);
     final isPlaying = playingAsync.value ?? false;
     final isBuffering = bufferingAsync.value ?? false;
-    final paletteAsync = ref.watch(currentArtworkPaletteProvider);
-    final dynamicAccent = paletteAsync.value?.accent;
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final playbackRate = ref.watch(
       playerPreferencesCtrlProvider.select((p) => p.playbackRate),
     );
-    final playAccent = dynamicAccent ?? cs.primary;
+    final playAccent = cs.primary;
     final narrowLayout =
         MediaQuery.sizeOf(context).width <= t.breakpointTranscriptSideBySide;
     final hideBottomMediaInfo = narrowLayout;

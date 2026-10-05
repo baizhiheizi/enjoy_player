@@ -189,6 +189,7 @@
   "nextLine": "下一句",
   "replayLine": "重播本句",
   "echoMode": "回声模式",
+  "playerListenModeTitle": "聆听",
   "exitEchoMode": "退出回声模式",
   "transcript": "字幕稿",
   "transcriptNowReading": "正在朗读",

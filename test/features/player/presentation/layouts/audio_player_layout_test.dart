@@ -1,7 +1,5 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/audio_player_layout.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/player_frosted_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,53 +33,31 @@ void main() {
     expect(constrainedBoxes, isNotEmpty);
   });
 
-  testWidgets('shows floating frosted collapse control without an AppBar', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_wrap(transcript: const Text('body')));
-    await tester.pump();
-
-    expect(find.byType(AppBar), findsNothing);
-    expect(find.byType(PlayerFrostedBackButton), findsOneWidget);
-    expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
-    expect(find.byType(SafeArea), findsOneWidget);
-    expect(
-      find.byWidgetPredicate(
-        (w) => w is SizedBox && w.height == kToolbarHeight,
-      ),
-      findsNothing,
-    );
-  });
-
-  testWidgets(
-    'desktop adds a roomier top inset for optical balance',
-    variant: TargetPlatformVariant.only(TargetPlatform.linux),
-    (tester) async {
-      await tester.pumpWidget(_wrap(transcript: const Text('body')));
-      await tester.pump();
-
-      final t = EnjoyThemeTokens.build(
-        ThemeData(brightness: Brightness.light).colorScheme,
-      );
-      expect(
-        _transcriptPadding(tester, 'body').padding,
-        EdgeInsets.fromLTRB(t.space12, t.space32, t.space12, t.space16),
-      );
-    },
-  );
-
-  testWidgets('mobile keeps compact top inset under the status-bar area', (
-    tester,
-  ) async {
+  testWidgets('caps the column at the Listen transcript width', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_wrap(transcript: const Text('body')));
     await tester.pump();
 
     final t = EnjoyThemeTokens.build(
       ThemeData(brightness: Brightness.light).colorScheme,
     );
-    expect(
-      _transcriptPadding(tester, 'body').padding,
-      EdgeInsets.fromLTRB(t.space12, t.space16, t.space12, t.space16),
+    final constrained = tester.widget<ConstrainedBox>(
+      find
+          .ancestor(
+            of: find.text('body'),
+            matching: find.byType(ConstrainedBox),
+          )
+          .first,
     );
+    expect(constrained.constraints.maxWidth, t.transcriptMaxListen);
+  });
+
+  testWidgets('keeps a single top safe area and no AppBar', (tester) async {
+    await tester.pumpWidget(_wrap(transcript: const Text('body')));
+    await tester.pump();
+
+    expect(find.byType(AppBar), findsNothing);
+    expect(find.byType(SafeArea), findsOneWidget);
   });
 }

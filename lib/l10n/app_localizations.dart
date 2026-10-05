@@ -1047,6 +1047,12 @@ abstract class AppLocalizations {
   /// **'Echo mode'**
   String get echoMode;
 
+  /// Player top-bar segmented option for reading along (the non-echo mode).
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get playerListenModeTitle;
+
   /// No description provided for @exitEchoMode.
   ///
   /// In en, this message translates to:

@@ -520,6 +520,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get echoMode => '回声模式';
 
   @override
+  String get playerListenModeTitle => '聆听';
+
+  @override
   String get exitEchoMode => '退出回声模式';
 
   @override
@@ -4296,6 +4299,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get echoMode => '回声模式';
+
+  @override
+  String get playerListenModeTitle => '聆听';
 
   @override
   String get exitEchoMode => '退出回声模式';

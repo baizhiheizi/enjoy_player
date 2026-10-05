@@ -1,10 +1,9 @@
-/// Full-screen player: ambient artwork backdrop + video/audio chrome.
+/// Full-screen player: Duet top bar + video/audio chrome.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/theme/dynamic_color/dynamic_color_provider.dart';
 import 'package:enjoy_player/features/player/application/open_media_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
@@ -32,17 +31,11 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
   Widget build(BuildContext context) {
     final open = ref.watch(openMediaLaunchProvider(widget.launch));
     final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
-    final paletteAsync = ref.watch(currentArtworkPaletteProvider);
-    final accent = paletteAsync.value?.dominant;
     final cs = Theme.of(context).colorScheme;
     final mediaId = widget.mediaId;
 
     if (chrome != null && chrome.mediaId == mediaId) {
-      return ExpandedPlayerChromeBody(
-        mediaId: mediaId,
-        chrome: chrome,
-        accent: accent,
-      );
+      return ExpandedPlayerChromeBody(mediaId: mediaId, chrome: chrome);
     }
 
     if (open.hasError) {

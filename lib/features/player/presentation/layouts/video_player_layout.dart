@@ -14,7 +14,6 @@ import 'package:enjoy_player/features/player/application/player_engine_capabilit
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/player_collapse_control.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_open_in_browser_button.dart';
@@ -322,7 +321,6 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
               ),
             ),
           const _VideoPausedTitleOverlay(),
-          const PlayerCollapseControl(),
           if (isYoutube)
             const Positioned(
               bottom: 12,

@@ -1,17 +1,14 @@
-/// Audio-only expanded player: floating collapse control + transcript body.
+/// Audio-only expanded player: the centered Listen transcript column.
 ///
 /// Unlike video, there is no separate media stage — playback chrome lives in
-/// the global transport bar. Collapse is the same floating frosted control as
-/// the video stage's, layered over the transcript; cues scroll under its blur
-/// and there is no reserved toolbar slot (ADR-0085 supersedes ADR-0077).
+/// the top bar and the dock. The column caps at the Listen transcript width
+/// (ADR-0091 supersedes ADR-0085).
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/window/desktop_window.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/player_collapse_control.dart';
 
 class AudioPlayerLayout extends ConsumerWidget {
   const AudioPlayerLayout({required this.transcript, super.key});
@@ -26,35 +23,15 @@ class AudioPlayerLayout extends ConsumerWidget {
       bottom: false,
       left: false,
       right: false,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
-              child: Padding(
-                padding: isDesktop
-                    ? EdgeInsets.fromLTRB(
-                        t.space12,
-                        t.space32,
-                        t.space12,
-                        t.space16,
-                      )
-                    : EdgeInsets.fromLTRB(
-                        t.space12,
-                        t.space16,
-                        t.space12,
-                        t.space16,
-                      ),
-                child: transcript,
-              ),
-            ),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: t.transcriptMaxListen),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 24, 12, 16),
+            child: transcript,
           ),
-          PlayerCollapseControl(
-            inset: EdgeInsets.only(left: t.space8, top: t.space8),
-          ),
-        ],
+        ),
       ),
     );
   }

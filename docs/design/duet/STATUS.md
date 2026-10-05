@@ -13,10 +13,10 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
-| 3 · Player | 13 | 0 |
+| 3 · Player | 13 | 1 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **12** |
+| **Total** | **43** | **13** |
 
 ## Decisions
 
@@ -62,7 +62,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| D3.1 | Player frame + top bar (drop ambient tint, floating chrome) | `Main`, `DEcho`, `DVideo`, `DYoutubeDark`, `DCompact`, `Phone`, `PVideo` | Phase 1 | todo | | | |
+| D3.1 | Player frame + top bar (drop ambient tint, floating chrome) | `Main`, `DEcho`, `DVideo`, `DYoutubeDark`, `DCompact`, `Phone`, `PVideo` | Phase 1 | done | | | 60px paper top bar (collapse · title/meta · Listen/Echo segmented with E keycap · Share · Subtitles); PlayerAmbientBackdrop, dynamic_color/, floating collapse + frosted back deleted; YouTube chips stay on-stage pending the D3.13 pass; More button deferred — every existing action has a top-bar/dock slot |
 | D3.2 | Dock (Listen / Echo / Recording) | `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording` | D3.1 | todo | | | Gated by R1 |
 | D3.3 | Sentence ruler | `Main`, `DEcho`, `Phone`, `PEcho` | D3.2 | todo | | | |
 | D3.4 | Listen lens | `Main`, `DDark`, `Phone`, `PDark` | D3.1 | todo | | | |

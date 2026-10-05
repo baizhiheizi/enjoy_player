@@ -202,6 +202,8 @@
   "nextLine": "Next line",
   "replayLine": "Replay line",
   "echoMode": "Echo mode",
+  "playerListenModeTitle": "Listen",
+  "@playerListenModeTitle": {"description": "Player top-bar segmented option for reading along (the non-echo mode)."},
   "exitEchoMode": "Exit echo mode",
   "transcript": "Transcript",
   "transcriptNowReading": "Now reading",

@@ -539,6 +539,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get echoMode => 'Echo mode';
 
   @override
+  String get playerListenModeTitle => 'Listen';
+
+  @override
   String get exitEchoMode => 'Exit echo mode';
 
   @override
