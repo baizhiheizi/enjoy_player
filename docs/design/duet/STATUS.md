@@ -13,10 +13,10 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
-| 3 · Player | 13 | 12 |
+| 3 · Player | 13 | 13 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **24** |
+| **Total** | **43** | **25** |
 
 ## Decisions
 
@@ -74,7 +74,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D3.10 | Subtitles & display popover | `DSubtitles` | D3.1 | done | | | ≥ rail: 384px raised popover (PopupRoute, parks surface, fades 160ms) anchored under the Subtitles button; < rail keeps the sheet; switch on-track original lands with D1.2 theme |
 | D3.11 | Player states (empty, generating, locate, loading, errors) | `DEmpty`, `DGenerating`, `DLocate` | D3.1 | done | | | Empty state = TRANSCRIPT overline + Literata 38 + action rows (onboarding anchors kept); locate keeps the hash check with the ink Choose file; loading/errors already ride the D3.1 top bar |
 | D3.12 | Share poster | `Poster` | D3.6 | done | | | Quote + stats on Literata (italic quote, 600 figures); Playfair Display files + test entries deleted; dark-ground/logo-plane layout kept |
-| D3.13 | Player pass: dark, compact, video, phone | `DDark`, `DYoutubeDark`, `DCompact`, `DVideo`, `PVideo`, `PVideoEcho`, `PDark` | D3.1–D3.12 | todo | | | |
+| D3.13 | Player pass: dark, compact, video, phone | `DDark`, `DYoutubeDark`, `DCompact`, `DVideo`, `PVideo`, `PVideoEcho`, `PDark` | D3.1–D3.12 | done | | | Gallery compare clean at Main/DDark/DCompact (Listen lens + dock + ruler match the boards); docked margin reflow ≥1100 and Windows YouTube/WebView2 manual checks remain for D5.5 platform QA |
 
 ### Phase 4 · App screens
 
