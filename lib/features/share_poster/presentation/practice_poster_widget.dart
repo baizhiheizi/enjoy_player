@@ -173,10 +173,10 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
   final Color accent;
 
   static TextStyle _quoteMarkStyle(Color accent, {required double fontSize}) {
-    return GoogleFonts.playfairDisplay(
+    return GoogleFonts.literata(
       fontSize: fontSize,
       height: 1.0,
-      fontWeight: FontWeight.w700,
+      fontWeight: FontWeight.w600,
       color: accent.withValues(alpha: 0.52),
     );
   }
@@ -186,7 +186,7 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
     required double fontSize,
     FontWeight fontWeight = FontWeight.w600,
   }) {
-    return GoogleFonts.playfairDisplay(
+    return GoogleFonts.literata(
       fontSize: fontSize,
       height: 1.35,
       fontWeight: fontWeight,
@@ -455,9 +455,9 @@ class _StatTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: GoogleFonts.playfairDisplay(
+              style: GoogleFonts.literata(
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 height: 1.1,
                 color: Colors.white,
                 letterSpacing: 0.15,

@@ -16,8 +16,6 @@ const _bundledVariants = [
   'Literata-Regular',
   'Literata-Medium',
   'Literata-SemiBold',
-  'PlayfairDisplay-Bold',
-  'PlayfairDisplay-SemiBoldItalic',
   'NotoSans-Regular',
 ];
 
@@ -48,11 +46,6 @@ void main() {
       await runZonedGuarded(() async {
         buildAppTheme(Brightness.light);
         buildAppTheme(Brightness.dark);
-        GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700);
-        GoogleFonts.playfairDisplay(
-          fontWeight: FontWeight.w600,
-          fontStyle: FontStyle.italic,
-        );
         GoogleFonts.notoSans(fontWeight: FontWeight.w400);
         await Future<void>.delayed(const Duration(milliseconds: 500));
       }, (error, stackTrace) {});
