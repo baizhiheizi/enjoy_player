@@ -17,3 +17,16 @@
 ## Future
 
 - Multi-line echo regions with draggable selection UI.
+
+
+## Presentation — the Echo lens (Duet, ADR-0091)
+
+The loop block stands on the ground inside you-colored corner brackets
+with a `LOOP · LINE n · x.x S` overline label. Loop lines grow in place:
+Literata 500 at 40 desktop / 36 phone for a one-line loop, 34 for two,
+25 for three or more (minus 4 on phones) — `tokens.loopLine`'s
+`sizeMin`/`sizeMax` band. The Earlier / Later pills above and below the
+block drive the same `expandEchoBackward` / `shrinkEchoForward`
+controller calls as before. The old merged card's side rail, surface
+shell, and in-card dividers are gone; lines sit flat inside the
+brackets.

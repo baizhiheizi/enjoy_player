@@ -1,4 +1,3 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/settings/application/karaoke_highlight_settings.dart';

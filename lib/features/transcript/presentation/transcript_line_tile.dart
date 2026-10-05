@@ -42,6 +42,7 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
     this.groupedInEcho = false,
     this.selectable = false,
     this.recordingCount,
+    this.loopFontSize,
     this.onLookupRequested,
     this.onRetranslateSecondary,
     this.dimWhenInactive = false,
@@ -65,6 +66,10 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
 
   /// Overlapping shadow-reading take count when known; `null` while loading.
   final int? recordingCount;
+
+  /// Literata size for cues inside the Echo loop (the loop grows in place).
+  /// Null outside the loop.
+  final double? loopFontSize;
 
   /// Invoked when the user chooses **Look up** in the text selection toolbar
   /// (1–100 characters after trim).
@@ -152,10 +157,18 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     final density = transcriptDensityOf(context);
     final l10n = AppLocalizations.of(context);
     final phone = isMobilePlatform;
+    final loopActive = widget.groupedInEcho && widget.loopFontSize != null;
     final baseBody = typography.bodyStyle.copyWith(
-      height: phone ? 1.4 : 1.5,
-      fontSize: widget.isActive ? (phone ? 23.0 : 26.0) : (phone ? 18.0 : 20.0),
-      fontWeight: widget.isActive ? FontWeight.w500 : FontWeight.w400,
+      height: loopActive ? 1.28 : (phone ? 1.4 : 1.5),
+      fontSize: loopActive
+          ? widget.loopFontSize
+          : widget.isActive
+          ? (phone ? 23.0 : 26.0)
+          : (phone ? 18.0 : 20.0),
+      fontWeight: loopActive || widget.isActive
+          ? FontWeight.w500
+          : FontWeight.w400,
+      letterSpacing: loopActive ? -0.24 : null,
     );
     final secondaryTypographyStyle = typography.secondaryStyle.copyWith(
       height: 1.55,

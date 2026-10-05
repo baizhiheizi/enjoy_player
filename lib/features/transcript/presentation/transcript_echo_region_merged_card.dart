@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
@@ -47,7 +48,6 @@ class EchoRegionMergedCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
     final density = transcriptDensityOf(context);
     final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
@@ -72,24 +72,19 @@ class EchoRegionMergedCard extends ConsumerWidget {
         autoTranslateMode.aiTranscriptId != null &&
         secondaryId == autoTranslateMode.aiTranscriptId;
 
-    final shell = scheme.surfaceContainerLow;
-
     final showShadow = echo.startTimeSeconds >= 0 && echo.endTimeSeconds >= 0;
+    final loopLines = echo.endLineIndex - echo.startLineIndex + 1;
+    final phone = isMobilePlatform;
+    final loopFontSize =
+        switch (loopLines) {
+          1 => 40.0,
+          2 => 34.0,
+          _ => 25.0,
+        } -
+        (phone ? 4.0 : 0.0);
 
     final lineWidgets = <Widget>[];
     for (var i = echo.startLineIndex; i <= echo.endLineIndex; i++) {
-      if (i > echo.startLineIndex) {
-        lineWidgets.add(
-          Divider(
-            height: 1,
-            thickness: 1,
-            indent: tok.space12,
-            endIndent: tok.space12,
-            color: scheme.outlineVariant.withValues(alpha: 0.2),
-          ),
-        );
-      }
-
       final line = lines[i];
       final isActive = i == activeCueIndex;
       final resolved = resolveAutoTranslateTextForDisplay(
@@ -144,6 +139,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
         groupedInEcho: true,
         selectable: true,
         recordingCount: lineRecordingCounts?[i],
+        loopFontSize: loopFontSize,
         onLookupRequested: (t) => openTranscriptLookup(
           ref: ref,
           context: context,
@@ -162,6 +158,13 @@ class EchoRegionMergedCard extends ConsumerWidget {
 
       lineWidgets.add(tile);
     }
+
+    final loopSeconds = (echo.endTimeSeconds - echo.startTimeSeconds).clamp(
+      0,
+      3600,
+    );
+    final loopLabel =
+        'LOOP · LINE ${echo.startLineIndex + 1} · ${loopSeconds.toStringAsFixed(1)} S';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -182,46 +185,43 @@ class EchoRegionMergedCard extends ConsumerWidget {
           ),
         ),
         SizedBox(height: density.echoCardGap),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(tok.radiusMd),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  width: 8,
-                  decoration: BoxDecoration(color: tok.echoActive),
-                ),
-                Expanded(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: shell,
-                      border: Border(
-                        top: BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.18),
-                        ),
-                        right: BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.18),
-                        ),
-                        bottom: BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.18),
-                        ),
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: lineWidgets,
-                    ),
+        Stack(
+          children: [
+            // You loop corner brackets over the loop block.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: tok.you, width: 2),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      loopLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.08,
+                        color: tok.youInk,
+                      ),
+                    ),
+                  ),
+                  for (var i = echo.startLineIndex; i <= echo.endLineIndex; i++)
+                    lineWidgets[i - echo.startLineIndex],
+                ],
+              ),
+            ),
+          ],
         ),
         SizedBox(height: density.echoCardGap),
         EchoRegionControlsBar(
