@@ -74,3 +74,10 @@ Video extraction runs through FFmpegKit on mobile/macOS and an isolate-backed
 `Process.run` on Windows. Temporary WAV files are deleted after bytes have been
 read. Short-clip budget remains ~60 seconds for a five-minute desktop file.
 Long-form jobs are asynchronous; upload/poll phases keep the UI interactive.
+
+## Empty-state presentation (Duet, ADR-0091)
+
+The no-transcript state renders left-aligned: a `TRANSCRIPT` overline,
+a Literata 38 title, copy in ink2, and the AI / extract / import actions
+as paper option rows with 44px icon tiles. The onboarding anchors and
+busy states are unchanged.

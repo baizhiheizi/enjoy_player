@@ -555,6 +555,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noTranscript => '暂无字幕稿';
 
   @override
+  String get transcriptEmptyOverline => '字幕';
+
+  @override
+  String get transcriptEmptyGenerateDesc => '转写此条目中的语音。将消耗点数。';
+
+  @override
+  String get transcriptEmptyExtractDesc => '使用文件内嵌的字幕轨道（如有）。';
+
+  @override
+  String get transcriptEmptyImportDesc => '导入 .srt 或 .vtt 文件并选择语言。';
+
+  @override
   String get importSrtOrVtt => '导入 .srt 或 .vtt 文件。';
 
   @override
@@ -4348,6 +4360,18 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get noTranscript => '暂无字幕稿';
+
+  @override
+  String get transcriptEmptyOverline => '字幕';
+
+  @override
+  String get transcriptEmptyGenerateDesc => '转写此条目中的语音。将消耗点数。';
+
+  @override
+  String get transcriptEmptyExtractDesc => '使用文件内嵌的字幕轨道（如有）。';
+
+  @override
+  String get transcriptEmptyImportDesc => '导入 .srt 或 .vtt 文件并选择语言。';
 
   @override
   String get importSrtOrVtt => '导入 .srt 或 .vtt 文件';

@@ -575,6 +575,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noTranscript => 'No transcript yet';
 
   @override
+  String get transcriptEmptyOverline => 'Transcript';
+
+  @override
+  String get transcriptEmptyGenerateDesc =>
+      'Transcribe the speech in this item. Uses credits.';
+
+  @override
+  String get transcriptEmptyExtractDesc =>
+      'Use the subtitle tracks inside the file, if it has any.';
+
+  @override
+  String get transcriptEmptyImportDesc =>
+      'Import an .srt or .vtt file and choose its language.';
+
+  @override
   String get importSrtOrVtt => 'Import an .srt or .vtt file.';
 
   @override

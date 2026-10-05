@@ -13,10 +13,10 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
-| 3 · Player | 13 | 8 |
+| 3 · Player | 13 | 9 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **20** |
+| **Total** | **43** | **21** |
 
 ## Decisions
 
@@ -72,7 +72,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D3.8 | Assessment in the margin + feedback on words | `DScored`, `PScored` | D3.6, D3.7 | todo | | | |
 | D3.9 | Hide text as word shapes | `DHide`, `PHide` | D3.4 | done | | | TranscriptBlurText renders rounded shape bars from cached word-box widths (no ImageFilter); tap-to-peek on selectable cues preserved; dock Hide pill already ink-filled |
 | D3.10 | Subtitles & display popover | `DSubtitles` | D3.1 | done | | | ≥ rail: 384px raised popover (PopupRoute, parks surface, fades 160ms) anchored under the Subtitles button; < rail keeps the sheet; switch on-track original lands with D1.2 theme |
-| D3.11 | Player states (empty, generating, locate, loading, errors) | `DEmpty`, `DGenerating`, `DLocate` | D3.1 | todo | | | |
+| D3.11 | Player states (empty, generating, locate, loading, errors) | `DEmpty`, `DGenerating`, `DLocate` | D3.1 | done | | | Empty state = TRANSCRIPT overline + Literata 38 + action rows (onboarding anchors kept); locate keeps the hash check with the ink Choose file; loading/errors already ride the D3.1 top bar |
 | D3.12 | Share poster | `Poster` | D3.6 | todo | | | |
 | D3.13 | Player pass: dark, compact, video, phone | `DDark`, `DYoutubeDark`, `DCompact`, `DVideo`, `PVideo`, `PVideoEcho`, `PDark` | D3.1–D3.12 | todo | | | |
 

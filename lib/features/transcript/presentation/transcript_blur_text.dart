@@ -101,11 +101,12 @@ class TranscriptBlurText extends StatelessWidget {
           ),
       ],
     );
-    if (onShapesTap == null)
+    if (onShapesTap == null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 3),
         child: bars,
       );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: GestureDetector(

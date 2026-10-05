@@ -1113,6 +1113,30 @@ abstract class AppLocalizations {
   /// **'No transcript yet'**
   String get noTranscript;
 
+  /// Overline above the empty-transcript title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript'**
+  String get transcriptEmptyOverline;
+
+  /// Empty-state row description for the AI transcript action.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribe the speech in this item. Uses credits.'**
+  String get transcriptEmptyGenerateDesc;
+
+  /// Empty-state row description for the extract action.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the subtitle tracks inside the file, if it has any.'**
+  String get transcriptEmptyExtractDesc;
+
+  /// Empty-state row description for the import action.
+  ///
+  /// In en, this message translates to:
+  /// **'Import an .srt or .vtt file and choose its language.'**
+  String get transcriptEmptyImportDesc;
+
   /// No description provided for @importSrtOrVtt.
   ///
   /// In en, this message translates to:
