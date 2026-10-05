@@ -215,6 +215,25 @@ void main() {
     expect(find.text(l10n.assessmentScoreAction), findsOneWidget);
   });
 
+  testWidgets('chips sit on one horizontally scrollable line', (tester) async {
+    await pumpRow(
+      tester,
+      takes: [
+        _row(id: 't3', localPath: '/tmp/t3.wav'),
+        _row(id: 't2', localPath: '/tmp/t2.wav'),
+        _row(id: 't1', localPath: '/tmp/t1.wav'),
+      ],
+      selectedId: 't3',
+    );
+
+    final scrolls = tester.widgetList<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    expect(scrolls, isNotEmpty);
+    expect(scrolls.every((s) => s.scrollDirection == Axis.horizontal), isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('empty region shows the hint with the R keycap', (tester) async {
     final l10n = await pumpRow(tester, takes: const []);
 

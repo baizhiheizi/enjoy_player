@@ -161,15 +161,21 @@ class ShadowTakesRow extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Text(l10n.shadowTakesLabel.toUpperCase(), style: overlineStyle),
+        const SizedBox(width: 8),
         Expanded(
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(l10n.shadowTakesLabel.toUpperCase(), style: overlineStyle),
-              ...chips,
-            ],
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final (i, chip) in chips.indexed)
+                  Padding(
+                    padding: EdgeInsets.only(left: i == 0 ? 0 : 8),
+                    child: chip,
+                  ),
+              ],
+            ),
           ),
         ),
         pitchPill,
