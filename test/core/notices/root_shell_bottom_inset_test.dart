@@ -1,5 +1,4 @@
 import 'package:enjoy_player/core/notices/root_shell_bottom_inset.dart';
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,7 +39,6 @@ void main() {
       await tester.pumpWidget(host(bottomInset: 12));
       final text = tester.widget<Text>(find.byType(Text));
       final clearance = double.parse(text.data!);
-      final tokens = EnjoyThemeTokens.of(tester.element(find.byType(Text)));
       expect(clearance, EnjoyBottomNav.contentHeight + 12);
     });
 
@@ -48,7 +46,6 @@ void main() {
       await tester.pumpWidget(host());
       final text = tester.widget<Text>(find.byType(Text));
       final clearance = double.parse(text.data!);
-      final tokens = EnjoyThemeTokens.of(tester.element(find.byType(Text)));
       expect(clearance, EnjoyBottomNav.contentHeight);
     });
   });

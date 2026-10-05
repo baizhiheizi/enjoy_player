@@ -9,7 +9,8 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 /// Page layout family. Pick one per screen; see ADR-0055 / docs/features/app-ui.md.
 enum EnjoyPageKind {
-  /// Full content-pane width (Home, Discover, Library, channel feeds).
+  /// Wide content column capped at [EnjoyThemeTokens.pageMaxBrowse]
+  /// (Home, Discover, Library, channel feeds).
   browse,
 
   /// Centered hub column (Profile, Settings, Subscription, …).
@@ -17,6 +18,9 @@ enum EnjoyPageKind {
 
   /// Centered form column (Preferences, Edit Profile, …).
   form,
+
+  /// Wide Craft column capped at [EnjoyThemeTokens.pageMaxCraft].
+  craft,
 
   /// Narrow auth column (sign-in).
   auth,
@@ -31,9 +35,10 @@ double pageGutterOf(BuildContext context, double paneWidth) {
 /// Max content width for [kind], or `null` when the pane should be full-bleed.
 double? maxWidthForPageKind(EnjoyThemeTokens tokens, EnjoyPageKind kind) {
   return switch (kind) {
-    EnjoyPageKind.browse => null,
-    EnjoyPageKind.hub => tokens.hubMaxWidth,
-    EnjoyPageKind.form => tokens.formMaxWidth,
+    EnjoyPageKind.browse => tokens.pageMaxBrowse,
+    EnjoyPageKind.hub => tokens.pageMaxHub,
+    EnjoyPageKind.form => tokens.pageMaxForm,
+    EnjoyPageKind.craft => tokens.pageMaxCraft,
     EnjoyPageKind.auth => tokens.modalMaxWidth,
   };
 }

@@ -59,11 +59,14 @@ Adaptive page families ([ADR-0055](../decisions/0055-adaptive-page-layout-system
 
 | Kind | Width | Chrome | Examples |
 |------|-------|--------|----------|
-| `browse` | Full pane + `pageGutter` (16 / 24) | `EditorialHeader` (gutter-aligned) | Home, Discover, Library, channel feed |
-| `hub` | Centered `hubMaxWidth` (840) | Editorial or `EnjoySubpageAppBar` | Profile, Settings, Subscription, Credits, Hotkeys, AI providers, Vocabulary |
-| `form` | Centered `formMaxWidth` (680) | `EnjoySubpageAppBar` | Preferences, Edit Profile |
+| `browse` | Centered `pageMaxBrowse` (1180) + `gutter` (40 / 16 phone) | `EditorialHeader` (gutter-aligned) | Home, Discover, Library, channel feed |
+| `hub` | Centered `pageMaxHub` (840) | Editorial or `EnjoySubpageAppBar` | Profile, Settings, Subscription, Credits, Hotkeys, AI providers, Vocabulary |
+| `form` | Centered `pageMaxForm` (680) | `EnjoySubpageAppBar` | Preferences, Edit Profile |
+| `craft` | Centered `pageMaxCraft` (1080) | Craft header | Craft (adopted by the Craft rebuild, D4.6) |
 | `auth` | Centered `modalMaxWidth` (400) | Auth scaffold | Sign-in |
 | `playerChrome` | Player-owned | Player chrome | Expanded player |
+
+`EnjoySubpageAppBar` is 64px (`subpageHeaderHeight`): a quiet back chevron and a Geist 600 title. Not-found renders the logo mark rotated 180° at 0.55 opacity over a centered 440px column with a Literata 40 title and one brand button.
 
 Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-screen max widths or stretch form Save buttons to the full desktop pane.
 

@@ -27,7 +27,7 @@ class EnjoySubpageAppBar extends StatelessWidget
   final bool automaticallyImplyLeading;
 
   @override
-  Size get preferredSize => const Size.fromHeight(52);
+  Size get preferredSize => const Size.fromHeight(64);
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +46,8 @@ class EnjoySubpageAppBar extends StatelessWidget
     return AppBar(
       automaticallyImplyLeading: false,
       leading: effectiveLeading,
-      leadingWidth: effectiveLeading == null ? 0 : 52,
-      toolbarHeight: 52,
+      leadingWidth: effectiveLeading == null ? 0 : 56,
+      toolbarHeight: 64,
       title: Text(
         title,
         style: tt.titleMedium?.copyWith(
