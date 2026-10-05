@@ -619,6 +619,7 @@ Run the manual matrix on Windows, macOS, Linux, Android, and iOS. Check each ite
 Record the results in `STATUS.md` Notes.
 
 #### D5.6 Merge
+- **Status:** prepared, awaiting D5.4/D5.5 human verification. From a clean checkout: `git checkout design-duet && git merge main` (weekly merges already kept it current), re-run `bash .github/scripts/validate_ci_gates.sh --all`, then open the PR `design-duet → main` with release notes "New look: Duet — no behavior changes."
 - **Change:**
   - Merge `main` into `design-duet` one last time and re-run every gate.
   - Open the PR `design-duet → main`.
