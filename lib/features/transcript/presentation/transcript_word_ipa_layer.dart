@@ -17,10 +17,13 @@ bool transcriptWordsHavePhones(List<TranscriptWord>? words) {
 }
 
 /// IPA style: Noto Sans so IPA Extensions rasterize (Source Serif 4 cannot).
-TextStyle transcriptIpaTextStyle(TextStyle bodyStyle, Color color) {
-  final size = (bodyStyle.fontSize ?? 16) * 0.75;
+TextStyle transcriptIpaTextStyle(
+  TextStyle bodyStyle,
+  Color color, {
+  double? fontSize,
+}) {
   return GoogleFonts.notoSans(
-    fontSize: size,
+    fontSize: fontSize ?? (bodyStyle.fontSize ?? 16) * 0.75,
     height: 1.15,
     fontWeight: FontWeight.w400,
     color: color,

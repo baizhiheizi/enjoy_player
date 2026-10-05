@@ -301,6 +301,8 @@
   "expandEchoForward": "Expand echo forward",
   "shrinkEchoBackward": "Shrink echo backward",
   "shrinkEchoForward": "Shrink echo forward",
+  "echoLoopEarlierLine": "Earlier line",
+  "echoLoopLaterLine": "Later line",
   "shadowReadingTitle": "Shadow reading",
   "shadowReadingHint": "Practice speaking along this segment. Record your voice and compare pitch with the reference.",
   "shadowReadingReferenceSnippet": "Reference",

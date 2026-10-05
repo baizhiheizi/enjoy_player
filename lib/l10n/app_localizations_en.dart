@@ -768,6 +768,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shrinkEchoForward => 'Shrink echo forward';
 
   @override
+  String get echoLoopEarlierLine => 'Earlier line';
+
+  @override
+  String get echoLoopLaterLine => 'Later line';
+
+  @override
   String get shadowReadingTitle => 'Shadow reading';
 
   @override

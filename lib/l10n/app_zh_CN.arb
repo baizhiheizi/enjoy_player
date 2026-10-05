@@ -279,6 +279,8 @@
   "expandEchoForward": "向前扩展回声",
   "shrinkEchoBackward": "向后收缩回声",
   "shrinkEchoForward": "向前收缩回声",
+  "echoLoopEarlierLine": "上一句",
+  "echoLoopLaterLine": "下一句",
   "shadowReadingTitle": "跟读",
   "shadowReadingHint": "跟读本段练习口语，录制你的声音并与参考音高对比。",
   "shadowReadingReferenceSnippet": "参考",

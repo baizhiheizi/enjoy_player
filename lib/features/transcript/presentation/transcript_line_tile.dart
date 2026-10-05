@@ -43,6 +43,7 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
     this.selectable = false,
     this.recordingCount,
     this.loopFontSize,
+    this.lensDistance = 0,
     this.onLookupRequested,
     this.onRetranslateSecondary,
     this.dimWhenInactive = false,
@@ -70,6 +71,10 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
   /// Literata size for cues inside the Echo loop (the loop grows in place).
   /// Null outside the loop.
   final double? loopFontSize;
+
+  /// 1–3 while the cue sits that many lines outside the echo loop; fades and
+  /// shrinks the row through `echoLensOpacity`. 0 outside echo mode.
+  final int lensDistance;
 
   /// Invoked when the user chooses **Look up** in the text selection toolbar
   /// (1–100 characters after trim).
@@ -158,14 +163,29 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     final l10n = AppLocalizations.of(context);
     final phone = isMobilePlatform;
     final loopActive = widget.groupedInEcho && widget.loopFontSize != null;
+    final lensDistance = widget.lensDistance.clamp(0, 3);
+    final inLens = lensDistance > 0 && !loopActive;
+    final lensFontSize =
+        switch (lensDistance) {
+          1 => 18.0,
+          2 => 16.5,
+          _ => 15.5,
+        } -
+        (phone ? 1.0 : 0.0);
     final baseBody = typography.bodyStyle.copyWith(
-      height: loopActive ? 1.28 : (phone ? 1.4 : 1.5),
+      height: loopActive
+          ? 1.28
+          : inLens
+          ? 1.45
+          : (phone ? 1.4 : 1.5),
       fontSize: loopActive
           ? widget.loopFontSize
+          : inLens
+          ? lensFontSize
           : widget.isActive
           ? (phone ? 23.0 : 26.0)
           : (phone ? 18.0 : 20.0),
-      fontWeight: loopActive || widget.isActive
+      fontWeight: (loopActive || widget.isActive) && !inLens
           ? FontWeight.w500
           : FontWeight.w400,
       letterSpacing: loopActive ? -0.24 : null,
@@ -259,11 +279,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
       builder: (context, hover, _) {
         Color? bg;
         if (widget.groupedInEcho) {
-          if (echoCurrent) {
-            bg = tok.youSoft;
-          } else if (widget.inEcho) {
-            bg = Colors.transparent;
-          }
+          bg = Colors.transparent;
         } else if (hover) {
           bg = tok.sunk.withValues(alpha: 0.55);
         }
@@ -274,11 +290,19 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             widget.isActive ||
             widget.inEcho ||
             hover;
-        final lineFg = focused ? defaultFg : tok.ink3;
+        final lineFg = inLens
+            ? (hover ? defaultFg : tok.ink3)
+            : focused
+            ? defaultFg
+            : tok.ink3;
 
         Widget primaryWidget;
         if (useAligned && isRevealed) {
-          final ipaStyle = transcriptIpaTextStyle(baseBody, tok.echoActive);
+          final ipaStyle = transcriptIpaTextStyle(
+            baseBody,
+            tok.ink3,
+            fontSize: loopActive ? 15.0 : 14.0,
+          );
           primaryWidget = TranscriptAlignedWords(
             words: words,
             wordStyle: baseBody,
@@ -405,71 +429,97 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
         final lineRadius = BorderRadius.circular(tok.radiusMd);
         if (widget.selectable) {
-          return Semantics(
-            container: true,
-            label: semanticsLabel,
-            focusable: true,
-            child: MouseRegion(
-              onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
-              onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
-              child: widget.groupedInEcho
-                  ? ColoredBox(color: bg ?? Colors.transparent, child: content)
-                  : DecoratedBox(
-                      decoration: ShapeDecoration(
+          return _lensFade(
+            hover,
+            child: Semantics(
+              container: true,
+              label: semanticsLabel,
+              focusable: true,
+              child: MouseRegion(
+                onEnter: (_) =>
+                    setValueNotifierOutsideMouseTracker(_hover, true),
+                onExit: (_) =>
+                    setValueNotifierOutsideMouseTracker(_hover, false),
+                child: widget.groupedInEcho
+                    ? ColoredBox(
                         color: bg ?? Colors.transparent,
-                        shape: RoundedSuperellipseBorder(
+                        child: content,
+                      )
+                    : DecoratedBox(
+                        decoration: ShapeDecoration(
+                          color: bg ?? Colors.transparent,
+                          shape: RoundedSuperellipseBorder(
+                            borderRadius: lineRadius,
+                          ),
+                        ),
+                        child: ClipRSuperellipse(
                           borderRadius: lineRadius,
+                          child: content,
                         ),
                       ),
-                      child: ClipRSuperellipse(
-                        borderRadius: lineRadius,
-                        child: content,
-                      ),
-                    ),
-            ),
-          );
-        }
-
-        if (widget.groupedInEcho) {
-          return Semantics(
-            container: true,
-            label: semanticsLabel,
-            button: true,
-            child: EnjoyPressable(
-              onTap: () => _handleTap(context),
-              borderRadius: lineRadius,
-              child: ColoredBox(
-                color: bg ?? Colors.transparent,
-                child: content,
               ),
             ),
           );
         }
 
-        return Semantics(
-          container: true,
-          label: semanticsLabel,
-          button: true,
-          child: MouseRegion(
-            onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
-            onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
-            child: EnjoyPressable(
-              shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
-              onTap: () => _handleTap(context),
-              child: DecoratedBox(
-                decoration: ShapeDecoration(
+        if (widget.groupedInEcho) {
+          return _lensFade(
+            hover,
+            child: Semantics(
+              container: true,
+              label: semanticsLabel,
+              button: true,
+              child: EnjoyPressable(
+                onTap: () => _handleTap(context),
+                borderRadius: lineRadius,
+                child: ColoredBox(
                   color: bg ?? Colors.transparent,
-                  shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
-                ),
-                child: ClipRSuperellipse(
-                  borderRadius: lineRadius,
                   child: content,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return _lensFade(
+          hover,
+          child: Semantics(
+            container: true,
+            label: semanticsLabel,
+            button: true,
+            child: MouseRegion(
+              onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
+              onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
+              child: EnjoyPressable(
+                shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
+                onTap: () => _handleTap(context),
+                child: DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: bg ?? Colors.transparent,
+                    shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
+                  ),
+                  child: ClipRSuperellipse(
+                    borderRadius: lineRadius,
+                    child: content,
+                  ),
                 ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _lensFade(bool hover, {required Widget child}) {
+    final distance = widget.lensDistance.clamp(0, 3);
+    if (distance == 0) return child;
+    final tok = EnjoyThemeTokens.of(context);
+    return AnimatedOpacity(
+      opacity: hover ? 1.0 : tok.echoLensOpacity[distance],
+      duration: tok.motionMedium,
+      curve: Curves.easeOut,
+      child: child,
     );
   }
 }

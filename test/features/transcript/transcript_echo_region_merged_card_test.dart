@@ -2,9 +2,9 @@ import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/settings/application/karaoke_highlight_settings.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
+import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_region_merged_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -113,133 +113,123 @@ void main() {
     );
 
     expect(
-      find.byWidgetPredicate(
-        (w) =>
-            w is Container &&
-            (w.decoration as BoxDecoration?)?.shape == BoxShape.circle,
-      ),
+      find.byWidgetPredicate((w) {
+        final decoration = w is Container ? w.decoration : null;
+        return decoration is BoxDecoration &&
+            decoration.shape == BoxShape.circle;
+      }),
       findsOneWidget,
       reason: 'the practiced take rides the gutter as a you dot',
     );
   });
 
-  testWidgets('echo region uses compact density on mobile', (tester) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    try {
-      const lines = [
-        TranscriptLine(text: 'First echo line', startMs: 0, durationMs: 1000),
-        TranscriptLine(
-          text: 'Second echo line',
-          startMs: 1000,
-          durationMs: 1000,
-        ),
-      ];
-      const echo = EchoState(
-        active: true,
-        startLineIndex: 0,
-        endLineIndex: 1,
-        startTimeSeconds: -1,
-        endTimeSeconds: -1,
-      );
+  testWidgets('loop block frames with corner brackets and handle pills', (
+    tester,
+  ) async {
+    const lines = [
+      TranscriptLine(text: 'First echo line', startMs: 0, durationMs: 1000),
+      TranscriptLine(text: 'Second echo line', startMs: 1000, durationMs: 1000),
+      TranscriptLine(text: 'Third echo line', startMs: 2000, durationMs: 1000),
+    ];
+    const echo = EchoState(
+      active: true,
+      startLineIndex: 1,
+      endLineIndex: 1,
+      startTimeSeconds: -1,
+      endTimeSeconds: -1,
+    );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            transcriptLineRecordingCountsProvider(
-              'media-1',
-            ).overrideWithValue(const {}),
-            karaokeHighlightSettingsProvider.overrideWith(
-              _KaraokeHighlightOff.new,
-            ),
-            ...transcriptWordPracticeOffOverrides(),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: const EchoRegionMergedCard(
-                    mediaId: 'media-1',
-                    lines: lines,
-                    echo: echo,
-                    activeCueIndex: 0,
-                    secondaryLines: [],
-                  ),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          transcriptLineRecordingCountsProvider(
+            'media-1',
+          ).overrideWithValue(const {}),
+          karaokeHighlightSettingsProvider.overrideWith(
+            _KaraokeHighlightOff.new,
+          ),
+          ...transcriptWordPracticeOffOverrides(),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ListView(
+              children: const [
+                EchoRegionMergedCard(
+                  mediaId: 'media-1',
+                  lines: lines,
+                  echo: echo,
+                  activeCueIndex: 1,
+                  secondaryLines: [],
                 ),
-              ),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
 
-      expect(tester.takeException(), isNull);
-      final dividers = tester.widgetList<Divider>(find.byType(Divider));
-      expect(dividers, isNotEmpty);
-      expect(dividers.first.thickness, 0.5);
-    } finally {
-      debugDefaultTargetPlatformOverride = null;
-    }
+    expect(tester.takeException(), isNull);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is EchoLoopBrackets,
+      ),
+      findsOneWidget,
+      reason: 'the loop is framed by the you corner brackets',
+    );
+    expect(find.text('Earlier line'), findsOneWidget);
+    expect(find.text('Later line'), findsOneWidget);
+    expect(find.text('LOOP · LINE 2 · 0.0 S'), findsOneWidget);
   });
 
-  testWidgets('echo region uses full density on desktop', (tester) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
-    try {
-      const lines = [
-        TranscriptLine(text: 'First echo line', startMs: 0, durationMs: 1000),
-        TranscriptLine(
-          text: 'Second echo line',
-          startMs: 1000,
-          durationMs: 1000,
-        ),
-      ];
-      const echo = EchoState(
-        active: true,
-        startLineIndex: 0,
-        endLineIndex: 1,
-        startTimeSeconds: -1,
-        endTimeSeconds: -1,
-      );
+  testWidgets('loop label reads the line span for multi-line loops', (
+    tester,
+  ) async {
+    const lines = [
+      TranscriptLine(text: 'First echo line', startMs: 0, durationMs: 1000),
+      TranscriptLine(text: 'Second echo line', startMs: 1000, durationMs: 1000),
+    ];
+    const echo = EchoState(
+      active: true,
+      startLineIndex: 0,
+      endLineIndex: 1,
+      startTimeSeconds: -1,
+      endTimeSeconds: -1,
+    );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            transcriptLineRecordingCountsProvider(
-              'media-1',
-            ).overrideWithValue(const {}),
-            karaokeHighlightSettingsProvider.overrideWith(
-              _KaraokeHighlightOff.new,
-            ),
-            ...transcriptWordPracticeOffOverrides(),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: const EchoRegionMergedCard(
-                    mediaId: 'media-1',
-                    lines: lines,
-                    echo: echo,
-                    activeCueIndex: 0,
-                    secondaryLines: [],
-                  ),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          transcriptLineRecordingCountsProvider(
+            'media-1',
+          ).overrideWithValue(const {}),
+          karaokeHighlightSettingsProvider.overrideWith(
+            _KaraokeHighlightOff.new,
+          ),
+          ...transcriptWordPracticeOffOverrides(),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ListView(
+              children: const [
+                EchoRegionMergedCard(
+                  mediaId: 'media-1',
+                  lines: lines,
+                  echo: echo,
+                  activeCueIndex: 0,
+                  secondaryLines: [],
                 ),
-              ),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
 
-      expect(tester.takeException(), isNull);
-      final dividers = tester.widgetList<Divider>(find.byType(Divider));
-      expect(dividers, isNotEmpty);
-      expect(dividers.first.thickness, 1.0);
-    } finally {
-      debugDefaultTargetPlatformOverride = null;
-    }
+    expect(tester.takeException(), isNull);
+    expect(find.text('LOOP · LINES 1–2 · 0.0 S'), findsOneWidget);
   });
 }
