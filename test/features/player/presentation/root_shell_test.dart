@@ -306,7 +306,10 @@ void main() {
       final content = tester.widget<Padding>(
         find.byKey(const ValueKey<String>('root-shell-content')),
       );
-      expect(content.padding.resolve(TextDirection.ltr).bottom, 64);
+      expect(
+        content.padding.resolve(TextDirection.ltr).bottom,
+        EnjoyBottomNav.contentHeight,
+      );
     });
 
     shellTest('selects Discover icon at /discover', (tester) async {

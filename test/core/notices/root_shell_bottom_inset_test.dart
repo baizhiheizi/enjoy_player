@@ -41,7 +41,7 @@ void main() {
       final text = tester.widget<Text>(find.byType(Text));
       final clearance = double.parse(text.data!);
       final tokens = EnjoyThemeTokens.of(tester.element(find.byType(Text)));
-      expect(clearance, tokens.bottomNavHeight + 12);
+      expect(clearance, EnjoyBottomNav.contentHeight + 12);
     });
 
     testWidgets('zero inset still returns the nav height', (tester) async {
@@ -49,7 +49,7 @@ void main() {
       final text = tester.widget<Text>(find.byType(Text));
       final clearance = double.parse(text.data!);
       final tokens = EnjoyThemeTokens.of(tester.element(find.byType(Text)));
-      expect(clearance, tokens.bottomNavHeight);
+      expect(clearance, EnjoyBottomNav.contentHeight);
     });
   });
 

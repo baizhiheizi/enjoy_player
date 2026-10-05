@@ -12,11 +12,11 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 |---|---|---|
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
-| 2 · Shell | 3 | 1 |
+| 2 · Shell | 3 | 2 |
 | 3 · Player | 13 | 0 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **10** |
+| **Total** | **43** | **11** |
 
 ## Decisions
 
@@ -55,7 +55,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
 | D2.1 | Desktop shell + sidebar | `Sidebar`, `Home`, `HomeDark` | Phase 1 | done | | | Floating panel removed; sidebar rebuilt per the board (brand, search, five rows, sync line, Settings, account chip); `SidebarContinuePracticeCard` deleted (Home keeps Continue practicing via D4.1) |
-| D2.2 | Phone tab bar | `TabBar`, `PhHome`, `PhLibrary` | Phase 1 | todo | | | |
+| D2.2 | Phone tab bar | `TabBar`, `PhHome`, `PhLibrary` | Phase 1 | done | | | Solid paper bar (58 content + real safe inset, top line), brandSoft 52×30 pill, filled brandInk glyph; glass capsule and lens removed; clearance = bar height |
 | D2.3 | Page metrics + subpage chrome + Not found | `Home`, `Profile`, `ProfileEdit`, `Craft`, `Settings`, `NotFound` | Phase 1 | todo | | | |
 
 ### Phase 3 · Player

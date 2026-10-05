@@ -1,14 +1,9 @@
-/// Floating glass tab bar — Aurora mobile chrome (not stock [NavigationBar]).
+/// Solid tab bar — Duet mobile chrome (ADR-0091), not stock [NavigationBar].
 ///
-/// A frosted capsule with a soft "lens" that glides to the selected tab;
-/// glyphs switch outline → filled on selection. No ripple, no pill label
-/// indicator — the lens is the indicator.
+/// A full-width paper bar with a top line: the selected tab gets a
+/// brandSoft pill, a filled glyph in brandInk, and a 600 label.
 library;
 
-import 'dart:ui' show ImageFilter;
-
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
@@ -55,116 +50,36 @@ class EnjoyBottomNav extends StatelessWidget {
   final ValueChanged<int> onDestinationSelected;
   final List<EnjoyBottomNavDestination> destinations;
 
-  /// Capsule height (the rest of [EnjoyThemeTokens.bottomNavHeight] is the
-  /// breathing gap above it).
-  static const double capsuleHeight = 58;
+  /// Content height above the safe inset — 84 − 26 (tokens.tabBarHeight −
+  /// tokens.tabBarSafeInset); the real bottom inset grows the bar.
+  static double get contentHeight => 58;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final light = Theme.of(context).brightness == Brightness.light;
-    final cs = Theme.of(context).colorScheme;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    final blurRaw = t.miniBarBlurSigma;
-    final blur = defaultTargetPlatform == TargetPlatform.android
-        ? (blurRaw > 10 ? 10.0 : blurRaw)
-        : blurRaw;
-    final instant = MediaQuery.disableAnimationsOf(context);
-    final shape = const StadiumBorder();
-
-    return SafeArea(
-      top: false,
-      minimum: EdgeInsets.fromLTRB(t.space16, 0, t.space16, t.space8 + 2),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        heightFactor: 1,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 440),
-          child: DecoratedBox(
-            decoration: ShapeDecoration(
-              shape: shape,
-              shadows: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: light ? 0.10 : 0.45),
-                  blurRadius: 24,
-                  spreadRadius: -6,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: ClipPath(
-              clipper: ShapeBorderClipper(shape: shape),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-                child: DecoratedBox(
-                  decoration: ShapeDecoration(
-                    color: t.glassTint,
-                    shape: StadiumBorder(
-                      side: BorderSide(color: t.glassBorder),
-                    ),
-                  ),
-                  child: SizedBox(
-                    height: capsuleHeight,
-                    child: Padding(
-                      padding: const EdgeInsets.all(5),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final n = destinations.length;
-                          final itemWidth = constraints.maxWidth / n;
-                          return Stack(
-                            children: [
-                              AnimatedPositioned(
-                                duration: instant
-                                    ? Duration.zero
-                                    : t.motionStandard,
-                                curve: EnjoyThemeTokens.emphasized,
-                                left: itemWidth * selectedIndex,
-                                top: 0,
-                                bottom: 0,
-                                width: itemWidth,
-                                child: DecoratedBox(
-                                  decoration: ShapeDecoration(
-                                    color: light
-                                        ? cs.primary.withValues(alpha: 0.09)
-                                        : Colors.white.withValues(alpha: 0.08),
-                                    shape: StadiumBorder(
-                                      side: BorderSide(
-                                        color: light
-                                            ? cs.primary.withValues(alpha: 0.06)
-                                            : Colors.white.withValues(
-                                                alpha: 0.06,
-                                              ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  for (var i = 0; i < n; i++)
-                                    Expanded(
-                                      child: _EnjoyBottomNavItem(
-                                        destination: destinations[i],
-                                        selected: i == selectedIndex,
-                                        onTap: () {
-                                          Haptics.selection(context);
-                                          onDestinationSelected(i);
-                                        },
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+    return Container(
+      decoration: BoxDecoration(
+        color: t.paper,
+        border: Border(top: BorderSide(color: t.line)),
+      ),
+      padding: EdgeInsets.fromLTRB(8, 6, 8, bottomInset),
+      height: contentHeight + bottomInset,
+      child: Row(
+        children: [
+          for (var i = 0; i < destinations.length; i++)
+            Expanded(
+              child: _EnjoyBottomNavItem(
+                destination: destinations[i],
+                selected: i == selectedIndex,
+                onTap: () {
+                  Haptics.selection(context);
+                  onDestinationSelected(i);
+                },
               ),
             ),
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -184,10 +99,9 @@ class _EnjoyBottomNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final label = destination.semanticsLabel ?? destination.label;
-    final color = selected ? t.accentInk : cs.onSurfaceVariant;
+    final color = selected ? t.brandInk : t.ink3;
 
     return EnjoyPressable(
       onTap: onTap,
@@ -202,52 +116,50 @@ class _EnjoyBottomNavItem extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconTheme(
-                data: IconThemeData(size: 22, color: color),
-                child: AnimatedSwitcher(
-                  duration: t.motionFast,
-                  switchInCurve: EnjoyThemeTokens.ease,
-                  transitionBuilder: (child, anim) => ScaleTransition(
-                    scale: Tween(begin: 0.85, end: 1.0).animate(anim),
-                    child: FadeTransition(opacity: anim, child: child),
-                  ),
-                  child: KeyedSubtree(
-                    key: ValueKey<bool>(selected),
-                    child: selected
-                        ? (destination.selectedIconWidget ??
-                              destination.iconWidget ??
-                              Icon(destination.selectedIcon))
-                        : (destination.iconWidget ?? Icon(destination.icon)),
-                  ),
+          Container(
+            width: 52,
+            height: 30,
+            alignment: Alignment.center,
+            decoration: ShapeDecoration(
+              color: selected ? t.brandSoft : Colors.transparent,
+              shape: const StadiumBorder(),
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconTheme(
+                  data: IconThemeData(size: 22, color: color),
+                  child: selected
+                      ? (destination.selectedIconWidget ??
+                            destination.iconWidget ??
+                            Icon(destination.selectedIcon))
+                      : (destination.iconWidget ?? Icon(destination.icon)),
                 ),
-              ),
-              if (destination.showBadge)
-                Positioned(
-                  right: -3,
-                  top: -2,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: cs.error,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: t.popover, width: 1.5),
+                if (destination.showBadge)
+                  Positioned(
+                    right: -3,
+                    top: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: t.danger,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: t.paper, width: 1.5),
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             destination.label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: tt.labelSmall?.copyWith(
-              fontSize: 10.5,
+              fontSize: 11.5,
               height: 1.2,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               color: color,

@@ -3,17 +3,15 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
 
 /// Estimated total height of [GlobalTransportBar] (progress strip + control row +
 /// padding). Slightly conservative so notices sit fully above the bar.
 const double kRootShellTransportSnackClearance = 128;
 
-/// Bottom nav bar content height + system home-indicator inset (Enjoy bottom nav).
-double rootShellBottomNavClearance(BuildContext context) {
-  final t = EnjoyThemeTokens.of(context);
-  return t.bottomNavHeight + MediaQuery.paddingOf(context).bottom;
-}
+/// Bottom nav bar content height + system home-indicator inset (Duet tab bar).
+double rootShellBottomNavClearance(BuildContext context) =>
+    EnjoyBottomNav.contentHeight + MediaQuery.paddingOf(context).bottom;
 
 /// Provides bottom clearance for [AppNotice] when the routed subtree lives under
 /// [RootShell] (mini transport and/or [EnjoyBottomNav]).
