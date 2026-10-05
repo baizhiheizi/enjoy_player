@@ -13,10 +13,10 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
-| 3 · Player | 13 | 10 |
+| 3 · Player | 13 | 11 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **22** |
+| **Total** | **43** | **23** |
 
 ## Decisions
 
@@ -68,7 +68,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D3.4 | Listen lens | `Main`, `DDark`, `Phone`, `PDark` | D3.1 | done | | | Gutter grid (52px mono time + you practiced dot), Literata 20/26 sizes, original karaoke underline, no plate/rail; recording badge replaced by the dot (count stays in semantics) |
 | D3.5 | Echo lens | `DEcho`, `PEcho`, `DCompact` | D3.4 | done | | | Loop block in you brackets with LOOP overline; loop lines grow to 40/34/25 (−4 phone) Literata 500; card rail/shell/dividers removed; earlier/later pills unchanged |
 | D3.6 | Takes, pitch, recording in the loop | `DEcho`, `DRecording`, `DScored`, `PEcho`, `PRecording`, `PScored` | D3.5, D3.2 | done | | | Pitch duet: 9px original band @0.35 + 3px you line; take score chips uncolored ink-on-sunk (thresholds kept); recording countdown bar + RECORIDNG label ride the existing live widgets, dock carries Cancel/Stop |
-| D3.7 | Side margin + word lookup | `DWord`, `DCompact`, `PWord` | D3.1 | todo | | | |
+| D3.7 | Side margin + word lookup | `DWord`, `DCompact`, `PWord` | D3.1 | done | | | ≥600: 380px right-edge margin drawer (PopupRoute, 220ms slide, Esc closes, surface parks); <600 keeps the sheet; docked-in-layout reflow at ≥1100 deferred to D3.13 |
 | D3.8 | Assessment in the margin + feedback on words | `DScored`, `PScored` | D3.6, D3.7 | todo | | | |
 | D3.9 | Hide text as word shapes | `DHide`, `PHide` | D3.4 | done | | | TranscriptBlurText renders rounded shape bars from cached word-box widths (no ImageFilter); tap-to-peek on selectable cues preserved; dock Hide pill already ink-filled |
 | D3.10 | Subtitles & display popover | `DSubtitles` | D3.1 | done | | | ≥ rail: 384px raised popover (PopupRoute, parks surface, fades 160ms) anchored under the Subtitles button; < rail keeps the sheet; switch on-track original lands with D1.2 theme |
