@@ -36,8 +36,8 @@ class VocabularyRatingBar extends StatelessWidget {
               child: _RatingChip(
                 label: l10n.vocabularyDontKnow,
                 icon: EnjoyIcons.close,
-                background: t.scoreBadContainer,
-                foreground: t.scoreBad,
+                background: t.sunk,
+                foreground: t.danger,
                 onPressed: ratingInFlight
                     ? null
                     : () => onRate(VocabularyRating.dontKnow),
@@ -48,8 +48,8 @@ class VocabularyRatingBar extends StatelessWidget {
               child: _RatingChip(
                 label: l10n.vocabularyKnow,
                 icon: EnjoyIcons.check,
-                background: t.scoreWarnContainer,
-                foreground: t.scoreWarn,
+                background: t.sunk,
+                foreground: t.ink2,
                 onPressed: ratingInFlight
                     ? null
                     : () => onRate(VocabularyRating.know),
@@ -60,8 +60,8 @@ class VocabularyRatingBar extends StatelessWidget {
               child: _RatingChip(
                 label: l10n.vocabularyKnowWell,
                 icon: EnjoyIcons.checkCircleFill,
-                background: t.scoreGoodContainer,
-                foreground: t.scoreGood,
+                background: t.sunk,
+                foreground: t.ink,
                 onPressed: ratingInFlight
                     ? null
                     : () => onRate(VocabularyRating.knowWell),

@@ -127,7 +127,7 @@ abstract final class AppNotice {
           duration = const Duration(seconds: 3);
           wantsDismiss = false;
         case _AppNoticeKind.warning:
-          iconColor = AppColors.scoreWarnDark;
+          iconColor = const Color(0xFFF4F4F7);
           icon = EnjoyIcons.warning;
           duration = const Duration(seconds: 4);
           wantsDismiss = true;

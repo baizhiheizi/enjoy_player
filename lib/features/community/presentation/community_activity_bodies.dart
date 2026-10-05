@@ -92,11 +92,11 @@ class SummaryBody extends StatelessWidget {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: t.scoreGood,
+                    color: t.originalInk,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: t.scoreGood.withValues(alpha: 0.5),
+                        color: t.originalInk.withValues(alpha: 0.5),
                         blurRadius: 6,
                       ),
                     ],

@@ -79,12 +79,10 @@ class CraftFailureCard extends StatelessWidget {
             children: [
               DecoratedBox(
                 decoration: ShapeDecoration(
-                  color: t.scoreBadContainer,
+                  color: t.sunk,
                   shape: RoundedSuperellipseBorder(
                     borderRadius: BorderRadius.circular(t.radius2xl),
-                    side: BorderSide(
-                      color: t.scoreBad.withValues(alpha: light ? 0.24 : 0.32),
-                    ),
+                    side: BorderSide(color: t.danger),
                   ),
                 ),
                 child: Padding(
@@ -99,12 +97,10 @@ class CraftFailureCard extends StatelessWidget {
                         width: 64,
                         height: 64,
                         decoration: ShapeDecoration(
-                          color: t.scoreBad.withValues(
-                            alpha: light ? 0.12 : 0.2,
-                          ),
+                          color: t.danger.withValues(alpha: light ? 0.12 : 0.2),
                           shape: CircleBorder(
                             side: BorderSide(
-                              color: t.scoreBad.withValues(
+                              color: t.danger.withValues(
                                 alpha: light ? 0.24 : 0.34,
                               ),
                             ),

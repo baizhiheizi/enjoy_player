@@ -14,9 +14,9 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
 | 3 · Player | 13 | 13 |
-| 4 · App screens | 11 | 8 |
+| 4 · App screens | 11 | 11 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **33** |
+| **Total** | **43** | **36** |
 
 ## Decisions
 
@@ -87,9 +87,9 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D4.5 | Review session | `Review`, `ReviewBack`, `ReviewDone`, `PhReview` | Phase 1 | done | | | Rating controls uncolored via D1.2 scheme; done state uses the logo planes (D1.6 mark) |
 | D4.6 | Craft | `Craft`, `CraftRewrite`, `CraftAudio`, `CraftAdvanced`, `CraftHistory`, `PhCraft` | Phase 1, D2.3 | done | | | Record orb you + stop danger (D1.4); play ring brand gradient; style chips ink-pressed via chip theme |
 | D4.7 | Sign-in | `SignIn`, `SignInCode`, `PhSignIn` | Phase 1 | done | | | AuroraGlow deleted (last mount removed); flat ground sign-in |
-| D4.8 | Profile, Edit profile, Preferences | `Profile`, `ProfileEdit`, `ProfilePrefs`, `PhProfile` | Phase 1, D2.3 | todo | | | |
-| D4.9 | Subscription + Credits | `Subscription`, `SubscriptionPlans`, `Credits` | Phase 1, D2.3 | todo | | | |
-| D4.10 | Settings, Sync, Keyboard, AI providers, update dialog | `Settings`, `SettingsAbout`, `SettingsDark`, `Sync`, `Keyboard`, `KeyboardCheatsheet`, `AiProviders`, `PhSettings` | Phase 1, D2.3 | todo | | | |
+| D4.8 | Profile, Edit profile, Preferences | `Profile`, `ProfileEdit`, `ProfilePrefs`, `PhProfile` | Phase 1, D2.3 | done | | | Hero card on the logo gradient (alias), grouped rows via D1.6 surfaces |
+| D4.9 | Subscription + Credits | `Subscription`, `SubscriptionPlans`, `Credits` | Phase 1, D2.3 | done | | | Tier badges on the brand gradient; credits meter on the logo gradient; neutral chips via D1.5 |
+| D4.10 | Settings, Sync, Keyboard, AI providers, update dialog | `Settings`, `SettingsAbout`, `SettingsDark`, `Sync`, `Keyboard`, `KeyboardCheatsheet`, `AiProviders`, `PhSettings` | Phase 1, D2.3 | done | | | Two-pane rail ≥900 via NavItemPill (D2.1 shared primitive); switches/radios brandInk; keycaps paper/line; gallery verified |
 | D4.11 | Surfaces not drawn (apply the system) | `System` | Phase 1 | todo | | | List each surface in the PR |
 
 ### Phase 5 · Cleanup, proof, merge
