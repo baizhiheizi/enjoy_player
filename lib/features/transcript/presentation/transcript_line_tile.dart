@@ -356,6 +356,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
               );
 
         final hasTakes = recordingCount != null && recordingCount > 0;
+        final showGutter = !widget.groupedInEcho;
         final textBody = Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
@@ -363,30 +364,32 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             children: [
               SizedBox(
                 width: 52,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: phone
-                            ? (widget.isActive ? 10.0 : 6.0)
-                            : (widget.isActive ? 12.0 : 8.0),
-                      ),
-                      child: Text(timestampText, style: timestampStyle),
-                    ),
-                    if (hasTakes) ...[
-                      const SizedBox(height: 6),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: tok.you,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                child: showGutter
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: phone
+                                  ? (widget.isActive ? 10.0 : 6.0)
+                                  : (widget.isActive ? 12.0 : 8.0),
+                            ),
+                            child: Text(timestampText, style: timestampStyle),
+                          ),
+                          if (hasTakes) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: tok.you,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        ],
+                      )
+                    : const SizedBox.shrink(),
               ),
               const SizedBox(width: 14),
               Expanded(

@@ -4,6 +4,7 @@ library;
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/display_position_provider.dart';
+import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
@@ -62,7 +63,22 @@ final _lines = [
     TranscriptLine(text: text, startMs: 60000 + i * 4200, durationMs: 3900),
 ];
 
-List<Override> _listenOverrides(AppDatabase db, FakePlayerEngine engine) => [
+class _EchoActive extends EchoMode {
+  @override
+  EchoState build() => const EchoState(
+    active: true,
+    startLineIndex: 4,
+    endLineIndex: 4,
+    startTimeSeconds: 76.8,
+    endTimeSeconds: 80.7,
+  );
+}
+
+List<Override> _listenOverrides(
+  AppDatabase db,
+  FakePlayerEngine engine, {
+  bool playing = true,
+}) => [
   ...baseOverrides(db, playerController: _SessionController.new),
   playerEngineTestDoubleProvider.overrideWithValue(engine),
   transcriptHasLinesForMediaProvider(
@@ -71,7 +87,7 @@ List<Override> _listenOverrides(AppDatabase db, FakePlayerEngine engine) => [
   transcriptLinesForMediaProvider(
     _mediaId,
   ).overrideWith((ref) => Stream.value(_lines)),
-  playerIsPlayingProvider.overrideWith((ref) => Stream.value(true)),
+  playerIsPlayingProvider.overrideWith((ref) => Stream.value(playing)),
   displayPositionProvider.overrideWith(
     (ref) => Stream.value(const Duration(seconds: 73)),
   ),
@@ -97,6 +113,11 @@ List<Override> _listenOverrides(AppDatabase db, FakePlayerEngine engine) => [
       language: 'en',
     ),
   ),
+];
+
+List<Override> _echoOverrides(AppDatabase db, FakePlayerEngine engine) => [
+  ..._listenOverrides(db, engine, playing: false),
+  echoModeProvider.overrideWith(_EchoActive.new),
 ];
 
 GoRouter _listenRouter() => GoRouter(
@@ -132,6 +153,23 @@ void main() {
       'DCompact',
       Brightness.light,
       GalleryFrame.compact,
+    );
+  });
+
+  testWidgets('DEcho — player Echo, desktop light', (tester) async {
+    final db = memoryDb();
+    final engine = FakePlayerEngine();
+    addTearDown(engine.dispose);
+    await shootBoard(
+      tester,
+      'DEcho',
+      sceneApp(
+        router: _listenRouter(),
+        overrides: _echoOverrides(db, engine),
+        brightness: Brightness.light,
+      ),
+      frame: GalleryFrame.desktop,
+      db: db,
     );
   });
 }

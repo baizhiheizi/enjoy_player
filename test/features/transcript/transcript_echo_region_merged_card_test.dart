@@ -66,7 +66,7 @@ void main() {
     expect(find.text('Second echo line'), findsOneWidget);
   });
 
-  testWidgets('echo card shows recording badge from counts provider', (
+  testWidgets('loop lines keep take counts in semantics, no gutter', (
     tester,
   ) async {
     const lines = [
@@ -118,8 +118,10 @@ void main() {
         return decoration is BoxDecoration &&
             decoration.shape == BoxShape.circle;
       }),
-      findsOneWidget,
-      reason: 'the practiced take rides the gutter as a you dot',
+      findsNothing,
+      reason:
+          'loop lines carry no gutter chrome; the section gutter shows '
+          'the loop start once',
     );
   });
 

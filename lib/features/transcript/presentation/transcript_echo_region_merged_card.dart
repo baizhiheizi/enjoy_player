@@ -87,13 +87,28 @@ class EchoRegionMergedCard extends ConsumerWidget {
     final showShadow = echo.startTimeSeconds >= 0 && echo.endTimeSeconds >= 0;
     final loopLines = echo.endLineIndex - echo.startLineIndex + 1;
     final phone = isMobilePlatform;
-    final loopFontSize =
-        switch (loopLines) {
-          1 => 40.0,
-          2 => 34.0,
-          _ => 25.0,
-        } -
-        (phone ? 4.0 : 0.0);
+    final video = (chrome?.dexieTargetType ?? 'Audio') != 'Audio';
+    final mediaWidth = MediaQuery.sizeOf(context).width;
+    final loopFontSize = switch (loopLines) {
+      1 =>
+        video
+            ? 30.0
+            : phone
+            ? 28.0
+            : (mediaWidth * 0.032).clamp(30.0, 46.0).toDouble(),
+      2 =>
+        video
+            ? 24.0
+            : phone
+            ? 26.0
+            : (mediaWidth * 0.025).clamp(26.0, 34.0).toDouble(),
+      _ =>
+        video
+            ? 24.0
+            : phone
+            ? 21.0
+            : 25.0,
+    };
 
     final lineWidgets = <Widget>[];
     var maxTakeNumber = 0;
@@ -188,7 +203,6 @@ class EchoRegionMergedCard extends ConsumerWidget {
         ? 'RECORDING TAKE ${maxTakeNumber + 1}'
         : 'LOOP · $lineRangeLabel · $secondsLabel S';
 
-    final video = (chrome?.dexieTargetType ?? 'Audio') != 'Audio';
     final tt = Theme.of(context).textTheme;
     final typography = TranscriptTypographyTokens.of(context);
     final gutterStyle = typography.timestampStyle.copyWith(
