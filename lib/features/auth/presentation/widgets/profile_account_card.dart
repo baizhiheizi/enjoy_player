@@ -93,9 +93,7 @@ class ProfileAccountCard extends StatelessWidget {
                                           1.0,
                                         ),
                                   child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      gradient: t.aurora,
-                                    ),
+                                    decoration: BoxDecoration(gradient: t.logo),
                                   ),
                                 ),
                               ],
@@ -114,7 +112,7 @@ class ProfileAccountCard extends StatelessWidget {
             leading: EnjoyIconTile(
               icon: EnjoyIcons.premium,
               size: kSettingsRowLeadingSize,
-              gradient: t.aurora,
+              gradient: t.logo,
             ),
             title: l10n.profileSubscriptionTile,
             subtitle: l10n.profileSubscriptionSubtitle,

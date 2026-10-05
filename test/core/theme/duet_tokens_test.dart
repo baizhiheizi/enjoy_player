@@ -358,8 +358,8 @@ void main() {
       expect(t.contentMaxWidth, t.transcriptMaxListen);
       expect(t.formMaxWidth, t.pageMaxForm);
       expect(t.hubMaxWidth, t.pageMaxHub);
-      expect(t.auroraStart, AppColors.logoStart);
-      expect(t.auroraEnd, AppColors.logoEnd);
+      expect(t.logoStart, AppColors.logoStart);
+      expect(t.logoEnd, AppColors.logoEnd);
       expect(t.brandInk, AppColors.brandInkLight);
     });
 

@@ -15,7 +15,7 @@ OutlineInputBorder craftFieldBorder(
   return OutlineInputBorder(
     borderRadius: BorderRadius.circular(t.radiusMd),
     borderSide: BorderSide(
-      color: focused ? t.accentInk : t.hairline,
+      color: focused ? t.brandInk : t.line,
       width: focused ? 1.5 : 1,
     ),
   );

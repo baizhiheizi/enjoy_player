@@ -49,7 +49,7 @@ ShapeDecoration enjoySegmentThumbDecoration(
     shape: RoundedSuperellipseBorder(
       borderRadius: BorderRadius.circular(radius),
     ),
-    shadows: t.shadowCard,
+    shadows: t.shadowLift,
   );
 }
 

@@ -192,7 +192,7 @@ class _ModeSegmented extends StatelessWidget {
               shape: RoundedSuperellipseBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              shadows: selected ? t.shadowCard : const [],
+              shadows: selected ? t.shadowLift : const [],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

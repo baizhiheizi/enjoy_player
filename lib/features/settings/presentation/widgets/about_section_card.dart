@@ -119,7 +119,7 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [t.gradientStart, t.gradientEnd],
+                    colors: [t.ground, t.ground],
                   ),
                 ),
               ),

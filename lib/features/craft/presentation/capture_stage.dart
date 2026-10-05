@@ -384,7 +384,7 @@ class _IdleView extends StatelessWidget {
               color: t.fill,
               shape: RoundedSuperellipseBorder(
                 borderRadius: BorderRadius.circular(t.radiusFull),
-                side: BorderSide(color: t.hairline),
+                side: BorderSide(color: t.line),
               ),
             ),
             child: Text(
@@ -549,7 +549,7 @@ class _RecordingViewState extends State<_RecordingView>
                   buffer: widget.amplitudeBuffer,
                   count: count,
                   writeIndex: widget.amplitudeWriteIndex,
-                  color: t.accentInk,
+                  color: t.brandInk,
                 ),
               ),
             ),

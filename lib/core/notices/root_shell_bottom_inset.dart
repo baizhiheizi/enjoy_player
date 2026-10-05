@@ -1,11 +1,11 @@
-/// Extra bottom clearance for floating notices above shell chrome (transport + nav).
+/// Extra bottom clearance for floating notices above shell chrome (dock + nav).
 library;
 
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
 
-/// Estimated total height of [GlobalTransportBar] (progress strip + control row +
+/// Estimated total height of the player dock (ruler + control row +
 /// padding). Slightly conservative so notices sit fully above the bar.
 const double kRootShellTransportSnackClearance = 128;
 

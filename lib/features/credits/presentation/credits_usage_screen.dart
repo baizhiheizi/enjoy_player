@@ -105,7 +105,7 @@ class _CreditsUsageBody extends ConsumerWidget {
                     maxLines: 2,
                     style: Theme.of(
                       context,
-                    ).textTheme.bodySmall?.copyWith(color: t.textFaint),
+                    ).textTheme.bodySmall?.copyWith(color: t.ink3),
                   ),
                 ),
                 SliverToBoxAdapter(child: SizedBox(height: t.space16)),
@@ -291,7 +291,7 @@ Widget _logsSliverGroup(
               '${!page.hasMore && page.logs.isNotEmpty ? ' · ${l10n.creditsUsageTotalRecords(filters.offset + page.logs.length)}' : ''}';
           final pageInfoStyle = Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: t.textFaint);
+          ).textTheme.bodySmall?.copyWith(color: t.ink3);
           final prev = EnjoyButton.secondary(
             onPressed: filters.offset == 0 ? null : ctrl.goToPreviousPage,
             child: Text(l10n.creditsUsagePrevious),
@@ -363,7 +363,7 @@ class _UsageTotalsCard extends StatelessWidget {
     final percent = (ratio * 100).round();
     final clean = denied == 0 && required > 0;
 
-    final ringColor = t.scoreGood;
+    final ringColor = t.ink;
     final figure = NumberFormat.decimalPattern(
       Localizations.localeOf(context).toString(),
     ).format(required);
@@ -386,7 +386,7 @@ class _UsageTotalsCard extends StatelessWidget {
                     trackColor: t.fill,
                     gradientColors: clean
                         ? [ringColor, ringColor]
-                        : [t.auroraStart, t.auroraEnd],
+                        : [t.logoStart, t.logoEnd],
                     strokeWidth: _ringStroke,
                   ),
                 ),
@@ -431,7 +431,7 @@ class _UsageTotalsCard extends StatelessWidget {
                 Text(
                   shownLabel,
                   maxLines: 2,
-                  style: tt.bodySmall?.copyWith(color: t.textFaint),
+                  style: tt.bodySmall?.copyWith(color: t.ink3),
                 ),
               ],
             ),
@@ -659,10 +659,10 @@ class _UsageTable extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final df = DateFormat.yMMMd(localeName);
     final tf = DateFormat.yMMMd().add_jm();
-    final cellStyle = enjoyMonoStyle(context, size: 13, color: t.textFaint);
+    final cellStyle = enjoyMonoStyle(context, size: 13, color: t.ink3);
 
     return DataTable(
-      headingRowColor: WidgetStatePropertyAll(t.card),
+      headingRowColor: WidgetStatePropertyAll(t.paper),
       headingTextStyle: enjoyMonoStyle(
         context,
         size: 12,
@@ -780,7 +780,7 @@ class _UsageLogCard extends StatelessWidget {
                       'UTC · ${log.date}',
                       style: Theme.of(
                         context,
-                      ).textTheme.bodySmall?.copyWith(color: t.textFaint),
+                      ).textTheme.bodySmall?.copyWith(color: t.ink3),
                     ),
                   ],
                 ),
@@ -817,7 +817,7 @@ class _UsageLogCard extends StatelessWidget {
                         label,
                         style: Theme.of(
                           context,
-                        ).textTheme.labelSmall?.copyWith(color: t.textFaint),
+                        ).textTheme.labelSmall?.copyWith(color: t.ink3),
                       ),
                       SizedBox(height: t.space4),
                       Text(value, style: numberStyle),
@@ -854,10 +854,8 @@ class _UsageBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final fg = allowed ? t.scoreGood : cs.error;
-    final bg = allowed
-        ? t.scoreGoodContainer
-        : cs.error.withValues(alpha: 0.10);
+    final fg = allowed ? t.ink : cs.error;
+    final bg = allowed ? t.sunk : cs.error.withValues(alpha: 0.10);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),

@@ -85,8 +85,8 @@ class TodaysGoalCard extends ConsumerWidget {
         );
         final encouragement = _encouragementText(l10n, progress.encouragement);
         final done = progress.isComplete;
-        final progressColor = done ? t.scoreGood : cs.primary;
-        final msgColor = done ? t.scoreGood : cs.onSurfaceVariant;
+        final progressColor = done ? t.ink : cs.primary;
+        final msgColor = done ? t.ink : cs.onSurfaceVariant;
 
         final child = variant == TodaysGoalCardVariant.card
             ? _buildCardVariant(
@@ -188,7 +188,7 @@ class TodaysGoalCard extends ConsumerWidget {
               trackColor: t.fill,
               gradientColors: done
                   ? [progressColor, progressColor]
-                  : [t.auroraStart, t.auroraEnd],
+                  : [t.logoStart, t.logoEnd],
               strokeWidth: stroke,
             ),
           ),

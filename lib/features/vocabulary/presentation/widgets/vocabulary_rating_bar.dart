@@ -29,7 +29,7 @@ class VocabularyRatingBar extends StatelessWidget {
     return Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
+        constraints: BoxConstraints(maxWidth: t.transcriptMaxListen),
         child: Row(
           children: [
             Expanded(

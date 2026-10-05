@@ -109,7 +109,7 @@ class CraftFailureCard extends StatelessWidget {
                         child: Icon(
                           EnjoyIcons.errorFill,
                           size: 28,
-                          color: t.scoreBad,
+                          color: t.danger,
                         ),
                       ),
                       SizedBox(height: t.space16),

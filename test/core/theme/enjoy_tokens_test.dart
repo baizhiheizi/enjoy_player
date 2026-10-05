@@ -78,17 +78,17 @@ void main() {
       expect(tokens.hairline, AppColors.lineDark);
       expect(tokens.fill, AppColors.sunkDark);
       expect(tokens.textFaint, AppColors.ink3Dark);
-      expect(tokens.auroraStart, AppColors.logoStart);
-      expect(tokens.auroraEnd, AppColors.logoEnd);
+      expect(tokens.logoStart, AppColors.logoStart);
+      expect(tokens.logoEnd, AppColors.logoEnd);
       expect(tokens.shellInset, 0);
       expect(tokens.panelRadius, 0);
       expect(tokens.controlHeightSm, 32);
       expect(tokens.controlHeight, 40);
       expect(tokens.controlHeightLg, 50);
-      expect(tokens.shadowCard, isNotEmpty);
+      expect(tokens.shadowLift, isNotEmpty);
       expect(tokens.shadowFloat, isNotEmpty);
       expect(tokens.shadowPopover, isNotEmpty);
-      expect(tokens.aurora.colors, [AppColors.logoStart, AppColors.logoEnd]);
+      expect(tokens.logo.colors, [AppColors.logoStart, AppColors.logoEnd]);
 
       expect(
         tokens.transcriptLinePadding,

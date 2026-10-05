@@ -166,7 +166,7 @@ class _FilterChipShell extends StatelessWidget {
         decoration: ShapeDecoration(
           shape: CircleBorder(
             side: BorderSide(
-              color: selected ? t.accentInk : t.hairline,
+              color: selected ? t.brandInk : t.line,
               width: selected ? 2 : 1,
             ),
           ),

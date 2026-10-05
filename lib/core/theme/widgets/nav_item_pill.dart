@@ -62,7 +62,7 @@ class NavItemPill extends StatelessWidget {
         ? ShapeDecoration(
             color: t.paper,
             shape: RoundedSuperellipseBorder(borderRadius: radius),
-            shadows: t.shadowCard,
+            shadows: t.shadowLift,
           )
         : ShapeDecoration(
             shape: RoundedSuperellipseBorder(borderRadius: radius),

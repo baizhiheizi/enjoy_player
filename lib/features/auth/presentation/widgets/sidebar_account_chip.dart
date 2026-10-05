@@ -160,7 +160,7 @@ class _AccountRow extends StatelessWidget {
         decoration: ShapeDecoration(
           color: selected ? t.paper : Colors.transparent,
           shape: RoundedSuperellipseBorder(borderRadius: radius),
-          shadows: selected ? t.shadowCard : const [],
+          shadows: selected ? t.shadowLift : const [],
         ),
         child: Row(
           children: [

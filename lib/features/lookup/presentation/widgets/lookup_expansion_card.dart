@@ -51,7 +51,7 @@ class _LookupExpansionCardState extends State<LookupExpansionCard> {
         color: scheme.surfaceContainerLow,
         shape: RoundedSuperellipseBorder(
           borderRadius: BorderRadius.circular(t.radiusMd),
-          side: BorderSide(color: t.hairline),
+          side: BorderSide(color: t.line),
         ),
       ),
       child: ClipRSuperellipse(

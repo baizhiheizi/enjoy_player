@@ -81,7 +81,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
 
   Widget _buildTrailing(ColorScheme cs, EnjoyThemeTokens t) {
     if (widget.trailing != null) return widget.trailing!;
-    final chevron = Icon(EnjoyIcons.chevronRight, size: 15, color: t.textFaint);
+    final chevron = Icon(EnjoyIcons.chevronRight, size: 15, color: t.ink3);
     if (widget.onDelete != null && showMediaCardPointerDeleteButton()) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -155,7 +155,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
             DecoratedBox(
               decoration: ShapeDecoration(
                 shape: RoundedSuperellipseBorder(borderRadius: artRadius),
-                shadows: light ? t.shadowCard : const <BoxShadow>[],
+                shadows: light ? t.shadowLift : const <BoxShadow>[],
               ),
               child: ClipRSuperellipse(
                 borderRadius: artRadius,

@@ -33,7 +33,7 @@ void main() {
     expect(sources.length, greaterThan(200));
   });
 
-  test('no Material ink ripple: InkWell is banned in lib/ (ADR-0089 §6)', () {
+  test('no Material ink ripple: InkWell is banned in lib/ (ADR-0091)', () {
     final offenders = <String>[];
     for (final f in sources) {
       final lines = f.readAsLinesSync();
@@ -52,7 +52,7 @@ void main() {
     );
   });
 
-  test('no Material Icons in lib/ (ADR-0089 §4)', () {
+  test('no Material Icons in lib/ (ADR-0091)', () {
     final offenders = <String>[];
     for (final f in sources) {
       final lines = f.readAsLinesSync();
@@ -142,5 +142,66 @@ void main() {
           'Use logNamed from core/logging/log.dart.\n'
           '${offenders.join('\n')}',
     );
+  });
+
+  test(
+    'no BackdropFilter or ImageFilter.blur in the player, transcript, or shadow reading',
+    () {
+      final scanned = <String>[
+        'lib/features/player',
+        'lib/features/transcript',
+        'lib/features/shadow_reading',
+      ];
+      final offenders = <String>[];
+      for (final dir in scanned) {
+        for (final f in _dartSources(Directory('${root.path}/$dir'))) {
+          final lines = f.readAsLinesSync();
+          for (var i = 0; i < lines.length; i++) {
+            final line = lines[i];
+            if (line.contains('BackdropFilter') ||
+                line.contains('ImageFilter.blur')) {
+              offenders.add(
+                '${f.path.replaceFirst('${root.path}/', '')}:${i + 1}',
+              );
+            }
+          }
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason:
+            'Duet paints hidden text as shapes and flat surfaces; blur filters '
+            'are banned.\n${offenders.join('\n')}',
+      );
+    },
+  );
+
+  test('no references to deleted Aurora symbols', () {
+    const deleted = [
+      'AuroraGlow',
+      'GlassSurface',
+      'PlayerAmbientBackdrop',
+      'GlobalTransportBar',
+      'TransportProgressStrip',
+      'NarrowTransportBudget',
+      'PlayerCollapseControl',
+      'PlayerFrostedBackButton',
+    ];
+    final offenders = <String>[];
+    for (final f in sources) {
+      final lines = f.readAsLinesSync();
+      for (var i = 0; i < lines.length; i++) {
+        for (final symbol in deleted) {
+          if (lines[i].contains(symbol)) {
+            offenders.add(
+              '${f.path.replaceFirst('${root.path}/', '')}:${i + 1} '
+              '$symbol',
+            );
+          }
+        }
+      }
+    }
+    expect(offenders, isEmpty, reason: offenders.join('\n'));
   });
 }

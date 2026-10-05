@@ -104,7 +104,7 @@ class EnjoyIconTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(size * 0.27),
           ),
         ),
-        child: Icon(icon, size: size * 0.56, color: t.textFaint),
+        child: Icon(icon, size: size * 0.56, color: t.ink3),
       );
     }
     return Container(

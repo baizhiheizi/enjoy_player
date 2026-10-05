@@ -150,7 +150,7 @@ class _MediaCardTileState extends State<MediaCardTile> {
             shape: RoundedSuperellipseBorder(borderRadius: radius),
             shadows: hover
                 ? t.shadowFloat
-                : (light ? t.shadowCard : const <BoxShadow>[]),
+                : (light ? t.shadowLift : const <BoxShadow>[]),
           ),
           child: ClipRSuperellipse(
             borderRadius: radius,
@@ -338,7 +338,7 @@ class _MediaCardTileState extends State<MediaCardTile> {
                                 ),
                               ),
                               if (kindLabel != null)
-                                MediaCardMetaDot(color: t.textFaint),
+                                MediaCardMetaDot(color: t.ink3),
                             ],
                             if (kindLabel != null)
                               Flexible(

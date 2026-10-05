@@ -196,7 +196,7 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: t.space8),
-                child: Divider(height: 1, thickness: 1, color: t.hairline),
+                child: Divider(height: 1, thickness: 1, color: t.line),
               ),
               VoicePicker(
                 language: state.targetLanguage,
@@ -280,7 +280,7 @@ class _NativeTextCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(EnjoyIcons.quote, size: 16, color: t.textFaint),
+                Icon(EnjoyIcons.quote, size: 16, color: t.ink3),
                 SizedBox(width: t.space8),
                 Expanded(
                   child: Text(
@@ -342,7 +342,7 @@ class _CraftTextField extends StatelessWidget {
     final theme = Theme.of(context);
     final fieldRadius = BorderRadius.circular(t.radiusMd);
     final side = BorderSide(
-      color: enabled ? t.hairline : t.hairline.withValues(alpha: 0.5),
+      color: enabled ? t.line : t.line.withValues(alpha: 0.5),
     );
 
     return TextField(
@@ -366,7 +366,7 @@ class _CraftTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: fieldRadius,
-          borderSide: BorderSide(color: t.accentInk, width: 1.5),
+          borderSide: BorderSide(color: t.brandInk, width: 1.5),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: fieldRadius,
@@ -422,7 +422,7 @@ class _TargetTextCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: ShapeDecoration(
-                    color: t.accentSoft,
+                    color: t.brandSoft,
                     shape: RoundedSuperellipseBorder(
                       borderRadius: BorderRadius.circular(t.radiusSm),
                     ),
@@ -433,7 +433,7 @@ class _TargetTextCard extends StatelessWidget {
                       context,
                       size: 12.5,
                       weight: FontWeight.w600,
-                      color: t.accentInk,
+                      color: t.brandInk,
                     ),
                   ),
                 ),

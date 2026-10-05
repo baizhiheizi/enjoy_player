@@ -160,7 +160,7 @@ class ProfileStatsRow extends StatelessWidget {
               if (i > 0)
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: t.space16),
-                  child: VerticalDivider(width: 1, color: t.hairline),
+                  child: VerticalDivider(width: 1, color: t.line),
                 ),
               Expanded(child: tiles[i]),
             ],

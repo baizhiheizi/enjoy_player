@@ -110,7 +110,7 @@ class _EnjoyPressableState extends State<EnjoyPressable> {
   BorderSide _ringSide(EnjoyThemeTokens t) {
     if (!_focused || !widget.showFocusRing) return BorderSide.none;
     return BorderSide(
-      color: t.accentInk.withValues(alpha: 0.85),
+      color: t.brandInk.withValues(alpha: 0.85),
       width: t.focusRingWidth,
     );
   }

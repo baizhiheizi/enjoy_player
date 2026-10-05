@@ -229,7 +229,7 @@ class MediaCardMetaLanguage extends StatelessWidget {
     final text = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(EnjoyIcons.translate, size: 12.5, color: t.textFaint),
+        Icon(EnjoyIcons.translate, size: 12.5, color: t.ink3),
         const SizedBox(width: 4),
         Flexible(
           child: Text(

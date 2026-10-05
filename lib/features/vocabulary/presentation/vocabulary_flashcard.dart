@@ -184,7 +184,7 @@ class _FlashcardFront extends StatelessWidget {
       fontStyle: FontStyle.italic,
       fontWeight: FontWeight.w700,
       color: cs.onSurface,
-      backgroundColor: t.accentSoft,
+      backgroundColor: t.brandSoft,
     );
     final hint = isDesktop
         ? l10n.vocabularyFlipHintShortcuts

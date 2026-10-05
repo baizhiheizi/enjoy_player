@@ -160,7 +160,7 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
       builder: (context, constraints) {
         final maxWidth = math.min(
           constraints.maxWidth,
-          t.contentMaxWidth + 2 * _hPad,
+          t.transcriptMaxListen + 2 * _hPad,
         );
 
         Widget constrain(Widget child) => Align(
@@ -262,7 +262,9 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                 children: [
                   Center(
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
+                      constraints: BoxConstraints(
+                        maxWidth: t.transcriptMaxListen,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [

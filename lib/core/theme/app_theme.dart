@@ -117,7 +117,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     textStyle: buttonText,
     splashFactory: NoSplash.splashFactory,
     backgroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? Colors.transparent : t.card,
+      (s) => s.contains(WidgetState.disabled) ? Colors.transparent : t.paper,
     ),
     foregroundColor: WidgetStateProperty.resolveWith(
       (s) => s.contains(WidgetState.disabled) ? disabledFg : cs.onSurface,
@@ -146,15 +146,15 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     textStyle: buttonText,
     splashFactory: NoSplash.splashFactory,
     foregroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.accentInk,
+      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.brandInk,
     ),
     iconColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.accentInk,
+      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.brandInk,
     ),
     iconSize: const WidgetStatePropertyAll(17),
     overlayColor: overlay(
-      hoverColor: t.accentInk.withValues(alpha: 0.08),
-      pressedColor: t.accentInk.withValues(alpha: 0.14),
+      hoverColor: t.brandInk.withValues(alpha: 0.08),
+      pressedColor: t.brandInk.withValues(alpha: 0.14),
     ),
   );
 
@@ -164,7 +164,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     iconSize: const WidgetStatePropertyAll(20),
     foregroundColor: WidgetStateProperty.resolveWith((s) {
       if (s.contains(WidgetState.disabled)) return disabledFg;
-      if (s.contains(WidgetState.selected)) return t.accentInk;
+      if (s.contains(WidgetState.selected)) return t.brandInk;
       return cs.onSurfaceVariant;
     }),
     overlayColor: overlay(),
@@ -178,14 +178,14 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       );
 
   final menuStyle = MenuStyle(
-    backgroundColor: WidgetStatePropertyAll(t.popover),
+    backgroundColor: WidgetStatePropertyAll(t.raised),
     surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
     elevation: const WidgetStatePropertyAll(12),
     shadowColor: WidgetStatePropertyAll(
       Colors.black.withValues(alpha: light ? 0.28 : 0.7),
     ),
     shape: WidgetStatePropertyAll(
-      enjoyShape(t.radiusMd, side: BorderSide(color: t.hairline)),
+      enjoyShape(t.radiusMd, side: BorderSide(color: t.line)),
     ),
     padding: WidgetStatePropertyAll(EdgeInsets.all(t.space4 + 2)),
   );
@@ -200,9 +200,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     highlightColor: pressed,
     hoverColor: hover,
     focusColor: focus,
-    canvasColor: t.popover,
-    cardColor: t.card,
-    dividerColor: t.hairline,
+    canvasColor: t.raised,
+    cardColor: t.paper,
+    dividerColor: t.line,
     disabledColor: disabledFg,
     extensions: <ThemeExtension<dynamic>>[t, transcriptTokens],
     textTheme: tt,
@@ -227,7 +227,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       elevation: 0,
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      color: t.card,
+      color: t.paper,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
       shape: enjoyShape(t.radiusCard, side: BorderSide(color: t.line)),
@@ -244,22 +244,22 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       minVerticalPadding: 10,
       minLeadingWidth: 24,
       horizontalTitleGap: t.space12,
-      selectedColor: t.accentInk,
-      selectedTileColor: t.accentSoft,
+      selectedColor: t.brandInk,
+      selectedTileColor: t.brandSoft,
       shape: enjoyShape(t.radiusMd - 2),
     ),
     navigationBarTheme: NavigationBarThemeData(
       height: t.bottomNavHeight,
-      backgroundColor: t.card,
-      indicatorColor: t.accentSoft,
+      backgroundColor: t.paper,
+      indicatorColor: t.brandSoft,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       labelTextStyle: WidgetStatePropertyAll(tt.labelSmall),
     ),
     navigationRailTheme: NavigationRailThemeData(
       backgroundColor: Colors.transparent,
-      indicatorColor: t.accentSoft,
-      selectedIconTheme: IconThemeData(color: t.accentInk, size: 20),
+      indicatorColor: t.brandSoft,
+      selectedIconTheme: IconThemeData(color: t.brandInk, size: 20),
       unselectedIconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 20),
       selectedLabelTextStyle: tt.labelMedium?.copyWith(
         fontWeight: FontWeight.w600,
@@ -302,8 +302,8 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       insetPadding: EdgeInsets.all(t.space16),
     ),
     bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: t.popover,
-      modalBackgroundColor: t.popover,
+      backgroundColor: t.raised,
+      modalBackgroundColor: t.raised,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       modalElevation: 0,
@@ -333,9 +333,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
           tt.labelMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         shape: WidgetStatePropertyAll(enjoyShape(t.radiusSm + 1)),
-        side: WidgetStatePropertyAll(BorderSide(color: t.hairline)),
+        side: WidgetStatePropertyAll(BorderSide(color: t.line)),
         backgroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? t.card : t.fill,
+          (s) => s.contains(WidgetState.selected) ? t.paper : t.fill,
         ),
         foregroundColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected)
@@ -344,7 +344,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
         ),
         iconColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected)
-              ? t.accentInk
+              ? t.brandInk
               : cs.onSurfaceVariant,
         ),
         overlayColor: overlay(),
@@ -353,9 +353,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     ),
     toggleButtonsTheme: ToggleButtonsThemeData(
       borderRadius: BorderRadius.circular(t.radiusSm),
-      borderColor: t.hairline,
-      selectedBorderColor: t.hairline,
-      fillColor: t.card,
+      borderColor: t.line,
+      selectedBorderColor: t.line,
+      fillColor: t.paper,
       selectedColor: cs.onSurface,
       color: cs.onSurfaceVariant,
     ),
@@ -406,7 +406,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     ),
     iconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 22),
     primaryIconTheme: IconThemeData(color: cs.onPrimary, size: 22),
-    dividerTheme: DividerThemeData(color: t.hairline, thickness: 1, space: 1),
+    dividerTheme: DividerThemeData(color: t.line, thickness: 1, space: 1),
     dialogTheme: DialogThemeData(
       elevation: 16,
       shadowColor: Colors.black.withValues(alpha: light ? 0.32 : 0.8),
@@ -431,10 +431,10 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       ),
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: t.popover,
+      color: t.raised,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.black.withValues(alpha: light ? 0.28 : 0.7),
-      shape: enjoyShape(t.radiusMd, side: BorderSide(color: t.hairline)),
+      shape: enjoyShape(t.radiusMd, side: BorderSide(color: t.line)),
       elevation: 12,
       textStyle: tt.bodyMedium,
       labelTextStyle: WidgetStatePropertyAll(tt.bodyMedium),
@@ -490,10 +490,10 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
         vertical: t.space12,
       ),
       isDense: false,
-      hintStyle: tt.bodyMedium?.copyWith(color: t.textFaint),
+      hintStyle: tt.bodyMedium?.copyWith(color: t.ink3),
       labelStyle: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
       floatingLabelStyle: tt.labelLarge?.copyWith(
-        color: t.accentInk,
+        color: t.brandInk,
         fontWeight: FontWeight.w600,
       ),
       helperStyle: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
@@ -554,7 +554,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
         borderSide: BorderSide(color: cs.primary, width: 2),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
       ),
-      dividerColor: t.hairline,
+      dividerColor: t.line,
       overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       splashFactory: NoSplash.splashFactory,
     ),

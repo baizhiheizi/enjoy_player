@@ -121,8 +121,8 @@ class EnjoyIconOrb extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  t.auroraEnd.withValues(alpha: light ? 0.14 : 0.20),
-                  t.auroraStart.withValues(alpha: 0),
+                  t.logoEnd.withValues(alpha: light ? 0.14 : 0.20),
+                  t.logoStart.withValues(alpha: 0),
                 ],
               ),
             ),
@@ -137,12 +137,12 @@ class EnjoyIconOrb extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   Color.alphaBlend(
-                    t.auroraStart.withValues(alpha: light ? 0.12 : 0.22),
-                    t.card,
+                    t.logoStart.withValues(alpha: light ? 0.12 : 0.22),
+                    t.paper,
                   ),
                   Color.alphaBlend(
-                    t.auroraEnd.withValues(alpha: light ? 0.14 : 0.26),
-                    t.card,
+                    t.logoEnd.withValues(alpha: light ? 0.14 : 0.26),
+                    t.paper,
                   ),
                 ],
               ),
@@ -153,9 +153,9 @@ class EnjoyIconOrb extends StatelessWidget {
                       : Colors.white.withValues(alpha: 0.08),
                 ),
               ),
-              shadows: t.shadowCard,
+              shadows: t.shadowLift,
             ),
-            child: Icon(icon, size: size * 0.4, color: t.accentInk),
+            child: Icon(icon, size: size * 0.4, color: t.brandInk),
           ),
         ],
       ),

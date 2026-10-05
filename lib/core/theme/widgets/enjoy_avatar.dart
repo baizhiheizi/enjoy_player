@@ -44,8 +44,8 @@ class EnjoyAvatar extends StatelessWidget {
     final hasImage = url != null && url.isNotEmpty;
     final seed = name.codeUnits.fold<int>(0, (a, b) => a + b);
     final hueShift = (seed % 5) / 5;
-    final start = Color.lerp(t.auroraStart, t.auroraEnd, hueShift)!;
-    final end = Color.lerp(t.auroraEnd, t.auroraStart, hueShift * 0.5)!;
+    final start = Color.lerp(t.logoStart, t.logoEnd, hueShift)!;
+    final end = Color.lerp(t.logoEnd, t.logoStart, hueShift * 0.5)!;
 
     final Widget face = hasImage
         ? CachedNetworkImage(

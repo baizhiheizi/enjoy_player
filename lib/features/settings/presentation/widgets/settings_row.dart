@@ -87,7 +87,7 @@ class SettingsRow extends StatelessWidget {
     }
 
     Widget disclosure() {
-      return Icon(EnjoyIcons.chevronRight, size: 15, color: t.textFaint);
+      return Icon(EnjoyIcons.chevronRight, size: 15, color: t.ink3);
     }
 
     List<Widget> trailingWidgets() {
@@ -235,7 +235,7 @@ class SettingsRowDivider extends StatelessWidget {
                 kSettingsRowLeadingGap
           : kSettingsRowHorizontalPadding,
       endIndent: 0,
-      color: t.hairline,
+      color: t.line,
     );
   }
 }

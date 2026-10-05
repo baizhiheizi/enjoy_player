@@ -34,7 +34,7 @@ class VoicePicker extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(EnjoyIcons.speak, size: 18, color: t.accentInk),
+        Icon(EnjoyIcons.speak, size: 18, color: t.brandInk),
         SizedBox(width: t.space8),
         Text(
           l10n.craftVoiceLabel,

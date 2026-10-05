@@ -699,7 +699,7 @@ class _GroupRow extends StatelessWidget {
                 ),
               ),
             ] else
-              Icon(EnjoyIcons.chevronRight, size: 15, color: t.textFaint),
+              Icon(EnjoyIcons.chevronRight, size: 15, color: t.ink3),
           ],
         ),
       ),
@@ -804,10 +804,7 @@ class _ConsolePanel extends StatelessWidget {
               style: enjoyDisplayStyle(context, size: 20, color: cs.onSurface),
             ),
             SizedBox(height: t.space8),
-            Text(
-              '—',
-              style: enjoyMonoStyle(context, size: 13, color: t.textFaint),
-            ),
+            Text('—', style: enjoyMonoStyle(context, size: 13, color: t.ink3)),
           ],
         ),
       );

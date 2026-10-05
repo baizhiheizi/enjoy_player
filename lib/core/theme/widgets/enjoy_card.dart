@@ -70,6 +70,6 @@ ShapeDecoration enjoyCardDecoration(
       borderRadius: BorderRadius.circular(radius ?? t.radiusCard),
       side: BorderSide(color: t.line),
     ),
-    shadows: elevated ? t.shadowCard : const [],
+    shadows: elevated ? t.shadowLift : const [],
   );
 }

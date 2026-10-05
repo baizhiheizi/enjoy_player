@@ -317,7 +317,7 @@ class _SynthLangTile extends StatelessWidget {
             ),
           ),
           SizedBox(width: t.space4),
-          Icon(EnjoyIcons.chevronRight, size: 18, color: t.textFaint),
+          Icon(EnjoyIcons.chevronRight, size: 18, color: t.ink3),
         ],
       ),
     );
@@ -355,7 +355,7 @@ class _PreviewPlayer extends StatelessWidget {
                 child: Icon(
                   isPlaying ? EnjoyIcons.pause : EnjoyIcons.play,
                   size: 22,
-                  color: t.accentInk,
+                  color: t.brandInk,
                 ),
               ),
             ),

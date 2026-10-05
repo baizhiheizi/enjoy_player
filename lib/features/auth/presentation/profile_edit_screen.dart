@@ -210,7 +210,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: t.aurora,
+                            gradient: t.logo,
                           ),
                           child: Container(
                             padding: const EdgeInsets.all(3),

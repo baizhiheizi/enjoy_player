@@ -569,7 +569,7 @@ class _PaidTierCard extends StatelessWidget {
                   style: enjoyDisplayStyle(
                     context,
                     size: 44,
-                    color: _isLite ? cs.onSurface : t.accentInk,
+                    color: _isLite ? cs.onSurface : t.brandInk,
                     height: 1,
                   ),
                 )
@@ -617,10 +617,10 @@ class _PaidTierCard extends StatelessWidget {
       return DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(t.radiusLg + 2),
-          gradient: t.aurora,
+          gradient: t.logo,
           boxShadow: [
             BoxShadow(
-              color: t.auroraEnd.withValues(alpha: 0.25),
+              color: t.logoEnd.withValues(alpha: 0.25),
               blurRadius: 32,
               spreadRadius: -6,
               offset: const Offset(0, 12),

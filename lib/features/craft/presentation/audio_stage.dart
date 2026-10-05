@@ -304,7 +304,7 @@ class _UnsavedPreviewHint extends StatelessWidget {
         color: t.fill,
         shape: RoundedSuperellipseBorder(
           borderRadius: BorderRadius.circular(t.radiusMd),
-          side: BorderSide(color: t.hairline),
+          side: BorderSide(color: t.line),
         ),
       ),
       child: Padding(
@@ -315,7 +315,7 @@ class _UnsavedPreviewHint extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(EnjoyIcons.info, size: 18, color: t.accentInk),
+            Icon(EnjoyIcons.info, size: 18, color: t.brandInk),
             SizedBox(width: t.space8),
             Expanded(
               child: Text(
@@ -418,7 +418,7 @@ class _ScriptBlockState extends State<_ScriptBlock> {
         color: t.fill,
         shape: RoundedSuperellipseBorder(
           borderRadius: BorderRadius.circular(t.radiusLg),
-          side: BorderSide(color: t.hairline),
+          side: BorderSide(color: t.line),
         ),
       ),
       child: ClipRSuperellipse(
@@ -431,7 +431,7 @@ class _ScriptBlockState extends State<_ScriptBlock> {
               top: 0,
               bottom: 0,
               child: ColoredBox(
-                color: t.accentInk,
+                color: t.brandInk,
                 child: const SizedBox(width: _ScriptBlock.accentBarWidth),
               ),
             ),
@@ -451,7 +451,7 @@ class _ScriptBlockState extends State<_ScriptBlock> {
                       context,
                       size: 12.5,
                       weight: FontWeight.w600,
-                      color: t.accentInk,
+                      color: t.brandInk,
                     ),
                   ),
                   SizedBox(height: t.space8),
@@ -519,7 +519,7 @@ class _VoiceChip extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(EnjoyIcons.speak, size: 18, color: t.accentInk),
+                  Icon(EnjoyIcons.speak, size: 18, color: t.brandInk),
                   SizedBox(width: t.space8),
                   Text(
                     l10n.craftVoiceLabel,
@@ -544,7 +544,7 @@ class _VoiceChip extends StatelessWidget {
                   Icon(
                     expanded ? EnjoyIcons.chevronUp : EnjoyIcons.chevronDown,
                     size: 18,
-                    color: t.textFaint,
+                    color: t.ink3,
                   ),
                 ],
               ),

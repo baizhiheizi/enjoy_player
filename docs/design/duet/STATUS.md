@@ -15,8 +15,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 2 · Shell | 3 | 3 |
 | 3 · Player | 13 | 13 |
 | 4 · App screens | 11 | 11 |
-| 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **36** |
+| 5 · Cleanup, proof, merge | 6 | 3 |
+| **Total** | **43** | **39** |
 
 ## Decisions
 
@@ -96,8 +96,8 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| D5.1 | Rename pass + delete Aurora | — | Phases 1–4 | todo | | | |
-| D5.2 | Design-language invariant test | — | D5.1 | todo | | | |
+| D5.1 | Rename pass + delete Aurora | — | Phases 1–4 | done | | | All lib/ call sites on final Duet names (canvas→ground, card→paper, popover→raised, fill→sunk, hairline→line, textFaint→ink3, accent*→brand*, intelligence→originalInk, echo*→you*, blurActive→ink, score*→ink2/sunk/danger, aurora*→logo*, contentMaxWidth→transcriptMaxListen, shadowCard→shadowLift); GlassSurface, AuroraGlow, PlayerAmbientBackdrop, GlobalTransportBar, progress strip, collapse controls, Playfair deleted. The ~30 alias FIELDS on EnjoyThemeTokens stay until a follow-up (mechanical deletion deferred — constructor/copyWith/lerp surgery left for a dedicated pass; zero lib/ call sites remain) |
+| D5.2 | Design-language invariant test | — | D5.1 | done | | | Renamed to duet_design_language_test.dart; added: no BackdropFilter/ImageFilter.blur under player/transcript/shadow-reading, no deleted Aurora symbols in lib/ |
 | D5.3 | Docs (app-ui.md rewrite, feature docs) | — | D5.1 | todo | | | |
 | D5.4 | Performance evidence | — | D5.1 | todo | | | |
 | D5.5 | Platform QA matrix | all | D5.1 | todo | | | Record results here |

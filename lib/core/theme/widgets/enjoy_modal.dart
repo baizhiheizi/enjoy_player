@@ -49,7 +49,7 @@ Future<T?> showEnjoySheet<T>({
     useRootNavigator: useRootNavigator,
     useSafeArea: useSafeArea,
     showDragHandle: false,
-    backgroundColor: t.popover,
+    backgroundColor: t.raised,
     barrierColor: enjoyModalBarrierColor(context),
     clipBehavior: Clip.antiAlias,
     shape: RoundedSuperellipseBorder(

@@ -227,7 +227,7 @@ class EnjoySectionHeader extends StatelessWidget {
                   Text(
                     caption!,
                     style: tt.bodySmall?.copyWith(
-                      color: t.textFaint,
+                      color: t.ink3,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),

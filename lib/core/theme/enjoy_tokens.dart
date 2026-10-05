@@ -90,15 +90,15 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       hairline: light ? AppColors.lineLight : AppColors.lineDark,
       fill: light ? AppColors.sunkLight : AppColors.sunkDark,
       textFaint: light ? AppColors.ink3Light : AppColors.ink3Dark,
-      auroraStart: AppColors.logoStart,
-      auroraEnd: AppColors.logoEnd,
+      logoStart: AppColors.logoStart,
+      logoEnd: AppColors.logoEnd,
       topHighlight: Colors.transparent,
       shellInset: 0,
       panelRadius: 0,
       controlHeightSm: 32,
       controlHeight: 40,
       controlHeightLg: 50,
-      shadowCard: _shadowLift(light),
+      shadowLift: _shadowLift(light),
       shadowFloat: _shadowFloat(light),
       shadowPopover: _shadowFloat(light),
       ground: light ? AppColors.groundLight : AppColors.groundDark,
@@ -265,15 +265,15 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.hairline,
     required this.fill,
     required this.textFaint,
-    required this.auroraStart,
-    required this.auroraEnd,
+    required this.logoStart,
+    required this.logoEnd,
     required this.topHighlight,
     required this.shellInset,
     required this.panelRadius,
     required this.controlHeightSm,
     required this.controlHeight,
     required this.controlHeightLg,
-    required this.shadowCard,
+    required this.shadowLift,
     required this.shadowFloat,
     required this.shadowPopover,
     required this.ground,
@@ -370,11 +370,8 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   LinearGradient get logo => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [auroraStart, auroraEnd],
+    colors: [logoStart, logoEnd],
   );
-
-  /// Legacy name of [logo]; removed in the D5.1 rename pass.
-  LinearGradient get aurora => logo;
 
   final double space4;
   final double space8;
@@ -538,10 +535,10 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final Color textFaint;
 
   /// Logo gradient start (original blue).
-  final Color auroraStart;
+  final Color logoStart;
 
   /// Logo gradient end (you violet).
-  final Color auroraEnd;
+  final Color logoEnd;
 
   /// Legacy dark-surface lit edge; transparent in Duet.
   final Color topHighlight;
@@ -562,7 +559,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final double controlHeightLg;
 
   /// Resting card shadow.
-  final List<BoxShadow> shadowCard;
+  final List<BoxShadow> shadowLift;
 
   /// Floating chrome shadow (tab bar, dock, popovers).
   final List<BoxShadow> shadowFloat;
@@ -788,15 +785,15 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     Color? hairline,
     Color? fill,
     Color? textFaint,
-    Color? auroraStart,
-    Color? auroraEnd,
+    Color? logoStart,
+    Color? logoEnd,
     Color? topHighlight,
     double? shellInset,
     double? panelRadius,
     double? controlHeightSm,
     double? controlHeight,
     double? controlHeightLg,
-    List<BoxShadow>? shadowCard,
+    List<BoxShadow>? shadowLift,
     List<BoxShadow>? shadowFloat,
     List<BoxShadow>? shadowPopover,
     Color? ground,
@@ -952,15 +949,15 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       hairline: hairline ?? this.hairline,
       fill: fill ?? this.fill,
       textFaint: textFaint ?? this.textFaint,
-      auroraStart: auroraStart ?? this.auroraStart,
-      auroraEnd: auroraEnd ?? this.auroraEnd,
+      logoStart: logoStart ?? this.logoStart,
+      logoEnd: logoEnd ?? this.logoEnd,
       topHighlight: topHighlight ?? this.topHighlight,
       shellInset: shellInset ?? this.shellInset,
       panelRadius: panelRadius ?? this.panelRadius,
       controlHeightSm: controlHeightSm ?? this.controlHeightSm,
       controlHeight: controlHeight ?? this.controlHeight,
       controlHeightLg: controlHeightLg ?? this.controlHeightLg,
-      shadowCard: shadowCard ?? this.shadowCard,
+      shadowLift: shadowLift ?? this.shadowLift,
       shadowFloat: shadowFloat ?? this.shadowFloat,
       shadowPopover: shadowPopover ?? this.shadowPopover,
       ground: ground ?? this.ground,
@@ -1201,15 +1198,15 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       hairline: Color.lerp(hairline, other.hairline, t)!,
       fill: Color.lerp(fill, other.fill, t)!,
       textFaint: Color.lerp(textFaint, other.textFaint, t)!,
-      auroraStart: Color.lerp(auroraStart, other.auroraStart, t)!,
-      auroraEnd: Color.lerp(auroraEnd, other.auroraEnd, t)!,
+      logoStart: Color.lerp(logoStart, other.logoStart, t)!,
+      logoEnd: Color.lerp(logoEnd, other.logoEnd, t)!,
       topHighlight: Color.lerp(topHighlight, other.topHighlight, t)!,
       shellInset: lerpDouble(shellInset, other.shellInset, t)!,
       panelRadius: lerpDouble(panelRadius, other.panelRadius, t)!,
       controlHeightSm: lerpDouble(controlHeightSm, other.controlHeightSm, t)!,
       controlHeight: lerpDouble(controlHeight, other.controlHeight, t)!,
       controlHeightLg: lerpDouble(controlHeightLg, other.controlHeightLg, t)!,
-      shadowCard: BoxShadow.lerpList(shadowCard, other.shadowCard, t)!,
+      shadowLift: BoxShadow.lerpList(shadowLift, other.shadowLift, t)!,
       shadowFloat: BoxShadow.lerpList(shadowFloat, other.shadowFloat, t)!,
       shadowPopover: BoxShadow.lerpList(shadowPopover, other.shadowPopover, t)!,
       ground: Color.lerp(ground, other.ground, t)!,

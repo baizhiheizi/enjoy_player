@@ -48,13 +48,13 @@ class ProfileHeroCard extends ConsumerWidget {
             end: Alignment.bottomRight,
             colors: [
               Color.alphaBlend(
-                t.auroraStart.withValues(alpha: light ? 0.08 : 0.14),
-                t.card,
+                t.logoStart.withValues(alpha: light ? 0.08 : 0.14),
+                t.paper,
               ),
-              t.card,
+              t.paper,
               Color.alphaBlend(
-                t.auroraEnd.withValues(alpha: light ? 0.10 : 0.16),
-                t.card,
+                t.logoEnd.withValues(alpha: light ? 0.10 : 0.16),
+                t.paper,
               ),
             ],
             stops: const [0, 0.55, 1],
@@ -69,13 +69,13 @@ class ProfileHeroCard extends ConsumerWidget {
                 padding: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: t.aurora,
+                  gradient: t.logo,
                 ),
                 child: Container(
                   padding: const EdgeInsets.all(2.5),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: t.card,
+                    color: t.paper,
                   ),
                   child: EnjoyAvatar(
                     name: p.name,
@@ -115,7 +115,7 @@ class ProfileHeroCard extends ConsumerWidget {
                         context,
                         size: 11.5,
                         weight: FontWeight.w400,
-                        color: t.textFaint,
+                        color: t.ink3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -132,7 +132,7 @@ class ProfileHeroCard extends ConsumerWidget {
                   child: Text(l10n.subscriptionUpgradeShort),
                 ),
               ] else
-                Icon(EnjoyIcons.chevronRight, size: 16, color: t.textFaint),
+                Icon(EnjoyIcons.chevronRight, size: 16, color: t.ink3),
             ],
           ),
         ),

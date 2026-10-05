@@ -164,7 +164,7 @@ class _CraftHistoryTile extends StatelessWidget {
 
     return SettingsRow(
       leadingIcon: EnjoyIcons.sparkle,
-      leadingIconTint: t.accentInk,
+      leadingIconTint: t.brandInk,
       title: media.title,
       subtitle: dateFmt.format(media.updatedAt.toLocal()),
       onTap: onTap,

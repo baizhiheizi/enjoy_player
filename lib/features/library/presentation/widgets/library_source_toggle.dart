@@ -45,12 +45,10 @@ class LibrarySourceToggle extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.fromLTRB(t.space8 + 2, 4, t.space8, 4),
             decoration: ShapeDecoration(
-              color: isCloud ? t.accentSoft : t.fill,
+              color: isCloud ? t.brandSoft : t.fill,
               shape: StadiumBorder(
                 side: BorderSide(
-                  color: isCloud
-                      ? t.accentInk.withValues(alpha: 0.18)
-                      : t.hairline,
+                  color: isCloud ? t.brandInk.withValues(alpha: 0.18) : t.line,
                 ),
               ),
             ),
@@ -60,21 +58,21 @@ class LibrarySourceToggle extends StatelessWidget {
                 Icon(
                   isCloud ? EnjoyIcons.cloudDone : EnjoyIcons.monitor,
                   size: 13,
-                  color: isCloud ? t.accentInk : cs.onSurfaceVariant,
+                  color: isCloud ? t.brandInk : cs.onSurfaceVariant,
                 ),
                 const SizedBox(width: 5),
                 Text(
                   label,
                   style: tt.labelMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isCloud ? t.accentInk : cs.onSurfaceVariant,
+                    color: isCloud ? t.brandInk : cs.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Icon(
                   EnjoyIcons.caretUpDown,
                   size: 12,
-                  color: isCloud ? t.accentInk : t.textFaint,
+                  color: isCloud ? t.brandInk : t.ink3,
                 ),
               ],
             ),
