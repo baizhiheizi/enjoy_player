@@ -159,6 +159,7 @@
   "playerDockHideText": "隐藏文本",
   "playerDockLinePosition": "第 {line} / {total} 句",
   "playerDockLooping": "· 循环中",
+  "playerDockLinesSpanPosition": "第 {start}–{end} / {total} 句",
   "playerDockOriginal": "原声",
   "exitEchoMode": "退出回声模式",
   "transcript": "字幕稿",

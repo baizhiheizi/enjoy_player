@@ -553,6 +553,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerDockLooping => '· looping';
 
   @override
+  String playerDockLinesSpanPosition(int start, int end, int total) {
+    return 'Lines $start–$end of $total';
+  }
+
+  @override
   String get playerDockOriginal => 'Original';
 
   @override

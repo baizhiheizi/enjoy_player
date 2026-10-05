@@ -208,6 +208,8 @@
   "playerDockLinePosition": "Line {line} of {total}",
   "@playerDockLinePosition": {"description": "Dock readout of the active transcript line.", "placeholders": {"line": {"type": "int"}, "total": {"type": "int"}}},
   "playerDockLooping": "· looping",
+  "playerDockLinesSpanPosition": "Lines {start}–{end} of {total}",
+  "@playerDockLinesSpanPosition": {"description": "Dock readout when the Echo loop spans several lines.", "placeholders": {"start": {"type": "int"}, "end": {"type": "int"}, "total": {"type": "int"}}},
   "playerDockOriginal": "Original",
   "@playerDockOriginal": {"description": "Dock pill in Echo that replays the original loop audio."},
   "@playerDockLooping": {"description": "Suffix shown in the dock while the Echo loop is active."},

@@ -534,6 +534,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDockLooping => '· 循环中';
 
   @override
+  String playerDockLinesSpanPosition(int start, int end, int total) {
+    return '第 $start–$end / $total 句';
+  }
+
+  @override
   String get playerDockOriginal => '原声';
 
   @override
@@ -4360,6 +4365,11 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get playerDockLooping => '· 循环中';
+
+  @override
+  String playerDockLinesSpanPosition(int start, int end, int total) {
+    return '第 $start–$end / $total 句';
+  }
 
   @override
   String get playerDockOriginal => '原声';

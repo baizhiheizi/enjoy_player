@@ -158,15 +158,17 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final phone = constraints.maxWidth < t.breakpointCompact;
+            final showLineMeta = constraints.maxWidth >= 980;
+            final hidePillIconOnly = constraints.maxWidth < 1100;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                   child: RepaintBoundary(child: SentenceRuler(chrome: chrome)),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                   child: AnimatedSwitcher(
                     duration: MediaQuery.disableAnimationsOf(context)
                         ? Duration.zero
@@ -186,7 +188,12 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             key: ValueKey<bool>(echo.active),
                             mediaId: chrome.mediaId,
                             phone: phone,
+                            showLineMeta: showLineMeta,
+                            hidePillIconOnly: hidePillIconOnly,
                             blurEnabled: blurEnabled,
+                            playbackRate: playbackRate,
+                            loopStartLine: echo.startLineIndex,
+                            loopEndLine: echo.endLineIndex,
                             onToggleHideText: interactions.toggleBlur,
                             onPrev: interactions.prevLine,
                             onNext: interactions.nextLine,
@@ -194,11 +201,14 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             onRecord: () => ref
                                 .read(shadowReadingHotkeyBusProvider.notifier)
                                 .pulseRecording(),
+                            onSpeed: _openPlaybackRateSheet,
                           )
                         : _ListenControls(
                             key: ValueKey<bool>(echo.active),
                             mediaId: chrome.mediaId,
                             phone: phone,
+                            showLineMeta: showLineMeta,
+                            hidePillIconOnly: hidePillIconOnly,
                             blurEnabled: blurEnabled,
                             echoAvailable: hasLines || echo.active,
                             playing: playing,
@@ -246,14 +256,14 @@ class _HideTextPill extends StatelessWidget {
       message: l10n.transcriptBlurToggleTooltip,
       child: EnjoyPressable(
         onTap: onToggle,
-        borderRadius: BorderRadius.circular(t.radiusFull),
+        borderRadius: BorderRadius.circular(t.radiusControl),
         child: Container(
-          height: 34,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: ShapeDecoration(
             color: active ? t.ink : Colors.transparent,
-            shape: StadiumBorder(
-              side: BorderSide(color: active ? t.ink : t.line),
+            shape: RoundedSuperellipseBorder(
+              borderRadius: BorderRadius.circular(t.radiusControl),
             ),
           ),
           child: Row(
@@ -261,20 +271,20 @@ class _HideTextPill extends StatelessWidget {
             children: [
               Icon(
                 active ? EnjoyIcons.eyeOff : EnjoyIcons.eye,
-                size: 16,
-                color: active ? t.ground : t.ink2,
+                size: 18,
+                color: active ? t.paper : t.ink2,
               ),
               if (!iconOnly) ...[
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   l10n.playerDockHideText,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: active ? t.ground : t.ink2,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: active ? t.paper : t.ink2,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 const EnjoyKeycap(label: 'H'),
               ],
             ],
@@ -286,10 +296,17 @@ class _HideTextPill extends StatelessWidget {
 }
 
 class _LineCounter extends ConsumerWidget {
-  const _LineCounter({required this.mediaId, required this.looping});
+  const _LineCounter({
+    required this.mediaId,
+    this.loopStartLine,
+    this.loopEndLine,
+  });
 
   final String mediaId;
-  final bool looping;
+
+  /// Echo loop bounds; null in Listen (follows the playing cue instead).
+  final int? loopStartLine;
+  final int? loopEndLine;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -299,15 +316,31 @@ class _LineCounter extends ConsumerWidget {
         .watch(transcriptLinesForMediaProvider(mediaId))
         .value
         ?.length;
-    final cue = ref
-        .watch(transcriptPlaybackHighlightProvider(mediaId))
-        .cueIndex;
-    if (total == null || total == 0 || cue < 0) return const SizedBox.shrink();
+    final loopStart = loopStartLine;
+    final loopEnd = loopEndLine;
+    final looping = loopStart != null && loopEnd != null;
+    String? positionText;
+    if (loopStart != null && loopEnd != null) {
+      positionText = loopEnd > loopStart
+          ? l10n.playerDockLinesSpanPosition(
+              loopStart + 1,
+              loopEnd + 1,
+              total ?? 0,
+            )
+          : l10n.playerDockLinePosition(loopStart + 1, total ?? 0);
+    } else {
+      final cue = ref
+          .watch(transcriptPlaybackHighlightProvider(mediaId))
+          .cueIndex;
+      if (total != null && total > 0 && cue >= 0) {
+        positionText = l10n.playerDockLinePosition(cue + 1, total);
+      }
+    }
+    if (positionText == null) return const SizedBox.shrink();
     return Text(
-      looping
-          ? '${l10n.playerDockLinePosition(cue + 1, total)} ${l10n.playerDockLooping}'
-          : l10n.playerDockLinePosition(cue + 1, total),
+      looping ? '$positionText ${l10n.playerDockLooping}' : positionText,
       maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
         fontSize: 12.5,
         color: t.ink3,
@@ -393,6 +426,7 @@ class _RecordButton extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
     final size = phone ? t.recordButtonSizePhone : t.recordButtonSize;
+    final inner = size - 12;
     return OnboardingTarget(
       tipId: OnboardingTipId.playerRecord,
       onTargetAction: onToggle,
@@ -402,21 +436,65 @@ class _RecordButton extends StatelessWidget {
           onTap: onToggle,
           borderRadius: BorderRadius.circular(size / 2),
           pressedScale: 0.94,
-          child: Container(
+          child: SizedBox(
             width: size,
             height: size,
-            alignment: Alignment.center,
-            decoration: ShapeDecoration(
-              color: t.you,
-              shape: const CircleBorder(),
-              shadows: t.shadowRecordButton,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox.expand(
+                  child: Padding(
+                    padding: const EdgeInsets.all(1.5),
+                    child: CustomPaint(
+                      painter: _RecordRingPainter(color: t.youLine),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: inner,
+                  height: inner,
+                  alignment: Alignment.center,
+                  decoration: ShapeDecoration(
+                    color: t.you,
+                    shape: const CircleBorder(),
+                    shadows: t.shadowRecordButton,
+                  ),
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: t.onYou,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            child: Icon(EnjoyIcons.micFill, size: size * 0.36, color: t.onYou),
           ),
         ),
       ),
     );
   }
+}
+
+class _RecordRingPainter extends CustomPainter {
+  const _RecordRingPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    final rect = Offset.zero & size;
+    canvas.drawArc(rect, 0, 2 * 3.141592653589793, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(_RecordRingPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _OriginalPill extends StatelessWidget {
@@ -440,28 +518,61 @@ class _OriginalPill extends StatelessWidget {
         child: Container(
           width: width,
           height: height,
-          alignment: Alignment.center,
+          padding: phone ? EdgeInsets.zero : const EdgeInsets.only(left: 8),
           decoration: ShapeDecoration(
-            color: t.originalSoft,
+            color: t.paper,
             shape: const StadiumBorder(),
+            shadows: t.shadowLift,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(EnjoyIcons.play, size: 18, color: t.originalInk),
-              if (!phone) ...[
-                const SizedBox(width: 8),
-                Text(
-                  l10n.playerDockOriginal,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: t.originalInk,
+          child: phone
+              ? Center(
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: t.originalSoft,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      EnjoyIcons.play,
+                      size: 14,
+                      color: t.originalInk,
+                    ),
                   ),
+                )
+              : Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: t.originalSoft,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        EnjoyIcons.play,
+                        size: 14,
+                        color: t.originalInk,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        l10n.playerDockOriginal,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: t.originalInk,
+                            ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const EnjoyKeycap(label: 'S'),
+                  ],
                 ),
-              ],
-            ],
-          ),
         ),
       ),
     );
@@ -511,6 +622,8 @@ class _ListenControls extends StatelessWidget {
     super.key,
     required this.mediaId,
     required this.phone,
+    required this.showLineMeta,
+    required this.hidePillIconOnly,
     required this.blurEnabled,
     required this.echoAvailable,
     required this.playing,
@@ -527,6 +640,8 @@ class _ListenControls extends StatelessWidget {
 
   final String mediaId;
   final bool phone;
+  final bool showLineMeta;
+  final bool hidePillIconOnly;
   final bool blurEnabled;
   final bool echoAvailable;
   final bool playing;
@@ -543,20 +658,18 @@ class _ListenControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final left = LayoutBuilder(
-      builder: (context, constraints) {
-        return Row(
-          children: [
-            _HideTextPill(
-              active: blurEnabled,
-              onToggle: onToggleHideText,
-              iconOnly: phone,
-            ),
-            const SizedBox(width: 10),
-            Flexible(child: _LineCounter(mediaId: mediaId, looping: false)),
-          ],
-        );
-      },
+    final left = Row(
+      children: [
+        _HideTextPill(
+          active: blurEnabled,
+          onToggle: onToggleHideText,
+          iconOnly: hidePillIconOnly,
+        ),
+        if (showLineMeta) ...[
+          const SizedBox(width: 12),
+          Flexible(child: _LineCounter(mediaId: mediaId)),
+        ],
+      ],
     );
     final center = Row(
       mainAxisSize: MainAxisSize.min,
@@ -607,7 +720,7 @@ class _ListenControls extends StatelessWidget {
 
     if (phone) {
       return SizedBox(
-        height: 108,
+        height: 116,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -643,35 +756,56 @@ class _EchoControls extends StatelessWidget {
     super.key,
     required this.mediaId,
     required this.phone,
+    required this.showLineMeta,
+    required this.hidePillIconOnly,
     required this.blurEnabled,
+    required this.playbackRate,
+    required this.loopStartLine,
+    required this.loopEndLine,
     required this.onToggleHideText,
     required this.onPrev,
     required this.onNext,
     required this.onOriginal,
     required this.onRecord,
+    required this.onSpeed,
   });
 
   final String mediaId;
   final bool phone;
+  final bool showLineMeta;
+  final bool hidePillIconOnly;
   final bool blurEnabled;
+  final double playbackRate;
+  final int loopStartLine;
+  final int loopEndLine;
   final Future<void> Function() onToggleHideText;
   final Future<void> Function() onPrev;
   final Future<void> Function() onNext;
   final Future<void> Function() onOriginal;
   final VoidCallback onRecord;
+  final VoidCallback onSpeed;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     final left = Row(
       children: [
         _HideTextPill(
           active: blurEnabled,
           onToggle: onToggleHideText,
-          iconOnly: phone,
+          iconOnly: hidePillIconOnly,
         ),
-        const SizedBox(width: 10),
-        Flexible(child: _LineCounter(mediaId: mediaId, looping: true)),
+        if (showLineMeta) ...[
+          const SizedBox(width: 12),
+          Flexible(
+            child: _LineCounter(
+              mediaId: mediaId,
+              loopStartLine: loopStartLine,
+              loopEndLine: loopEndLine,
+            ),
+          ),
+        ],
       ],
     );
     final center = Row(
@@ -683,12 +817,22 @@ class _EchoControls extends StatelessWidget {
           onTap: onPrev,
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: _OriginalPill(phone: phone, onPlay: onOriginal),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: _RecordButton(phone: phone, onToggle: onRecord),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Container(
+            padding: const EdgeInsets.all(5),
+            decoration: ShapeDecoration(
+              color: t.sunk,
+              shape: const StadiumBorder(),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _OriginalPill(phone: phone, onPlay: onOriginal),
+                const SizedBox(width: 6),
+                _RecordButton(phone: phone, onToggle: onRecord),
+              ],
+            ),
+          ),
         ),
         _DockIconButton(
           icon: EnjoyIcons.skipForwardLine,
@@ -698,15 +842,19 @@ class _EchoControls extends StatelessWidget {
       ],
     );
     final right = !phone
-        ? const Row(
+        ? Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [TransportVolumeButton()],
+            children: [
+              _SpeedPill(rate: playbackRate, onOpen: onSpeed),
+              const SizedBox(width: 6),
+              const TransportVolumeButton(),
+            ],
           )
         : const SizedBox.shrink();
 
     if (phone) {
       return SizedBox(
-        height: 112,
+        height: 124,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -719,7 +867,7 @@ class _EchoControls extends StatelessWidget {
     }
 
     return SizedBox(
-      height: 64,
+      height: 76,
       child: Row(
         children: [
           Expanded(child: left),
@@ -746,59 +894,123 @@ class _RecordingControls extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
     return SizedBox(
-      height: 60,
+      height: 76,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          EnjoyPressable(
-            onTap: onCancel,
-            borderRadius: BorderRadius.circular(t.radiusFull),
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              alignment: Alignment.center,
-              decoration: ShapeDecoration(
-                shape: StadiumBorder(side: BorderSide(color: t.line)),
-              ),
-              child: Text(
-                l10n.asrLongMediaConfirmCancel,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: t.ink2,
-                ),
-              ),
+          const SizedBox(width: 40),
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: ShapeDecoration(
+              color: t.sunk,
+              shape: const StadiumBorder(),
             ),
-          ),
-          const SizedBox(width: 16),
-          EnjoyPressable(
-            onTap: onStop,
-            borderRadius: BorderRadius.circular(31),
-            child: Container(
-              height: 62,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              alignment: Alignment.center,
-              decoration: ShapeDecoration(
-                color: t.you,
-                shape: const StadiumBorder(),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(EnjoyIcons.stop, size: 18, color: t.onYou),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.shadowRecordingStop,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: t.onYou,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Tooltip(
+                  message: l10n.asrLongMediaConfirmCancel,
+                  child: EnjoyPressable(
+                    onTap: onCancel,
+                    borderRadius: BorderRadius.circular(t.radiusFull),
+                    pressedScale: 0.96,
+                    child: Container(
+                      width: 150,
+                      height: 52,
+                      padding: const EdgeInsets.only(left: 8, right: 12),
+                      decoration: ShapeDecoration(
+                        color: t.paper,
+                        shape: const StadiumBorder(),
+                        shadows: t.shadowLift,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: t.sunk,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              EnjoyIcons.close,
+                              size: 14,
+                              color: t.ink2,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              l10n.asrLongMediaConfirmCancel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: t.ink2,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const EnjoyKeycap(label: 'Esc'),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 6),
+                Tooltip(
+                  message: l10n.shadowRecordingStop,
+                  child: Semantics(
+                    label: l10n.shadowRecordingStop,
+                    button: true,
+                    child: EnjoyPressable(
+                      onTap: onStop,
+                      borderRadius: BorderRadius.circular(31),
+                      pressedScale: 0.94,
+                      child: SizedBox(
+                        width: 62,
+                        height: 62,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox.expand(
+                              child: Padding(
+                                padding: const EdgeInsets.all(1.5),
+                                child: CustomPaint(
+                                  painter: _RecordRingPainter(color: t.youLine),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              width: 50,
+                              height: 50,
+                              alignment: Alignment.center,
+                              decoration: ShapeDecoration(
+                                color: t.you,
+                                shape: const CircleBorder(),
+                                shadows: t.shadowRecordButton,
+                              ),
+                              child: Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: t.onYou,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(width: 40),
         ],
       ),
     );

@@ -134,6 +134,8 @@ void main() {
     tester,
   ) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await tester.binding.setSurfaceSize(const Size(1280, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await pumpDock(tester);
 
     expect(find.text(l10n.playerDockHideText), findsOneWidget);
@@ -152,19 +154,25 @@ void main() {
 
   testWidgets('Echo dock swaps in Original and Record', (tester) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await tester.binding.setSurfaceSize(const Size(1280, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await pumpDock(tester, echoActive: true);
 
     expect(find.text(l10n.playerDockOriginal), findsOneWidget);
-    expect(find.byIcon(EnjoyIcons.micFill), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.micFill), findsNothing);
+    expect(find.textContaining('Lines 1–2'), findsOneWidget);
+    expect(find.textContaining(l10n.playerDockLooping), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.skipBackLine), findsOneWidget);
   });
 
   testWidgets('Recording dock shows Cancel and Stop', (tester) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await tester.binding.setSurfaceSize(const Size(1280, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await pumpDock(tester, recording: true);
 
-    expect(find.text(l10n.shadowRecordingStop), findsOneWidget);
     expect(find.text(l10n.asrLongMediaConfirmCancel), findsOneWidget);
+    expect(find.bySemanticsLabel(l10n.shadowRecordingStop), findsOneWidget);
     expect(find.text(l10n.playerDockOriginal), findsNothing);
   });
 

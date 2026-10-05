@@ -1071,6 +1071,12 @@ abstract class AppLocalizations {
   /// **'· looping'**
   String get playerDockLooping;
 
+  /// Dock readout when the Echo loop spans several lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Lines {start}–{end} of {total}'**
+  String playerDockLinesSpanPosition(int start, int end, int total);
+
   /// Dock pill in Echo that replays the original loop audio.
   ///
   /// In en, this message translates to:
