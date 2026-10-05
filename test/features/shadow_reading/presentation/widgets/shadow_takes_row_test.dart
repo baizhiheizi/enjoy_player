@@ -8,6 +8,8 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_takes_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -232,6 +234,42 @@ void main() {
     expect(scrolls, isNotEmpty);
     expect(scrolls.every((s) => s.scrollDirection == Axis.horizontal), isTrue);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('mouse wheel scrolls the chip line horizontally', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      await tester.binding.setSurfaceSize(const Size(420, 300));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await pumpRow(
+        tester,
+        takes: [
+          _row(id: 't3', localPath: '/tmp/t3.wav'),
+          _row(id: 't2', localPath: '/tmp/t2.wav'),
+          _row(id: 't1', localPath: '/tmp/t1.wav'),
+        ],
+        selectedId: 't3',
+      );
+
+      final scrollable = find
+          .descendant(
+            of: find.byType(ShadowTakesRow),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      final center = tester.getCenter(scrollable);
+
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(pointer.hover(center));
+      await tester.sendEventToBinding(pointer.scroll(const Offset(0, 60)));
+      await tester.pump();
+
+      final state = tester.state<ScrollableState>(scrollable);
+      expect(state.position.pixels, greaterThan(0));
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('empty region shows the hint with the R keycap', (tester) async {

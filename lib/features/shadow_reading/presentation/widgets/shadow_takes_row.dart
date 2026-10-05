@@ -1,9 +1,14 @@
 /// Takes strip under the echo loop: one chip per take plus the Pitch pill.
+///
+/// One horizontal line: the overline stays pinned left, chips scroll
+/// between it and the Pitch pill (touch pans natively; desktop drags the
+/// scrollbar thumb or scrolls the mouse wheel).
 library;
 
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +16,7 @@ import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -22,7 +28,7 @@ import 'package:enjoy_player/features/shadow_reading/presentation/recording_asse
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_flow.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-class ShadowTakesRow extends ConsumerWidget {
+class ShadowTakesRow extends ConsumerStatefulWidget {
   const ShadowTakesRow({
     required this.takes,
     required this.selectedId,
@@ -49,14 +55,42 @@ class ShadowTakesRow extends ConsumerWidget {
   final void Function(RecordingRow row) onChooseTake;
   final VoidCallback onTogglePitch;
 
+  @override
+  ConsumerState<ShadowTakesRow> createState() => _ShadowTakesRowState();
+}
+
+class _ShadowTakesRowState extends ConsumerState<ShadowTakesRow> {
+  final ScrollController _chipsScroll = ScrollController();
+
+  @override
+  void dispose() {
+    _chipsScroll.dispose();
+    super.dispose();
+  }
+
   int _takeNumber(RecordingRow row) {
+    final takes = widget.takes;
     final i = takes.indexWhere((e) => e.id == row.id);
     if (i < 0) return takes.length;
     return takes.length - i;
   }
 
+  void _onPointerSignal(PointerSignalEvent event) {
+    if (isMobilePlatform) return;
+    if (event is! PointerScrollEvent) return;
+    if (event.scrollDelta.dx != 0) return;
+    if (!_chipsScroll.hasClients) return;
+    final position = _chipsScroll.position;
+    if (position.maxScrollExtent <= 0) return;
+    final target = (position.pixels + event.scrollDelta.dy).clamp(
+      0.0,
+      position.maxScrollExtent,
+    );
+    position.jumpTo(target);
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final tok = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
@@ -66,16 +100,16 @@ class ShadowTakesRow extends ConsumerWidget {
         ?.effectiveLearningLanguage;
 
     final chips = [
-      for (final row in takes)
+      for (final row in widget.takes)
         _TakeChip(
           key: ValueKey('shadow-take-${row.id}'),
           row: row,
           takeNumber: _takeNumber(row),
-          selected: row.id == selectedId,
-          echoActive: echoActive,
+          selected: row.id == widget.selectedId,
+          echoActive: widget.echoActive,
           learningLanguage: learningLanguage,
-          onPlayOrPause: () => onPlayOrPause(row),
-          onChoose: () => onChooseTake(row),
+          onPlayOrPause: () => widget.onPlayOrPause(row),
+          onChoose: () => widget.onChooseTake(row),
         ),
     ];
 
@@ -84,7 +118,8 @@ class ShadowTakesRow extends ConsumerWidget {
       'player.togglePitchContour',
       l10n.pitchContourTitle,
     );
-    final pitchEnabled = takes.isNotEmpty && hasMediaPath && echoActive;
+    final pitchEnabled =
+        widget.takes.isNotEmpty && widget.hasMediaPath && widget.echoActive;
     final pitchPill = Tooltip(
       message: pitchTooltip,
       child: Opacity(
@@ -92,13 +127,13 @@ class ShadowTakesRow extends ConsumerWidget {
         child: IgnorePointer(
           ignoring: !pitchEnabled,
           child: EnjoyPressable(
-            onTap: onTogglePitch,
+            onTap: widget.onTogglePitch,
             borderRadius: BorderRadius.circular(tok.radiusControl),
             child: Container(
               height: 40,
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: ShapeDecoration(
-                color: pitchExpanded ? tok.sunk : Colors.transparent,
+                color: widget.pitchExpanded ? tok.sunk : Colors.transparent,
                 shape: RoundedSuperellipseBorder(
                   borderRadius: BorderRadius.circular(tok.radiusControl),
                 ),
@@ -113,7 +148,7 @@ class ShadowTakesRow extends ConsumerWidget {
                     style: tt.labelMedium?.copyWith(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w500,
-                      color: pitchExpanded ? tok.ink : tok.ink2,
+                      color: widget.pitchExpanded ? tok.ink : tok.ink2,
                     ),
                   ),
                 ],
@@ -124,7 +159,7 @@ class ShadowTakesRow extends ConsumerWidget {
       ),
     );
 
-    if (takes.isEmpty) {
+    if (chips.isEmpty) {
       return Row(
         children: [
           Flexible(
@@ -164,17 +199,24 @@ class ShadowTakesRow extends ConsumerWidget {
         Text(l10n.shadowTakesLabel.toUpperCase(), style: overlineStyle),
         const SizedBox(width: 8),
         Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final (i, chip) in chips.indexed)
-                  Padding(
-                    padding: EdgeInsets.only(left: i == 0 ? 0 : 8),
-                    child: chip,
-                  ),
-              ],
+          child: Listener(
+            onPointerSignal: _onPointerSignal,
+            child: Scrollbar(
+              controller: _chipsScroll,
+              child: SingleChildScrollView(
+                controller: _chipsScroll,
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final (i, chip) in chips.indexed)
+                      Padding(
+                        padding: EdgeInsets.only(left: i == 0 ? 0 : 8),
+                        child: chip,
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
