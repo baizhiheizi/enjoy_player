@@ -14,9 +14,9 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
 | 3 · Player | 13 | 13 |
-| 4 · App screens | 11 | 0 |
+| 4 · App screens | 11 | 8 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **25** |
+| **Total** | **43** | **33** |
 
 ## Decisions
 
@@ -80,13 +80,13 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| D4.1 | Home | `Home`, `HomeImport`, `HomeFirstRun`, `HomeDark`, `PhHome`, `PhHomeDark` | Phase 1, D2.1, D2.2 | todo | | | |
-| D4.2 | Discover | `Discover`, `DiscoverChannel`, `DiscoverManage`, `PhDiscover` | Phase 1, D2.3 | todo | | | |
-| D4.3 | Library | `Library`, `LibraryAudio`, `LibraryCloud`, `LibraryDelete`, `LibraryImporting`, `PhLibrary` | Phase 1, D2.3 | todo | | | |
-| D4.4 | Vocabulary | `Vocabulary`, `VocabularyReview`, `PhVocabulary` | Phase 1, D2.3 | todo | | | |
-| D4.5 | Review session | `Review`, `ReviewBack`, `ReviewDone`, `PhReview` | Phase 1 | todo | | | |
-| D4.6 | Craft | `Craft`, `CraftRewrite`, `CraftAudio`, `CraftAdvanced`, `CraftHistory`, `PhCraft` | Phase 1, D2.3 | todo | | | |
-| D4.7 | Sign-in | `SignIn`, `SignInCode`, `PhSignIn` | Phase 1 | todo | | | Then delete `AuroraGlow` |
+| D4.1 | Home | `Home`, `HomeImport`, `HomeFirstRun`, `HomeDark`, `PhHome`, `PhHomeDark` | Phase 1, D2.1, D2.2 | done | | | Board deltas were covered by D1/D2 primitives: logo-gradient goal ring (alias), generated covers, Duet grid; gallery compare verified |
+| D4.2 | Discover | `Discover`, `DiscoverChannel`, `DiscoverManage`, `PhDiscover` | Phase 1, D2.3 | done | | | Feed tiles already Duet (radius 14, In-library chip, provider pill from D1.7); chrome verified |
+| D4.3 | Library | `Library`, `LibraryAudio`, `LibraryCloud`, `LibraryDelete`, `LibraryImporting`, `PhLibrary` | Phase 1, D2.3 | done | | | Local/Cloud capsule, Video/Audio segmented, search keycap, danger delete confirm — all Duet via shared primitives; gallery verified |
+| D4.4 | Vocabulary | `Vocabulary`, `VocabularyReview`, `PhVocabulary` | Phase 1, D2.3 | done | | | vocabStatus 4-step bar rides the tokens; review radios brandInk via ColorScheme; due badge in sidebar (D2.1) |
+| D4.5 | Review session | `Review`, `ReviewBack`, `ReviewDone`, `PhReview` | Phase 1 | done | | | Rating controls uncolored via D1.2 scheme; done state uses the logo planes (D1.6 mark) |
+| D4.6 | Craft | `Craft`, `CraftRewrite`, `CraftAudio`, `CraftAdvanced`, `CraftHistory`, `PhCraft` | Phase 1, D2.3 | done | | | Record orb you + stop danger (D1.4); play ring brand gradient; style chips ink-pressed via chip theme |
+| D4.7 | Sign-in | `SignIn`, `SignInCode`, `PhSignIn` | Phase 1 | done | | | AuroraGlow deleted (last mount removed); flat ground sign-in |
 | D4.8 | Profile, Edit profile, Preferences | `Profile`, `ProfileEdit`, `ProfilePrefs`, `PhProfile` | Phase 1, D2.3 | todo | | | |
 | D4.9 | Subscription + Credits | `Subscription`, `SubscriptionPlans`, `Credits` | Phase 1, D2.3 | todo | | | |
 | D4.10 | Settings, Sync, Keyboard, AI providers, update dialog | `Settings`, `SettingsAbout`, `SettingsDark`, `Sync`, `Keyboard`, `KeyboardCheatsheet`, `AiProviders`, `PhSettings` | Phase 1, D2.3 | todo | | | |

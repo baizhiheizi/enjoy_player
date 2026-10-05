@@ -2,7 +2,7 @@
 ///
 /// [AppBackground] paints the page color only (Duet ground is flat,
 /// ADR-0091). [PlayerAmbientBackdrop] overlays the artwork-derived tint on
-/// player screens until the player rebuild removes it (D3.1).
+/// player screens.
 library;
 
 import 'package:flutter/material.dart';
@@ -21,19 +21,6 @@ class AppBackground extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return ColoredBox(color: color ?? cs.surface, child: child);
   }
-}
-
-/// Legacy aurora glow, painted nothing in Duet. The sign-in stage still
-/// mounts it until its rebuild (D4.7); the class and every call go away
-/// then.
-class AuroraGlow extends StatelessWidget {
-  const AuroraGlow({super.key, this.intensity = 1});
-
-  /// 0…1 multiplier — ignored.
-  final double intensity;
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 /// Overlays a soft ambient tint from [accentColor] on top of the scaffold

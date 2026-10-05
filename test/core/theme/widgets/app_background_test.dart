@@ -43,7 +43,6 @@ void main() {
               .first,
         );
         expect(fill.color, theme.colorScheme.surface);
-        expect(find.byType(AuroraGlow), findsNothing);
       });
     }
   });
