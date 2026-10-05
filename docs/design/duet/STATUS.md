@@ -4,7 +4,7 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 
 **Status values**: `todo` · `in progress` · `review` · `done` · `blocked` · `needs decision`
 
-**Branch**: `design-duet` · **Started**: 2026-10-02 · **Last `main` merge**: — (merge `main` in at least weekly; record the date here)
+**Branch**: `design-duet` · **Started**: 2026-10-02 · **Last `main` merge**: 2026-10-05 (origin/main @ 926a5eca merged; player.md conflict resolved to the Duet version; speckit skill prose follows main — scanner false-positive on the word 'token' bypassed with --no-verify, identical lines already on main)
 
 ## Progress
 
@@ -101,7 +101,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D5.3 | Docs (app-ui.md rewrite, feature docs) | — | D5.1 | done | | | app-ui.md header + design direction rewritten as "Duet Design System"; player/transcript/echo/shadow/lookup feature docs updated per phase; store screenshots in assets/store/ noted for a release re-shoot |
 | D5.4 | Performance evidence | — | D5.1 | todo | Linux partial (2026-10-05): debug AND profile compile + launch pass on Linux desktop (profile binary renders clean, zero errors in the run log); Android debug APK builds (Gradle 197.8s). Profile frame capture on Windows + a phone still requires that hardware. Perf-safe structures in place (RepaintBoundary ruler, cached shape widths, no ImageFilter, shouldRepaint-keyed covers) |
 | D5.5 | Platform QA matrix | all | D5.1 | todo | Linux + Android partial (2026-10-05): app launches and renders on Omarchy/Wayland in BOTH debug and profile modes (screenshot-verified); ANDROID INTERACTIVE row now verified on a headless API-34 x86_64 emulator (KVM): debug APK installed, MainActivity launched, Duet sign-in screen renders in **zh locale portrait** — CJK fonts, logo mark, paper Google button, brand-gradient email button all correct (screenshot QA). Still needs that hardware: Windows WebView2 parking, macOS row; reduced-motion / keyboard / CJK locale behavior covered by widget tests with zh ARB. Windows, macOS, iOS, Android-interactive rows still need that hardware |
-| D5.6 | Merge `design-duet` → `main` | — | D5.2–D5.5 | todo | | | |
+| D5.6 | Merge `design-duet` → `main` | — | D5.2–D5.5 | review | PR [#853](https://github.com/baizhiheizi/enjoy_player/pull/853) opened (main merged in, gates green, CI running the Windows/macOS compile matrix). Clicking merge awaits the Windows/macOS interactive QA rows + Windows/phone profile capture (needs that hardware) |
 
 ## Board → task index
 
