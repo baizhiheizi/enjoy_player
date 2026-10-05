@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
@@ -24,7 +25,6 @@ import 'package:enjoy_player/features/transcript/application/transcript_playback
 import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
-import 'package:enjoy_player/features/transcript/presentation/transcript_line_recording_badge.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_selection_toolbar.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_word_ipa_layer.dart';
@@ -151,9 +151,15 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     final typography = TranscriptTypographyTokens.of(context);
     final density = transcriptDensityOf(context);
     final l10n = AppLocalizations.of(context);
-    final baseBody = typography.bodyStyle.copyWith(height: density.bodyHeight);
+    final phone = isMobilePlatform;
+    final baseBody = typography.bodyStyle.copyWith(
+      height: phone ? 1.4 : 1.5,
+      fontSize: widget.isActive ? (phone ? 23.0 : 26.0) : (phone ? 18.0 : 20.0),
+      fontWeight: widget.isActive ? FontWeight.w500 : FontWeight.w400,
+    );
     final secondaryTypographyStyle = typography.secondaryStyle.copyWith(
-      height: density.secondaryHeight,
+      height: 1.55,
+      fontSize: widget.isActive ? 15.5 : 14.0,
     );
     final defaultFg = scheme.onSurface;
 
@@ -182,9 +188,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
         );
       }
     }
-    final karaokeFill = karaokeRange == null
-        ? null
-        : scheme.primary.withValues(alpha: 0.28);
+    final karaokeFill = karaokeRange == null ? null : tok.original;
 
     final blurEnabled = ref.watch(transcriptBlurModeProvider);
     final cueId = cueIdFor(widget.line);
@@ -241,24 +245,14 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
       valueListenable: _hover,
       builder: (context, hover, _) {
         Color? bg;
-        Color? railColor;
         if (widget.groupedInEcho) {
           if (echoCurrent) {
-            bg = tok.echoActive.withValues(alpha: 0.06);
-            railColor = null;
+            bg = tok.youSoft;
           } else if (widget.inEcho) {
             bg = Colors.transparent;
           }
-        } else if (echoCurrent) {
-          bg = tok.echoActive.withValues(alpha: 0.06);
-          railColor = tok.echoActive;
-        } else if (widget.isActive) {
-          bg = tok.accentSoft;
-          railColor = tok.accentInk;
-        } else if (widget.inEcho) {
-          bg = tok.echoActive.withValues(alpha: 0.04);
         } else if (hover) {
-          bg = scheme.onSurface.withValues(alpha: 0.035);
+          bg = tok.sunk.withValues(alpha: 0.55);
         }
 
         final isRevealed = !blurEnabled || hover || providerRevealed;
@@ -267,10 +261,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             widget.isActive ||
             widget.inEcho ||
             hover;
-        final light = Theme.of(context).brightness == Brightness.light;
-        final lineFg = focused
-            ? defaultFg
-            : defaultFg.withValues(alpha: light ? 0.64 : 0.6);
+        final lineFg = focused ? defaultFg : tok.ink3;
 
         Widget primaryWidget;
         if (useAligned && isRevealed) {
@@ -282,7 +273,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             defaultColor: lineFg,
             emphasize: widget.isActive,
             activeWordIndex: karaokeWordIndex,
-            activeUnderlineColor: scheme.primary,
+            activeUnderlineColor: tok.original,
             onIpaTap: _onIpaTap,
             selectableWordBuilder: widget.selectable
                 ? (context, text, style) => TranscriptSelectableRichText(
@@ -297,9 +288,10 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             widget.line.text,
             baseBody,
             defaultColor: lineFg,
-            emphasize: widget.isActive,
+            emphasize: false,
             highlightRange: karaokeRange,
             highlightFill: karaokeFill,
+            highlightUnderline: true,
           );
           primaryWidget = widget.selectable
               ? TranscriptSelectableRichText(
@@ -318,84 +310,77 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             ? null
             : TranscriptBlurText(revealed: isRevealed, child: secondaryWidget);
 
+        final hasTakes = recordingCount != null && recordingCount > 0;
         final textBody = Padding(
-          padding: tok.transcriptLinePadding.copyWith(
-            top: density.lineVerticalPadding,
-            bottom: density.lineVerticalPadding,
-          ),
-          child: Column(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(timestampText, style: timestampStyle),
-                  const Spacer(),
-                  TranscriptLineRecordingBadge(count: widget.recordingCount),
-                ],
-              ),
-              SizedBox(height: density.headerBodyGap),
-              blurredPrimary,
-              if (blurredSecondary != null) ...[
-                SizedBox(height: density.primarySecondaryGap),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      left: BorderSide(
-                        color: tok.accentInk.withValues(alpha: 0.28),
-                        width: 2,
+              SizedBox(
+                width: 52,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: phone
+                            ? (widget.isActive ? 10.0 : 6.0)
+                            : (widget.isActive ? 12.0 : 8.0),
                       ),
+                      child: Text(timestampText, style: timestampStyle),
                     ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: density.secondaryLeftPadding,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: blurredSecondary),
-                        if (widget.onRetranslateSecondary != null) ...[
-                          SizedBox(width: tok.space4),
-                          EnjoyTappableIcon(
-                            icon: EnjoyIcons.refresh,
-                            tooltip:
-                                AppLocalizations.of(
-                                  context,
-                                )?.subtitlesAutoTranslateRetranslateLine ??
-                                'Re-translate this line',
-                            iconSize: 18,
-                            color: scheme.onSurfaceVariant,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: widget.onRetranslateSecondary,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                    if (hasTakes) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: tok.you,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    blurredPrimary,
+                    if (blurredSecondary != null) ...[
+                      SizedBox(height: density.primarySecondaryGap),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: blurredSecondary),
+                          if (widget.onRetranslateSecondary != null) ...[
+                            SizedBox(width: tok.space4),
+                            EnjoyTappableIcon(
+                              icon: EnjoyIcons.refresh,
+                              tooltip:
+                                  AppLocalizations.of(
+                                    context,
+                                  )?.subtitlesAutoTranslateRetranslateLine ??
+                                  'Re-translate this line',
+                              iconSize: 18,
+                              color: scheme.onSurfaceVariant,
+                              visualDensity: VisualDensity.compact,
+                              onPressed: widget.onRetranslateSecondary,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ],
           ),
         );
 
-        final content = railColor != null
-            ? IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AnimatedContainer(
-                      duration: tok.motionFast,
-                      width: 3,
-                      decoration: BoxDecoration(
-                        color: railColor,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    Expanded(child: textBody),
-                  ],
-                ),
-              )
-            : textBody;
+        final content = textBody;
 
         final lineRadius = BorderRadius.circular(tok.radiusMd);
         if (widget.selectable) {

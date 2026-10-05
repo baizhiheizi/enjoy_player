@@ -280,6 +280,18 @@ Coverage lives under
 - `transcript_blur_long_list_perf_test.dart` — 10 000-line smoke
   under `ImageFiltered`; per-frame budget assertion.
 
+## Presentation — the Listen lens (Duet, ADR-0091)
+
+Each cue is a flat row on the ground: a 52px gutter with a mono
+timestamp (right-aligned) and, when the line has takes, a you practiced
+dot; the text column carries the Literata line (20 desktop / 18 phone;
+the active cue 26 / 23 at weight 500) with the Geist secondary
+translation (14, active 15.5) under it — no plate, no rail, no accent
+wash. Inactive cues read ink3 and brighten to ink on hover. The karaoke
+word paints as an **original-blue underline** on the spoken word (plain
+markup path and aligned-words path alike). The recording-count badge is
+replaced by the gutter dot; the count stays in the accessibility label.
+
 ## Karaoke highlight
 
 The "what is highlighted right now" question has a single owner:

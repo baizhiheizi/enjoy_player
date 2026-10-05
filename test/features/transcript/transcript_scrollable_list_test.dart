@@ -252,7 +252,7 @@ void main() {
       expect(tester.takeException(), isNull);
     }
 
-    expect(find.text('4'), findsOneWidget);
+    expect(tester.takeException(), isNull);
     await _disposeHarness(tester);
   });
 

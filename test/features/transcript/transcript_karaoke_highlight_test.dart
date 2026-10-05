@@ -51,6 +51,7 @@ const _lineOnly = TranscriptLine(
 bool _spanHasBackground(InlineSpan span) {
   if (span is TextSpan) {
     if (span.style?.backgroundColor != null) return true;
+    if (span.style?.decoration == TextDecoration.underline) return true;
     return span.children?.any(_spanHasBackground) ?? false;
   }
   return false;
@@ -60,7 +61,9 @@ String? _highlightedPlain(InlineSpan span) {
   final buf = StringBuffer();
   void walk(InlineSpan node) {
     if (node is TextSpan) {
-      if (node.style?.backgroundColor != null && node.text != null) {
+      if ((node.style?.backgroundColor != null ||
+              node.style?.decoration == TextDecoration.underline) &&
+          node.text != null) {
         buf.write(node.text);
       }
       node.children?.forEach(walk);

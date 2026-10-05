@@ -189,7 +189,7 @@ void main() {
     );
 
     final textFinder = find.text('Hello world');
-    final from = tester.getTopLeft(textFinder) + const Offset(4, 8);
+    final from = tester.getTopLeft(textFinder) + const Offset(30, 10);
     final gesture = await tester.startGesture(from);
     await tester.pump(const Duration(milliseconds: 600));
     await gesture.moveBy(const Offset(60, 0));
@@ -229,8 +229,20 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
-    expect(find.text('2'), findsOneWidget);
+    final tokens = EnjoyThemeTokens.of(
+      tester.element(find.byType(TranscriptLineTile)),
+    );
+    expect(find.byIcon(EnjoyIcons.mic), findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Container &&
+            w.constraints?.maxWidth == 6 &&
+            (w.decoration as BoxDecoration?)?.color == tokens.you,
+      ),
+      findsOneWidget,
+      reason: 'the practiced dot rides the timestamp gutter in you',
+    );
   });
 
   testWidgets('hides recording badge when recordingCount is zero', (
@@ -284,7 +296,7 @@ void main() {
     expect(find.byIcon(EnjoyIcons.mic), findsNothing);
   });
 
-  testWidgets('active line uses accentSoft wash in light and dark', (
+  testWidgets('active line stays flat on the ground without a plate', (
     tester,
   ) async {
     for (final brightness in [Brightness.light, Brightness.dark]) {
@@ -335,9 +347,10 @@ void main() {
         boxes.any(
           (b) => (b.decoration as ShapeDecoration?)?.color == tokens.accentSoft,
         ),
-        isTrue,
-        reason: 'active wash in $brightness',
+        isFalse,
+        reason: 'no active plate in $brightness — the Duet lens is flat',
       );
+      expect(find.text('00:00'), findsOneWidget);
     }
   });
 }

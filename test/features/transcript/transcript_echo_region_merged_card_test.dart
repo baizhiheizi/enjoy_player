@@ -113,8 +113,15 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
-    expect(find.text('2'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Container &&
+            (w.decoration as BoxDecoration?)?.shape == BoxShape.circle,
+      ),
+      findsOneWidget,
+      reason: 'the practiced take rides the gutter as a you dot',
+    );
   });
 
   testWidgets('echo region uses compact density on mobile', (tester) async {
