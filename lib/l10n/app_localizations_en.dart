@@ -542,6 +542,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerListenModeTitle => 'Listen';
 
   @override
+  String get playerDockHideText => 'Hide text';
+
+  @override
+  String playerDockLinePosition(int line, int total) {
+    return 'Line $line of $total';
+  }
+
+  @override
+  String get playerDockLooping => '· looping';
+
+  @override
+  String get playerDockOriginal => 'Original';
+
+  @override
   String get exitEchoMode => 'Exit echo mode';
 
   @override

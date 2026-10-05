@@ -1053,6 +1053,30 @@ abstract class AppLocalizations {
   /// **'Listen'**
   String get playerListenModeTitle;
 
+  /// Dock pill that toggles hiding the transcript text (blur practice).
+  ///
+  /// In en, this message translates to:
+  /// **'Hide text'**
+  String get playerDockHideText;
+
+  /// Dock readout of the active transcript line.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {line} of {total}'**
+  String playerDockLinePosition(int line, int total);
+
+  /// Suffix shown in the dock while the Echo loop is active.
+  ///
+  /// In en, this message translates to:
+  /// **'· looping'**
+  String get playerDockLooping;
+
+  /// Dock pill in Echo that replays the original loop audio.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get playerDockOriginal;
+
   /// No description provided for @exitEchoMode.
   ///
   /// In en, this message translates to:

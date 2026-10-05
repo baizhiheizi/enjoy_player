@@ -12,13 +12,6 @@ Widget _wrap({required Widget transcript}) {
   );
 }
 
-/// The Padding that wraps the transcript column (closest ancestor).
-Padding _transcriptPadding(WidgetTester tester, String text) {
-  return tester.widget<Padding>(
-    find.ancestor(of: find.text(text), matching: find.byType(Padding)).first,
-  );
-}
-
 void main() {
   testWidgets('renders transcript widget centered with max-width constraint', (
     tester,

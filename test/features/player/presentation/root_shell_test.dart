@@ -12,7 +12,7 @@ import 'package:enjoy_player/features/player/application/player_engine_test_doub
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/root_shell.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/global_transport_bar.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_dock.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
@@ -551,7 +551,7 @@ void main() {
       );
 
       expect(find.text('player-page'), findsOneWidget);
-      expect(find.byType(GlobalTransportBar), findsOneWidget);
+      expect(find.byType(PlayerDock), findsOneWidget);
     });
 
     shellTest(
@@ -576,7 +576,7 @@ void main() {
         expect(shellScaffolds, hasLength(1));
         expect(shellScaffolds.first.backgroundColor, Colors.transparent);
         expect(shellScaffolds.first.extendBody, isTrue);
-        expect(find.byType(GlobalTransportBar), findsOneWidget);
+        expect(find.byType(PlayerDock), findsOneWidget);
       },
     );
 
@@ -595,7 +595,7 @@ void main() {
         surface: const Size(400, 900),
       );
       await tester.pump();
-      expect(find.byType(GlobalTransportBar), findsNothing);
+      expect(find.byType(PlayerDock), findsNothing);
     });
 
     shellTest('does not show mini transport bar when no player session', (
@@ -675,7 +675,7 @@ void main() {
         );
 
         expect(find.text('vocabulary-review-page'), findsOneWidget);
-        expect(find.byType(GlobalTransportBar), findsNothing);
+        expect(find.byType(PlayerDock), findsNothing);
         expect(find.byIcon(EnjoyIcons.play), findsNothing);
       },
     );
@@ -696,7 +696,7 @@ void main() {
       );
 
       expect(find.text('vocabulary-page'), findsOneWidget);
-      expect(find.byType(GlobalTransportBar), findsNothing);
+      expect(find.byType(PlayerDock), findsNothing);
     });
 
     shellTest('restores sidebar after leaving /vocabulary/review (wide)', (
@@ -735,14 +735,14 @@ void main() {
           surface: const Size(400, 900),
         );
 
-        expect(find.byType(GlobalTransportBar), findsNothing);
+        expect(find.byType(PlayerDock), findsNothing);
 
         router.go('/library');
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 50));
 
         expect(find.text('library-page'), findsOneWidget);
-        expect(find.byType(GlobalTransportBar), findsNothing);
+        expect(find.byType(PlayerDock), findsNothing);
       },
     );
 

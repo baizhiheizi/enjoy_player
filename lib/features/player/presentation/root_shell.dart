@@ -12,15 +12,16 @@ import 'package:enjoy_player/core/theme/widgets/app_background.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_showcase_host.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_dock.dart';
 import 'package:enjoy_player/features/subscription/presentation/tier_reconcile_host.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/update/application/update_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-import '../application/player_controller.dart';
 import 'widgets/app_sidebar.dart';
-import 'widgets/global_transport_bar.dart';
 import 'widgets/player_surface_host.dart';
 
 class RootShell extends ConsumerStatefulWidget {
@@ -63,9 +64,8 @@ class _RootShellState extends ConsumerState<RootShell> {
   Widget build(BuildContext context) {
     ref.watch(syncCtrlProvider);
     ref.watch(discoverFeedRefreshSchedulerProvider);
-    final sessionActive = ref.watch(
-      playerControllerProvider.select((s) => s != null),
-    );
+    final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
+    final sessionActive = chrome != null;
     final updateBadge = ref.watch(updateAvailableBadgeProvider);
     final l10n = AppLocalizations.of(context)!;
     final path = GoRouterState.of(context).uri.path;
@@ -176,7 +176,7 @@ class _RootShellState extends ConsumerState<RootShell> {
                           tokens.space16,
                           tokens.space12,
                         ),
-                        child: const GlobalTransportBar(),
+                        child: PlayerDock(chrome: chrome),
                       ),
                     ),
                   );

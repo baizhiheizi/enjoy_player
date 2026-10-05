@@ -523,6 +523,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerListenModeTitle => '聆听';
 
   @override
+  String get playerDockHideText => '隐藏文本';
+
+  @override
+  String playerDockLinePosition(int line, int total) {
+    return '第 $line / $total 句';
+  }
+
+  @override
+  String get playerDockLooping => '· 循环中';
+
+  @override
+  String get playerDockOriginal => '原声';
+
+  @override
   String get exitEchoMode => '退出回声模式';
 
   @override
@@ -4302,6 +4316,20 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get playerListenModeTitle => '聆听';
+
+  @override
+  String get playerDockHideText => '隐藏文本';
+
+  @override
+  String playerDockLinePosition(int line, int total) {
+    return '第 $line / $total 句';
+  }
+
+  @override
+  String get playerDockLooping => '· 循环中';
+
+  @override
+  String get playerDockOriginal => '原声';
 
   @override
   String get exitEchoMode => '退出回声模式';

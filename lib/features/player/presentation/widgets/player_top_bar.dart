@@ -20,6 +20,8 @@ import 'package:enjoy_player/features/player/application/player_controller.dart'
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
+import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
+import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/share_poster/presentation/share_practice_poster_button.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_sheet.dart';
@@ -99,6 +101,14 @@ class PlayerTopBar extends ConsumerWidget {
               Haptics.selection(context);
               unawaited(ref.read(playerInteractionsProvider).toggleEcho());
             },
+            echoTipAction: echo.active || hasLines
+                ? () {
+                    Haptics.selection(context);
+                    unawaited(
+                      ref.read(playerInteractionsProvider).toggleEcho(),
+                    );
+                  }
+                : null,
           ),
           const SizedBox(width: 16),
           _ShareAction(mediaId: mediaId, echoActive: echo.active),
@@ -140,12 +150,16 @@ class _ModeSegmented extends StatelessWidget {
     required this.echoEnabled,
     required this.onListen,
     required this.onEcho,
+    this.echoTipAction,
   });
 
   final bool echoActive;
   final bool echoEnabled;
   final VoidCallback onListen;
   final VoidCallback onEcho;
+
+  /// Onboarding anchor for the Echo tip (echo affordance lives here now).
+  final VoidCallback? echoTipAction;
 
   @override
   Widget build(BuildContext context) {
@@ -224,14 +238,18 @@ class _ModeSegmented extends StatelessWidget {
             onTap: onListen,
           ),
           const SizedBox(width: 2),
-          option(
-            label: l10n.echoMode,
-            icon: EnjoyIcons.mic,
-            selected: echoActive,
-            enabled: echoEnabled || echoActive,
-            onTap: onEcho,
-            tooltip: l10n.hotkeysDescToggleEchoMode,
-            trailing: const EnjoyKeycap(label: 'E'),
+          OnboardingTarget(
+            tipId: OnboardingTipId.playerEcho,
+            onTargetAction: echoTipAction,
+            child: option(
+              label: l10n.echoMode,
+              icon: EnjoyIcons.mic,
+              selected: echoActive,
+              enabled: echoEnabled || echoActive,
+              onTap: onEcho,
+              tooltip: l10n.hotkeysDescToggleEchoMode,
+              trailing: const EnjoyKeycap(label: 'E'),
+            ),
           ),
         ],
       ),
