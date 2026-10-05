@@ -1162,6 +1162,7 @@
   "practicePosterStatSpoken": "开口",
   "practicePosterQrHint": "扫码下载 Enjoy Player\nplayer.enjoy.bot",
   "practicePosterShareAction": "分享海报",
+  "practicePosterShareLabel": "分享",
   "practicePosterShareSuccess": "海报已分享。",
   "practicePosterSaveSuccess": "海报已保存。",
   "practicePosterExportError": "无法分享练习海报。",

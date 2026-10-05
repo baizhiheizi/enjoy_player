@@ -3219,6 +3219,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get practicePosterShareAction => 'Share poster';
 
   @override
+  String get practicePosterShareLabel => 'Share';
+
+  @override
   String get practicePosterShareSuccess => 'Poster shared.';
 
   @override

@@ -3081,6 +3081,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get practicePosterShareAction => '分享海报';
 
   @override
+  String get practicePosterShareLabel => '分享';
+
+  @override
   String get practicePosterShareSuccess => '海报已分享。';
 
   @override
@@ -6475,6 +6478,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get practicePosterShareAction => '分享海报';
+
+  @override
+  String get practicePosterShareLabel => '分享';
 
   @override
   String get practicePosterShareSuccess => '海报已分享。';

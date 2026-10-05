@@ -54,73 +54,92 @@ class PlayerTopBar extends ConsumerWidget {
         border: Border(bottom: BorderSide(color: t.line)),
       ),
       padding: const EdgeInsets.fromLTRB(10, 0, 14, 0),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: collapseTooltip,
-            icon: const Icon(EnjoyIcons.chevronDown, size: 20),
-            color: t.ink2,
-            onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  chrome?.mediaTitle ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: tt.labelLarge?.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: t.ink,
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final showShare = constraints.maxWidth >= 1100;
+          final showSubtitleLabel = constraints.maxWidth >= 980;
+          return Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    IconButton(
+                      tooltip: collapseTooltip,
+                      icon: const Icon(EnjoyIcons.chevronDown, size: 20),
+                      color: t.ink2,
+                      onPressed: () =>
+                          unawaited(collapseExpandedPlayer(ref, context)),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            chrome?.mediaTitle ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: tt.labelLarge?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: t.ink,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            _metaLine(context, chrome),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: tt.labelSmall?.copyWith(
+                              fontSize: 12.5,
+                              color: t.ink3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  _metaLine(context, chrome),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: tt.labelSmall?.copyWith(fontSize: 12.5, color: t.ink3),
+              ),
+              _ModeSegmented(
+                echoActive: echo.active,
+                echoEnabled: hasLines,
+                onListen: () {
+                  if (!echo.active) return;
+                  unawaited(ref.read(playerInteractionsProvider).toggleEcho());
+                },
+                onEcho: () {
+                  if (echo.active) return;
+                  Haptics.selection(context);
+                  unawaited(ref.read(playerInteractionsProvider).toggleEcho());
+                },
+                echoTipAction: echo.active || hasLines
+                    ? () {
+                        Haptics.selection(context);
+                        unawaited(
+                          ref.read(playerInteractionsProvider).toggleEcho(),
+                        );
+                      }
+                    : null,
+              ),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (showShare)
+                      _ShareAction(mediaId: mediaId, echoActive: echo.active),
+                    if (showShare) const SizedBox(width: 4),
+                    _SubtitlesAction(
+                      mediaId: mediaId,
+                      showLabel: showSubtitleLabel,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          _ModeSegmented(
-            echoActive: echo.active,
-            echoEnabled: hasLines,
-            onListen: () {
-              if (!echo.active) return;
-              unawaited(ref.read(playerInteractionsProvider).toggleEcho());
-            },
-            onEcho: () {
-              if (echo.active) return;
-              Haptics.selection(context);
-              unawaited(ref.read(playerInteractionsProvider).toggleEcho());
-            },
-            echoTipAction: echo.active || hasLines
-                ? () {
-                    Haptics.selection(context);
-                    unawaited(
-                      ref.read(playerInteractionsProvider).toggleEcho(),
-                    );
-                  }
-                : null,
-          ),
-          const SizedBox(width: 16),
-          _ShareAction(mediaId: mediaId, echoActive: echo.active),
-          const SizedBox(width: 4),
-          IconButton(
-            tooltip: l10n.subtitles,
-            icon: const Icon(EnjoyIcons.subtitles, size: 20),
-            color: t.ink2,
-            onPressed: () =>
-                unawaited(showSubtitleTrackPicker(context, ref, mediaId)),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -172,10 +191,12 @@ class _ModeSegmented extends StatelessWidget {
       required IconData icon,
       required bool selected,
       required bool enabled,
+      required Color selectedFg,
       required VoidCallback onTap,
       Widget? trailing,
       String? tooltip,
     }) {
+      final fg = selected ? selectedFg : (enabled ? t.ink2 : t.ink3);
       return Tooltip(
         message: tooltip ?? label,
         child: EnjoyPressable(
@@ -186,9 +207,9 @@ class _ModeSegmented extends StatelessWidget {
             duration: t.motionFast,
             curve: Curves.easeOutCubic,
             height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.only(left: 12, right: 12),
             decoration: ShapeDecoration(
-              color: selected ? t.paper : Colors.transparent,
+              color: selected ? t.raised : Colors.transparent,
               shape: RoundedSuperellipseBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -197,18 +218,14 @@ class _ModeSegmented extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  icon,
-                  size: 17,
-                  color: selected ? t.ink : (enabled ? t.ink2 : t.ink3),
-                ),
+                Icon(icon, size: 17, color: fg),
                 const SizedBox(width: 8),
                 Text(
                   label,
                   style: tt.labelMedium?.copyWith(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: selected ? t.ink : (enabled ? t.ink2 : t.ink3),
+                    color: fg,
                   ),
                 ),
                 if (trailing != null) ...[const SizedBox(width: 8), trailing],
@@ -235,6 +252,7 @@ class _ModeSegmented extends StatelessWidget {
             icon: EnjoyIcons.headphones,
             selected: !echoActive,
             enabled: true,
+            selectedFg: t.originalInk,
             onTap: onListen,
           ),
           const SizedBox(width: 2),
@@ -246,12 +264,60 @@ class _ModeSegmented extends StatelessWidget {
               icon: EnjoyIcons.mic,
               selected: echoActive,
               enabled: echoEnabled || echoActive,
+              selectedFg: t.youInk,
               onTap: onEcho,
               tooltip: l10n.hotkeysDescToggleEchoMode,
               trailing: const EnjoyKeycap(label: 'E'),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SubtitlesAction extends ConsumerWidget {
+  const _SubtitlesAction({required this.mediaId, required this.showLabel});
+
+  final String mediaId;
+  final bool showLabel;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = EnjoyThemeTokens.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final tt = Theme.of(context).textTheme;
+    return Tooltip(
+      message: l10n.subtitles,
+      child: EnjoyPressable(
+        onTap: () => unawaited(showSubtitleTrackPicker(context, ref, mediaId)),
+        borderRadius: BorderRadius.circular(t.radiusControl),
+        child: Container(
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: ShapeDecoration(
+            shape: RoundedSuperellipseBorder(
+              borderRadius: BorderRadius.circular(t.radiusControl),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(EnjoyIcons.subtitles, size: 18),
+              if (showLabel) ...[
+                const SizedBox(width: 8),
+                Text(
+                  l10n.subtitles,
+                  style: tt.labelMedium?.copyWith(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: t.ink2,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -268,8 +334,8 @@ class _ShareAction extends StatelessWidget {
     if (!echoActive) return const SizedBox.shrink();
     final t = EnjoyThemeTokens.of(context);
     return IconTheme(
-      data: IconThemeData(size: 20, color: t.ink2),
-      child: SharePracticePosterButton(mediaId: mediaId),
+      data: IconThemeData(size: 18, color: t.ink2),
+      child: SharePracticePosterButton(mediaId: mediaId, labeled: true),
     );
   }
 }

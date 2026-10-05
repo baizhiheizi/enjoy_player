@@ -1608,6 +1608,7 @@
   "practicePosterStatSpoken": "Spoken",
   "practicePosterQrHint": "Scan to download Enjoy Player\nplayer.enjoy.bot",
   "practicePosterShareAction": "Share poster",
+  "practicePosterShareLabel": "Share",
   "practicePosterShareSuccess": "Poster shared.",
   "practicePosterSaveSuccess": "Poster saved.",
   "practicePosterExportError": "Could not share practice poster.",

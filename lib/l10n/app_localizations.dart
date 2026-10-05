@@ -5949,6 +5949,12 @@ abstract class AppLocalizations {
   /// **'Share poster'**
   String get practicePosterShareAction;
 
+  /// No description provided for @practicePosterShareLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get practicePosterShareLabel;
+
   /// No description provided for @practicePosterShareSuccess.
   ///
   /// In en, this message translates to:
