@@ -32,7 +32,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_playback
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_cc_fullscreen.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_playback_rate.dart'
     show kPlaybackRatePresets, playbackRatesEqual;
-import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_progress_strip.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/transport/sentence_ruler.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_volume_button.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -163,9 +163,7 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                  child: RepaintBoundary(
-                    child: TransportProgressStrip(chrome: chrome),
-                  ),
+                  child: RepaintBoundary(child: SentenceRuler(chrome: chrome)),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),

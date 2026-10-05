@@ -8,7 +8,7 @@ import 'package:enjoy_player/features/player/application/player_controller.dart'
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_dock.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_progress_strip.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/transport/sentence_ruler.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_volume_button.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -176,11 +176,11 @@ void main() {
       ColorScheme.fromSeed(seedColor: Colors.blue),
     );
 
-    expect(find.byType(TransportProgressStrip), findsOneWidget);
+    expect(find.byType(SentenceRuler), findsOneWidget);
     final dockContainer = tester.widget<Container>(
       find
           .ancestor(
-            of: find.byType(TransportProgressStrip),
+            of: find.byType(SentenceRuler),
             matching: find.byType(Container),
           )
           .first,
