@@ -75,6 +75,10 @@ class _ShadowTakesRowState extends ConsumerState<ShadowTakesRow> {
     return takes.length - i;
   }
 
+  /// Maps vertical wheel deltas onto the chip line and — via the resolver —
+  /// claims the event so the transcript column behind it does not scroll too.
+  /// Only claims it while the line actually overflows; otherwise the wheel
+  /// keeps scrolling the page.
   void _onPointerSignal(PointerSignalEvent event) {
     if (isMobilePlatform) return;
     if (event is! PointerScrollEvent) return;
@@ -82,11 +86,14 @@ class _ShadowTakesRowState extends ConsumerState<ShadowTakesRow> {
     if (!_chipsScroll.hasClients) return;
     final position = _chipsScroll.position;
     if (position.maxScrollExtent <= 0) return;
-    final target = (position.pixels + event.scrollDelta.dy).clamp(
-      0.0,
-      position.maxScrollExtent,
-    );
-    position.jumpTo(target);
+    GestureBinding.instance.pointerSignalResolver.register(event, (resolved) {
+      final scrollEvent = resolved as PointerScrollEvent;
+      final target = (position.pixels + scrollEvent.scrollDelta.dy).clamp(
+        0.0,
+        position.maxScrollExtent,
+      );
+      position.jumpTo(target);
+    });
   }
 
   @override

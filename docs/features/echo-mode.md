@@ -50,7 +50,9 @@ the "press R and say it back" hint when the region has no takes, and
 the Pitch pill on the right toggling the contour. The chips render as
 one horizontal line: touch pans natively; on desktop the strip carries
 a scrollbar thumb (hover to drag) and maps the vertical mouse wheel to
-the horizontal axis. Record / cancel /
+the horizontal axis — claimed through the pointer-signal resolver, so
+the page behind does not scroll while the line overflows (an
+unoverflowed line leaves the wheel to the page). Record / cancel /
 stop live in the dock (Original + record group; Cancel + stop ring
 while recording), so the panel renders nothing while recording. The
 vocabulary "Echo reading" embed keeps the centered-FAB toolbar with the

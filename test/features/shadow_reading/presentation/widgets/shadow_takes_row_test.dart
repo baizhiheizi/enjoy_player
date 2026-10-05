@@ -272,6 +272,67 @@ void main() {
     }
   });
 
+  testWidgets('wheel over the chips claims the event, page stays put', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      await tester.binding.setSurfaceSize(const Size(420, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final vertical = ScrollController();
+      addTearDown(vertical.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          db: db,
+          preview: preview,
+          child: SingleChildScrollView(
+            controller: vertical,
+            child: Column(
+              children: [
+                ShadowTakesRow(
+                  takes: [
+                    _row(id: 't3', localPath: '/tmp/t3.wav'),
+                    _row(id: 't2', localPath: '/tmp/t2.wav'),
+                    _row(id: 't1', localPath: '/tmp/t1.wav'),
+                  ],
+                  selectedId: 't3',
+                  echoActive: true,
+                  pitchExpanded: false,
+                  hasMediaPath: true,
+                  onPlayOrPause: (_) {},
+                  onChooseTake: (_) {},
+                  onTogglePitch: () {},
+                ),
+                const SizedBox(height: 800),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final chipScrollable = find
+          .descendant(
+            of: find.byType(ShadowTakesRow),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      final center = tester.getCenter(chipScrollable);
+
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(pointer.hover(center));
+      await tester.sendEventToBinding(pointer.scroll(const Offset(0, 60)));
+      await tester.pump();
+
+      final chipState = tester.state<ScrollableState>(chipScrollable);
+      expect(chipState.position.pixels, greaterThan(0));
+      expect(vertical.offset, 0.0);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('empty region shows the hint with the R keycap', (tester) async {
     final l10n = await pumpRow(tester, takes: const []);
 
