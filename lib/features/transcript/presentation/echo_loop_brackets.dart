@@ -77,8 +77,9 @@ class _EchoRecordingPulseDotState extends State<EchoRecordingPulseDot>
   @override
   void initState() {
     super.initState();
-    if (!MediaQuery.disableAnimationsOf(context))
+    if (!MediaQuery.disableAnimationsOf(context)) {
       unawaited(_controller.repeat());
+    }
   }
 
   @override

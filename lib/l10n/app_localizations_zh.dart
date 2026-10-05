@@ -779,6 +779,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shadowRecordingTake => '录音';
 
   @override
+  String get shadowTakesLabel => '录音';
+
+  @override
+  String get shadowTakesEmptyPrefix => '这段还没有录音，按';
+
+  @override
+  String get shadowTakesEmptySuffix => '读一遍。';
+
+  @override
   String get shadowRecordingPlay => '播放';
 
   @override
@@ -1253,6 +1262,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get assessmentReassess => '重新评测';
+
+  @override
+  String get assessmentScoring => '打分中…';
+
+  @override
+  String get assessmentScoreAction => '评分';
 
   @override
   String get assessmentOverallScore => '总分';
@@ -4592,6 +4607,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get shadowRecordingTake => '录音';
 
   @override
+  String get shadowTakesLabel => '录音';
+
+  @override
+  String get shadowTakesEmptyPrefix => '这段还没有录音，按';
+
+  @override
+  String get shadowTakesEmptySuffix => '读一遍。';
+
+  @override
   String get shadowRecordingPlay => '播放';
 
   @override
@@ -4883,6 +4907,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get assessmentReassess => '重新评测';
+
+  @override
+  String get assessmentScoring => '打分中…';
+
+  @override
+  String get assessmentScoreAction => '评分';
 
   @override
   String get assessmentOverallScore => '总分';

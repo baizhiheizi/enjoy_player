@@ -1545,6 +1545,24 @@ abstract class AppLocalizations {
   /// **'Take'**
   String get shadowRecordingTake;
 
+  /// No description provided for @shadowTakesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Takes'**
+  String get shadowTakesLabel;
+
+  /// No description provided for @shadowTakesEmptyPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'No recordings for this segment yet. Press'**
+  String get shadowTakesEmptyPrefix;
+
+  /// No description provided for @shadowTakesEmptySuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'and say it back.'**
+  String get shadowTakesEmptySuffix;
+
   /// No description provided for @shadowRecordingPlay.
   ///
   /// In en, this message translates to:
@@ -2450,6 +2468,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Re-assess'**
   String get assessmentReassess;
+
+  /// No description provided for @assessmentScoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring…'**
+  String get assessmentScoring;
+
+  /// No description provided for @assessmentScoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get assessmentScoreAction;
 
   /// No description provided for @assessmentOverallScore.
   ///

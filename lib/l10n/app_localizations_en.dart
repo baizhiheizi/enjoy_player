@@ -811,6 +811,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shadowRecordingTake => 'Take';
 
   @override
+  String get shadowTakesLabel => 'Takes';
+
+  @override
+  String get shadowTakesEmptyPrefix =>
+      'No recordings for this segment yet. Press';
+
+  @override
+  String get shadowTakesEmptySuffix => 'and say it back.';
+
+  @override
   String get shadowRecordingPlay => 'Play';
 
   @override
@@ -1313,6 +1323,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assessmentReassess => 'Re-assess';
+
+  @override
+  String get assessmentScoring => 'Scoring…';
+
+  @override
+  String get assessmentScoreAction => 'Score';
 
   @override
   String get assessmentOverallScore => 'Overall score';

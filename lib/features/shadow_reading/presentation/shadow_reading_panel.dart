@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
@@ -31,6 +32,7 @@ import 'pitch_contour_section.dart';
 import 'widgets/shadow_record_fab.dart';
 import 'widgets/shadow_recording_live.dart';
 import 'widgets/shadow_reading_toolbar_row.dart';
+import 'widgets/shadow_takes_row.dart';
 import 'widgets/shadow_takes_toolbar_actions.dart';
 
 final _log = logNamed('ShadowReadingPanel');
@@ -78,6 +80,7 @@ class ShadowReadingPanel extends ConsumerStatefulWidget {
     required this.referenceText,
     required this.echoActive,
     this.showLiveProgress = false,
+    this.takesRowInLoop = false,
     this.analyticsSurface = AnalyticsEvents.surfaceShadowReading,
     super.key,
   });
@@ -94,6 +97,11 @@ class ShadowReadingPanel extends ConsumerStatefulWidget {
   /// player-transcript embed sets this; the vocabulary recorder embed has no
   /// open player, so its contour renders without a progress marker.
   final bool showLiveProgress;
+
+  /// Player-embed presentation: takes render as a chip strip under the loop
+  /// (the dock owns record / cancel / stop), instead of the toolbar row used
+  /// by the vocabulary embed.
+  final bool takesRowInLoop;
 
   /// Analytics `surface` tag (spec 046 catalog) — the panel is embedded both
   /// in the player transcript (default) and vocabulary flashcard practice.
@@ -415,6 +423,86 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       builder: (context, recSnap) {
         final list = recSnap.data ?? [];
         final sel = _resolvedSelectedRow(list, _selectedRecordingId);
+
+        if (_recording && widget.takesRowInLoop) {
+          return const SizedBox.shrink();
+        }
+
+        if (widget.takesRowInLoop) {
+          final phone = isMobilePlatform;
+          final videoIndent = widget.targetType == 'Audio' && !phone
+              ? 82.0
+              : 0.0;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  left: videoIndent,
+                  right: phone ? 0 : 40,
+                ),
+                child: ShadowTakesRow(
+                  takes: list,
+                  selectedId: sel?.id,
+                  echoActive: widget.echoActive,
+                  pitchExpanded: _pitchExpanded,
+                  hasMediaPath: mediaPath != null && mediaPath.isNotEmpty,
+                  onPlayOrPause: (row) {
+                    final path = row.localPath;
+                    if (path != null && path.isNotEmpty) {
+                      unawaited(_playOrPauseTake(path));
+                    }
+                  },
+                  onChooseTake: (row) {
+                    unawaited(ref.read(recordingPreviewPlayerProvider).stop());
+                    if (mounted) {
+                      setState(() => _selectedRecordingId = row.id);
+                    }
+                  },
+                  onTogglePitch: () =>
+                      setState(() => _pitchExpanded = !_pitchExpanded),
+                ),
+              ),
+              Consumer(
+                builder: (context, ref, _) {
+                  if (mediaPath == null || mediaPath.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  double? relativeSec;
+                  if (widget.showLiveProgress && _pitchExpanded) {
+                    final posSec =
+                        (ref.watch(displayPositionProvider).valueOrNull ??
+                                Duration.zero)
+                            .inMilliseconds /
+                        1000.0;
+                    relativeSec = (posSec - widget.startSec).clamp(
+                      0.0,
+                      widget.endSec - widget.startSec,
+                    );
+                  }
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      left: videoIndent,
+                      right: phone ? 0 : 40,
+                    ),
+                    child: PitchContourSection(
+                      mediaPath: mediaPath,
+                      startSec: widget.startSec,
+                      endSec: widget.endSec,
+                      currentTimeRelativeSec: relativeSec,
+                      selectedRecordingPath: sel?.localPath,
+                      selectedRecordingDurationMs: sel?.duration,
+                      expanded: _pitchExpanded,
+                      onToggleExpanded: () =>
+                          setState(() => _pitchExpanded = !_pitchExpanded),
+                      showHeader: false,
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        }
 
         if (_recording) {
           return ShadowRecordingLive(

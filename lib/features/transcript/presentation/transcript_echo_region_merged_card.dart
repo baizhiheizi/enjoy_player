@@ -343,6 +343,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
             referenceText: echoReferencePlainText(lines, echo),
             echoActive: echo.active,
             showLiveProgress: true,
+            takesRowInLoop: true,
           ),
         ],
       ],
