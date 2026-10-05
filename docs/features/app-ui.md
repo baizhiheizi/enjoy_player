@@ -1,12 +1,10 @@
-# App UI — Aurora Design System
+# App UI — Duet Design System
 
-**Status**: Implemented (Aurora redesign 2026-09-28, [ADR-0089](../decisions/0089-aurora-design-language.md); supersedes the 2026-05 "cinematic editorial" pass)
-
-> **Being replaced by Duet** ([ADR-0091](../decisions/0091-duet-design-language.md)) on the `design-duet` branch. This page describes the code as it is. Each section is rewritten as its phase lands ([PLAN.md → Documentation map](../design/duet/PLAN.md#documentation-map)). Build new UI to [`docs/design/duet/`](../design/duet/README.md), not to the Aurora descriptions below.
+**Status**: Implemented on `design-duet` ([ADR-0091](../decisions/0091-duet-design-language.md); replaces Aurora [ADR-0089](../decisions/0089-aurora-design-language.md)).
 
 ## Design direction
 
-**Aurora — quiet chrome, luminous content.** Material is the widget toolkit, not the look: no ink ripples, continuous (superellipse) corners, hairline + ambient-light depth instead of elevation, one icon family, and one motion language on every platform.
+**Duet — two voices, flat ground.** Material is the widget toolkit, not the look: no ink ripples, continuous (superellipse) corners, flat surfaces with line borders and the lift shadow instead of elevation, one icon family, and one motion language on every platform. **Blue (original)** is the original speaker — playback, the spoken word, reference pitch, Listen; **violet (you)** is the learner — the Echo loop, Record, takes, your pitch. The brand gradient between them is Enjoy itself (logo, Play, primary buttons, goal ring, Pro). Everything else is ink. Modes are lenses: Listen reads like a book; Echo grows the loop in place and fades the rest. Feedback lands on the words (karaoke underline, hide-text shapes, practiced dots), never in chrome.
 
 **Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`; Duet values per [ADR-0091](../decisions/0091-duet-design-language.md) — Aurora-named fields alias them until the rename pass, values from [`tokens.json`](../../design/duet/tokens.json)):
 - **Flat neutrals** — one **ground** for sidebar and pages (light `#F5F6F8`, dark `#0E1014`), `paper` cards, `raised` menus / dialogs, `sunk` control fills, `line` separators; text inks `ink` / `ink2` / `ink3`. No floating content panel, no glass surfaces.

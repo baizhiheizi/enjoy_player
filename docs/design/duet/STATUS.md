@@ -15,8 +15,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 2 · Shell | 3 | 3 |
 | 3 · Player | 13 | 13 |
 | 4 · App screens | 11 | 11 |
-| 5 · Cleanup, proof, merge | 6 | 3 |
-| **Total** | **43** | **39** |
+| 5 · Cleanup, proof, merge | 6 | 4 |
+| **Total** | **43** | **40** |
 
 ## Decisions
 
@@ -98,9 +98,9 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 |---|---|---|---|---|---|---|---|
 | D5.1 | Rename pass + delete Aurora | — | Phases 1–4 | done | | | All lib/ call sites on final Duet names (canvas→ground, card→paper, popover→raised, fill→sunk, hairline→line, textFaint→ink3, accent*→brand*, intelligence→originalInk, echo*→you*, blurActive→ink, score*→ink2/sunk/danger, aurora*→logo*, contentMaxWidth→transcriptMaxListen, shadowCard→shadowLift); GlassSurface, AuroraGlow, PlayerAmbientBackdrop, GlobalTransportBar, progress strip, collapse controls, Playfair deleted. The ~30 alias FIELDS on EnjoyThemeTokens stay until a follow-up (mechanical deletion deferred — constructor/copyWith/lerp surgery left for a dedicated pass; zero lib/ call sites remain) |
 | D5.2 | Design-language invariant test | — | D5.1 | done | | | Renamed to duet_design_language_test.dart; added: no BackdropFilter/ImageFilter.blur under player/transcript/shadow-reading, no deleted Aurora symbols in lib/ |
-| D5.3 | Docs (app-ui.md rewrite, feature docs) | — | D5.1 | todo | | | |
-| D5.4 | Performance evidence | — | D5.1 | todo | | | |
-| D5.5 | Platform QA matrix | all | D5.1 | todo | | | Record results here |
+| D5.3 | Docs (app-ui.md rewrite, feature docs) | — | D5.1 | done | | | app-ui.md header + design direction rewritten as "Duet Design System"; player/transcript/echo/shadow/lookup feature docs updated per phase; store screenshots in assets/store/ noted for a release re-shoot |
+| D5.4 | Performance evidence | — | D5.1 | todo | pending human run | Profile-mode frame capture on Windows + a phone requires real hardware; the perf-safe structures are in place (RepaintBoundary ruler, cached shape widths, no ImageFilter, shouldRepaint-keyed covers) |
+| D5.5 | Platform QA matrix | all | D5.1 | todo | pending human run | Manual matrix (Windows/macOS/Android/iOS, reduced motion, YouTube WebView2 parking, 880×560 minimum) needs real devices; Linux verified via gallery + unit/widget suites |
 | D5.6 | Merge `design-duet` → `main` | — | D5.2–D5.5 | todo | | | |
 
 ## Board → task index
