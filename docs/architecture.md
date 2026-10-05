@@ -67,7 +67,7 @@ sequenceDiagram
 
 ### Schema upgrades (release note)
 
-[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 19`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
+[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 20`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
 
 The pre-v6 JSON backup resolves `{applicationSupport}/migrations/` through `path_provider`, but `onUpgrade` runs on the Drift **background isolate**, which had no `BinaryMessenger` — so the path lookup threw, the failure was swallowed, and the backup was silently skipped immediately before the legacy tables were dropped. `AppDatabase` now passes `DriftNativeOptions(isolateSetup: …)` from [`drift_isolate_setup.dart`](../lib/data/db/drift_isolate_setup.dart), installing a `BackgroundIsolateBinaryMessenger` before the database opens; `defaultDriftNativeOptions()` **throws** rather than returning a channel-less default, so the messenger can never be silently skipped again.
 
@@ -87,6 +87,8 @@ The messenger fixes the *cause*; the guard fixes the *consequence*. If the backu
 | v15 → v16 | Hot-read-path covering indexes (issue #467): 11 indexes across transcripts, recordings, echo_sessions, videos (provider,vid / local_uri), audios (local_uri / md5), dictations, youtube_feed_entries (channel+published / published), sync_queue (retry_count, created_at) |
 | v16 → v17 | Add videos.bookmark_data + audios.bookmark_data — macOS security-scoped bookmarks persisted at import and resolved on open ([ADR-0080](decisions/0080-macos-security-scoped-bookmarks.md)) |
 | v17 → v18 | Dedupe `sync_queue` rows sharing `(entity_type, entity_id, action)` — keep the newest `id` only, so the post-#726 `addOrUpsert` cannot hit duplicate rows left by the pre-fix producer (issue #717 follow-up F5; no-op on a clean queue) |
+| v18 → v19 | `idx_videos_updated_at` + `idx_audios_updated_at` (`updated_at DESC`) backing the Home recents `LIMIT 12 ORDER BY updated_at DESC` query (issue #810 D6) |
+| v19 → v20 | `idx_sync_queue_created_at` backing `peekBatch`'s `ORDER BY created_at`, plus `ai_cache.source_language` / `ai_cache.target_language` columns + `idx_ai_cache_lang_pair` and a one-time payload `json_extract` backfill so `evictForPair` matches indexed columns instead of scanning `payload_json` with a leading-wildcard `LIKE` (issue #827 C3+C4) |
 
 ### Sync metadata mixins
 

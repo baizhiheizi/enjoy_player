@@ -20,6 +20,7 @@ import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
 import 'package:enjoy_player/features/player/domain/youtube_playback_unavailable_exception.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride, TargetPlatform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -378,20 +379,21 @@ void main() {
         await n.openMedia(id);
         fake.emitDuration(const Duration(seconds: 120));
 
-        for (var ms = 400; ms <= 2800; ms += 400) {
-          fake.emitPosition(Duration(milliseconds: ms));
-          await Future<void>.delayed(const Duration(milliseconds: 400));
-        }
+        fakeAsync((async) {
+          for (var ms = 400; ms <= 2800; ms += 400) {
+            fake.emitPosition(Duration(milliseconds: ms));
+            async.elapse(const Duration(milliseconds: 400));
+          }
+        });
 
         int? persistedMs;
-        final deadline = DateTime.now().add(const Duration(seconds: 2));
-        while (DateTime.now().isBefore(deadline)) {
+        for (var i = 0; i < 40; i++) {
           final row = await db.echoSessionDao.getLatestForTarget('Audio', id);
           if (row != null && row.currentTimeMs > 0) {
             persistedMs = row.currentTimeMs;
             break;
           }
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 25));
         }
 
         expect(
