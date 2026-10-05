@@ -47,7 +47,10 @@ strip instead of the idle toolbar: a `TAKES` overline, one stadium chip
 per take (play circle, take number, mono duration, an uncolored score
 chip that re-opens the assessment, or a `Score` action that runs it),
 the "press R and say it back" hint when the region has no takes, and
-the Pitch pill on the right toggling the contour. Record / cancel /
+the Pitch pill on the right toggling the contour. The chips render as
+one horizontal line: touch pans natively; on desktop the strip carries
+a scrollbar thumb (hover to drag) and maps the vertical mouse wheel to
+the horizontal axis. Record / cancel /
 stop live in the dock (Original + record group; Cancel + stop ring
 while recording), so the panel renders nothing while recording. The
 vocabulary "Echo reading" embed keeps the centered-FAB toolbar with the
