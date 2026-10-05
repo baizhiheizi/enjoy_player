@@ -220,6 +220,13 @@ server profile):
 
 ### Rendering
 
+Wide windows open the picker as the Duet **Subtitles & display
+popover**: a 384px raised card anchored under the top bar's Subtitles
+button (a PopupRoute, so the player surface parks per ADR-0066).
+Narrower windows keep the bottom sheet.
+
+### Rendering
+
 Duet renders hidden lines as **rounded shape bars** sized from the
 hidden words' text boxes (measured once per line layout and cached) —
 no `ImageFilter.blur` anywhere in the player. The reveal rules are
