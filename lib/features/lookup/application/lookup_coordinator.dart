@@ -87,8 +87,8 @@ class _LookupMarginRoute extends PopupRoute<void> {
         child: DecoratedBox(
           decoration: ShapeDecoration(
             color: t.raised,
-            shape: RoundedSuperellipseBorder(
-              borderRadius: const BorderRadius.only(
+            shape: const RoundedSuperellipseBorder(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(18),
                 bottomLeft: Radius.circular(18),
               ),

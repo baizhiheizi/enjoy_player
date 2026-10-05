@@ -13,10 +13,10 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
-| 3 · Player | 13 | 11 |
+| 3 · Player | 13 | 12 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **23** |
+| **Total** | **43** | **24** |
 
 ## Decisions
 

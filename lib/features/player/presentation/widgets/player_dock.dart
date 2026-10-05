@@ -706,7 +706,7 @@ class _EchoControls extends StatelessWidget {
 
     if (phone) {
       return SizedBox(
-        height: 116,
+        height: 112,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

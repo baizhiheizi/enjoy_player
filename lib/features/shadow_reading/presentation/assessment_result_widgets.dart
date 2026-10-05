@@ -38,8 +38,7 @@ class OverallScoreRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final level = assessmentScoreLevel(score);
-    final tint = assessmentScoreColor(scheme, level);
+    final t = EnjoyThemeTokens.of(context);
     return Column(
       children: [
         Text(
@@ -57,15 +56,15 @@ class OverallScoreRing extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: (score / 100).clamp(0.0, 1.0),
                   strokeWidth: 10,
-                  backgroundColor: scheme.surfaceContainerHighest,
-                  color: tint,
+                  backgroundColor: t.sunk,
+                  color: t.ink,
                 ),
               ),
               Text(
                 '$score',
                 style: tt.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: tint,
+                  color: t.ink,
                 ),
               ),
             ],
@@ -93,20 +92,18 @@ class ScoreBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-    final level = assessmentScoreLevel(value);
-    final tint = assessmentScoreColor(scheme, level);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: tt.labelLarge),
+            Text(label, style: tt.labelLarge?.copyWith(color: t.ink2)),
             Text(
               '$value',
               style: tt.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: tint,
+                color: t.ink,
               ),
             ),
           ],
@@ -117,8 +114,8 @@ class ScoreBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: (value / 100).clamp(0.0, 1.0),
             minHeight: 8,
-            backgroundColor: scheme.surfaceContainerHighest,
-            color: tint,
+            backgroundColor: t.sunk,
+            color: t.ink2,
           ),
         ),
       ],
@@ -223,10 +220,7 @@ class WordChip extends StatelessWidget {
       );
     case 'None':
     default:
-      final level = assessmentScoreLevel(score);
-      final c = assessmentScoreColor(scheme, level);
-      final bg = assessmentScoreBackground(scheme, level);
-      return (c, bg, c);
+      return (scheme.primary, scheme.surfaceContainerHighest, scheme.primary);
   }
 }
 

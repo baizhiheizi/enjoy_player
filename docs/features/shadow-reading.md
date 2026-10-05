@@ -73,6 +73,14 @@ Silent FFmpeg WAV normalize is auto-detected and the resample chain is retried (
 - Native speech package: `packages/azure_speech/`
 - ADR: [`docs/decisions/0005-mvp-scope-local-only.md`](../decisions/0005-mvp-scope-local-only.md) (echo + shadow reading scope)
 
+## Presentation — the assessment (Duet, ADR-0091)
+
+The assessment dialog reads ink-on-raised: a Literata overall score with
+the level word and meter, uncolored ink bars for accuracy / fluency /
+completeness / prosody (the Excellent / Good / Fair / Poor thresholds
+stay in `score_level.dart`), and word chips whose per-error accents are
+reduced to the scheme's primary. No score colors anywhere.
+
 ## Presentation — the pitch duet and takes (Duet, ADR-0091)
 
 The pitch chart draws the **pitch duet**: the reference contour as a 9 px
