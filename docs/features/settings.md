@@ -62,7 +62,8 @@ Settings still requires a signed-in Enjoy account ([ADR-0031](../decisions/0031-
 ### Reach paths
 
 - From the **Profile tab** — `ProfileContent` renders a Settings tile (`Icons.settings_outlined`, `l10n.settingsTitle` / `l10n.settingsSubtitle`) that pushes `/settings`.
-- From the **`SidebarAccountChip`** on desktop — the chip subtitle links to `/profile` (the account row itself is the Profile tab entry, not a Settings shortcut).
+- From the **`SidebarAccountChip`** on desktop — the chip opens `/profile` (the account row itself is the Profile tab entry).
+- From the dedicated **Settings row** at the sidebar footer (Duet, ADR-0091) — selected when the route is `/settings*`; the sync line above it links to `/settings/sync`.
 
 ## Sign-out flow
 

@@ -1146,6 +1146,8 @@
   "settingsAiApiBaseUrlCleared": "AI API now follows the main API URL.",
   "settingsAccountSignedOut": "Not signed in",
   "settingsAccountOpenProfile": "Open profile",
+  "sidebarPlanSubtitle": "{tier} plan",
+  "@sidebarPlanSubtitle": {"description": "Sidebar account chip subtitle naming the subscription tier.", "placeholders": {"tier": {"type": "String"}}},
   "settingsAccountSignIn": "Sign in",
   "errorNetwork": "Network error",
   "errorUnauthorized": "Session expired — please sign in again",

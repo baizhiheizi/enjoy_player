@@ -3933,6 +3933,12 @@ abstract class AppLocalizations {
   /// **'Open profile'**
   String get settingsAccountOpenProfile;
 
+  /// Sidebar account chip subtitle naming the subscription tier.
+  ///
+  /// In en, this message translates to:
+  /// **'{tier} plan'**
+  String sidebarPlanSubtitle(String tier);
+
   /// No description provided for @settingsAccountSignIn.
   ///
   /// In en, this message translates to:

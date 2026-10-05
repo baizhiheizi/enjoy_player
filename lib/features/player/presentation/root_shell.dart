@@ -217,9 +217,7 @@ class _RootShellState extends ConsumerState<RootShell> {
                                   label: l10n.navMainLabel,
                                   child: const AppSidebar(),
                                 ),
-                                Expanded(
-                                  child: _ContentPanel(child: widget.child),
-                                ),
+                                Expanded(child: widget.child),
                               ],
                             ),
                           ),
@@ -242,38 +240,6 @@ class _RootShellState extends ConsumerState<RootShell> {
             },
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// The desktop page surface: inset from the canvas, continuous corners,
-/// hairline edge, and the aurora glow pooled along its top.
-class _ContentPanel extends StatelessWidget {
-  const _ContentPanel({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final light = Theme.of(context).brightness == Brightness.light;
-    final radius = BorderRadius.circular(t.panelRadius);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, t.shellInset, t.shellInset, t.shellInset),
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: cs.surface,
-          shape: RoundedSuperellipseBorder(
-            borderRadius: radius,
-            side: BorderSide(
-              color: light ? t.hairline : Colors.white.withValues(alpha: 0.06),
-            ),
-          ),
-          shadows: light ? t.shadowFloat : const [],
-        ),
-        child: ClipRSuperellipse(borderRadius: radius, child: child),
       ),
     );
   }

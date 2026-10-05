@@ -2021,6 +2021,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAccountOpenProfile => '打开个人资料';
 
   @override
+  String sidebarPlanSubtitle(String tier) {
+    return '$tier方案';
+  }
+
+  @override
   String get settingsAccountSignIn => '登录';
 
   @override
@@ -5363,6 +5368,11 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsAccountOpenProfile => '打开个人资料';
+
+  @override
+  String sidebarPlanSubtitle(String tier) {
+    return '$tier方案';
+  }
 
   @override
   String get settingsAccountSignIn => '登录';

@@ -876,6 +876,7 @@
   "settingsAiApiBaseUrlCleared": "AI API 现在跟随主 API 地址。",
   "settingsAccountSignedOut": "未登录",
   "settingsAccountOpenProfile": "打开个人资料",
+  "sidebarPlanSubtitle": "{tier}方案",
   "settingsAccountSignIn": "登录",
   "errorNetwork": "网络错误",
   "errorUnauthorized": "会话已过期 — 请重新登录",

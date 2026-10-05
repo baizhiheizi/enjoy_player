@@ -2112,6 +2112,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAccountOpenProfile => 'Open profile';
 
   @override
+  String sidebarPlanSubtitle(String tier) {
+    return '$tier plan';
+  }
+
+  @override
   String get settingsAccountSignIn => 'Sign in';
 
   @override

@@ -12,11 +12,11 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 |---|---|---|
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
-| 2 · Shell | 3 | 0 |
+| 2 · Shell | 3 | 1 |
 | 3 · Player | 13 | 0 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **9** |
+| **Total** | **43** | **10** |
 
 ## Decisions
 
@@ -25,7 +25,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | ID | Question | Recommendation | Status | Gates |
 |---|---|---|---|---|
 | R1 | The Listen dock on `Main` draws a **Repeat** button. Repeat mode exists (`RepeatMode` none / single / segment, `PlayerPreferences.setRepeatMode`) but has no UI today, so the button would expose a hidden setting. Ship it? | Leave it out (feature freeze); revisit after the merge. | open | D3.2 |
-| S1 | The desktop sidebar on `Sidebar` adds **Vocabulary** (due count) and **Craft** rows, a **Settings** row, and a **sync status** line. It drops `SidebarContinuePracticeCard`; Home keeps Continue practicing. These are navigation changes only, on existing routes and state. | Build as drawn. | open | D2.1 |
+| S1 | The desktop sidebar on `Sidebar` adds **Vocabulary** (due count) and **Craft** rows, a **Settings** row, and a **sync status** line. It drops `SidebarContinuePracticeCard`; Home keeps Continue practicing. These are navigation changes only, on existing routes and state. | Build as drawn. | decided — built as drawn in D2.1 per the standing "stick to the design" direction | D2.1 |
 | L1 | Violet replaces coral for "you"; scores lose their colors; Literata replaces Source Serif 4 and Instrument Serif; Hide text renders as word shapes. | Accepted in ADR-0091. | decided | — |
 
 ## Tasks
@@ -54,7 +54,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| D2.1 | Desktop shell + sidebar | `Sidebar`, `Home`, `HomeDark` | Phase 1 | todo | | | Gated by S1 |
+| D2.1 | Desktop shell + sidebar | `Sidebar`, `Home`, `HomeDark` | Phase 1 | done | | | Floating panel removed; sidebar rebuilt per the board (brand, search, five rows, sync line, Settings, account chip); `SidebarContinuePracticeCard` deleted (Home keeps Continue practicing via D4.1) |
 | D2.2 | Phone tab bar | `TabBar`, `PhHome`, `PhLibrary` | Phase 1 | todo | | | |
 | D2.3 | Page metrics + subpage chrome + Not found | `Home`, `Profile`, `ProfileEdit`, `Craft`, `Settings`, `NotFound` | Phase 1 | todo | | | |
 

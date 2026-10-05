@@ -1,8 +1,7 @@
 /// Continue practicing — last `echo_sessions` row with a live library item.
 ///
-/// Consumed by the desktop sidebar card ([SidebarContinuePracticeCard]);
-/// Home intentionally has no Continue section (the last-practiced item is
-/// already the first row of its recents grid).
+/// Consumed by Home's Continue practicing card (Duet ADR-0091); the
+/// desktop sidebar no longer mounts one.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';

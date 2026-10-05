@@ -201,6 +201,21 @@ List<Override> _shellOverrides(
   return overrides;
 }
 
+/// `testWidgets` with an in-body teardown: the shell's drift streams
+/// schedule zero-duration timers when the tree unmounts, and the binding
+/// keeps a test's tree alive into the next test — so every shell test
+/// unmounts and flushes before the pending-timer invariant runs.
+void shellTest(String description, Future<void> Function(WidgetTester) body) {
+  testWidgets(description, (tester) async {
+    try {
+      await body(tester);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    }
+  });
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   required GoRouter router,
@@ -253,7 +268,7 @@ void main() {
   });
 
   group('RootShell narrow layout (mobile)', () {
-    testWidgets('renders bottom nav with Home selected at /', (tester) async {
+    shellTest('renders bottom nav with Home selected at /', (tester) async {
       final router = _router(initial: '/');
       await _pump(
         tester,
@@ -269,33 +284,32 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
     });
 
-    testWidgets(
-      'floats bottom nav over a transparent scaffold with extendBody',
-      (tester) async {
-        final router = _router(initial: '/');
-        await _pump(
-          tester,
-          router: router,
-          overrides: _shellOverrides(db),
-          surface: const Size(400, 900),
-        );
+    shellTest('floats bottom nav over a transparent scaffold with extendBody', (
+      tester,
+    ) async {
+      final router = _router(initial: '/');
+      await _pump(
+        tester,
+        router: router,
+        overrides: _shellOverrides(db),
+        surface: const Size(400, 900),
+      );
 
-        final shellScaffolds = tester
-            .widgetList<Scaffold>(find.byType(Scaffold))
-            .where((s) => s.bottomNavigationBar != null)
-            .toList();
-        expect(shellScaffolds, hasLength(1));
-        expect(shellScaffolds.first.backgroundColor, Colors.transparent);
-        expect(shellScaffolds.first.extendBody, isTrue);
-        expect(find.byType(EnjoyBottomNav), findsOneWidget);
-        final content = tester.widget<Padding>(
-          find.byKey(const ValueKey<String>('root-shell-content')),
-        );
-        expect(content.padding.resolve(TextDirection.ltr).bottom, 64);
-      },
-    );
+      final shellScaffolds = tester
+          .widgetList<Scaffold>(find.byType(Scaffold))
+          .where((s) => s.bottomNavigationBar != null)
+          .toList();
+      expect(shellScaffolds, hasLength(1));
+      expect(shellScaffolds.first.backgroundColor, Colors.transparent);
+      expect(shellScaffolds.first.extendBody, isTrue);
+      expect(find.byType(EnjoyBottomNav), findsOneWidget);
+      final content = tester.widget<Padding>(
+        find.byKey(const ValueKey<String>('root-shell-content')),
+      );
+      expect(content.padding.resolve(TextDirection.ltr).bottom, 64);
+    });
 
-    testWidgets('selects Discover icon at /discover', (tester) async {
+    shellTest('selects Discover icon at /discover', (tester) async {
       final router = _router(initial: '/discover');
       await _pump(
         tester,
@@ -308,7 +322,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.home), findsOneWidget);
     });
 
-    testWidgets('selects Library icon at /library', (tester) async {
+    shellTest('selects Library icon at /library', (tester) async {
       final router = _router(initial: '/library');
       await _pump(
         tester,
@@ -320,7 +334,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.library), findsOneWidget);
     });
 
-    testWidgets('selects Profile icon at /profile', (tester) async {
+    shellTest('selects Profile icon at /profile', (tester) async {
       final router = _router(initial: '/profile');
       await _pump(
         tester,
@@ -332,7 +346,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
     });
 
-    testWidgets('selects Profile icon at /settings', (tester) async {
+    shellTest('selects Profile icon at /settings', (tester) async {
       final router = _router(initial: '/settings');
       await _pump(
         tester,
@@ -344,7 +358,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
     });
 
-    testWidgets('selects Library icon at /cloud', (tester) async {
+    shellTest('selects Library icon at /cloud', (tester) async {
       final router = _router(initial: '/cloud');
       await _pump(
         tester,
@@ -356,7 +370,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.library), findsOneWidget);
     });
 
-    testWidgets('does not render bottom nav on /player/abc', (tester) async {
+    shellTest('does not render bottom nav on /player/abc', (tester) async {
       final router = _router(initial: '/player/abc');
       await _pump(
         tester,
@@ -369,7 +383,7 @@ void main() {
       expect(find.text('player-page'), findsOneWidget);
     });
 
-    testWidgets('still renders bottom nav on /youtube/login', (tester) async {
+    shellTest('still renders bottom nav on /youtube/login', (tester) async {
       final router = _router(initial: '/youtube/login');
       await _pump(
         tester,
@@ -384,7 +398,7 @@ void main() {
   });
 
   group('RootShell wide layout (rail sidebar)', () {
-    testWidgets('uses AppSidebar instead of bottom nav at >= breakpoint', (
+    shellTest('uses AppSidebar instead of bottom nav at >= breakpoint', (
       tester,
     ) async {
       final router = _router(initial: '/');
@@ -401,9 +415,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.home), findsOneWidget);
     });
 
-    testWidgets('does not render AppSidebar when on /player/abc', (
-      tester,
-    ) async {
+    shellTest('does not render AppSidebar when on /player/abc', (tester) async {
       final router = _router(initial: '/player/abc');
       await _pump(
         tester,
@@ -418,7 +430,7 @@ void main() {
   });
 
   group('RootShell vocabulary review practice', () {
-    testWidgets('does not show mini transport when practice owns video stage', (
+    shellTest('does not show mini transport when practice owns video stage', (
       tester,
     ) async {
       final router = _router(initial: '/library');
@@ -438,7 +450,7 @@ void main() {
       expect(find.byIcon(EnjoyIcons.play), findsNothing);
     });
 
-    testWidgets('tapping bottom-nav Discover navigates to /discover', (
+    shellTest('tapping bottom-nav Discover navigates to /discover', (
       tester,
     ) async {
       final router = _router(initial: '/');
@@ -456,7 +468,7 @@ void main() {
       expect(router.state.uri.path, '/discover');
     });
 
-    testWidgets('tapping bottom-nav Library navigates to /library', (
+    shellTest('tapping bottom-nav Library navigates to /library', (
       tester,
     ) async {
       final router = _router(initial: '/');
@@ -473,7 +485,7 @@ void main() {
       expect(router.state.uri.path, '/library');
     });
 
-    testWidgets('tapping bottom-nav Profile navigates to /profile', (
+    shellTest('tapping bottom-nav Profile navigates to /profile', (
       tester,
     ) async {
       final router = _router(initial: '/');
@@ -490,7 +502,7 @@ void main() {
       expect(router.state.uri.path, '/profile');
     });
 
-    testWidgets('tapping bottom-nav Home navigates back to /', (tester) async {
+    shellTest('tapping bottom-nav Home navigates back to /', (tester) async {
       final router = _router(initial: '/discover');
       await _pump(
         tester,
@@ -505,7 +517,7 @@ void main() {
       expect(router.state.uri.path, '/');
     });
 
-    testWidgets('updateAvailableBadgeProvider=true shows profile semantics', (
+    shellTest('updateAvailableBadgeProvider=true shows profile semantics', (
       tester,
     ) async {
       final router = _router(initial: '/');
@@ -520,7 +532,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.user), findsWidgets);
     });
 
-    testWidgets('shows transport on /player/ with an active session', (
+    shellTest('shows transport on /player/ with an active session', (
       tester,
     ) async {
       final router = _router(initial: '/player/$_kShellMediaId');
@@ -539,7 +551,7 @@ void main() {
       expect(find.byType(GlobalTransportBar), findsOneWidget);
     });
 
-    testWidgets(
+    shellTest(
       'floats player transport over a transparent scaffold with extendBody',
       (tester) async {
         final router = _router(initial: '/player/$_kShellMediaId');
@@ -565,7 +577,7 @@ void main() {
       },
     );
 
-    testWidgets('does not show mini transport on / even with a session', (
+    shellTest('does not show mini transport on / even with a session', (
       tester,
     ) async {
       final router = _router(initial: '/');
@@ -583,7 +595,7 @@ void main() {
       expect(find.byType(GlobalTransportBar), findsNothing);
     });
 
-    testWidgets('does not show mini transport bar when no player session', (
+    shellTest('does not show mini transport bar when no player session', (
       tester,
     ) async {
       final router = _router(initial: '/library');
@@ -598,7 +610,7 @@ void main() {
       expect(find.byIcon(EnjoyIcons.mic), findsNothing);
     });
 
-    testWidgets('renders AppBackground and shell at /profile', (tester) async {
+    shellTest('renders AppBackground and shell at /profile', (tester) async {
       final router = _router(initial: '/profile');
       await _pump(
         tester,
@@ -613,9 +625,7 @@ void main() {
   });
 
   group('RootShell immersive vocabulary review', () {
-    testWidgets('hides AppSidebar on /vocabulary/review (wide)', (
-      tester,
-    ) async {
+    shellTest('hides AppSidebar on /vocabulary/review (wide)', (tester) async {
       final router = _router(initial: '/vocabulary/review');
       await _pump(
         tester,
@@ -630,7 +640,7 @@ void main() {
       expect(find.byType(EnjoyBottomNav), findsNothing);
     });
 
-    testWidgets('hides bottom nav on /vocabulary/review (narrow)', (
+    shellTest('hides bottom nav on /vocabulary/review (narrow)', (
       tester,
     ) async {
       final router = _router(initial: '/vocabulary/review');
@@ -646,7 +656,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.compass), findsNothing);
     });
 
-    testWidgets(
+    shellTest(
       'hides mini transport on /vocabulary/review with active session',
       (tester) async {
         final router = _router(initial: '/vocabulary/review');
@@ -667,27 +677,26 @@ void main() {
       },
     );
 
-    testWidgets(
-      'does not show mini transport on /vocabulary hub with session',
-      (tester) async {
-        final router = _router(initial: '/vocabulary');
-        await _pump(
-          tester,
-          router: router,
-          overrides: _shellOverrides(
-            db,
-            playerSession: _shellSession(),
-            playerEngine: fakeEngine,
-          ),
-          surface: const Size(1100, 900),
-        );
+    shellTest('does not show mini transport on /vocabulary hub with session', (
+      tester,
+    ) async {
+      final router = _router(initial: '/vocabulary');
+      await _pump(
+        tester,
+        router: router,
+        overrides: _shellOverrides(
+          db,
+          playerSession: _shellSession(),
+          playerEngine: fakeEngine,
+        ),
+        surface: const Size(1100, 900),
+      );
 
-        expect(find.text('vocabulary-page'), findsOneWidget);
-        expect(find.byType(GlobalTransportBar), findsNothing);
-      },
-    );
+      expect(find.text('vocabulary-page'), findsOneWidget);
+      expect(find.byType(GlobalTransportBar), findsNothing);
+    });
 
-    testWidgets('restores sidebar after leaving /vocabulary/review (wide)', (
+    shellTest('restores sidebar after leaving /vocabulary/review (wide)', (
       tester,
     ) async {
       final router = _router(initial: '/vocabulary/review');
@@ -708,7 +717,7 @@ void main() {
       expect(find.byIcon(EnjoyIcons.search), findsOneWidget);
     });
 
-    testWidgets(
+    shellTest(
       'does not restore mini transport after leaving review with a session',
       (tester) async {
         final router = _router(initial: '/vocabulary/review');
@@ -734,34 +743,33 @@ void main() {
       },
     );
 
-    testWidgets(
-      'keeps chrome hidden when resizing while on /vocabulary/review',
-      (tester) async {
-        final router = _router(initial: '/vocabulary/review');
-        await _pump(
-          tester,
-          router: router,
-          overrides: _shellOverrides(db),
-          surface: const Size(400, 900),
-        );
+    shellTest('keeps chrome hidden when resizing while on /vocabulary/review', (
+      tester,
+    ) async {
+      final router = _router(initial: '/vocabulary/review');
+      await _pump(
+        tester,
+        router: router,
+        overrides: _shellOverrides(db),
+        surface: const Size(400, 900),
+      );
 
-        expect(find.byType(EnjoyBottomNav), findsNothing);
+      expect(find.byType(EnjoyBottomNav), findsNothing);
 
-        await tester.binding.setSurfaceSize(const Size(1100, 900));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 50));
+      await tester.binding.setSurfaceSize(const Size(1100, 900));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
 
-        expect(find.text('vocabulary-review-page'), findsOneWidget);
-        expect(find.byIcon(EnjoyIcons.search), findsNothing);
-        expect(find.byType(AppSidebar), findsNothing);
-        expect(find.byType(EnjoyBottomNav), findsNothing);
+      expect(find.text('vocabulary-review-page'), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.search), findsNothing);
+      expect(find.byType(AppSidebar), findsNothing);
+      expect(find.byType(EnjoyBottomNav), findsNothing);
 
-        await tester.binding.setSurfaceSize(const Size(400, 900));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 50));
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
 
-        expect(find.byType(EnjoyBottomNav), findsNothing);
-      },
-    );
+      expect(find.byType(EnjoyBottomNav), findsNothing);
+    });
   });
 }
