@@ -220,6 +220,12 @@ server profile):
 
 ### Rendering
 
+Duet renders hidden lines as **rounded shape bars** sized from the
+hidden words' text boxes (measured once per line layout and cached) —
+no `ImageFilter.blur` anywhere in the player. The reveal rules are
+unchanged (hover / press-and-hold, active cue), and tapping the shapes
+on a selectable cue starts the same hold-to-peek.
+
 The blur is applied via `TranscriptBlurText`
 ([`lib/features/transcript/presentation/transcript_blur_text.dart`](../../lib/features/transcript/presentation/transcript_blur_text.dart))
 inside `TranscriptLineTile`. Only the body text widgets are wrapped —

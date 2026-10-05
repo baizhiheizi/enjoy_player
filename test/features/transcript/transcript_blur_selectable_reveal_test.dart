@@ -97,7 +97,7 @@ void main() {
     );
     expect(initial.revealed, isFalse);
 
-    await tester.tap(find.byType(SelectableText));
+    await tester.tap(find.byType(TranscriptBlurText));
     await tester.pump();
 
     final revealed = tester.widget<TranscriptBlurText>(

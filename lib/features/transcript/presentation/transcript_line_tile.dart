@@ -317,11 +317,19 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
         final blurredPrimary = TranscriptBlurText(
           revealed: isRevealed,
+          shapeWords: transcriptPlainForSelection(widget.line.text),
+          shapeFontSize: baseBody.fontSize,
+          onShapesTap: widget.selectable ? _revealHoldOnly : null,
           child: primaryWidget,
         );
         final blurredSecondary = secondaryWidget == null
             ? null
-            : TranscriptBlurText(revealed: isRevealed, child: secondaryWidget);
+            : TranscriptBlurText(
+                revealed: isRevealed,
+                shapeWords: widget.secondaryText,
+                shapeFontSize: secondaryTypographyStyle.fontSize,
+                child: secondaryWidget,
+              );
 
         final hasTakes = recordingCount != null && recordingCount > 0;
         final textBody = Padding(
