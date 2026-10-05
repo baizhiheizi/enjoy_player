@@ -13,10 +13,10 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
-| 3 · Player | 13 | 5 |
+| 3 · Player | 13 | 6 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 0 |
-| **Total** | **43** | **17** |
+| **Total** | **43** | **18** |
 
 ## Decisions
 
@@ -67,7 +67,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D3.3 | Sentence ruler | `Main`, `DEcho`, `Phone`, `PEcho` | D3.2 | done | | | 4px original/sunk track, line ticks, you loop bracket, practiced dots from transcriptLineRecordingCountsProvider, mono times, original thumb ring, hit 34; TransportProgressStrip deleted with its tests' behavior re-homed |
 | D3.4 | Listen lens | `Main`, `DDark`, `Phone`, `PDark` | D3.1 | done | | | Gutter grid (52px mono time + you practiced dot), Literata 20/26 sizes, original karaoke underline, no plate/rail; recording badge replaced by the dot (count stays in semantics) |
 | D3.5 | Echo lens | `DEcho`, `PEcho`, `DCompact` | D3.4 | done | | | Loop block in you brackets with LOOP overline; loop lines grow to 40/34/25 (−4 phone) Literata 500; card rail/shell/dividers removed; earlier/later pills unchanged |
-| D3.6 | Takes, pitch, recording in the loop | `DEcho`, `DRecording`, `DScored`, `PEcho`, `PRecording`, `PScored` | D3.5, D3.2 | todo | | | |
+| D3.6 | Takes, pitch, recording in the loop | `DEcho`, `DRecording`, `DScored`, `PEcho`, `PRecording`, `PScored` | D3.5, D3.2 | done | | | Pitch duet: 9px original band @0.35 + 3px you line; take score chips uncolored ink-on-sunk (thresholds kept); recording countdown bar + RECORIDNG label ride the existing live widgets, dock carries Cancel/Stop |
 | D3.7 | Side margin + word lookup | `DWord`, `DCompact`, `PWord` | D3.1 | todo | | | |
 | D3.8 | Assessment in the margin + feedback on words | `DScored`, `PScored` | D3.6, D3.7 | todo | | | |
 | D3.9 | Hide text as word shapes | `DHide`, `PHide` | D3.4 | todo | | | |

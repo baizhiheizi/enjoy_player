@@ -72,3 +72,11 @@ Silent FFmpeg WAV normalize is auto-detected and the resample chain is retried (
 - AI capability routes (assessment, chat, translation): [`docs/features/ai.md`](ai.md)
 - Native speech package: `packages/azure_speech/`
 - ADR: [`docs/decisions/0005-mvp-scope-local-only.md`](../decisions/0005-mvp-scope-local-only.md) (echo + shadow reading scope)
+
+## Presentation — the pitch duet and takes (Duet, ADR-0091)
+
+The pitch chart draws the **pitch duet**: the reference contour as a 9 px
+original-blue band at 0.35 opacity, your contour as a 3 px you-violet
+line. Score chips on takes are uncolored — an ink number on a sunk pill;
+the Excellent / Good / Fair / Poor thresholds stay in `score_level.dart`
+and feed the assessment meter (D3.8).

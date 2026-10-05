@@ -181,7 +181,7 @@ class _PitchContourPainter extends CustomPainter {
           line,
           Paint()
             ..color = referenceColor
-            ..strokeWidth = 2.5
+            ..strokeWidth = 9
             ..style = PaintingStyle.stroke
             ..strokeJoin = StrokeJoin.round,
         );
