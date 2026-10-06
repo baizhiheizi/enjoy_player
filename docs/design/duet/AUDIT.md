@@ -73,6 +73,37 @@ Re-checked after A2 (the gallery now mounts the real player screen with the boar
 | Assessment margin (D3.8) | code | Not built: margin assessment and wavy notes on words. Docked margin at ≥ 1100 still deferred. Decisions R1 (Repeat) and R2 (take management) open. |
 | Harness | note | A few CJK glyphs (六, 是, 一 …) still draw as boxes in the gallery behind a Latin primary font — a `flutter test` engine limitation, not an app bug. |
 
+
+
+## Progress log (2026-10-06, this pass)
+
+Committed on `design-duet` (all gates green per commit):
+
+| Commit | Scope |
+|---|---|
+| `22a7b2ab` | A1: boards re-synced from the canvas, renders regenerated |
+| `6ead5f45` | A2: player gallery on the real player screen with board data (top bar + dock, translation, IPA, takes; host CJK font) |
+| `a34c069a` | A3: board-matching fixtures (`board_data.dart`: Alex Chen/Free, media, channels, feed, words, credit log, sync queue); 23 app scenes with pushed subpages |
+| `bf26c376` | A4: fake `record` channel (Craft) + signed-out fixture (SignIn), both captured |
+| `c47fee35` | B-foundations: soft icon tiles (S1), Duet input theme (S3 inputs), `EnjoySegment.count`, sidebar "Search library" (S4) |
+| `5b67cab1` | C1 Home rebuilt: Continue practicing restored as the hero; goal/community column; `m:ss` clocks app-wide |
+| `f01ff998` | C2 Vocabulary rebuilt: due + status cards, word table, inline Custom review |
+| `2be25e58` | C3 Library rebuilt: Local/Cloud capsule, counts, inline search, audio rows in a card |
+| `eb1ecd3a` | C4 Profile rebuilt: hero, Practice + Credits cards, neutral list, danger Sign out |
+| `381cba7c` | C5 Settings (desktop): Account section, Appearance default, Literata pane titles, header-row search |
+| `a30d46e2` | C6 Discover rebuilt: avatar strip, Recent uploads heading, Add to library buttons |
+| `56f5aa5c` | C7a Subscription: Free status strip, plan heading |
+
+### Still open (in priority order)
+
+1. **C7b Credits screen** — packages card, Start/End/Service filter pills, usage table with status chips (Material date fields today).
+2. **C7c Subscription residuals** — paid membership card; three-column plan catalog; credits sections below the catalog.
+3. **C8** — Sync (hero, stat tiles, queue list), Keyboard (group headers, keycaps), AiProviders, ProfileEdit, ProfilePrefs, CraftHistory.
+4. **C5 residual** — Settings phone hub (account card + drill-in rows + version footer).
+5. **Phase D (player)** — top-bar meta/labels, phone two-row top bar, dock frame in `RootShell` (full-bleed vs inset), skip glyphs, speed text, phone dock rows, ruler/gutter practiced dots, Echo context lines without translation, takes strip order/Score action, assessment margin (D3.8), decisions R1/R2/R3.
+6. **Screens not yet captured** — Review session, NotFound, Poster, dialogs; the four captured-but-unreviewed (ProfileEdit, ProfilePrefs, AiProviders, CraftHistory) now have board data.
+7. **D5.4/D5.5** — platform QA + performance evidence on the rebuilt screens; then D5.6 merge.
+
 ## Plan
 
 Each phase ends with its compare images attached to the PR. **A board's task cannot be marked `done` without its side-by-side compare.**
