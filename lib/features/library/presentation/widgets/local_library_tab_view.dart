@@ -131,21 +131,76 @@ class LocalAudioLibraryBody extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final gutter = pageGutterOf(context, constraints.maxWidth);
-        return ListView.separated(
-          padding: EdgeInsets.fromLTRB(
-            gutter - t.space8,
-            t.space4,
-            gutter - t.space8,
-            t.space32,
-          ),
-          itemCount: items.length,
-          separatorBuilder: (context, _) => SizedBox(height: t.space4),
-          itemBuilder: (context, index) {
-            return LocalAudioRow(media: items[index]);
-          },
+        final inset = libraryBodyInset(context, constraints.maxWidth);
+        return CustomScrollView(
+          slivers: [
+            if (searchQuery.isNotEmpty)
+              LibrarySearchResultLine(
+                count: items.length,
+                query: searchQuery,
+                inset: inset,
+              ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(inset, t.space4, inset, t.space32),
+              sliver: DecoratedSliver(
+                decoration: ShapeDecoration(
+                  color: t.paper,
+                  shape: RoundedSuperellipseBorder(
+                    borderRadius: BorderRadius.circular(t.radiusCard),
+                    side: BorderSide(color: t.line),
+                  ),
+                ),
+                sliver: SliverList.separated(
+                  itemCount: items.length,
+                  separatorBuilder: (context, _) =>
+                      Divider(height: 1, thickness: 1, color: t.line),
+                  itemBuilder: (context, index) =>
+                      LocalAudioRow(media: items[index]),
+                ),
+              ),
+            ),
+          ],
         );
       },
+    );
+  }
+}
+
+/// Browse-column inset for library bodies (matches the page header).
+double libraryBodyInset(BuildContext context, double paneWidth) =>
+    EnjoyPageMetrics.of(
+      context,
+      kind: EnjoyPageKind.browse,
+      paneWidth: paneWidth,
+    ).horizontalInset;
+
+/// "2 matches for “ferry”" above search results.
+class LibrarySearchResultLine extends StatelessWidget {
+  const LibrarySearchResultLine({
+    super.key,
+    required this.count,
+    required this.query,
+    required this.inset,
+  });
+
+  final int count;
+  final String query;
+  final double inset;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(inset, 2, inset, 14),
+      sliver: SliverToBoxAdapter(
+        child: Text(
+          l10n.librarySearchResults(count, query),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontSize: 13, color: t.ink3),
+        ),
+      ),
     );
   }
 }
@@ -172,11 +227,16 @@ class LocalAudioRow extends ConsumerWidget {
     final dur = formatDurationHmsMs(media.durationMs);
     final accent = generativeAccentForSeed(media.coverSeed);
 
+    final locale = Localizations.localeOf(context).toLanguageTag();
+
     return MediaCardRow(
       title: media.title,
-      subtitle: dur,
-      badge: focusLanguageLabel(l10n, media.language),
-      onBadgeTap: () => editMediaLanguage(context, ref, media),
+      subtitle: l10n.libraryTileAdded(
+        relativeDayLabel(l10n, locale, media.createdAt),
+      ),
+      language: languageCodeLabel(media.language),
+      onLanguageTap: () => editMediaLanguage(context, ref, media),
+      durationLabel: media.durationMs > 0 ? dur : null,
       providerBadge: media.provider == 'youtube'
           ? l10n.youtubeBadge
           : media.provider == 'craft'
@@ -244,25 +304,42 @@ class LocalVideoLibraryBody extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final gutter = pageGutterOf(context, constraints.maxWidth);
-        final crossAxisExtent = constraints.maxWidth - gutter * 2;
-        return GridView.builder(
-          padding: EdgeInsets.fromLTRB(gutter, t.space8, gutter, t.space32),
-          gridDelegate: mediaCardTileGridDelegateForMaxTileWidth(
-            crossAxisExtent: crossAxisExtent,
-            mainAxisSpacing: t.space16,
-            crossAxisSpacing: t.space16,
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) => Align(
-            alignment: Alignment.topCenter,
-            child: LocalVideoTile(media: items[index]),
-          ),
+        final inset = libraryBodyInset(context, constraints.maxWidth);
+        final crossAxisExtent = constraints.maxWidth - inset * 2;
+        return CustomScrollView(
+          slivers: [
+            if (searchQuery.isNotEmpty)
+              LibrarySearchResultLine(
+                count: items.length,
+                query: searchQuery,
+                inset: inset,
+              ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(inset, t.space4, inset, t.space32),
+              sliver: SliverGrid(
+                gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
+                  crossAxisExtent: crossAxisExtent,
+                  minTileWidth: _kLibraryTileMinWidth,
+                  mainAxisSpacing: 24,
+                  crossAxisSpacing: 20,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => Align(
+                    alignment: Alignment.topCenter,
+                    child: LocalVideoTile(media: items[index]),
+                  ),
+                  childCount: items.length,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
   }
 }
+
+const double _kLibraryTileMinWidth = 210;
 
 class LocalVideoTile extends ConsumerWidget {
   const LocalVideoTile({required this.media, super.key});

@@ -109,6 +109,7 @@ abstract final class EnjoyIcons {
     fontFamily: 'PhosphorFill',
   );
   static const IconData close = IconData(0xe4f6, fontFamily: 'PhosphorRegular');
+  static const IconData cloud = IconData(0xe1aa, fontFamily: 'PhosphorRegular');
   static const IconData cloudDone = IconData(
     0xe1b0,
     fontFamily: 'PhosphorRegular',

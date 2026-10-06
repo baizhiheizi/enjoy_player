@@ -2058,5 +2058,11 @@
   "vocabularyMore": "More",
   "@vocabularyMore": {"description": "Stepper button: more words."},
   "vocabularyProBadge": "Pro",
-  "@vocabularyProBadge": {"description": "Pro badge on the Export to Anki button."}
+  "@vocabularyProBadge": {"description": "Pro badge on the Export to Anki button."},
+  "libraryOverlineLocal": "On this device",
+  "@libraryOverlineLocal": {"description": "Overline above the Library title for local media."},
+  "libraryOverlineCloud": "Saved to your Enjoy account",
+  "@libraryOverlineCloud": {"description": "Overline above the Library title for cloud media."},
+  "librarySearchResults": "{count, plural, one{1 match for “{query}”} other{{count} matches for “{query}”}}",
+  "@librarySearchResults": {"description": "Line above library results while a search is active.", "placeholders": {"count": {"type": "int"}, "query": {"type": "String"}}}
 }

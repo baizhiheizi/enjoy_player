@@ -3961,6 +3961,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get vocabularyProBadge => 'Pro';
+
+  @override
+  String get libraryOverlineLocal => '本设备';
+
+  @override
+  String get libraryOverlineCloud => '保存在你的 Enjoy 账户';
+
+  @override
+  String librarySearchResults(int count, String query) {
+    return '“$query” 有 $count 个结果';
+  }
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7245,4 +7256,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get vocabularyProBadge => 'Pro';
+
+  @override
+  String get libraryOverlineLocal => '本设备';
+
+  @override
+  String get libraryOverlineCloud => '保存在你的 Enjoy 账户';
+
+  @override
+  String librarySearchResults(int count, String query) {
+    return '“$query” 有 $count 个结果';
+  }
 }

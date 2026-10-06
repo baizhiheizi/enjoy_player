@@ -98,6 +98,9 @@ class EditorialHeader extends StatelessWidget {
                 letterSpacing: narrow ? -0.64 : -0.84,
               );
 
+        final stackTrailing =
+            narrow && titleAccessory != null && trailing != null;
+
         return Padding(
           padding:
               padding ??
@@ -120,23 +123,24 @@ class EditorialHeader extends StatelessWidget {
                           EnjoyOverline(overline!),
                           SizedBox(height: t.space12),
                         ],
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        Wrap(
+                          spacing: t.space12,
+                          runSpacing: t.space8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            Flexible(
-                              child: Text(
-                                title,
-                                style: titleStyle,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                            Text(
+                              title,
+                              style: titleStyle,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            if (titleAccessory != null) ...[
-                              SizedBox(width: t.space12),
-                              titleAccessory!,
-                            ],
+                            ?titleAccessory,
                           ],
                         ),
+                        if (stackTrailing) ...[
+                          SizedBox(height: t.space16),
+                          trailing!,
+                        ],
                         if (subtitle != null) ...[
                           SizedBox(height: t.space4),
                           Text(
@@ -153,7 +157,7 @@ class EditorialHeader extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (trailing != null) ...[
+                  if (trailing != null && !stackTrailing) ...[
                     SizedBox(width: t.space16),
                     trailing!,
                   ],

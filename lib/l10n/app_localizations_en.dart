@@ -4149,4 +4149,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vocabularyProBadge => 'Pro';
+
+  @override
+  String get libraryOverlineLocal => 'On this device';
+
+  @override
+  String get libraryOverlineCloud => 'Saved to your Enjoy account';
+
+  @override
+  String librarySearchResults(int count, String query) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count matches for “$query”',
+      one: '1 match for “$query”',
+    );
+    return '$_temp0';
+  }
 }

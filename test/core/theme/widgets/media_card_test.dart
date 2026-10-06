@@ -512,7 +512,7 @@ void main() {
   });
 
   group('MediaCardRow', () {
-    testWidgets('renders title and chevron', (tester) async {
+    testWidgets('renders title without a chevron', (tester) async {
       await tester.pumpWidget(
         _wrap(
           child: MediaCardRow(title: 'Audio', onTap: () {}),
@@ -520,7 +520,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Audio'), findsOneWidget);
-      expect(find.byIcon(EnjoyIcons.chevronRight), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.chevronRight), findsNothing);
     });
 
     testWidgets('renders subtitle when provided', (tester) async {
@@ -640,35 +640,24 @@ void main() {
       });
     });
 
-    testWidgets('badge with onBadgeTap triggers callback', (tester) async {
+    testWidgets('row language chip triggers its callback', (tester) async {
       var tapped = 0;
       await tester.pumpWidget(
         _wrap(
           child: MediaCardRow(
             title: 'T',
-            badge: 'en',
-            onBadgeTap: () => tapped++,
+            language: 'EN',
+            durationLabel: '0:56',
+            onLanguageTap: () => tapped++,
             onTap: () {},
           ),
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('en'), findsOneWidget);
-      await tester.tap(find.text('en'));
+      expect(find.text('0:56'), findsOneWidget);
+      await tester.tap(find.text('EN'));
       await tester.pumpAndSettle();
       expect(tapped, 1);
-    });
-
-    testWidgets('badge without onBadgeTap renders without language icon', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _wrap(
-          child: MediaCardRow(title: 'T', badge: 'en', onTap: () {}),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('en'), findsOneWidget);
     });
 
     testWidgets('heroArtworkMediaId wraps row thumbnail', (tester) async {

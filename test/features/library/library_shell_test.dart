@@ -1,4 +1,3 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/routing/library_source.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -97,48 +96,45 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byTooltip('Refresh this tab'), findsOneWidget);
-      expect(find.byTooltip('Switch to local'), findsOneWidget);
+      expect(find.text('Local'), findsOneWidget);
+      expect(find.text('Cloud'), findsWidgets);
       expect(find.byType(TextField), findsNothing);
-      expect(find.text('Local'), findsNothing);
-      expect(find.byIcon(EnjoyIcons.caretUpDown), findsOneWidget);
+      expect(find.text('SAVED TO YOUR ENJOY ACCOUNT'), findsOneWidget);
     });
 
-    testWidgets(
-      'local source shows import and compact search on narrow width',
-      (tester) async {
-        tester.view.physicalSize = const Size(400, 800);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets('local source shows import and search on narrow width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-        final router = GoRouter(
-          initialLocation: '/library',
-          routes: [
-            GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
+      final router = GoRouter(
+        initialLocation: '/library',
+        routes: [
+          GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        _themedRouter(
+          router: router,
+          overrides: [
+            authCtrlProvider.overrideWith(_SignedOutAuthCtrl.new),
+            libraryFilteredListsProvider.overrideWith(
+              (ref) => Stream.value((audio: <Media>[], video: <Media>[])),
+            ),
+            libraryMediaProvider.overrideWith((ref) => Stream.value(<Media>[])),
           ],
-        );
-        addTearDown(router.dispose);
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        await tester.pumpWidget(
-          _themedRouter(
-            router: router,
-            overrides: [
-              authCtrlProvider.overrideWith(_SignedOutAuthCtrl.new),
-              libraryFilteredListsProvider.overrideWith(
-                (ref) => Stream.value((audio: <Media>[], video: <Media>[])),
-              ),
-              libraryMediaProvider.overrideWith(
-                (ref) => Stream.value(<Media>[]),
-              ),
-            ],
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        expect(find.byTooltip('Import'), findsOneWidget);
-        expect(find.byType(TextField), findsOneWidget);
-      },
-    );
+      expect(find.byTooltip('Import'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+    });
 
     testWidgets('source toggle navigates to cloud query', (tester) async {
       final router = GoRouter(
@@ -163,7 +159,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Switch to cloud'));
+      expect(find.text('ON THIS DEVICE'), findsOneWidget);
+      await tester.tap(find.text('Cloud'));
       await tester.pumpAndSettle();
 
       expect(router.state.uri.queryParameters['source'], 'cloud');

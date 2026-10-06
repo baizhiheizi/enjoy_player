@@ -479,6 +479,10 @@ List<Override> boardOverrides(AppDatabase db, {AuthCtrl Function()? auth}) => [
   libraryMediaProvider.overrideWith(
     (ref) => Stream.value([...boardVideos, ...boardAudios]),
   ),
+  libraryKindCountsProvider.overrideWith(
+    (ref) =>
+        Stream.value((audio: boardAudios.length, video: boardVideos.length)),
+  ),
   profilePracticeStatsProvider.overrideWith((ref) async => _boardStatistics),
   transcriptLinesForMediaProvider('la1').overrideWith(
     (ref) => Stream.value([

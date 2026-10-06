@@ -56,6 +56,8 @@ class VocabularyWordToolbar extends ConsumerWidget {
           width: _kSearchWidth,
           height: _kToolbarHeight,
           child: TextField(
+            expands: true,
+            maxLines: null,
             style: tt.bodyMedium?.copyWith(fontSize: 14, color: t.ink),
             textInputAction: TextInputAction.search,
             textAlignVertical: TextAlignVertical.center,

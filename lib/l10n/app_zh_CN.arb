@@ -1389,5 +1389,8 @@
   "vocabularyFilterValue": "{label}：{value}",
   "vocabularyFewer": "减少",
   "vocabularyMore": "增加",
-  "vocabularyProBadge": "Pro"
+  "vocabularyProBadge": "Pro",
+  "libraryOverlineLocal": "本设备",
+  "libraryOverlineCloud": "保存在你的 Enjoy 账户",
+  "librarySearchResults": "“{query}” 有 {count} 个结果"
 }

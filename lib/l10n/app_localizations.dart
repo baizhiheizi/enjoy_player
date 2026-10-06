@@ -7565,6 +7565,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pro'**
   String get vocabularyProBadge;
+
+  /// Overline above the Library title for local media.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device'**
+  String get libraryOverlineLocal;
+
+  /// Overline above the Library title for cloud media.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to your Enjoy account'**
+  String get libraryOverlineCloud;
+
+  /// Line above library results while a search is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 match for “{query}”} other{{count} matches for “{query}”}}'**
+  String librarySearchResults(int count, String query);
 }
 
 class _AppLocalizationsDelegate

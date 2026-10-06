@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
@@ -365,8 +366,8 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
 
     return MediaCardRow(
       title: item.title,
-      subtitle: dur,
-      badge: item.language,
+      language: languageCodeLabel(item.language),
+      durationLabel: dur,
       thumbnailFile: null,
       thumbnailNetworkUrl: remoteThumbnailForCard(
         item.thumbnailUrl,

@@ -110,6 +110,7 @@ List<Override> _overrides(AppDatabase db, {bool signedOut = false}) => [
 
 /// Board → (route it opens on, subpage pushed on top, frame, brightness).
 final _scenes = <(String, String, String?, GalleryFrame, Brightness)>[
+  ('LibraryAudio', '/library', null, GalleryFrame.desktop, Brightness.light),
   ('Home', '/', null, GalleryFrame.desktop, Brightness.light),
   ('HomeDark', '/', null, GalleryFrame.desktop, Brightness.dark),
   ('Library', '/library', null, GalleryFrame.desktop, Brightness.light),
@@ -208,7 +209,12 @@ void main() {
         ),
         frame: frame,
         db: db,
-        before: pushed == null
+        before: board == 'LibraryAudio'
+            ? (tester) async {
+                await tester.tap(find.text('Audio'));
+                await tester.enterText(find.byType(TextField).last, 'ferry');
+              }
+            : pushed == null
             ? null
             : (tester) async => unawaited(router.push(pushed)),
       );
