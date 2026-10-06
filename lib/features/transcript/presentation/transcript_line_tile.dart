@@ -251,7 +251,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     }
 
     Widget? secondaryWidget;
-    if (widget.secondaryText != null) {
+    if (widget.secondaryText != null && !inLens) {
       secondaryWidget = widget.selectable
           ? TranscriptSelectableRichText(
               span: transcriptMarkupToTextSpan(
