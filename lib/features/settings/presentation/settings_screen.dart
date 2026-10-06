@@ -64,11 +64,8 @@ class SettingsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: hPad),
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [_EditorialHeaderSlot(), SettingsSearchField()],
-                ),
+                padding: EdgeInsets.fromLTRB(hPad, 0, hPad, t.space20),
+                child: const _EditorialHeaderSlot(withSearch: true),
               ),
               Expanded(
                 child: Padding(
@@ -85,9 +82,12 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 /// Thin slot so [EditorialHeader] can resolve [AppLocalizations] via
-/// [ConsumerWidget] and its own [LayoutBuilder] for centering.
+/// [ConsumerWidget] and its own [LayoutBuilder] for centering. With
+/// [withSearch] (desktop two-pane) the search field rides the header row.
 class _EditorialHeaderSlot extends ConsumerWidget {
-  const _EditorialHeaderSlot();
+  const _EditorialHeaderSlot({this.withSearch = false});
+
+  final bool withSearch;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,10 +95,17 @@ class _EditorialHeaderSlot extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
     return EditorialHeader(
       title: l10n.settingsTitle,
-      subtitle: l10n.settingsSubtitle,
       widthMode: EditorialHeaderWidthMode.column,
       columnMaxWidth: t.hubMaxWidth,
       padding: EdgeInsets.fromLTRB(0, t.space24, 0, t.space16),
+      trailing: withSearch
+          ? const SizedBox(
+              width: _kHeaderSearchWidth,
+              child: SettingsSearchField(),
+            )
+          : null,
     );
   }
 }
+
+const double _kHeaderSearchWidth = 280;

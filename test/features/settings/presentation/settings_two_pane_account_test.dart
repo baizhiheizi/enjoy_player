@@ -16,7 +16,8 @@ import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_single_column.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_two_pane.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/sections/cloud_sync_section.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/sections/account_section.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/sections/appearance_language_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_rail_item.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
@@ -144,14 +145,22 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(SettingsLayoutTwoPane), findsOneWidget);
-      expect(find.byType(CloudSyncSectionBody), findsOneWidget);
+      expect(find.byType(AppearanceLanguageSectionBody), findsOneWidget);
       expect(find.byType(SettingsSectionRailItem), findsWidgets);
+      expect(find.byType(AccountSection), findsNothing);
       expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text('Account'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(AccountSection), findsOneWidget);
+      expect(find.text('Sign out'), findsOneWidget);
     },
   );
 
   testWidgets(
-    'the single-column (mobile) layout no longer renders Account section',
+    'the single-column (mobile) layout renders the Account section first',
     (tester) async {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
@@ -166,7 +175,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(SettingsLayoutSingleColumn), findsOneWidget);
-      expect(find.byType(CloudSyncSectionBody), findsOneWidget);
+      expect(find.byType(AccountSection), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

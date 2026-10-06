@@ -2080,5 +2080,9 @@
   "profileSettingsHint": "Appearance, AI providers, recording, shortcuts",
   "@profileSettingsHint": {"description": "Profile list: Settings row hint."},
   "vocabularyReviewDueValue": "{count} due",
-  "@vocabularyReviewDueValue": {"description": "Profile list: due words value beside Vocabulary.", "placeholders": {"count": {"type": "int"}}}
+  "@vocabularyReviewDueValue": {"description": "Profile list: due words value beside Vocabulary.", "placeholders": {"count": {"type": "int"}}},
+  "settingsSectionAccount": "Account",
+  "@settingsSectionAccount": {"description": "Settings rail/section: the account section."},
+  "settingsSectionAccountHint": "Your Enjoy identity and sign-out",
+  "@settingsSectionAccountHint": {"description": "Settings account section hint."}
 }

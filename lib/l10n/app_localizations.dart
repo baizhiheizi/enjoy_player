@@ -7631,6 +7631,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} due'**
   String vocabularyReviewDueValue(int count);
+
+  /// Settings rail/section: the account section.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsSectionAccount;
+
+  /// Settings account section hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Enjoy identity and sign-out'**
+  String get settingsSectionAccountHint;
 }
 
 class _AppLocalizationsDelegate

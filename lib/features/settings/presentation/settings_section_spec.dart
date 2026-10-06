@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/about_section.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/sections/account_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/ai_providers_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/appearance_language_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/cloud_sync_section.dart';
@@ -130,6 +131,13 @@ bool _alwaysVisible() => true;
 /// on membership and order. Ids are what matter here; the drift test asserts
 /// this list covers exactly the registry's section headers.
 final List<SettingsSectionSpec> kSettingsSectionSpecs = [
+  SettingsSectionSpec(
+    sectionId: SettingsSectionIds.account,
+    icon: EnjoyIcons.person,
+    title: (l10n) => l10n.settingsSectionAccount,
+    hint: (l10n) => l10n.settingsSectionAccountHint,
+    body: () => const AccountSection(),
+  ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.cloudSync,
     icon: EnjoyIcons.cloudSync,

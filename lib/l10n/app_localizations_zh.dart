@@ -4000,6 +4000,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String vocabularyReviewDueValue(int count) {
     return '$count 个到期';
   }
+
+  @override
+  String get settingsSectionAccount => '账户';
+
+  @override
+  String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7323,4 +7329,10 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String vocabularyReviewDueValue(int count) {
     return '$count 个到期';
   }
+
+  @override
+  String get settingsSectionAccount => '账户';
+
+  @override
+  String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
 }

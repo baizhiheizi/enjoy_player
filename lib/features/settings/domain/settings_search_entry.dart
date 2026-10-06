@@ -12,6 +12,7 @@ library;
 
 /// Stable section identifiers, in Settings hub display order.
 abstract final class SettingsSectionIds {
+  static const account = 'account';
   static const cloudSync = 'cloudSync';
   static const appearanceLanguage = 'appearanceLanguage';
   static const aiProviders = 'aiProviders';
@@ -94,6 +95,7 @@ List<SettingsSearchEntry> filterSettingsEntries(
 /// and [SettingsSectionIds.developer] is hidden on release builds by the
 /// presentation layer (FR-005/FR-006), not by this registry.
 const List<SettingsEntryDescriptor> kSettingsRegistry = [
+  SettingsEntryDescriptor(sectionId: SettingsSectionIds.account),
   SettingsEntryDescriptor(sectionId: SettingsSectionIds.cloudSync),
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.cloudSync,

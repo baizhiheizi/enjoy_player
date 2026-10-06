@@ -1400,5 +1400,7 @@
   "profileCreditsResetsWithPermanent": "每日重置 · 另有 {count} 永久积分",
   "profileMinutesUnit": "分钟",
   "profileSettingsHint": "外观、AI 服务、录音、快捷键",
-  "vocabularyReviewDueValue": "{count} 个到期"
+  "vocabularyReviewDueValue": "{count} 个到期",
+  "settingsSectionAccount": "账户",
+  "settingsSectionAccountHint": "你的 Enjoy 身份与退出登录"
 }

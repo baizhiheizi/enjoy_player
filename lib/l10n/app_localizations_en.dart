@@ -4195,4 +4195,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String vocabularyReviewDueValue(int count) {
     return '$count due';
   }
+
+  @override
+  String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsSectionAccountHint => 'Your Enjoy identity and sign-out';
 }
