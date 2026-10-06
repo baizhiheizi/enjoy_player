@@ -1643,5 +1643,7 @@
   "subscriptionSummaryStatus": "状态",
   "subscriptionSummaryExpiration": "有效期至",
   "subscriptionSummaryDailyCredits": "每日积分上限",
-  "subscriptionChoosePlan": "选择你的方案"
+  "subscriptionChoosePlan": "选择你的方案",
+  "creditsUsageUtcDates": "UTC 日期",
+  "subscriptionPackagesLink": "积分包"
 }

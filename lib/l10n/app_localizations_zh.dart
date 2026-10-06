@@ -4048,6 +4048,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subscriptionChoosePlan => '选择你的方案';
+
+  @override
+  String get creditsUsageUtcDates => 'UTC 日期';
+
+  @override
+  String get subscriptionPackagesLink => '积分包';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7419,4 +7425,10 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get subscriptionChoosePlan => '选择你的方案';
+
+  @override
+  String get creditsUsageUtcDates => 'UTC 日期';
+
+  @override
+  String get subscriptionPackagesLink => '积分包';
 }

@@ -11,11 +11,15 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -27,7 +31,6 @@ import 'package:enjoy_player/features/credits/application/credits_summary_provid
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/auto_renew_plan_sheet.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/balance_to_credits.dart';
-import 'package:enjoy_player/features/subscription/presentation/widgets/credits_packages_section.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/mobile_purchase_unavailable.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/subscription_status_card.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog.dart';
@@ -105,8 +108,8 @@ class _SubscriptionBody extends ConsumerWidget {
               ),
               SizedBox(height: t.space20),
               const BalanceToCredits(),
-              SizedBox(height: t.space32),
-              const CreditsPackagesSection(),
+              SizedBox(height: t.space20),
+              const _PackagesLinkCard(),
             ],
           );
         },
@@ -132,6 +135,55 @@ class _SubscriptionBody extends ConsumerWidget {
               child: Text(l10n.retry),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Link card to the Credits screen (the `Subscription` board's footer).
+class _PackagesLinkCard extends StatelessWidget {
+  const _PackagesLinkCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    final tt = Theme.of(context).textTheme;
+    return EnjoyCard(
+      child: EnjoyPressable(
+        onTap: () => context.push('/credits'),
+        borderRadius: BorderRadius.circular(t.radiusCard),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.subscriptionPackagesLink,
+                      style: tt.titleMedium?.copyWith(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: t.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      l10n.creditsPackagesSubtitle,
+                      style: tt.bodySmall?.copyWith(
+                        fontSize: 12.5,
+                        color: t.ink3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(EnjoyIcons.chevronRight, size: 16, color: t.ink3),
+            ],
+          ),
         ),
       ),
     );

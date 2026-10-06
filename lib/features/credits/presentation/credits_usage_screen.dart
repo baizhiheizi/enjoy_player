@@ -16,12 +16,12 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_progress_ring.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/credits/application/credits_usage_provider.dart';
+import 'package:enjoy_player/features/credits/presentation/credits_packages_card.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_filters.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_log.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_page.dart';
@@ -99,20 +99,11 @@ class _CreditsUsageBody extends ConsumerWidget {
             padding: metrics.padding(top: t.space16, bottom: t.space32),
             sliver: SliverMainAxisGroup(
               slivers: [
-                SliverToBoxAdapter(
-                  child: Text(
-                    l10n.creditsUsageDescription,
-                    maxLines: 2,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: t.ink3),
-                  ),
-                ),
-                SliverToBoxAdapter(child: SizedBox(height: t.space16)),
+                const SliverToBoxAdapter(child: CreditsPackagesCard()),
+                const SliverToBoxAdapter(child: SizedBox(height: 30)),
                 SliverToBoxAdapter(
                   child: _FiltersGroup(filters: filters, ctrl: ctrl),
                 ),
-                SliverToBoxAdapter(child: SizedBox(height: t.space24)),
                 pageAsync.when(
                   data: (CreditsUsagePage page) =>
                       _logsSliverGroup(context, l10n, t, filters, ctrl, page),
@@ -142,317 +133,155 @@ class _FiltersGroup extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final hasFilters = _CreditsUsageBody.hasActiveFilters(filters);
+    final service = filters.serviceType;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        EnjoySectionHeader(
-          title: l10n.vocabularyFilters,
-          trailing: hasFilters
-              ? EnjoyButton.ghost(
-                  onPressed: ctrl.clearFilters,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(EnjoyIcons.clearAll, size: 16),
-                      SizedBox(width: t.space4),
-                      Text(l10n.creditsUsageClearFilters),
-                    ],
-                  ),
-                )
-              : null,
-        ),
-        SizedBox(height: t.space8),
-        EnjoyCard(
-          padding: EdgeInsets.all(t.space16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _FilterDateField(
-                      label: l10n.creditsUsageStartDate,
-                      value: filters.startDate,
-                      onPick: () => pickCreditsUsageDate(
-                        context,
-                        initial: filters.startDate,
-                        onYmd: ctrl.setStartDate,
-                      ),
-                      onClear: filters.startDate != null
-                          ? () => ctrl.setStartDate(null)
-                          : null,
-                    ),
-                  ),
-                  SizedBox(width: t.space12),
-                  Expanded(
-                    child: _FilterDateField(
-                      label: l10n.creditsUsageEndDate,
-                      value: filters.endDate,
-                      onPick: () => pickCreditsUsageDate(
-                        context,
-                        initial: filters.endDate,
-                        onYmd: ctrl.setEndDate,
-                      ),
-                      onClear: filters.endDate != null
-                          ? () => ctrl.setEndDate(null)
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: t.space12),
-              DropdownButtonFormField<String>(
-                key: ValueKey<String>(
-                  'credits-svc-${filters.serviceType ?? ''}',
-                ),
-                initialValue: filters.serviceType ?? '',
-                decoration: InputDecoration(
-                  labelText: l10n.creditsUsageServiceType,
-                ),
-                items: [
-                  DropdownMenuItem(
-                    value: '',
-                    child: Text(l10n.creditsServiceTypeAll),
-                  ),
-                  for (final v in kCreditsUsageServiceTypeValues)
-                    DropdownMenuItem(
-                      value: v,
-                      child: Text(serviceTypeLabel(l10n, v)),
-                    ),
-                ],
-                onChanged: (v) {
-                  ctrl.setServiceType(v == null || v.isEmpty ? null : v);
-                },
-              ),
-            ],
+        _FilterPill(
+          label: l10n.creditsUsageStartDate,
+          value: filters.startDate,
+          onTap: () => pickCreditsUsageDate(
+            context,
+            initial: filters.startDate,
+            onYmd: ctrl.setStartDate,
           ),
+        ),
+        _FilterPill(
+          label: l10n.creditsUsageEndDate,
+          value: filters.endDate,
+          onTap: () => pickCreditsUsageDate(
+            context,
+            initial: filters.endDate,
+            onYmd: ctrl.setEndDate,
+          ),
+        ),
+        _ServiceFilterPill(value: service, onChanged: ctrl.setServiceType),
+        if (hasFilters)
+          EnjoyButton.ghost(
+            onPressed: ctrl.clearFilters,
+            child: Text(l10n.creditsUsageClearFilters),
+          ),
+        Text(
+          l10n.creditsUsageUtcDates,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontSize: 12.5, color: t.ink3),
         ),
       ],
     );
   }
 }
 
-Widget _logsSliverGroup(
-  BuildContext context,
-  AppLocalizations l10n,
-  EnjoyThemeTokens t,
-  CreditsUsageFilters filters,
-  CreditsUsageFiltersCtrl ctrl,
-  CreditsUsagePage page,
-) {
-  if (page.logs.isEmpty) {
-    return SliverToBoxAdapter(
-      child: _EmptyState(
-        hasFilters: _CreditsUsageBody.hasActiveFilters(filters),
+/// Paper pill: `Start date 2026-09-24`; the picked value in mono.
+class _FilterPill extends StatelessWidget {
+  const _FilterPill({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String label;
+  final String? value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final tt = Theme.of(context).textTheme;
+    return EnjoyPressable(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(11),
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: ShapeDecoration(
+          color: t.paper,
+          shape: RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.circular(11),
+            side: BorderSide(color: t.line),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: tt.labelMedium?.copyWith(fontSize: 13.5, color: t.ink3),
+            ),
+            if (value != null && value!.isNotEmpty) ...[
+              const SizedBox(width: 10),
+              Text(
+                value!,
+                style: enjoyMonoStyle(context, size: 13, color: t.ink),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
-  final localeName = Localizations.localeOf(context).toString();
-  return SliverMainAxisGroup(
-    slivers: [
-      SliverToBoxAdapter(
-        child: _UsageTotalsCard(
-          logs: page.logs,
-          shownLabel: l10n.creditsUsageTotalRecords(page.logs.length),
-        ),
-      ),
-      SliverToBoxAdapter(child: SizedBox(height: t.space24)),
-      SliverLayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.crossAxisExtent >= _kWideBreakpoint) {
-            return SliverToBoxAdapter(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: constraints.crossAxisExtent,
-                  ),
-                  child: _UsageTable(logs: page.logs, localeName: localeName),
-                ),
-              ),
-            );
-          }
-          return SliverList.separated(
-            itemCount: page.logs.length,
-            separatorBuilder: (_, _) => SizedBox(height: t.space12),
-            itemBuilder: (context, index) =>
-                _UsageLogCard(log: page.logs[index], localeName: localeName),
-          );
-        },
-      ),
-      SliverToBoxAdapter(child: SizedBox(height: t.space16)),
-      SliverLayoutBuilder(
-        builder: (context, constraints) {
-          final currentPage = (filters.offset ~/ filters.limit) + 1;
-          final pageInfo =
-              '${l10n.creditsUsagePageInfo(currentPage)}'
-              '${!page.hasMore && page.logs.isNotEmpty ? ' · ${l10n.creditsUsageTotalRecords(filters.offset + page.logs.length)}' : ''}';
-          final pageInfoStyle = Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: t.ink3);
-          final prev = EnjoyButton.secondary(
-            onPressed: filters.offset == 0 ? null : ctrl.goToPreviousPage,
-            child: Text(l10n.creditsUsagePrevious),
-          );
-          final next = EnjoyButton.secondary(
-            onPressed: !page.hasMore ? null : ctrl.goToNextPage,
-            child: Text(l10n.creditsUsageNext),
-          );
-          final narrow = constraints.crossAxisExtent < _kWideBreakpoint;
-          if (narrow) {
-            return SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(pageInfo, style: pageInfoStyle),
-                  SizedBox(height: t.space8),
-                  Row(
-                    children: [
-                      Expanded(child: prev),
-                      SizedBox(width: t.space8),
-                      Expanded(child: next),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          }
-          return SliverToBoxAdapter(
-            child: Row(
-              children: [
-                Expanded(child: Text(pageInfo, style: pageInfoStyle)),
-                prev,
-                SizedBox(width: t.space8),
-                next,
-              ],
-            ),
-          );
-        },
-      ),
-    ],
-  );
 }
 
-/// Credits meter for the loaded page: total required, ringed by the share the
-/// Worker allowed.
-class _UsageTotalsCard extends StatelessWidget {
-  const _UsageTotalsCard({required this.logs, required this.shownLabel});
+/// `Service All` pill opening a menu of service types.
+class _ServiceFilterPill extends StatelessWidget {
+  const _ServiceFilterPill({required this.value, required this.onChanged});
 
-  final List<CreditsUsageLog> logs;
-  final String shownLabel;
-
-  static const double _ringSize = 96;
-  static const double _ringStroke = 8;
+  final String? value;
+  final ValueChanged<String?> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-
-    final required = logs.fold<int>(0, (sum, l) => sum + l.creditsRequired);
-    final consumed = logs
-        .where((l) => l.allowed)
-        .fold<int>(0, (sum, l) => sum + l.creditsRequired);
-    final denied = logs
-        .where((l) => !l.allowed)
-        .fold<int>(0, (sum, l) => sum + l.creditsRequired);
-    final ratio = required <= 0 ? 0.0 : consumed / required;
-    final percent = (ratio * 100).round();
-    final clean = denied == 0 && required > 0;
-
-    final ringColor = t.ink;
-    final figure = NumberFormat.decimalPattern(
-      Localizations.localeOf(context).toString(),
-    ).format(required);
-
-    return EnjoyCard(
-      padding: EdgeInsets.all(t.space20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: _ringSize,
-            height: _ringSize,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CustomPaint(
-                  size: const Size(_ringSize, _ringSize),
-                  painter: EnjoyProgressRingPainter(
-                    progress: ratio,
-                    trackColor: t.fill,
-                    gradientColors: clean
-                        ? [ringColor, ringColor]
-                        : [t.logoStart, t.logoEnd],
-                    strokeWidth: _ringStroke,
-                  ),
-                ),
-                if (clean)
-                  Icon(
-                    EnjoyIcons.check,
-                    size: _ringSize * 0.36,
-                    color: ringColor,
-                  )
-                else
-                  Text(
-                    '$percent%',
-                    style: enjoyMonoStyle(
-                      context,
-                      size: 20,
-                      weight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-              ],
+    final current = value == null || value!.isEmpty
+        ? l10n.creditsServiceTypeAll
+        : serviceTypeLabel(l10n, value!);
+    return MenuAnchor(
+      menuChildren: [
+        for (final v in <String?>[null, ...kCreditsUsageServiceTypeValues])
+          MenuItemButton(
+            onPressed: () => onChanged(v),
+            child: Text(
+              v == null
+                  ? l10n.creditsServiceTypeAll
+                  : serviceTypeLabel(l10n, v),
             ),
           ),
-          SizedBox(width: t.space20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                EnjoyOverline(l10n.creditsUsageTableRequired),
-                SizedBox(height: t.space4),
-                Text(
-                  figure,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: enjoyMonoStyle(
-                    context,
-                    size: 28,
-                    weight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                SizedBox(height: t.space4),
-                Text(
-                  shownLabel,
-                  maxLines: 2,
-                  style: tt.bodySmall?.copyWith(color: t.ink3),
-                ),
-              ],
+      ],
+      builder: (context, controller, _) => EnjoyPressable(
+        onTap: () => controller.isOpen ? controller.close() : controller.open(),
+        borderRadius: BorderRadius.circular(11),
+        child: Container(
+          height: 38,
+          padding: const EdgeInsets.only(left: 12, right: 9),
+          decoration: ShapeDecoration(
+            color: t.paper,
+            shape: RoundedSuperellipseBorder(
+              borderRadius: BorderRadius.circular(11),
+              side: BorderSide(color: t.line),
             ),
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${l10n.creditsUsageServiceType}  $current',
+                style: tt.labelMedium?.copyWith(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: t.ink2,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(EnjoyIcons.chevronDown, size: 14, color: t.ink3),
+            ],
+          ),
+        ),
       ),
-    );
-  }
-}
-
-class _PageErrorBody extends ConsumerWidget {
-  const _PageErrorBody();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    return EmptyState(
-      title: l10n.creditsUsageError,
-      subtitle: l10n.creditsUsageErrorDescription,
-      action: () => ref.invalidate(creditsUsagePageProvider),
-      actionLabel: l10n.creditsUsageRetry,
     );
   }
 }
@@ -485,60 +314,125 @@ String serviceTypeLabel(AppLocalizations l10n, String type) {
   };
 }
 
-class _FilterDateField extends StatelessWidget {
-  const _FilterDateField({
-    required this.label,
-    required this.value,
-    required this.onPick,
-    this.onClear,
-  });
+Widget _logsSliverGroup(
+  BuildContext context,
+  AppLocalizations l10n,
+  EnjoyThemeTokens t,
+  CreditsUsageFilters filters,
+  CreditsUsageFiltersCtrl ctrl,
+  CreditsUsagePage page,
+) {
+  if (page.logs.isEmpty) {
+    return SliverToBoxAdapter(
+      child: _EmptyState(
+        hasFilters: _CreditsUsageBody.hasActiveFilters(filters),
+      ),
+    );
+  }
+  final localeName = Localizations.localeOf(context).toString();
+  return SliverMainAxisGroup(
+    slivers: [
+      const SliverToBoxAdapter(child: SizedBox(height: 14)),
+      SliverLayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.crossAxisExtent >= _kWideBreakpoint) {
+            return SliverToBoxAdapter(
+              child: EnjoyCard(
+                padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: constraints.crossAxisExtent - 36,
+                    ),
+                    child: _UsageTable(logs: page.logs, localeName: localeName),
+                  ),
+                ),
+              ),
+            );
+          }
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            sliver: SliverList.separated(
+              itemCount: page.logs.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              itemBuilder: (context, index) =>
+                  _UsageLogCard(log: page.logs[index], localeName: localeName),
+            ),
+          );
+        },
+      ),
+      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+      SliverLayoutBuilder(
+        builder: (context, constraints) {
+          final currentPage = (filters.offset ~/ filters.limit) + 1;
+          final pageInfo =
+              '${l10n.creditsUsagePageInfo(currentPage)}'
+              '${!page.hasMore && page.logs.isNotEmpty ? ' · ${l10n.creditsUsageTotalRecords(filters.offset + page.logs.length)}' : ''}';
+          final pageInfoStyle = Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontSize: 13, color: t.ink3);
+          final prev = EnjoyButton.secondary(
+            size: EnjoyButtonSize.small,
+            onPressed: filters.offset == 0 ? null : ctrl.goToPreviousPage,
+            child: Text(l10n.creditsUsagePrevious),
+          );
+          final next = EnjoyButton.secondary(
+            size: EnjoyButtonSize.small,
+            onPressed: !page.hasMore ? null : ctrl.goToNextPage,
+            child: Text(l10n.creditsUsageNext),
+          );
+          if (constraints.crossAxisExtent < _kWideBreakpoint) {
+            return SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(pageInfo, style: pageInfoStyle),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(child: prev),
+                      const SizedBox(width: 8),
+                      Expanded(child: next),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+          return SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+              child: Row(
+                children: [
+                  Expanded(child: Text(pageInfo, style: pageInfoStyle)),
+                  prev,
+                  const SizedBox(width: 8),
+                  next,
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    ],
+  );
+}
 
-  final String label;
-  final String? value;
-  final VoidCallback onPick;
-  final VoidCallback? onClear;
+class _PageErrorBody extends ConsumerWidget {
+  const _PageErrorBody();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final display = value == null || value!.isEmpty ? '—' : value!;
-
-    return EnjoyPressable(
-      onTap: onPick,
-      borderRadius: BorderRadius.circular(t.radiusMd),
-      semanticsLabel: label,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          suffixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (onClear != null)
-                EnjoyIconButton(
-                  icon: EnjoyIcons.close,
-                  tooltip: MaterialLocalizations.of(
-                    context,
-                  ).deleteButtonTooltip,
-                  onPressed: onClear,
-                  variant: EnjoyButtonVariant.ghost,
-                  size: 28,
-                ),
-              const Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Icon(EnjoyIcons.calendar, size: 20),
-              ),
-            ],
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            display,
-            style: enjoyMonoStyle(context, size: 14),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+    return Padding(
+      padding: EdgeInsets.all(t.space24),
+      child: EmptyState(
+        title: l10n.creditsUsageError,
+        subtitle: l10n.creditsUsageErrorDescription,
+        action: () => ref.invalidate(creditsUsagePageProvider),
+        actionLabel: l10n.creditsUsageRetry,
       ),
     );
   }
@@ -657,44 +551,60 @@ class _UsageTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final df = DateFormat.yMMMd(localeName);
-    final tf = DateFormat.yMMMd().add_jm();
-    final cellStyle = enjoyMonoStyle(context, size: 13, color: t.ink3);
+    final tt = Theme.of(context).textTheme;
+    final tf = DateFormat.Hm();
+    final number = NumberFormat.decimalPattern(localeName);
+    final cell = enjoyMonoStyle(context, size: 12.5, color: t.ink);
+    final cellMuted = enjoyMonoStyle(context, size: 12.5, color: t.ink3);
 
-    return DataTable(
-      headingRowColor: WidgetStatePropertyAll(t.paper),
-      headingTextStyle: enjoyMonoStyle(
-        context,
-        size: 12,
-        weight: FontWeight.w600,
-        color: Theme.of(context).colorScheme.onSurface,
-        letterSpacing: 0.6,
+    Widget headerCell(String label, {bool right = false}) => Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Align(
+        alignment: right ? Alignment.centerRight : Alignment.centerLeft,
+        child: EnjoyOverline(label),
       ),
-      dataTextStyle: cellStyle,
-      columns: [
-        DataColumn(label: Text(l10n.creditsUsageTableDate)),
-        DataColumn(label: Text(l10n.creditsUsageTableTime)),
-        DataColumn(label: Text(l10n.creditsUsageTableService)),
-        DataColumn(label: Text(l10n.creditsUsageTableTier)),
-        DataColumn(numeric: true, label: Text(l10n.creditsUsageTableRequired)),
-        DataColumn(
-          numeric: true,
-          label: Text(l10n.creditsUsageTableUsedBefore),
+    );
+
+    Widget cellOf(Widget child, {bool right = false}) => Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Align(
+        alignment: right ? Alignment.centerRight : Alignment.centerLeft,
+        child: child,
+      ),
+    );
+
+    return Table(
+      defaultVerticalAlignment: TableCellVerticalAlignment.top,
+      defaultColumnWidth: const FlexColumnWidth(),
+      columnWidths: const {
+        3: FixedColumnWidth(90),
+        4: FixedColumnWidth(90),
+        5: FixedColumnWidth(92),
+        6: FixedColumnWidth(100),
+      },
+      children: [
+        TableRow(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: t.line)),
+          ),
+          children: [
+            headerCell(l10n.creditsUsageTableDate),
+            headerCell(l10n.creditsUsageTableTime),
+            headerCell(l10n.creditsUsageTableService),
+            headerCell(l10n.creditsUsageTableTier),
+            headerCell(l10n.creditsUsageTableRequired, right: true),
+            headerCell(l10n.creditsUsageTableUsedAfter, right: true),
+            headerCell(l10n.creditsUsageTableStatus, right: true),
+          ],
         ),
-        DataColumn(numeric: true, label: Text(l10n.creditsUsageTableUsedAfter)),
-        DataColumn(label: Text(l10n.creditsUsageTableStatus)),
-      ],
-      rows: [
         for (final log in logs)
-          DataRow(
-            cells: [
-              DataCell(
-                Text(
-                  df.format(DateTime.parse('${log.date}T00:00:00Z')),
-                  style: cellStyle,
-                ),
-              ),
-              DataCell(
+          TableRow(
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: t.line)),
+            ),
+            children: [
+              cellOf(Text(log.date, style: cell)),
+              cellOf(
                 Text(
                   tf.format(
                     DateTime.fromMillisecondsSinceEpoch(
@@ -702,23 +612,40 @@ class _UsageTable extends StatelessWidget {
                       isUtc: true,
                     ).toLocal(),
                   ),
-                  style: cellStyle,
+                  style: cellMuted,
                 ),
               ),
-              DataCell(
-                Text(serviceTypeLabel(l10n, log.serviceType), style: cellStyle),
+              cellOf(
+                Text(
+                  serviceTypeLabel(l10n, log.serviceType),
+                  style: tt.labelLarge?.copyWith(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: t.ink,
+                  ),
+                ),
               ),
-              DataCell(Text(log.tier, style: cellStyle)),
-              DataCell(Text('${log.creditsRequired}', style: cellStyle)),
-              DataCell(Text('${log.usedBefore}', style: cellStyle)),
-              DataCell(Text('${log.usedAfter}', style: cellStyle)),
-              DataCell(
+              cellOf(Text(log.tier, style: cellMuted)),
+              cellOf(
+                Text(
+                  number.format(log.creditsRequired),
+                  style: cell,
+                  textAlign: TextAlign.right,
+                ),
+                right: true,
+              ),
+              cellOf(
+                Text(number.format(log.usedAfter), style: cellMuted),
+                right: true,
+              ),
+              cellOf(
                 _UsageBadge(
                   allowed: log.allowed,
                   label: log.allowed
                       ? l10n.creditsUsageAllowed
                       : l10n.creditsUsageDenied,
                 ),
+                right: true,
               ),
             ],
           ),
@@ -853,42 +780,26 @@ class _UsageBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final fg = allowed ? t.ink : cs.error;
-    final bg = allowed ? t.sunk : cs.error.withValues(alpha: 0.10);
-
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 9),
+      alignment: Alignment.center,
       decoration: ShapeDecoration(
-        color: bg,
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(t.radiusFull),
-          side: BorderSide(color: fg.withValues(alpha: 0.28)),
-        ),
+        color: allowed ? t.sunk : t.ink,
+        shape: const StadiumBorder(),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            allowed ? EnjoyIcons.check : EnjoyIcons.close,
-            size: 12,
-            color: fg,
-          ),
-          SizedBox(width: t.space4),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: fg,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: allowed ? t.ink2 : t.paper,
+        ),
       ),
     );
   }
 }
 
-/// Neutral metadata pill carrying a service type or tier.
 class _UsageMetaPill extends StatelessWidget {
   const _UsageMetaPill({required this.label});
 

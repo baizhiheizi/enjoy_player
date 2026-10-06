@@ -1,8 +1,4 @@
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
-import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_progress_ring.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/services/ai/ai_api_providers.dart';
 import 'package:enjoy_player/data/api/services/ai/credits_api.dart';
@@ -10,6 +6,9 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/credits/application/credits_usage_provider.dart';
+import 'package:enjoy_player/features/credits/presentation/credits_packages_card.dart';
+import 'package:enjoy_player/features/credits/application/credits_packages_provider.dart';
+import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_log.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_page.dart';
 import 'package:enjoy_player/features/credits/domain/credits_summary.dart';
@@ -87,6 +86,17 @@ Widget _wrap({required _StubCreditsApi stub, required AuthState auth}) {
     overrides: [
       authCtrlProvider.overrideWith(() => _StubAuthController(auth)),
       creditsApiProvider.overrideWithValue(stub),
+      creditsPackagesProvider.overrideWith((ref) async => const []),
+      creditsSummaryProvider.overrideWith(
+        (ref) async => const CreditsSummary(
+          tier: 'pro',
+          dailyUsed: 0,
+          dailyLimit: 1000,
+          dailyRemaining: 1000,
+          permanentAvailable: 0,
+          resetAt: 0,
+        ),
+      ),
     ],
     child: const MaterialApp(
       localizationsDelegates: [
@@ -128,8 +138,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(DropdownButtonFormField<String>), findsOneWidget);
+    expect(find.textContaining('Start date'), findsOneWidget);
+    expect(find.textContaining('Service'), findsOneWidget);
+    expect(find.byType(MenuAnchor), findsOneWidget);
     expect(find.byType(EmptyState), findsOneWidget);
+    expect(find.byType(CreditsPackagesCard), findsOneWidget);
   });
 
   testWidgets('signed-in with logs renders usage data', (tester) async {
@@ -155,11 +168,13 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(CreditsUsageScreen), findsOneWidget);
-    expect(find.text('100'), findsOneWidget);
+    expect(find.text('10'), findsOneWidget);
     expect(find.text('110'), findsOneWidget);
+    expect(find.text('LLM'), findsOneWidget);
+    expect(find.text('Allowed'), findsOneWidget);
   });
 
-  testWidgets('credits meter shows the page total with an aurora ring', (
+  testWidgets('the usage table drops the Used-before column (board)', (
     tester,
   ) async {
     final stub = _StubCreditsApi(_fakeApiClient())
@@ -200,16 +215,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final ringPainters = tester
-        .widgetList<CustomPaint>(find.byType(CustomPaint))
-        .map((p) => p.painter)
-        .whereType<EnjoyProgressRingPainter>();
-    expect(ringPainters, hasLength(1));
-    expect(ringPainters.single.progress, closeTo(0.8, 0.001));
-    expect(ringPainters.single.gradientColors, isNotNull);
-    expect(find.text('50'), findsOneWidget);
-    expect(find.text('REQUIRED'), findsOneWidget);
-    expect(find.text('CREDITS USAGE'), findsNothing);
+    expect(find.text('Used before'), findsNothing);
+    expect(find.text('40'), findsOneWidget);
+    expect(find.text('150'), findsOneWidget);
+    expect(find.text('Denied'), findsOneWidget);
   });
 
   testWidgets('no Material Chip or TextButton surfaces remain', (tester) async {
@@ -241,11 +250,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(Chip), findsNothing);
-    expect(find.byType(TextButton), findsNothing);
-    expect(find.byType(EnjoyPressable), findsNWidgets(2));
-    expect(find.byType(EnjoyIconTile), findsNWidgets(1));
-    expect(find.byType(EnjoySectionHeader), findsNWidgets(1));
     expect(find.byType(DataTable), findsNothing);
+    expect(find.text('LLM'), findsOneWidget);
+    expect(find.text('Buy credits'), findsNothing);
   });
 
   testWidgets('error state shows retry button', (tester) async {
@@ -272,7 +279,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byType(MenuAnchor));
     await tester.pumpAndSettle();
 
     final textWidgets = tester

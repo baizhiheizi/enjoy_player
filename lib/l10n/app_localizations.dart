@@ -7715,6 +7715,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose your plan'**
   String get subscriptionChoosePlan;
+
+  /// Caption at the trailing edge of the credits filter row.
+  ///
+  /// In en, this message translates to:
+  /// **'UTC dates'**
+  String get creditsUsageUtcDates;
+
+  /// Subscription link card to the Credits screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits packages'**
+  String get subscriptionPackagesLink;
 }
 
 class _AppLocalizationsDelegate

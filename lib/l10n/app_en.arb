@@ -2108,5 +2108,9 @@
   "subscriptionSummaryDailyCredits": "Daily credits limit",
   "@subscriptionSummaryDailyCredits": {"description": "Subscription summary strip cell."},
   "subscriptionChoosePlan": "Choose your plan",
-  "@subscriptionChoosePlan": {"description": "Heading above the plan catalog."}
+  "@subscriptionChoosePlan": {"description": "Heading above the plan catalog."},
+  "creditsUsageUtcDates": "UTC dates",
+  "@creditsUsageUtcDates": {"description": "Caption at the trailing edge of the credits filter row."},
+  "subscriptionPackagesLink": "Credits packages",
+  "@subscriptionPackagesLink": {"description": "Subscription link card to the Credits screen."}
 }

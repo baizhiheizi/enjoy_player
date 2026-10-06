@@ -4243,4 +4243,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subscriptionChoosePlan => 'Choose your plan';
+
+  @override
+  String get creditsUsageUtcDates => 'UTC dates';
+
+  @override
+  String get subscriptionPackagesLink => 'Credits packages';
 }
