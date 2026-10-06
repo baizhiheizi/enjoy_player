@@ -4062,6 +4062,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String playerLineOfTotal(Object line, Object total) {
     return '第 $line/$total 行';
   }
+
+  @override
+  String syncLastSyncToday(String time) {
+    return '今天，$time';
+  }
+
+  @override
+  String get syncRowWaiting => '等待中';
+
+  @override
+  String get syncRowFailed => '失败';
+
+  @override
+  String syncRowRetries(int count) {
+    return '$count 次尝试';
+  }
+
+  @override
+  String get syncEntityRecording => '录音';
+
+  @override
+  String get syncEntityVocabulary => '单词条目';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7447,4 +7469,26 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String playerLineOfTotal(Object line, Object total) {
     return '第 $line/$total 行';
   }
+
+  @override
+  String syncLastSyncToday(String time) {
+    return '今天，$time';
+  }
+
+  @override
+  String get syncRowWaiting => '等待中';
+
+  @override
+  String get syncRowFailed => '失败';
+
+  @override
+  String syncRowRetries(int count) {
+    return '$count 次尝试';
+  }
+
+  @override
+  String get syncEntityRecording => '录音';
+
+  @override
+  String get syncEntityVocabulary => '单词条目';
 }

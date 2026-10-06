@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -99,7 +100,10 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      expect(find.text(l10n.syncScreenLastSyncLabel), findsOneWidget);
+      expect(
+        find.text(l10n.syncScreenLastSyncLabel.toUpperCase()),
+        findsOneWidget,
+      );
       expect(find.text(l10n.syncScreenLastSyncNever), findsOneWidget);
 
       expect(find.text(l10n.syncScreenStatRetryable), findsOneWidget);
@@ -191,13 +195,14 @@ void main() {
       expect(find.text('3'), findsOneWidget);
       expect(find.text('2'), findsOneWidget);
 
-      expect(find.text(l10n.syncQueueDetails), findsOneWidget);
+      expect(find.text(l10n.syncQueueDetails.toUpperCase()), findsOneWidget);
 
-      await tester.tap(find.text(l10n.syncQueueDetails));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('vocabulary'), findsOneWidget);
-      expect(find.textContaining('recording'), findsOneWidget);
+      expect(find.textContaining('vocabulary'), findsWidgets);
+      expect(find.textContaining('Recording'), findsOneWidget);
+      expect(find.text('Failed'), findsOneWidget);
+      expect(find.text('Waiting'), findsOneWidget);
 
       expect(tester.takeException(), isNull);
     });
@@ -226,7 +231,6 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      await tester.tap(find.text(l10n.syncQueueDetails));
       await tester.pumpAndSettle();
 
       expect(find.text(l10n.syncQueueEmpty), findsOneWidget);
@@ -257,10 +261,10 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      final retryButton = tester.widget<OutlinedButton>(
+      final retryButton = tester.widget<EnjoyButton>(
         find.ancestor(
           of: find.text(l10n.syncScreenRetryFailed),
-          matching: find.byType(OutlinedButton),
+          matching: find.byType(EnjoyButton),
         ),
       );
       expect(retryButton.onPressed, isNotNull);

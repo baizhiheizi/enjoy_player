@@ -1647,5 +1647,11 @@
   "creditsUsageUtcDates": "UTC 日期",
   "subscriptionPackagesLink": "积分包",
   "playerEchoShort": "回声",
-  "playerLineOfTotal": "第 {line}/{total} 行"
+  "playerLineOfTotal": "第 {line}/{total} 行",
+  "syncLastSyncToday": "今天，{time}",
+  "syncRowWaiting": "等待中",
+  "syncRowFailed": "失败",
+  "syncRowRetries": "{count} 次尝试",
+  "syncEntityRecording": "录音",
+  "syncEntityVocabulary": "单词条目"
 }

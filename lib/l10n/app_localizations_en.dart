@@ -4257,4 +4257,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String playerLineOfTotal(Object line, Object total) {
     return 'Line $line of $total';
   }
+
+  @override
+  String syncLastSyncToday(String time) {
+    return 'Today, $time';
+  }
+
+  @override
+  String get syncRowWaiting => 'Waiting';
+
+  @override
+  String get syncRowFailed => 'Failed';
+
+  @override
+  String syncRowRetries(int count) {
+    return '$count attempts';
+  }
+
+  @override
+  String get syncEntityRecording => 'Recording';
+
+  @override
+  String get syncEntityVocabulary => 'Vocabulary item';
 }

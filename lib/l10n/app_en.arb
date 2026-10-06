@@ -2115,5 +2115,17 @@
   "@subscriptionPackagesLink": {"description": "Subscription link card to the Credits screen."},
   "playerEchoShort": "Echo",
   "@playerEchoShort": {"description": "Short label for the Echo mode segment in the player top bar."},
-  "playerLineOfTotal": "Line {line} of {total}"
+  "playerLineOfTotal": "Line {line} of {total}",
+  "syncLastSyncToday": "Today, {time}",
+  "@syncLastSyncToday": {"placeholders": {"time": {"type": "String"}}},
+  "syncRowWaiting": "Waiting",
+  "@syncRowWaiting": {"placeholders": {}},
+  "syncRowFailed": "Failed",
+  "@syncRowFailed": {"placeholders": {}},
+  "syncRowRetries": "{count} attempts",
+  "@syncRowRetries": {"placeholders": {"count": {"type": "int"}}},
+  "syncEntityRecording": "Recording",
+  "@syncEntityRecording": {"placeholders": {}},
+  "syncEntityVocabulary": "Vocabulary item",
+  "@syncEntityVocabulary": {"placeholders": {}}
 }

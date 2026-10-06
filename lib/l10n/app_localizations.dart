@@ -7739,6 +7739,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Line {line} of {total}'**
   String playerLineOfTotal(Object line, Object total);
+
+  /// No description provided for @syncLastSyncToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today, {time}'**
+  String syncLastSyncToday(String time);
+
+  /// No description provided for @syncRowWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get syncRowWaiting;
+
+  /// No description provided for @syncRowFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get syncRowFailed;
+
+  /// No description provided for @syncRowRetries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} attempts'**
+  String syncRowRetries(int count);
+
+  /// No description provided for @syncEntityRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording'**
+  String get syncEntityRecording;
+
+  /// No description provided for @syncEntityVocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary item'**
+  String get syncEntityVocabulary;
 }
 
 class _AppLocalizationsDelegate

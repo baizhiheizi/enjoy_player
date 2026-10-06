@@ -1,7 +1,6 @@
 /// Current membership card: tier, renewal, credits — cancel stays low-emphasis.
 library;
 
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -144,12 +143,14 @@ class _PlanSummaryStrip extends StatelessWidget {
     required this.active,
     required this.expiration,
     required this.creditsLabel,
+    this.trailing,
   });
 
   final String plan;
   final bool active;
   final String expiration;
   final String creditsLabel;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -164,14 +165,22 @@ class _PlanSummaryStrip extends StatelessWidget {
             final cells = <Widget>[
               _SummaryCell(
                 overline: l10n.subscriptionSummaryCurrentPlan,
-                child: Text(
-                  plan,
-                  style: enjoyDisplayStyle(
-                    context,
-                    size: 26,
-                    color: t.ink,
-                    height: 1.2,
-                  ),
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      plan,
+                      style: enjoyDisplayStyle(
+                        context,
+                        size: 26,
+                        color: t.ink,
+                        height: 1.2,
+                      ),
+                    ),
+                    ?trailing,
+                  ],
                 ),
               ),
               _SummaryCell(
@@ -288,7 +297,6 @@ class _PaidMembershipCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final ar = autoRenew;
     final renewing = status.hasActiveAutoRenewPlan;
@@ -298,22 +306,6 @@ class _PaidMembershipCard extends StatelessWidget {
     final periodDate =
         _formatDate(context, ar?.currentPeriodEnd) ??
         _formatDate(context, status.subscriptionExpireDate);
-    final planLabel = ar == null
-        ? null
-        : ar.interval == 'year'
-        ? l10n.subscriptionAutoRenewIntervalYear
-        : ar.interval == 'month'
-        ? l10n.subscriptionAutoRenewIntervalMonth
-        : null;
-    final priceLabel = ar?.amount == null
-        ? null
-        : ar!.interval == 'year'
-        ? l10n.subscriptionAutoRenewPriceYear(
-            NumberFormat('0.00').format(ar.amount),
-          )
-        : l10n.subscriptionAutoRenewPriceMonth(
-            NumberFormat('0.00').format(ar.amount),
-          );
     final tierTitle = isLite
         ? l10n.subscriptionTierLiteName
         : l10n.subscriptionProMemberTitle;
@@ -321,202 +313,56 @@ class _PaidMembershipCard extends StatelessWidget {
         ? l10n.subscriptionTierLiteName
         : l10n.profileSubscriptionPro;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(t.radiusXl),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            cs.primary.withValues(alpha: 0.16),
-            cs.tertiary.withValues(alpha: 0.10),
-            cs.surfaceContainer,
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _PlanSummaryStrip(
+          plan: tierTitle,
+          active: status.subscriptionActive,
+          expiration:
+              periodDate ??
+              (renewing
+                  ? l10n.subscriptionNeverExpires
+                  : l10n.subscriptionNeverExpires),
+          creditsLabel: creditsLabel,
+          trailing: _SoftChip(
+            label: renewing ? l10n.subscriptionAutoRenewOn : tierBadge,
+            emphasized: false,
+          ),
         ),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.28)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          t.space20,
-          t.space20,
-          t.space20,
-          t.space12,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(t.space8),
-                  decoration: BoxDecoration(
-                    color: cs.primary.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(t.radiusMd),
-                  ),
-                  child: Icon(
-                    EnjoyIcons.verifiedFill,
-                    color: cs.primary,
-                    size: 22,
-                  ),
-                ),
-                SizedBox(width: t.space12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        tierTitle,
-                        style: tt.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      SizedBox(height: t.space4),
-                      Text(
-                        [?planLabel, ?priceLabel].join(' · '),
-                        style: tt.bodyMedium?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                _SoftChip(
-                  label: renewing ? l10n.subscriptionAutoRenewOn : tierBadge,
-                  emphasized: true,
-                ),
-              ],
-            ),
-            SizedBox(height: t.space16),
-            Wrap(
-              spacing: t.space8,
-              runSpacing: t.space8,
-              children: [
-                if (periodDate != null)
-                  _InfoPill(
-                    icon: EnjoyIcons.event,
-                    label: renewing
-                        ? l10n.subscriptionRenewsOn(periodDate)
-                        : l10n.subscriptionAccessUntil(periodDate),
-                  ),
-                _InfoPill(icon: EnjoyIcons.boltFill, label: creditsLabel),
-              ],
-            ),
-            if (endingSoon) ...[
-              SizedBox(height: t.space12),
-              Text(
-                l10n.subscriptionAutoRenewEndingSoon,
-                style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-              ),
-            ],
-            if (onExtend != null) ...[
-              SizedBox(height: t.space16),
-              EnjoyButton.brand(
-                onPressed: onExtend,
-                child: Text(l10n.subscriptionExtend),
-              ),
-            ],
-            if (onCancel != null) ...[
-              SizedBox(height: t.space4),
-              Align(
-                alignment: Alignment.center,
-                child: TextButton(
-                  onPressed: cancelBusy ? null : onCancel,
-                  style: TextButton.styleFrom(
-                    foregroundColor: cs.onSurfaceVariant.withValues(
-                      alpha: 0.75,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: t.space12,
-                      vertical: t.space4,
-                    ),
-                    textStyle: tt.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      decoration: TextDecoration.underline,
-                      decorationColor: cs.onSurfaceVariant.withValues(
-                        alpha: 0.45,
-                      ),
-                    ),
-                  ),
-                  child: Text(l10n.subscriptionAutoRenewCancel),
-                ),
-              ),
-            ] else
-              SizedBox(height: t.space8),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SoftChip extends StatelessWidget {
-  const _SoftChip({required this.label, required this.emphasized});
-
-  final String label;
-  final bool emphasized;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: ShapeDecoration(
-        color: emphasized
-            ? cs.primaryContainer.withValues(alpha: 0.85)
-            : cs.surfaceContainerHighest,
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(t.radiusFull),
-        ),
-      ),
-      child: Text(
-        label,
-        style: tt.labelMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: emphasized ? cs.onPrimaryContainer : cs.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoPill extends StatelessWidget {
-  const _InfoPill({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: t.space12, vertical: t.space8),
-      decoration: ShapeDecoration(
-        color: cs.surface.withValues(alpha: 0.55),
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(t.radiusFull),
-          side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.25)),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: cs.primary),
-          SizedBox(width: t.space4),
-          Flexible(
+        if (endingSoon)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
             child: Text(
-              label,
-              style: tt.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+              l10n.subscriptionAutoRenewEndingSoon,
+              style: tt.bodySmall?.copyWith(color: t.ink3),
+            ),
+          ),
+        if (onExtend != null) ...[
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: EnjoyButton.brand(
+              onPressed: onExtend,
+              child: Text(l10n.subscriptionExtend),
             ),
           ),
         ],
-      ),
+        if (onCancel != null) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: EnjoyButton.ghost(
+              onPressed: cancelBusy ? null : onCancel,
+              child: Text(
+                cancelBusy
+                    ? l10n.subscriptionAutoRenewCancelConfirmAction
+                    : l10n.subscriptionAutoRenewCancel,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -530,5 +376,35 @@ String? _formatDate(BuildContext context, String? iso) {
     ).format(date);
   } catch (_) {
     return iso;
+  }
+}
+
+class _SoftChip extends StatelessWidget {
+  const _SoftChip({required this.label, required this.emphasized});
+
+  final String label;
+  final bool emphasized;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final tt = Theme.of(context).textTheme;
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      alignment: Alignment.center,
+      decoration: ShapeDecoration(
+        color: emphasized ? t.ink : t.sunk,
+        shape: const StadiumBorder(),
+      ),
+      child: Text(
+        label,
+        style: tt.labelSmall?.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: emphasized ? t.paper : t.ink2,
+        ),
+      ),
+    );
   }
 }
