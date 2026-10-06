@@ -18,8 +18,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 3 · Player | 14 | 9 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
-| A · Audit verification | 6 | 4 |
-| **Total** | **50** | **25** |
+| A · Audit verification | 6 | 5 |
+| **Total** | **50** | **26** |
 
 ## Decisions
 
@@ -105,8 +105,8 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | A1 | Re-render boards from the canvas | all | — | done | | | All 76 boards re-synced (only `DYoutubeDark` differed beyond `Main` / `Phone`) and re-rendered; the renderer is deterministic, so only the 20 player renders changed |
 | A2 | Player gallery on the real expanded-player body | all `D*` / `P*` player boards | — | done | | | `ExpandedPlayerChromeBody` + RootShell dock with the board's sample (*The Ferry at Six*, zh translation, IPA, three seeded takes) for Main, DDark, DEcho, DCompact, Phone, PEcho, PDark; host Noto CJK SC face registered for the gallery. Remaining player states go to A5 |
 | A3 | Board-matching fixtures | Home, Library, Discover, Vocabulary, Credits, Subscription, Sync | — | done | | | `board_data.dart`: Alex Chen on Free, the boards' media / channels / feed / words / credit log / packages / plans / sync queue; `app_scenes_test.dart` shoots 23 app scenes (subpages pushed so back buttons render) |
-| A4 | Harness gaps | Craft, SignIn, Review, dialogs | — | todo | | | Fake `record` channel, signed-out auth, review session, dialog openers, pushed subpages for back buttons |
-| A5 | One gallery scene per board | all | A2–A4 | todo | | | `duet_compare.sh` with no args covers the board → task index |
+| A4 | Harness gaps | Craft, SignIn, Review, dialogs | — | done | | | Fake `record` method channel (Craft, PhCraft), signed-out auth (SignIn, PhSignIn), pushed subpages. Review-session and dialog fixtures land with D4.5 / their screen task (A5 rule) |
+| A5 | One gallery scene per board | all | A2–A4 | in progress | | | Rolling: each Phase C / D task adds the state boards it rebuilds (tabs, dialogs, review steps, player states). 34 boards captured so far |
 | A6 | Tracker reset | — | — | done | | | This change: tasks reopened, counts corrected, compare rule added |
 
 ### Phase 5 · Cleanup, proof, merge

@@ -427,12 +427,12 @@ const _boardStatistics = LearningStatistics(
 );
 
 /// Board data for every app screen; one override per provider.
-List<Override> boardOverrides(AppDatabase db) => [
+List<Override> boardOverrides(AppDatabase db, {AuthCtrl Function()? auth}) => [
   ...baseOverrides(
     db,
     recents: boardRecents(),
     subscription: false,
-    auth: BoardAuthCtrl.new,
+    auth: auth ?? BoardAuthCtrl.new,
     statistics: _boardStatistics,
     resume: PracticeResume(
       media: boardAudios[0],

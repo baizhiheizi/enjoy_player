@@ -8,7 +8,11 @@ import 'package:enjoy_player/features/ai/presentation/settings/ai_providers_scre
 import 'package:enjoy_player/features/auth/presentation/profile_edit_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_preferences_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/presentation/sign_in_screen.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_history_screen.dart';
+import 'package:enjoy_player/features/craft/presentation/craft_screen.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_screen.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_screen.dart';
 import 'package:enjoy_player/features/library/presentation/home_screen.dart';
@@ -40,9 +44,15 @@ class _FakeMic extends RecordingInputDeviceCtrl {
       );
 }
 
+class _SignedOut extends AuthCtrl {
+  @override
+  Future<AuthState> build() async => const AuthSignedOut();
+}
+
 GoRouter _router(String initial) => GoRouter(
   initialLocation: initial,
   routes: [
+    GoRoute(path: '/sign-in', builder: (_, _) => const SignInScreen()),
     ShellRoute(
       builder: (context, state, child) => RootShell(child: child),
       routes: [
@@ -83,6 +93,7 @@ GoRouter _router(String initial) => GoRouter(
           path: '/subscription',
           builder: (_, _) => const SubscriptionScreen(),
         ),
+        GoRoute(path: '/craft', builder: (_, _) => const CraftScreen()),
         GoRoute(
           path: '/craft/history',
           builder: (_, _) => const CraftHistoryScreen(),
@@ -92,8 +103,8 @@ GoRouter _router(String initial) => GoRouter(
   ],
 );
 
-List<Override> _overrides(AppDatabase db) => [
-  ...boardOverrides(db),
+List<Override> _overrides(AppDatabase db, {bool signedOut = false}) => [
+  ...boardOverrides(db, auth: signedOut ? _SignedOut.new : null),
   recordingInputDeviceCtrlProvider.overrideWith(_FakeMic.new),
 ];
 
@@ -157,6 +168,10 @@ final _scenes = <(String, String, String?, GalleryFrame, Brightness)>[
     GalleryFrame.desktop,
     Brightness.light,
   ),
+  ('Craft', '/', '/craft', GalleryFrame.desktop, Brightness.light),
+  ('SignIn', '/sign-in', null, GalleryFrame.desktop, Brightness.light),
+  ('PhSignIn', '/sign-in', null, GalleryFrame.phone, Brightness.light),
+  ('PhCraft', '/', '/craft', GalleryFrame.phone, Brightness.light),
   ('PhHome', '/', null, GalleryFrame.phone, Brightness.light),
   ('PhHomeDark', '/', null, GalleryFrame.phone, Brightness.dark),
   ('PhLibrary', '/library', null, GalleryFrame.phone, Brightness.light),
@@ -188,7 +203,7 @@ void main() {
         board,
         sceneApp(
           router: router,
-          overrides: _overrides(db),
+          overrides: _overrides(db, signedOut: board.endsWith('SignIn')),
           brightness: brightness,
         ),
         frame: frame,

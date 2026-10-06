@@ -43,6 +43,15 @@ Future<void> setUpGallery() async {
   addTearDown(() => scratch.deleteSync(recursive: true));
   PathProviderPlatform.instance = TestPathProvider(scratch.path);
   GoogleFonts.config.allowRuntimeFetching = false;
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(
+        const MethodChannel('com.llfbandit.record/messages'),
+        (call) async => switch (call.method) {
+          'hasPermission' => true,
+          'listInputDevices' => <Object>[],
+          _ => null,
+        },
+      );
   await _loadManifestFonts();
   await _loadHostCjkFonts();
   buildAppTheme(Brightness.dark);

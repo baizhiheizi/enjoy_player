@@ -48,7 +48,9 @@
 | **Sync** | **code** | Board: hero card (last successful sync, Literata time) + two stat tiles + Sync now / Retry buttons + Queue details list with type badges (REC / VOC / VID / AUD) and status chips. App: three thin rows + full-width buttons + collapsed "Queue details". |
 | **Keyboard** | **code** | Board: group header = small letter badge + sans label + count; rows with keycaps (no `+` joiner), pencil + reset icons, `Custom` chip. App: multi-hue icon tile + Literata heading, `+` between keys, different action icons, extra subtitle line. |
 | ProfileEdit, ProfilePrefs, AiProviders, CraftHistory | captured, not yet reviewed | Captures are in `build/duet_gallery/compare/`. |
-| Craft, SignIn, Review, NotFound, Poster, dialogs (LibraryDelete, LibraryImporting, HomeImport, SubscriptionPlans, KeyboardCheatsheet, SettingsAbout update) | not captured | Need harness work: a fake recorder for Craft, a signed-out auth fixture for SignIn, session fixtures for Review, dialog openers. |
+| **Craft** (`Craft`, `PhCraft`) | **code** | Board: page header (overline `PRACTICE AUDIO FROM YOUR OWN WORDS`, Literata title, Express / Advanced segmented + History button) + Capture → Rewrite → Audio stepper + one card (record orb, Literata prompt, `中文 → English` chips, Type instead). App: subpage bar with back + centered segmented, no stepper, no card, mono `EN-US → EN-US`. |
+| **SignIn** (`SignIn`, `PhSignIn`) | **code** | Board (desktop): dark split panel with the large logo art and "First the original voice. Then yours."; form with the logo, Literata title, Google (paper), Apple (ink), or, Email. App: centered form only, logo tile, brand Email button, Google / Apple behind "Other sign-in options" (check whether that is platform gating — keep the platform behavior if so). |
+| Review, NotFound, Poster, dialogs (LibraryDelete, LibraryImporting, HomeImport, SubscriptionPlans, KeyboardCheatsheet, SettingsAbout update) | not captured | Fixtures land with the task that rebuilds them. |
 
 ### Player
 
