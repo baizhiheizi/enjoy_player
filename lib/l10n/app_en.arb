@@ -2098,5 +2098,15 @@
   "discoverAddToLibraryAction": "Add to library",
   "@discoverAddToLibraryAction": {"description": "Discover feed tile action button."},
   "discoverStripSubscribe": "Subscribe",
-  "@discoverStripSubscribe": {"description": "Trailing tile in the Discover channel strip; opens manage / subscribe."}
+  "@discoverStripSubscribe": {"description": "Trailing tile in the Discover channel strip; opens manage / subscribe."},
+  "subscriptionSummaryCurrentPlan": "Current plan",
+  "@subscriptionSummaryCurrentPlan": {"description": "Subscription summary strip cell."},
+  "subscriptionSummaryStatus": "Status",
+  "@subscriptionSummaryStatus": {"description": "Subscription summary strip cell."},
+  "subscriptionSummaryExpiration": "Expiration",
+  "@subscriptionSummaryExpiration": {"description": "Subscription summary strip cell."},
+  "subscriptionSummaryDailyCredits": "Daily credits limit",
+  "@subscriptionSummaryDailyCredits": {"description": "Subscription summary strip cell."},
+  "subscriptionChoosePlan": "Choose your plan",
+  "@subscriptionChoosePlan": {"description": "Heading above the plan catalog."}
 }

@@ -95,15 +95,18 @@ class _TierCatalogState extends ConsumerState<TierCatalog> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          l10n.subscriptionTierCatalogTitle,
-          style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          l10n.subscriptionChoosePlan,
+          style: enjoyDisplayStyle(
+            context,
+            size: 30,
+            color: Theme.of(context).colorScheme.onSurface,
+            height: 1.15,
+          ),
         ),
-        SizedBox(height: t.space4),
+        const SizedBox(height: 6),
         Text(
           l10n.subscriptionTierCatalogDescription,
-          style: tt.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          style: tt.bodyMedium?.copyWith(color: t.ink3),
         ),
         SizedBox(height: t.space20),
         plansAsync.when(

@@ -1409,5 +1409,10 @@
   "discoverHoursAgo": "{count} 小时前",
   "discoverDaysAgo": "{count} 天前",
   "discoverAddToLibraryAction": "加入媒体库",
-  "discoverStripSubscribe": "订阅"
+  "discoverStripSubscribe": "订阅",
+  "subscriptionSummaryCurrentPlan": "当前方案",
+  "subscriptionSummaryStatus": "状态",
+  "subscriptionSummaryExpiration": "有效期至",
+  "subscriptionSummaryDailyCredits": "每日积分上限",
+  "subscriptionChoosePlan": "选择你的方案"
 }

@@ -11,6 +11,8 @@ import 'package:intl/intl.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -100,9 +102,6 @@ class SubscriptionStatusCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
     final isPaid = status.isPaidTier;
     final ar = status.autoRenew;
     final cancelBusy = ref.watch(subscriptionPurchaseCtrlProvider).isLoading;
@@ -127,39 +126,143 @@ class SubscriptionStatusCard extends ConsumerWidget {
       );
     }
 
-    final tierName = l10n.profileSubscriptionFree;
-    final tierDescription = l10n.subscriptionTierFreeDescription;
+    return _PlanSummaryStrip(
+      plan: l10n.profileSubscriptionFree,
+      active: status.subscriptionActive,
+      expiration:
+          _formatDate(context, status.subscriptionExpireDate) ??
+          l10n.subscriptionNeverExpires,
+      creditsLabel: creditsLabel,
+    );
+  }
+}
 
+/// Flat four-cell summary card (the `Subscription` board's status strip).
+class _PlanSummaryStrip extends StatelessWidget {
+  const _PlanSummaryStrip({
+    required this.plan,
+    required this.active,
+    required this.expiration,
+    required this.creditsLabel,
+  });
+
+  final String plan;
+  final bool active;
+  final String expiration;
+  final String creditsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    final tt = Theme.of(context).textTheme;
     return EnjoyCard(
-      padding: EdgeInsets.all(t.space20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(EnjoyIcons.person, size: 20, color: cs.primary),
-              SizedBox(width: t.space8),
-              Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final cells = <Widget>[
+              _SummaryCell(
+                overline: l10n.subscriptionSummaryCurrentPlan,
                 child: Text(
-                  tierName,
-                  style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  plan,
+                  style: enjoyDisplayStyle(
+                    context,
+                    size: 26,
+                    color: t.ink,
+                    height: 1.2,
+                  ),
                 ),
               ),
-              _SoftChip(label: l10n.subscriptionActive, emphasized: false),
-            ],
-          ),
-          SizedBox(height: t.space12),
-          Text(
-            creditsLabel,
-            style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-          ),
-          SizedBox(height: t.space4),
-          Text(
-            tierDescription,
-            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-          ),
-        ],
+              _SummaryCell(
+                overline: l10n.subscriptionSummaryStatus,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: active ? t.original : t.ink3,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    Flexible(
+                      child: Text(
+                        active
+                            ? l10n.subscriptionActive
+                            : l10n.subscriptionInactive,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tt.titleMedium?.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: t.ink,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _SummaryCell(
+                overline: l10n.subscriptionSummaryExpiration,
+                child: Text(
+                  expiration,
+                  style: tt.titleMedium?.copyWith(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: t.ink,
+                  ),
+                ),
+              ),
+              _SummaryCell(
+                overline: l10n.subscriptionSummaryDailyCredits,
+                child: Text(
+                  creditsLabel,
+                  style: enjoyMonoStyle(context, size: 15, color: t.ink),
+                ),
+              ),
+            ];
+            if (constraints.maxWidth < 560) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final (i, cell) in cells.indexed) ...[
+                    if (i > 0) const SizedBox(height: 16),
+                    cell,
+                  ],
+                ],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (i, cell) in cells.indexed) ...[
+                  if (i > 0) const SizedBox(width: 24),
+                  Expanded(child: cell),
+                ],
+              ],
+            );
+          },
+        ),
       ),
+    );
+  }
+}
+
+class _SummaryCell extends StatelessWidget {
+  const _SummaryCell({required this.overline, required this.child});
+
+  final String overline;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [EnjoyOverline(overline), const SizedBox(height: 14), child],
     );
   }
 }

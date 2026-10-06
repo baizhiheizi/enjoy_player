@@ -4033,6 +4033,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get discoverStripSubscribe => '订阅';
+
+  @override
+  String get subscriptionSummaryCurrentPlan => '当前方案';
+
+  @override
+  String get subscriptionSummaryStatus => '状态';
+
+  @override
+  String get subscriptionSummaryExpiration => '有效期至';
+
+  @override
+  String get subscriptionSummaryDailyCredits => '每日积分上限';
+
+  @override
+  String get subscriptionChoosePlan => '选择你的方案';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7389,4 +7404,19 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get discoverStripSubscribe => '订阅';
+
+  @override
+  String get subscriptionSummaryCurrentPlan => '当前方案';
+
+  @override
+  String get subscriptionSummaryStatus => '状态';
+
+  @override
+  String get subscriptionSummaryExpiration => '有效期至';
+
+  @override
+  String get subscriptionSummaryDailyCredits => '每日积分上限';
+
+  @override
+  String get subscriptionChoosePlan => '选择你的方案';
 }

@@ -4228,4 +4228,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discoverStripSubscribe => 'Subscribe';
+
+  @override
+  String get subscriptionSummaryCurrentPlan => 'Current plan';
+
+  @override
+  String get subscriptionSummaryStatus => 'Status';
+
+  @override
+  String get subscriptionSummaryExpiration => 'Expiration';
+
+  @override
+  String get subscriptionSummaryDailyCredits => 'Daily credits limit';
+
+  @override
+  String get subscriptionChoosePlan => 'Choose your plan';
 }

@@ -7685,6 +7685,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subscribe'**
   String get discoverStripSubscribe;
+
+  /// Subscription summary strip cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan'**
+  String get subscriptionSummaryCurrentPlan;
+
+  /// Subscription summary strip cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get subscriptionSummaryStatus;
+
+  /// Subscription summary strip cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiration'**
+  String get subscriptionSummaryExpiration;
+
+  /// Subscription summary strip cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily credits limit'**
+  String get subscriptionSummaryDailyCredits;
+
+  /// Heading above the plan catalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your plan'**
+  String get subscriptionChoosePlan;
 }
 
 class _AppLocalizationsDelegate
