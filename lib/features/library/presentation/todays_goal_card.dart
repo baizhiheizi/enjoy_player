@@ -1,69 +1,45 @@
-/// Today's practice goal (signed-in home dashboard): ring card (wide) or
-/// compact progress bar (mobile strip).
+/// Today's practice goal on Home: an 88px logo-gradient ring holding the
+/// minutes practiced, with the encouragement and the remaining minutes
+/// beside it (the `Home` board).
 library;
-
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_progress_ring.dart';
-import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/application/goal_progress.dart';
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-/// Presentation mode for [TodaysGoalCard].
-enum TodaysGoalCardVariant {
-  /// Circular progress ring + details (tablet / desktop).
-  card,
+const double _kRingSize = 88;
+const double _kRingStroke = 8;
+const EdgeInsets _kCardPadding = EdgeInsets.symmetric(
+  horizontal: 22,
+  vertical: 20,
+);
 
-  /// Linear progress + compact copy (mobile insight strip).
-  bar,
-}
-
-String _encouragementText(AppLocalizations l10n, GoalEncouragementTier tier) {
-  switch (tier) {
-    case GoalEncouragementTier.completed:
-      return l10n.homeGoalCompleted;
-    case GoalEncouragementTier.almostThere:
-      return l10n.homeGoalAlmostThere;
-    case GoalEncouragementTier.halfway:
-      return l10n.homeGoalHalfway;
-    case GoalEncouragementTier.goodStart:
-      return l10n.homeGoalGoodStart;
-    case GoalEncouragementTier.justStarted:
-      return l10n.homeGoalJustStarted;
-    case GoalEncouragementTier.startNow:
-      return l10n.homeGoalStartNow;
-  }
-}
+String _encouragementText(AppLocalizations l10n, GoalEncouragementTier tier) =>
+    switch (tier) {
+      GoalEncouragementTier.completed => l10n.homeGoalCompleted,
+      GoalEncouragementTier.almostThere => l10n.homeGoalAlmostThere,
+      GoalEncouragementTier.halfway => l10n.homeGoalHalfway,
+      GoalEncouragementTier.goodStart => l10n.homeGoalGoodStart,
+      GoalEncouragementTier.justStarted => l10n.homeGoalJustStarted,
+      GoalEncouragementTier.startNow => l10n.homeGoalStartNow,
+    };
 
 class TodaysGoalCard extends ConsumerWidget {
-  const TodaysGoalCard({
-    super.key,
-    this.variant = TodaysGoalCardVariant.card,
-    this.containedInParentCard = false,
-  });
-
-  final TodaysGoalCardVariant variant;
-  final bool containedInParentCard;
-
-  static const double _ringSizeCard = 112;
-  static const double _ringSizeBar = 62;
-  static const double _strokeWidthCard = 8;
-  static const double _strokeWidthBar = 6;
+  const TodaysGoalCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final statsAsync = ref.watch(learningStatisticsProvider);
     final profileGoal = ref.watch(
@@ -78,446 +54,204 @@ class TodaysGoalCard extends ConsumerWidget {
       skipLoadingOnReload: true,
       data: (stats) {
         if (stats == null) return const SizedBox.shrink();
-
         final progress = computeGoalProgress(
           recordingDurationMs: stats.today.recordingDurationMs,
           goalMinutes: profileGoal,
         );
-        final encouragement = _encouragementText(l10n, progress.encouragement);
-        final done = progress.isComplete;
-        final progressColor = done ? t.ink : cs.primary;
-        final msgColor = done ? t.ink : cs.onSurfaceVariant;
-
-        final child = variant == TodaysGoalCardVariant.card
-            ? _buildCardVariant(
-                context,
-                t,
-                cs,
-                l10n,
-                progress.recordingDurationMs,
-                progress.completedMinutes,
-                progress.goalMinutes,
-                progress.percent,
-                encouragement,
-                progressColor,
-                msgColor,
-              )
-            : _buildBarVariant(
-                context,
-                t,
-                cs,
-                l10n,
-                progress.recordingDurationMs,
-                progress.completedMinutes,
-                progress.goalMinutes,
-                progress.percent,
-                encouragement,
-                progressColor,
-                msgColor,
-              );
-
-        return _wrapCard(
-          context: context,
-          containedInParentCard: containedInParentCard,
-          t: t,
-          child: child,
+        return _GoalCardChrome(
           semanticsLabel:
               '${l10n.homeTodaysGoal}, ${progress.percent}%, ${progress.completedMinutes} of ${progress.goalMinutes} ${l10n.homeMinutes}',
+          child: _GoalBody(progress: progress),
         );
       },
-      loading: () => _wrapCard(
-        context: context,
-        containedInParentCard: containedInParentCard,
-        t: t,
-        child: _TodaysGoalLoadingBody(t: t, cs: cs, variant: variant),
+      loading: () => _GoalCardChrome(
         semanticsLabel: l10n.homeTodaysGoal,
+        child: const _GoalLoadingBody(),
       ),
-      error: (e, _) => _wrapCard(
-        context: context,
-        containedInParentCard: containedInParentCard,
-        t: t,
-        child: _TodaysGoalErrorBody(
-          t: t,
-          cs: cs,
-          variant: variant,
+      error: (e, _) => _GoalCardChrome(
+        semanticsLabel: l10n.homeTodaysGoal,
+        child: _GoalErrorBody(
           onRetry: () => ref.invalidate(learningStatisticsProvider),
         ),
-        semanticsLabel: l10n.homeTodaysGoal,
       ),
     );
   }
+}
 
-  Widget _wrapCard({
-    required BuildContext context,
-    required bool containedInParentCard,
-    required EnjoyThemeTokens t,
-    required Widget child,
-    required String semanticsLabel,
-  }) {
-    final padded = Padding(
-      padding: EdgeInsets.all(t.space16 + 2),
-      child: child,
-    );
-    final semanticsChild = Semantics(label: semanticsLabel, child: padded);
-    if (containedInParentCard) {
-      return semanticsChild;
-    }
-    return EnjoyCard(child: semanticsChild);
-  }
+class _GoalCardChrome extends StatelessWidget {
+  const _GoalCardChrome({required this.semanticsLabel, required this.child});
 
-  Widget _ring(
-    BuildContext context,
-    EnjoyThemeTokens t,
-    int pct,
-    double size,
-    double stroke,
-    Color progressColor, {
-    required TextStyle? labelStyle,
-  }) {
-    final done = pct >= 100;
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CustomPaint(
-            size: Size(size, size),
-            painter: EnjoyProgressRingPainter(
-              progress: pct / 100,
-              trackColor: t.fill,
-              gradientColors: done
-                  ? [progressColor, progressColor]
-                  : [t.logoStart, t.logoEnd],
-              strokeWidth: stroke,
-            ),
-          ),
-          if (done)
-            Icon(EnjoyIcons.check, size: size * 0.36, color: progressColor)
-          else
-            Text('$pct%', style: labelStyle),
-        ],
+  final String semanticsLabel;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return EnjoyCard(
+      child: Semantics(
+        label: semanticsLabel,
+        child: Padding(padding: _kCardPadding, child: child),
       ),
     );
   }
+}
 
-  Widget _figureLine(
-    BuildContext context,
-    ColorScheme cs,
-    AppLocalizations l10n,
-    int completedMin,
-    int goalMinutes, {
-    required double size,
-  }) {
+class _GoalBody extends StatelessWidget {
+  const _GoalBody({required this.progress});
+
+  final GoalProgress progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: '$completedMin',
-            style: enjoyDisplayStyle(context, size: size, color: cs.onSurface),
-          ),
-          TextSpan(
-            text: ' / $goalMinutes ${l10n.homeMinutes}',
-            style: tt.bodyMedium?.copyWith(
-              color: cs.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+    final l10n = AppLocalizations.of(context)!;
+    final remaining = (progress.goalMinutes - progress.completedMinutes).clamp(
+      0,
+      progress.goalMinutes,
     );
-  }
-
-  Widget _buildCardVariant(
-    BuildContext context,
-    EnjoyThemeTokens t,
-    ColorScheme cs,
-    AppLocalizations l10n,
-    int recordingDurationMs,
-    int completedMin,
-    int goalMinutes,
-    int pct,
-    String encouragement,
-    Color progressColor,
-    Color msgColor,
-  ) {
-    final tt = Theme.of(context).textTheme;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        EnjoyOverline(l10n.homeTodaysGoal),
-        SizedBox(height: t.space16),
-        Center(
-          child: _ring(
-            context,
-            t,
-            pct,
-            _ringSizeCard,
-            _strokeWidthCard,
-            progressColor,
-            labelStyle: tt.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ),
-        SizedBox(height: t.space16),
-        Center(
-          child: _figureLine(
-            context,
-            cs,
-            l10n,
-            completedMin,
-            goalMinutes,
-            size: 34,
-          ),
-        ),
-        SizedBox(height: t.space4),
-        Text(
-          '${formatPracticeDurationMs(recordingDurationMs)} ${l10n.homeCompleted}',
-          textAlign: TextAlign.center,
-          style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-        ),
-        SizedBox(height: t.space8),
-        Text(
-          encouragement,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: tt.bodySmall?.copyWith(
-            color: msgColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBarVariant(
-    BuildContext context,
-    EnjoyThemeTokens t,
-    ColorScheme cs,
-    AppLocalizations l10n,
-    int recordingDurationMs,
-    int completedMin,
-    int goalMinutes,
-    int pct,
-    String encouragement,
-    Color progressColor,
-    Color msgColor,
-  ) {
-    final tt = Theme.of(context).textTheme;
-    final durationText = formatPracticeDurationMs(recordingDurationMs);
+    final summary = progress.isComplete
+        ? l10n.homeGoalProgressDone(
+            progress.completedMinutes,
+            progress.goalMinutes,
+          )
+        : l10n.homeGoalProgressRemaining(
+            progress.completedMinutes,
+            progress.goalMinutes,
+            remaining,
+          );
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _ring(
-          context,
-          t,
-          pct,
-          _ringSizeBar,
-          _strokeWidthBar,
-          progressColor,
-          labelStyle: tt.labelMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            fontFeatures: const [FontFeature.tabularFigures()],
+        SizedBox(
+          width: _kRingSize,
+          height: _kRingSize,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              CustomPaint(
+                size: const Size.square(_kRingSize),
+                painter: EnjoyProgressRingPainter(
+                  progress: progress.percent / 100,
+                  trackColor: t.sunk,
+                  gradientColors: [t.logoStart, t.logoEnd],
+                  strokeWidth: _kRingStroke,
+                ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${progress.completedMinutes}',
+                    style:
+                        enjoyDisplayStyle(
+                          context,
+                          size: 27,
+                          color: t.ink,
+                          height: 1,
+                        ).copyWith(
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    l10n.homeGoalOfMinutes(progress.goalMinutes),
+                    style: tt.bodySmall?.copyWith(
+                      fontSize: 11.5,
+                      color: t.ink3,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        SizedBox(width: t.space16),
+        const SizedBox(width: 18),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               EnjoyOverline(l10n.homeTodaysGoal),
-              const SizedBox(height: 2),
-              _figureLine(
-                context,
-                cs,
-                l10n,
-                completedMin,
-                goalMinutes,
-                size: 30,
-              ),
+              const SizedBox(height: 9),
               Text(
-                '$durationText · $encouragement',
+                _encouragementText(l10n, progress.encouragement),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: tt.titleMedium?.copyWith(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: t.ink,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                summary,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: tt.bodySmall?.copyWith(color: msgColor),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TodaysGoalLoadingBody extends StatelessWidget {
-  const _TodaysGoalLoadingBody({
-    required this.t,
-    required this.cs,
-    required this.variant,
-  });
-
-  final EnjoyThemeTokens t;
-  final ColorScheme cs;
-  final TodaysGoalCardVariant variant;
-
-  @override
-  Widget build(BuildContext context) {
-    final base = t.fill;
-    if (variant == TodaysGoalCardVariant.bar) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: TodaysGoalCard._ringSizeBar,
-                height: TodaysGoalCard._ringSizeBar,
-                decoration: BoxDecoration(color: base, shape: BoxShape.circle),
-              ),
-              SizedBox(width: t.space12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 16,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        color: base,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    SizedBox(height: t.space4),
-                    Container(
-                      height: 14,
-                      width: 140,
-                      decoration: BoxDecoration(
-                        color: base,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ],
+                style: tt.bodySmall?.copyWith(
+                  fontSize: 13,
+                  color: t.ink3,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
           ),
-        ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Icon(EnjoyIcons.target, size: 20, color: cs.primary),
-            SizedBox(width: t.space8),
-            Container(
-              height: 22,
-              width: 140,
-              decoration: BoxDecoration(
-                color: base,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: t.space16),
-        Center(
-          child: Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(color: base, shape: BoxShape.circle),
-          ),
-        ),
-        SizedBox(height: t.space16),
-        Center(
-          child: Container(
-            height: 24,
-            width: 160,
-            decoration: BoxDecoration(
-              color: base,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ),
-        SizedBox(height: t.space8),
-        Center(
-          child: Container(
-            height: 14,
-            width: 120,
-            decoration: BoxDecoration(
-              color: base,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
         ),
       ],
     );
   }
 }
 
-class _TodaysGoalErrorBody extends StatelessWidget {
-  const _TodaysGoalErrorBody({
-    required this.t,
-    required this.cs,
-    required this.variant,
-    required this.onRetry,
-  });
+class _GoalLoadingBody extends StatelessWidget {
+  const _GoalLoadingBody();
 
-  final EnjoyThemeTokens t;
-  final ColorScheme cs;
-  final TodaysGoalCardVariant variant;
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    Widget bar(double width, double height) => Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: t.sunk,
+        borderRadius: BorderRadius.circular(4),
+      ),
+    );
+    return Row(
+      children: [
+        Container(
+          width: _kRingSize,
+          height: _kRingSize,
+          decoration: BoxDecoration(color: t.sunk, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 18),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [bar(90, 11), const SizedBox(height: 10), bar(160, 15)],
+        ),
+      ],
+    );
+  }
+}
+
+class _GoalErrorBody extends StatelessWidget {
+  const _GoalErrorBody({required this.onRetry});
+
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    if (variant == TodaysGoalCardVariant.bar) {
-      return Row(
-        children: [
-          Icon(EnjoyIcons.error, color: cs.error, size: 20),
-          SizedBox(width: t.space8),
-          Expanded(
-            child: Text(
-              l10n.errorNetwork,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-          TextButton(
-            onPressed: onRetry,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: t.space8),
-              minimumSize: const Size(48, 40),
-            ),
-            child: Text(l10n.retry),
-          ),
-        ],
-      );
-    }
-
+    final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Icon(EnjoyIcons.error, color: cs.error, size: 22),
-        SizedBox(width: t.space12),
+        Icon(EnjoyIcons.error, color: cs.error, size: 20),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
             l10n.errorNetwork,
-            style: Theme.of(context).textTheme.bodyMedium,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
         TextButton(onPressed: onRetry, child: Text(l10n.retry)),

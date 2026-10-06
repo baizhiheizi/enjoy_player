@@ -52,13 +52,31 @@ void main() {
       'mediaCardTileGridAspectRatioForWidth uses width/(9/16*w+meta+inset)',
       () {
         final ratio = mediaCardTileGridAspectRatioForWidth(280);
-        expect(ratio, closeTo(280 / 218.5, 0.001));
+        expect(
+          ratio,
+          closeTo(
+            280 /
+                (280 * 9 / 16 +
+                    mediaCardTileMetaHeight +
+                    mediaCardTileBorderInset),
+            0.001,
+          ),
+        );
       },
     );
 
     test('mediaCardTileGridAspectRatioForWidth handles small widths', () {
       final ratio = mediaCardTileGridAspectRatioForWidth(120);
-      expect(ratio, closeTo(120 / 128.5, 0.001));
+      expect(
+        ratio,
+        closeTo(
+          120 /
+              (120 * 9 / 16 +
+                  mediaCardTileMetaHeight +
+                  mediaCardTileBorderInset),
+          0.001,
+        ),
+      );
     });
 
     test('mediaCardTileGridDelegateForMaxTileWidth builds a grid delegate', () {
@@ -187,24 +205,27 @@ void main() {
       expect(tapped, 1);
     });
 
-    testWidgets('badge with onBadgeTap renders', (tester) async {
-      var tapped = 0;
-      await tester.pumpWidget(
-        _wrap(
-          child: MediaCardTile(
-            title: 'T',
-            badge: 'zh',
-            onBadgeTap: () => tapped++,
-            onTap: () {},
+    for (final placement in MediaCardLanguagePlacement.values) {
+      testWidgets('language on the $placement is tappable', (tester) async {
+        var tapped = 0;
+        await tester.pumpWidget(
+          _wrap(
+            child: MediaCardTile(
+              title: 'T',
+              language: 'ZH',
+              languagePlacement: placement,
+              onLanguageTap: () => tapped++,
+              onTap: () {},
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('zh'), findsOneWidget);
-      await tester.tap(find.text('zh'));
-      await tester.pumpAndSettle();
-      expect(tapped, 1);
-    });
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('ZH'), findsOneWidget);
+        await tester.tap(find.text('ZH'));
+        await tester.pumpAndSettle();
+        expect(tapped, 1);
+      });
+    }
 
     testWidgets('desktop onDelete shows inline IconButton', (tester) async {
       await _withPlatform(TargetPlatform.macOS, () async {

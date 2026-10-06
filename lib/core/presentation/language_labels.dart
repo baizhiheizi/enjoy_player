@@ -101,3 +101,9 @@ class LanguageChoiceEntry {
   final String value;
   final String label;
 }
+
+/// Uppercase primary subtag for compact chips (`en-US` → `EN`).
+String languageCodeLabel(String tag) {
+  final primary = tag.split(RegExp('[-_]')).first.trim();
+  return primary.isEmpty ? tag.toUpperCase() : primary.toUpperCase();
+}

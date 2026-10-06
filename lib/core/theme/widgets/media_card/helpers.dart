@@ -70,7 +70,7 @@ Widget mediaCardHeroArtworkShell(String? mediaId, Widget child) {
 }
 
 /// Meta block under 16:9 artwork: 10 top + 20 title + 2 + 20 meta + 6 air.
-const double mediaCardTileMetaHeight = 58;
+const double mediaCardTileMetaHeight = 72;
 
 /// Extra vertical allowance around the tile (artwork shadow / press scale).
 const double mediaCardTileBorderInset = 3;
@@ -151,10 +151,10 @@ SliverGridDelegate mediaCardTileGridDelegateForMinTileWidth({
   int maxCrossAxisCount = 6,
 }) {
   final effectiveMin = crossAxisExtent < 520 ? 150.0 : minTileWidth;
-  final crossAxisCount = (crossAxisExtent / effectiveMin).floor().clamp(
-    1,
-    maxCrossAxisCount,
-  );
+  final crossAxisCount =
+      ((crossAxisExtent + crossAxisSpacing) / (effectiveMin + crossAxisSpacing))
+          .floor()
+          .clamp(1, maxCrossAxisCount);
   final tileWidth = _mediaCardTileWidth(
     crossAxisExtent: crossAxisExtent,
     crossAxisCount: crossAxisCount,

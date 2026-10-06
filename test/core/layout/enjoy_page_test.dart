@@ -82,7 +82,7 @@ void main() {
     expect(metrics.maxWidth, tokens.formMaxWidth);
     expect(
       metrics.horizontalInset,
-      closeTo((1400 - tokens.formMaxWidth) / 2, 0.5),
+      closeTo(metrics.gutter + (1400 - tokens.formMaxWidth) / 2, 0.5),
     );
   });
 
@@ -107,7 +107,10 @@ void main() {
 
     final tokens = EnjoyThemeTokens.of(tester.element(find.text('browse')));
     expect(metrics.maxWidth, tokens.pageMaxBrowse);
-    expect(metrics.horizontalInset, (1400 - tokens.pageMaxBrowse) / 2);
+    expect(
+      metrics.horizontalInset,
+      metrics.gutter + (1400 - tokens.pageMaxBrowse) / 2,
+    );
     expect(find.byType(EnjoySubpageAppBar), findsNothing);
   });
 

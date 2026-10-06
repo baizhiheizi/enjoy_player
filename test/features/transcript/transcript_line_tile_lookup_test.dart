@@ -350,7 +350,7 @@ void main() {
         isFalse,
         reason: 'no active plate in $brightness — the Duet lens is flat',
       );
-      expect(find.text('00:00'), findsOneWidget);
+      expect(find.text('0:00'), findsOneWidget);
     }
   });
 }

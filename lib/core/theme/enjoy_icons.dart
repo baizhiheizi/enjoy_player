@@ -178,6 +178,10 @@ abstract final class EnjoyIcons {
     fontFamily: 'PhosphorRegular',
   );
   static const IconData edit = IconData(0xe34c, fontFamily: 'PhosphorRegular');
+  static const IconData pencil = IconData(
+    0xe3b4,
+    fontFamily: 'PhosphorRegular',
+  );
   static const IconData error = IconData(0xe4e2, fontFamily: 'PhosphorRegular');
   static const IconData errorFill = IconData(
     0xe4e2,

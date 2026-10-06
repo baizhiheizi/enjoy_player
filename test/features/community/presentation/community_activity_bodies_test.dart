@@ -1,4 +1,3 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_avatars.dart';
@@ -117,7 +116,6 @@ void main() {
       await tester.pumpWidget(
         _harness(
           InlineMetric(
-            icon: EnjoyIcons.clock,
             value: '5m',
             label: 'Practice time',
             cs: _cs(),

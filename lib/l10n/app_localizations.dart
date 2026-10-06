@@ -4074,7 +4074,7 @@ abstract class AppLocalizations {
   /// No description provided for @communityToday.
   ///
   /// In en, this message translates to:
-  /// **'Community Today'**
+  /// **'Community today'**
   String get communityToday;
 
   /// No description provided for @homeRecordingsToday.
@@ -4086,7 +4086,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePracticeTime.
   ///
   /// In en, this message translates to:
-  /// **'Practice Time'**
+  /// **'Practice time'**
   String get homePracticeTime;
 
   /// No description provided for @homeActiveLearners.
@@ -7439,6 +7439,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fetch transcript'**
   String get transcriptEmptyFetchYoutube;
+
+  /// Caption under the minutes practiced inside the Home goal ring.
+  ///
+  /// In en, this message translates to:
+  /// **'of {minutes} min'**
+  String homeGoalOfMinutes(int minutes);
+
+  /// Home goal card summary while the goal is not met.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {goal} min · {left} min to go'**
+  String homeGoalProgressRemaining(int done, int goal, int left);
+
+  /// Home goal card summary once the goal is met.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {goal} min'**
+  String homeGoalProgressDone(int done, int goal);
+
+  /// Button on the Home Continue practicing card.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get homeContinueAction;
+
+  /// Link beside the Home Recent media heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Open library'**
+  String get homeOpenLibrary;
+
+  /// Continue practicing meta: the transcript line to resume at.
+  ///
+  /// In en, this message translates to:
+  /// **'line {line} of {total}'**
+  String homeContinueLine(int line, int total);
+
+  /// Continue practicing meta when the session was in Echo.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo on'**
+  String get homeContinueEchoOn;
+
+  /// Media tile meta: added or opened today.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get mediaRelativeToday;
+
+  /// Media tile meta: added or opened yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get mediaRelativeYesterday;
+
+  /// Library tile meta: when the item was added (date is today / yesterday / a short date).
+  ///
+  /// In en, this message translates to:
+  /// **'Added {date}'**
+  String libraryTileAdded(String date);
 }
 
 class _AppLocalizationsDelegate

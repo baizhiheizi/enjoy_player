@@ -25,7 +25,7 @@ String formatTranscriptTimestampMs(int startMs) {
   if (h > 0) {
     return '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
-  return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  return '$m:${s.toString().padLeft(2, '0')}';
 }
 
 /// Builds a [TextSpan] tree from SSA/HTML-like subtitle markup.

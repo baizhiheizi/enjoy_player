@@ -1368,5 +1368,15 @@
   "settingsResetProductTipsDone": "已重置产品提示",
   "transcriptEmptyFetchYoutube": "获取字幕",
   "settingsAnalyticsCaptureTitle": "使用数据分析",
-  "settingsAnalyticsCaptureSubtitle": "分享匿名使用数据，帮助改进 Enjoy。绝不包含你的媒体、字幕或笔记。"
+  "settingsAnalyticsCaptureSubtitle": "分享匿名使用数据，帮助改进 Enjoy。绝不包含你的媒体、字幕或笔记。",
+  "homeGoalOfMinutes": "共 {minutes} 分钟",
+  "homeGoalProgressRemaining": "{done} / {goal} 分钟 · 还差 {left} 分钟",
+  "homeGoalProgressDone": "{done} / {goal} 分钟",
+  "homeContinueAction": "继续",
+  "homeOpenLibrary": "打开媒体库",
+  "homeContinueLine": "第 {line}/{total} 行",
+  "homeContinueEchoOn": "跟读中",
+  "mediaRelativeToday": "今天",
+  "mediaRelativeYesterday": "昨天",
+  "libraryTileAdded": "添加于 {date}"
 }

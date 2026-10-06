@@ -9,8 +9,12 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 /// How [EditorialHeader] applies horizontal insets on wide panes.
 enum EditorialHeaderWidthMode {
-  /// Match browse bodies: [pageGutterOf] only (full-bleed title row).
+  /// [pageGutterOf] only (full-bleed title row).
   gutter,
+
+  /// The browse column: gutter plus half the width beyond
+  /// [EnjoyThemeTokens.pageMaxBrowse] (matches [EnjoyPageMetrics]).
+  browse,
 
   /// Center within [columnMaxWidth] (hub / form), with at least page gutter.
   column,
@@ -63,7 +67,7 @@ class EditorialHeader extends StatelessWidget {
         final paneWidth = constraints.maxWidth;
         final narrow = paneWidth < t.breakpointCompact;
         final gutter = pageGutterOf(context, paneWidth);
-        final top = compact ? t.space16 : (narrow ? t.space16 : t.space32);
+        final top = compact ? t.space16 : (narrow ? t.space20 : 44.0);
         final bottom = compact ? t.space12 : t.space20;
 
         final double horizontal;
@@ -71,6 +75,13 @@ class EditorialHeader extends StatelessWidget {
         switch (widthMode) {
           case EditorialHeaderWidthMode.gutter:
             horizontal = gutter;
+            titleMaxWidth = null;
+          case EditorialHeaderWidthMode.browse:
+            horizontal = EnjoyPageMetrics.of(
+              context,
+              kind: EnjoyPageKind.browse,
+              paneWidth: paneWidth,
+            ).horizontalInset;
             titleMaxWidth = null;
           case EditorialHeaderWidthMode.column:
             final cap = columnMaxWidth ?? t.hubMaxWidth;
@@ -98,7 +109,7 @@ class EditorialHeader extends StatelessWidget {
                 maxWidth: titleMaxWidth ?? double.infinity,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: Column(
@@ -107,7 +118,7 @@ class EditorialHeader extends StatelessWidget {
                       children: [
                         if (overline != null) ...[
                           EnjoyOverline(overline!),
-                          SizedBox(height: t.space4),
+                          SizedBox(height: t.space12),
                         ],
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,

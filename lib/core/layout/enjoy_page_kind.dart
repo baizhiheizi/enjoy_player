@@ -61,8 +61,8 @@ class EnjoyPageMetrics {
   /// Cap for this kind, or `null` for full-bleed browse/player.
   final double? maxWidth;
 
-  /// Left/right inset that centers a capped column (or applies [gutter] when
-  /// full-bleed).
+  /// Left/right inset: [gutter] plus half of any width beyond [maxWidth] —
+  /// the boards' `max-width` includes the page padding.
   final double horizontalInset;
 
   /// Content padding with kind horizontal insets + custom vertical.
@@ -80,7 +80,7 @@ class EnjoyPageMetrics {
     final maxWidth = maxWidthForPageKind(t, kind);
     final horizontalInset = maxWidth == null
         ? gutter
-        : math.max(gutter, (paneWidth - maxWidth) / 2);
+        : gutter + math.max(0.0, (paneWidth - maxWidth) / 2);
     return EnjoyPageMetrics(
       kind: kind,
       paneWidth: paneWidth,

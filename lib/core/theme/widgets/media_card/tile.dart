@@ -34,8 +34,9 @@ class MediaCardTile extends StatefulWidget {
     this.providerBadge,
     this.cloudSyncBadge,
     this.durationLabel,
-    this.badge,
-    this.onBadgeTap,
+    this.language,
+    this.languagePlacement = MediaCardLanguagePlacement.cover,
+    this.onLanguageTap,
     this.heroArtworkMediaId,
     this.adding = false,
     this.inLibrary = false,
@@ -44,7 +45,7 @@ class MediaCardTile extends StatefulWidget {
   }) : assert(
          title == '' || meta == null,
          'MediaCardTile: pass either the built-in meta block '
-         '(title/subtitle/badge) or a custom meta widget, not both — '
+         '(title/subtitle/language) or a custom meta widget, not both — '
          'meta replaces the built-in block.',
        );
 
@@ -84,9 +85,10 @@ class MediaCardTile extends StatefulWidget {
   /// When set, shown on the artwork's bottom-right corner.
   final String? durationLabel;
 
-  /// Optional language or metadata label in the meta line.
-  final String? badge;
-  final VoidCallback? onBadgeTap;
+  /// Short language code (`EN`), drawn per [languagePlacement].
+  final String? language;
+  final MediaCardLanguagePlacement languagePlacement;
+  final VoidCallback? onLanguageTap;
 
   /// Discover feed: while an "add to library" import is in flight, dim the
   /// artwork behind a spinner ([MediaCardAddingScrim]) and hide the hover
@@ -245,6 +247,17 @@ class _MediaCardTileState extends State<MediaCardTile> {
                       state: widget.cloudSyncBadge!,
                     ),
                   ),
+                if (widget.language != null &&
+                    widget.languagePlacement ==
+                        MediaCardLanguagePlacement.cover)
+                  Positioned(
+                    left: t.space8,
+                    bottom: t.space8,
+                    child: MediaCardCoverLanguageChip(
+                      label: widget.language!,
+                      onTap: widget.onLanguageTap,
+                    ),
+                  ),
                 if (widget.durationLabel != null &&
                     widget.durationLabel!.isNotEmpty)
                   Positioned(
@@ -307,57 +320,52 @@ class _MediaCardTileState extends State<MediaCardTile> {
             child:
                 widget.meta ??
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
+                  padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        height: 20,
-                        child: Text(
-                          widget.title,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: tt.titleSmall?.copyWith(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.1,
+                                height: 1.35,
+                                color: t.ink,
+                              ),
+                            ),
+                          ),
+                          if (widget.language != null &&
+                              widget.languagePlacement ==
+                                  MediaCardLanguagePlacement.title) ...[
+                            const SizedBox(width: 8),
+                            MediaCardTitleLanguage(
+                              label: widget.language!,
+                              onTap: widget.onLanguageTap,
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (kindLabel != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          kindLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: tt.titleSmall?.copyWith(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: -0.2,
-                            height: 1.35,
+                          style: tt.bodySmall?.copyWith(
+                            fontSize: 12.5,
+                            color: t.ink3,
+                            height: 1.3,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      SizedBox(
-                        height: 20,
-                        child: Row(
-                          children: [
-                            if (widget.badge != null) ...[
-                              Flexible(
-                                child: MediaCardMetaLanguage(
-                                  label: widget.badge!,
-                                  onTap: widget.onBadgeTap,
-                                ),
-                              ),
-                              if (kindLabel != null)
-                                MediaCardMetaDot(color: t.ink3),
-                            ],
-                            if (kindLabel != null)
-                              Flexible(
-                                child: Text(
-                                  kindLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: tt.bodySmall?.copyWith(
-                                    color: cs.onSurfaceVariant,
-                                    height: 1.3,
-                                    fontFeatures: const [
-                                      FontFeature.tabularFigures(),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

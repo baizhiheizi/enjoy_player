@@ -25,7 +25,12 @@ class MediaCardThumbnail extends StatelessWidget {
     required this.coverSeed,
     required this.isVideo,
     required this.cs,
+    this.width,
   });
+
+  /// Known layout width; skips measuring (keeps the thumbnail usable under
+  /// intrinsic sizing such as [IntrinsicHeight]).
+  final double? width;
 
   final File? file;
   final String? networkUrl;
@@ -76,33 +81,40 @@ class MediaCardThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final knownWidth = width;
+    if (knownWidth != null) {
+      return _image(thumbnailCacheWidthFor(knownWidth));
+    }
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final decodeWidth = constraints.hasBoundedWidth
+      builder: (context, constraints) => _image(
+        constraints.hasBoundedWidth
             ? thumbnailCacheWidthFor(constraints.maxWidth)
-            : _unconstrainedDecodeWidth;
-        if (file != null) {
-          return Image.file(
-            file!,
-            fit: _coverFit,
-            width: double.infinity,
-            height: double.infinity,
-            cacheWidth: decodeWidth,
-            gaplessPlayback: true,
-            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-              if (wasSynchronouslyLoaded || frame != null) return child;
-              return _loading();
-            },
-            errorBuilder: (_, _, _) => _fallback(),
-          );
-        }
-        final url = networkUrl;
-        if (url != null && url.isNotEmpty) {
-          return _networkImage(url, decodeWidth);
-        }
-        return _fallback();
-      },
+            : _unconstrainedDecodeWidth,
+      ),
     );
+  }
+
+  Widget _image(int decodeWidth) {
+    if (file != null) {
+      return Image.file(
+        file!,
+        fit: _coverFit,
+        width: double.infinity,
+        height: double.infinity,
+        cacheWidth: decodeWidth,
+        gaplessPlayback: true,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded || frame != null) return child;
+          return _loading();
+        },
+        errorBuilder: (_, _, _) => _fallback(),
+      );
+    }
+    final url = networkUrl;
+    if (url != null && url.isNotEmpty) {
+      return _networkImage(url, decodeWidth);
+    }
+    return _fallback();
   }
 
   Widget _fallback() {
@@ -133,24 +145,108 @@ class MediaCardDurationBadge extends StatelessWidget {
   final String label;
 
   @override
+  Widget build(BuildContext context) =>
+      _MediaCardCoverChip(label: label, weight: FontWeight.w500, size: 11.5);
+}
+
+/// Where [MediaCardTile] draws its language code: on the artwork
+/// (Home) or beside the title (Library).
+enum MediaCardLanguagePlacement { cover, title }
+
+/// Mono ink3 language code beside a tile title (Library).
+class MediaCardTitleLanguage extends StatelessWidget {
+  const MediaCardTitleLanguage({super.key, required this.label, this.onTap});
+
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: const Color(0xB3000000),
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(6),
+    final text = Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: Text(
+        label,
+        style: enjoyMonoStyle(
+          context,
+          size: 11,
+          weight: FontWeight.w600,
+          color: EnjoyThemeTokens.of(context).ink3,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        child: Text(
-          label,
-          style: enjoyMonoStyle(
-            context,
-            size: 11,
-            weight: FontWeight.w600,
-            color: Colors.white,
-          ),
+    );
+    if (onTap == null) return text;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: MouseRegion(cursor: SystemMouseCursors.click, child: text),
+      ),
+    );
+  }
+}
+
+/// Mono language code on the artwork's bottom-left corner (`EN`).
+class MediaCardCoverLanguageChip extends StatelessWidget {
+  const MediaCardCoverLanguageChip({
+    super.key,
+    required this.label,
+    this.onTap,
+  });
+
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final chip = _MediaCardCoverChip(
+      label: label,
+      weight: FontWeight.w600,
+      size: 11,
+    );
+    if (onTap == null) return chip;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: MouseRegion(cursor: SystemMouseCursors.click, child: chip),
+      ),
+    );
+  }
+}
+
+class _MediaCardCoverChip extends StatelessWidget {
+  const _MediaCardCoverChip({
+    required this.label,
+    required this.weight,
+    required this.size,
+  });
+
+  final String label;
+  final FontWeight weight;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 22,
+      padding: const EdgeInsets.symmetric(horizontal: 7),
+      alignment: Alignment.center,
+      decoration: ShapeDecoration(
+        color: const Color(0x8C0C0E12),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(7),
+        ),
+      ),
+      child: Text(
+        label,
+        style: enjoyMonoStyle(
+          context,
+          size: size,
+          weight: weight,
+          color: Colors.white,
+          height: 1,
         ),
       ),
     );

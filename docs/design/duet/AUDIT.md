@@ -37,7 +37,7 @@
 
 | Screen | Kind | Gaps |
 |---|---|---|
-| **Home** (`Home`, `PhHome`) | **code** | **Continue practicing is missing**: `continuePracticeResumeProvider` exists but nothing in `lib/` uses it. D2.1 deleted `SidebarContinuePracticeCard` on the promise that Home keeps it, and Home never got it, so the entry point was lost. Layout: hero card (cover + quote + Continue) beside a stacked Goal / Community column; the app has two equal cards in a row. Goal ring reads `12 of 15 min` + "Almost there"; the app shows a percentage. Media tile meta is `Audio · today`; the app shows a language icon + `English • Video`. Craft is a labeled secondary button, not an icon. |
+| **Home** (`Home`, `PhHome`) ✅ C1 | **code** | **Continue practicing is missing**: `continuePracticeResumeProvider` exists but nothing in `lib/` uses it. D2.1 deleted `SidebarContinuePracticeCard` on the promise that Home keeps it, and Home never got it, so the entry point was lost. Layout: hero card (cover + quote + Continue) beside a stacked Goal / Community column; the app has two equal cards in a row. Goal ring reads `12 of 15 min` + "Almost there"; the app shows a percentage. Media tile meta is `Audio · today`; the app shows a language icon + `English • Video`. Craft is a labeled secondary button, not an icon. |
 | **Library** (`Library`, `PhLibrary`) | code + fixture | Local / Cloud as a **capsule segmented control** next to the title (app: a `Local ⌃` dropdown); Video / Audio segments carry counts; a search field sits right of the segments (missing); tiles show title + language badge + `Opened Sep 29`. The grid itself was empty in the fixture. |
 | **Discover** | code + fixture | Overline + header actions **All languages** and **Manage channels** (missing); the channel strip is avatars with labels plus a **Subscribe** tile (app: `All` chip + `+`); tiles have a channel avatar, meta, and an **Add to library** button. The feed was empty in the fixture. |
 | **Vocabulary** (`Vocabulary`, `PhVocabulary`) | **code — different IA** | Board: page header + **due hero** (logo, `24 due today`, estimate) + **status card** (4-step bar, New / Learning / Reviewing / Mastered counts) + All Words / Review segmented + search + Status / Language filters + **word table** (term, IPA, context, status chip, next due, language, delete). App: subpage bar with back + Review / All Words tabs + a centered "14 Due · Start review" card. |
@@ -58,7 +58,7 @@ Re-checked after A2 (the gallery now mounts the real player screen with the boar
 
 | Area | Kind | Gaps |
 |---|---|---|
-| Time format | **code** | Board writes `0:04` / `0:55` everywhere (gutter, ruler, top-bar meta); the app writes `00:04` / `00:55`. |
+| Time format ✅ | **code** | Board writes `0:04` / `0:55` everywhere (gutter, ruler, top-bar meta); the app writes `00:04` / `00:55`. |
 | Top bar meta | **code** | Board: `Audio · 0:55 · English · 中文` (learning language name + translation language); app: `Audio · 00:55 · en`. |
 | Top bar segmented | **code** | Board label `Echo`; app `Echo mode`. |
 | Top bar, phone | **code** | Board: chevron · text-only Listen / Echo segmented · Share icon · CC, then a second row with the title and `Line 6 of 14 · looping`. The app has one row (icons + `E` keycap in the segmented, no Share, no title row). |

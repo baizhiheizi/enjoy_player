@@ -1,4 +1,3 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_avatars.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_metrics.dart';
@@ -189,7 +188,6 @@ void main() {
         localized(
           (ctx) => Scaffold(
             body: InlineMetric(
-              icon: EnjoyIcons.mic,
               value: '5',
               label: 'rec',
               cs: Theme.of(ctx).colorScheme,

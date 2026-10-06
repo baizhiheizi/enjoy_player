@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
+import 'package:enjoy_player/core/presentation/relative_day_label.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -281,11 +282,16 @@ class LocalVideoTile extends ConsumerWidget {
     final dur = formatDurationHmsMs(media.durationMs);
     final accent = generativeAccentForSeed(media.coverSeed);
 
+    final locale = Localizations.localeOf(context).toLanguageTag();
+
     return MediaCardTile(
       title: media.title,
-      subtitle: l10n.miniPlayerMediaVideo,
-      badge: focusLanguageLabel(l10n, media.language),
-      onBadgeTap: () => editMediaLanguage(context, ref, media),
+      subtitle: l10n.libraryTileAdded(
+        relativeDayLabel(l10n, locale, media.createdAt),
+      ),
+      language: languageCodeLabel(media.language),
+      languagePlacement: MediaCardLanguagePlacement.title,
+      onLanguageTap: () => editMediaLanguage(context, ref, media),
       durationLabel: media.durationMs > 0 ? dur : null,
       thumbnailFile: thumb,
       providerBadge: media.provider == 'youtube'

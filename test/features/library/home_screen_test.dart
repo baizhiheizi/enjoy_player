@@ -17,6 +17,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/library/application/continue_practice_provider.dart';
+import 'package:enjoy_player/features/library/domain/practice_resume.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:go_router/go_router.dart';
 
 class _SignedInAuthCtrl extends AuthCtrl {
@@ -50,8 +54,15 @@ Media _recent({required String id, required String title}) {
 List<Override> _homeOverrides({
   List<Media> recents = const [],
   Stream<List<Media>>? streamOverride,
+  PracticeResume? resume,
+  List<TranscriptLine> resumeLines = const [],
 }) {
   return [
+    continuePracticeResumeProvider.overrideWith((ref) => resume),
+    if (resume != null)
+      transcriptLinesForMediaProvider(
+        resume.media.id,
+      ).overrideWith((ref) => Stream.value(resumeLines)),
     authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
     appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
     libraryHomeRecentsProvider.overrideWith(
@@ -108,7 +119,7 @@ void main() {
         expect(find.text(l10n.homeEmptyTitle), findsOneWidget);
 
         expect(find.text(l10n.homeTodaysGoal.toUpperCase()), findsOneWidget);
-        expect(find.text(l10n.communityActivity.toUpperCase()), findsOneWidget);
+        expect(find.text(l10n.communityToday.toUpperCase()), findsOneWidget);
       },
     );
 
@@ -137,6 +148,64 @@ void main() {
 
       expect(find.text('craft-open'), findsOneWidget);
       expect(router.state.uri.path, '/craft');
+    });
+
+    testWidgets('Continue practicing resumes the last session at its line', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1200, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final media = _recent(id: 'ferry', title: 'The Ferry at Six');
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+          GoRoute(
+            path: '/player/:id',
+            builder: (context, state) =>
+                Text('player-${state.pathParameters['id']}'),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        _themedHomeWithRouter(
+          router,
+          overrides: _homeOverrides(
+            recents: [media],
+            resume: PracticeResume(
+              media: media,
+              positionMs: 4500,
+              echoActive: true,
+              lastActiveAt: DateTime.utc(2026, 2, 1),
+              sessionId: 's1',
+            ),
+            resumeLines: const [
+              TranscriptLine(text: 'First line.', startMs: 0, durationMs: 4000),
+              TranscriptLine(
+                text: 'Second line.',
+                startMs: 4000,
+                durationMs: 4000,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+
+      expect(
+        find.text(l10n.homeContinuePracticing.toUpperCase()),
+        findsOneWidget,
+      );
+      expect(find.text('“Second line.”'), findsOneWidget);
+      expect(find.textContaining(l10n.homeContinueLine(2, 2)), findsOneWidget);
+
+      await tester.tap(find.text(l10n.homeContinueAction));
+      await tester.pumpAndSettle();
+      expect(find.text('player-ferry'), findsOneWidget);
     });
 
     testWidgets('recents grid leads with the last-practiced item', (

@@ -2191,13 +2191,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get communityActivity => 'Community Activity';
 
   @override
-  String get communityToday => 'Community Today';
+  String get communityToday => 'Community today';
 
   @override
   String get homeRecordingsToday => 'Recordings';
 
   @override
-  String get homePracticeTime => 'Practice Time';
+  String get homePracticeTime => 'Practice time';
 
   @override
   String get homeActiveLearners => 'Active Learners';
@@ -4061,4 +4061,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transcriptEmptyFetchYoutube => 'Fetch transcript';
+
+  @override
+  String homeGoalOfMinutes(int minutes) {
+    return 'of $minutes min';
+  }
+
+  @override
+  String homeGoalProgressRemaining(int done, int goal, int left) {
+    return '$done / $goal min · $left min to go';
+  }
+
+  @override
+  String homeGoalProgressDone(int done, int goal) {
+    return '$done / $goal min';
+  }
+
+  @override
+  String get homeContinueAction => 'Continue';
+
+  @override
+  String get homeOpenLibrary => 'Open library';
+
+  @override
+  String homeContinueLine(int line, int total) {
+    return 'line $line of $total';
+  }
+
+  @override
+  String get homeContinueEchoOn => 'Echo on';
+
+  @override
+  String get mediaRelativeToday => 'today';
+
+  @override
+  String get mediaRelativeYesterday => 'yesterday';
+
+  @override
+  String libraryTileAdded(String date) {
+    return 'Added $date';
+  }
 }

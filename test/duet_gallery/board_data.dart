@@ -24,6 +24,8 @@ import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
+import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -253,6 +255,23 @@ final boardFeed = [
     ),
 ];
 
+const _ferryLines = [
+  'Every morning at six, the ferry leaves before the city wakes up.',
+  'I started taking it last spring, mostly by accident.',
+  'My usual train was cancelled, and the ferry was the only way across.',
+  'The first thing I noticed was how quiet everyone was.',
+  'Nobody was on their phone; they were just watching the water.',
+  "You don't take the ferry to save time; you take it to slow down.",
+  'By the second week, I knew the faces of the regulars.',
+  'The man with the thermos always offered me a cup.',
+  'We never talked much, but we always nodded.',
+  'Somewhere in the middle of the river, the sun comes up behind the bridge.',
+  'For about a minute, the whole boat goes gold.',
+  "Then the engines change their sound, and we're almost there.",
+  "I could take the train again now, but I don't.",
+  'Some mornings are worth the long way around.',
+];
+
 const boardVocabularyStats = VocabularyStats(
   total: 248,
   due: 24,
@@ -436,7 +455,7 @@ List<Override> boardOverrides(AppDatabase db, {AuthCtrl Function()? auth}) => [
     statistics: _boardStatistics,
     resume: PracticeResume(
       media: boardAudios[0],
-      positionMs: 24000,
+      positionMs: 22600,
       echoActive: true,
       lastActiveAt: _now,
       sessionId: 's1',
@@ -461,6 +480,12 @@ List<Override> boardOverrides(AppDatabase db, {AuthCtrl Function()? auth}) => [
     (ref) => Stream.value([...boardVideos, ...boardAudios]),
   ),
   profilePracticeStatsProvider.overrideWith((ref) async => _boardStatistics),
+  transcriptLinesForMediaProvider('la1').overrideWith(
+    (ref) => Stream.value([
+      for (final (i, text) in _ferryLines.indexed)
+        TranscriptLine(text: text, startMs: i * 4000, durationMs: 3900),
+    ]),
+  ),
   vocabularyStatsProvider.overrideWithValue(boardVocabularyStats),
   todaysCreditsUsedProvider.overrideWith((ref) async => 640),
   creditsSummaryProvider.overrideWith(

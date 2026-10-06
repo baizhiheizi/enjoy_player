@@ -3880,6 +3880,46 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transcriptEmptyFetchYoutube => '获取字幕';
+
+  @override
+  String homeGoalOfMinutes(int minutes) {
+    return '共 $minutes 分钟';
+  }
+
+  @override
+  String homeGoalProgressRemaining(int done, int goal, int left) {
+    return '$done / $goal 分钟 · 还差 $left 分钟';
+  }
+
+  @override
+  String homeGoalProgressDone(int done, int goal) {
+    return '$done / $goal 分钟';
+  }
+
+  @override
+  String get homeContinueAction => '继续';
+
+  @override
+  String get homeOpenLibrary => '打开媒体库';
+
+  @override
+  String homeContinueLine(int line, int total) {
+    return '第 $line/$total 行';
+  }
+
+  @override
+  String get homeContinueEchoOn => '跟读中';
+
+  @override
+  String get mediaRelativeToday => '今天';
+
+  @override
+  String get mediaRelativeYesterday => '昨天';
+
+  @override
+  String libraryTileAdded(String date) {
+    return '添加于 $date';
+  }
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7083,4 +7123,44 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get transcriptEmptyFetchYoutube => '获取字幕';
+
+  @override
+  String homeGoalOfMinutes(int minutes) {
+    return '共 $minutes 分钟';
+  }
+
+  @override
+  String homeGoalProgressRemaining(int done, int goal, int left) {
+    return '$done / $goal 分钟 · 还差 $left 分钟';
+  }
+
+  @override
+  String homeGoalProgressDone(int done, int goal) {
+    return '$done / $goal 分钟';
+  }
+
+  @override
+  String get homeContinueAction => '继续';
+
+  @override
+  String get homeOpenLibrary => '打开媒体库';
+
+  @override
+  String homeContinueLine(int line, int total) {
+    return '第 $line/$total 行';
+  }
+
+  @override
+  String get homeContinueEchoOn => '跟读中';
+
+  @override
+  String get mediaRelativeToday => '今天';
+
+  @override
+  String get mediaRelativeYesterday => '昨天';
+
+  @override
+  String libraryTileAdded(String date) {
+    return '添加于 $date';
+  }
 }

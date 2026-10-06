@@ -1,7 +1,6 @@
 /// Summary body for the `CommunityActivityCard`.
 library;
 
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -45,7 +44,7 @@ class SummaryBody extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(child: EnjoyOverline(l10n.communityActivity)),
+            Expanded(child: EnjoyOverline(l10n.communityToday)),
             if (data.users.isNotEmpty)
               OverlappingAvatarStack(
                 users: data.users,
@@ -55,16 +54,15 @@ class SummaryBody extends StatelessWidget {
               ),
           ],
         ),
-        SizedBox(height: t.space4),
+        const SizedBox(height: 14),
         if (hasToday) ...[
           Wrap(
             spacing: t.space24,
-            runSpacing: t.space4,
+            runSpacing: t.space8,
             crossAxisAlignment: WrapCrossAlignment.end,
             children: [
               if (data.recordingsCountToday != null)
                 InlineMetric(
-                  icon: EnjoyIcons.mic,
                   value: NumberFormat.decimalPattern(
                     locale,
                   ).format(data.recordingsCountToday),
@@ -74,7 +72,6 @@ class SummaryBody extends StatelessWidget {
                 ),
               if (data.recordingsDurationToday != null)
                 InlineMetric(
-                  icon: EnjoyIcons.clock,
                   value: formatPracticeDurationMs(
                     data.recordingsDurationToday!,
                   ),
@@ -85,30 +82,28 @@ class SummaryBody extends StatelessWidget {
             ],
           ),
           if (data.count > 0) ...[
-            SizedBox(height: t.space4),
+            const SizedBox(height: 14),
             Row(
               children: [
                 Container(
-                  width: 6,
-                  height: 6,
+                  width: 7,
+                  height: 7,
                   decoration: BoxDecoration(
-                    color: t.originalInk,
+                    color: t.original,
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: t.originalInk.withValues(alpha: 0.5),
-                        blurRadius: 6,
-                      ),
-                    ],
                   ),
                 ),
-                SizedBox(width: t.space8 - 2),
+                const SizedBox(width: 7),
                 Flexible(
                   child: Text(
-                    '${data.count} ${l10n.homeActiveLearners}',
+                    l10n.homePeopleLearning(data.count),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: subStyle?.copyWith(fontFeatures: tabular),
+                    style: subStyle?.copyWith(
+                      fontSize: 12.5,
+                      color: t.ink2,
+                      fontFeatures: tabular,
+                    ),
                   ),
                 ),
               ],

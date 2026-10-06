@@ -3,20 +3,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('formatDurationHms', () {
-    test('zero renders as 00:00', () {
-      expect(formatDurationHms(Duration.zero), '00:00');
+    test('zero renders as 0:00', () {
+      expect(formatDurationHms(Duration.zero), '0:00');
     });
 
     test('under one minute pads seconds', () {
-      expect(formatDurationHms(const Duration(seconds: 5)), '00:05');
-      expect(formatDurationHms(const Duration(seconds: 59)), '00:59');
+      expect(formatDurationHms(const Duration(seconds: 5)), '0:05');
+      expect(formatDurationHms(const Duration(seconds: 59)), '0:59');
     });
 
     test('minutes and seconds render with colon', () {
-      expect(
-        formatDurationHms(const Duration(minutes: 1, seconds: 2)),
-        '01:02',
-      );
+      expect(formatDurationHms(const Duration(minutes: 1, seconds: 2)), '1:02');
       expect(
         formatDurationHms(const Duration(minutes: 15, seconds: 30)),
         '15:30',
@@ -24,22 +21,22 @@ void main() {
     });
 
     test('minutes wrap past 60 by carrying into hours', () {
-      expect(formatDurationHms(const Duration(minutes: 75)), '01:15:00');
+      expect(formatDurationHms(const Duration(minutes: 75)), '1:15:00');
     });
 
-    test('exactly one hour renders as 01:00:00 (zero-padded)', () {
-      expect(formatDurationHms(const Duration(hours: 1)), '01:00:00');
+    test('exactly one hour renders as 1:00:00', () {
+      expect(formatDurationHms(const Duration(hours: 1)), '1:00:00');
     });
 
-    test('hours, minutes, and seconds are zero-padded', () {
+    test('minutes and seconds are zero-padded under hours', () {
       expect(
         formatDurationHms(const Duration(hours: 2, minutes: 3, seconds: 4)),
-        '02:03:04',
+        '2:03:04',
       );
     });
 
-    test('sub-second durations round down to 00:00', () {
-      expect(formatDurationHms(const Duration(milliseconds: 500)), '00:00');
+    test('sub-second durations round down to 0:00', () {
+      expect(formatDurationHms(const Duration(milliseconds: 500)), '0:00');
     });
 
     test('very large duration still formats correctly', () {
@@ -52,9 +49,9 @@ void main() {
 
   group('formatDurationHmsMs', () {
     test('matches formatDurationHms for the same millisecond value', () {
-      expect(formatDurationHmsMs(0), '00:00');
-      expect(formatDurationHmsMs(5 * 1000), '00:05');
-      expect(formatDurationHmsMs(75 * 60 * 1000), '01:15:00');
+      expect(formatDurationHmsMs(0), '0:00');
+      expect(formatDurationHmsMs(5 * 1000), '0:05');
+      expect(formatDurationHmsMs(75 * 60 * 1000), '1:15:00');
       expect(
         formatDurationHmsMs(2 * 60 * 60 * 1000 + 3 * 60 * 1000 + 4 * 1000),
         formatDurationHms(const Duration(hours: 2, minutes: 3, seconds: 4)),
@@ -64,17 +61,17 @@ void main() {
 
   group('formatDurationHmsSeconds', () {
     test('matches integer-second Duration formatting', () {
-      expect(formatDurationHmsSeconds(0), '00:00');
-      expect(formatDurationHmsSeconds(5), '00:05');
-      expect(formatDurationHmsSeconds(62), '01:02');
-      expect(formatDurationHmsSeconds(3600), '01:00:00');
+      expect(formatDurationHmsSeconds(0), '0:00');
+      expect(formatDurationHmsSeconds(5), '0:05');
+      expect(formatDurationHmsSeconds(62), '1:02');
+      expect(formatDurationHmsSeconds(3600), '1:00:00');
     });
 
     test('rounds fractional seconds to the nearest millisecond', () {
-      expect(formatDurationHmsSeconds(0.4), '00:00');
-      expect(formatDurationHmsSeconds(0.6), '00:00');
-      expect(formatDurationHmsSeconds(0.9996), '00:01');
-      expect(formatDurationHmsSeconds(1.5), '00:01');
+      expect(formatDurationHmsSeconds(0.4), '0:00');
+      expect(formatDurationHmsSeconds(0.6), '0:00');
+      expect(formatDurationHmsSeconds(0.9996), '0:01');
+      expect(formatDurationHmsSeconds(1.5), '0:01');
     });
   });
 
