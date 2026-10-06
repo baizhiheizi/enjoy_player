@@ -83,7 +83,7 @@ Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-sc
 | `DiscoverScreen` | Serif title; channel strip with story-ring avatars and an inverted "All" pill; feed tiles share the poster artwork treatment |
 | `ExpandedPlayerScreen` | `PlayerAmbientBackdrop` artwork tint; glass transport capsule (lit play button, mono times, filled glyphs for active tools); transcript with lyric-style focus (context cues dim while a cue is active) |
 | `TranscriptPanel` | Source Serif 4 body, Geist Mono timestamps, continuous-corner active plate with iris rail, iris translation rule |
-| `ProfileScreen` | Hero card (aurora-ringed avatar, serif name, mono ID, aurora wash), one stat card with three serif figures, credits meter, grouped rows |
+| `ProfileScreen` | Hero card (logo-ring avatar, Literata name, tier chip, grouped mono Enjoy ID), Practice + Credits today cards, one neutral list, danger Sign out |
 | `SettingsScreen` | Serif title + description; grouped inset lists with colored `EnjoyIconTile`s; single-column groups get overline headings; two-pane rail uses `NavItemPill` |
 | `VocabularyScreen` | Segmented tab bar (shared track / thumb decoration); stat sheet with serif figures; stacked rating tiles in review |
 | `NotFoundScreen` | Router `errorBuilder` fallback; localized; single primary "Back to Home" |

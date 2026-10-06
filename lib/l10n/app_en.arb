@@ -2064,5 +2064,21 @@
   "libraryOverlineCloud": "Saved to your Enjoy account",
   "@libraryOverlineCloud": {"description": "Overline above the Library title for cloud media."},
   "librarySearchResults": "{count, plural, one{1 match for “{query}”} other{{count} matches for “{query}”}}",
-  "@librarySearchResults": {"description": "Line above library results while a search is active.", "placeholders": {"count": {"type": "int"}, "query": {"type": "String"}}}
+  "@librarySearchResults": {"description": "Line above library results while a search is active.", "placeholders": {"count": {"type": "int"}, "query": {"type": "String"}}},
+  "profileSyncedFromAccount": "Synced from your account",
+  "@profileSyncedFromAccount": {"description": "Caption on the Profile practice card."},
+  "profileCreditsToday": "Credits today",
+  "@profileCreditsToday": {"description": "Overline of the Profile credits card."},
+  "profileCreditsUsageLink": "Usage",
+  "@profileCreditsUsageLink": {"description": "Link from the Profile credits card to the credits log."},
+  "profileCreditsResetsDaily": "Resets daily",
+  "@profileCreditsResetsDaily": {"description": "Profile credits card caption."},
+  "profileCreditsResetsWithPermanent": "Resets daily · plus {count} permanent credits",
+  "@profileCreditsResetsWithPermanent": {"description": "Profile credits card caption when permanent credits exist (count is formatted).", "placeholders": {"count": {"type": "String"}}},
+  "profileMinutesUnit": "min",
+  "@profileMinutesUnit": {"description": "Unit after a minute figure on the Profile practice card."},
+  "profileSettingsHint": "Appearance, AI providers, recording, shortcuts",
+  "@profileSettingsHint": {"description": "Profile list: Settings row hint."},
+  "vocabularyReviewDueValue": "{count} due",
+  "@vocabularyReviewDueValue": {"description": "Profile list: due words value beside Vocabulary.", "placeholders": {"count": {"type": "int"}}}
 }

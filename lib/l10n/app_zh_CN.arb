@@ -1392,5 +1392,13 @@
   "vocabularyProBadge": "Pro",
   "libraryOverlineLocal": "本设备",
   "libraryOverlineCloud": "保存在你的 Enjoy 账户",
-  "librarySearchResults": "“{query}” 有 {count} 个结果"
+  "librarySearchResults": "“{query}” 有 {count} 个结果",
+  "profileSyncedFromAccount": "已从账户同步",
+  "profileCreditsToday": "今日积分",
+  "profileCreditsUsageLink": "用量",
+  "profileCreditsResetsDaily": "每日重置",
+  "profileCreditsResetsWithPermanent": "每日重置 · 另有 {count} 永久积分",
+  "profileMinutesUnit": "分钟",
+  "profileSettingsHint": "外观、AI 服务、录音、快捷键",
+  "vocabularyReviewDueValue": "{count} 个到期"
 }

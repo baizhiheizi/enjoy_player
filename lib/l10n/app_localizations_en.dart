@@ -4166,4 +4166,33 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get profileSyncedFromAccount => 'Synced from your account';
+
+  @override
+  String get profileCreditsToday => 'Credits today';
+
+  @override
+  String get profileCreditsUsageLink => 'Usage';
+
+  @override
+  String get profileCreditsResetsDaily => 'Resets daily';
+
+  @override
+  String profileCreditsResetsWithPermanent(String count) {
+    return 'Resets daily · plus $count permanent credits';
+  }
+
+  @override
+  String get profileMinutesUnit => 'min';
+
+  @override
+  String get profileSettingsHint =>
+      'Appearance, AI providers, recording, shortcuts';
+
+  @override
+  String vocabularyReviewDueValue(int count) {
+    return '$count due';
+  }
 }

@@ -7583,6 +7583,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{1 match for “{query}”} other{{count} matches for “{query}”}}'**
   String librarySearchResults(int count, String query);
+
+  /// Caption on the Profile practice card.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced from your account'**
+  String get profileSyncedFromAccount;
+
+  /// Overline of the Profile credits card.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits today'**
+  String get profileCreditsToday;
+
+  /// Link from the Profile credits card to the credits log.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage'**
+  String get profileCreditsUsageLink;
+
+  /// Profile credits card caption.
+  ///
+  /// In en, this message translates to:
+  /// **'Resets daily'**
+  String get profileCreditsResetsDaily;
+
+  /// Profile credits card caption when permanent credits exist (count is formatted).
+  ///
+  /// In en, this message translates to:
+  /// **'Resets daily · plus {count} permanent credits'**
+  String profileCreditsResetsWithPermanent(String count);
+
+  /// Unit after a minute figure on the Profile practice card.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get profileMinutesUnit;
+
+  /// Profile list: Settings row hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance, AI providers, recording, shortcuts'**
+  String get profileSettingsHint;
+
+  /// Profile list: due words value beside Vocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} due'**
+  String vocabularyReviewDueValue(int count);
 }
 
 class _AppLocalizationsDelegate

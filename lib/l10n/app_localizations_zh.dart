@@ -3972,6 +3972,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String librarySearchResults(int count, String query) {
     return '“$query” 有 $count 个结果';
   }
+
+  @override
+  String get profileSyncedFromAccount => '已从账户同步';
+
+  @override
+  String get profileCreditsToday => '今日积分';
+
+  @override
+  String get profileCreditsUsageLink => '用量';
+
+  @override
+  String get profileCreditsResetsDaily => '每日重置';
+
+  @override
+  String profileCreditsResetsWithPermanent(String count) {
+    return '每日重置 · 另有 $count 永久积分';
+  }
+
+  @override
+  String get profileMinutesUnit => '分钟';
+
+  @override
+  String get profileSettingsHint => '外观、AI 服务、录音、快捷键';
+
+  @override
+  String vocabularyReviewDueValue(int count) {
+    return '$count 个到期';
+  }
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7266,5 +7294,33 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   @override
   String librarySearchResults(int count, String query) {
     return '“$query” 有 $count 个结果';
+  }
+
+  @override
+  String get profileSyncedFromAccount => '已从账户同步';
+
+  @override
+  String get profileCreditsToday => '今日积分';
+
+  @override
+  String get profileCreditsUsageLink => '用量';
+
+  @override
+  String get profileCreditsResetsDaily => '每日重置';
+
+  @override
+  String profileCreditsResetsWithPermanent(String count) {
+    return '每日重置 · 另有 $count 永久积分';
+  }
+
+  @override
+  String get profileMinutesUnit => '分钟';
+
+  @override
+  String get profileSettingsHint => '外观、AI 服务、录音、快捷键';
+
+  @override
+  String vocabularyReviewDueValue(int count) {
+    return '$count 个到期';
   }
 }
