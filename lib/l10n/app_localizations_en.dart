@@ -4101,4 +4101,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String libraryTileAdded(String date) {
     return 'Added $date';
   }
+
+  @override
+  String get vocabularyOverline => 'Your word book';
+
+  @override
+  String vocabularyReviewDueAction(int count) {
+    return 'Review $count due';
+  }
+
+  @override
+  String get vocabularyDueToday => 'due today';
+
+  @override
+  String vocabularyDueEstimate(int minutes) {
+    return 'Words scheduled for today or earlier · about $minutes min';
+  }
+
+  @override
+  String get vocabularyByStatus => 'by status';
+
+  @override
+  String vocabularyDueWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count words are waiting',
+      one: '$count word is waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vocabularyDueReviewBody =>
+      'Words scheduled for today or earlier. Space flips a card; 1, 2 and 3 rate it.';
+
+  @override
+  String vocabularyFilterValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get vocabularyFewer => 'Fewer';
+
+  @override
+  String get vocabularyMore => 'More';
+
+  @override
+  String get vocabularyProBadge => 'Pro';
 }

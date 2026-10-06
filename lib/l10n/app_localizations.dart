@@ -7499,6 +7499,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Added {date}'**
   String libraryTileAdded(String date);
+
+  /// Overline above the Vocabulary page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your word book'**
+  String get vocabularyOverline;
+
+  /// Vocabulary header action that starts a due-items review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review {count} due'**
+  String vocabularyReviewDueAction(int count);
+
+  /// Unit after the due count on the Vocabulary due card.
+  ///
+  /// In en, this message translates to:
+  /// **'due today'**
+  String get vocabularyDueToday;
+
+  /// Vocabulary due card caption with the estimated review time.
+  ///
+  /// In en, this message translates to:
+  /// **'Words scheduled for today or earlier · about {minutes} min'**
+  String vocabularyDueEstimate(int minutes);
+
+  /// Caption on the Vocabulary status breakdown card.
+  ///
+  /// In en, this message translates to:
+  /// **'by status'**
+  String get vocabularyByStatus;
+
+  /// Headline of the Vocabulary Review tab due card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} word is waiting} other{{count} words are waiting}}'**
+  String vocabularyDueWaiting(int count);
+
+  /// Body of the Vocabulary Review tab due card.
+  ///
+  /// In en, this message translates to:
+  /// **'Words scheduled for today or earlier. Space flips a card; 1, 2 and 3 rate it.'**
+  String get vocabularyDueReviewBody;
+
+  /// Vocabulary filter button: the filter name and its current value.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: {value}'**
+  String vocabularyFilterValue(String label, String value);
+
+  /// Stepper button: fewer words.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer'**
+  String get vocabularyFewer;
+
+  /// Stepper button: more words.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get vocabularyMore;
+
+  /// Pro badge on the Export to Anki button.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get vocabularyProBadge;
 }
 
 class _AppLocalizationsDelegate

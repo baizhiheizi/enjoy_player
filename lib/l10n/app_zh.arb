@@ -1607,5 +1607,16 @@
   "homeContinueEchoOn": "跟读中",
   "mediaRelativeToday": "今天",
   "mediaRelativeYesterday": "昨天",
-  "libraryTileAdded": "添加于 {date}"
+  "libraryTileAdded": "添加于 {date}",
+  "vocabularyOverline": "我的单词本",
+  "vocabularyReviewDueAction": "复习 {count} 个到期单词",
+  "vocabularyDueToday": "今天到期",
+  "vocabularyDueEstimate": "今天及之前到期的单词 · 约 {minutes} 分钟",
+  "vocabularyByStatus": "按状态",
+  "vocabularyDueWaiting": "{count} 个单词等你复习",
+  "vocabularyDueReviewBody": "今天及之前到期的单词。空格翻卡，1、2、3 评分。",
+  "vocabularyFilterValue": "{label}：{value}",
+  "vocabularyFewer": "减少",
+  "vocabularyMore": "增加",
+  "vocabularyProBadge": "Pro"
 }

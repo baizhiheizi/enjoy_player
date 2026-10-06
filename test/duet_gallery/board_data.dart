@@ -363,7 +363,7 @@ Future<void> seedBoardData(AppDatabase db) async {
             contextText: context,
             sourceType: 'Audio',
             sourceId: 'la1',
-            locatorJson: '{}',
+            locatorJson: '{"type":"media","start":0,"duration":3000}',
           ),
         );
   }

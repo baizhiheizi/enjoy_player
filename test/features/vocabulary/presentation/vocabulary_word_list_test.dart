@@ -1,9 +1,9 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/vocabulary/data/vocabulary_repository.dart';
@@ -25,10 +25,11 @@ void main() {
   Widget harness() {
     return ProviderScope(
       overrides: [appDatabaseProvider.overrideWithValue(db)],
-      child: const MaterialApp(
+      child: MaterialApp(
+        theme: buildAppTheme(Brightness.light),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: VocabularyScreen(),
+        home: const VocabularyScreen(),
       ),
     );
   }
@@ -44,9 +45,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
   }
 
-  testWidgets('All Words row uses status chip + secondary meta line', (
+  testWidgets('a word row carries its context, status, language, delete', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final repo = VocabularyRepository(db);
     await repo.addWithContext(
       word: 'relic',
@@ -60,27 +64,23 @@ void main() {
 
     await pumpScreen(tester);
 
-    await tester.tap(find.text('All Words'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-
     expect(find.text('relic'), findsOneWidget);
-    expect(find.text('New'), findsOneWidget);
-    expect(find.text('en-US'), findsOneWidget);
-    expect(find.textContaining('1 contexts'), findsOneWidget);
-    expect(find.textContaining('0 reviews'), findsOneWidget);
-    expect(find.byTooltip('Export'), findsOneWidget);
-    expect(find.byTooltip('Filters'), findsOneWidget);
-    expect(find.text('Status'), findsNothing);
-    expect(find.byIcon(EnjoyIcons.more), findsOneWidget);
+    expect(find.text('an ancient relic'), findsOneWidget);
+    expect(find.text('New'), findsWidgets);
+    expect(find.text('EN'), findsOneWidget);
+    expect(find.byTooltip('Delete'), findsOneWidget);
+    expect(find.text('Status: All'), findsOneWidget);
+    expect(find.text('Language: All'), findsOneWidget);
 
-    await tester.ensureVisible(find.byTooltip('Filters'));
-    await tester.tap(find.byTooltip('Filters'));
+    await tester.tap(find.text('Status: All'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text('Mastered').last);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.text('Status'), findsOneWidget);
-    expect(find.text('Language'), findsOneWidget);
+    expect(find.text('relic'), findsNothing);
+    expect(find.text('No matching words'), findsOneWidget);
 
     await disposeHarness(tester);
   });

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_session_selection.dart';
@@ -33,27 +33,23 @@ VocabularyItem _item({
   );
 }
 
+ReviewSelectionOptions? _started;
+
 Widget _harness({List<VocabularyItem> items = const []}) {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF7B61FF),
-    brightness: Brightness.dark,
-  );
+  _started = null;
   return ProviderScope(
     overrides: [
       vocabularyItemsProvider.overrideWith((ref) => Stream.value(items)),
     ],
     child: MaterialApp(
-      theme: ThemeData(
-        colorScheme: scheme,
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        extensions: [EnjoyThemeTokens.build(scheme)],
-      ),
+      theme: buildAppTheme(Brightness.light),
       locale: const Locale('en', 'US'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const Scaffold(
-        body: SizedBox(height: 800, child: VocabularyReviewOptionsSheet()),
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: VocabularyCustomReview(onStart: (o) => _started = o),
+        ),
       ),
     ),
   );
@@ -62,83 +58,26 @@ Widget _harness({List<VocabularyItem> items = const []}) {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('VocabularyReviewOptionsSheet', () {
-    testWidgets('renders all five review mode tiles', (tester) async {
+  group('VocabularyCustomReview', () {
+    testWidgets('renders all five review modes', (tester) async {
       await tester.pumpWidget(_harness());
       await tester.pumpAndSettle();
 
+      expect(find.text('Custom review'), findsOneWidget);
       expect(find.text('Choose what to review'), findsOneWidget);
-      expect(find.text('Due items'), findsOneWidget);
-      expect(find.text('All words'), findsOneWidget);
-      expect(find.text('By status'), findsOneWidget);
-      expect(find.text('By language'), findsOneWidget);
-      expect(find.text('Random'), findsOneWidget);
+      for (final title in [
+        'Due items',
+        'All words',
+        'By status',
+        'By language',
+        'Random',
+      ]) {
+        expect(find.text(title), findsOneWidget);
+      }
       expect(find.byType(DropdownButton<VocabularyStatus>), findsNothing);
     });
 
-    testWidgets('selecting byStatus shows status dropdown', (tester) async {
-      await tester.pumpWidget(_harness());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('By status'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Status'), findsOneWidget);
-      expect(find.byType(DropdownButton<VocabularyStatus>), findsOneWidget);
-    });
-
-    testWidgets(
-      'selecting byLanguage shows language dropdown seeded from items',
-      (tester) async {
-        await tester.pumpWidget(
-          _harness(
-            items: [
-              _item(id: '1', word: 'hola', language: 'es'),
-              _item(id: '2', word: 'ciao', language: 'it'),
-            ],
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.text('By language'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Language'), findsOneWidget);
-        expect(find.byType(DropdownButton<String>), findsOneWidget);
-      },
-    );
-
-    testWidgets('selecting random shows number-of-words field', (tester) async {
-      await tester.pumpWidget(_harness());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Random'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Number of words'), findsOneWidget);
-      expect(
-        find.widgetWithText(TextFormField, 'Number of words'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets(
-      'start review with empty queue surfaces error and does not pop',
-      (tester) async {
-        await tester.pumpWidget(_harness());
-        await tester.pumpAndSettle();
-
-        expect(find.text('No words match this selection.'), findsNothing);
-        await tester.tap(find.text('Start review'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('No words match this selection.'), findsOneWidget);
-      },
-    );
-
-    testWidgets('preview queue count reflects items for due mode', (
-      tester,
-    ) async {
+    testWidgets('due and all tiles show their queue size', (tester) async {
       await tester.pumpWidget(
         _harness(
           items: [
@@ -148,15 +87,68 @@ void main() {
               language: 'en',
               nextReviewAt: DateTime.utc(2000),
             ),
+            _item(
+              id: '2',
+              word: 'later',
+              language: 'en',
+              nextReviewAt: DateTime.utc(2999),
+            ),
           ],
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('1 words'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
     });
 
-    testWidgets('changing random count text updates preview', (tester) async {
+    testWidgets('by status offers a status choice and starts with it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(
+          items: [
+            _item(id: '1', word: 'a', language: 'en'),
+            _item(
+              id: '2',
+              word: 'b',
+              language: 'en',
+              status: VocabularyStatus.mastered,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('By status'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DropdownButton<VocabularyStatus>), findsOneWidget);
+
+      await tester.tap(find.byType(DropdownButton<VocabularyStatus>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mastered').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start review'));
+      await tester.pumpAndSettle();
+
+      expect(_started?.mode, VocabularyReviewMode.byStatus);
+      expect(_started?.status, VocabularyStatus.mastered);
+    });
+
+    testWidgets('by language offers a language choice', (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          items: [_item(id: '1', word: 'a', language: 'en')],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('By language'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DropdownButton<String>), findsOneWidget);
+    });
+
+    testWidgets('random steps the number of words', (tester) async {
       await tester.pumpWidget(
         _harness(
           items: [
@@ -169,84 +161,33 @@ void main() {
 
       await tester.tap(find.text('Random'));
       await tester.pumpAndSettle();
+      expect(find.text('Number of words'), findsOneWidget);
+      expect(find.text('20'), findsOneWidget);
 
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Number of words'),
-        '1',
-      );
+      await tester.tap(find.bySemanticsLabel('Fewer'));
       await tester.pumpAndSettle();
+      expect(find.text('19'), findsOneWidget);
 
-      expect(find.text('1 words'), findsOneWidget);
+      await tester.tap(find.text('Start review'));
+      await tester.pumpAndSettle();
+      expect(_started?.mode, VocabularyReviewMode.random);
+      expect(_started?.randomCount, 19);
     });
 
-    testWidgets('selecting byStatus and changing status value updates filter', (
+    testWidgets('empty queue surfaces an error and does not start', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        _harness(
-          items: [
-            _item(
-              id: '1',
-              word: 'new1',
-              language: 'en',
-              status: VocabularyStatus.new_,
-            ),
-            _item(
-              id: '2',
-              word: 'new2',
-              language: 'en',
-              status: VocabularyStatus.new_,
-            ),
-            _item(
-              id: '3',
-              word: 'mastered',
-              language: 'en',
-              status: VocabularyStatus.mastered,
-            ),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('By status'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('2 words'), findsOneWidget);
-
-      await tester.tap(find.byType(DropdownButton<VocabularyStatus>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Mastered').last);
-      await tester.pumpAndSettle();
-
-      expect(find.text('1 words'), findsOneWidget);
-    });
-
-    testWidgets('tapping a mode resets any prior error', (tester) async {
       await tester.pumpWidget(_harness());
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Start review'));
       await tester.pumpAndSettle();
       expect(find.text('No words match this selection.'), findsOneWidget);
+      expect(_started, isNull);
 
       await tester.tap(find.text('All words'));
       await tester.pumpAndSettle();
       expect(find.text('No words match this selection.'), findsNothing);
-    });
-
-    testWidgets('ReviewSelectionOptions enum exposes all five modes', (
-      tester,
-    ) async {
-      expect(
-        VocabularyReviewMode.values,
-        containsAll([
-          VocabularyReviewMode.due,
-          VocabularyReviewMode.all,
-          VocabularyReviewMode.byStatus,
-          VocabularyReviewMode.byLanguage,
-          VocabularyReviewMode.random,
-        ]),
-      );
     });
   });
 }

@@ -3920,6 +3920,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String libraryTileAdded(String date) {
     return '添加于 $date';
   }
+
+  @override
+  String get vocabularyOverline => '我的单词本';
+
+  @override
+  String vocabularyReviewDueAction(int count) {
+    return '复习 $count 个到期单词';
+  }
+
+  @override
+  String get vocabularyDueToday => '今天到期';
+
+  @override
+  String vocabularyDueEstimate(int minutes) {
+    return '今天及之前到期的单词 · 约 $minutes 分钟';
+  }
+
+  @override
+  String get vocabularyByStatus => '按状态';
+
+  @override
+  String vocabularyDueWaiting(int count) {
+    return '$count 个单词等你复习';
+  }
+
+  @override
+  String get vocabularyDueReviewBody => '今天及之前到期的单词。空格翻卡，1、2、3 评分。';
+
+  @override
+  String vocabularyFilterValue(String label, String value) {
+    return '$label：$value';
+  }
+
+  @override
+  String get vocabularyFewer => '减少';
+
+  @override
+  String get vocabularyMore => '增加';
+
+  @override
+  String get vocabularyProBadge => 'Pro';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7163,4 +7204,45 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String libraryTileAdded(String date) {
     return '添加于 $date';
   }
+
+  @override
+  String get vocabularyOverline => '我的单词本';
+
+  @override
+  String vocabularyReviewDueAction(int count) {
+    return '复习 $count 个到期单词';
+  }
+
+  @override
+  String get vocabularyDueToday => '今天到期';
+
+  @override
+  String vocabularyDueEstimate(int minutes) {
+    return '今天及之前到期的单词 · 约 $minutes 分钟';
+  }
+
+  @override
+  String get vocabularyByStatus => '按状态';
+
+  @override
+  String vocabularyDueWaiting(int count) {
+    return '$count 个单词等你复习';
+  }
+
+  @override
+  String get vocabularyDueReviewBody => '今天及之前到期的单词。空格翻卡，1、2、3 评分。';
+
+  @override
+  String vocabularyFilterValue(String label, String value) {
+    return '$label：$value';
+  }
+
+  @override
+  String get vocabularyFewer => '减少';
+
+  @override
+  String get vocabularyMore => '增加';
+
+  @override
+  String get vocabularyProBadge => 'Pro';
 }
