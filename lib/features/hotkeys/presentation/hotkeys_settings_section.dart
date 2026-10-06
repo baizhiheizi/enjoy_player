@@ -25,14 +25,12 @@ import 'package:enjoy_player/features/settings/presentation/widgets/settings_row
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_search_field.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-/// Tile glyph and tint for a scope's group header.
-({IconData icon, Color tint}) _scopeVisuals(HotkeyScope scope) =>
-    switch (scope) {
-      HotkeyScope.global => (icon: EnjoyIcons.compass, tint: EnjoyTint.indigo),
-      HotkeyScope.player => (icon: EnjoyIcons.playCircle, tint: EnjoyTint.iris),
-      HotkeyScope.library => (icon: EnjoyIcons.book, tint: EnjoyTint.orange),
-      HotkeyScope.modal => (icon: EnjoyIcons.keyboard, tint: EnjoyTint.slate),
-    };
+IconData _scopeIcon(HotkeyScope scope) => switch (scope) {
+  HotkeyScope.global => EnjoyIcons.compass,
+  HotkeyScope.player => EnjoyIcons.playCircle,
+  HotkeyScope.library => EnjoyIcons.book,
+  HotkeyScope.modal => EnjoyIcons.keyboard,
+};
 
 class HotkeysSettingsSection extends ConsumerStatefulWidget {
   const HotkeysSettingsSection({super.key});
@@ -100,7 +98,6 @@ class _HotkeysSettingsSectionState
     for (final scope in HotkeyScope.values) {
       final defs = _definitionsFor(scope).where(matches).toList();
       if (defs.isEmpty) continue;
-      final visuals = _scopeVisuals(scope);
 
       if (groupCount > 0) children.add(SizedBox(height: t.space24));
       groupCount++;
@@ -109,8 +106,7 @@ class _HotkeysSettingsSectionState
         Row(
           children: [
             EnjoyIconTile(
-              icon: visuals.icon,
-              color: visuals.tint,
+              icon: _scopeIcon(scope),
               size: kSettingsRowLeadingSize,
             ),
             const SizedBox(width: kSettingsRowLeadingGap),

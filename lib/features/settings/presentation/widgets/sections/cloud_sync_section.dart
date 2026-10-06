@@ -47,7 +47,6 @@ class CloudSyncSectionBody extends ConsumerWidget {
           if (queueCounts.hasError) {
             return SettingsRow(
               leadingIcon: EnjoyIcons.cloudSync,
-              leadingIconTint: cs.error,
               title: l10n.syncSettingsTileTitle,
               subtitle: l10n.error,
               valueBadge: SettingsValuePill(
@@ -85,7 +84,6 @@ class CloudSyncSectionBody extends ConsumerWidget {
         }
         return SettingsRow(
           leadingIcon: EnjoyIcons.cloudOff,
-          leadingIconTint: cs.onSurfaceVariant,
           title: l10n.syncSettingsTileTitle,
           subtitle: l10n.syncSettingsTileSubtitleSignedOut,
           onTap: () => context.push('/settings/sync'),

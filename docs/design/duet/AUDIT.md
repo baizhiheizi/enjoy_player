@@ -27,10 +27,10 @@
 
 | # | Gap | Board | App |
 |---|---|---|---|
-| S1 | Icon tiles | Neutral `sunk` tile, ink icon ("everything else is ink") | Multi-hue tiles: orange, teal, blue, violet, amber, red (Profile, Settings, phone Settings) |
+| S1 ✅ | Icon tiles | Neutral `sunk` tile, ink icon ("everything else is ink") | Multi-hue tiles: orange, teal, blue, violet, amber, red (Profile, Settings, phone Settings) |
 | S2 | Page header | Overline (`ON THIS DEVICE`, `YOUR WORD BOOK`, `YOUTUBE CHANNELS YOU FOLLOW`) + Literata title + right-aligned actions on one row | Title only, actions float right, no overline; Settings adds a subtitle the board doesn't have |
-| S3 | Material controls leak through | Paper pill filters, inline date pills, keycaps | Material `TextField` date pickers, `DropdownButton`, `CircularProgressIndicator` (Credits, Subscription) — this is D1.2 / D1.5 still being `todo` |
-| S4 | Sidebar | Placeholder "Search library" | "Search" (the Upgrade pill on Free is present — the first capture used a Pro fixture) |
+| S3 (inputs ✅) | Material controls leak through | Paper pill filters, inline date pills, keycaps | Material `TextField` date pickers, `DropdownButton`, `CircularProgressIndicator` (Credits, Subscription) — this is D1.2 / D1.5 still being `todo` |
+| S4 ✅ | Sidebar | Placeholder "Search library" | "Search" (the Upgrade pill on Free is present — the first capture used a Pro fixture) |
 | S5 | Destructive / sign-out | Ghost `Sign out` button | Red text + icon link, centered |
 
 ### Screens

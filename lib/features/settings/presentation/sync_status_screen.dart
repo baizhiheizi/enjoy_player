@@ -216,9 +216,6 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
               children: [
                 SettingsRow(
                   leadingIcon: EnjoyIcons.hourglass,
-                  leadingIconTint: snap.retryablePending > 0
-                      ? cs.primary
-                      : null,
                   title: l10n.syncScreenStatRetryable,
                   showChevron: false,
                   valueBadge: SettingsValuePill(
@@ -231,7 +228,6 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
                 const SettingsRowDivider(insetForLeading: false),
                 SettingsRow(
                   leadingIcon: EnjoyIcons.error,
-                  leadingIconTint: snap.permanentlyFailed > 0 ? cs.error : null,
                   title: l10n.syncScreenStatFailed,
                   showChevron: false,
                   valueBadge: SettingsValuePill(

@@ -44,6 +44,7 @@
   "libraryEmptyVideoHint": "Your library doesn't contain any video content.",
   "librarySearchNoMatchesTitle": "No matches",
   "librarySearchNoMatchesHint": "Nothing in your library matches this search.",
+  "librarySearchHint": "Search library",
   "librarySearchClear": "Clear search",
   "libraryDeleteFailed": "Could not remove this item. Try again.",
   "transcriptAccessibilityTranscriptList": "Transcript",

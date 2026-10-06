@@ -99,6 +99,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nothing in your library matches this search.';
 
   @override
+  String get librarySearchHint => 'Search library';
+
+  @override
   String get librarySearchClear => 'Clear search';
 
   @override

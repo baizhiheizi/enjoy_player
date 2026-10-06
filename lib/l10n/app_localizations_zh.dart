@@ -96,6 +96,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get librarySearchNoMatchesHint => '资料库中没有符合此搜索的内容。';
 
   @override
+  String get librarySearchHint => '搜索媒体库';
+
+  @override
   String get librarySearchClear => '清除搜索';
 
   @override
@@ -3969,6 +3972,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get librarySearchNoMatchesHint => '没有符合条件的内容。';
+
+  @override
+  String get librarySearchHint => '搜索媒体库';
 
   @override
   String get librarySearchClear => '清除搜索';

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 
 /// Shared styling for legacy [SegmentedButton] call sites.
 ButtonStyle enjoySegmentedButtonStyle(BuildContext context) {
@@ -60,12 +61,16 @@ class EnjoySegment<T> {
     required this.label,
     this.icon,
     this.tooltip,
+    this.count,
   });
 
   final T value;
   final String label;
   final IconData? icon;
   final String? tooltip;
+
+  /// Mono ink3 figure after the label (`Video 9`).
+  final int? count;
 }
 
 class EnjoySegmentedControl<T> extends StatelessWidget {
@@ -204,6 +209,18 @@ class _SegmentButton<T> extends StatelessWidget {
                 style: textStyle,
               ),
             ),
+          if (segment.count != null) ...[
+            const SizedBox(width: 7),
+            Text(
+              '${segment.count}',
+              style: enjoyMonoStyle(
+                context,
+                size: 11.5,
+                weight: FontWeight.w500,
+                color: t.ink3,
+              ),
+            ),
+          ],
         ],
       ),
     );

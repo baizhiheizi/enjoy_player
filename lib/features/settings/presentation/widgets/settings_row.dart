@@ -27,7 +27,7 @@ class SettingsRow extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.leadingIcon,
-    this.leadingIconTint,
+    this.leadingIconTone,
     this.valueBadge,
     this.trailing,
     this.showChevron = true,
@@ -39,7 +39,7 @@ class SettingsRow extends StatelessWidget {
   final String? subtitle;
   final Widget? leading;
   final IconData? leadingIcon;
-  final Color? leadingIconTint;
+  final EnjoyIconTileTone? leadingIconTone;
   final Widget? valueBadge;
   final Widget? trailing;
   final bool showChevron;
@@ -78,9 +78,9 @@ class SettingsRow extends StatelessWidget {
     } else if (leadingIcon != null) {
       leadWidget = EnjoyIconTile(
         icon: leadingIcon!,
-        color: leadingIconTint,
+        tone: leadingIconTone ?? EnjoyIconTileTone.neutral,
         size: kSettingsRowLeadingSize,
-        enabled: interactive || leadingIconTint != null,
+        enabled: interactive || leadingIconTone != null,
       );
     } else {
       leadWidget = null;

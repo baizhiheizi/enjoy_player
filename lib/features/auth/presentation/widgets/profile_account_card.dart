@@ -56,7 +56,7 @@ class ProfileAccountCard extends StatelessWidget {
                 children: [
                   const EnjoyIconTile(
                     icon: EnjoyIcons.boltFill,
-                    color: EnjoyTint.amber,
+                    tone: EnjoyIconTileTone.brand,
                     size: kSettingsRowLeadingSize,
                   ),
                   const SizedBox(width: kSettingsRowLeadingGap),
@@ -109,10 +109,10 @@ class ProfileAccountCard extends StatelessWidget {
           ),
           const SettingsRowDivider(insetForLeading: false),
           SettingsRow(
-            leading: EnjoyIconTile(
+            leading: const EnjoyIconTile(
               icon: EnjoyIcons.premium,
               size: kSettingsRowLeadingSize,
-              gradient: t.logo,
+              tone: EnjoyIconTileTone.brand,
             ),
             title: l10n.profileSubscriptionTile,
             subtitle: l10n.profileSubscriptionSubtitle,

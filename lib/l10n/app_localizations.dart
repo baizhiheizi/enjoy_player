@@ -261,6 +261,12 @@ abstract class AppLocalizations {
   /// **'Nothing in your library matches this search.'**
   String get librarySearchNoMatchesHint;
 
+  /// No description provided for @librarySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search library'**
+  String get librarySearchHint;
+
   /// No description provided for @librarySearchClear.
   ///
   /// In en, this message translates to:

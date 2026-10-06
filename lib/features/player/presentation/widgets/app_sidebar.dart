@@ -204,7 +204,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                             ),
                             textAlignVertical: TextAlignVertical.center,
                             decoration: InputDecoration(
-                              hintText: l10n.searchHint,
+                              hintText: l10n.librarySearchHint,
                               hintStyle: tt.bodyMedium?.copyWith(
                                 fontSize: 13.5,
                                 color: t.ink3,

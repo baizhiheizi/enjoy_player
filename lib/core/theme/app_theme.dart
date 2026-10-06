@@ -449,15 +449,15 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       textStyle: tt.bodyMedium,
       inputDecorationTheme: InputDecorationThemeData(
         filled: true,
-        fillColor: t.fill,
+        fillColor: t.paper,
         isDense: true,
         contentPadding: EdgeInsets.symmetric(
           horizontal: t.space12,
           vertical: t.space8,
         ),
-        border: inputBorder(Colors.transparent),
-        enabledBorder: inputBorder(Colors.transparent),
-        focusedBorder: inputBorder(cs.primary, 1.5),
+        border: inputBorder(t.line),
+        enabledBorder: inputBorder(t.line),
+        focusedBorder: inputBorder(t.original, 1.5),
       ),
     ),
     tooltipTheme: TooltipThemeData(
@@ -477,12 +477,12 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     ),
     inputDecorationTheme: InputDecorationThemeData(
       filled: true,
-      fillColor: t.fill,
-      hoverColor: cs.onSurface.withValues(alpha: 0.03),
-      border: inputBorder(Colors.transparent),
-      enabledBorder: inputBorder(Colors.transparent),
-      disabledBorder: inputBorder(Colors.transparent),
-      focusedBorder: inputBorder(cs.primary, 1.5),
+      fillColor: t.paper,
+      hoverColor: Colors.transparent,
+      border: inputBorder(t.line),
+      enabledBorder: inputBorder(t.line),
+      disabledBorder: inputBorder(t.line.withValues(alpha: 0.6)),
+      focusedBorder: inputBorder(t.original, 1.5),
       errorBorder: inputBorder(cs.error.withValues(alpha: 0.7)),
       focusedErrorBorder: inputBorder(cs.error, 1.5),
       contentPadding: EdgeInsets.symmetric(
@@ -493,7 +493,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       hintStyle: tt.bodyMedium?.copyWith(color: t.ink3),
       labelStyle: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
       floatingLabelStyle: tt.labelLarge?.copyWith(
-        color: t.brandInk,
+        color: t.ink2,
         fontWeight: FontWeight.w600,
       ),
       helperStyle: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
