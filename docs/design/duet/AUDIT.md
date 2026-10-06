@@ -96,6 +96,15 @@ Committed on `design-duet` (all gates green per commit):
 
 ### Still open (in priority order)
 
+1. **C7c Subscription residuals** — paid membership card; three-column plan catalog.
+2. **C8** — Sync (hero, stat tiles, queue list), Keyboard (group headers, keycaps), AiProviders, ProfileEdit, ProfilePrefs, CraftHistory.
+3. **C5 residual** — Settings phone hub (account card + drill-in rows + version footer).
+4. **Phase D residuals** — desktop More menu; Repeat (R1); take-management placement (R2); Hide glyph check; takes strip polish (Pitch naming, Score action visibility); assessment margin (D3.8) and docked margin ≥1100; Echo scroll alignment on phones.
+5. **Screens not yet captured** — Review session, NotFound, Poster, dialogs.
+6. **D5.4/D5.5** — platform QA + performance evidence on the rebuilt screens; then D5.6 merge.
+
+Progress added this pass: `deae800b` Credits rebuild (C7b), `c975ddec` player top bar + dock (D1/D2), `4af59ffb` Echo context lines.
+
 1. **C7b Credits screen** — packages card, Start/End/Service filter pills, usage table with status chips (Material date fields today).
 2. **C7c Subscription residuals** — paid membership card; three-column plan catalog; credits sections below the catalog.
 3. **C8** — Sync (hero, stat tiles, queue list), Keyboard (group headers, keycaps), AiProviders, ProfileEdit, ProfilePrefs, CraftHistory.
