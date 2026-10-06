@@ -840,20 +840,23 @@ class _SubtitleTrackPickerSheetState
 
       if (isDialog) {
         final maxHeight = MediaQuery.sizeOf(context).height * 0.88;
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxHeight),
-          child: SingleChildScrollView(
-            controller: sc,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: t.space20),
-                _buildSheetHeader(context, t),
-                divider,
-                tracksContent,
-                SizedBox(height: t.space20),
-              ],
+        return Material(
+          type: MaterialType.transparency,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            child: SingleChildScrollView(
+              controller: sc,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: t.space20),
+                  _buildSheetHeader(context, t),
+                  divider,
+                  tracksContent,
+                  SizedBox(height: t.space20),
+                ],
+              ),
             ),
           ),
         );

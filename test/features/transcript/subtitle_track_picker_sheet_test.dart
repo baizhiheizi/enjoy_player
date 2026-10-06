@@ -128,6 +128,33 @@ Widget _harness({required List<Override> overrides}) {
   );
 }
 
+/// Mirrors the desktop popover route: the sheet mounts under a plain
+/// DecoratedBox with no Material ancestor of its own.
+Widget _popoverHarness({required List<Override> overrides}) {
+  final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp(
+      theme: ThemeData(
+        colorScheme: scheme,
+        extensions: [EnjoyThemeTokens.build(scheme)],
+      ),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const SizedBox(
+        width: 800,
+        height: 600,
+        child: Center(
+          child: SubtitleTrackPickerSheet(
+            mediaId: _mediaId,
+            presentation: SubtitleTrackPickerPresentation.dialog,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 late final AppLocalizations l10n;
 
 void main() {
@@ -276,6 +303,32 @@ void main() {
       expect(spy.selectCalls, 0);
     },
   );
+
+  testWidgets('expanded radio rows render without a Material ancestor', (
+    tester,
+  ) async {
+    const track = TranscriptTrack(
+      id: 't1',
+      targetType: 'Video',
+      targetId: _mediaId,
+      language: 'en',
+      source: 'user',
+      label: 'English',
+      trackIndex: null,
+    );
+    await tester.pumpWidget(
+      _popoverHarness(overrides: _pickerOverrides(tracks: const [track])),
+    );
+    await tester.pump();
+    tester.takeException();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.subtitlesPrimary));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Radio<String>), findsWidgets);
+  });
 
   testWidgets('keeps each caption row compact so the picker fits many tracks', (
     tester,

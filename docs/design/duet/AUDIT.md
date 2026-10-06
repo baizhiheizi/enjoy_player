@@ -186,3 +186,12 @@ The merge PR (#853) stays open until Phases A–D are green on compare. D5.4 / D
 | D4.1–D4.10 | done | todo / in progress | Screens differ from their boards in layout and IA (table above) |
 | D5.1–D5.3 | done | keep | Rename / invariant / doc tasks are unaffected |
 | D5.6 | review | blocked | On Phases A–D |
+
+## Field breakage follow-up (2026-10-07)
+
+The board-verified gallery stayed green while the real install broke in two places, both blind spots of fixture-driven captures:
+
+1. **Home hero band blank + `Cannot hit test a render box that has never been laid out` floods.** `MediaCardThumbnail` passed `width/height: double.infinity` to its `Image.file` / `CachedNetworkImage`; `RenderImage.computeMaxIntrinsicHeight` returns that `height` verbatim, so the first intrinsic query through the hero's `IntrinsicHeight` with a *real* thumbnail file hit the `height.isFinite` assert and aborted `flushLayout` mid-pass — every render object already queued for layout that frame stayed `needsLayout` forever (board fixtures have no thumbnail files, so the gallery never saw it). The single abort is enough: the band renders blank for the rest of the session and semantics/hit-test errors repeat on every hover. Fix: no infinite image sizes, hero thumbnail under `Positioned.fill` (out of intrinsic math), and the band takes its width from `EnjoyPageMetrics` instead of its own `LayoutBuilder` (any layout-callback inflation under an already-laid-out sibling can lose the relayout mark). Regression: `continue_practice_card_test.dart` fails on `<Infinity>` with the old thumbnails.
+2. **Subtitle picker radios: `No Material widget found`.** The desktop popover route mounts the sheet under a bare `DecoratedBox` — no `Material` ancestor — so expanding a track section threw on every `Radio` (the sheet test harness used a `Scaffold`, which silently provided one). Fix: the dialog presentation wraps itself in `Material(transparency)`; `_popoverHarness` in `subtitle_track_picker_sheet_test.dart` mounts without `Material` and fails on the old code.
+
+Both were diagnosed on the live install (log at `~/.local/share/ai.enjoy.player.enjoy_player/logs/`); the probe tooling and SDK-side forensics are not part of the tree.
