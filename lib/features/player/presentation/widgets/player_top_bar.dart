@@ -9,6 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -24,6 +26,7 @@ import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/share_poster/presentation/share_practice_poster_button.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_sheet.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -47,15 +50,24 @@ class PlayerTopBar extends ConsumerWidget {
       l10n.hotkeysDescToggleExpand,
     );
 
+    final phone = MediaQuery.sizeOf(context).width < t.breakpointCompact;
     return Container(
-      height: t.playerTopBarHeight,
+      height: phone ? null : t.playerTopBarHeight,
       decoration: BoxDecoration(
         color: t.paper,
         border: Border(bottom: BorderSide(color: t.line)),
       ),
-      padding: const EdgeInsets.fromLTRB(10, 0, 14, 0),
+      padding: const EdgeInsets.fromLTRB(6, 0, 8, 0),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          if (constraints.maxWidth < t.breakpointCompact) {
+            return _PhoneTopBar(
+              mediaId: mediaId,
+              chrome: chrome,
+              echoActive: echo.active,
+              echoEnabled: hasLines,
+            );
+          }
           final showShare = constraints.maxWidth >= 1100;
           final showSubtitleLabel = constraints.maxWidth >= 980;
           return Row(
@@ -88,7 +100,7 @@ class PlayerTopBar extends ConsumerWidget {
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            _metaLine(context, chrome),
+                            _metaLine(context, ref, chrome),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: tt.labelSmall?.copyWith(
@@ -128,7 +140,11 @@ class PlayerTopBar extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (showShare)
-                      _ShareAction(mediaId: mediaId, echoActive: echo.active),
+                      _ShareAction(
+                        mediaId: mediaId,
+                        echoActive: echo.active,
+                        labeled: true,
+                      ),
                     if (showShare) const SizedBox(width: 4),
                     _SubtitlesAction(
                       mediaId: mediaId,
@@ -144,7 +160,11 @@ class PlayerTopBar extends ConsumerWidget {
     );
   }
 
-  String _metaLine(BuildContext context, PlaybackChrome? chrome) {
+  String _metaLine(
+    BuildContext context,
+    WidgetRef ref,
+    PlaybackChrome? chrome,
+  ) {
     if (chrome == null) return '';
     final l10n = AppLocalizations.of(context)!;
     final kind = chrome.mediaType == 'video'
@@ -152,7 +172,16 @@ class PlayerTopBar extends ConsumerWidget {
         : l10n.miniPlayerMediaAudio;
     final duration = formatDurationHmsSeconds(chrome.durationSeconds);
     final language = _languageLabel(context, chrome.language);
-    return [kind, duration, if (language != null) language].join(' · ');
+    final native = _languageLabel(
+      context,
+      ref.read(appPreferencesCtrlProvider).valueOrNull?.effectiveNativeLanguage,
+    );
+    return [
+      kind,
+      duration,
+      if (language != null) language,
+      if (native != null && native != language) native,
+    ].join(' · ');
   }
 
   String? _languageLabel(BuildContext context, String? tag) {
@@ -260,7 +289,7 @@ class _ModeSegmented extends StatelessWidget {
             tipId: OnboardingTipId.playerEcho,
             onTargetAction: echoTipAction,
             child: option(
-              label: l10n.echoMode,
+              label: l10n.playerEchoShort,
               icon: EnjoyIcons.mic,
               selected: echoActive,
               enabled: echoEnabled || echoActive,
@@ -324,10 +353,15 @@ class _SubtitlesAction extends ConsumerWidget {
 }
 
 class _ShareAction extends StatelessWidget {
-  const _ShareAction({required this.mediaId, required this.echoActive});
+  const _ShareAction({
+    required this.mediaId,
+    required this.echoActive,
+    this.labeled = false,
+  });
 
   final String mediaId;
   final bool echoActive;
+  final bool labeled;
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +369,117 @@ class _ShareAction extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     return IconTheme(
       data: IconThemeData(size: 18, color: t.ink2),
-      child: SharePracticePosterButton(mediaId: mediaId, labeled: true),
+      child: SharePracticePosterButton(mediaId: mediaId, labeled: labeled),
+    );
+  }
+}
+
+/// Phone top bar (the `Phone` board): row 1 = chevron · Listen / Echo ·
+/// Share · CC; row 2 = title with the `Line n of m` caption.
+class _PhoneTopBar extends ConsumerWidget {
+  const _PhoneTopBar({
+    required this.mediaId,
+    required this.chrome,
+    required this.echoActive,
+    required this.echoEnabled,
+  });
+
+  final String mediaId;
+  final PlaybackChrome? chrome;
+  final bool echoActive;
+  final bool echoEnabled;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = EnjoyThemeTokens.of(context);
+    final tt = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
+    final echo = ref.watch(echoModeProvider);
+    final total = ref
+        .watch(transcriptLinesForMediaProvider(mediaId))
+        .value
+        ?.length;
+    final cue = ref
+        .watch(transcriptPlaybackHighlightProvider(mediaId))
+        .cueIndex;
+    final lineCaption = total != null && total > 0 && cue >= 0
+        ? l10n.playerLineOfTotal(cue + 1, total)
+        : null;
+    final looping = echo.active ? ' ${l10n.playerDockLooping}' : '';
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              tooltip: l10n.hotkeysDescToggleExpand,
+              icon: const Icon(EnjoyIcons.chevronDown, size: 20),
+              color: t.ink2,
+              onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
+            ),
+            const Spacer(),
+            _ModeSegmented(
+              echoActive: echoActive,
+              echoEnabled: echoEnabled,
+              onListen: () {
+                if (!echoActive) return;
+                unawaited(ref.read(playerInteractionsProvider).toggleEcho());
+              },
+              onEcho: () {
+                if (echoActive) return;
+                Haptics.selection(context);
+                unawaited(ref.read(playerInteractionsProvider).toggleEcho());
+              },
+              echoTipAction: echoActive || echoEnabled
+                  ? () {
+                      Haptics.selection(context);
+                      unawaited(
+                        ref.read(playerInteractionsProvider).toggleEcho(),
+                      );
+                    }
+                  : null,
+            ),
+            const Spacer(),
+            _ShareAction(mediaId: mediaId, echoActive: echoActive),
+            _SubtitlesAction(mediaId: mediaId, showLabel: false),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 10, right: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      chrome?.mediaTitle ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tt.labelLarge?.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: t.ink,
+                      ),
+                    ),
+                    if (lineCaption != null)
+                      Text(
+                        '$lineCaption$looping',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tt.labelSmall?.copyWith(
+                          fontSize: 12,
+                          color: t.ink3,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

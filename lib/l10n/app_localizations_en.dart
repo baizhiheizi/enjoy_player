@@ -4249,4 +4249,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subscriptionPackagesLink => 'Credits packages';
+
+  @override
+  String get playerEchoShort => 'Echo';
+
+  @override
+  String playerLineOfTotal(Object line, Object total) {
+    return 'Line $line of $total';
+  }
 }

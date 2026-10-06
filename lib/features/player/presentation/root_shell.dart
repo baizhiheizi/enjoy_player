@@ -166,18 +166,7 @@ class _RootShellState extends ConsumerState<RootShell> {
                     ),
                     bottomNavigationBar: Material(
                       type: MaterialType.transparency,
-                      child: SafeArea(
-                        top: false,
-                        left: false,
-                        right: false,
-                        minimum: EdgeInsets.fromLTRB(
-                          tokens.space16,
-                          tokens.space4,
-                          tokens.space16,
-                          tokens.space12,
-                        ),
-                        child: PlayerDock(chrome: chrome),
-                      ),
+                      child: PlayerDock(chrome: chrome),
                     ),
                   );
                 }

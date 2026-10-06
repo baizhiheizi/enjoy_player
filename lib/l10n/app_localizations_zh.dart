@@ -4054,6 +4054,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subscriptionPackagesLink => '积分包';
+
+  @override
+  String get playerEchoShort => '回声';
+
+  @override
+  String playerLineOfTotal(Object line, Object total) {
+    return '第 $line/$total 行';
+  }
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7431,4 +7439,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get subscriptionPackagesLink => '积分包';
+
+  @override
+  String get playerEchoShort => '回声';
+
+  @override
+  String playerLineOfTotal(Object line, Object total) {
+    return '第 $line/$total 行';
+  }
 }

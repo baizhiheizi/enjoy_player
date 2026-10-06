@@ -7727,6 +7727,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Credits packages'**
   String get subscriptionPackagesLink;
+
+  /// Short label for the Echo mode segment in the player top bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo'**
+  String get playerEchoShort;
+
+  /// No description provided for @playerLineOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {line} of {total}'**
+  String playerLineOfTotal(Object line, Object total);
 }
 
 class _AppLocalizationsDelegate

@@ -2112,5 +2112,8 @@
   "creditsUsageUtcDates": "UTC dates",
   "@creditsUsageUtcDates": {"description": "Caption at the trailing edge of the credits filter row."},
   "subscriptionPackagesLink": "Credits packages",
-  "@subscriptionPackagesLink": {"description": "Subscription link card to the Credits screen."}
+  "@subscriptionPackagesLink": {"description": "Subscription link card to the Credits screen."},
+  "playerEchoShort": "Echo",
+  "@playerEchoShort": {"description": "Short label for the Echo mode segment in the player top bar."},
+  "playerLineOfTotal": "Line {line} of {total}"
 }

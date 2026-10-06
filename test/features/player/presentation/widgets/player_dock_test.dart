@@ -162,7 +162,7 @@ void main() {
     expect(find.byIcon(EnjoyIcons.micFill), findsNothing);
     expect(find.textContaining('Lines 1–2'), findsOneWidget);
     expect(find.textContaining(l10n.playerDockLooping), findsOneWidget);
-    expect(find.byIcon(EnjoyIcons.skipBackLine), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.skipBack), findsOneWidget);
   });
 
   testWidgets('Recording dock shows Cancel and Stop', (tester) async {

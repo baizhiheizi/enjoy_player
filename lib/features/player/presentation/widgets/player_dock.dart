@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
@@ -594,21 +595,16 @@ class _SpeedPill extends StatelessWidget {
       message: l10n.speed,
       child: EnjoyPressable(
         onTap: onOpen,
-        borderRadius: BorderRadius.circular(t.radiusFull),
-        child: Container(
-          height: 34,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: ShapeDecoration(
-            shape: StadiumBorder(side: BorderSide(color: t.line)),
-          ),
-          child: Center(
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: t.ink2,
-              ),
+        borderRadius: BorderRadius.circular(7),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          child: Text(
+            text,
+            style: enjoyMonoStyle(
+              context,
+              size: 13,
+              weight: FontWeight.w500,
+              color: t.ink2,
             ),
           ),
         ),
@@ -674,14 +670,15 @@ class _ListenControls extends StatelessWidget {
     final center = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (!phone)
+          _DockIconButton(
+            icon: EnjoyIcons.replay,
+            tooltip: l10n.replayLine,
+            enabled: !buffering,
+            onTap: onReplay,
+          ),
         _DockIconButton(
-          icon: EnjoyIcons.replay,
-          tooltip: l10n.replayLine,
-          enabled: !buffering,
-          onTap: onReplay,
-        ),
-        _DockIconButton(
-          icon: EnjoyIcons.skipBackLine,
+          icon: EnjoyIcons.skipBack,
           tooltip: l10n.previousLine,
           enabled: !buffering,
           onTap: onPrev,
@@ -696,7 +693,7 @@ class _ListenControls extends StatelessWidget {
           ),
         ),
         _DockIconButton(
-          icon: EnjoyIcons.skipForwardLine,
+          icon: EnjoyIcons.skipForward,
           tooltip: l10n.nextLine,
           enabled: !buffering,
           onTap: onNext,
@@ -719,22 +716,18 @@ class _ListenControls extends StatelessWidget {
     );
 
     if (phone) {
-      return SizedBox(
-        height: 116,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                Expanded(child: left),
-                const SizedBox(width: 10),
-                right,
-              ],
-            ),
-            const SizedBox(height: 4),
-            center,
-          ],
-        ),
+      return Row(
+        children: [
+          _HideTextPill(
+            active: blurEnabled,
+            onToggle: onToggleHideText,
+            iconOnly: true,
+          ),
+          const Spacer(),
+          center,
+          const Spacer(),
+          _SpeedPill(rate: playbackRate, onOpen: onSpeed),
+        ],
       );
     }
 
@@ -812,7 +805,7 @@ class _EchoControls extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _DockIconButton(
-          icon: EnjoyIcons.skipBackLine,
+          icon: EnjoyIcons.skipBack,
           tooltip: l10n.previousLine,
           onTap: onPrev,
         ),
@@ -835,7 +828,7 @@ class _EchoControls extends StatelessWidget {
           ),
         ),
         _DockIconButton(
-          icon: EnjoyIcons.skipForwardLine,
+          icon: EnjoyIcons.skipForward,
           tooltip: l10n.nextLine,
           onTap: onNext,
         ),
@@ -853,16 +846,11 @@ class _EchoControls extends StatelessWidget {
         : const SizedBox.shrink();
 
     if (phone) {
-      return ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 124),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(children: [Expanded(child: left)]),
-            const SizedBox(height: 4),
-            center,
-          ],
+          children: [center],
         ),
       );
     }
