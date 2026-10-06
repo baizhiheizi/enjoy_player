@@ -21,6 +21,7 @@ import 'package:enjoy_player/features/library/application/library_media_provider
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
+import 'package:enjoy_player/features/library/domain/practice_resume.dart';
 import 'package:enjoy_player/features/onboarding/application/onboarding_controller.dart';
 import 'package:enjoy_player/features/onboarding/domain/tip_eligibility.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
@@ -132,12 +133,15 @@ List<Override> baseOverrides(
   List<Media>? recents,
   bool subscription = true,
   PlayerController Function()? playerController,
+  AuthCtrl Function()? auth,
+  PracticeResume? resume,
+  LearningStatistics? statistics,
 }) => [
   appDatabaseProvider.overrideWithValue(db),
   deviceGlobalAppDatabaseProvider.overrideWithValue(db),
-  authCtrlProvider.overrideWith(SignedInAuthCtrl.new),
+  authCtrlProvider.overrideWith(auth ?? SignedInAuthCtrl.new),
   appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
-  continuePracticeResumeProvider.overrideWith((ref) => null),
+  continuePracticeResumeProvider.overrideWith((ref) => resume),
   onboardingControllerProvider.overrideWith(_NoOnboarding.new),
   syncCtrlProvider.overrideWithValue(0),
   discoverFeedRefreshSchedulerProvider.overrideWithValue(0),
@@ -157,11 +161,13 @@ List<Override> baseOverrides(
     (ref) => Stream.value(recents ?? sampleRecents()),
   ),
   learningStatisticsProvider.overrideWith(
-    (ref) async => const LearningStatistics(
-      today: PeriodStats(recordingDurationMs: 142000, recordingCount: 12),
-      week: PeriodStats(recordingDurationMs: 2400000, recordingCount: 88),
-      month: PeriodStats(recordingDurationMs: 9400000, recordingCount: 301),
-    ),
+    (ref) async =>
+        statistics ??
+        const LearningStatistics(
+          today: PeriodStats(recordingDurationMs: 142000, recordingCount: 12),
+          week: PeriodStats(recordingDurationMs: 2400000, recordingCount: 88),
+          month: PeriodStats(recordingDurationMs: 9400000, recordingCount: 301),
+        ),
   ),
   activeUsersProvider.overrideWith(
     (ref) async => const ActiveUsersResponse(
@@ -266,7 +272,12 @@ final sampleFeed = [
     ),
 ];
 
-List<Override> discoverOverrides(AppDatabase db) => [
+List<Override> discoverOverrides(
+  AppDatabase db, {
+  List<DiscoverChannel>? channels,
+  List<FeedEntry>? feed,
+  Set<String> inLibrary = const {'v1'},
+}) => [
   discoverRepositoryProvider.overrideWithValue(
     _FakeDiscoverRepository(
       db,
@@ -274,18 +285,27 @@ List<Override> discoverOverrides(AppDatabase db) => [
     ),
   ),
   discoverSubscriptionsProvider.overrideWith(
-    (ref) => Stream.value(sampleChannels),
+    (ref) => Stream.value(channels ?? sampleChannels),
   ),
   discoverFeedItemsProvider.overrideWith(
     (ref) => Stream.value(
-      projectDiscoverFeedItems(sampleFeed, const <String>{
-        'v1',
-      }, sampleChannels),
+      projectDiscoverFeedItems(
+        feed ?? sampleFeed,
+        inLibrary,
+        channels ?? sampleChannels,
+      ),
     ),
   ),
   discoverChannelFeedItemsProvider.overrideWith(
     (ref, channelId) => Stream.value(
-      projectDiscoverFeedItems(sampleFeed, const <String>{}, sampleChannels),
+      projectDiscoverFeedItems(
+        [
+          for (final entry in feed ?? sampleFeed)
+            if (entry.channelId == channelId) entry,
+        ],
+        inLibrary,
+        channels ?? sampleChannels,
+      ),
     ),
   ),
   discoverRefreshStateProvider.overrideWith(_FakeRefreshState.new),

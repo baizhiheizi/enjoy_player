@@ -30,7 +30,7 @@
 | S1 | Icon tiles | Neutral `sunk` tile, ink icon ("everything else is ink") | Multi-hue tiles: orange, teal, blue, violet, amber, red (Profile, Settings, phone Settings) |
 | S2 | Page header | Overline (`ON THIS DEVICE`, `YOUR WORD BOOK`, `YOUTUBE CHANNELS YOU FOLLOW`) + Literata title + right-aligned actions on one row | Title only, actions float right, no overline; Settings adds a subtitle the board doesn't have |
 | S3 | Material controls leak through | Paper pill filters, inline date pills, keycaps | Material `TextField` date pickers, `DropdownButton`, `CircularProgressIndicator` (Credits, Subscription) — this is D1.2 / D1.5 still being `todo` |
-| S4 | Sidebar | Placeholder "Search library"; account chip with **Upgrade** pill on Free | "Search"; chip with chevron, no Upgrade |
+| S4 | Sidebar | Placeholder "Search library" | "Search" (the Upgrade pill on Free is present — the first capture used a Pro fixture) |
 | S5 | Destructive / sign-out | Ghost `Sign out` button | Red text + icon link, centered |
 
 ### Screens
@@ -79,9 +79,9 @@ Each phase ends with its compare images attached to the PR. **A board's task can
 
 1. **A1** Re-render the boards from the canvas (`tool/render_design_boards.mjs`, with the runtime from the canvas's `artifact-type/dc-runtime.js`) so `renders/` matches the current `Main` / `Phone`.
 2. **A2** Player gallery mounts the real expanded-player body (`ExpandedPlayerChromeBody`: top bar + layout + dock), with fixtures for translation, IPA, takes with scores — **done 2026-10-06** for Main, DDark, DEcho, DCompact, Phone, PEcho, PDark; video, recording, scored, word, hide, subtitles and empty states follow in A5.
-3. **A3** Fixtures that match the boards: continue-practice resume, library rows (video + audio, local + cloud), discover feed + channels, vocabulary items across all four statuses, credit log rows, a Free-plan subscription, sync queue rows.
+3. **A3** Fixtures that match the boards: continue-practice resume, library rows (video + audio, local + cloud), discover feed + channels, vocabulary items across all four statuses, credit log rows, a Free-plan subscription, sync queue rows — **done 2026-10-06** (`test/duet_gallery/board_data.dart`).
 4. **A4** Harness gaps: a fake `record` platform channel (Craft), a signed-out auth fixture (SignIn), a review session (Review / ReviewBack / ReviewDone), a dialog opener helper (HomeImport, LibraryDelete, LibraryImporting, SubscriptionPlans, KeyboardCheatsheet, update dialog), and a pushed subpage so back buttons render.
-5. **A5** One gallery scene per board in the [board → task index](STATUS.md#board--task-index); `duet_compare.sh` with no arguments then covers all of them.
+5. **A5** One gallery scene per board in the [board → task index](STATUS.md#board--task-index); `duet_compare.sh` with no arguments then covers all of them. State boards (dialogs, Cloud / Audio tabs, review steps, player states) are added by the Phase C / D task that rebuilds them, so each rebuild lands with its compare.
 6. **A6** Correct STATUS.md: reopen every task whose boards fail compare — **done 2026-10-06**.
 
 ### Phase B — Finish the foundations
@@ -90,7 +90,7 @@ Each phase ends with its compare images attached to the PR. **A board's task can
 2. **B2** D1.5 controls: a capsule segmented control with counts, filter pills (date / select / clear), a search field with a keycap, status chips, and keycaps without joiners.
 3. **B3** D1.6 surfaces: one neutral `EnjoyIconTile` (sunk + ink2), deleting the multi-hue variants (S1); grouped list card; stat tile; data table (header row, mono cells, status chip); hero card.
 4. **B4** Page header primitive: overline + Literata title + trailing actions (S2), adopted by every page kind.
-5. **B5** Sidebar: "Search library" placeholder and the account chip with the Upgrade pill (S4); ghost Sign out (S5).
+5. **B5** Sidebar "Search library" placeholder (S4); ghost Sign out (S5).
 
 ### Phase C — Rebuild screens to the boards
 
