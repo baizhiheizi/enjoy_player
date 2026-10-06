@@ -14,8 +14,9 @@ void main() {
 
       expect(state[SettingsSectionIds.developer], isTrue);
       expect(state[SettingsSectionIds.about], isTrue);
-      expect(state[SettingsSectionIds.cloudSync], isFalse);
-      expect(state[SettingsSectionIds.appearanceLanguage], isFalse);
+      expect(state[SettingsSectionIds.cloudSync], isTrue);
+      expect(state[SettingsSectionIds.appearanceLanguage], isTrue);
+      expect(state[SettingsSectionIds.account], isFalse);
       expect(
         state.keys,
         unorderedEquals(

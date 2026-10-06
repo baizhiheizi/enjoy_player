@@ -9,10 +9,9 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
@@ -24,13 +23,6 @@ import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_search_field.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-
-IconData _scopeIcon(HotkeyScope scope) => switch (scope) {
-  HotkeyScope.global => EnjoyIcons.compass,
-  HotkeyScope.player => EnjoyIcons.playCircle,
-  HotkeyScope.library => EnjoyIcons.book,
-  HotkeyScope.modal => EnjoyIcons.keyboard,
-};
 
 class HotkeysSettingsSection extends ConsumerStatefulWidget {
   const HotkeysSettingsSection({super.key});
@@ -105,15 +97,43 @@ class _HotkeysSettingsSectionState
       children.add(
         Row(
           children: [
-            EnjoyIconTile(
-              icon: _scopeIcon(scope),
-              size: kSettingsRowLeadingSize,
+            Container(
+              width: 26,
+              height: 26,
+              alignment: Alignment.center,
+              decoration: ShapeDecoration(
+                color: t.sunk,
+                shape: RoundedSuperellipseBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                hotkeysScopeLabel(l10n, scope).characters.first.toUpperCase(),
+                style: enjoyMonoStyle(
+                  context,
+                  size: 11,
+                  weight: FontWeight.w600,
+                  color: t.ink2,
+                ),
+              ),
             ),
-            const SizedBox(width: kSettingsRowLeadingGap),
-            Expanded(
-              child: EnjoySectionHeader(
-                title: hotkeysScopeLabel(l10n, scope),
-                caption: '${defs.length}',
+            const SizedBox(width: 10),
+            Text(
+              hotkeysScopeLabel(l10n, scope),
+              style: tt.titleMedium?.copyWith(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: t.ink,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              '${defs.length}',
+              style: enjoyMonoStyle(
+                context,
+                size: 12,
+                weight: FontWeight.w500,
+                color: t.ink3,
               ),
             ),
           ],

@@ -96,12 +96,18 @@ List<SettingsSearchEntry> filterSettingsEntries(
 /// presentation layer (FR-005/FR-006), not by this registry.
 const List<SettingsEntryDescriptor> kSettingsRegistry = [
   SettingsEntryDescriptor(sectionId: SettingsSectionIds.account),
-  SettingsEntryDescriptor(sectionId: SettingsSectionIds.cloudSync),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.cloudSync,
+    collapsedByDefault: true,
+  ),
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.cloudSync,
     rowId: 'syncStatus',
   ),
-  SettingsEntryDescriptor(sectionId: SettingsSectionIds.appearanceLanguage),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.appearanceLanguage,
+    collapsedByDefault: true,
+  ),
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.appearanceLanguage,
     rowId: 'displayLanguage',
@@ -114,17 +120,26 @@ const List<SettingsEntryDescriptor> kSettingsRegistry = [
     sectionId: SettingsSectionIds.appearanceLanguage,
     rowId: 'nativeLanguage',
   ),
-  SettingsEntryDescriptor(sectionId: SettingsSectionIds.aiProviders),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.aiProviders,
+    collapsedByDefault: true,
+  ),
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.aiProviders,
     rowId: 'aiProviders',
   ),
-  SettingsEntryDescriptor(sectionId: SettingsSectionIds.recording),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.recording,
+    collapsedByDefault: true,
+  ),
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.recording,
     rowId: 'micPicker',
   ),
-  SettingsEntryDescriptor(sectionId: SettingsSectionIds.keyboardShortcuts),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.keyboardShortcuts,
+    collapsedByDefault: true,
+  ),
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.keyboardShortcuts,
     rowId: 'openCheatsheet',

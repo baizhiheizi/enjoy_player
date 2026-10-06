@@ -150,6 +150,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
       ),
     ],
     body: () => const CloudSyncSectionBody(),
+    collapsedByDefault: true,
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.appearanceLanguage,
@@ -171,6 +172,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
       ),
     ],
     body: () => const AppearanceLanguageSectionBody(),
+    collapsedByDefault: true,
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.aiProviders,
@@ -184,6 +186,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
       ),
     ],
     body: () => const AiProvidersSectionBody(),
+    collapsedByDefault: true,
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.recording,
@@ -198,6 +201,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
       ),
     ],
     body: () => const RecordingSectionBody(),
+    collapsedByDefault: true,
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.keyboardShortcuts,
@@ -216,6 +220,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
       ),
     ],
     body: () => const KeyboardShortcutsSectionBody(),
+    collapsedByDefault: true,
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.developer,
