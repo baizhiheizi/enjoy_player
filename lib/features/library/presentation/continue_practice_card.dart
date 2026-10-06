@@ -202,13 +202,15 @@ class _ContinueCover extends ConsumerWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          MediaCardThumbnail(
-            width: width,
-            file: thumb,
-            networkUrl: networkThumbnailForMedia(media),
-            coverSeed: media.coverSeed,
-            isVideo: media.kind == MediaKind.video,
-            cs: cs,
+          Positioned.fill(
+            child: MediaCardThumbnail(
+              width: width,
+              file: thumb,
+              networkUrl: networkThumbnailForMedia(media),
+              coverSeed: media.coverSeed,
+              isVideo: media.kind == MediaKind.video,
+              cs: cs,
+            ),
           ),
           const Center(child: MediaCardPlayGlyph(size: 58)),
           Positioned(

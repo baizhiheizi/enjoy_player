@@ -82,7 +82,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(inset, t.space12, inset, 0),
                   sliver: SliverToBoxAdapter(
-                    child: _HomeOverview(hasRecents: recent.isNotEmpty),
+                    child: _HomeOverview(
+                      hasRecents: recent.isNotEmpty,
+                      width: metrics.paneWidth - metrics.horizontalInset * 2,
+                    ),
                   ),
                 ),
                 if (recent.isNotEmpty) ...[
@@ -131,7 +134,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             );
           },
-          loading: () => const _HomeLoadingScrollView(),
+          loading: () => _HomeLoadingScrollView(metrics: metrics),
           error: (e, _) {
             final cs = Theme.of(context).colorScheme;
             return Center(
@@ -169,7 +172,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 /// mount only after the first media emission to avoid competing with the
 /// initial DB query.
 class _HomeLoadingScrollView extends ConsumerWidget {
-  const _HomeLoadingScrollView();
+  const _HomeLoadingScrollView({required this.metrics});
+
+  final EnjoyPageMetrics metrics;
 
   static const int _kSkeletonTileCount = 8;
 
@@ -177,52 +182,39 @@ class _HomeLoadingScrollView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
+    final gutter = metrics.horizontalInset;
 
     return SkeletonTickerHost(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final gutter = EnjoyPageMetrics.of(
-            context,
-            kind: EnjoyPageKind.browse,
-            paneWidth: constraints.maxWidth,
-          ).horizontalInset;
-          return CustomScrollView(
-            slivers: [
-              const SliverToBoxAdapter(child: _HomeHeader()),
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  gutter,
-                  t.space12,
-                  gutter,
-                  t.space12,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: EnjoySectionHeader(title: l10n.homeRecentMedia),
-                ),
-              ),
-              SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: gutter),
-                sliver: SliverLayoutBuilder(
-                  builder: (context, gridConstraints) {
-                    return SliverGrid(
-                      gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
-                        crossAxisExtent: gridConstraints.crossAxisExtent,
-                        minTileWidth: _kRecentTileMinWidth,
-                        mainAxisSpacing: 24,
-                        crossAxisSpacing: 20,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) => const _HomeRecentGridSkeletonTile(),
-                        childCount: _kSkeletonTileCount,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              SliverToBoxAdapter(child: SizedBox(height: t.space24)),
-            ],
-          );
-        },
+      child: CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(child: _HomeHeader()),
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(gutter, t.space12, gutter, t.space12),
+            sliver: SliverToBoxAdapter(
+              child: EnjoySectionHeader(title: l10n.homeRecentMedia),
+            ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: gutter),
+            sliver: SliverLayoutBuilder(
+              builder: (context, gridConstraints) {
+                return SliverGrid(
+                  gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
+                    crossAxisExtent: gridConstraints.crossAxisExtent,
+                    minTileWidth: _kRecentTileMinWidth,
+                    mainAxisSpacing: 24,
+                    crossAxisSpacing: 20,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => const _HomeRecentGridSkeletonTile(),
+                    childCount: _kSkeletonTileCount,
+                  ),
+                );
+              },
+            ),
+          ),
+          SliverToBoxAdapter(child: SizedBox(height: t.space24)),
+        ],
       ),
     );
   }
@@ -385,80 +377,77 @@ const double _kSideCardsPairMinWidth = 560;
 const double _kHeroStackBelow = 600;
 
 /// Continue practicing (or the empty-library card) beside Today's goal and
-/// Community; the side cards wrap below the hero on narrower panes.
+/// Community; the side cards wrap below the hero on narrower panes. [width]
+/// is the band's content width from the page metrics.
 class _HomeOverview extends ConsumerWidget {
-  const _HomeOverview({required this.hasRecents});
+  const _HomeOverview({required this.hasRecents, required this.width});
 
   final bool hasRecents;
+  final double width;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSignedIn = ref.watch(authIsSignedInProvider);
     final resume = ref.watch(continuePracticeResumeProvider);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final Widget? hero = resume != null
-            ? ContinuePracticeCard(
-                resume: resume,
-                stacked: width < _kHeroStackBelow,
-              )
-            : hasRecents
-            ? null
-            : const _HomeEmptyCard();
-        const goal = TodaysGoalCard();
-        const community = CommunityActivityCard(outerPadding: EdgeInsets.zero);
+    final Widget? hero = resume != null
+        ? ContinuePracticeCard(
+            resume: resume,
+            stacked: width < _kHeroStackBelow,
+          )
+        : hasRecents
+        ? null
+        : const _HomeEmptyCard();
+    const goal = TodaysGoalCard();
+    const community = CommunityActivityCard(outerPadding: EdgeInsets.zero);
 
-        if (!isSignedIn) return hero ?? const SizedBox.shrink();
+    if (!isSignedIn) return hero ?? const SizedBox.shrink();
 
-        if (hero != null && width >= _kOverviewSplitMinWidth) {
-          return IntrinsicHeight(
+    if (hero != null && width >= _kOverviewSplitMinWidth) {
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(flex: 165, child: hero),
+            const SizedBox(width: 20),
+            Expanded(
+              flex: 100,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: _kSideColumnMinWidth,
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [goal, SizedBox(height: 20), community],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final side = width >= _kSideCardsPairMinWidth
+        ? const IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(flex: 165, child: hero),
-                const SizedBox(width: 20),
-                Expanded(
-                  flex: 100,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minWidth: _kSideColumnMinWidth,
-                    ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [goal, SizedBox(height: 20), community],
-                    ),
-                  ),
-                ),
+                Expanded(child: goal),
+                SizedBox(width: 20),
+                Expanded(child: community),
               ],
             ),
+          )
+        : const Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [goal, SizedBox(height: 16), community],
           );
-        }
-
-        final side = width >= _kSideCardsPairMinWidth
-            ? const IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(child: goal),
-                    SizedBox(width: 20),
-                    Expanded(child: community),
-                  ],
-                ),
-              )
-            : const Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [goal, SizedBox(height: 16), community],
-              );
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (hero != null) ...[hero, const SizedBox(height: 20)],
-            side,
-          ],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (hero != null) ...[hero, const SizedBox(height: 20)],
+        side,
+      ],
     );
   }
 }

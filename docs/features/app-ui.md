@@ -68,6 +68,12 @@ Adaptive page families ([ADR-0055](../decisions/0055-adaptive-page-layout-system
 
 Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-screen max widths or stretch form Save buttons to the full desktop pane.
 
+### Page bodies must not host their own `LayoutBuilder` sizing
+
+`EnjoyPage` and `Scaffold` already build their bodies inside a framework `LayoutBuilder`: the layout callback runs with render-tree mutations enabled, and a subtree that inflates there after its ancestors were laid out loses its relayout propagation (`markParentNeedsLayout` defers to the parent that is mid-callback) — the region then never lays out again, renders blank, and every pointer pass logs "Cannot hit test a render box that has never been laid out". Screens therefore take widths from the `EnjoyPageMetrics` handed to `body:` (Home's hero band does: `paneWidth - horizontalInset * 2`) instead of wrapping provider-driven cards in their own `LayoutBuilder`.
+
+The same class of failure arrives through intrinsics: `RenderImage.computeMaxIntrinsicHeight` returns the widget's `height` verbatim, so an image given `width`/`height: double.infinity` makes any ancestor `IntrinsicHeight` query abort `flushLayout` mid-pass, which strands every render object already queued for layout that frame. `MediaCardThumbnail` consequently never passes infinite sizes to its images, and the Continue-practicing cover keeps its thumbnail under `Positioned.fill` so the image's natural size never enters intrinsic math (the cover reports its designed 230px minimum).
+
 ## System chrome
 
 - **Mobile**: `MaterialApp.router` builder wraps content in `AnnotatedRegion<SystemUiOverlayStyle>` — transparent status bar with brightness-matched icons; system navigation bar follows porcelain / midnight.

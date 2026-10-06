@@ -46,8 +46,6 @@ class MediaCardThumbnail extends StatelessWidget {
     return CachedNetworkImage(
       imageUrl: url,
       fit: _coverFit,
-      width: double.infinity,
-      height: double.infinity,
       memCacheWidth: decodeWidth,
       placeholder: (context, _) => _loading(),
       errorWidget: (context, attemptedUrl, _) {
@@ -99,8 +97,6 @@ class MediaCardThumbnail extends StatelessWidget {
       return Image.file(
         file!,
         fit: _coverFit,
-        width: double.infinity,
-        height: double.infinity,
         cacheWidth: decodeWidth,
         gaplessPlayback: true,
         frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
