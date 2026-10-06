@@ -7643,6 +7643,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your Enjoy identity and sign-out'**
   String get settingsSectionAccountHint;
+
+  /// Overline above the Discover title.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube channels you follow'**
+  String get discoverOverline;
+
+  /// Heading above the Discover feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent uploads'**
+  String get discoverRecentUploads;
+
+  /// Caption beside Recent uploads: how fresh the feed is.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {age}'**
+  String discoverUpdatedAgo(String age);
+
+  /// Compact age of a feed entry or refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String discoverHoursAgo(int count);
+
+  /// Compact age of a feed entry or refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String discoverDaysAgo(int count);
+
+  /// Discover feed tile action button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to library'**
+  String get discoverAddToLibraryAction;
+
+  /// Trailing tile in the Discover channel strip; opens manage / subscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get discoverStripSubscribe;
 }
 
 class _AppLocalizationsDelegate

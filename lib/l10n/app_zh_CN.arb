@@ -1402,5 +1402,12 @@
   "profileSettingsHint": "外观、AI 服务、录音、快捷键",
   "vocabularyReviewDueValue": "{count} 个到期",
   "settingsSectionAccount": "账户",
-  "settingsSectionAccountHint": "你的 Enjoy 身份与退出登录"
+  "settingsSectionAccountHint": "你的 Enjoy 身份与退出登录",
+  "discoverOverline": "你订阅的 YouTube 频道",
+  "discoverRecentUploads": "最新上传",
+  "discoverUpdatedAgo": "更新于 {age}",
+  "discoverHoursAgo": "{count} 小时前",
+  "discoverDaysAgo": "{count} 天前",
+  "discoverAddToLibraryAction": "加入媒体库",
+  "discoverStripSubscribe": "订阅"
 }

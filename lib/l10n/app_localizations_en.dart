@@ -4201,4 +4201,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSectionAccountHint => 'Your Enjoy identity and sign-out';
+
+  @override
+  String get discoverOverline => 'YouTube channels you follow';
+
+  @override
+  String get discoverRecentUploads => 'Recent uploads';
+
+  @override
+  String discoverUpdatedAgo(String age) {
+    return 'Updated $age';
+  }
+
+  @override
+  String discoverHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String discoverDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String get discoverAddToLibraryAction => 'Add to library';
+
+  @override
+  String get discoverStripSubscribe => 'Subscribe';
 }

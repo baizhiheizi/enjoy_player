@@ -4006,6 +4006,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
+
+  @override
+  String get discoverOverline => '你订阅的 YouTube 频道';
+
+  @override
+  String get discoverRecentUploads => '最新上传';
+
+  @override
+  String discoverUpdatedAgo(String age) {
+    return '更新于 $age';
+  }
+
+  @override
+  String discoverHoursAgo(int count) {
+    return '$count 小时前';
+  }
+
+  @override
+  String discoverDaysAgo(int count) {
+    return '$count 天前';
+  }
+
+  @override
+  String get discoverAddToLibraryAction => '加入媒体库';
+
+  @override
+  String get discoverStripSubscribe => '订阅';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7335,4 +7362,31 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
+
+  @override
+  String get discoverOverline => '你订阅的 YouTube 频道';
+
+  @override
+  String get discoverRecentUploads => '最新上传';
+
+  @override
+  String discoverUpdatedAgo(String age) {
+    return '更新于 $age';
+  }
+
+  @override
+  String discoverHoursAgo(int count) {
+    return '$count 小时前';
+  }
+
+  @override
+  String discoverDaysAgo(int count) {
+    return '$count 天前';
+  }
+
+  @override
+  String get discoverAddToLibraryAction => '加入媒体库';
+
+  @override
+  String get discoverStripSubscribe => '订阅';
 }

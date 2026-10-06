@@ -2084,5 +2084,19 @@
   "settingsSectionAccount": "Account",
   "@settingsSectionAccount": {"description": "Settings rail/section: the account section."},
   "settingsSectionAccountHint": "Your Enjoy identity and sign-out",
-  "@settingsSectionAccountHint": {"description": "Settings account section hint."}
+  "@settingsSectionAccountHint": {"description": "Settings account section hint."},
+  "discoverOverline": "YouTube channels you follow",
+  "@discoverOverline": {"description": "Overline above the Discover title."},
+  "discoverRecentUploads": "Recent uploads",
+  "@discoverRecentUploads": {"description": "Heading above the Discover feed."},
+  "discoverUpdatedAgo": "Updated {age}",
+  "@discoverUpdatedAgo": {"description": "Caption beside Recent uploads: how fresh the feed is.", "placeholders": {"age": {"type": "String"}}},
+  "discoverHoursAgo": "{count}h ago",
+  "@discoverHoursAgo": {"description": "Compact age of a feed entry or refresh.", "placeholders": {"count": {"type": "int"}}},
+  "discoverDaysAgo": "{count}d ago",
+  "@discoverDaysAgo": {"description": "Compact age of a feed entry or refresh.", "placeholders": {"count": {"type": "int"}}},
+  "discoverAddToLibraryAction": "Add to library",
+  "@discoverAddToLibraryAction": {"description": "Discover feed tile action button."},
+  "discoverStripSubscribe": "Subscribe",
+  "@discoverStripSubscribe": {"description": "Trailing tile in the Discover channel strip; opens manage / subscribe."}
 }

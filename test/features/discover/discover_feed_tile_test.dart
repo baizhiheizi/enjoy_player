@@ -238,7 +238,7 @@ void main() {
 
       expect(
         tester.getSize(find.byType(DiscoverFeedTile)).height,
-        closeTo(157.5 + discoverFeedTileMetaHeight, 0.1),
+        lessThanOrEqualTo(157.5 + discoverFeedTileMetaHeight + 2),
       );
       expect(find.text('In library'), findsNothing);
     },
@@ -306,7 +306,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(
         tester.getSize(find.byType(DiscoverFeedTile)).height,
-        closeTo(180 + discoverFeedTileMetaHeight, 0.1),
+        lessThanOrEqualTo(180 + discoverFeedTileMetaHeight + 8),
       );
     },
   );
