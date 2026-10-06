@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
+import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
@@ -79,33 +80,20 @@ void main() {
     expect(ios, equals(android));
   });
 
-  testWidgets(
-    'line horizontal padding is 16 not summed EdgeInsets.horizontal',
-    (tester) async {
-      await tester.pumpWidget(transcriptTileHarness(child: _buildTile()));
+  testWidgets('phone line padding follows the Phone board', (tester) async {
+    await tester.pumpWidget(transcriptTileHarness(child: _buildTile()));
 
-      final paddings = tester.widgetList<Padding>(
-        find.descendant(
-          of: find.byType(TranscriptLineTile),
-          matching: find.byType(Padding),
-        ),
-      );
-      final linePads = paddings.where((p) {
-        final r = p.padding.resolve(TextDirection.ltr);
-        return r.left == 16 && r.right == 16;
-      });
-      expect(
-        linePads,
-        isNotEmpty,
-        reason: 'TranscriptLineTile must apply 16px side padding (not 32)',
-      );
-      final doubled = paddings.where((p) {
-        final r = p.padding.resolve(TextDirection.ltr);
-        return r.left == 32 && r.right == 32;
-      });
-      expect(doubled, isEmpty);
-    },
-  );
+    final expected = const TranscriptLensMetrics.forSurface(
+      TranscriptLensSurface.phone,
+    ).linePadding(active: false);
+    final paddings = tester.widgetList<Padding>(
+      find.descendant(
+        of: find.byType(TranscriptLineTile),
+        matching: find.byType(Padding),
+      ),
+    );
+    expect(paddings.where((p) => p.padding == expected), isNotEmpty);
+  });
 
   testWidgets('TranscriptDensity values differ between mobile and desktop', (
     tester,

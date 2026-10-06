@@ -65,7 +65,7 @@ Transcript list and echo-region chrome use [`transcriptDensityOf(context)`](../.
 | Echo divider thickness | 1.0 | 0.5 |
 | Echo control icon size | 20 | 16 |
 
-The horizontal transcript line padding stays at 16 across both platforms so the active-line rail and 44dp tap targets remain readable (`transcriptLinePadding` is horizontal-only; vertical comes from density). The density is resolved from each affected widget's `BuildContext` so the choice follows the live `defaultTargetPlatform` (no static-initialized token).
+Per-line padding, gutter widths, and lens type sizes come from [`TranscriptLensMetrics`](../../lib/core/transcript/transcript_lens_metrics.dart) (the `Main` / `Phone` boards), not from this density table. The density is resolved from each affected widget's `BuildContext` so the choice follows the live `defaultTargetPlatform` (no static-initialized token).
 
 ## Code layout
 
@@ -295,12 +295,18 @@ Coverage lives under
 
 ## Presentation — the Listen lens (Duet, ADR-0091)
 
-Each cue is a flat row on the ground: a 52px gutter with a mono
-timestamp (right-aligned) and, when the line has takes, a you practiced
-dot; the text column carries the Literata line (20 desktop / 18 phone;
-the active cue 26 / 23 at weight 500) with the Geist secondary
-translation (14, active 15.5) under it — no plate, no rail, no accent
-wash. Inactive cues read ink3 and brighten to ink on hover. The karaoke
+Each cue is a flat row on the ground. On desktop a 44px gutter (36px in
+the video column) holds a mono 11px timestamp (right-aligned) and, when
+the line has takes, a you practiced dot; on phones the gutter is an 8px
+practiced-dot column and the active cue's time sits above its text in
+original-ink. The text column carries the Literata line (17 desktop /
+15 video / 16 phone; the active cue 21 / 17 / 20 at weight 500) with the
+Geist secondary translation (13.5, active 14.5; 12.5 / 13.5 in the video
+column and on phones) under it — no plate, no rail, no accent wash.
+Every size lives in
+[`TranscriptLensMetrics`](../../lib/core/transcript/transcript_lens_metrics.dart),
+resolved per surface (desktop, video column via
+`TranscriptVideoColumnScope`, phone). Inactive cues read ink3 and brighten to ink on hover. The karaoke
 word paints as an **original-blue underline** on the spoken word (plain
 markup path and aligned-words path alike). The recording-count badge is
 replaced by the gutter dot; the count stays in the accessibility label.

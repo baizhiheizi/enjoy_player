@@ -10,9 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
-import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
@@ -429,18 +429,12 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
         }
 
         if (widget.takesRowInLoop) {
-          final phone = isMobilePlatform;
-          final videoIndent = widget.targetType == 'Audio' && !phone
-              ? 82.0
-              : 0.0;
+          final takesInset = TranscriptLensMetrics.of(context).takesLeftInset;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.only(
-                  left: videoIndent,
-                  right: phone ? 0 : 40,
-                ),
+                padding: EdgeInsets.only(left: takesInset),
                 child: ShadowTakesRow(
                   takes: list,
                   selectedId: sel?.id,
@@ -481,10 +475,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                     );
                   }
                   return Padding(
-                    padding: EdgeInsets.only(
-                      left: videoIndent,
-                      right: phone ? 0 : 40,
-                    ),
+                    padding: EdgeInsets.only(left: takesInset),
                     child: PitchContourSection(
                       mediaPath: mediaPath,
                       startSec: widget.startSec,

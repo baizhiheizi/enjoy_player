@@ -22,18 +22,20 @@
 ## Presentation — the Echo lens (Duet, ADR-0091)
 
 The loop block stands on the ground inside you-colored corner brackets
-(26px arms, 10px outer radius — no full border). The section gutter
+(20px arms, 10px outer radius; 22 / 9 on phones — no full border). The section gutter
 shows the loop start time once (mono, you-ink) next to a
 `LOOP · LINE n · x.x S` overline; loop lines carry no gutter chrome of
 their own. Loop lines grow in place: Literata 500 sized by the board —
-one line clamps 30–46px with viewport width, two lines 26–34, three or
-more 25; the video column uses 30/24 and phones 28/26/21. The
+one line clamps 22–28px with viewport width, two lines 20–24, three or
+more 19; the video column uses 20/18 and phones 23/20. The video column
+and phones drop the loop's time gutter, and the takes strip aligns with
+the loop text (66px inset on desktop). The
 Earlier / Later line pill handles (paper pill on youLine, docked over
 the top and bottom bracket edges, hidden while recording) drive the
 same `expandEchoBackward` / `shrinkEchoForward` controller calls as
 before. Neighbour lines fade by distance through `echoLensOpacity`
-(0.65 / 0.35 / 0.2) at the board's lens sizes (18 / 16.5 / 15.5
-desktop) and restore to full ink on hover. While a take is recording,
+(0.65 / 0.35 / 0.2) at the board's lens sizes (16 / 15 / 14
+desktop, 14.5 / 13.5 in the video column and on phones) and restore to full ink on hover. While a take is recording,
 the label swaps to a pulsing dot plus `RECORDING TAKE n`, and a 4px
 progress bar with the localized countdown caption runs under the loop
 lines. The old merged card's side rail, surface shell, in-card

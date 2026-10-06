@@ -17,6 +17,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_lines_pr
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
+import 'package:enjoy_player/features/player/presentation/layouts/audio_player_layout.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -129,7 +130,9 @@ GoRouter _listenRouter() => GoRouter(
         GoRoute(path: '/', builder: (_, _) => const SizedBox()),
         GoRoute(
           path: '/player/:id',
-          builder: (_, _) => const TranscriptPanel(mediaId: _mediaId),
+          builder: (_, _) => const AudioPlayerLayout(
+            transcript: TranscriptPanel(mediaId: _mediaId),
+          ),
         ),
       ],
     ),
@@ -156,22 +159,38 @@ void main() {
     );
   });
 
-  testWidgets('DEcho — player Echo, desktop light', (tester) async {
-    final db = memoryDb();
-    final engine = FakePlayerEngine();
-    addTearDown(engine.dispose);
-    await shootBoard(
-      tester,
-      'DEcho',
-      sceneApp(
-        router: _listenRouter(),
-        overrides: _echoOverrides(db, engine),
-        brightness: Brightness.light,
-      ),
-      frame: GalleryFrame.desktop,
-      db: db,
-    );
+  testWidgets('Phone — player Listen, phone light', (tester) async {
+    await _shootListen(tester, 'Phone', Brightness.light, GalleryFrame.phone);
   });
+
+  testWidgets('PEcho — player Echo, phone light', (tester) async {
+    await _shootEcho(tester, 'PEcho', GalleryFrame.phone);
+  });
+
+  testWidgets('DEcho — player Echo, desktop light', (tester) async {
+    await _shootEcho(tester, 'DEcho', GalleryFrame.desktop);
+  });
+}
+
+Future<void> _shootEcho(
+  WidgetTester tester,
+  String board,
+  GalleryFrame frame,
+) async {
+  final db = memoryDb();
+  final engine = FakePlayerEngine();
+  addTearDown(engine.dispose);
+  await shootBoard(
+    tester,
+    board,
+    sceneApp(
+      router: _listenRouter(),
+      overrides: _echoOverrides(db, engine),
+      brightness: Brightness.light,
+    ),
+    frame: frame,
+    db: db,
+  );
 }
 
 Future<void> _shootListen(

@@ -12,7 +12,6 @@ import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
-import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
@@ -31,6 +30,7 @@ import 'package:enjoy_player/features/transcript/application/auto_translate_line
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
+import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -86,29 +86,11 @@ class EchoRegionMergedCard extends ConsumerWidget {
 
     final showShadow = echo.startTimeSeconds >= 0 && echo.endTimeSeconds >= 0;
     final loopLines = echo.endLineIndex - echo.startLineIndex + 1;
-    final phone = isMobilePlatform;
-    final video = (chrome?.dexieTargetType ?? 'Audio') != 'Audio';
-    final mediaWidth = MediaQuery.sizeOf(context).width;
-    final loopFontSize = switch (loopLines) {
-      1 =>
-        video
-            ? 30.0
-            : phone
-            ? 28.0
-            : (mediaWidth * 0.032).clamp(30.0, 46.0).toDouble(),
-      2 =>
-        video
-            ? 24.0
-            : phone
-            ? 26.0
-            : (mediaWidth * 0.025).clamp(26.0, 34.0).toDouble(),
-      _ =>
-        video
-            ? 24.0
-            : phone
-            ? 21.0
-            : 25.0,
-    };
+    final metrics = TranscriptLensMetrics.of(context);
+    final loopFontSize = metrics.loopFontSize(
+      loopLines,
+      mediaWidth: MediaQuery.sizeOf(context).width,
+    );
 
     final lineWidgets = <Widget>[];
     var maxTakeNumber = 0;
@@ -188,7 +170,14 @@ class EchoRegionMergedCard extends ConsumerWidget {
         onTap: () => ref.read(playerInteractionsProvider).seekToLine(line, i),
       );
 
-      lineWidgets.add(tile);
+      lineWidgets.add(
+        i == echo.endLineIndex
+            ? tile
+            : Padding(
+                padding: EdgeInsets.only(bottom: metrics.loopLineGap),
+                child: tile,
+              ),
+      );
     }
 
     final loopSeconds = (echo.endTimeSeconds - echo.startTimeSeconds).clamp(
@@ -206,7 +195,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
     final tt = Theme.of(context).textTheme;
     final typography = TranscriptTypographyTokens.of(context);
     final gutterStyle = typography.timestampStyle.copyWith(
-      fontSize: 12,
+      fontSize: metrics.timeFontSize,
       color: tok.youInk,
     );
     final labelStyle = tt.labelSmall?.copyWith(
@@ -215,37 +204,37 @@ class EchoRegionMergedCard extends ConsumerWidget {
       letterSpacing: 0.08,
       color: tok.youInk,
     );
+    final textIndent = metrics.showLoopGutter
+        ? metrics.gutterWidth + metrics.gutterGap
+        : 0.0;
 
     final section = Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        video ? 28 : 30,
-        video ? 26 : 40,
-        video ? 28 : 30,
-      ),
+      padding: metrics.loopPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              SizedBox(
-                width: 52,
-                child: Text(
-                  formatTranscriptTimestampMs(
-                    lines[echo.startLineIndex].startMs,
+              if (metrics.showLoopGutter) ...[
+                SizedBox(
+                  width: metrics.gutterWidth,
+                  child: Text(
+                    formatTranscriptTimestampMs(
+                      lines[echo.startLineIndex].startMs,
+                    ),
+                    style: gutterStyle,
+                    textAlign: TextAlign.right,
                   ),
-                  style: gutterStyle,
-                  textAlign: TextAlign.right,
                 ),
-              ),
-              const SizedBox(width: 14),
+                SizedBox(width: metrics.gutterGap),
+              ],
               Expanded(
                 child: Row(
                   children: [
                     if (recording) ...[
                       EchoRecordingPulseDot(color: tok.you),
-                      const SizedBox(width: 10),
+                      SizedBox(width: metrics.loopLabelGap),
                     ],
                     Flexible(
                       child: Text(
@@ -260,12 +249,21 @@ class EchoRegionMergedCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          for (final tile in lineWidgets) tile,
-          if (recording && loopSeconds > 0) ...[
-            const SizedBox(height: 22),
-            _LoopRecordingProgress(targetSec: loopSeconds),
-          ],
+          SizedBox(height: metrics.loopLabelBottomGap),
+          Padding(
+            padding: EdgeInsets.only(left: textIndent),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ...lineWidgets,
+                if (recording && loopSeconds > 0) ...[
+                  SizedBox(height: metrics.loopRecordingTopGap),
+                  _LoopRecordingProgress(targetSec: loopSeconds),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -275,17 +273,28 @@ class EchoRegionMergedCard extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 13, bottom: 21),
+          padding: EdgeInsets.only(
+            top: metrics.loopTopMargin - _kLoopHandleHalfHeight,
+            bottom: 21,
+            left: metrics.loopSideMargin,
+            right: metrics.loopSideMargin,
+          ),
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 17),
+                padding: const EdgeInsets.symmetric(
+                  vertical: _kLoopHandleHalfHeight,
+                ),
                 child: Stack(
                   children: [
                     Positioned.fill(
                       child: IgnorePointer(
                         child: CustomPaint(
-                          painter: EchoLoopBrackets(color: tok.you),
+                          painter: EchoLoopBrackets(
+                            color: tok.you,
+                            arm: metrics.bracketArm,
+                            radius: metrics.bracketRadius,
+                          ),
                         ),
                       ),
                     ),
@@ -364,6 +373,8 @@ class EchoRegionMergedCard extends ConsumerWidget {
     );
   }
 }
+
+const double _kLoopHandleHalfHeight = 17;
 
 enum _EchoLoopHandlePosition { top, bottom }
 

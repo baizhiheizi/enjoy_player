@@ -145,6 +145,7 @@ final Map<String, Object? Function(EnjoyThemeTokens)> _tokenFields = {
   'marginWidth': (t) => t.marginWidth,
   'transcriptMaxListen': (t) => t.transcriptMaxListen,
   'transcriptMaxEcho': (t) => t.transcriptMaxEcho,
+  'videoColumnMin': (t) => t.videoColumnMin,
   'videoColumnMax': (t) => t.videoColumnMax,
   'videoColumnShare': (t) => t.videoColumnShare,
   'pageMaxBrowse': (t) => t.pageMaxBrowse,
@@ -219,11 +220,12 @@ void _expectTokens(Map<String, dynamic> tokensJson, Brightness brightness) {
     }
     if (key == 'videoColumn') {
       final match = RegExp(
-        r'min\((\d+(?:\.\d+)?)px,\s*(\d+(?:\.\d+)?)%\)',
+        r'clamp\((\d+(?:\.\d+)?)px,\s*(\d+(?:\.\d+)?)%,\s*(\d+(?:\.\d+)?)px\)',
       ).firstMatch(value as String);
       expect(match, isNotNull, reason: 'unexpected videoColumn syntax: $value');
-      expect(tokens.videoColumnMax, double.parse(match!.group(1)!));
+      expect(tokens.videoColumnMin, double.parse(match!.group(1)!));
       expect(tokens.videoColumnShare, double.parse(match.group(2)!) / 100);
+      expect(tokens.videoColumnMax, double.parse(match.group(3)!));
       return;
     }
     final field = _sizeFieldNames[key];

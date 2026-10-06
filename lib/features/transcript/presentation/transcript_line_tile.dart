@@ -11,10 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
-import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
-import 'package:enjoy_player/core/transcript/transcript_density.dart';
 import 'package:enjoy_player/data/subtitle/current_transcript_word.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
@@ -26,6 +24,7 @@ import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_pro
 import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_selection_toolbar.dart';
+import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_word_ipa_layer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -159,46 +158,46 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
     final typography = TranscriptTypographyTokens.of(context);
-    final density = transcriptDensityOf(context);
     final l10n = AppLocalizations.of(context);
-    final phone = isMobilePlatform;
+    final metrics = TranscriptLensMetrics.of(context);
     final loopActive = widget.groupedInEcho && widget.loopFontSize != null;
     final lensDistance = widget.lensDistance.clamp(0, 3);
     final inLens = lensDistance > 0 && !loopActive;
-    final lensFontSize =
-        switch (lensDistance) {
-          1 => 18.0,
-          2 => 16.5,
-          _ => 15.5,
-        } -
-        (phone ? 1.0 : 0.0);
+    final bodyFontSize = loopActive
+        ? widget.loopFontSize!
+        : inLens
+        ? metrics.contextFontSize(lensDistance)
+        : metrics.lineFontSize(active: widget.isActive);
+    final emphasized = (loopActive || widget.isActive) && !inLens;
     final baseBody = typography.bodyStyle.copyWith(
       height: loopActive
-          ? 1.28
+          ? metrics.loopLineHeight
           : inLens
-          ? 1.45
-          : (phone ? 1.4 : 1.5),
-      fontSize: loopActive
-          ? widget.loopFontSize
-          : inLens
-          ? lensFontSize
-          : widget.isActive
-          ? (phone ? 23.0 : 26.0)
-          : (phone ? 18.0 : 20.0),
-      fontWeight: (loopActive || widget.isActive) && !inLens
-          ? FontWeight.w500
-          : FontWeight.w400,
-      letterSpacing: loopActive ? -0.24 : null,
+          ? metrics.contextLineHeight
+          : metrics.plainLineHeight,
+      fontSize: bodyFontSize,
+      fontWeight: emphasized ? FontWeight.w500 : FontWeight.w400,
+      letterSpacing: loopActive
+          ? bodyFontSize * metrics.loopLetterSpacingEm
+          : emphasized
+          ? bodyFontSize * metrics.listenLetterSpacingEm
+          : null,
     );
     final secondaryTypographyStyle = typography.secondaryStyle.copyWith(
-      height: 1.55,
-      fontSize: widget.isActive ? 15.5 : 14.0,
+      height: loopActive
+          ? metrics.loopSecondaryLineHeight
+          : metrics.secondaryLineHeight,
+      fontSize: loopActive
+          ? metrics.loopSecondaryFontSize
+          : metrics.secondaryFontSize(active: widget.isActive),
     );
     final defaultFg = scheme.onSurface;
 
     final echoCurrent = widget.isActive && widget.inEcho;
     final timestampText = formatTranscriptTimestampMs(widget.line.startMs);
-    final timestampStyle = typography.timestampStyle;
+    final timestampStyle = typography.timestampStyle.copyWith(
+      fontSize: metrics.timeFontSize,
+    );
 
     final primaryPlain = transcriptPlainForSelection(widget.line.text);
 
@@ -301,11 +300,16 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           final ipaStyle = transcriptIpaTextStyle(
             baseBody,
             tok.ink3,
-            fontSize: loopActive ? 15.0 : 14.0,
+            fontSize: loopActive
+                ? metrics.loopIpaFontSize
+                : metrics.listenIpaFontSize,
           );
+          final alignedBody = loopActive
+              ? baseBody
+              : baseBody.copyWith(height: metrics.alignedLineHeight);
           primaryWidget = TranscriptAlignedWords(
             words: words,
-            wordStyle: baseBody,
+            wordStyle: alignedBody,
             ipaStyle: ipaStyle,
             defaultColor: lineFg,
             emphasize: widget.isActive,
@@ -357,48 +361,70 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
         final hasTakes = recordingCount != null && recordingCount > 0;
         final showGutter = !widget.groupedInEcho;
+        final practicedDot = Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: tok.you, shape: BoxShape.circle),
+        );
+        final gutterTop = inLens
+            ? metrics.contextGutterTop
+            : metrics.gutterTop(active: widget.isActive);
         final textBody = Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: widget.groupedInEcho
+              ? EdgeInsets.zero
+              : inLens
+              ? metrics.contextPadding
+              : metrics.linePadding(active: widget.isActive),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 52,
-                child: showGutter
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: phone
-                                  ? (widget.isActive ? 10.0 : 6.0)
-                                  : (widget.isActive ? 12.0 : 8.0),
-                            ),
-                            child: Text(timestampText, style: timestampStyle),
+              if (showGutter) ...[
+                SizedBox(
+                  width: metrics.gutterWidth,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: gutterTop),
+                    child: metrics.timeInGutter
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(timestampText, style: timestampStyle),
+                              if (hasTakes) ...[
+                                SizedBox(height: metrics.practicedDotGap),
+                                practicedDot,
+                              ],
+                            ],
+                          )
+                        : Align(
+                            alignment: Alignment.topLeft,
+                            child: hasTakes
+                                ? practicedDot
+                                : const SizedBox.shrink(),
                           ),
-                          if (hasTakes) ...[
-                            const SizedBox(height: 6),
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: tok.you,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ],
-                        ],
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              const SizedBox(width: 14),
+                  ),
+                ),
+                SizedBox(width: metrics.gutterGap),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (showGutter &&
+                        !metrics.timeInGutter &&
+                        widget.isActive &&
+                        !inLens) ...[
+                      Text(
+                        timestampText,
+                        style: timestampStyle.copyWith(color: tok.originalInk),
+                      ),
+                      SizedBox(height: metrics.timeAboveLineGap),
+                    ],
                     blurredPrimary,
                     if (blurredSecondary != null) ...[
-                      SizedBox(height: density.primarySecondaryGap),
+                      SizedBox(
+                        height: loopActive
+                            ? metrics.loopSecondaryTopGap
+                            : metrics.secondaryTopGap,
+                      ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -430,7 +456,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
         final content = textBody;
 
-        final lineRadius = BorderRadius.circular(tok.radiusMd);
+        final lineRadius = BorderRadius.circular(metrics.lineRadius);
         if (widget.selectable) {
           return _lensFade(
             hover,

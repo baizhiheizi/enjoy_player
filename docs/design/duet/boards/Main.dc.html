@@ -39,7 +39,7 @@ body{margin:0}
 @keyframes dtpulse{0%,100%{opacity:1}50%{opacity:.3}}
 .dt-pulse{animation:dtpulse 1.2s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){.dt-pulse{animation:none}}
-@media (max-width:1100px){.dt-margin{position:absolute!important;right:0;top:0;bottom:0;z-index:8;box-shadow:var(--shadow);width:380px!important}.dt-scrim{display:block}.dt-wide{display:none!important}}
+@media (max-width:1100px){.dt-margin{position:absolute!important;right:0;top:0;bottom:0;z-index:8;box-shadow:var(--shadow);width:340px!important}.dt-scrim{display:block}.dt-wide{display:none!important}}
 @media (max-width:980px){.dt-mid{display:none!important}}
 </style>
 </helmet>
@@ -150,28 +150,28 @@ body{margin:0}
 
             <sc-if value="{{ isListen }}" hint-placeholder-val="{{ true }}">
               <sc-for list="{{ lines }}" as="L" hint-placeholder-count="10">
-                <div data-line="{{ L.idx }}" onMouseEnter="{{ L.enter }}" onMouseLeave="{{ L.leave }}" style="display: grid; grid-template-columns: 52px minmax(0, 1fr); column-gap: 14px; padding: {{ L.pad }}; border-radius: 14px">
-                  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 9px; padding-top: {{ L.gutTop }}">
-                    <button onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="font: 500 12px/1 var(--mono); color: {{ L.timeColor }}; padding: 3px 4px; border-radius: 6px">{{ L.time }}</button>
+                <div data-line="{{ L.idx }}" onMouseEnter="{{ L.enter }}" onMouseLeave="{{ L.leave }}" style="display: grid; grid-template-columns: {{ gutCol }} minmax(0, 1fr); column-gap: 10px; padding: {{ L.pad }}; border-radius: 10px">
+                  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: {{ L.gutTop }}">
+                    <button onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="font: 500 11px/1 var(--mono); color: {{ L.timeColor }}; padding: 3px 2px; border-radius: 6px">{{ L.time }}</button>
                     <sc-if value="{{ L.practiced }}" hint-placeholder-val="{{ false }}">
                       <span title="You have takes on this line" style="width: 6px; height: 6px; border-radius: 50%; background: var(--you); margin-right: 4px"></span>
                     </sc-if>
                   </div>
                   <div style="min-width: 0">
                     <sc-if value="{{ L.showWords }}" hint-placeholder-val="{{ false }}">
-                      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: 0.27em; row-gap: {{ L.rgap }}; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.34; font-weight: 500; letter-spacing: -0.008em">
+                      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: 0.27em; row-gap: {{ L.rgap }}; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.32; font-weight: 500; letter-spacing: -0.006em">
                         <sc-for list="{{ L.words }}" as="w" hint-placeholder-count="12">
                           <span style="display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px">
                             <button class="dt-w" onClick="{{ w.pick }}" aria-label="{{ w.aria }}" style="padding: 0 2px; margin: 0 -2px; color: {{ w.color }}; background: {{ w.bg }}; text-decoration-line: {{ w.ul }}; text-decoration-style: {{ w.ulStyle }}; text-decoration-color: {{ w.ulColor }}; text-decoration-thickness: {{ w.ulW }}; text-underline-offset: 0.24em">{{ w.text }}</button>
                             <sc-if value="{{ w.showIpa }}" hint-placeholder-val="{{ false }}">
-                              <span style="font: 400 14px/1.2 var(--ipa); color: var(--ink3); padding-left: 1px; letter-spacing: 0">{{ w.ipa }}</span>
+                              <span style="font: 400 12px/1.2 var(--ipa); color: var(--ink3); padding-left: 1px; letter-spacing: 0">{{ w.ipa }}</span>
                             </sc-if>
                           </span>
                         </sc-for>
                       </div>
                     </sc-if>
                     <sc-if value="{{ L.showPlain }}" hint-placeholder-val="{{ true }}">
-                      <button class="dt-lt" onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: block; width: 100%; text-align: left; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.5; color: {{ L.color }}; text-wrap: pretty">{{ L.en }}</button>
+                      <button class="dt-lt" onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: block; width: 100%; text-align: left; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.42; color: {{ L.color }}; text-wrap: pretty">{{ L.en }}</button>
                     </sc-if>
                     <sc-if value="{{ L.showShapes }}" hint-placeholder-val="{{ false }}">
                       <div aria-label="Hidden line" style="display: flex; flex-wrap: wrap; column-gap: 0.3em; row-gap: 10px; padding: 0.42em 0; font-size: {{ L.fs }}">
@@ -181,7 +181,7 @@ body{margin:0}
                       </div>
                     </sc-if>
                     <sc-if value="{{ L.showZh }}" hint-placeholder-val="{{ true }}">
-                      <div style="margin-top: 5px; font-size: {{ L.zhFs }}; line-height: 1.55; color: {{ L.zhColor }}">{{ L.zh }}</div>
+                      <div style="margin-top: 2px; font-size: {{ L.zhFs }}; line-height: 1.45; color: {{ L.zhColor }}">{{ L.zh }}</div>
                     </sc-if>
                   </div>
                 </div>
@@ -190,17 +190,17 @@ body{margin:0}
 
             <sc-if value="{{ isEcho }}" hint-placeholder-val="{{ false }}">
               <sc-for list="{{ above }}" as="L" hint-placeholder-count="4">
-                <button class="dt-lt" data-line="{{ L.idx }}" onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: grid; grid-template-columns: 52px minmax(0, 1fr); column-gap: 14px; text-align: left; padding: 6px 16px; opacity: {{ L.op }}; color: var(--ink3)">
-                  <span style="font: 500 11.5px/1 var(--mono); justify-self: end; padding-top: {{ L.gutTop }}">{{ L.time }}</span>
-                  <span style="font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.45; text-wrap: pretty">{{ L.shown }}</span>
+                <button class="dt-lt" data-line="{{ L.idx }}" onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: grid; grid-template-columns: {{ gutCol }} minmax(0, 1fr); column-gap: 10px; text-align: left; padding: {{ ctxPad }}; opacity: {{ L.op }}; color: var(--ink3)">
+                  <span style="font: 500 11px/1 var(--mono); justify-self: end; padding-top: {{ L.gutTop }}">{{ L.time }}</span>
+                  <span style="font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.4; text-wrap: pretty">{{ L.shown }}</span>
                 </button>
               </sc-for>
 
-              <section data-line="{{ loopFirst }}" aria-label="Echo loop" style="position: relative; margin: 30px 0 4px; padding: {{ loopPad }}">
-                <span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-left: 2px solid var(--you); border-top: 2px solid var(--you); border-top-left-radius: 10px"></span>
-                <span aria-hidden="true" style="position: absolute; right: 0; top: 0; width: 26px; height: 26px; border-right: 2px solid var(--you); border-top: 2px solid var(--you); border-top-right-radius: 10px"></span>
-                <span aria-hidden="true" style="position: absolute; left: 0; bottom: 0; width: 26px; height: 26px; border-left: 2px solid var(--you); border-bottom: 2px solid var(--you); border-bottom-left-radius: 10px"></span>
-                <span aria-hidden="true" style="position: absolute; right: 0; bottom: 0; width: 26px; height: 26px; border-right: 2px solid var(--you); border-bottom: 2px solid var(--you); border-bottom-right-radius: 10px"></span>
+              <section data-line="{{ loopFirst }}" aria-label="Echo loop" style="position: relative; margin: 24px 0 4px; padding: {{ loopPad }}">
+                <span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-left: 2px solid var(--you); border-top: 2px solid var(--you); border-top-left-radius: 10px"></span>
+                <span aria-hidden="true" style="position: absolute; right: 0; top: 0; width: 20px; height: 20px; border-right: 2px solid var(--you); border-top: 2px solid var(--you); border-top-right-radius: 10px"></span>
+                <span aria-hidden="true" style="position: absolute; left: 0; bottom: 0; width: 20px; height: 20px; border-left: 2px solid var(--you); border-bottom: 2px solid var(--you); border-bottom-left-radius: 10px"></span>
+                <span aria-hidden="true" style="position: absolute; right: 0; bottom: 0; width: 20px; height: 20px; border-right: 2px solid var(--you); border-bottom: 2px solid var(--you); border-bottom-right-radius: 10px"></span>
 
                 <sc-if value="{{ showHandles }}" hint-placeholder-val="{{ true }}">
                   <div style="position: absolute; top: -17px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 999px; background: var(--paper); border: 1px solid var(--you-line)">
@@ -215,22 +215,24 @@ body{margin:0}
                   </div>
                 </sc-if>
 
-                <div style="position: absolute; left: 16px; top: 34px; width: 52px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
-                  <span style="font: 500 12px/1 var(--mono); color: var(--you-ink)">{{ loopTime }}</span>
-                </div>
+                <sc-if value="{{ showLoopTime }}" hint-placeholder-val="{{ false }}">
+                  <div style="position: absolute; left: 12px; top: 28px; width: 44px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+                    <span style="font: 500 11px/1 var(--mono); color: var(--you-ink)">{{ loopTime }}</span>
+                  </div>
+                </sc-if>
 
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; min-height: 16px">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; min-height: 14px">
                   <sc-if value="{{ rec }}" hint-placeholder-val="{{ false }}">
                     <span class="dt-pulse" style="width: 8px; height: 8px; border-radius: 50%; background: var(--you)"></span>
                   </sc-if>
                   <span class="dt-ov" style="color: var(--you-ink)">{{ loopLabel }}</span>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 18px">
+                <div style="display: flex; flex-direction: column; gap: 12px">
                   <sc-for list="{{ loopLines }}" as="L" hint-placeholder-count="1">
                     <div onMouseEnter="{{ L.enter }}" onMouseLeave="{{ L.leave }}">
                       <sc-if value="{{ L.showWords }}" hint-placeholder-val="{{ true }}">
-                        <div style="display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: 0.25em; row-gap: {{ L.rgap }}; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.28; font-weight: 500; letter-spacing: -0.012em">
+                        <div style="display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: 0.25em; row-gap: {{ L.rgap }}; font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.3; font-weight: 500; letter-spacing: -0.01em">
                           <sc-for list="{{ L.words }}" as="w" hint-placeholder-count="12">
                             <span style="display: inline-flex; align-items: flex-start; gap: 0.18em">
                               <sc-if value="{{ w.brk }}" hint-placeholder-val="{{ false }}">
@@ -242,7 +244,7 @@ body{margin:0}
                               <span style="display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px">
                                 <button class="dt-w" onClick="{{ w.pick }}" aria-label="{{ w.aria }}" style="padding: 0 2px; margin: 0 -2px; color: {{ w.color }}; background: {{ w.bg }}; text-decoration-line: {{ w.ul }}; text-decoration-style: {{ w.ulStyle }}; text-decoration-color: {{ w.ulColor }}; text-decoration-thickness: {{ w.ulW }}; text-underline-offset: 0.2em">{{ w.text }}</button>
                                 <sc-if value="{{ w.showIpa }}" hint-placeholder-val="{{ false }}">
-                                  <span style="font: 400 15px/1.2 var(--ipa); color: var(--ink3); padding-left: 1px; letter-spacing: 0">{{ w.ipa }}</span>
+                                  <span style="font: 400 13px/1.2 var(--ipa); color: var(--ink3); padding-left: 1px; letter-spacing: 0">{{ w.ipa }}</span>
                                 </sc-if>
                               </span>
                             </span>
@@ -257,14 +259,14 @@ body{margin:0}
                         </div>
                       </sc-if>
                       <sc-if value="{{ L.showZh }}" hint-placeholder-val="{{ true }}">
-                        <div style="margin-top: 12px; font-size: 17px; line-height: 1.55; color: var(--ink2)">{{ L.zh }}</div>
+                        <div style="margin-top: 6px; font-size: {{ loopZhFs }}; line-height: 1.5; color: var(--ink2)">{{ L.zh }}</div>
                       </sc-if>
                     </div>
                   </sc-for>
                 </div>
 
                 <sc-if value="{{ rec }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top: 22px; display: flex; align-items: center; gap: 12px">
+                  <div style="margin-top: 16px; display: flex; align-items: center; gap: 12px">
                     <div style="position: relative; flex: 1; max-width: 360px; height: 4px; border-radius: 2px; background: var(--you-soft)">
                       <span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{ recPct }}; border-radius: 2px; background: var(--you)"></span>
                     </div>
@@ -273,12 +275,12 @@ body{margin:0}
                 </sc-if>
 
                 <sc-if value="{{ showPitch }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top: 26px">
-                    <div style="display: flex; align-items: center; gap: 18px; font-size: 12px; color: var(--ink3); margin-bottom: 10px">
+                  <div style="margin-top: 18px">
+                    <div style="display: flex; align-items: center; gap: 16px; font-size: 11.5px; color: var(--ink3); margin-bottom: 10px">
                       <span style="display: inline-flex; align-items: center; gap: 7px"><span style="width: 16px; height: 8px; border-radius: 4px; background: var(--blue); opacity: .35"></span>Reference pitch</span>
                       <span style="display: inline-flex; align-items: center; gap: 7px"><span style="width: 16px; height: 3px; border-radius: 2px; background: var(--you)"></span>Your pitch · {{ selLabel }}</span>
                     </div>
-                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Pitch contour: the original in blue, your take in violet" style="display: block; width: 100%; height: 84px; overflow: visible">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Pitch contour: the original in blue, your take in violet" style="display: block; width: 100%; height: 64px; overflow: visible">
                       <path d="{{ refPath }}" fill="none" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="stroke: var(--blue); opacity: .35"></path>
                       <path d="{{ userPath }}" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="stroke: var(--you)"></path>
                     </svg>
@@ -304,9 +306,9 @@ body{margin:0}
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: {{ takesPad }}">
                   <span class="dt-ov" style="color: var(--ink3); margin-right: 6px">Takes</span>
                   <sc-for list="{{ takes }}" as="tk" hint-placeholder-count="3">
-                    <div class="dt-chip" style="display: inline-flex; align-items: center; height: 42px; border-radius: 999px; border: 1px solid {{ tk.border }}; background: {{ tk.bg }}; padding-right: 5px">
-                      <button onClick="{{ tk.play }}" aria-label="{{ tk.aria }}" title="Play take · G" style="height: 40px; display: inline-flex; align-items: center; gap: 9px; padding: 0 10px 0 7px; border-radius: 999px; font-size: 13.5px; font-weight: 500; color: var(--ink)">
-                        <span style="width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: {{ tk.iconBg }}; color: {{ tk.iconFg }}">
+                    <div class="dt-chip" style="display: inline-flex; align-items: center; height: 36px; border-radius: 999px; border: 1px solid {{ tk.border }}; background: {{ tk.bg }}; padding-right: 5px">
+                      <button onClick="{{ tk.play }}" aria-label="{{ tk.aria }}" title="Play take · G" style="height: 34px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px 0 5px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--ink)">
+                        <span style="width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: {{ tk.iconBg }}; color: {{ tk.iconFg }}">
                           <sc-if value="{{ tk.notPlaying }}" hint-placeholder-val="{{ true }}">
                             <svg viewBox="0 0 24 24" fill="currentColor" style="width: 12px; height: 12px; margin-left: 2px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg>
                           </sc-if>
@@ -318,10 +320,10 @@ body{margin:0}
                         <span style="font: 500 12px/1 var(--mono); color: var(--ink3)">{{ tk.dur }}</span>
                       </button>
                       <sc-if value="{{ tk.hasScore }}" hint-placeholder-val="{{ true }}">
-                        <button onClick="{{ tk.open }}" aria-label="{{ tk.scoreAria }}" title="View pronunciation assessment" style="height: 30px; min-width: 42px; padding: 0 10px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font: 600 13px/1 var(--mono); color: var(--ink)">{{ tk.score }}</button>
+                        <button onClick="{{ tk.open }}" aria-label="{{ tk.scoreAria }}" title="View pronunciation assessment" style="height: 26px; min-width: 38px; padding: 0 8px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font: 600 13px/1 var(--mono); color: var(--ink)">{{ tk.score }}</button>
                       </sc-if>
                       <sc-if value="{{ tk.canScore }}" hint-placeholder-val="{{ false }}">
-                        <button onClick="{{ tk.doScore }}" title="Run pronunciation assessment · V" style="height: 30px; padding: 0 11px 0 9px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--ink2); background: var(--sunk)">
+                        <button onClick="{{ tk.doScore }}" title="Run pronunciation assessment · V" style="height: 26px; padding: 0 10px 0 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--ink2); background: var(--sunk)">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><path d="m12 14 4-4"></path><path d="M3.3 19a10 10 0 1 1 17.4 0"></path></svg>
                           Score
                         </button>
@@ -343,9 +345,9 @@ body{margin:0}
               </sc-if>
 
               <sc-for list="{{ below }}" as="L" hint-placeholder-count="4">
-                <button class="dt-lt" data-line="{{ L.idx }}" onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: grid; grid-template-columns: 52px minmax(0, 1fr); column-gap: 14px; text-align: left; padding: 6px 16px; opacity: {{ L.op }}; color: var(--ink3)">
-                  <span style="font: 500 11.5px/1 var(--mono); justify-self: end; padding-top: {{ L.gutTop }}">{{ L.time }}</span>
-                  <span style="font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.45; text-wrap: pretty">{{ L.shown }}</span>
+                <button class="dt-lt" data-line="{{ L.idx }}" onClick="{{ L.seek }}" aria-label="{{ L.seekLabel }}" style="display: grid; grid-template-columns: {{ gutCol }} minmax(0, 1fr); column-gap: 10px; text-align: left; padding: {{ ctxPad }}; opacity: {{ L.op }}; color: var(--ink3)">
+                  <span style="font: 500 11px/1 var(--mono); justify-self: end; padding-top: {{ L.gutTop }}">{{ L.time }}</span>
+                  <span style="font-family: var(--content); font-size: {{ L.fs }}; line-height: 1.4; text-wrap: pretty">{{ L.shown }}</span>
                 </button>
               </sc-for>
             </sc-if>
@@ -451,8 +453,8 @@ body{margin:0}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>
           </div>
-          <div class="dt-scroll" style="flex: 1; min-height: 0; overflow-y: auto; padding: 4px 24px 28px">
-            <div style="font-family: var(--content); font-size: 42px; line-height: 1.08; font-weight: 500; letter-spacing: -0.02em">{{ wTerm }}</div>
+          <div class="dt-scroll" style="flex: 1; min-height: 0; overflow-y: auto; padding: 4px 20px 24px">
+            <div style="font-family: var(--content); font-size: 30px; line-height: 1.1; font-weight: 500; letter-spacing: -0.015em">{{ wTerm }}</div>
             <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 10px">
               <span style="font: 400 17px/1 var(--ipa); color: var(--ink2)">{{ wIpa }}</span>
               <span style="font-size: 13px; color: var(--ink3)">{{ wPos }}</span>
@@ -480,7 +482,7 @@ body{margin:0}
                 Translation
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><path d="m18 15-6-6-6 6"></path></svg>
               </button>
-              <div style="padding: 0 16px 18px; font-size: 21px; line-height: 1.5; color: {{ wTrColor }}">{{ wTr }}</div>
+              <div style="padding: 0 16px 14px; font-size: 17px; line-height: 1.5; color: {{ wTrColor }}">{{ wTr }}</div>
             </div>
             <div style="margin-top: 10px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden">
               <button aria-expanded="false" style="width: 100%; height: 46px; display: flex; align-items: center; gap: 10px; padding: 0 16px; font-size: 13.5px; font-weight: 600">
@@ -506,10 +508,10 @@ body{margin:0}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>
           </div>
-          <div class="dt-scroll" style="flex: 1; min-height: 0; overflow-y: auto; padding: 6px 24px 28px">
+          <div class="dt-scroll" style="flex: 1; min-height: 0; overflow-y: auto; padding: 6px 20px 24px">
             <sc-if value="{{ hasAssess }}" hint-placeholder-val="{{ true }}">
               <div style="display: flex; align-items: flex-end; gap: 14px">
-                <span style="font-family: var(--content); font-size: 76px; line-height: 0.86; font-weight: 500; letter-spacing: -0.035em">{{ aOverall }}</span>
+                <span style="font-family: var(--content); font-size: 56px; line-height: 0.86; font-weight: 500; letter-spacing: -0.03em">{{ aOverall }}</span>
                 <span style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 4px">
                   <span style="font-size: 16px; font-weight: 600">{{ aLevel }}</span>
                   <span style="font-size: 12.5px; color: var(--ink3)">Overall score</span>
@@ -978,11 +980,12 @@ class Component extends DCLogic {
           practiced: !!DPRACTICED[i],
           showWords: active && !hidden, showPlain: !active && !hidden, showShapes: hidden, showZh: !hidden,
           words: active && !hidden ? wordsFor(i) : [], shapes: hidden ? dShapes(L) : [],
-          fs: active ? '26px' : '20px', color: past ? 'var(--ink3)' : 'var(--ink2)',
-          zhFs: active ? '15.5px' : '14px', zhColor: active ? 'var(--ink2)' : 'var(--ink3)',
+          fs: isVideo ? (active ? '17px' : '15px') : (active ? '21px' : '17px'), color: past ? 'var(--ink3)' : 'var(--ink2)',
+          zhFs: isVideo ? (active ? '13.5px' : '12.5px') : (active ? '14.5px' : '13.5px'), zhColor: active ? 'var(--ink2)' : 'var(--ink3)',
           timeColor: active ? 'var(--blue-ink)' : 'var(--ink3)',
-          pad: active ? '16px 16px 18px' : '9px 16px', gutTop: active ? '11px' : '7px',
-          rgap: ipaOn ? '12px' : '2px'
+          pad: isVideo ? (active ? '8px 10px 9px 4px' : '4px 10px 4px 4px') : (active ? '10px 14px 12px 6px' : '5px 14px 5px 6px'),
+          gutTop: isVideo ? (active ? '5px' : '4px') : (active ? '7px' : '5px'),
+          rgap: ipaOn ? '8px' : '1px'
         };
       });
     }
@@ -995,8 +998,8 @@ class Component extends DCLogic {
             idx: i, enter: rf.enter, leave: rf.leave, zh: L.zh,
             showWords: !hidden, showShapes: hidden, showZh: !hidden,
             words: !hidden ? wordsFor(i) : [], shapes: hidden ? dShapes(L) : [],
-            fs: isVideo ? (cnt === 1 ? '30px' : '24px') : cnt === 1 ? 'clamp(30px, 3.2vw, 46px)' : cnt === 2 ? 'clamp(26px, 2.5vw, 34px)' : '25px',
-            rgap: ipaOn ? '16px' : '4px'
+            fs: isVideo ? (cnt === 1 ? '20px' : '18px') : cnt === 1 ? 'clamp(22px, 2vw, 28px)' : cnt === 2 ? 'clamp(20px, 1.7vw, 24px)' : '19px',
+            rgap: ipaOn ? '10px' : '2px'
           });
           return;
         }
@@ -1005,7 +1008,7 @@ class Component extends DCLogic {
           idx: i, time: dFmt(L.s), shown: hidden ? L.w.map(function (w) { return '▬'.repeat(Math.max(1, Math.round(dNorm(w).length / 2))); }).join(' ') : L.en,
           seek: function () { self.seekLine(i); }, seekLabel: 'Move the loop to ' + dFmt(L.s),
           op: dist === 1 ? 0.65 : dist === 2 ? 0.35 : 0.2,
-          fs: dist === 1 ? '18px' : dist === 2 ? '16.5px' : '15.5px', gutTop: dist === 1 ? '6px' : '5px'
+          fs: isVideo ? (dist === 1 ? '14.5px' : '13.5px') : (dist === 1 ? '16px' : dist === 2 ? '15px' : '14px'), gutTop: '4px'
         };
         (i < s.es ? above : below).push(item);
       });
@@ -1052,7 +1055,9 @@ class Component extends DCLogic {
       themeClass: 'dt-' + theme,
       mediaMeta: mediaLabel + ' · ' + dFmt(DT) + ' · English · 中文',
       isVideo: isVideo, isYoutube: media === 'youtube', showPausedTitle: isVideo && !s.playing && content === 'transcript', actHuman: act + 1,
-      colFlex: isVideo ? '0 0 min(520px, 46%)' : '1 1 auto',
+      colFlex: isVideo ? '0 0 clamp(300px, 28%, 380px)' : '1 1 auto',
+      gutCol: isVideo ? '36px' : '44px', ctxPad: isVideo ? '3px 10px 3px 4px' : '3px 14px 3px 6px',
+      showLoopTime: !isVideo, loopZhFs: isVideo ? '13.5px' : '15px',
       modeLocked: content === 'locate',
       toListen: function () { self.setMode('listen'); }, toEcho: function () { self.setMode('echo'); },
       listenPressed: isListen ? 'true' : 'false', echoPressed: isEcho ? 'true' : 'false', echoDisabled: !hasLines,
@@ -1064,8 +1069,8 @@ class Component extends DCLogic {
       showHideHint: s.hide && hasLines,
       showTranscript: hasLines, showEmpty: content === 'empty', showGenerating: content === 'generating', showLocate: content === 'locate',
       setScroller: this._ref || (this._ref = function (el) { self.scroller = el; }),
-      scrollPad: isVideo ? (isEcho ? '16vh 18px 34vh' : '28px 18px 30vh') : isEcho ? '18vh 40px 34vh' : '36px 40px 30vh', colMax: isEcho ? '880px' : '780px',
-      loopPad: isVideo ? '28px 26px 28px 72px' : '30px 40px 30px 82px', takesPad: isVideo ? '30px 0 6px 0' : '30px 0 6px 82px',
+      scrollPad: isVideo ? (isEcho ? '8vh 10px 30vh' : '12px 8px 30vh') : isEcho ? '10vh 28px 30vh' : '20px 28px 30vh', colMax: isEcho ? '760px' : '700px',
+      loopPad: isVideo ? '22px 14px 22px 14px' : '24px 28px 24px 66px', takesPad: isVideo ? '22px 0 4px 0' : '22px 0 4px 66px',
       isListen: isListen, isEcho: isEcho, lines: lines, above: above, below: below, loopLines: loopLines,
       loopFirst: s.es, loopTime: dFmt(DL[s.es].s), loopLabel: loopLabel, rec: s.rec && isEcho,
       showHandles: isEcho && !s.rec,
@@ -1084,7 +1089,7 @@ class Component extends DCLogic {
 
       marginOpen: marginOpen, closeMargin: function () { self.setState({ margin: 'none' }); },
       marginLabel: s.margin === 'word' ? 'Look up' : 'Pronunciation assessment',
-      mPos: isVideo ? 'absolute' : 'relative', mW: isVideo ? 'min(520px, 46%)' : '380px',
+      mPos: isVideo ? 'absolute' : 'relative', mW: isVideo ? 'clamp(300px, 28%, 380px)' : '340px',
       isWordMargin: s.margin === 'word', isTakeMargin: s.margin === 'take' && isEcho,
       wTerm: s.word, wIpa: wd ? wd.ipa : (DIPA[s.word] || ''), wPos: wd ? wd.pos : '',
       wTr: wd ? wd.tr : 'Loading…', wTrColor: wd ? 'var(--ink)' : 'var(--ink3)',

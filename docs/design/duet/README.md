@@ -32,7 +32,7 @@
 - **Two voices.** Blue (the logo's start, `original`) is the original speaker: playback, the spoken word, reference pitch, Listen. Violet (the logo's end, `you`) is the learner: the Echo loop, Record, takes, your pitch, notes on a take. The brand gradient between them is Enjoy itself (logo, Play, primary buttons, goal ring, Pro). Everything else is ink.
 - **Never by hue alone.** Blue and violet are close in hue, so the original is always the translucent layer and you the solid one (pitch band vs line, soft vs filled buttons) and they keep a ~1.9:1 lightness gap in both themes.
 - **Modes are lenses.** Listen reads like a book; Echo grows the loop line in place and fades the rest through the logo's opacity steps (1 / 0.65 / 0.35 / 0.2). One transcript, no screen change.
-- **Controls below, context beside.** Every player control lives in the dock. The side margin (380 px) opens only for a word lookup or a take's assessment; under 1100 px it is a drawer, on phones a bottom sheet. It replaces today's lookup dialog and assessment dialog.
+- **Controls below, context beside.** Every player control lives in the dock. The side margin (340 px) opens only for a word lookup or a take's assessment; under 1100 px it is a drawer, on phones a bottom sheet. It replaces today's lookup dialog and assessment dialog.
 - **Feedback on the words.** Mispronounced words get a wavy violet underline, a missing pause gets a violet pause mark, the recording countdown fills along the words. Scores are never colored: a number plus a four-step meter.
 - **Scores**: Excellent ≥ 91 · Good ≥ 81 · Fair ≥ 61 · Poor below (same thresholds as `score_level.dart`).
 

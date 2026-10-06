@@ -853,9 +853,10 @@ class _EchoControls extends StatelessWidget {
         : const SizedBox.shrink();
 
     if (phone) {
-      return SizedBox(
-        height: 124,
+      return ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 124),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(children: [Expanded(child: left)]),

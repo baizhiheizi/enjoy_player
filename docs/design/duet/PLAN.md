@@ -117,7 +117,7 @@ New fields, all from `tokens.json`:
 - **Colors:** `ground`, `paper`, `raised`, `sunk`, `line`, `ink`, `ink2`, `ink3`, `original`, `originalInk`, `originalSoft`, `you`, `youInk`, `youSoft`, `youLine`, `onYou`, `brandInk`, `brandSoft`, `primary` / `onPrimary` (ink fill), `danger`, `shape`, `tick`, `scrim`, `video`, and `vocabStatus` (×4).
 - **Gradients:** `brand` and `logo`.
 - **Radii:** `radiusKeycap` 5, `radiusBadge` 7, `radiusControl` 12, `radiusTile` 14, `radiusCard` 20, `radiusCardLarge` 24, `radiusDialog` 24, `radiusSheet` 26.
-- **Sizes:** the `size` block (dock buttons, margin 380, top bar 60, subpage header 64, tab bar 84 / 26, browse 1180 / craft 1080 widths, gutters 40 / 16).
+- **Sizes:** the `size` block (dock buttons, margin 340 — 380 before the D3.14 density pass, top bar 60, subpage header 64, tab bar 84 / 26, browse 1180 / craft 1080 widths, gutters 40 / 16).
 - **Breakpoint:** `breakpointMarginDrawer` 1100.
 - **Motion:** `motionLens` 280 and `motionMargin` 220.
 - **Opacity:** `echoLensOpacity` `[1, .65, .35, .2]` and `referencePitchOpacity` .35.

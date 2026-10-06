@@ -57,7 +57,7 @@ void main() {
       expect(tokens.intelligenceInk, AppColors.originalInkDark);
       expect(tokens.echoInk, AppColors.youInkDark);
       expect(tokens.ccBadge, scheme.primary);
-      expect(tokens.contentMaxWidth, 780);
+      expect(tokens.contentMaxWidth, 700);
       expect(tokens.formMaxWidth, 680);
       expect(tokens.hubMaxWidth, 840);
       expect(tokens.pageGutterCompact, 16);
@@ -414,7 +414,7 @@ void main() {
       expect(result.breakpointRail, 1350);
       expect(result.breakpointTranscriptSideBySide, 1080);
 
-      expect(result.contentMaxWidth, 1110);
+      expect(result.contentMaxWidth, 1070);
       expect(result.formMaxWidth, 1020);
       expect(result.hubMaxWidth, 1260);
       expect(result.pageGutterCompact, 24);

@@ -274,8 +274,8 @@ class _TakeChip extends ConsumerWidget {
     final duration = (row.duration / 1000).toStringAsFixed(1);
 
     final playCircle = Container(
-      width: 28,
-      height: 28,
+      width: 24,
+      height: 24,
       decoration: BoxDecoration(
         color: selected ? tok.you : tok.sunk,
         shape: BoxShape.circle,
@@ -301,7 +301,7 @@ class _TakeChip extends ConsumerWidget {
     );
 
     return Container(
-      height: 42,
+      height: tok.takeChipHeight,
       padding: const EdgeInsets.only(right: 5),
       decoration: ShapeDecoration(
         color: selected ? tok.youSoft : tok.paper,
@@ -323,16 +323,16 @@ class _TakeChip extends ConsumerWidget {
                   : null,
               borderRadius: BorderRadius.circular(tok.radiusFull),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 7),
+                padding: const EdgeInsets.only(left: 5, right: 8),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     playCircle,
-                    const SizedBox(width: 9),
+                    const SizedBox(width: 8),
                     Text(
                       '${l10n.shadowRecordingTake} $takeNumber',
                       style: tt.labelMedium?.copyWith(
-                        fontSize: 13.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: tok.ink,
                       ),
@@ -378,8 +378,9 @@ class _TakeChip extends ConsumerWidget {
                       : null,
                   borderRadius: BorderRadius.circular(tok.radiusFull),
                   child: Container(
-                    height: 30,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    height: 26,
+                    constraints: const BoxConstraints(minWidth: 38),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     alignment: Alignment.center,
                     decoration: ShapeDecoration(
                       color: tok.paper,
@@ -419,8 +420,8 @@ class _TakeChip extends ConsumerWidget {
                   ),
                   borderRadius: BorderRadius.circular(tok.radiusFull),
                   child: Container(
-                    height: 30,
-                    padding: const EdgeInsets.symmetric(horizontal: 9),
+                    height: 26,
+                    padding: const EdgeInsets.only(left: 8, right: 10),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

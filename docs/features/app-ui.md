@@ -107,7 +107,7 @@ Controls:   32 / 40 / 50                        (controlHeightSm / controlHeight
 Sizes:      touch 44 · icon button 40 (44 phone) · segment 38 · chip 34 · take chip 42
             play 60 (68 phone) · record 62 (76 phone) · Original pill 150 × 52 (56 phone)
 Shell:      sidebar 244 · brand row 52 · tab bar 84 + 26 safe inset · player top bar 60 · subpage header 64
-Player:     ruler hit 34 · margin 380 · Listen column 780 · Echo column 880 · video column min(520 px, 46 %)
+Player:     ruler hit 34 · margin 340 · Listen column 700 · Echo column 760 · video transcript column clamp(300 px, 28 %, 380 px) · take chip 36
 Pages:      browse 1180 · craft 1080 · hub 840 · form 680 · gutter 40 (16 phone)
 Breakpoints: compact 600 · rail 900 · margin drawer 1100 · transcript side-by-side 720
 Motion:     160 fast / 220 margin / 280 lens · echo lens opacity 1 / .65 / .35 / .2 · reference pitch band .35

@@ -63,7 +63,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       echoInk: light ? AppColors.youInkLight : AppColors.youInkDark,
       ccBadge: scheme.primary,
       transcriptLinePadding: const EdgeInsets.symmetric(horizontal: 16),
-      contentMaxWidth: 780,
+      contentMaxWidth: 700,
       formMaxWidth: 680,
       hubMaxWidth: 840,
       pageGutterCompact: 16,
@@ -156,7 +156,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       iconButtonSizePhone: 44,
       segmentHeight: 38,
       chipHeight: 34,
-      takeChipHeight: 42,
+      takeChipHeight: 36,
       playButtonSize: 60,
       playButtonSizePhone: 68,
       recordButtonSize: 62,
@@ -169,11 +169,12 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       playerTopBarHeight: 60,
       subpageHeaderHeight: 64,
       rulerHitHeight: 34,
-      marginWidth: 380,
-      transcriptMaxListen: 780,
-      transcriptMaxEcho: 880,
-      videoColumnMax: 520,
-      videoColumnShare: 0.46,
+      marginWidth: 340,
+      transcriptMaxListen: 700,
+      transcriptMaxEcho: 760,
+      videoColumnMin: 300,
+      videoColumnMax: 380,
+      videoColumnShare: 0.28,
       pageMaxBrowse: 1180,
       pageMaxCraft: 1080,
       pageMaxHub: 840,
@@ -335,6 +336,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.marginWidth,
     required this.transcriptMaxListen,
     required this.transcriptMaxEcho,
+    required this.videoColumnMin,
     required this.videoColumnMax,
     required this.videoColumnShare,
     required this.pageMaxBrowse,
@@ -680,6 +682,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final double marginWidth;
   final double transcriptMaxListen;
   final double transcriptMaxEcho;
+  final double videoColumnMin;
   final double videoColumnMax;
   final double videoColumnShare;
   final double pageMaxBrowse;
@@ -855,6 +858,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     double? marginWidth,
     double? transcriptMaxListen,
     double? transcriptMaxEcho,
+    double? videoColumnMin,
     double? videoColumnMax,
     double? videoColumnShare,
     double? pageMaxBrowse,
@@ -1021,6 +1025,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       marginWidth: marginWidth ?? this.marginWidth,
       transcriptMaxListen: transcriptMaxListen ?? this.transcriptMaxListen,
       transcriptMaxEcho: transcriptMaxEcho ?? this.transcriptMaxEcho,
+      videoColumnMin: videoColumnMin ?? this.videoColumnMin,
       videoColumnMax: videoColumnMax ?? this.videoColumnMax,
       videoColumnShare: videoColumnShare ?? this.videoColumnShare,
       pageMaxBrowse: pageMaxBrowse ?? this.pageMaxBrowse,
@@ -1316,6 +1321,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
         other.transcriptMaxEcho,
         t,
       )!,
+      videoColumnMin: lerpDouble(videoColumnMin, other.videoColumnMin, t)!,
       videoColumnMax: lerpDouble(videoColumnMax, other.videoColumnMax, t)!,
       videoColumnShare: lerpDouble(
         videoColumnShare,

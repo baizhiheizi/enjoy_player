@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 
 /// The four `you` corner brackets framing the echo loop block.
 class EchoLoopBrackets extends CustomPainter {
-  EchoLoopBrackets({required this.color});
+  EchoLoopBrackets({required this.color, this.arm = 20, this.radius = 10});
 
   final Color color;
+  final double arm;
+  final double radius;
 
   @override
   void paint(Canvas canvas, Size size) {
     const stroke = 2.0;
-    const arm = 26.0;
-    const radius = 10.0;
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
@@ -24,25 +24,22 @@ class EchoLoopBrackets extends CustomPainter {
     final topLeft = Path()
       ..moveTo(0, arm)
       ..lineTo(0, radius)
-      ..arcToPoint(
-        const Offset(radius, 0),
-        radius: const Radius.circular(radius),
-      )
+      ..arcToPoint(Offset(radius, 0), radius: Radius.circular(radius))
       ..lineTo(arm, 0);
     final topRight = Path()
       ..moveTo(w - arm, 0)
       ..lineTo(w - radius, 0)
-      ..arcToPoint(Offset(w, radius), radius: const Radius.circular(radius))
+      ..arcToPoint(Offset(w, radius), radius: Radius.circular(radius))
       ..lineTo(w, arm);
     final bottomLeft = Path()
       ..moveTo(0, h - arm)
       ..lineTo(0, h - radius)
-      ..arcToPoint(Offset(radius, h), radius: const Radius.circular(radius))
+      ..arcToPoint(Offset(radius, h), radius: Radius.circular(radius))
       ..lineTo(arm, h);
     final bottomRight = Path()
       ..moveTo(w - arm, h)
       ..lineTo(w - radius, h)
-      ..arcToPoint(Offset(w, h - radius), radius: const Radius.circular(radius))
+      ..arcToPoint(Offset(w, h - radius), radius: Radius.circular(radius))
       ..lineTo(w, h - arm);
 
     canvas
@@ -54,7 +51,9 @@ class EchoLoopBrackets extends CustomPainter {
 
   @override
   bool shouldRepaint(EchoLoopBrackets oldDelegate) =>
-      oldDelegate.color != color;
+      oldDelegate.color != color ||
+      oldDelegate.arm != arm ||
+      oldDelegate.radius != radius;
 }
 
 /// dot used on the loop label row while a take is being recorded.

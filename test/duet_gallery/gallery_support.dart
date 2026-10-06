@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -106,6 +107,9 @@ Future<void> shootBoard(
   tester.view.devicePixelRatio = frame.devicePixelRatio;
   addTearDown(tester.view.reset);
   debugDisableShadows = false;
+  debugDefaultTargetPlatformOverride = frame == GalleryFrame.phone
+      ? TargetPlatform.android
+      : TargetPlatform.linux;
   await tester.pumpWidget(RepaintBoundary(key: _boundaryKey, child: app));
   await settleGallery(tester);
   if (before != null) {
@@ -125,6 +129,7 @@ Future<void> shootBoard(
   debugDisableShadows = true;
   await tester.pumpWidget(const SizedBox.shrink());
   await tester.pump(const Duration(seconds: 1));
+  debugDefaultTargetPlatformOverride = null;
   if (db != null) {
     addTearDown(db.close);
   }

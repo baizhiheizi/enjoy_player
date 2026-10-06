@@ -13,10 +13,10 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 0 · Ready | 2 | 2 |
 | 1 · Foundations | 8 | 8 |
 | 2 · Shell | 3 | 3 |
-| 3 · Player | 13 | 13 |
+| 3 · Player | 14 | 13 |
 | 4 · App screens | 11 | 11 |
 | 5 · Cleanup, proof, merge | 6 | 4 |
-| **Total** | **43** | **40** |
+| **Total** | **44** | **40** |
 
 ## Decisions
 
@@ -76,6 +76,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D3.11 | Player states (empty, generating, locate, loading, errors) | `DEmpty`, `DGenerating`, `DLocate` | D3.1 | done | | | Empty state = TRANSCRIPT overline + Literata 38 + action rows (onboarding anchors kept); locate keeps the hash check with the ink Choose file; loading/errors already ride the D3.1 top bar |
 | D3.12 | Share poster | `Poster` | D3.6 | done | | | Quote + stats on Literata (italic quote, 600 figures); Playfair Display files + test entries deleted; dark-ground/logo-plane layout kept |
 | D3.13 | Player pass: dark, compact, video, phone | `DDark`, `DYoutubeDark`, `DCompact`, `DVideo`, `PVideo`, `PVideoEcho`, `PDark` | D3.1–D3.12 | done | | | Gallery compare clean at Main/DDark/DCompact (Listen lens + dock + ruler match the boards); docked margin reflow ≥1100 and Windows YouTube/WebView2 manual checks remain for D5.5 platform QA |
+| D3.14 | Player density pass (canvas revision of `Main` + `Phone`) | `Main`, `Phone`, all `D*` / `P*` player states | D3.1–D3.13 | review | | | Boards re-synced from the canvas (2026-10-06). Listen 21/17 (video 17/15, phone 20/16), gutter 44 (video 36, phone 8px dot column with the active time above the line), Echo loop clamps 22–28 / 20–24 / 19 (video 20/18, phone 23/20), brackets 20px arms, loop pad 24/28/24/66, takes chip 36 + score 26, lens 16/15/14; margin 340, Listen 700 / Echo 760 (audio layout now widens in Echo), video transcript column clamp(300, 28 %, 380) as the default split. Sizes centralised in `TranscriptLensMetrics`. `renders/Main.webp`, `Phone.webp` and the player state renders still show the pre-density boards — re-export from the canvas. Assessment-margin sizes (overall 56) ride D3.8 |
 
 ### Phase 4 · App screens
 
