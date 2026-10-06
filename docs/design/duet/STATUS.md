@@ -18,8 +18,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 3 · Player | 14 | 9 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
-| A · Audit verification | 6 | 1 |
-| **Total** | **50** | **22** |
+| A · Audit verification | 6 | 2 |
+| **Total** | **50** | **23** |
 
 ## Decisions
 
@@ -80,7 +80,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D3.11 | Player states (empty, generating, locate, loading, errors) | `DEmpty`, `DGenerating`, `DLocate` | D3.1 | done | | | Empty state = TRANSCRIPT overline + Literata 38 + action rows (onboarding anchors kept); locate keeps the hash check with the ink Choose file; loading/errors already ride the D3.1 top bar |
 | D3.12 | Share poster | `Poster` | D3.6 | done | | | Quote + stats on Literata (italic quote, 600 figures); Playfair Display files + test entries deleted; dark-ground/logo-plane layout kept |
 | D3.13 | Player pass: dark, compact, video, phone | `DDark`, `DYoutubeDark`, `DCompact`, `DVideo`, `PVideo`, `PVideoEcho`, `PDark` | D3.1–D3.12 | todo | | | Gallery compare clean at Main/DDark/DCompact (Listen lens + dock + ruler match the boards); docked margin reflow ≥1100 and Windows YouTube/WebView2 manual checks remain for D5.5 platform QA **Reopened 2026-10-06 (AUDIT.md)**: the earlier compare excluded the top bar and rendered with the phone layout; redo after AUDIT A2. |
-| D3.14 | Player density pass (canvas revision of `Main` + `Phone`) | `Main`, `Phone`, all `D*` / `P*` player states | D3.1–D3.13 | review | | | Boards re-synced from the canvas (2026-10-06). Listen 21/17 (video 17/15, phone 20/16), gutter 44 (video 36, phone 8px dot column with the active time above the line), Echo loop clamps 22–28 / 20–24 / 19 (video 20/18, phone 23/20), brackets 20px arms, loop pad 24/28/24/66, takes chip 36 + score 26, lens 16/15/14; margin 340, Listen 700 / Echo 760 (audio layout now widens in Echo), video transcript column clamp(300, 28 %, 380) as the default split. Sizes centralised in `TranscriptLensMetrics`. `renders/Main.webp`, `Phone.webp` and the player state renders still show the pre-density boards — re-export from the canvas. Assessment-margin sizes (overall 56) ride D3.8 |
+| D3.14 | Player density pass (canvas revision of `Main` + `Phone`) | `Main`, `Phone`, all `D*` / `P*` player states | D3.1–D3.13 | review | | | Boards re-synced from the canvas (2026-10-06). Listen 21/17 (video 17/15, phone 20/16), gutter 44 (video 36, phone 8px dot column with the active time above the line), Echo loop clamps 22–28 / 20–24 / 19 (video 20/18, phone 23/20), brackets 20px arms, loop pad 24/28/24/66, takes chip 36 + score 26, lens 16/15/14; margin 340, Listen 700 / Echo 760 (audio layout now widens in Echo), video transcript column clamp(300, 28 %, 380) as the default split. Sizes centralised in `TranscriptLensMetrics`. Renders refreshed by A1. Assessment-margin sizes (overall 56) ride D3.8 |
 
 ### Phase 4 · App screens
 
@@ -102,7 +102,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| A1 | Re-render boards from the canvas | all | — | todo | | | `tool/render_design_boards.mjs` with the canvas runtime; renders predate the D3.14 density revision |
+| A1 | Re-render boards from the canvas | all | — | done | | | All 76 boards re-synced (only `DYoutubeDark` differed beyond `Main` / `Phone`) and re-rendered; the renderer is deterministic, so only the 20 player renders changed |
 | A2 | Player gallery on the real expanded-player body | all `D*` / `P*` player boards | — | todo | | | `ExpandedPlayerChromeBody` (top bar + layout + dock); translation, IPA, takes, video fixtures |
 | A3 | Board-matching fixtures | Home, Library, Discover, Vocabulary, Credits, Subscription, Sync | — | todo | | | Continue-practice resume, library rows, feed + channels, vocab statuses, credit log, Free plan, sync queue |
 | A4 | Harness gaps | Craft, SignIn, Review, dialogs | — | todo | | | Fake `record` channel, signed-out auth, review session, dialog openers, pushed subpages for back buttons |
