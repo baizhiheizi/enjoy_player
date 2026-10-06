@@ -25,7 +25,13 @@ import 'package:enjoy_player/features/settings/presentation/hotkeys_settings_scr
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/presentation/subscription_screen.dart';
+
+import 'package:enjoy_player/features/subscription/presentation/widgets/auto_renew_plan_sheet.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog.dart';
+import 'package:enjoy_player/features/update/domain/update_types.dart';
+import 'package:enjoy_player/features/update/presentation/update_prompt_dialog.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_session_screen.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +40,6 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
 import 'board_data.dart';
 import 'fixtures.dart';
 import 'gallery_support.dart';
@@ -55,6 +60,9 @@ class _SignedOut extends AuthCtrl {
 }
 
 var openHomeImportOnNextMount = false;
+var openLibraryDeleteOnNextMount = false;
+var openUpdateDialogOnNextMount = false;
+var openPlansSheetOnNextMount = false;
 var openCheatsheetOnNextMount = false;
 
 GoRouter _router(String initial) => GoRouter(
@@ -81,7 +89,28 @@ GoRouter _router(String initial) => GoRouter(
             },
           ),
         ),
-        GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
+        GoRoute(
+          path: '/library',
+          builder: (_, _) => Consumer(
+            builder: (context, ref, _) {
+              if (openLibraryDeleteOnNextMount) {
+                openLibraryDeleteOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) {
+                    unawaited(
+                      confirmAndDeleteMedia(
+                        context,
+                        ref,
+                        sampleMedia('x1', 'Delete me'),
+                      ),
+                    );
+                  }
+                });
+              }
+              return const LibraryScreen();
+            },
+          ),
+        ),
         GoRoute(path: '/discover', builder: (_, _) => const DiscoverScreen()),
         GoRoute(
           path: '/vocabulary',
@@ -91,7 +120,38 @@ GoRouter _router(String initial) => GoRouter(
           path: '/vocabulary/review',
           builder: (_, _) => const VocabularyReviewSessionScreen(),
         ),
-        GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+        GoRoute(
+          path: '/settings',
+          builder: (_, _) => Consumer(
+            builder: (context, ref, _) {
+              if (openUpdateDialogOnNextMount) {
+                openUpdateDialogOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!context.mounted) return;
+                  unawaited(
+                    showUpdatePromptDialog(
+                      context: context,
+                      release: const AppRelease(
+                        manifest: ReleaseManifest(
+                          version: '0.9.1',
+                          build: 16,
+                          minSupportedVersion: '0.9.0',
+                          notes: 'Fixes and polish',
+                          assets: {},
+                        ),
+                        severity: UpdateSeverity.optional,
+                        currentVersion: '0.9.0',
+                      ),
+                      onApply: () => const Stream.empty(),
+                      onLater: () {},
+                    ),
+                  );
+                });
+              }
+              return const SettingsScreen();
+            },
+          ),
+        ),
         GoRoute(
           path: '/settings/sync',
           builder: (_, _) => const SyncStatusScreen(),
@@ -131,7 +191,25 @@ GoRouter _router(String initial) => GoRouter(
         ),
         GoRoute(
           path: '/subscription',
-          builder: (_, _) => const SubscriptionScreen(),
+          builder: (_, _) => Consumer(
+            builder: (context, ref, _) {
+              if (openPlansSheetOnNextMount) {
+                openPlansSheetOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) {
+                    unawaited(
+                      showUnifiedPurchaseSheet(
+                        context,
+                        tier: SubscriptionTier.pro,
+                        interval: CatalogInterval.month,
+                      ),
+                    );
+                  }
+                });
+              }
+              return const SubscriptionScreen();
+            },
+          ),
         ),
         GoRoute(path: '/craft', builder: (_, _) => const CraftScreen()),
         GoRoute(
@@ -221,6 +299,15 @@ final _scenes = <(String, String, String?, GalleryFrame, Brightness)>[
     GalleryFrame.desktop,
     Brightness.light,
   ),
+  ('LibraryDelete', '/library', null, GalleryFrame.desktop, Brightness.light),
+  ('SettingsAbout', '/settings', null, GalleryFrame.desktop, Brightness.light),
+  (
+    'SubscriptionPlans',
+    '/subscription',
+    null,
+    GalleryFrame.desktop,
+    Brightness.light,
+  ),
   ('NotFound', '/no-such-route', null, GalleryFrame.desktop, Brightness.light),
   (
     'Review',
@@ -253,6 +340,9 @@ void main() {
   for (final (board, route, pushed, frame, brightness) in _scenes) {
     testWidgets(board, (tester) async {
       openHomeImportOnNextMount = board == 'HomeImport';
+      openLibraryDeleteOnNextMount = board == 'LibraryDelete';
+      openUpdateDialogOnNextMount = board == 'SettingsAbout';
+      openPlansSheetOnNextMount = board == 'SubscriptionPlans';
       openCheatsheetOnNextMount = board == 'KeyboardCheatsheet';
       final db = memoryDb();
       await tester.runAsync(() => seedBoardData(db));

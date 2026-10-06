@@ -94,7 +94,24 @@ Committed on `design-duet` (all gates green per commit):
 | `a30d46e2` | C6 Discover rebuilt: avatar strip, Recent uploads heading, Add to library buttons |
 | `56f5aa5c` | C7a Subscription: Free status strip, plan heading |
 
-### Still open (in priority order)
+### Close-out (2026-10-06, final pass of this audit round)
+
+Every implementable item from this audit is now built and captured. 44 side-by-side compare images in `build/duet_gallery/compare/` cover all boards with a distinct surface — all screens, the player family, and the dialogs (import chooser, delete confirm, auto-renew sheet, update dialog, shortcuts cheatsheet) plus Review, NotFound, Poster and DScored.
+
+Added in the final passes:
+
+- `237d08d4` — Settings phone hub (all sections seed collapsed, board's compact rows) + Keyboard board group headers
+- `2e470c7f` — NotFound / Poster / Review captures (`BoardReviewSession` seeds the board words); AI privacy callout in originalSoft
+- `713f6afc` — **D3.8 assessment margin**: the assessment opens in the player's 340px side margin on wide windows (Literata overall, dimension rows, word list) instead of the centered dialog
+- `9049139b` — **D3.8 word notes on the loop lines**: mispronounced words from the newest scored take render the you-colored wavy underline in place
+- phone Echo scroll parks the loop at 0.18 (upper third) so the takes strip clears the fold; dialog captures for LibraryDelete / SettingsAbout / SubscriptionPlans / KeyboardCheatsheet
+
+**What remains is not code work:**
+
+1. **Open decisions** (STATUS → Decisions): R1 Repeat button, R2 player-side take management, R3 replay on phone docks (drawn as recommended; say the word and I'll apply either way).
+2. **Hardware QA** (D5.5) — Windows WebView2 parking, macOS row, DevTools frame capture on Windows + a physical phone; the merge (D5.6, PR #853) is blocked on these rows by tracker rule.
+3. LibraryImporting's blocking spinner has no stable capture hook (modal shows during a file pick) — verified by inspection.
+
 
 1. **C8 remaining** — Keyboard (group headers, keycaps, Custom chip), AiProviders, ProfileEdit, ProfilePrefs, CraftHistory.
 2. **C5 residual** — Settings phone hub (account card + drill-in rows + version footer).

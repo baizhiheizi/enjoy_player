@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
@@ -305,12 +306,15 @@ class _TranscriptScrollableListState
     final tok = EnjoyThemeTokens.of(context);
 
     if (echo.active) {
+      // Phone boards park the loop in the upper third (context above, takes
+      // below); desktop parks it at the top.
+      final echoAlignment = isMobilePlatform ? 0.18 : 0.0;
       final echoKey = _scrollKeyForEcho(echo);
       final ctx = echoKey.currentContext;
       if (ctx != null) {
         _ensureVisible(
           ctx,
-          alignment: 0.0,
+          alignment: echoAlignment,
           duration: tok.motionStandard,
           curve: Curves.easeOutCubic,
           generation: generation,
@@ -318,7 +322,7 @@ class _TranscriptScrollableListState
         return;
       }
 
-      _jumpToLineIndexEstimate(echo.startLineIndex, alignment: 0.0);
+      _jumpToLineIndexEstimate(echo.startLineIndex, alignment: echoAlignment);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || generation != _scrollGeneration) return;
@@ -326,7 +330,7 @@ class _TranscriptScrollableListState
         if (ctx2 == null) return;
         _ensureVisible(
           ctx2,
-          alignment: 0.0,
+          alignment: echoAlignment,
           duration: tok.motionStandard,
           curve: Curves.easeOutCubic,
           generation: generation,
