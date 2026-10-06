@@ -42,6 +42,7 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
     this.selectable = false,
     this.recordingCount,
     this.loopFontSize,
+    this.wavyWordIndexes,
     this.lensDistance = 0,
     this.onLookupRequested,
     this.onRetranslateSecondary,
@@ -70,6 +71,9 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
   /// Literata size for cues inside the Echo loop (the loop grows in place).
   /// Null outside the loop.
   final double? loopFontSize;
+
+  /// Loop-word indexes with the wavy mispronunciation underline (D3.8).
+  final Set<int>? wavyWordIndexes;
 
   /// 1–3 while the cue sits that many lines outside the echo loop; fades and
   /// shrinks the row through `echoLensOpacity`. 0 outside echo mode.
@@ -310,6 +314,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           primaryWidget = TranscriptAlignedWords(
             words: words,
             wordStyle: alignedBody,
+            wavyWordIndexes: widget.wavyWordIndexes,
             ipaStyle: ipaStyle,
             defaultColor: lineFg,
             emphasize: widget.isActive,

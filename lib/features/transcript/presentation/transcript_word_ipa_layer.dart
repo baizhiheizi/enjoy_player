@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/data/subtitle/transcript_word_ipa.dart';
 
@@ -44,6 +45,7 @@ class TranscriptAlignedWords extends StatelessWidget {
     required this.emphasize,
     this.activeWordIndex,
     this.activeUnderlineColor,
+    this.wavyWordIndexes,
     this.onIpaTap,
     this.selectableWordBuilder,
     super.key,
@@ -56,6 +58,10 @@ class TranscriptAlignedWords extends StatelessWidget {
   final bool emphasize;
   final int? activeWordIndex;
   final Color? activeUnderlineColor;
+
+  /// Word indexes that draw the wavy you-colored mispronunciation underline
+  /// (assessment feedback, D3.8).
+  final Set<int>? wavyWordIndexes;
 
   /// When set, tapping IPA for that word index calls this.
   final ValueChanged<int>? onIpaTap;
@@ -86,6 +92,7 @@ class TranscriptAlignedWords extends StatelessWidget {
             ipaStyle: ipaStyle,
             isActive: activeWordIndex == i,
             activeUnderlineColor: activeColor,
+            wavy: wavyWordIndexes?.contains(i) ?? false,
             onIpaTap: onIpaTap == null ? null : () => onIpaTap!(i),
             selectableWordBuilder: selectableWordBuilder,
           ),
@@ -104,6 +111,7 @@ class _AlignedWordColumn extends StatelessWidget {
     required this.activeUnderlineColor,
     this.onIpaTap,
     this.selectableWordBuilder,
+    this.wavy = false,
     super.key,
   });
 
@@ -113,6 +121,7 @@ class _AlignedWordColumn extends StatelessWidget {
   final TextStyle ipaStyle;
   final bool isActive;
   final Color activeUnderlineColor;
+  final bool wavy;
   final VoidCallback? onIpaTap;
   final Widget Function(BuildContext context, String text, TextStyle style)?
   selectableWordBuilder;
@@ -121,7 +130,17 @@ class _AlignedWordColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final orthography =
         selectableWordBuilder?.call(context, text, wordStyle) ??
-        Text(text, style: wordStyle);
+        Text(
+          text,
+          style: wavy
+              ? wordStyle.copyWith(
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.wavy,
+                  decorationColor: EnjoyThemeTokens.of(context).you,
+                  decorationThickness: 1.5,
+                )
+              : wordStyle,
+        );
 
     return Column(
       mainAxisSize: MainAxisSize.min,

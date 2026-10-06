@@ -31,7 +31,10 @@ import 'package:enjoy_player/features/transcript/application/transcript_line_rec
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
 import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
+import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
+import 'package:enjoy_player/features/transcript/presentation/word_note_indexes.dart';
+
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -92,6 +95,19 @@ class EchoRegionMergedCard extends ConsumerWidget {
       mediaWidth: MediaQuery.sizeOf(context).width,
     );
 
+    final scoredTake = ref
+        .watch(echoRegionRecordingsOnceProvider(_regionQueryFor(mediaId, echo)))
+        .value
+        ?.where((r) => r.assessmentJson?.trim().isNotEmpty == true)
+        .firstOrNull;
+    final wavyByLine = scoredTake == null
+        ? null
+        : mispronouncedWordIndexes(
+            lines: lines,
+            echo: echo,
+            assessmentJson: scoredTake.assessmentJson,
+          );
+
     final lineWidgets = <Widget>[];
     var maxTakeNumber = 0;
     for (var i = echo.startLineIndex; i <= echo.endLineIndex; i++) {
@@ -144,6 +160,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
 
       final tile = TranscriptLineTile(
         key: ValueKey<String>('echo-line-$i'),
+        wavyWordIndexes: wavyByLine?[i],
         line: line,
         lineIndex: i,
         mediaId: mediaId,
@@ -634,3 +651,12 @@ void _deferEchoResize(WidgetRef ref, VoidCallback apply) {
     apply();
   });
 }
+
+EchoRegionRecordingsQuery _regionQueryFor(String mediaId, EchoState echo) =>
+    EchoRegionRecordingsQuery(
+      targetType: 'Audio',
+      targetId: mediaId,
+      language: 'en',
+      echoStartMs: (echo.startTimeSeconds * 1000).round(),
+      echoEndMs: (echo.endTimeSeconds * 1000).round(),
+    );

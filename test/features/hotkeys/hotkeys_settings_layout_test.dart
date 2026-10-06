@@ -59,9 +59,8 @@ Finder _resetButtons(String tooltip) => find.ancestor(
   matching: find.byType(IconButton),
 );
 
-Finder _scopeHeading(String label) => find.byWidgetPredicate(
-  (w) => w is Text && w.data == label,
-);
+Finder _scopeHeading(String label) =>
+    find.byWidgetPredicate((w) => w is Text && w.data == label);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
