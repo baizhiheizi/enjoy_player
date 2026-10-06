@@ -1,6 +1,8 @@
 @Tags(['gallery'])
 library;
 
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
@@ -16,6 +18,7 @@ import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/expanded_player_widgets.dart';
 import 'package:enjoy_player/features/player/presentation/root_shell.dart';
 import 'package:enjoy_player/features/settings/application/ipa_overlay_settings.dart';
+import 'package:enjoy_player/features/share_poster/presentation/practice_poster_preview_sheet.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_fetch_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
@@ -293,6 +296,8 @@ List<Override> _echoOverrides(
   if (ipa) ipaOverlaySettingsProvider.overrideWith(_IpaOn.new),
 ];
 
+var openPosterOnNextMount = false;
+
 GoRouter _playerRouter() => GoRouter(
   initialLocation: '/player/$_mediaId',
   routes: [
@@ -307,9 +312,23 @@ GoRouter _playerRouter() => GoRouter(
               final chrome = ref.watch(
                 playerControllerProvider.select(playbackChromeOf),
               );
-              return chrome == null
+              final body = chrome == null
                   ? const SizedBox.shrink()
                   : ExpandedPlayerChromeBody(mediaId: _mediaId, chrome: chrome);
+              if (openPosterOnNextMount) {
+                openPosterOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!context.mounted) return;
+                  unawaited(
+                    showPracticePosterPreviewSheet(
+                      context,
+                      ref,
+                      mediaId: _mediaId,
+                    ),
+                  );
+                });
+              }
+              return body;
             },
           ),
         ),
@@ -329,12 +348,14 @@ void main() {
     ('Phone', GalleryFrame.phone, Brightness.light, false, false),
     ('PEcho', GalleryFrame.phone, Brightness.light, true, false),
     ('PDark', GalleryFrame.phone, Brightness.dark, true, false),
+    ('Poster', GalleryFrame.desktop, Brightness.light, true, false),
   ]) {
     testWidgets(board, (tester) async {
       final db = memoryDb();
       final engine = FakePlayerEngine();
       addTearDown(engine.dispose);
       await tester.runAsync(() => _seedTakes(db));
+      openPosterOnNextMount = board == 'Poster';
       await shootBoard(
         tester,
         board,
@@ -347,6 +368,7 @@ void main() {
         ),
         frame: frame,
         db: db,
+        before: null,
       );
     });
   }

@@ -77,27 +77,29 @@ class _PrivacyCallout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: cs.primaryContainer.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(t.radiusLg),
-        border: Border.all(color: cs.primary.withValues(alpha: 0.18)),
+      decoration: ShapeDecoration(
+        color: t.originalSoft,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusTile),
+        ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(t.space16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(EnjoyIcons.shield, color: cs.primary, size: 20),
+            Icon(EnjoyIcons.shield, color: t.originalInk, size: 17),
             SizedBox(width: t.space12),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 text,
                 style: tt.bodySmall?.copyWith(
-                  color: cs.onSurfaceVariant,
+                  fontSize: 13,
+                  color: t.originalInk,
                   height: 1.45,
                 ),
               ),

@@ -27,6 +27,8 @@ import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 
@@ -445,6 +447,52 @@ const _boardStatistics = LearningStatistics(
   month: PeriodStats(recordingDurationMs: 21720000, recordingCount: 301),
 );
 
+/// Review session with the board's due words and their first contexts.
+class BoardReviewSession extends VocabularyReviewSession {
+  @override
+  ReviewSessionState build() {
+    return ReviewSessionState(
+      queue: [
+        for (final (i, (word, _, status, dueDays, language)) in _words.indexed)
+          if (dueDays <= 0)
+            VocabularyItem(
+              id: 'w$i',
+              word: word,
+              language: language,
+              targetLanguage: 'zh-CN',
+              status: VocabularyStatus.values.firstWhere(
+                (v) => v.name == status,
+                orElse: () => VocabularyStatus.new_,
+              ),
+              easeFactor: 2.5,
+              interval: 1,
+              nextReviewAt: DateTime.now().add(Duration(days: dueDays)),
+              reviewsCount: i,
+              contextsCount: 1,
+              createdAt: _now,
+              updatedAt: _now,
+            ),
+      ],
+      contextsByItemId: {
+        for (final (i, entry) in _words.indexed)
+          if (entry.$4 <= 0)
+            'w$i': [
+              VocabularyContext(
+                id: 'wc$i',
+                vocabularyItemId: 'w$i',
+                createdAt: _now,
+                updatedAt: _now,
+                text: entry.$2,
+                sourceType: VocabularySourceType.audio,
+                sourceId: 'la1',
+                locator: const MediaLocator(start: 0, duration: 3000),
+              ),
+            ],
+      },
+    );
+  }
+}
+
 /// Board data for every app screen; one override per provider.
 List<Override> boardOverrides(AppDatabase db, {AuthCtrl Function()? auth}) => [
   ...baseOverrides(
@@ -453,6 +501,7 @@ List<Override> boardOverrides(AppDatabase db, {AuthCtrl Function()? auth}) => [
     subscription: false,
     auth: auth ?? BoardAuthCtrl.new,
     statistics: _boardStatistics,
+    reviewSession: BoardReviewSession.new,
     resume: PracticeResume(
       media: boardAudios[0],
       positionMs: 22600,

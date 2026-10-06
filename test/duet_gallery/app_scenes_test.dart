@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/core/routing/not_found_screen.dart';
 import 'package:enjoy_player/features/ai/presentation/settings/ai_providers_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_edit_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_preferences_screen.dart';
@@ -23,6 +24,7 @@ import 'package:enjoy_player/features/settings/presentation/settings_screen.dart
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/subscription/presentation/subscription_screen.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_session_screen.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -51,6 +53,7 @@ class _SignedOut extends AuthCtrl {
 
 GoRouter _router(String initial) => GoRouter(
   initialLocation: initial,
+  errorBuilder: (_, state) => NotFoundScreen(uri: state.uri),
   routes: [
     GoRoute(path: '/sign-in', builder: (_, _) => const SignInScreen()),
     ShellRoute(
@@ -62,6 +65,10 @@ GoRouter _router(String initial) => GoRouter(
         GoRoute(
           path: '/vocabulary',
           builder: (_, _) => const VocabularyScreen(),
+        ),
+        GoRoute(
+          path: '/vocabulary/review',
+          builder: (_, _) => const VocabularyReviewSessionScreen(),
         ),
         GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
         GoRoute(
@@ -173,6 +180,14 @@ final _scenes = <(String, String, String?, GalleryFrame, Brightness)>[
   ('SignIn', '/sign-in', null, GalleryFrame.desktop, Brightness.light),
   ('PhSignIn', '/sign-in', null, GalleryFrame.phone, Brightness.light),
   ('PhCraft', '/', '/craft', GalleryFrame.phone, Brightness.light),
+  ('NotFound', '/no-such-route', null, GalleryFrame.desktop, Brightness.light),
+  (
+    'Review',
+    '/vocabulary/review',
+    null,
+    GalleryFrame.desktop,
+    Brightness.light,
+  ),
   ('PhHome', '/', null, GalleryFrame.phone, Brightness.light),
   ('PhHomeDark', '/', null, GalleryFrame.phone, Brightness.dark),
   ('PhLibrary', '/library', null, GalleryFrame.phone, Brightness.light),

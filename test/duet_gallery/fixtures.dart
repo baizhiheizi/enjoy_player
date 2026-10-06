@@ -136,6 +136,7 @@ List<Override> baseOverrides(
   AuthCtrl Function()? auth,
   PracticeResume? resume,
   LearningStatistics? statistics,
+  VocabularyReviewSession Function()? reviewSession,
 }) => [
   appDatabaseProvider.overrideWithValue(db),
   deviceGlobalAppDatabaseProvider.overrideWithValue(db),
@@ -153,7 +154,9 @@ List<Override> baseOverrides(
         subscriptionTier: SubscriptionTier.pro,
       ),
     ),
-  vocabularyReviewSessionProvider.overrideWith(_FakeVocabSession.new),
+  vocabularyReviewSessionProvider.overrideWith(
+    reviewSession ?? _FakeVocabSession.new,
+  ),
   playerControllerProvider.overrideWith(
     playerController ?? _NullPlayerController.new,
   ),
