@@ -4084,6 +4084,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get syncEntityVocabulary => '单词条目';
+
+  @override
+  String get assessmentWordsSection => '单词';
+
+  @override
+  String get assessmentMarginOverline => '发音评估';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7491,4 +7497,10 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get syncEntityVocabulary => '单词条目';
+
+  @override
+  String get assessmentWordsSection => '单词';
+
+  @override
+  String get assessmentMarginOverline => '发音评估';
 }

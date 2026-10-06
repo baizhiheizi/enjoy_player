@@ -18,6 +18,7 @@ import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_controller.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/assessment_margin.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_dialog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -66,12 +67,16 @@ String? _pronounceLocaleForAssessment(WidgetRef ref, RecordingRow row) {
 
 /// Opens stored results, or runs assessment when [forceRun] is true or there is
 /// no stored JSON yet.
+bool _assessmentUsesMargin(BuildContext context) =>
+    MediaQuery.sizeOf(context).width >= 600;
+
 Future<void> triggerRecordingAssessment({
   required BuildContext context,
   required WidgetRef ref,
   required AppLocalizations l10n,
   required RecordingRow row,
   bool forceRun = false,
+  bool marginWhenWide = false,
 }) async {
   _log.info(
     'trigger assessment recording=${row.id} forceRun=$forceRun '
@@ -87,6 +92,14 @@ Future<void> triggerRecordingAssessment({
           jsonDecode(stored) as Map<String, dynamic>,
         );
         if (!context.mounted) return;
+        if (marginWhenWide && _assessmentUsesMargin(context)) {
+          await showAssessmentMargin(
+            context: context,
+            assessment: parsed,
+            recordingPath: row.localPath,
+          );
+          return;
+        }
         await showAssessmentResultDialog(
           context: context,
           assessment: parsed,
@@ -109,6 +122,14 @@ Future<void> triggerRecordingAssessment({
 
   switch (outcome) {
     case RecordingAssessmentSuccess(:final detail):
+      if (marginWhenWide && _assessmentUsesMargin(context)) {
+        await showAssessmentMargin(
+          context: context,
+          assessment: detail,
+          recordingPath: row.localPath,
+        );
+        return;
+      }
       await showAssessmentResultDialog(
         context: context,
         assessment: detail,

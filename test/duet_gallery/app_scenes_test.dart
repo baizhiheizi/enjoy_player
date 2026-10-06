@@ -16,7 +16,9 @@ import 'package:enjoy_player/features/craft/presentation/craft_history_screen.da
 import 'package:enjoy_player/features/craft/presentation/craft_screen.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_screen.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_screen.dart';
+import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
 import 'package:enjoy_player/features/library/presentation/home_screen.dart';
+import 'package:enjoy_player/features/library/presentation/library_actions.dart';
 import 'package:enjoy_player/features/library/presentation/library_screen.dart';
 import 'package:enjoy_player/features/player/presentation/root_shell.dart';
 import 'package:enjoy_player/features/settings/presentation/hotkeys_settings_screen.dart';
@@ -27,6 +29,7 @@ import 'package:enjoy_player/features/subscription/presentation/subscription_scr
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_session_screen.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -51,6 +54,9 @@ class _SignedOut extends AuthCtrl {
   Future<AuthState> build() async => const AuthSignedOut();
 }
 
+var openHomeImportOnNextMount = false;
+var openCheatsheetOnNextMount = false;
+
 GoRouter _router(String initial) => GoRouter(
   initialLocation: initial,
   errorBuilder: (_, state) => NotFoundScreen(uri: state.uri),
@@ -59,7 +65,22 @@ GoRouter _router(String initial) => GoRouter(
     ShellRoute(
       builder: (context, state, child) => RootShell(child: child),
       routes: [
-        GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+        GoRoute(
+          path: '/',
+          builder: (_, _) => Consumer(
+            builder: (context, ref, _) {
+              if (openHomeImportOnNextMount) {
+                openHomeImportOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) {
+                    unawaited(showImportChooser(context, ref));
+                  }
+                });
+              }
+              return const HomeScreen();
+            },
+          ),
+        ),
         GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
         GoRoute(path: '/discover', builder: (_, _) => const DiscoverScreen()),
         GoRoute(
@@ -77,7 +98,19 @@ GoRouter _router(String initial) => GoRouter(
         ),
         GoRoute(
           path: '/settings/keyboard',
-          builder: (_, _) => const HotkeysSettingsScreen(),
+          builder: (_, _) => Consumer(
+            builder: (context, ref, _) {
+              if (openCheatsheetOnNextMount) {
+                openCheatsheetOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) {
+                    unawaited(showHotkeysHelpDialog(context));
+                  }
+                });
+              }
+              return const HotkeysSettingsScreen();
+            },
+          ),
         ),
         GoRoute(
           path: '/settings/ai-providers',
@@ -180,6 +213,14 @@ final _scenes = <(String, String, String?, GalleryFrame, Brightness)>[
   ('SignIn', '/sign-in', null, GalleryFrame.desktop, Brightness.light),
   ('PhSignIn', '/sign-in', null, GalleryFrame.phone, Brightness.light),
   ('PhCraft', '/', '/craft', GalleryFrame.phone, Brightness.light),
+  ('HomeImport', '/', null, GalleryFrame.desktop, Brightness.light),
+  (
+    'KeyboardCheatsheet',
+    '/settings/keyboard',
+    null,
+    GalleryFrame.desktop,
+    Brightness.light,
+  ),
   ('NotFound', '/no-such-route', null, GalleryFrame.desktop, Brightness.light),
   (
     'Review',
@@ -211,6 +252,8 @@ void main() {
 
   for (final (board, route, pushed, frame, brightness) in _scenes) {
     testWidgets(board, (tester) async {
+      openHomeImportOnNextMount = board == 'HomeImport';
+      openCheatsheetOnNextMount = board == 'KeyboardCheatsheet';
       final db = memoryDb();
       await tester.runAsync(() => seedBoardData(db));
       final router = _router(route);
@@ -224,14 +267,16 @@ void main() {
         ),
         frame: frame,
         db: db,
-        before: board == 'LibraryAudio'
-            ? (tester) async {
-                await tester.tap(find.text('Audio'));
-                await tester.enterText(find.byType(TextField).last, 'ferry');
-              }
-            : pushed == null
-            ? null
-            : (tester) async => unawaited(router.push(pushed)),
+        before: switch (board) {
+          'LibraryAudio' => (tester) async {
+            await tester.tap(find.text('Audio'));
+            await tester.enterText(find.byType(TextField).last, 'ferry');
+          },
+          _ =>
+            pushed == null
+                ? null
+                : (tester) async => unawaited(router.push(pushed)),
+        },
       );
     });
   }

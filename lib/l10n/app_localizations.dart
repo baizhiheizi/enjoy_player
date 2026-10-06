@@ -7775,6 +7775,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vocabulary item'**
   String get syncEntityVocabulary;
+
+  /// No description provided for @assessmentWordsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Words'**
+  String get assessmentWordsSection;
+
+  /// No description provided for @assessmentMarginOverline.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation'**
+  String get assessmentMarginOverline;
 }
 
 class _AppLocalizationsDelegate

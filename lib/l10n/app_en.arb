@@ -2127,5 +2127,9 @@
   "syncEntityRecording": "Recording",
   "@syncEntityRecording": {"placeholders": {}},
   "syncEntityVocabulary": "Vocabulary item",
-  "@syncEntityVocabulary": {"placeholders": {}}
+  "@syncEntityVocabulary": {"placeholders": {}},
+  "assessmentWordsSection": "Words",
+  "@assessmentWordsSection": {},
+  "assessmentMarginOverline": "Pronunciation",
+  "@assessmentMarginOverline": {}
 }

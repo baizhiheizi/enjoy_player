@@ -373,6 +373,7 @@ class _TakeChip extends ConsumerWidget {
                             ref: ref,
                             l10n: l10n,
                             row: row,
+                            marginWhenWide: true,
                           ),
                         )
                       : null,
@@ -415,6 +416,7 @@ class _TakeChip extends ConsumerWidget {
                       ref: ref,
                       l10n: l10n,
                       row: row,
+                      marginWhenWide: true,
                       forceRun: true,
                     ),
                   ),

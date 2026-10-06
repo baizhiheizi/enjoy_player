@@ -1653,5 +1653,7 @@
   "syncRowFailed": "失败",
   "syncRowRetries": "{count} 次尝试",
   "syncEntityRecording": "录音",
-  "syncEntityVocabulary": "单词条目"
+  "syncEntityVocabulary": "单词条目",
+  "assessmentWordsSection": "单词",
+  "assessmentMarginOverline": "发音评估"
 }

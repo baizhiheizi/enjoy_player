@@ -151,6 +151,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                   ref: ref,
                   l10n: l10n,
                   row: row,
+                  marginWhenWide: true,
                   forceRun: true,
                 ),
               );

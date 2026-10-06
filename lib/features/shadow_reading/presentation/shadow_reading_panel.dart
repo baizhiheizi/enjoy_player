@@ -357,6 +357,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       ref: ref,
       l10n: l10n,
       row: sel,
+      marginWhenWide: true,
     );
   }
 

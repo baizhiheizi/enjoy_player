@@ -18,7 +18,9 @@ import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/expanded_player_widgets.dart';
 import 'package:enjoy_player/features/player/presentation/root_shell.dart';
 import 'package:enjoy_player/features/settings/application/ipa_overlay_settings.dart';
+import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/features/share_poster/presentation/practice_poster_preview_sheet.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/assessment_margin.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_fetch_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
@@ -297,6 +299,7 @@ List<Override> _echoOverrides(
 ];
 
 var openPosterOnNextMount = false;
+var openAssessmentOnNextMount = false;
 
 GoRouter _playerRouter() => GoRouter(
   initialLocation: '/player/$_mediaId',
@@ -315,6 +318,16 @@ GoRouter _playerRouter() => GoRouter(
               final body = chrome == null
                   ? const SizedBox.shrink()
                   : ExpandedPlayerChromeBody(mediaId: _mediaId, chrome: chrome);
+              if (openAssessmentOnNextMount) {
+                openAssessmentOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  if (!context.mounted) return;
+                  await showAssessmentMargin(
+                    context: context,
+                    assessment: _boardAssessment(),
+                  );
+                });
+              }
               if (openPosterOnNextMount) {
                 openPosterOnNextMount = false;
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -349,6 +362,7 @@ void main() {
     ('PEcho', GalleryFrame.phone, Brightness.light, true, false),
     ('PDark', GalleryFrame.phone, Brightness.dark, true, false),
     ('Poster', GalleryFrame.desktop, Brightness.light, true, false),
+    ('DScored', GalleryFrame.desktop, Brightness.light, true, false),
   ]) {
     testWidgets(board, (tester) async {
       final db = memoryDb();
@@ -356,6 +370,7 @@ void main() {
       addTearDown(engine.dispose);
       await tester.runAsync(() => _seedTakes(db));
       openPosterOnNextMount = board == 'Poster';
+      openAssessmentOnNextMount = board == 'DScored';
       await shootBoard(
         tester,
         board,
@@ -372,4 +387,48 @@ void main() {
       );
     });
   }
+}
+
+AzurePronunciationAssessmentResult _boardAssessment() {
+  const word = AzureWordAssessment(
+    word: 'ferry',
+    offset: 0,
+    duration: 4000000,
+    pronunciationAssessment: AzureWordPronunciationAssessment(
+      accuracyScore: 72,
+      errorType: 'Mispronunciation',
+    ),
+  );
+  const good = AzureWordAssessment(
+    word: 'slow',
+    offset: 0,
+    duration: 3000000,
+    pronunciationAssessment: AzureWordPronunciationAssessment(
+      accuracyScore: 95,
+      errorType: 'None',
+    ),
+  );
+  return AzurePronunciationAssessmentResult(
+    recognitionStatus: 'Success',
+    offset: 0,
+    duration: 4200000,
+    displayText: _board[_activeLine].$1,
+    nBest: [
+      AzureNBestResult(
+        confidence: 0.9,
+        lexical: _board[_activeLine].$1,
+        itn: _board[_activeLine].$1,
+        maskedItn: _board[_activeLine].$1,
+        display: _board[_activeLine].$1,
+        pronunciationAssessment: const AzurePronunciationAssessmentScores(
+          accuracyScore: 82,
+          fluencyScore: 78,
+          completenessScore: 100,
+          pronScore: 84,
+          prosodyScore: 75,
+        ),
+        words: [word, good],
+      ),
+    ],
+  );
 }

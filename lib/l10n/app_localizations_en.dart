@@ -4279,4 +4279,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncEntityVocabulary => 'Vocabulary item';
+
+  @override
+  String get assessmentWordsSection => 'Words';
+
+  @override
+  String get assessmentMarginOverline => 'Pronunciation';
 }
