@@ -52,17 +52,24 @@
 
 ### Player
 
-The player scene still omits the top bar and lacks translations, IPA, and takes, so the player comparison is partial.
+Re-checked after A2 (the gallery now mounts the real player screen with the board's sample data: *The Ferry at Six*, Chinese translation, IPA, three takes).
 
 | Area | Kind | Gaps |
 |---|---|---|
-| Top bar, phone | **code** | Board: chevron · Listen / Echo segmented · CC, then a second row with the title and `Line 6 of 14`. `PlayerTopBar` has no phone variant. |
-| Top bar, desktop | code | The **More (⋯)** menu was deferred in D3.1. The bar needs a real-route capture to confirm the rest. |
-| Dock, Listen | code | The board has no **replay** button (the app adds ↺; it is an existing feature, so this needs a decision). Skip glyphs are **filled** (app: outline). Speed is mono `1.0×` text, not a `1x` pill. The Hide control is an eye-slash. The phone dock is **one row** (Hide · prev · play · next · speed); the app uses two rows plus a speed pill. |
-| Dock frame | verify | The gallery shows an inset floating card with side margins; the board is a full-bleed paper bar with a top line. Confirm on the real route before changing it; it may come from `RootShell` in the harness. |
-| Ruler | code | Practiced dots above the ticks and a loop bracket are drawn on the board; check them against the app once fixtures have takes. |
-| Echo | fixture | IPA under the words, translation under the loop, and a real takes strip all need fixtures. |
-| Assessment margin (D3.8) | code | Not built: no margin assessment and no wavy notes on words. The docked margin at ≥ 1100 is still deferred. Decisions R1 (Repeat) and R2 (take management) are open. |
+| Time format | **code** | Board writes `0:04` / `0:55` everywhere (gutter, ruler, top-bar meta); the app writes `00:04` / `00:55`. |
+| Top bar meta | **code** | Board: `Audio · 0:55 · English · 中文` (learning language name + translation language); app: `Audio · 00:55 · en`. |
+| Top bar segmented | **code** | Board label `Echo`; app `Echo mode`. |
+| Top bar, phone | **code** | Board: chevron · text-only Listen / Echo segmented · Share icon · CC, then a second row with the title and `Line 6 of 14 · looping`. The app has one row (icons + `E` keycap in the segmented, no Share, no title row). |
+| Top bar, desktop | code | **More (⋯)** menu missing (deferred in D3.1). |
+| Dock frame | **code** | `RootShell` wraps the dock in `SafeArea(minimum: 16 / 4 / 16 / 12)`, so it floats as an inset card; the board's dock is a full-bleed paper bar with a top line. |
+| Dock, desktop Listen | code | The board **does** draw replay ↺ and the Repeat ⟲ button (decision R1); the app has replay but no Repeat (R1 still open). Skip glyphs filled on the board, outline in the app; speed is mono `1.0×` text, the app shows a `1x` pill; Hide shows eye-slash. |
+| Dock, phone | **code** | Listen: one row (Hide · prev · play · next · speed), no replay. Echo: prev · Original (labelled) · Record (labelled) · next, no Hide. The app uses two rows (eye on its own row) and keeps the sunk group. |
+| Ruler | **code** | Practiced dots above the ticks are missing. |
+| Practiced dots in the gutter | verify | Seeded takes on line 6 show no gutter dot in the app; check `transcriptLineRecordingCountsProvider` against the seeded rows. |
+| Echo context lines | **code** | Board: the lines around the loop show the English only; the app also shows the translation under each. |
+| Takes strip | **code** | Board: newest take first with the selected take carrying a `Score` action, `Pitch` as its own toggle; app shows `Pitch contour` inline, no Score action on the unscored take. Phone: the strip falls below the fold because the loop sits low — check the scroll alignment against the board, which puts the loop in the upper third. |
+| Assessment margin (D3.8) | code | Not built: margin assessment and wavy notes on words. Docked margin at ≥ 1100 still deferred. Decisions R1 (Repeat) and R2 (take management) open. |
+| Harness | note | A few CJK glyphs (六, 是, 一 …) still draw as boxes in the gallery behind a Latin primary font — a `flutter test` engine limitation, not an app bug. |
 
 ## Plan
 
@@ -71,7 +78,7 @@ Each phase ends with its compare images attached to the PR. **A board's task can
 ### Phase A — Honest verification (first)
 
 1. **A1** Re-render the boards from the canvas (`tool/render_design_boards.mjs`, with the runtime from the canvas's `artifact-type/dc-runtime.js`) so `renders/` matches the current `Main` / `Phone`.
-2. **A2** Player gallery mounts the real expanded-player body (`ExpandedPlayerChromeBody`: top bar + layout + dock), with fixtures for translation, IPA, takes with scores, and video media.
+2. **A2** Player gallery mounts the real expanded-player body (`ExpandedPlayerChromeBody`: top bar + layout + dock), with fixtures for translation, IPA, takes with scores — **done 2026-10-06** for Main, DDark, DEcho, DCompact, Phone, PEcho, PDark; video, recording, scored, word, hide, subtitles and empty states follow in A5.
 3. **A3** Fixtures that match the boards: continue-practice resume, library rows (video + audio, local + cloud), discover feed + channels, vocabulary items across all four statuses, credit log rows, a Free-plan subscription, sync queue rows.
 4. **A4** Harness gaps: a fake `record` platform channel (Craft), a signed-out auth fixture (SignIn), a review session (Review / ReviewBack / ReviewDone), a dialog opener helper (HomeImport, LibraryDelete, LibraryImporting, SubscriptionPlans, KeyboardCheatsheet, update dialog), and a pushed subpage so back buttons render.
 5. **A5** One gallery scene per board in the [board → task index](STATUS.md#board--task-index); `duet_compare.sh` with no arguments then covers all of them.
@@ -101,9 +108,9 @@ Ordered by user impact and gap size. Each item rebuilds layout and IA using the 
 
 ### Phase D — Player
 
-1. **D1** Phone top bar (two rows) and the desktop More menu (decide what it holds: today's top-bar overflow actions).
-2. **D2** Dock to the board: filled skip glyphs, mono speed text, eye-slash Hide, single-row phone dock, full-bleed frame. The replay button needs a decision (new **R3**: the board drops it; the feature exists today).
-3. **D3** Ruler practiced dots / loop bracket, verified with take fixtures.
+1. **D1** Top bar: `0:55` time format and language names in the meta, `Echo` label, phone two-row variant with Share, desktop More menu.
+2. **D2** Dock to the board: full-bleed frame, filled skip glyphs, mono speed text, eye-slash Hide, the phone Listen and Echo rows (phone Listen drops replay — decision R3). Ship Repeat if R1 is accepted.
+3. **D3** Ruler and gutter practiced dots; Echo context lines without translation; takes strip order, Score action, Pitch toggle; Echo scroll alignment.
 4. **D4** D3.8 assessment margin + word notes; docked margin at ≥ 1100; resolve R1 / R2.
 5. **D5** Echo with IPA, translation, and takes, verified against `DEcho`, `DRecording`, `DScored`, `PEcho`, `PRecording`, `PScored`.
 

@@ -18,8 +18,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 3 · Player | 14 | 9 |
 | 4 · App screens | 11 | 0 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
-| A · Audit verification | 6 | 2 |
-| **Total** | **50** | **23** |
+| A · Audit verification | 6 | 3 |
+| **Total** | **50** | **24** |
 
 ## Decisions
 
@@ -31,7 +31,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | R2 | The board's takes strip draws **no delete affordance**, so the player embed loses the take **more-menu** (delete with confirm / re-assess / choose). The vocabulary embed keeps it. Where does player-side take management land? | Park it in the D3.8 assessment margin take panel (re-assess lives on the score chip today). | open | D3.6, D3.8 |
 | S1 | The desktop sidebar on `Sidebar` adds **Vocabulary** (due count) and **Craft** rows, a **Settings** row, and a **sync status** line. It drops `SidebarContinuePracticeCard`; Home keeps Continue practicing. These are navigation changes only, on existing routes and state. | Build as drawn. | decided — built as drawn in D2.1 per the standing "stick to the design" direction | D2.1 |
 | L1 | Violet replaces coral for "you"; scores lose their colors; Literata replaces Source Serif 4 and Instrument Serif; Hide text renders as word shapes. | Accepted in ADR-0091. | decided | — |
-| R3 | The Listen dock on `Main` / `Phone` has no **replay** (↺) button; the app's dock has one (replay current line, also on `S`). Drop it from the dock? | Drop the button, keep the `S` hotkey and the dock's Original replay in Echo — the board is consistent across Listen boards. | open | D3.2 |
+| R3 | The **phone** Listen dock on `Phone` has no replay (↺) button; the desktop `Main` dock has one, and the app shows it on both. Drop it on phones? | Drop it on phones only (the board's one-row phone dock: Hide · prev · play · next · speed); keep the `S` hotkey. | open | D3.2 |
 
 ## Tasks
 
@@ -103,7 +103,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
 | A1 | Re-render boards from the canvas | all | — | done | | | All 76 boards re-synced (only `DYoutubeDark` differed beyond `Main` / `Phone`) and re-rendered; the renderer is deterministic, so only the 20 player renders changed |
-| A2 | Player gallery on the real expanded-player body | all `D*` / `P*` player boards | — | todo | | | `ExpandedPlayerChromeBody` (top bar + layout + dock); translation, IPA, takes, video fixtures |
+| A2 | Player gallery on the real expanded-player body | all `D*` / `P*` player boards | — | done | | | `ExpandedPlayerChromeBody` + RootShell dock with the board's sample (*The Ferry at Six*, zh translation, IPA, three seeded takes) for Main, DDark, DEcho, DCompact, Phone, PEcho, PDark; host Noto CJK SC face registered for the gallery. Remaining player states go to A5 |
 | A3 | Board-matching fixtures | Home, Library, Discover, Vocabulary, Credits, Subscription, Sync | — | todo | | | Continue-practice resume, library rows, feed + channels, vocab statuses, credit log, Free plan, sync queue |
 | A4 | Harness gaps | Craft, SignIn, Review, dialogs | — | todo | | | Fake `record` channel, signed-out auth, review session, dialog openers, pushed subpages for back buttons |
 | A5 | One gallery scene per board | all | A2–A4 | todo | | | `duet_compare.sh` with no args covers the board → task index |

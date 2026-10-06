@@ -44,6 +44,7 @@ Future<void> setUpGallery() async {
   PathProviderPlatform.instance = TestPathProvider(scratch.path);
   GoogleFonts.config.allowRuntimeFetching = false;
   await _loadManifestFonts();
+  await _loadHostCjkFonts();
   buildAppTheme(Brightness.dark);
   buildAppTheme(Brightness.light);
   for (final weight in [FontWeight.w400, FontWeight.w500, FontWeight.w600]) {
@@ -61,6 +62,62 @@ Future<void> setUpGallery() async {
   );
   GoogleFonts.notoSans();
   await GoogleFonts.pendingFonts();
+}
+
+/// Registers the host's Noto CJK Simplified Chinese faces under the family
+/// names the theme lists as fallbacks, and under `Roboto` for unstyled text;
+/// `flutter test` has no platform fallback. Code points the built-in
+/// `FlutterTest` font claims (六, 是, 一, …) still draw as boxes behind a Latin
+/// primary font. Missing files are skipped.
+Future<void> _loadHostCjkFonts() async {
+  const dirs = ['/usr/share/fonts/noto-cjk', '/usr/share/fonts/opentype/noto'];
+  const scFaceIndex = 2;
+  for (final (family, file) in [
+    ('NotoSansSC', 'NotoSansCJK-Regular.ttc'),
+    ('NotoSerifSC', 'NotoSerifCJK-Regular.ttc'),
+  ]) {
+    for (final dir in dirs) {
+      final font = File('$dir/$file');
+      if (!font.existsSync()) continue;
+      final face = _ttcFace(font.readAsBytesSync(), scFaceIndex);
+      await (FontLoader(family)..addFont(Future.value(face))).load();
+      if (family == 'NotoSansSC') {
+        await (FontLoader('Roboto')..addFont(Future.value(face))).load();
+      }
+      break;
+    }
+  }
+}
+
+/// Rebuilds face [index] of a TrueType collection as a standalone sfnt.
+ByteData _ttcFace(Uint8List ttc, int index) {
+  final src = ByteData.sublistView(ttc);
+  final faceOffset = src.getUint32(12 + 4 * index);
+  final numTables = src.getUint16(faceOffset + 4);
+  final headerSize = 12 + 16 * numTables;
+  final tables = [
+    for (var i = 0; i < numTables; i++)
+      (
+        record: faceOffset + 12 + 16 * i,
+        offset: src.getUint32(faceOffset + 12 + 16 * i + 8),
+        length: src.getUint32(faceOffset + 12 + 16 * i + 12),
+      ),
+  ];
+  final total = tables.fold(
+    headerSize,
+    (sum, t) => sum + ((t.length + 3) & ~3),
+  );
+  final out = Uint8List(total);
+  out.setRange(0, 12, ttc, faceOffset);
+  final dst = ByteData.sublistView(out);
+  var cursor = headerSize;
+  for (final (i, t) in tables.indexed) {
+    out.setRange(12 + 16 * i, 12 + 16 * i + 16, ttc, t.record);
+    dst.setUint32(12 + 16 * i + 8, cursor);
+    out.setRange(cursor, cursor + t.length, ttc, t.offset);
+    cursor += (t.length + 3) & ~3;
+  }
+  return dst;
 }
 
 Future<void> _loadManifestFonts() async {
