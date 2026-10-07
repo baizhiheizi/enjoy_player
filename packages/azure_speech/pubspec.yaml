@@ -1,8 +1,9 @@
 name: azure_speech
 description: >
   Flutter plugin wrapping the Microsoft Azure Cognitive Services Speech SDK
-  on Android, iOS, macOS, and Windows. Pronunciation assessment is implemented
-  first; additional Speech SDK features may be added incrementally.
+  on Android, iOS, macOS, and Windows, with a REST fallback for synthesis on
+  Linux. Pronunciation assessment is implemented first; additional Speech SDK
+  features may be added incrementally.
 version: 0.1.0
 publish_to: "none"
 
