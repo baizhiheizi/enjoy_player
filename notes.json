@@ -8,49 +8,43 @@
     {
       "number": 786,
       "state": "resolution_recommended",
-      "updated_at": "2026-10-04",
-      "note": "Bokmål catalog shipped (#788); YouTube caption-code gap closed by draft PR #848. Recommend close once #848 lands."
-    },
-    {
-      "number": 761,
-      "state": "resolution_recommended",
-      "updated_at": "2026-10-04",
-      "note": "Byte-identical duplicate of closed #762 (Sept activity). Already labelled duplicate; safe to close."
+      "updated_at": "2026-10-07",
+      "note": "Bokmål catalog shipped (#788); YouTube caption-code gap closed by draft PR #848. kAzureVoices Craft-voice graceful-degrade note remains open. Recommend close once #848 lands."
     },
     {
       "number": 793,
       "state": "deferred",
-      "updated_at": "2026-10-04",
-      "note": "macOS integrated title bar follow-up needs hardware; wall-clock flake already addressed by #845."
+      "updated_at": "2026-10-07",
+      "note": "[feature] Aurora redesign follow-ups — device verification, macOS title bar, secondary screens, screenshots. Wall-clock flake already addressed by #845. macOS integrated title bar requires hardware."
     },
     {
       "number": 797,
       "state": "deferred",
-      "updated_at": "2026-10-04",
+      "updated_at": "2026-10-07",
       "note": "[repo-map] documentation label — auto-managed snapshot."
     },
     {
       "number": 840,
       "state": "deferred",
-      "updated_at": "2026-10-04",
+      "updated_at": "2026-10-07",
       "note": "[aw] automation-managed daily-credit report."
     },
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-04",
+      "updated_at": "2026-10-07",
       "note": "Monthly activity summary for October 2026 — updated each run by Task 11."
     },
     {
       "number": 850,
       "state": "deferred",
-      "updated_at": "2026-10-04",
+      "updated_at": "2026-10-07",
       "note": "[repo-status] daily status report — auto-managed."
     },
     {
       "number": 771,
       "state": "deferred",
-      "updated_at": "2026-10-04",
+      "updated_at": "2026-10-07",
       "note": "[aw] detection runs — auto-managed."
     }
   ],
@@ -60,7 +54,7 @@
       "pr": 848,
       "branch": "repo-assist/fix-786-youtube-caption-alias-matching-628499ea392178eb",
       "status": "open",
-      "updated_at": "2026-10-04",
+      "updated_at": "2026-10-07",
       "note": "YouTube caption matcher uses primary-subtag aliasing. 25/25 youtube_caption_fetcher_test, 476/476 test/features/transcript/. Format + analyze clean."
     }
   ],
@@ -88,9 +82,19 @@
       "note": "Draft PR adding direct unit coverage for splitLanguageTag, normalizeLanguageAlias, firstTagPerPrimary, isLookupRow."
     },
     {
-      "task": 2,
-      "item": "Close #761 duplicate",
-      "note": "Byte-identical duplicate of closed #762 — labelled duplicate already."
+      "task": 5,
+      "item": "PR #859 haptics helpers direct tests",
+      "note": "Draft PR (2026-10-07) adding 16 focused tests for Haptics public surface — wrapTap, selection, impactMedium, success, warning; no production code changed."
+    },
+    {
+      "task": 4,
+      "item": "PR #860 --changed-only CI gate flag",
+      "note": "Draft PR (2026-10-07) adding --changed-only to validate_ci_gates.sh for local agent iteration; CI behaviour unchanged."
+    },
+    {
+      "task": 5,
+      "item": "Lookup equality strict types",
+      "note": "Draft PR (this run, 2026-10-07) tightens LookupTextParams equality to require same runtimeType; flips doc/test contradiction."
     }
   ]
 }
