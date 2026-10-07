@@ -22,12 +22,14 @@ base class LookupTextParams {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is LookupTextParams &&
+          runtimeType == other.runtimeType &&
           text == other.text &&
           sourceLanguage == other.sourceLanguage &&
           targetLanguage == other.targetLanguage;
 
   @override
-  int get hashCode => Object.hash(text, sourceLanguage, targetLanguage);
+  int get hashCode =>
+      Object.hash(runtimeType, text, sourceLanguage, targetLanguage);
 }
 
 @immutable

@@ -191,8 +191,24 @@ void main() {
           sourceLanguage: 'en',
           targetLanguage: 'zh',
         );
-        expect(a == b, isTrue);
+        expect(a == b, isFalse);
+        expect(b == a, isFalse);
       },
     );
+
+    test('same concrete type with same fields is equal', () {
+      const a = LookupTranslationParams(
+        text: 'hi',
+        sourceLanguage: 'en',
+        targetLanguage: 'zh',
+      );
+      const b = LookupTranslationParams(
+        text: 'hi',
+        sourceLanguage: 'en',
+        targetLanguage: 'zh',
+      );
+      expect(a == b, isTrue);
+      expect(a.hashCode, b.hashCode);
+    });
   });
 }
