@@ -85,30 +85,26 @@ Widget _harness({
 void main() {
   final helloIpa = formatPhonesAsFamiliarIpa(['həˈloʊ']);
 
-  testWidgets(
-    'overlay on: timestamp tap still line-seeks',
-    (tester) async {
-      var taps = 0;
-      await tester.pumpWidget(
-        _harness(
-          child: TranscriptLineTile(
-            line: _nested,
-            mediaId: 'test',
-            secondaryText: null,
-            isActive: false,
-            inEcho: false,
-            selectable: false,
-            onTap: () => taps++,
-          ),
+  testWidgets('overlay on: timestamp tap still line-seeks', (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      _harness(
+        child: TranscriptLineTile(
+          line: _nested,
+          mediaId: 'test',
+          secondaryText: null,
+          isActive: false,
+          inEcho: false,
+          selectable: false,
+          onTap: () => taps++,
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text(formatTranscriptTimestampMs(0)));
-      expect(taps, 1);
-    },
-    variant: TargetPlatformVariant.desktop(),
-  );
+    await tester.tap(find.text(formatTranscriptTimestampMs(0)));
+    expect(taps, 1);
+  }, variant: TargetPlatformVariant.desktop());
 
   testWidgets('overlay on: tap IPA does not fire line onTap', (tester) async {
     var taps = 0;

@@ -108,7 +108,7 @@ final class CraftTimelineEnricher {
           if (attached.length != lines.length) {
             return _fallback(timelineJson, 'line count changed');
           }
-          return encodeTimelineJsonGated(attached);
+          return await encodeTimelineJsonGated(attached);
         } on Object catch (e, st) {
           logNamed('craft.enrichment').warning('mapping failed: $e', e, st);
           return timelineJson;
