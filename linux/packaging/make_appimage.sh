@@ -7,6 +7,13 @@
 # Produces: dist/enjoy-player-<version>-x86_64.AppImage
 #
 # Requires: appimagetool-x86_64.AppImage (downloaded on first run, cached under ~/.cache/appimagetool/).
+#
+# YouTube playback (ADR-0091 / specs/047 T027): the GStreamer runtime + plugin
+# set and the transitive dependency closure of the bundled WPE WebKit are copied
+# into the image, and AppRun wires GST_PLUGIN_PATH / LD_LIBRARY_PATH to them.
+# Build on the release baseline (Ubuntu 22.04) so bundled library versions match
+# the oldest supported glibc — building on a newer distro produces an image that
+# only runs on similarly new systems.
 set -euo pipefail
 
 VERSION=""
@@ -35,6 +42,124 @@ trap 'rm -rf "$APPDIR"' EXIT
 
 echo "==> Preparing AppDir from $BUNDLE_DIR"
 cp -a "$BUNDLE_DIR"/* "$APPDIR"/
+
+# --- GStreamer runtime + plugins (YouTube playback, specs/047 T027) ---
+#
+# WPE loads media code via dlopen at runtime, so link-time dependency walkers
+# never see these; copy the whole plugin directory (whitelisting individual
+# plugins lost a real playback session to a missing element).
+PLUGINS_DIR="$(pkg-config --variable=pluginsdir gstreamer-1.0 2>/dev/null || true)"
+if [[ -z "$PLUGINS_DIR" || ! -d "$PLUGINS_DIR" ]]; then
+  echo "error: GStreamer plugins directory not found via pkg-config (gstreamer-1.0). Install the GStreamer dev packages — see docs/features/linux-platform.md" >&2
+  exit 1
+fi
+APP_GST_DIR="$APPDIR/usr/lib/gstreamer-1.0"
+mkdir -p "$APP_GST_DIR"
+echo "==> Bundling GStreamer plugins from $PLUGINS_DIR"
+cp -a "$PLUGINS_DIR"/*.so* "$APP_GST_DIR"/
+if [[ -f "$PLUGINS_DIR/gst-plugin-scanner" ]]; then
+  cp -a "$PLUGINS_DIR/gst-plugin-scanner" "$APP_GST_DIR"/
+fi
+
+# --- Transitive dependency closure (no linuxdeploy in this pipeline) ---
+#
+# Every non-glibc shared library reachable from the bundle's own libraries and
+# the copied GStreamer plugins lands in usr/lib; glibc is always taken from the
+# host. Newer build-machine libraries stay backward compatible for older hosts,
+# which is why the release build runs on the oldest supported baseline.
+is_glibc_core() {
+  case "$(basename "$1")" in
+    ld-linux-*|libc.so*|libm.so*|libdl.so*|libpthread.so*|librt.so*|libresolv.so*|libcrypt.so*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# The GL/Mesa family must come from the host: its DRI/VA drivers are dlopened
+# from compiled-in host paths that a bundled copy cannot see, so a bundled Mesa
+# breaks GL entirely (verified: black webview even under LIBGL_ALWAYS_SOFTWARE).
+# Every desktop that runs the image has a host GL stack.
+is_host_gl() {
+  case "$(basename "$1")" in
+    libGL.so*|libEGL.so*|libGLESv1*|libGLESv2*|libGLX.so*|libGLdispatch.so*|\
+    libglapi.so*|libOSMesa*|libgbm.so*|libGLU.so*|libglut.so*|libglslang*|\
+    libdrm.so*|libvulkan.so*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+APP_USR_LIB="$APPDIR/usr/lib"
+mkdir -p "$APP_USR_LIB"
+
+# Bundled libraries are copied under their full versioned name
+# (libWPEWebKit-2.0.so.1.9.10) but DT_NEEDED entries reference the soname
+# (libWPEWebKit-2.0.so.1). Without a soname symlink inside lib/, the loader
+# skips the bundled copy and resolves against the HOST's version — which may be
+# a completely different WebKit (verified: host 2.48 shadowed the bundled 2.52
+# and needed a different ICU). $ORIGIN rpath then prefers the bundled copy.
+link_bundle_sonames() {
+  command -v readelf >/dev/null 2>&1 || return 0
+  local real soname
+  for real in "$APPDIR"/lib/*.so*; do
+    [[ -f "$real" ]] || continue
+    soname="$(readelf -d "$real" 2>/dev/null | awk -F'[][]' '/SONAME/ {print $2}')"
+    [[ -n "$soname" ]] || continue
+    [[ -e "$APPDIR/lib/$soname" ]] || ln -s "$(basename "$real")" "$APPDIR/lib/$soname"
+  done
+}
+link_bundle_sonames
+
+# True when the AppDir already ships this soname family (libFoo.so.*) — the
+# soname a requester asks for is then satisfied by the bundled copy, and
+# resolving it against the HOST would pull a foreign second version into
+# usr/lib (verified: host WPE 2.48 landed beside the bundled 2.52).
+soname_family_bundled() {
+  local soname
+  soname="$(basename "$1")"
+  local prefix="${soname%%.so*}.so"
+  compgen -G "$APPDIR/lib/$prefix.*" >/dev/null 2>&1
+}
+
+link_soname() {
+  local real="$1"
+  command -v readelf >/dev/null 2>&1 || return 0
+  local soname
+  soname="$(readelf -d "$real" 2>/dev/null | awk -F'[][]' '/SONAME/ {print $2}')"
+  [[ -n "$soname" ]] || return 0
+  [[ -e "$APP_USR_LIB/$soname" || -e "$APPDIR/lib/$soname" ]] && return 0
+  ln -s "$(basename "$real")" "$APP_USR_LIB/$soname"
+}
+
+DEP_LIST="$(mktemp)"
+sources=("$APPDIR"/lib/*.so* "$APP_GST_DIR"/*.so*)
+for _ in $(seq 1 12); do
+  : > "$DEP_LIST"
+  for f in "${sources[@]}"; do
+    [[ -f "$f" ]] || continue
+    while read -r lib; do
+      [[ -n "$lib" ]] || continue
+      is_glibc_core "$lib" && continue
+      is_host_gl "$lib" && continue
+      [[ -e "$APPDIR/lib/$(basename "$lib")" ]] && continue
+      soname_family_bundled "$lib" && continue
+      [[ -e "$APP_USR_LIB/$(basename "$lib")" ]] && continue
+      echo "$lib" >> "$DEP_LIST"
+    done < <(ldd "$f" 2>/dev/null | awk '$2 == "=>" && $3 ~ /^\// {print $3}; !($2 == "=>") && $1 ~ /^\// {print $1}')
+  done
+  sort -u "$DEP_LIST" -o "$DEP_LIST"
+  [[ -s "$DEP_LIST" ]] || break
+  while IFS= read -r lib; do
+    cp -aL "$lib" "$APP_USR_LIB/$(basename "$lib")"
+    link_soname "$APP_USR_LIB/$(basename "$lib")"
+    sources+=("$APP_USR_LIB/$(basename "$lib")")
+  done < "$DEP_LIST"
+done
+rm -f "$DEP_LIST"
+
+MISSING="$(find "$APPDIR" -name '*.so*' -exec sh -c 'ldd "$1" 2>/dev/null | grep "not found"' _ {} \; | sort -u || true)"
+if [[ -n "$MISSING" ]]; then
+  echo "warning: unresolved libraries inside the AppDir:" >&2
+  echo "$MISSING" >&2
+fi
 
 # Desktop entry (required by AppImage spec — must be at AppDir root AND in usr/share/applications).
 # `%u` passes the launched URI (e.g. enjoyplayer://auth/callback) and
@@ -65,8 +190,36 @@ else
   touch "$APPDIR"/enjoy_player.png
 fi
 
-# Symlink the binary at AppDir root so appimagetool finds it
-ln -sf enjoy_player "$APPDIR"/AppRun
+# AppRun wires the bundled GStreamer + library paths before exec (T027), so the
+# image never mixes plugin versions with the host's GStreamer.
+cat > "$APPDIR/AppRun" <<'EOF'
+#!/bin/sh
+HERE="$(CDPATH= cd -- "$(dirname -- "$(readlink -f "$0")")" && pwd)"
+export LD_LIBRARY_PATH="$HERE/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export GST_PLUGIN_PATH="$HERE/usr/lib/gstreamer-1.0"
+export GST_PLUGIN_SYSTEM_PATH="$HERE/usr/lib/gstreamer-1.0"
+if [ -x "$HERE/usr/lib/gstreamer-1.0/gst-plugin-scanner" ]; then
+  export GST_PLUGIN_SCANNER="$HERE/usr/lib/gstreamer-1.0/gst-plugin-scanner"
+fi
+exec "$HERE/enjoy_player" "$@"
+EOF
+chmod +x "$APPDIR/AppRun"
+
+# --- WPE WebKit stays a HOST dependency (ADR-0092) ---
+#
+# WebKit spawns WebProcess/NetworkProcess from a compile-time absolute path
+# (/usr/lib/wpe-webkit-2.0/...) with no override, so a bundled WPE would still
+# launch the HOST's helper binaries — a guaranteed version mismatch. v1 ships
+# with the webview runtime resolved from the host instead: the availability
+# probe detects its presence and the player degrades gracefully when missing.
+# The WPE family copied into bundle/lib by the plugin's bundling is therefore
+# removed here; host GStreamer plugins are still shadowed by our bundled set.
+if [[ -n "$(find "$APPDIR/lib" -maxdepth 1 -name 'libWPE*' -o -maxdepth 1 -name 'libwpe*' 2>/dev/null)" ]]; then
+  echo "==> Removing bundled WPE libraries (host wpewebkit is the runtime, ADR-0092)"
+  rm -f "$APPDIR"/lib/libWPE* "$APPDIR"/lib/libwpe* "$APPDIR"/lib/libwpewebkit*
+fi
+
+echo "==> AppDir contents: $(du -sh "$APPDIR" | awk '{ print $1 }')"
 
 # Download appimagetool on first run (cache it)
 CACHE_DIR="${HOME}/.cache/appimagetool"

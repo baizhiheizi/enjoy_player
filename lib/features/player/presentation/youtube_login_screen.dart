@@ -12,9 +12,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
 import 'package:enjoy_player/core/webview/webview_environment_gate.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_unavailable_message.dart';
 import 'package:enjoy_player/features/player/application/youtube_auth_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -64,8 +66,9 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    final availability = ref.watch(youtubeAvailabilityProvider).valueOrNull;
 
-    if (youTubeEngineOptedOutHere) {
+    if (availability != null && !availability.canPlay) {
       return Scaffold(
         backgroundColor: colorScheme.surface,
         appBar: AppBar(
@@ -84,11 +87,33 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              l10n.youtubeLinuxUnavailable,
+              youtubeUnavailableMessage(
+                l10n,
+                availability is YouTubeUnavailable ? availability.reason : null,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
         ),
+      );
+    }
+
+    if (availability == null) {
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(EnjoyIcons.close, size: 24),
+            color: colorScheme.onSurface,
+            onPressed: () {
+              ref.invalidate(youtubeLoginStateProvider);
+              context.pop();
+            },
+            tooltip: l10n.youtubeLoginClose,
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 

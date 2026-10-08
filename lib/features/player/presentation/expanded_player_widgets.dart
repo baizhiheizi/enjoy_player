@@ -5,9 +5,11 @@ import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/local_thumbnail.dart'
     show thumbnailCacheWidthFor;
@@ -17,6 +19,7 @@ import 'package:enjoy_player/features/player/application/player_preferences_prov
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/audio_player_layout.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_unavailable_message.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -177,19 +180,26 @@ class ExpandedPlayerGenericErrorBody extends StatelessWidget {
   }
 }
 
-/// YouTube open on an opted-out platform (ADR-0048): localized "coming soon"
-/// notice instead of the generic failure body.
+/// YouTube open on a device without a usable playback runtime (specs/047):
+/// localized notice + "open in browser" fallback when the video URL is known.
 class ExpandedPlayerYoutubeUnavailableBody extends StatelessWidget {
   const ExpandedPlayerYoutubeUnavailableBody({
     super.key,
     required this.colorScheme,
+    this.youtubeUrl,
+    this.reason,
   });
 
   final ColorScheme colorScheme;
 
+  final String? youtubeUrl;
+
+  final YouTubeUnavailableReason? reason;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final youtubeUrl = this.youtubeUrl;
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: Column(
@@ -200,9 +210,22 @@ class ExpandedPlayerYoutubeUnavailableBody extends StatelessWidget {
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(
-                  l10n.youtubeLinuxUnavailable,
-                  textAlign: TextAlign.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      youtubeUnavailableMessage(l10n, reason),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (youtubeUrl != null) ...[
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: () => _openInBrowser(context, youtubeUrl),
+                        icon: const Icon(EnjoyIcons.link, size: 18),
+                        label: Text(l10n.youtubeOpenInBrowser),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
@@ -210,6 +233,20 @@ class ExpandedPlayerYoutubeUnavailableBody extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _openInBrowser(BuildContext context, String url) async {
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } on Object {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.playerOpenGenericError),
+          ),
+        );
+      }
+    }
   }
 }
 

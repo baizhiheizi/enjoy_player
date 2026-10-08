@@ -123,8 +123,8 @@ void main() {
       },
     );
 
-    testWidgets('shows the YouTube coming-soon body when open fails with the '
-        'ADR-0048 Linux opt-out exception', (tester) async {
+    testWidgets('shows the unavailable body when open fails with the '
+        'YouTube unavailable exception (specs/047)', (tester) async {
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
@@ -151,7 +151,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('YouTube is not yet available on Linux — coming soon.'),
+        find.text('YouTube is not available on this device.'),
         findsOneWidget,
       );
 

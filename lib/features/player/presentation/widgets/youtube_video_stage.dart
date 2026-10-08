@@ -1,12 +1,18 @@
 /// YouTube half of the surface host slot: WebView host + poster overlays.
 library;
 
+import 'dart:math' as math;
+import 'dart:ui' show ImageByteFormat;
+
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_frame_watchdog.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_host.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -18,7 +24,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 /// and is told about stage layout through
 /// [YoutubePlayerEngine.noteStageViewportSize] so the focus policy stays with
 /// the transport code.
-class YoutubeVideoStage extends StatelessWidget {
+class YoutubeVideoStage extends ConsumerWidget {
   const YoutubeVideoStage({
     super.key,
     required this.engine,
@@ -31,7 +37,7 @@ class YoutubeVideoStage extends StatelessWidget {
   final double maxHeight;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (maxWidth <= 0 || maxHeight <= 0) {
       return const SizedBox.shrink();
     }
@@ -45,8 +51,14 @@ class YoutubeVideoStage extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Colors.black),
-            if (!youTubeEngineOptedOutHere && session.shouldMountWebView)
-              _webViewHost(),
+            if (engine.availability.canPlay && session.shouldMountWebView)
+              _FrameWatchdogLayer(
+                engine: engine,
+                onStalled: () => ref
+                    .read(playerControllerProvider.notifier)
+                    .restartWithSoftwareGl(),
+                child: _webViewHost(),
+              ),
             _StageBufferingLeaf(engine: engine),
           ],
         );
@@ -60,6 +72,104 @@ class YoutubeVideoStage extends StatelessWidget {
       controller: engine.webViewLifecycle,
       currentVideoId: () => engine.session.videoId,
     );
+  }
+}
+
+/// Samples the webview texture through a [RepaintBoundary] and hands the
+/// luminance pairs to the [YoutubeFrameWatchdog] (specs/047 T047): a playing
+/// video whose texture stays near-black and static is the hardware
+/// frame-export stall, and the verdict triggers the software-GL rebuild.
+class _FrameWatchdogLayer extends StatefulWidget {
+  const _FrameWatchdogLayer({
+    required this.engine,
+    required this.onStalled,
+    required this.child,
+  });
+
+  final YoutubePlayerEngine engine;
+  final VoidCallback onStalled;
+  final Widget child;
+
+  @override
+  State<_FrameWatchdogLayer> createState() => _FrameWatchdogLayerState();
+}
+
+class _FrameWatchdogLayerState extends State<_FrameWatchdogLayer> {
+  final GlobalKey _boundaryKey = GlobalKey();
+  YoutubeFrameWatchdog? _watchdog;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
+  }
+
+  @override
+  void didUpdateWidget(_FrameWatchdogLayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_watchdog == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
+    }
+  }
+
+  void _maybeStart() {
+    if (!mounted || _watchdog != null) return;
+    if (!widget.engine.availability.canPlay) return;
+    if (!widget.engine.session.loggedFirstPlaying) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
+      return;
+    }
+    _watchdog = YoutubeFrameWatchdog(
+      sampleProvider: _takeSample,
+      playingCheck: () => widget.engine.session.playing,
+      stalledCallback: widget.onStalled,
+    )..start();
+  }
+
+  Future<FrameSample?> _takeSample() async {
+    final boundary = _boundaryKey.currentContext?.findRenderObject();
+    if (boundary is! RenderRepaintBoundary ||
+        !boundary.hasSize ||
+        boundary.debugNeedsPaint) {
+      return null;
+    }
+    final image = await boundary.toImage(pixelRatio: 0.15);
+    try {
+      final bytes = await image.toByteData(
+        format: ImageByteFormat.rawStraightRgba,
+      );
+      if (bytes == null) return null;
+      final data = bytes.buffer.asUint8List(
+        bytes.offsetInBytes,
+        bytes.lengthInBytes,
+      );
+      var sum = 0.0;
+      var sumSq = 0.0;
+      var count = 0;
+      for (var i = 0; i + 3 < data.length; i += 16) {
+        final luminance = (data[i] + data[i + 1] + data[i + 2]) / (3 * 255);
+        sum += luminance;
+        sumSq += luminance * luminance;
+        count++;
+      }
+      if (count == 0) return null;
+      final mean = sum / count;
+      final variance = math.max(0.0, sumSq / count - mean * mean);
+      return (mean: mean, deviation: math.sqrt(variance));
+    } finally {
+      image.dispose();
+    }
+  }
+
+  @override
+  void dispose() {
+    _watchdog?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(key: _boundaryKey, child: widget.child);
   }
 }
 
