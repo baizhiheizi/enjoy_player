@@ -1,4 +1,4 @@
-/// Sentence ruler (ADR-0091) — the dock's seek bar: original played track on
+/// Sentence ruler (ADR-0093) — the dock's seek bar: original played track on
 /// sunk, a tick per transcript line, the Echo loop bracket in you, practiced
 /// dots over lines with takes, mono times, and an original thumb ring.
 library;

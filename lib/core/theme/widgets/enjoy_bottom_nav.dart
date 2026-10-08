@@ -1,4 +1,4 @@
-/// Solid tab bar — Duet mobile chrome (ADR-0091), not stock [NavigationBar].
+/// Solid tab bar — Duet mobile chrome (ADR-0093), not stock [NavigationBar].
 ///
 /// A full-width paper bar with a top line: the selected tab gets a
 /// brandSoft pill, a filled glyph in brandInk, and a 600 label.

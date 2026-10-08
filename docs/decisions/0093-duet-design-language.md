@@ -1,4 +1,4 @@
-# ADR-0091 — Duet design language (supersedes the ADR-0089 Aurora look)
+# ADR-0093 — Duet design language (supersedes the ADR-0089 Aurora look)
 
 **Status**: Accepted
 **Date**: 2026-10-02

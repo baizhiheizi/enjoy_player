@@ -3,7 +3,7 @@
 > **For agents:** pick work from [`STATUS.md`](STATUS.md), follow [§ How to work a task](#how-to-work-a-task), and keep the tracker current in the same PR. Steps are written so that every task lands green (`flutter analyze` + `flutter test`) on its own.
 
 **Goal**: Replace the unreleased Aurora UI with Duet on every screen. Features, behavior, hotkeys, and data do not change.
-**Decision**: [ADR-0091](../../decisions/0091-duet-design-language.md). **Design**: this folder ([README](README.md) → renders, boards, tokens).
+**Decision**: [ADR-0093](../../decisions/0093-duet-design-language.md). **Design**: this folder ([README](README.md) → renders, boards, tokens).
 **Branch**: `design-duet`, which merges to `main` as one release when Phase 5 is done.
 **Stack**: Flutter 3.44 (`mise.toml`), Riverpod 3, `google_fonts` 8.2 with bundled fonts, Phosphor via `EnjoyIcons`.
 
@@ -50,7 +50,7 @@
 
 ## How to work a task
 
-1. **Read.** Read [README → Implementing from this folder](README.md#implementing-from-this-folder), ADR-0091, and the task below. Open every board render listed for the task (`renders/<Board>.webp`, plus `.full.webp` when present).
+1. **Read.** Read [README → Implementing from this folder](README.md#implementing-from-this-folder), ADR-0093, and the task below. Open every board render listed for the task (`renders/<Board>.webp`, plus `.full.webp` when present).
 2. **Claim.**
    - Make sure nobody holds the task: `gh pr list --base design-duet --search "<ID>"`. Also check that its `Depends` rows are `done` in `STATUS.md`.
    - Open a draft PR titled `[duet <ID>] <task title>` early. The draft PR is the claim.
@@ -198,7 +198,7 @@ Phases 2, 3, and 4 can run in parallel once Phase 1 is done. Inside Phase 3, fol
 ### Phase 0 — Ready
 
 #### D0.1 Design reference, ADR, plan, tracker
-Already done: `docs/design/duet/`, ADR-0091, this plan, `STATUS.md`, the Literata / Geist / Geist Mono font files, and the pointers in `AGENTS.md` and the docs indexes.
+Already done: `docs/design/duet/`, ADR-0093, this plan, `STATUS.md`, the Literata / Geist / Geist Mono font files, and the pointers in `AGENTS.md` and the docs indexes.
 
 #### D0.2 Gallery harness (opt-in screenshots)
 - **Change:**
@@ -339,7 +339,7 @@ Already done: `docs/design/duet/`, ADR-0091, this plan, `STATUS.md`, the Literat
 - **Code:** `lib/core/layout/enjoy_page_kind.dart`, `lib/core/theme/widgets/enjoy_page.dart`, `enjoy_subpage_app_bar.dart` (64 high; back chevron + Geist 600 title), `lib/core/routing/not_found_screen.dart`.
 - **Change:** gutters are 40 desktop / 16 under 600. Max widths: browse 1180, hub 840, form 680, and a Craft width of 1080 (new kind, or a parameter on `browse`; record which in the PR).
 - **Tests:** the page-kind metrics tests.
-- **Docs:** `app-ui.md` → "Page layout" (ADR-0055 values amended by ADR-0091).
+- **Docs:** `app-ui.md` → "Page layout" (ADR-0055 values amended by ADR-0093).
 
 ### Phase 3 — Player
 
@@ -597,7 +597,7 @@ Every task restyles the screen to its boards with the Phase 1 primitives, keeps 
 - **Change:**
   - Rewrite `docs/features/app-ui.md` as "App UI — Duet design system".
   - Check every feature doc touched in Phases 1–4.
-  - Mark ADR-0091 consequences done.
+  - Mark ADR-0093 consequences done.
   - Note that the store screenshots in `assets/store/` need a re-shoot (a release task, not this branch).
 
 #### D5.4 Performance evidence

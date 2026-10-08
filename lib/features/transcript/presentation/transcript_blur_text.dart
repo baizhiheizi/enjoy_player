@@ -1,8 +1,8 @@
-/// Hidden-text renderer for hide-text practice (Duet, ADR-0091).
+/// Hidden-text renderer for hide-text practice (Duet, ADR-0093).
 ///
 /// When practice hides a line, the cue body renders as rounded `shape`
 /// bars sized from the hidden words' text boxes instead of a Gaussian
-/// blur (ADR-0091 decision 3 — cheaper to paint, same reveal rules).
+/// blur (ADR-0093 decision 3 — cheaper to paint, same reveal rules).
 /// When revealed, the real child renders unchanged. Semantics, lookup,
 /// and selection on revealed lines are untouched.
 library;

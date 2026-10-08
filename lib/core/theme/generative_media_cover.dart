@@ -1,5 +1,5 @@
 /// Deterministic generated cover — the Duet logo-plane recipe
-/// (docs/design/duet/tokens.json → generatedCover, ADR-0091).
+/// (docs/design/duet/tokens.json → generatedCover, ADR-0093).
 library;
 
 import 'dart:math' as math;

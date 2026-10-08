@@ -2,7 +2,7 @@
 ///
 /// Shared by [AppSidebar]'s desktop nav and the Settings two-pane rail —
 /// both render the same "selected nav item" treatment, so they share this
-/// primitive (ADR-0018). Duet styling (ADR-0091): 38px rows at radius 11,
+/// primitive (ADR-0018). Duet styling (ADR-0093): 38px rows at radius 11,
 /// a paper plate with the lift shadow for the selected item, and the
 /// brand-ink glyph when selected.
 library;

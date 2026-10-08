@@ -1,5 +1,5 @@
 /// Editorial page header — large Literata title, optional overline,
-/// trailing actions. The signature voice of Duet page chrome (ADR-0091).
+/// trailing actions. The signature voice of Duet page chrome (ADR-0093).
 library;
 
 import 'package:flutter/material.dart';

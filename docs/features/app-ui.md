@@ -1,12 +1,12 @@
 # App UI — Duet Design System
 
-**Status**: Implemented on `design-duet` ([ADR-0091](../decisions/0091-duet-design-language.md); replaces Aurora [ADR-0089](../decisions/0089-aurora-design-language.md)).
+**Status**: Implemented on `design-duet` ([ADR-0093](../decisions/0093-duet-design-language.md); replaces Aurora [ADR-0089](../decisions/0089-aurora-design-language.md)).
 
 ## Design direction
 
 **Duet — two voices, flat ground.** Material is the widget toolkit, not the look: no ink ripples, continuous (superellipse) corners, flat surfaces with line borders and the lift shadow instead of elevation, one icon family, and one motion language on every platform. **Blue (original)** is the original speaker — playback, the spoken word, reference pitch, Listen; **violet (you)** is the learner — the Echo loop, Record, takes, your pitch. The brand gradient between them is Enjoy itself (logo, Play, primary buttons, goal ring, Pro). Everything else is ink. Modes are lenses: Listen reads like a book; Echo grows the loop in place and fades the rest. Feedback lands on the words (karaoke underline, hide-text shapes, practiced dots), never in chrome.
 
-**Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`; Duet values per [ADR-0091](../decisions/0091-duet-design-language.md) — Aurora-named fields alias them until the rename pass, values from [`tokens.json`](../../design/duet/tokens.json)):
+**Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`; Duet values per [ADR-0093](../decisions/0093-duet-design-language.md) — Aurora-named fields alias them until the rename pass, values from [`tokens.json`](../../design/duet/tokens.json)):
 - **Flat neutrals** — one **ground** for sidebar and pages (light `#F5F6F8`, dark `#0E1014`), `paper` cards, `raised` menus / dialogs, `sunk` control fills, `line` separators; text inks `ink` / `ink2` / `ink3`. No floating content panel, no glass surfaces.
 - **Two voices** — **original** blue (`original` / `originalInk` / `originalSoft`) is the original speaker: playback, the spoken word, reference pitch, Listen. **You** violet (`you` / `youInk` / `youSoft` / `youLine` / `onYou`) is the learner: the Echo loop, Record, takes, your pitch, notes. The voices keep a ~1.9:1 lightness gap in both themes and never rely on hue alone (translucent layer vs solid).
 - **Brand** — the gradient between the voices: `brand` `#2563EB → #7C3AED` (`t.brand`) for Play, primary buttons, Pro, Upgrade; `logo` `#4797F5 → #A855F7` (`t.logo`) for the mark, goal ring, credits meter, avatar ring, generated covers. `brandInk` / `brandSoft` carry selected rows and tabs.
@@ -42,7 +42,7 @@ One stroke family — **Phosphor** (MIT) vendored as `PhosphorRegular` / `Phosph
 
 ## Theme mode
 
-Duet light + dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0091); `duet_tokens_test.dart` pins each theme's values to `tokens.json`. `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
+Duet light + dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0093); `duet_tokens_test.dart` pins each theme's values to `tokens.json`. `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
 
 ## Navigation
 
@@ -96,7 +96,7 @@ The same class of failure arrives through intrinsics: `RenderImage.computeMaxInt
 
 ## Design token reference (`EnjoyThemeTokens`)
 
-Duet tokens ([ADR-0091](../decisions/0091-duet-design-language.md)) come from [`docs/design/duet/tokens.json`](../../design/duet/tokens.json); `test/core/theme/duet_tokens_test.dart` pins every color, radius, size, breakpoint, motion, opacity, and stroke value to that file in light and dark. Aurora-named fields (`canvas`, `card`, `popover`, `fill`, `hairline`, `textFaint`, …) alias the Duet values until the rename pass.
+Duet tokens ([ADR-0093](../decisions/0093-duet-design-language.md)) come from [`docs/design/duet/tokens.json`](../../design/duet/tokens.json); `test/core/theme/duet_tokens_test.dart` pins every color, radius, size, breakpoint, motion, opacity, and stroke value to that file in light and dark. Aurora-named fields (`canvas`, `card`, `popover`, `fill`, `hairline`, `textFaint`, …) alias the Duet values until the rename pass.
 
 ```
 Surfaces:   ground / paper / raised / sunk / line         (sidebar+pages / cards / menus / control fill / separators)

@@ -33,7 +33,7 @@ void main() {
     expect(sources.length, greaterThan(200));
   });
 
-  test('no Material ink ripple: InkWell is banned in lib/ (ADR-0091)', () {
+  test('no Material ink ripple: InkWell is banned in lib/ (ADR-0093)', () {
     final offenders = <String>[];
     for (final f in sources) {
       final lines = f.readAsLinesSync();
@@ -52,7 +52,7 @@ void main() {
     );
   });
 
-  test('no Material Icons in lib/ (ADR-0091)', () {
+  test('no Material Icons in lib/ (ADR-0093)', () {
     final offenders = <String>[];
     for (final f in sources) {
       final lines = f.readAsLinesSync();

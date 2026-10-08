@@ -31,7 +31,7 @@ Sections appear in the sheet in that order: translation, then definition/diction
 - **Selection toolbar** is suppressed on transcript selections; the sheet is the primary affordance.
 - **Signed out** — Translation, dictionary, and contextual sections **do not** call the Worker while the user is not `AuthSignedIn`. Each section shows a compact **Account required** callout with a **Sign in** button (`AuthRequiredCallout`) that navigates to `/sign-in?from=…`. After **AuthFailure** (e.g. expired session), the same callout is shown instead of a retry-only error row.
 - **Translation** section is expanded on first open and fetches immediately when signed in. **Definition (dictionary)** and **contextual translation** start **collapsed** — expand once to fetch when signed in (saves credits vs eager triple fetch). A credits-exhausted rejection (worker 402, spec 045) shows the shared friendly message — required vs. remaining credits when the worker envelope was parsed — with the **View plans & packages** CTA → `/subscription` in all three sections; BYOK provider billing rejections show provider copy without the Enjoy CTA.
-- **Presentation (Duet, ADR-0091)** — at or above 600px the lookup opens
+- **Presentation (Duet, ADR-0093)** — at or above 600px the lookup opens
   as the Duet **side margin drawer**: a 340px raised panel sliding from
   the right edge over 220ms, pushed as a PopupRoute (surface parks,
   ADR-0066; Esc closes). Below 600px it stays a bottom sheet. The

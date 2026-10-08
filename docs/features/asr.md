@@ -75,7 +75,7 @@ Video extraction runs through FFmpegKit on mobile/macOS and an isolate-backed
 read. Short-clip budget remains ~60 seconds for a five-minute desktop file.
 Long-form jobs are asynchronous; upload/poll phases keep the UI interactive.
 
-## Empty-state presentation (Duet, ADR-0091)
+## Empty-state presentation (Duet, ADR-0093)
 
 The no-transcript state renders left-aligned: a `TRANSCRIPT` overline,
 a Literata 38 title, copy in ink2, and the AI / extract / import actions

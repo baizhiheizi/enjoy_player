@@ -42,7 +42,7 @@ re-implement motion handling around `Skeleton` — the widget already does it.
 
 `Skeleton` reads from `EnjoyThemeTokens`: base → `sunk`, highlight → a
 light lerp of the base. Both colors are theme-derived, so Duet palette
-changes ([ADR-0091](../decisions/0091-duet-design-language.md), pinned by
+changes ([ADR-0093](../decisions/0093-duet-design-language.md), pinned by
 `test/core/theme/duet_tokens_test.dart`) flow through automatically. New
 placeholders should not introduce their own colors.
 

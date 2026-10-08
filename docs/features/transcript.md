@@ -293,7 +293,7 @@ Coverage lives under
 - `transcript_blur_long_list_perf_test.dart` — 10 000-line smoke
   under `ImageFiltered`; per-frame budget assertion.
 
-## Presentation — the Listen lens (Duet, ADR-0091)
+## Presentation — the Listen lens (Duet, ADR-0093)
 
 Each cue is a flat row on the ground. On desktop a 44px gutter (36px in
 the video column) holds a mono 11px timestamp (right-aligned) and, when

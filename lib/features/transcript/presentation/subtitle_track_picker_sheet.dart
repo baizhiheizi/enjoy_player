@@ -74,7 +74,7 @@ Future<void> showSubtitleTrackPicker(
   );
 }
 
-/// The wide Subtitles & display popover (ADR-0091): a 384px raised card
+/// The wide Subtitles & display popover (ADR-0093): a 384px raised card
 /// anchored under the top bar's Subtitles button, pushed as a PopupRoute so
 /// the player surface parks (ADR-0066).
 class _SubtitlesPopoverRoute extends PopupRoute<void> {

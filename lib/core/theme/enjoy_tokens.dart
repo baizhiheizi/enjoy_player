@@ -1,5 +1,5 @@
 /// Design tokens: spacing, radii, motion, elevation, surfaces, shadows,
-/// breakpoints (ThemeExtension). Duet design language (ADR-0091) values;
+/// breakpoints (ThemeExtension). Duet design language (ADR-0093) values;
 /// Aurora-named fields (ADR-0089) alias the Duet values until the rename pass.
 library;
 

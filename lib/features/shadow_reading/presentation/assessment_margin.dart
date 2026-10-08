@@ -1,4 +1,4 @@
-/// D3.8 (ADR-0091): pronunciation assessment in the player's side margin —
+/// D3.8 (ADR-0093): pronunciation assessment in the player's side margin —
 /// a 340px raised panel sliding from the right edge, replacing the centered
 /// dialog on wide player windows. The overall score reads in Literata, the
 /// dimension rows are four-step meters, and mispronounced words get the

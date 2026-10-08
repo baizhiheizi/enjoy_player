@@ -2,7 +2,7 @@
 ///
 /// Unlike video, there is no separate media stage — playback chrome lives in
 /// the top bar and the dock. The column caps at the Listen transcript width,
-/// widening to the Echo width while a loop is active (ADR-0091 supersedes
+/// widening to the Echo width while a loop is active (ADR-0093 supersedes
 /// ADR-0085).
 library;
 

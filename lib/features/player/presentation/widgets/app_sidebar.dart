@@ -1,5 +1,5 @@
 /// Primary navigation sidebar — Duet ground with a right line, brand row,
-/// search, nav rows, and the account footer (ADR-0091).
+/// search, nav rows, and the account footer (ADR-0093).
 library;
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';

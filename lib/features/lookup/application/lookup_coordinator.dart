@@ -27,7 +27,7 @@ class LookupCoordinator extends _$LookupCoordinator {
     final w = MediaQuery.sizeOf(context).width;
     final compact = EnjoyThemeTokens.of(context).breakpointCompact;
     if (w >= compact) {
-      // Duet side margin (ADR-0091): a right-edge drawer route — the surface
+      // Duet side margin (ADR-0093): a right-edge drawer route — the surface
       // parks (ADR-0066), Esc closes, and it slides in over motionMargin.
       await Navigator.of(
         context,
@@ -51,7 +51,7 @@ class LookupCoordinator extends _$LookupCoordinator {
   }
 }
 
-/// The right-edge lookup margin drawer (ADR-0091): 380px raised panel over
+/// The right-edge lookup margin drawer (ADR-0093): 380px raised panel over
 /// the scrim, sliding from the right edge.
 class _LookupMarginRoute extends PopupRoute<void> {
   _LookupMarginRoute({required this.request});

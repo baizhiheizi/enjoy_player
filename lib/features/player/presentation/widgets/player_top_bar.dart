@@ -1,4 +1,4 @@
-/// Duet player top bar (ADR-0091) — collapse + title/meta, the centered
+/// Duet player top bar (ADR-0093) — collapse + title/meta, the centered
 /// Listen/Echo segmented control, and share/subtitles actions.
 library;
 

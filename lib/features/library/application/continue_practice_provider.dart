@@ -1,6 +1,6 @@
 /// Continue practicing — last `echo_sessions` row with a live library item.
 ///
-/// Consumed by Home's Continue practicing card (Duet ADR-0091); the
+/// Consumed by Home's Continue practicing card (Duet ADR-0093); the
 /// desktop sidebar no longer mounts one.
 library;
 

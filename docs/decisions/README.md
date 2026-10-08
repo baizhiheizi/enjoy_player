@@ -30,7 +30,7 @@ Trade-offs, follow-up work, risks.
 | [0004](0004-feature-first-architecture.md) | Feature-first directory layout |
 | [0005](0005-mvp-scope-local-only.md) | MVP scope — local files only |
 | [0006](0006-auth-and-profile-sync.md) | Auth, profile, settings sync (browser flow) |
-| [0007](0007-dynamic-color-from-artwork.md) | Dynamic color from media artwork (**superseded by 0091**) |
+| [0007](0007-dynamic-color-from-artwork.md) | Dynamic color from media artwork (**superseded by 0093**) |
 | [0008](0008-light-mode-parity.md) | Light mode parity |
 | [0009](0009-platform-adaptive-shell.md) | Platform-adaptive shell nuances |
 | [0010](0010-cloud-sync-mvp.md) | Cloud sync MVP — metadata (audio/video/recording) |
@@ -108,10 +108,10 @@ Trade-offs, follow-up work, risks.
 | [0082](0082-home-continue-no-mini-player.md) | Home Continue practicing card; no global mini player; leave player clears live session (supersedes ADR-0035 E1–E7) |
 | [0083](0083-paper-graphite-light-dark.md) | Paper / graphite dual theme + System/Light/Dark appearance (supersedes 0011; palette, chrome, and type superseded by 0089) |
 | [0084](0084-linux-google-signin-off-and-pkce-deeplink.md) | Disable native Google Sign-In on Linux (ADR-0048 kill switch); GTK single-instance `enjoyplayer://` forwarding + AppImage scheme registration for PKCE callbacks |
-| [0085](0085-audio-floating-collapse-chrome.md) | Audio expanded chrome is the shared floating frosted collapse control over the transcript; desktop gets a roomier top inset (supersedes 0077 audio clause; **superseded by 0091**) |
+| [0085](0085-audio-floating-collapse-chrome.md) | Audio expanded chrome is the shared floating frosted collapse control over the transcript; desktop gets a roomier top inset (supersedes 0077 audio clause; **superseded by 0093**) |
 | [0086](0086-posthog-product-analytics.md) | PostHog product analytics integration |
 | [0087](0087-norwegian-bokmal-language-catalog.md) | Norwegian Bokmål (`nb-NO`) joins the focus / media / lookup catalogs; `no` / `nob` / `nor` alias to `nb` as deliberate policy (Nynorsk `nn` stays unsupported) |
 | [0088](0088-discover-feed-owns-library-membership.md) | Discover feed owns library membership — one merged watch, tiles render `inLibrary`, `bindLibraryRepository` deleted (issue #764 candidate 6; ADR-0046 cache unchanged) |
-| [0089](0089-aurora-design-language.md) | Aurora design language — porcelain / midnight neutrals, iris accent + aurora glow, Geist / Instrument Serif / Geist Mono, vendored Phosphor icons (`EnjoyIcons`), superellipse shapes, no ripples, one glide transition, floating content panel + glass tab bar (supersedes 0083 §1/§4/§5; **superseded by 0091** except §4 icons, §6 interaction, §7 motion) |
+| [0089](0089-aurora-design-language.md) | Aurora design language — porcelain / midnight neutrals, iris accent + aurora glow, Geist / Instrument Serif / Geist Mono, vendored Phosphor icons (`EnjoyIcons`), superellipse shapes, no ripples, one glide transition, floating content panel + glass tab bar (supersedes 0083 §1/§4/§5; **superseded by 0093** except §4 icons, §6 interaction, §7 motion) |
 | [0090](0090-one-language-descriptor-row.md) | One language descriptor row — `kLanguageDescriptorRows` is the single source every language catalog derives from; enumerating pin tests became derivation checks (issue #794 candidate 1; ADR-0042 separation and ADR-0087 alias policy unchanged) |
-| [0091](0091-duet-design-language.md) | Duet design language — two voices (original blue / you violet) + brand gradient on ink neutrals, Literata / Geist / Geist Mono, Listen / Echo lenses on one transcript, player dock + side margin (lookup, assessment), uncolored scores, word-shape Hide text, flat surfaces; built on `design-duet` per `docs/design/duet/PLAN.md` (supersedes 0089 except §4/§6/§7, 0007, 0085) |
+| [0093](0093-duet-design-language.md) | Duet design language — two voices (original blue / you violet) + brand gradient on ink neutrals, Literata / Geist / Geist Mono, Listen / Echo lenses on one transcript, player dock + side margin (lookup, assessment), uncolored scores, word-shape Hide text, flat surfaces; built on `design-duet` per `docs/design/duet/PLAN.md` (supersedes 0089 except §4/§6/§7, 0007, 0085) |

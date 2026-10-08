@@ -1,6 +1,6 @@
 # Duet — design reference
 
-**Status**: Being implemented on the `design-duet` branch. Decision: [ADR-0091](../../decisions/0091-duet-design-language.md), which replaces the unreleased Aurora look of [ADR-0089](../../decisions/0089-aurora-design-language.md).
+**Status**: Being implemented on the `design-duet` branch. Decision: [ADR-0093](../../decisions/0093-duet-design-language.md), which replaces the unreleased Aurora look of [ADR-0089](../../decisions/0089-aurora-design-language.md).
 
 **Plan**: [PLAN.md](PLAN.md) has the phases, tasks, rules and verification. **Tracker**: [STATUS.md](STATUS.md) shows task status, open decisions, and which task owns each board.
 
@@ -127,7 +127,7 @@ The static Literata files carry the default optical size. The canvas uses Litera
 
 ## Decisions
 
-Accepted in [ADR-0091](../../decisions/0091-duet-design-language.md):
+Accepted in [ADR-0093](../../decisions/0093-duet-design-language.md):
 
 1. Violet replaces coral for "you"; scores lose their colors.
 2. Literata replaces Source Serif 4 (transcript) and Instrument Serif (display). The transcript stays serif; today's `useSerif: true` has no user-facing switch, and the design adds none.

@@ -1,4 +1,4 @@
-/// Typography tokens — **Duet** type system (ADR-0091).
+/// Typography tokens — **Duet** type system (ADR-0093).
 ///
 /// - **Geist** for all UI (body, labels, buttons, nav) — crisp, neutral,
 ///   excellent tabular figures.

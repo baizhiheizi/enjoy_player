@@ -1,4 +1,4 @@
-/// Duet player dock (ADR-0091) — a solid paper bar under the player: the
+/// Duet player dock (ADR-0093) — a solid paper bar under the player: the
 /// sentence ruler row over a controls row, in Listen / Echo / Recording
 /// variants.
 library;

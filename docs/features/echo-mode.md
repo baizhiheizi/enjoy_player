@@ -19,7 +19,7 @@
 - Multi-line echo regions with draggable selection UI.
 
 
-## Presentation — the Echo lens (Duet, ADR-0091)
+## Presentation — the Echo lens (Duet, ADR-0093)
 
 The loop block stands on the ground inside you-colored corner brackets
 (20px arms, 10px outer radius; 22 / 9 on phones — no full border). The section gutter
