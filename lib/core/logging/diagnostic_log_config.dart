@@ -54,6 +54,17 @@ class DiagnosticLogConfig {
     verboseEnabled = false;
   }
 
+  /// Marks the session load as already resolved at [verbose] so the banner
+  /// path skips the device-global database open entirely. Tests that exercise
+  /// banner ordering must use this: the real read acquires a SQLite handle,
+  /// whose latency is unbounded on a loaded machine, and the banner future
+  /// they await would otherwise fail on timing rather than on behavior.
+  @visibleForTesting
+  static void debugPrimeSessionLoad({required bool verbose}) {
+    verboseEnabled = verbose;
+    _sessionLoad = Future<void>.value();
+  }
+
   static void setVerboseEnabled(bool enabled) {
     verboseEnabled = enabled;
   }

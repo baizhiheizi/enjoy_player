@@ -67,10 +67,11 @@ void main() {
   }
 
   Future<void> untilLogContains(String needle) async {
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 500; i++) {
       if ((await readLog()).contains(needle)) return;
       await Future<void>.delayed(const Duration(milliseconds: 20));
     }
+    fail('log never contained "$needle" within 10s');
   }
 
   test(
@@ -82,6 +83,7 @@ void main() {
         supportPath: supportPath,
         gate: documentsGate.future,
       );
+      DiagnosticLogConfig.debugPrimeSessionLoad(verbose: false);
 
       await setupAppLogging();
 
@@ -167,6 +169,7 @@ void main() {
         supportPath: supportPath,
         gate: documentsGate.future,
       );
+      DiagnosticLogConfig.debugPrimeSessionLoad(verbose: false);
 
       await setupAppLogging();
       Logger('early').info('buffered before banner');
@@ -203,6 +206,7 @@ void main() {
         supportPath: supportPath,
         gate: documentsGate.future,
       );
+      DiagnosticLogConfig.debugPrimeSessionLoad(verbose: false);
 
       await setupAppLogging();
       Logger('stale').info('stale pre-banner record');
@@ -231,6 +235,7 @@ void main() {
       supportPath: supportPath,
       gate: documentsGate.future,
     );
+    DiagnosticLogConfig.debugPrimeSessionLoad(verbose: false);
 
     await setupAppLogging();
     for (var i = 0; i < 300; i++) {
