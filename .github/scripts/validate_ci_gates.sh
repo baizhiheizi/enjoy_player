@@ -14,8 +14,10 @@
 #                                                       # + enforce coverage gate
 #   bash .github/scripts/validate_ci_gates.sh --packages # with --test: also path packages
 #   bash .github/scripts/validate_ci_gates.sh --changed-only  # with --test: only run
-#                                                              # tests for files
-#                                                              # changed vs main
+#                                                              # the test files that
+#                                                              # exist for changed
+#                                                              # lib/test sources
+#                                                              # (excludes --coverage)
 #   bash .github/scripts/validate_ci_gates.sh --all      # format + codegen + path-deps
 #                                                       # + analyze + test + coverage + packages
 
@@ -43,7 +45,7 @@ for arg in "$@"; do
       do_packages=1
       ;;
     -h|--help)
-      sed -n '2,22p' "$0"
+      sed -n '2,23p' "$0"
       exit 0
       ;;
     *)
@@ -66,6 +68,13 @@ fi
 
 if [[ "$do_changed_only" -eq 1 && "$do_test" -ne 1 ]]; then
   echo "validate_ci_gates: --changed-only requires --test (or --all)." >&2
+  exit 2
+fi
+
+if [[ "$do_changed_only" -eq 1 && "$do_coverage" -eq 1 ]]; then
+  echo "validate_ci_gates: --changed-only cannot be combined with --coverage" >&2
+  echo "  (a partial run cannot satisfy the whole-suite coverage gate; use" >&2
+  echo "   --coverage without --changed-only, or --all)." >&2
   exit 2
 fi
 
@@ -92,25 +101,44 @@ fi
 
 if [[ "$do_test" -eq 1 ]]; then
   if [[ "$do_changed_only" -eq 1 ]]; then
-    # Local-only flag: run only tests for files changed since the merge-base
-    # with main. Speeds up agent iteration; CI itself always runs the full
-    # suite so we never lose coverage of unrelated tests in PRs.
+    # Local-only speedup: run the test files that exist for the sources changed
+    # since the merge-base with main. CI always runs the full suite, so a partial
+    # run here can never let a regression into a PR — but it must also never
+    # *report* a false pass, so a changed lib/ file with no matching test file is
+    # dropped from the target list instead of being handed to `flutter test`.
+    base_ref="$(git merge-base HEAD origin/main 2>/dev/null || true)"
+    if [[ -z "$base_ref" ]]; then
+      base_ref="origin/main"
+    fi
     mapfile -t test_targets < <(
-      git diff --name-only --diff-filter=ACMR origin/main -- 'lib/*.dart' 'test/*.dart' 2>/dev/null || true \
+      git diff --name-only --diff-filter=ACMR "$base_ref" -- 'lib/*.dart' 'test/*.dart' 2>/dev/null || true \
         | awk '
             /\.dart$/ {
               if ($0 ~ /^test\// && $0 ~ /_test\.dart$/) print
               else if ($0 ~ /^lib\//) {
-                sub(/^lib\//, "test/")
-                sub(/\.dart$/, "_test.dart")
-                print
+                candidate = $0
+                sub(/^lib\//, "test/", candidate)
+                sub(/\.dart$/, "_test.dart", candidate)
+                print candidate
               }
             }
           ' \
-        | sort -u
+        | sort -u \
+        | while IFS= read -r candidate; do
+            # `flutter test <missing path>` is a hard load error, not a skip, so
+            # only real files may reach the test runner. Generated sources have
+            # no test twin; their behavior is covered by the test beside them.
+            if [[ "$candidate" == *.g.dart ]]; then
+              continue
+            fi
+            if [[ -f "$candidate" ]]; then
+              printf '%s\n' "$candidate"
+            fi
+          done
     )
     if [[ "${#test_targets[@]}" -eq 0 ]]; then
-      echo "validate_ci_gates: --changed-only found no test targets (skipping flutter test)."
+      echo "validate_ci_gates: --changed-only found no existing test targets" \
+        "(skipping flutter test — run --test for the full suite)."
     else
       echo "validate_ci_gates: flutter test (changed-only, ${#test_targets[@]} file(s))..."
       flutter test "${test_targets[@]}"
