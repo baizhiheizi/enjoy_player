@@ -272,13 +272,19 @@ class YoutubeCaptionFetcher {
         final sorted = [...allResults];
         final prefPrimary = primaryLanguageSubtag(preferredLang);
         sorted.sort((a, b) {
-          final aIsPref =
-              a.language.isNotEmpty &&
-              primaryLanguageSubtag(a.language) == prefPrimary;
-          final bIsPref =
-              b.language.isNotEmpty &&
-              primaryLanguageSubtag(b.language) == prefPrimary;
-          if (aIsPref != bIsPref) return aIsPref ? -1 : 1;
+          final byPreference =
+              _preferredLanguageRank(
+                a.language,
+                preferredLang: preferredLang,
+                preferredPrimary: prefPrimary,
+              ).compareTo(
+                _preferredLanguageRank(
+                  b.language,
+                  preferredLang: preferredLang,
+                  preferredPrimary: prefPrimary,
+                ),
+              );
+          if (byPreference != 0) return byPreference;
           return a.language.compareTo(b.language);
         });
 
@@ -391,8 +397,8 @@ class YoutubeCaptionFetcher {
 
   /// Returns true when [candidate] is a better choice than [current] for a
   /// given language. Prefers manual captions over auto, and prefers tracks
-  /// matching [preferredLang] (matching by primary subtag, so `no` counts as
-  /// `nb` via [kLanguageTagAliases]).
+  /// matching [preferredLang] — an exact tag first, then a match on the
+  /// primary subtag so `no` counts as `nb` via [kLanguageTagAliases].
   bool _isBetterMatch(
     CaptionTrack candidate,
     CaptionTrack current, {
@@ -405,29 +411,39 @@ class YoutubeCaptionFetcher {
     if (cIsManual && !curIsManual) return true;
     if (!cIsManual && curIsManual) return false;
     final prefPrimary = primaryLanguageSubtag(preferredLang);
-    final cIsPref = _matchesPreferred(
-      candidate,
+    final cRank = _preferredLanguageRank(
+      candidate.languageCode ?? '',
       preferredLang: preferredLang,
       preferredPrimary: prefPrimary,
+      vssId: candidate.vssId,
     );
-    final curIsPref = _matchesPreferred(
-      current,
+    final curRank = _preferredLanguageRank(
+      current.languageCode ?? '',
       preferredLang: preferredLang,
       preferredPrimary: prefPrimary,
+      vssId: current.vssId,
     );
-    if (cIsPref && !curIsPref) return true;
+    if (cRank < curRank) return true;
     return false;
   }
 
-  bool _matchesPreferred(
-    CaptionTrack track, {
+  /// How well [language] matches the requested [preferredLang]: `0` for an
+  /// exact tag match, `1` for a match on the primary subtag only (so `no`
+  /// counts as `nb-NO` via [kLanguageTagAliases]), `2` for no match. An
+  /// exact match must outrank a sibling region — with `en-US` preferred, a
+  /// video offering both `en-US` and `en-GB` should lead with `en-US`, not
+  /// whichever tag sorts first alphabetically.
+  static int _preferredLanguageRank(
+    String language, {
     required String preferredLang,
     required String preferredPrimary,
+    String? vssId,
   }) {
-    if (track.vssId == '.$preferredLang') return true;
-    final code = track.languageCode;
-    if (code == null || code.isEmpty) return false;
-    return primaryLanguageSubtag(code) == preferredPrimary;
+    if (vssId == '.$preferredLang') return 0;
+    if (language.isEmpty) return 2;
+    if (language == preferredLang) return 0;
+    if (primaryLanguageSubtag(language) == preferredPrimary) return 1;
+    return 2;
   }
 
   /// Fetches the caption track data in json3 format and parses to segments.

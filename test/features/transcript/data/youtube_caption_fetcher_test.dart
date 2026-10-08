@@ -766,6 +766,66 @@ void main() {
       expect(result.results[1].language, 'en');
     });
 
+    test(
+      'exact preferred tag outranks a same-primary sibling region',
+      () async {
+        const enUsUrl =
+            'https://www.youtube.com/api/timedtext?v=test&lang=en-US';
+        const enGbUrl =
+            'https://www.youtube.com/api/timedtext?v=test&lang=en-GB';
+
+        mockClient = MockClient((request) async {
+          if (request.method == 'POST') {
+            return http.Response(
+              jsonEncode(
+                _cannedPlayerResponse(
+                  tracks: [
+                    {
+                      'baseUrl': enGbUrl,
+                      'vssId': '.en-GB',
+                      'languageCode': 'en-GB',
+                    },
+                    {
+                      'baseUrl': enUsUrl,
+                      'vssId': '.en-US',
+                      'languageCode': 'en-US',
+                    },
+                  ],
+                ),
+              ),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response(
+            _cannedJson3Response([
+              {
+                'tStartMs': 0,
+                'dDurationMs': 1000,
+                'segs': [
+                  {'utf8': 'text'},
+                ],
+                'aAppend': 0,
+              },
+            ]),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        });
+
+        final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+        final result = await fetcher.fetchAllSubtitles(
+          videoId: 'test1234567',
+          preferredLang: 'en-US',
+        );
+
+        expect(result.isSuccess, isTrue);
+        expect(result.results.length, 2);
+        expect(result.results[0].language, 'en-US');
+        expect(result.results[1].language, 'en-GB');
+      },
+    );
+
     test('skip tracks without language code', () async {
       const enUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=en';
 
