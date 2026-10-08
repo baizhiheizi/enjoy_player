@@ -34,12 +34,20 @@ class EchoLoopBrackets extends CustomPainter {
     final bottomLeft = Path()
       ..moveTo(0, h - arm)
       ..lineTo(0, h - radius)
-      ..arcToPoint(Offset(radius, h), radius: Radius.circular(radius))
+      ..arcToPoint(
+        Offset(radius, h),
+        radius: Radius.circular(radius),
+        clockwise: false,
+      )
       ..lineTo(arm, h);
     final bottomRight = Path()
       ..moveTo(w - arm, h)
       ..lineTo(w - radius, h)
-      ..arcToPoint(Offset(w, h - radius), radius: Radius.circular(radius))
+      ..arcToPoint(
+        Offset(w, h - radius),
+        radius: Radius.circular(radius),
+        clockwise: false,
+      )
       ..lineTo(w, h - arm);
 
     canvas
