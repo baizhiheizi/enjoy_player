@@ -24,6 +24,7 @@ on:
         default: ""
   slash_command:
     name: repo-assist
+    strategy: centralized
   reaction: "eyes"
   permissions:
     pull-requests: read
@@ -303,7 +304,7 @@ steps:
   # (matching the preinstalled pool version) and github_token keeps the
   # self-update path working.
   - name: Setup Flutter (mise)
-    uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+    uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492  # v5.0.1
     with:
       version: 2026.9.1
       github_token: ${{ github.token }}

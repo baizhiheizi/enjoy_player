@@ -22,4 +22,5 @@ network:
   allowed:
     - defaults
     - api.deepseek.com
+    - open.bigmodel.cn
 ---

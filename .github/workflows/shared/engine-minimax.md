@@ -22,4 +22,5 @@ network:
   allowed:
     - defaults
     - api.minimaxi.com
+    - open.bigmodel.cn
 ---
