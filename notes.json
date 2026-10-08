@@ -8,7 +8,7 @@
     {
       "number": 786,
       "state": "resolution_recommended",
-      "updated_at": "2026-10-07",
+      "updated_at": "2026-10-08",
       "note": "Bokmål catalog shipped (#788); YouTube caption-code gap closed by draft PR #848. kAzureVoices Craft-voice graceful-degrade note remains open. Recommend close once #848 lands."
     },
     {
@@ -32,8 +32,8 @@
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-07",
-      "note": "Monthly activity summary for October 2026 — updated each run by Task 11."
+      "updated_at": "2026-10-08",
+      "note": "Monthly activity summary for October 2026 — updated each run by Task 11. Body refreshed 2026-10-08 with new ai_kind_policies PR row + Run History entry."
     },
     {
       "number": 850,
@@ -94,7 +94,12 @@
     {
       "task": 5,
       "item": "Lookup equality strict types",
-      "note": "Draft PR (this run, 2026-10-07) tightens LookupTextParams equality to require same runtimeType; flips doc/test contradiction."
+      "note": "Draft PR (prior run) tightens LookupTextParams equality to require same runtimeType; flips doc/test contradiction."
+    },
+    {
+      "task": 9,
+      "item": "PR #864 ai_kind_policies tests",
+      "note": "Draft PR (2026-10-08) adding 11 focused tests for AiKindPolicy + defaultAiKindPolicies. 11/11 new; 335/335 test/features/ai/."
     }
   ]
 }
