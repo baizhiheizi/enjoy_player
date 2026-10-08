@@ -8,13 +8,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_capabilities_provider.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/player_collapse_control.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_open_in_browser_button.dart';
@@ -44,14 +45,8 @@ class VideoPlayerLayout extends StatefulWidget {
 }
 
 class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
-  /// Minimum transcript column width when layout allows it.
-  static const double _kMinTranscriptWidth = 360;
-
   /// Transcript may use at most this fraction of total width (video keeps >=50%).
   static const double _kMaxTranscriptFraction = 0.5;
-
-  /// Initial transcript width as a fraction of total (before first drag).
-  static const double _kDefaultTranscriptFraction = 0.4;
 
   /// Hit target for the invisible resize strip.
   static const double _kSplitterHitWidth = 12;
@@ -87,16 +82,20 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
   }
 
   double _transcriptWidthForTotal(double totalWidth, double? widthPx) {
+    final t = EnjoyThemeTokens.of(context);
     final maxW = totalWidth * _kMaxTranscriptFraction;
-    final minW = math.min(_kMinTranscriptWidth, maxW);
-    final defaultW = totalWidth * _kDefaultTranscriptFraction;
+    final minW = math.min(t.videoColumnMin, maxW);
+    final defaultW = (totalWidth * t.videoColumnShare).clamp(
+      t.videoColumnMin,
+      t.videoColumnMax,
+    );
     final raw = widthPx ?? defaultW;
     return raw.clamp(minW, maxW);
   }
 
   void _applyDragDelta(double totalWidth, double deltaDx) {
     final maxW = totalWidth * _kMaxTranscriptFraction;
-    final minW = math.min(_kMinTranscriptWidth, maxW);
+    final minW = math.min(EnjoyThemeTokens.of(context).videoColumnMin, maxW);
     final current = _transcriptWidthForTotal(
       totalWidth,
       _transcriptWidthNotifier.value,
@@ -178,7 +177,7 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
                 ],
               );
             },
-            child: widget.transcript,
+            child: TranscriptVideoColumnScope(child: widget.transcript),
           );
         }
 
@@ -322,7 +321,6 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
               ),
             ),
           const _VideoPausedTitleOverlay(),
-          const PlayerCollapseControl(),
           if (isYoutube)
             const Positioned(
               bottom: 12,

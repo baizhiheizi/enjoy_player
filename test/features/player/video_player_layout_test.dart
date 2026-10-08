@@ -4,7 +4,6 @@ import 'package:enjoy_player/features/player/application/player_engine_test_doub
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/player_frosted_back_button.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_surface_host.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
@@ -289,7 +288,6 @@ void main() {
       ],
     );
 
-    expect(find.byType(PlayerFrostedBackButton), findsOneWidget);
     final titleOpacity = tester.widget<AnimatedOpacity>(
       find.ancestor(
         of: find.text('Layout test'),
@@ -318,7 +316,6 @@ void main() {
       final stage = tester.getRect(find.byType(PlayerSurfaceTarget).first);
       expect(login.bottom, closeTo(stage.bottom, 20));
       expect(login.right, closeTo(stage.right, 20));
-      expect(find.byType(PlayerFrostedBackButton), findsOneWidget);
     },
   );
 

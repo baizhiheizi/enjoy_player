@@ -12,15 +12,16 @@ import 'package:enjoy_player/core/theme/widgets/app_background.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_showcase_host.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_dock.dart';
 import 'package:enjoy_player/features/subscription/presentation/tier_reconcile_host.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/update/application/update_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-import '../application/player_controller.dart';
 import 'widgets/app_sidebar.dart';
-import 'widgets/global_transport_bar.dart';
 import 'widgets/player_surface_host.dart';
 
 class RootShell extends ConsumerStatefulWidget {
@@ -63,9 +64,8 @@ class _RootShellState extends ConsumerState<RootShell> {
   Widget build(BuildContext context) {
     ref.watch(syncCtrlProvider);
     ref.watch(discoverFeedRefreshSchedulerProvider);
-    final sessionActive = ref.watch(
-      playerControllerProvider.select((s) => s != null),
-    );
+    final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
+    final sessionActive = chrome != null;
     final updateBadge = ref.watch(updateAvailableBadgeProvider);
     final l10n = AppLocalizations.of(context)!;
     final path = GoRouterState.of(context).uri.path;
@@ -166,18 +166,7 @@ class _RootShellState extends ConsumerState<RootShell> {
                     ),
                     bottomNavigationBar: Material(
                       type: MaterialType.transparency,
-                      child: SafeArea(
-                        top: false,
-                        left: false,
-                        right: false,
-                        minimum: EdgeInsets.fromLTRB(
-                          tokens.space16,
-                          tokens.space4,
-                          tokens.space16,
-                          tokens.space12,
-                        ),
-                        child: const GlobalTransportBar(),
-                      ),
+                      child: PlayerDock(chrome: chrome),
                     ),
                   );
                 }
@@ -217,9 +206,7 @@ class _RootShellState extends ConsumerState<RootShell> {
                                   label: l10n.navMainLabel,
                                   child: const AppSidebar(),
                                 ),
-                                Expanded(
-                                  child: _ContentPanel(child: widget.child),
-                                ),
+                                Expanded(child: widget.child),
                               ],
                             ),
                           ),
@@ -228,10 +215,7 @@ class _RootShellState extends ConsumerState<RootShell> {
                     )
                   : RootShellBottomInset(
                       bottomClearance: bottomClearance,
-                      child: AppBackground(
-                        glow: !onPlayer && !onReview,
-                        child: mobileShellScaffold(),
-                      ),
+                      child: AppBackground(child: mobileShellScaffold()),
                     );
 
               final parkForYoutubeLogin = path.startsWith('/youtube/login');
@@ -243,47 +227,6 @@ class _RootShellState extends ConsumerState<RootShell> {
                 ],
               );
             },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The desktop page surface: inset from the canvas, continuous corners,
-/// hairline edge, and the aurora glow pooled along its top.
-class _ContentPanel extends StatelessWidget {
-  const _ContentPanel({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final light = Theme.of(context).brightness == Brightness.light;
-    final radius = BorderRadius.circular(t.panelRadius);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, t.shellInset, t.shellInset, t.shellInset),
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: cs.surface,
-          shape: RoundedSuperellipseBorder(
-            borderRadius: radius,
-            side: BorderSide(
-              color: light ? t.hairline : Colors.white.withValues(alpha: 0.06),
-            ),
-          ),
-          shadows: light ? t.shadowFloat : const [],
-        ),
-        child: ClipRSuperellipse(
-          borderRadius: radius,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              const Positioned.fill(child: IgnorePointer(child: AuroraGlow())),
-              child,
-            ],
           ),
         ),
       ),

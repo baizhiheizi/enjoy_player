@@ -1,6 +1,5 @@
-/// Aurora card surface — continuous corners, hairline outline, and depth that
-/// reads as light (soft ambient shadow on porcelain, a lit top edge on
-/// midnight) instead of Material elevation.
+/// Duet card surface — paper with a line outline and the lift shadow
+/// instead of Material elevation.
 library;
 
 import 'package:flutter/material.dart';
@@ -21,10 +20,10 @@ class EnjoyCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
 
-  /// Corner radius; defaults to [EnjoyThemeTokens.radiusLg].
+  /// Corner radius; defaults to [EnjoyThemeTokens.radiusCard].
   final double? radius;
 
-  /// Fill; defaults to [EnjoyThemeTokens.card].
+  /// Fill; defaults to [EnjoyThemeTokens.paper].
   final Color? color;
 
   /// Resting ambient shadow (light) — set false for nested / flat cards.
@@ -43,7 +42,7 @@ class EnjoyCard extends StatelessWidget {
         elevated: elevated,
       ),
       child: ClipRSuperellipse(
-        borderRadius: BorderRadius.circular(radius ?? t.radiusLg),
+        borderRadius: BorderRadius.circular(radius ?? t.radiusCard),
         clipBehavior: clip ? Clip.antiAlias : Clip.none,
         child: Material(
           type: MaterialType.transparency,
@@ -64,14 +63,13 @@ ShapeDecoration enjoyCardDecoration(
   Gradient? gradient,
 }) {
   final t = EnjoyThemeTokens.of(context);
-  final light = Theme.of(context).brightness == Brightness.light;
   return ShapeDecoration(
-    color: gradient == null ? (color ?? t.card) : null,
+    color: gradient == null ? (color ?? t.paper) : null,
     gradient: gradient,
     shape: RoundedSuperellipseBorder(
-      borderRadius: BorderRadius.circular(radius ?? t.radiusLg),
-      side: BorderSide(color: t.hairline.withValues(alpha: light ? 1 : 0.9)),
+      borderRadius: BorderRadius.circular(radius ?? t.radiusCard),
+      side: BorderSide(color: t.line),
     ),
-    shadows: elevated ? t.shadowCard : const [],
+    shadows: elevated ? t.shadowLift : const [],
   );
 }

@@ -35,6 +35,16 @@ final scores = outcome.detail.primaryScores;
 
 Audio should be **16 kHz, 16-bit, mono WAV** (same convention as the web `azure-assessment-core` flow).
 
+## Linux
+
+The plugin ships no native Speech SDK implementation for Linux. `synthesize`
+therefore goes over Azure's REST TTS endpoint (`cognitiveservices/v1`) in pure
+Dart there: same WAV output (16 kHz mono), same token / subscription-key auth,
+but no word boundaries (a native-SDK event stream). Synthesis on Linux
+requires an explicit `voice`; `assess` and `transcribe` throw
+`AzureSpeechException` with code `unsupported_platform` until the native SDK
+is vendored for Linux.
+
 ## Errors
 
 Failures surface as [`AzureSpeechException`](lib/src/azure_speech_exception.dart) or `PlatformException` with codes such as `no_speech` and `azure_speech_error`.

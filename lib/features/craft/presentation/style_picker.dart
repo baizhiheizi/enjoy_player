@@ -21,7 +21,7 @@ class StylePicker extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     return Row(
       children: [
-        Icon(EnjoyIcons.sparkleFill, size: 18, color: t.accentInk),
+        Icon(EnjoyIcons.sparkleFill, size: 18, color: t.brandInk),
         SizedBox(width: t.space8),
         Text(
           l10n.craftStyleLabel,

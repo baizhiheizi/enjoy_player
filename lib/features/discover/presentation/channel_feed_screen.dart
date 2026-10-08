@@ -58,14 +58,12 @@ class ChannelFeedScreen extends ConsumerWidget {
           child: const SkeletonMediaList(itemCount: 4),
         ),
         error: (_, _) => EmptyState(
-          icon: EnjoyIcons.cloudOff,
           title: l10n.discoverFeedErrorTitle,
           subtitle: l10n.discoverFeedErrorHint,
         ),
         data: (entries) {
           if (entries.isEmpty) {
             return EmptyState(
-              icon: EnjoyIcons.rss,
               title: l10n.discoverFeedEmptyTitle,
               subtitle: l10n.discoverFeedEmptyHint,
             );

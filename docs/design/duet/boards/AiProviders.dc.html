@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI providers</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--danger:#B42318;--lift:0 1px 2px rgba(18,20,26,.08),0 0 0 1px rgba(18,20,26,.05);color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--danger:#FF8A80;--lift:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) :is(button,input){font:inherit;color:inherit}
+:where(.e) button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible,.e input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.e-btn{height:40px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:600;white-space:nowrap}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-ib:hover{background:var(--sunk)}
+.e-ib{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:20px}
+.e-seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--sunk);gap:2px}
+.e-seg>button{height:30px;padding:0 12px;border-radius:9px;font-size:13px;font-weight:600;color:var(--ink2)}
+.e-seg>button[aria-pressed="true"]{background:var(--raised);color:var(--ink);box-shadow:var(--lift)}
+.e-label{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:7px}
+.e-input{height:42px;border-radius:11px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);width:100%;font:500 13.5px/1 var(--mono)}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+.ai-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.ai-form{grid-template-columns:1fr}.ai-head{flex-wrap:wrap}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="settings" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <header style="flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 20px; border-bottom: 1px solid var(--line)">
+      <a href="Settings.dc.html" class="e-ib" aria-label="Back to Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="font-size: 16px; font-weight: 600">AI providers</span>
+    </header>
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 840px; margin: 0 auto; padding: 28px 24px 64px">
+        <p style="margin: 0; font-size: 14.5px; color: var(--ink2)">Configure how Enjoy Player calls AI for each feature.</p>
+        <div style="display: flex; gap: 10px; align-items: center; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--blue-soft); color: var(--blue-ink); font-size: 13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" style="width: 17px; height: 17px; flex-shrink: 0"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+          API keys are stored securely on this device only and are never synced to Enjoy cloud.
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 20px">
+          <sc-for list="{{ cards }}" as="c" hint-placeholder-count="4">
+            <section class="e-card" style="padding: 18px 20px; border-color: {{ c.border }}">
+              <div class="ai-head" style="display: flex; align-items: center; gap: 14px">
+                <span style="width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--brand-soft); color: var(--brand-ink); flex-shrink: 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="{{ c.icon }}"></path></svg></span>
+                <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 15px; font-weight: 600">{{ c.t }}</span><span style="display: block; font-size: 12.5px; color: var(--ink3); margin-top: 3px">{{ c.h }}</span></span>
+                <div class="e-seg"><button aria-pressed="{{ c.enjoy }}">Enjoy AI</button><button aria-pressed="{{ c.byok }}">Your API key</button></div>
+              </div>
+              <sc-if value="{{ c.isLlm }}" hint-placeholder-val="{{ false }}">
+                <div style="height: 1px; background: var(--line); margin: 18px 0"></div>
+                <div class="ai-form">
+                  <label><span class="e-label">Protocol</span><span class="e-input" style="display: flex; align-items: center; justify-content: space-between; font-family: var(--ui)">OpenAI-compatible<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--ink3)"><path d="m6 9 6 6 6-6"></path></svg></span></label>
+                  <label><span class="e-label">Base URL</span><input class="e-input" value="https://api.example.com/v1"></label>
+                  <label><span class="e-label">API key</span><span class="e-input" style="display: flex; align-items: center; justify-content: space-between">••••••••••••<button style="font: 600 12.5px/1 var(--ui); color: var(--brand-ink)">Edit key</button></span></label>
+                  <label><span class="e-label">Model</span><span style="display: flex; gap: 8px"><input class="e-input" value="[model name]"><button class="e-btn e-sec" style="height: 42px">Fetch models</button></span></label>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px">
+                  <button class="e-btn" style="color: var(--danger); padding: 0 6px">Remove BYOK</button>
+                  <button class="e-btn e-brand">Save</button>
+                </div>
+              </sc-if>
+            </section>
+          </sc-for>
+        </div>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="profile" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var p = this.props || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var cards = [
+      { t: 'Language models', h: 'Chat, translation, dictionary, and contextual translation', icon: 'M4 5h16v11H8l-4 4Z', llm: true },
+      { t: 'Speech recognition', h: 'Transcribe audio to text', icon: 'M12 2.5a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0v-6a3 3 0 0 0-3-3ZM5 10.5v.5a7 7 0 0 0 14 0v-.5M12 18v3.5' },
+      { t: 'Text-to-speech', h: 'Synthesize spoken audio from text', icon: 'M11 5 6 9H3v6h3l5 4V5ZM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13' },
+      { t: 'Pronunciation assessment', h: 'Score shadow-reading takes with Azure Speech', icon: 'm12 14 4-4M3.3 19a10 10 0 1 1 17.4 0' }
+    ].map(function (c) { return { t: c.t, h: c.h, icon: c.icon, isLlm: !!c.llm, enjoy: c.llm ? 'false' : 'true', byok: c.llm ? 'true' : 'false', border: c.llm ? 'var(--brand-ink)' : 'var(--line)' }; });
+    return { theme: theme, themeClass: 'e-' + theme, cards: cards };
+  }
+}
+</script>
+</body>
+</html>

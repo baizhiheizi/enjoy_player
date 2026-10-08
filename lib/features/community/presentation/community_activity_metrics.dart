@@ -10,14 +10,12 @@ import 'package:enjoy_player/core/theme/typography.dart';
 class InlineMetric extends StatelessWidget {
   const InlineMetric({
     super.key,
-    required this.icon,
     required this.value,
     required this.label,
     required this.cs,
     required this.tabular,
   });
 
-  final IconData icon;
   final String value;
   final String label;
   final ColorScheme cs;
@@ -33,23 +31,18 @@ class InlineMetric extends StatelessWidget {
           value,
           style: enjoyDisplayStyle(
             context,
-            size: 30,
+            size: 26,
             color: cs.onSurface,
-            height: 1.1,
-          ),
+            height: 1,
+          ).copyWith(fontFeatures: tabular),
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 12, color: EnjoyThemeTokens.of(context).textFaint),
-            SizedBox(width: EnjoyThemeTokens.of(context).space4),
-            Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-            ),
-          ],
+        const SizedBox(height: 5),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontSize: 12.5,
+            color: EnjoyThemeTokens.of(context).ink3,
+          ),
         ),
       ],
     );

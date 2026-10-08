@@ -117,7 +117,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     textStyle: buttonText,
     splashFactory: NoSplash.splashFactory,
     backgroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? Colors.transparent : t.card,
+      (s) => s.contains(WidgetState.disabled) ? Colors.transparent : t.paper,
     ),
     foregroundColor: WidgetStateProperty.resolveWith(
       (s) => s.contains(WidgetState.disabled) ? disabledFg : cs.onSurface,
@@ -146,15 +146,15 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     textStyle: buttonText,
     splashFactory: NoSplash.splashFactory,
     foregroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.accentInk,
+      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.brandInk,
     ),
     iconColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.accentInk,
+      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.brandInk,
     ),
     iconSize: const WidgetStatePropertyAll(17),
     overlayColor: overlay(
-      hoverColor: t.accentInk.withValues(alpha: 0.08),
-      pressedColor: t.accentInk.withValues(alpha: 0.14),
+      hoverColor: t.brandInk.withValues(alpha: 0.08),
+      pressedColor: t.brandInk.withValues(alpha: 0.14),
     ),
   );
 
@@ -164,13 +164,13 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     iconSize: const WidgetStatePropertyAll(20),
     foregroundColor: WidgetStateProperty.resolveWith((s) {
       if (s.contains(WidgetState.disabled)) return disabledFg;
-      if (s.contains(WidgetState.selected)) return t.accentInk;
+      if (s.contains(WidgetState.selected)) return t.brandInk;
       return cs.onSurfaceVariant;
     }),
     overlayColor: overlay(),
   );
 
-  final inputRadius = BorderRadius.circular(t.radiusMd - 2);
+  final inputRadius = BorderRadius.circular(t.radiusControl);
   OutlineInputBorder inputBorder(Color color, [double width = 1]) =>
       OutlineInputBorder(
         borderRadius: inputRadius,
@@ -178,14 +178,14 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       );
 
   final menuStyle = MenuStyle(
-    backgroundColor: WidgetStatePropertyAll(t.popover),
+    backgroundColor: WidgetStatePropertyAll(t.raised),
     surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
     elevation: const WidgetStatePropertyAll(12),
     shadowColor: WidgetStatePropertyAll(
       Colors.black.withValues(alpha: light ? 0.28 : 0.7),
     ),
     shape: WidgetStatePropertyAll(
-      enjoyShape(t.radiusMd, side: BorderSide(color: t.hairline)),
+      enjoyShape(t.radiusMd, side: BorderSide(color: t.line)),
     ),
     padding: WidgetStatePropertyAll(EdgeInsets.all(t.space4 + 2)),
   );
@@ -200,9 +200,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     highlightColor: pressed,
     hoverColor: hover,
     focusColor: focus,
-    canvasColor: t.popover,
-    cardColor: t.card,
-    dividerColor: t.hairline,
+    canvasColor: t.raised,
+    cardColor: t.paper,
+    dividerColor: t.line,
     disabledColor: disabledFg,
     extensions: <ThemeExtension<dynamic>>[t, transcriptTokens],
     textTheme: tt,
@@ -227,10 +227,10 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       elevation: 0,
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      color: t.card,
+      color: t.paper,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
-      shape: enjoyShape(t.radiusLg, side: BorderSide(color: t.hairline)),
+      shape: enjoyShape(t.radiusCard, side: BorderSide(color: t.line)),
     ),
     listTileTheme: ListTileThemeData(
       contentPadding: EdgeInsets.symmetric(horizontal: t.space16),
@@ -244,22 +244,22 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       minVerticalPadding: 10,
       minLeadingWidth: 24,
       horizontalTitleGap: t.space12,
-      selectedColor: t.accentInk,
-      selectedTileColor: t.accentSoft,
+      selectedColor: t.brandInk,
+      selectedTileColor: t.brandSoft,
       shape: enjoyShape(t.radiusMd - 2),
     ),
     navigationBarTheme: NavigationBarThemeData(
       height: t.bottomNavHeight,
-      backgroundColor: t.card,
-      indicatorColor: t.accentSoft,
+      backgroundColor: t.paper,
+      indicatorColor: t.brandSoft,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       labelTextStyle: WidgetStatePropertyAll(tt.labelSmall),
     ),
     navigationRailTheme: NavigationRailThemeData(
       backgroundColor: Colors.transparent,
-      indicatorColor: t.accentSoft,
-      selectedIconTheme: IconThemeData(color: t.accentInk, size: 20),
+      indicatorColor: t.brandSoft,
+      selectedIconTheme: IconThemeData(color: t.brandInk, size: 20),
       unselectedIconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 20),
       selectedLabelTextStyle: tt.labelMedium?.copyWith(
         fontWeight: FontWeight.w600,
@@ -279,39 +279,39 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
         pressedElevation: 3,
       ),
       overlayShape: SliderComponentShape.noOverlay,
-      activeTrackColor: cs.primary,
-      inactiveTrackColor: t.fill,
+      activeTrackColor: t.original,
+      inactiveTrackColor: t.sunk,
       thumbColor: Colors.white,
       overlayColor: Colors.transparent,
-      valueIndicatorColor: light ? AppColors.onSurfaceLight : t.popover,
-      valueIndicatorTextStyle: tt.labelSmall?.copyWith(color: Colors.white),
+      valueIndicatorColor: t.ink,
+      valueIndicatorTextStyle: tt.labelSmall?.copyWith(color: t.ground),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       elevation: 8,
       shape: enjoyShape(
         t.radiusLg,
-        side: BorderSide(color: light ? Colors.transparent : t.hairline),
+        side: BorderSide(color: light ? Colors.transparent : t.line),
       ),
-      backgroundColor: light ? AppColors.onSurfaceLight : t.popover,
-      contentTextStyle: tt.bodyMedium?.copyWith(
-        color: light ? AppColors.onSurfaceDark : cs.onSurface,
-      ),
-      actionTextColor: AppColors.brandOnDark,
+      backgroundColor: t.ink,
+      contentTextStyle: tt.bodyMedium?.copyWith(color: t.ground),
+      actionTextColor: t.originalInk,
       showCloseIcon: false,
       closeIconColor: light ? AppColors.onSurfaceDark : cs.onSurface,
       dismissDirection: DismissDirection.horizontal,
       insetPadding: EdgeInsets.all(t.space16),
     ),
     bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: t.popover,
-      modalBackgroundColor: t.popover,
+      backgroundColor: t.raised,
+      modalBackgroundColor: t.raised,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       modalElevation: 0,
       shadowColor: Colors.transparent,
       shape: RoundedSuperellipseBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(t.radius2xl)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(t.radiusSheet),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       dragHandleColor: cs.onSurfaceVariant.withValues(alpha: 0.35),
@@ -333,9 +333,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
           tt.labelMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         shape: WidgetStatePropertyAll(enjoyShape(t.radiusSm + 1)),
-        side: WidgetStatePropertyAll(BorderSide(color: t.hairline)),
+        side: WidgetStatePropertyAll(BorderSide(color: t.line)),
         backgroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? t.card : t.fill,
+          (s) => s.contains(WidgetState.selected) ? t.paper : t.fill,
         ),
         foregroundColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected)
@@ -344,7 +344,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
         ),
         iconColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected)
-              ? t.accentInk
+              ? t.brandInk
               : cs.onSurfaceVariant,
         ),
         overlayColor: overlay(),
@@ -353,9 +353,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     ),
     toggleButtonsTheme: ToggleButtonsThemeData(
       borderRadius: BorderRadius.circular(t.radiusSm),
-      borderColor: t.hairline,
-      selectedBorderColor: t.hairline,
-      fillColor: t.card,
+      borderColor: t.line,
+      selectedBorderColor: t.line,
+      fillColor: t.paper,
       selectedColor: cs.onSurface,
       color: cs.onSurfaceVariant,
     ),
@@ -406,17 +406,17 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     ),
     iconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 22),
     primaryIconTheme: IconThemeData(color: cs.onPrimary, size: 22),
-    dividerTheme: DividerThemeData(color: t.hairline, thickness: 1, space: 1),
+    dividerTheme: DividerThemeData(color: t.line, thickness: 1, space: 1),
     dialogTheme: DialogThemeData(
       elevation: 16,
       shadowColor: Colors.black.withValues(alpha: light ? 0.32 : 0.8),
       shape: enjoyShape(
-        t.radiusXl,
-        side: BorderSide(color: light ? Colors.transparent : t.hairline),
+        t.radiusDialog,
+        side: BorderSide(color: light ? Colors.transparent : t.line),
       ),
-      backgroundColor: t.popover,
+      backgroundColor: t.raised,
       surfaceTintColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: light ? 0.22 : 0.55),
+      barrierColor: t.scrim,
       titleTextStyle: tt.titleLarge,
       contentTextStyle: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
       insetPadding: EdgeInsets.symmetric(
@@ -431,10 +431,10 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       ),
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: t.popover,
+      color: t.raised,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.black.withValues(alpha: light ? 0.28 : 0.7),
-      shape: enjoyShape(t.radiusMd, side: BorderSide(color: t.hairline)),
+      shape: enjoyShape(t.radiusMd, side: BorderSide(color: t.line)),
       elevation: 12,
       textStyle: tt.bodyMedium,
       labelTextStyle: WidgetStatePropertyAll(tt.bodyMedium),
@@ -449,24 +449,24 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       textStyle: tt.bodyMedium,
       inputDecorationTheme: InputDecorationThemeData(
         filled: true,
-        fillColor: t.fill,
+        fillColor: t.paper,
         isDense: true,
         contentPadding: EdgeInsets.symmetric(
           horizontal: t.space12,
           vertical: t.space8,
         ),
-        border: inputBorder(Colors.transparent),
-        enabledBorder: inputBorder(Colors.transparent),
-        focusedBorder: inputBorder(cs.primary, 1.5),
+        border: inputBorder(t.line),
+        enabledBorder: inputBorder(t.line),
+        focusedBorder: inputBorder(t.original, 1.5),
       ),
     ),
     tooltipTheme: TooltipThemeData(
       decoration: ShapeDecoration(
-        color: light ? const Color(0xF216161D) : const Color(0xF22A2A33),
+        color: t.ink,
         shape: enjoyShape(t.radiusSm - 1),
       ),
       textStyle: tt.labelSmall?.copyWith(
-        color: const Color(0xFFF4F4F7),
+        color: t.ground,
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
@@ -477,12 +477,12 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     ),
     inputDecorationTheme: InputDecorationThemeData(
       filled: true,
-      fillColor: t.fill,
-      hoverColor: cs.onSurface.withValues(alpha: 0.03),
-      border: inputBorder(Colors.transparent),
-      enabledBorder: inputBorder(Colors.transparent),
-      disabledBorder: inputBorder(Colors.transparent),
-      focusedBorder: inputBorder(cs.primary, 1.5),
+      fillColor: t.paper,
+      hoverColor: Colors.transparent,
+      border: inputBorder(t.line),
+      enabledBorder: inputBorder(t.line),
+      disabledBorder: inputBorder(t.line.withValues(alpha: 0.6)),
+      focusedBorder: inputBorder(t.original, 1.5),
       errorBorder: inputBorder(cs.error.withValues(alpha: 0.7)),
       focusedErrorBorder: inputBorder(cs.error, 1.5),
       contentPadding: EdgeInsets.symmetric(
@@ -490,10 +490,10 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
         vertical: t.space12,
       ),
       isDense: false,
-      hintStyle: tt.bodyMedium?.copyWith(color: t.textFaint),
+      hintStyle: tt.bodyMedium?.copyWith(color: t.ink3),
       labelStyle: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
       floatingLabelStyle: tt.labelLarge?.copyWith(
-        color: t.accentInk,
+        color: t.ink2,
         fontWeight: FontWeight.w600,
       ),
       helperStyle: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
@@ -506,17 +506,17 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     chipTheme: ChipThemeData(
       shape: const StadiumBorder(),
       side: BorderSide.none,
-      backgroundColor: t.fill,
-      selectedColor: t.accentSoft,
-      disabledColor: t.fill.withValues(alpha: 0.5),
-      secondarySelectedColor: t.accentSoft,
-      labelStyle: tt.labelMedium?.copyWith(color: cs.onSurface),
-      secondaryLabelStyle: tt.labelMedium?.copyWith(color: t.accentInk),
+      backgroundColor: t.sunk,
+      selectedColor: t.ink,
+      disabledColor: t.sunk.withValues(alpha: 0.5),
+      secondarySelectedColor: t.ink,
+      labelStyle: tt.labelMedium?.copyWith(color: t.ink),
+      secondaryLabelStyle: tt.labelMedium?.copyWith(color: t.ground),
       iconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 15),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       labelPadding: const EdgeInsets.symmetric(horizontal: 4),
       showCheckmark: false,
-      checkmarkColor: t.accentInk,
+      checkmarkColor: t.ground,
       elevation: 0,
       pressElevation: 0,
       surfaceTintColor: Colors.transparent,
@@ -554,7 +554,7 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
         borderSide: BorderSide(color: cs.primary, width: 2),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
       ),
-      dividerColor: t.hairline,
+      dividerColor: t.line,
       overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       splashFactory: NoSplash.splashFactory,
     ),
@@ -566,9 +566,9 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       tilePadding: EdgeInsets.symmetric(horizontal: t.space16),
     ),
     textSelectionTheme: TextSelectionThemeData(
-      cursorColor: cs.primary,
-      selectionColor: cs.primary.withValues(alpha: light ? 0.22 : 0.38),
-      selectionHandleColor: cs.primary,
+      cursorColor: t.original,
+      selectionColor: t.originalSoft,
+      selectionHandleColor: t.original,
     ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
@@ -586,12 +586,12 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       ),
       radius: Radius.circular(t.radiusFull),
       thumbColor: WidgetStateProperty.resolveWith(
-        (s) => cs.onSurface.withValues(
+        (s) => t.ink3.withValues(
           alpha: s.contains(WidgetState.dragged)
-              ? 0.42
+              ? 0.6
               : s.contains(WidgetState.hovered)
-              ? 0.32
-              : 0.2,
+              ? 0.5
+              : 0.4,
         ),
       ),
       crossAxisMargin: 3,
@@ -608,8 +608,8 @@ SystemUiOverlayStyle enjoySystemUiOverlayStyle(Brightness brightness) {
     statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
     statusBarBrightness: dark ? Brightness.dark : Brightness.light,
     systemNavigationBarColor: dark
-        ? AppColors.surfaceDark
-        : AppColors.surfaceLight,
+        ? AppColors.groundDark
+        : AppColors.groundLight,
     systemNavigationBarIconBrightness: dark
         ? Brightness.light
         : Brightness.dark,

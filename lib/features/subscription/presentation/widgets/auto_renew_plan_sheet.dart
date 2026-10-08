@@ -622,7 +622,7 @@ class _AutoRenewPanel extends StatelessWidget {
           ),
         ),
         SizedBox(height: t.space12),
-        EnjoyButton.primary(
+        EnjoyButton.brand(
           onPressed: disabled ? null : onSubscribe,
           child: busy
               ? Row(
@@ -719,7 +719,7 @@ class _PrepaidPanel extends StatelessWidget {
           ),
         ),
         SizedBox(height: t.space16),
-        EnjoyButton.primary(
+        EnjoyButton.brand(
           onPressed: onContinue,
           child: busy
               ? const SizedBox(

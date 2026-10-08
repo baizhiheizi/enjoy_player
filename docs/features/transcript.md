@@ -65,7 +65,7 @@ Transcript list and echo-region chrome use [`transcriptDensityOf(context)`](../.
 | Echo divider thickness | 1.0 | 0.5 |
 | Echo control icon size | 20 | 16 |
 
-The horizontal transcript line padding stays at 16 across both platforms so the active-line rail and 44dp tap targets remain readable (`transcriptLinePadding` is horizontal-only; vertical comes from density). The density is resolved from each affected widget's `BuildContext` so the choice follows the live `defaultTargetPlatform` (no static-initialized token).
+Per-line padding, gutter widths, and lens type sizes come from [`TranscriptLensMetrics`](../../lib/core/transcript/transcript_lens_metrics.dart) (the `Main` / `Phone` boards), not from this density table. The density is resolved from each affected widget's `BuildContext` so the choice follows the live `defaultTargetPlatform` (no static-initialized token).
 
 ## Code layout
 
@@ -220,6 +220,19 @@ server profile):
 
 ### Rendering
 
+Wide windows open the picker as the Duet **Subtitles & display
+popover**: a 384px raised card anchored under the top bar's Subtitles
+button (a PopupRoute, so the player surface parks per ADR-0066).
+Narrower windows keep the bottom sheet.
+
+### Rendering
+
+Duet renders hidden lines as **rounded shape bars** sized from the
+hidden words' text boxes (measured once per line layout and cached) —
+no `ImageFilter.blur` anywhere in the player. The reveal rules are
+unchanged (hover / press-and-hold, active cue), and tapping the shapes
+on a selectable cue starts the same hold-to-peek.
+
 The blur is applied via `TranscriptBlurText`
 ([`lib/features/transcript/presentation/transcript_blur_text.dart`](../../lib/features/transcript/presentation/transcript_blur_text.dart))
 inside `TranscriptLineTile`. Only the body text widgets are wrapped —
@@ -279,6 +292,24 @@ Coverage lives under
   leak stored phone labels through an unrevealed cue.
 - `transcript_blur_long_list_perf_test.dart` — 10 000-line smoke
   under `ImageFiltered`; per-frame budget assertion.
+
+## Presentation — the Listen lens (Duet, ADR-0093)
+
+Each cue is a flat row on the ground. On desktop a 44px gutter (36px in
+the video column) holds a mono 11px timestamp (right-aligned) and, when
+the line has takes, a you practiced dot; on phones the gutter is an 8px
+practiced-dot column and the active cue's time sits above its text in
+original-ink. The text column carries the Literata line (17 desktop /
+15 video / 16 phone; the active cue 21 / 17 / 20 at weight 500) with the
+Geist secondary translation (13.5, active 14.5; 12.5 / 13.5 in the video
+column and on phones) under it — no plate, no rail, no accent wash.
+Every size lives in
+[`TranscriptLensMetrics`](../../lib/core/transcript/transcript_lens_metrics.dart),
+resolved per surface (desktop, video column via
+`TranscriptVideoColumnScope`, phone). Inactive cues read ink3 and brighten to ink on hover. The karaoke
+word paints as an **original-blue underline** on the spoken word (plain
+markup path and aligned-words path alike). The recording-count badge is
+replaced by the gutter dot; the count stays in the accessibility label.
 
 ## Karaoke highlight
 

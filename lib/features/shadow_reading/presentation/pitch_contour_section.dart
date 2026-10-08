@@ -7,6 +7,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
@@ -241,8 +243,9 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
       l10n.pitchContourTitle,
     );
     final scheme = Theme.of(context).colorScheme;
-    final refColor = scheme.tertiary;
-    final userColor = scheme.secondary;
+    final tok = EnjoyThemeTokens.of(context);
+    final refColor = tok.original.withValues(alpha: 0.35);
+    final userColor = tok.you;
 
     final merged = _merged();
     final refDur = widget.endSec - widget.startSec;

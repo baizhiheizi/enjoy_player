@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Discover</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--you:#8B2FE0;--you-ink:#7E22CE;--you-soft:#F4ECFE;--you-line:#D8B4FE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--shadow:0 1px 2px rgba(18,20,26,.05),0 14px 44px rgba(18,20,26,.12);--lift:0 1px 2px rgba(18,20,26,.08),0 0 0 1px rgba(18,20,26,.05);--scrim:rgba(18,20,26,.32);color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--you:#8F55F0;--you-ink:#C7A0FF;--you-soft:rgba(143,85,240,.16);--you-line:rgba(167,120,250,.5);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--shadow:0 1px 2px rgba(0,0,0,.4),0 18px 52px rgba(0,0,0,.55);--lift:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);--scrim:rgba(0,0,0,.55);color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) :is(button,input){font:inherit;color:inherit}
+:where(.e) button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible,.e input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:40px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.e-btn svg{width:18px;height:18px;flex-shrink:0}
+.e-sm{height:32px;padding:0 12px;border-radius:10px;font-size:13px}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-row:hover,.e-ib:hover{background:var(--sunk)}
+.e-ib{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2);flex-shrink:0}
+.e-ib svg{width:20px;height:20px}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:20px}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-h1{margin:0;font-family:var(--content);font-size:42px;line-height:1.08;font-weight:500;letter-spacing:-.02em}
+.e-h2{margin:0;font-family:var(--content);font-size:24px;line-height:1.2;font-weight:500;letter-spacing:-.01em}
+.e-input{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 14px;color:var(--ink);width:100%;font-size:14.5px}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tile{color:var(--ink)!important}
+.e-tile:hover .e-cover{transform:scale(1.03)}
+.e-cover{transition:transform .3s}
+.d-play{opacity:0;transition:opacity .2s}
+.e-tile:hover .d-play{opacity:1}
+.e-tabs{display:none!important}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.e-h1{font-size:32px}.e-noph{display:none!important}.d-grid{grid-template-columns:1fr!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden; position: relative">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="discover" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 1180px; margin: 0 auto; padding: 44px 40px 72px">
+
+        <sc-if value="{{ isFeed }}" hint-placeholder-val="{{ true }}">
+          <header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px">
+            <div>
+              <div class="e-ov">YouTube channels you follow</div>
+              <h1 class="e-h1" style="margin-top: 12px">Discover</h1>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button class="e-btn e-sec e-noph" aria-label="Language">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a14 14 0 0 1 0 18"></path><path d="M12 3a14 14 0 0 0 0 18"></path></svg>
+                All languages
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--ink3)"><path d="m6 9 6 6 6-6"></path></svg>
+              </button>
+              <button class="e-btn e-sec" onClick="{{ openManage }}" aria-label="Manage channels">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10"></path><path d="M4 17h6"></path><circle cx="17" cy="7" r="3"></circle><circle cx="13" cy="17" r="3"></circle><path d="M20 17h-4"></path></svg>
+                <span class="e-noph">Manage channels</span>
+              </button>
+            </div>
+          </header>
+
+          <div class="e-scroll" style="display: flex; gap: 18px; margin-top: 28px; overflow-x: auto; padding: 4px 2px 6px">
+            <button aria-pressed="true" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 72px; flex-shrink: 0">
+              <span style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--ink); color: var(--paper); font-size: 14px; font-weight: 600">All</span>
+              <span style="font-size: 12.5px; font-weight: 600">All</span>
+            </button>
+            <sc-for list="{{ channels }}" as="c" hint-placeholder-count="6">
+              <a href="DiscoverChannel.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 72px; flex-shrink: 0; color: var(--ink)">
+                <span style="width: 60px; height: 60px; border-radius: 50%; padding: 2.5px; background: {{ c.ring }}">
+                  <span style="width: 55px; height: 55px; border-radius: 50%; border: 2.5px solid var(--ground); display: flex; align-items: center; justify-content: center; font-family: var(--content); font-size: 22px; font-weight: 500; color: #FFFFFF; background: {{ c.bg }}">{{ c.i }}</span>
+                </span>
+                <span style="font-size: 12.5px; color: var(--ink2); max-width: 72px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ c.name }}</span>
+              </a>
+            </sc-for>
+            <button onClick="{{ openManage }}" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 72px; flex-shrink: 0">
+              <span style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px dashed var(--line); color: var(--ink2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 22px; height: 22px"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span>
+              <span style="font-size: 12.5px; color: var(--ink2)">Subscribe</span>
+            </button>
+          </div>
+
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 30px">
+            <h2 class="e-h2">Recent uploads</h2>
+            <span style="font-size: 12.5px; color: var(--ink3)">Updated 2 hours ago</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isChannel }}" hint-placeholder-val="{{ false }}">
+          <a href="Discover.dc.html" class="e-btn e-sec e-sm" style="padding-left: 8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px"><path d="m15 18-6-6 6-6"></path></svg>
+            Discover
+          </a>
+          <header style="display: flex; align-items: center; gap: 22px; margin-top: 24px; flex-wrap: wrap">
+            <span style="width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--content); font-size: 40px; font-weight: 500; color: #FFFFFF; background: #B91C1C">T</span>
+            <div style="flex: 1; min-width: 220px">
+              <h1 class="e-h1">TED</h1>
+              <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px; font-size: 13.5px; color: var(--ink3)">
+                <span style="font-family: var(--mono); font-size: 12.5px">@TED</span><span>·</span><span>Channel</span><span>·</span><span style="height: 22px; padding: 0 8px; border-radius: 7px; display: inline-flex; align-items: center; font: 600 11px/1 var(--mono); background: var(--sunk); color: var(--ink2)">EN</span>
+              </div>
+              <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.55; color: var(--ink2); max-width: 560px">Talks on ideas worth spreading — clear speech, many with captions.</p>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button class="e-btn e-sec" aria-label="Refresh">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"></path><path d="M21 4v5h-5"></path></svg>
+              </button>
+              <button class="e-btn e-sec">Unsubscribe</button>
+            </div>
+          </header>
+          <div style="height: 1px; background: var(--line); margin: 30px 0 4px"></div>
+        </sc-if>
+
+        <div class="d-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 28px 22px; margin-top: 18px">
+          <sc-for list="{{ feed }}" as="v" hint-placeholder-count="8">
+            <article style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+              <a href="Main.dc.html" class="e-tile" aria-label="{{ v.playAria }}" style="position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: {{ v.bg }}">
+                <sc-if value="{{ v.isLogo }}" hint-placeholder-val="{{ true }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%">
+                  <defs><linearGradient id="{{ v.gid }}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ v.c1 }}"></stop><stop offset="1" stop-color="{{ v.c2 }}"></stop></linearGradient></defs>
+                  <g fill="{{ v.gref }}" stroke="{{ v.gref }}" stroke-width="{{ v.sw }}" stroke-linejoin="round">
+                    <polygon points="{{ v.t1 }}" opacity=".35"></polygon>
+                    <polygon points="{{ v.t2 }}" opacity=".65"></polygon>
+                    <polygon points="{{ v.t3 }}"></polygon>
+                  </g>
+                </svg></sc-if>
+                  <sc-if value="{{ v.isTalk }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><rect width="160" height="90" fill="{{ v.p1 }}"></rect><ellipse cx="80" cy="40" rx="46" ry="44" fill="{{ v.p2 }}" opacity=".55"></ellipse><ellipse cx="80" cy="99" rx="74" ry="17" fill="{{ v.p3 }}"></ellipse><path d="M56 92 C57 70 66 63 80 63 C94 63 103 70 104 92 Z" fill="#0F1118"></path><circle cx="80" cy="49" r="11.5" fill="#0F1118"></circle><path d="M69.4 45.5 A11.5 11.5 0 0 1 86.5 39.5" fill="none" stroke="#F1E4D8" stroke-width="1.4" opacity=".55"></path></svg></sc-if>
+                  <sc-if value="{{ v.isCity }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><defs><linearGradient id="{{ v.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ v.p1 }}"></stop><stop offset="1" stop-color="{{ v.p2 }}"></stop></linearGradient></defs><rect width="160" height="90" fill="{{ v.gref }}"></rect><circle cx="118" cy="28" r="9" fill="{{ v.p3 }}" opacity=".9"></circle><g fill="#0E1322"><rect x="0" y="40" width="16" height="50"></rect><rect x="14" y="28" width="20" height="62"></rect><rect x="32" y="48" width="14" height="42"></rect><rect x="44" y="20" width="18" height="70"></rect><rect x="60" y="44" width="16" height="46"></rect><rect x="74" y="34" width="22" height="56"></rect><rect x="94" y="52" width="12" height="38"></rect><rect x="104" y="26" width="18" height="64"></rect><rect x="120" y="46" width="16" height="44"></rect><rect x="134" y="36" width="26" height="54"></rect></g><g fill="{{ v.p3 }}" opacity=".85"><rect x="18" y="34" width="3" height="3"></rect><rect x="26" y="44" width="3" height="3"></rect><rect x="48" y="26" width="3" height="3"></rect><rect x="54" y="38" width="3" height="3"></rect><rect x="48" y="54" width="3" height="3"></rect><rect x="78" y="40" width="3" height="3"></rect><rect x="88" y="50" width="3" height="3"></rect><rect x="108" y="32" width="3" height="3"></rect><rect x="114" y="46" width="3" height="3"></rect><rect x="140" y="42" width="3" height="3"></rect><rect x="148" y="56" width="3" height="3"></rect></g><rect y="80" width="160" height="10" fill="#0A0F1C"></rect></svg></sc-if>
+                  <sc-if value="{{ v.isHills }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><defs><linearGradient id="{{ v.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ v.p1 }}"></stop><stop offset="1" stop-color="{{ v.p2 }}"></stop></linearGradient></defs><rect width="160" height="90" fill="{{ v.gref }}"></rect><circle cx="112" cy="32" r="12" fill="{{ v.p3 }}"></circle><path d="M0 58 C30 44 54 46 80 56 C104 64 130 48 160 52 V90 H0 Z" fill="{{ v.h1 }}"></path><path d="M0 68 C34 58 60 62 86 70 C112 78 136 64 160 66 V90 H0 Z" fill="{{ v.h2 }}"></path><path d="M0 80 C40 72 74 76 100 82 C124 88 144 80 160 80 V90 H0 Z" fill="{{ v.h3 }}"></path></svg></sc-if>
+                  <sc-if value="{{ v.isHarbour }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><defs><linearGradient id="{{ v.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ v.p1 }}"></stop><stop offset="1" stop-color="{{ v.p2 }}"></stop></linearGradient></defs><rect width="160" height="90" fill="{{ v.gref }}"></rect><circle cx="44" cy="52" r="10" fill="{{ v.p3 }}"></circle><rect y="56" width="160" height="34" fill="{{ v.h3 }}"></rect><rect x="30" y="62" width="28" height="2" rx="1" fill="{{ v.p3 }}" opacity=".6"></rect><rect x="36" y="68" width="16" height="2" rx="1" fill="{{ v.p3 }}" opacity=".4"></rect><path d="M86 60 h40 l-6 8 h-28 z" fill="#0E1322"></path><path d="M104 60 V34" stroke="#0E1322" stroke-width="1.6"></path><path d="M105.5 36 L121 57 H105.5 Z" fill="#F4F1EA" opacity=".92"></path><path d="M128 62 h22 l-4 5 h-15 z" fill="#0E1322"></path><rect x="0" y="63" width="30" height="3" fill="#0E1322"></rect><rect x="6" y="63" width="2" height="12" fill="#0E1322"></rect><rect x="22" y="63" width="2" height="12" fill="#0E1322"></rect></svg></sc-if>
+                  <sc-if value="{{ v.isTable }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><rect width="160" height="90" fill="{{ v.p1 }}"></rect><rect x="112" y="10" width="34" height="26" rx="2" fill="{{ v.p2 }}" opacity=".7"></rect><rect y="60" width="160" height="30" fill="{{ v.h2 }}"></rect><rect y="60" width="160" height="3" fill="{{ v.h1 }}"></rect><ellipse cx="80" cy="67" rx="30" ry="5" fill="#000000" opacity=".16"></ellipse><path d="M64 34 H96 V54 C96 62 90 66 80 66 C70 66 64 62 64 54 Z" fill="#F4F1EA"></path><path d="M96 40 C106 40 106 54 96 54" fill="none" stroke="#F4F1EA" stroke-width="4"></path><ellipse cx="80" cy="34" rx="16" ry="3" fill="{{ v.p3 }}"></ellipse><path d="M74 27 C70 21 78 17 74 11" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity=".55"></path><path d="M85 27 C81 21 89 17 85 11" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity=".35"></path></svg></sc-if>
+                  <sc-if value="{{ v.isStreet }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><defs><linearGradient id="{{ v.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ v.p1 }}"></stop><stop offset="1" stop-color="{{ v.p2 }}"></stop></linearGradient></defs><rect width="160" height="90" fill="{{ v.gref }}"></rect><rect y="56" width="160" height="34" fill="{{ v.h2 }}"></rect><polygon points="54,90 106,90 84,56 76,56" fill="{{ v.h3 }}"></polygon><path d="M80 60 V65 M80 70 V77 M80 82 V90" stroke="{{ v.p3 }}" stroke-width="1.4"></path><rect x="0" y="28" width="36" height="30" fill="{{ v.h1 }}"></rect><rect x="32" y="40" width="22" height="18" fill="{{ v.h1 }}" opacity=".85"></rect><path d="M0 42 h36 l-4 5 h-32 z" fill="{{ v.p3 }}"></path><rect x="118" y="32" width="42" height="26" fill="{{ v.h1 }}"></rect><rect x="104" y="44" width="18" height="14" fill="{{ v.h1 }}" opacity=".85"></rect><path d="M118 44 h42 v5 h-38 z" fill="{{ v.p3 }}" opacity=".8"></path><circle cx="44" cy="36" r="2.4" fill="{{ v.p3 }}"></circle><circle cx="112" cy="38" r="2.4" fill="{{ v.p3 }}"></circle></svg></sc-if>
+                <span style="position: absolute; right: 8px; bottom: 8px; height: 22px; padding: 0 7px; border-radius: 7px; display: inline-flex; align-items: center; font: 500 11.5px/1 var(--mono); color: #FFFFFF; background: rgba(12,14,18,.55)">{{ v.dur }}</span>
+                <span class="d-play" aria-hidden="true" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.92); color: #4F46E5; box-shadow: 0 10px 28px rgba(0,0,0,.28)"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px; margin-left: 3px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></span>
+                <sc-if value="{{ v.inLib }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 8px; top: 8px; height: 24px; padding: 0 9px 0 7px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: #FFFFFF; background: rgba(12,14,18,.6)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px"><path d="M20 6 9 17l-5-5"></path></svg>In library</span></sc-if>
+              </a>
+              <div style="display: flex; gap: 10px; align-items: flex-start">
+                <span style="width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: var(--content); font-size: 13px; color: #FFFFFF; background: {{ v.cbg }}">{{ v.ci }}</span>
+                <div style="flex: 1; min-width: 0">
+                  <div style="font-size: 14.5px; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{ v.title }}</div>
+                  <div style="font-size: 12.5px; color: var(--ink3); margin-top: 4px">{{ v.meta }}</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 6px">
+                <sc-if value="{{ v.canAdd }}" hint-placeholder-val="{{ true }}">
+                  <button class="e-btn e-sec e-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 15px; height: 15px"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+                    Add to library
+                  </button>
+                </sc-if>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="discover" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+
+  <sc-if value="{{ showManage }}" hint-placeholder-val="{{ false }}">
+    <button aria-label="Close" onClick="{{ closeManage }}" style="position: absolute; inset: 0; z-index: 8; background: var(--scrim); cursor: default"></button>
+    <div aria-label="Manage channels" class="e-scroll" style="position: absolute; z-index: 9; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100% - 32px)); max-height: calc(100% - 64px); overflow-y: auto; border-radius: 24px; background: var(--raised); box-shadow: var(--shadow); padding: 26px 28px 24px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <h2 class="e-h2">Manage channels</h2>
+        <button class="e-ib" aria-label="Close" onClick="{{ closeManage }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+      </div>
+      <label style="display: block; font-size: 13px; font-weight: 600; color: var(--ink2); margin-top: 18px" for="dsub">Subscribe to channel</label>
+      <div style="display: flex; gap: 8px; margin-top: 8px">
+        <input id="dsub" class="e-input" placeholder="https://www.youtube.com/@channel" value="">
+        <button class="e-btn e-brand" style="height: 44px">Subscribe</button>
+      </div>
+      <div style="font-size: 12.5px; color: var(--ink3); margin-top: 8px">Paste a YouTube channel URL or @handle.</div>
+
+      <div class="e-ov" style="margin-top: 26px">Your channels</div>
+      <div style="display: flex; flex-direction: column; margin-top: 10px">
+        <sc-for list="{{ channels }}" as="c" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line)">
+            <span style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--content); font-size: 16px; color: #FFFFFF; background: {{ c.bg }}">{{ c.i }}</span>
+            <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 14px; font-weight: 600">{{ c.name }}</span><span style="display: block; font-size: 12.5px; color: var(--ink3); margin-top: 2px">{{ c.kind }} · {{ c.lang }}</span></span>
+            <button class="e-btn e-sec e-sm">Unsubscribe</button>
+          </div>
+        </sc-for>
+      </div>
+
+      <div class="e-ov" style="margin-top: 26px">Recommended</div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0 4px">
+        <span style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--content); font-size: 16px; color: #FFFFFF; background: #B91C1C">T</span>
+        <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 14px; font-weight: 600">TED <span style="margin-left: 6px; font: 600 11px/1 var(--mono); color: var(--ink3)">EN</span></span><span style="display: block; font-size: 12.5px; color: var(--ink3); margin-top: 2px">Talks on ideas worth spreading — clear speech, many with captions.</span></span>
+        <span style="height: 30px; padding: 0 10px; border-radius: 9px; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--brand-ink); background: var(--brand-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px"><path d="M20 6 9 17l-5-5"></path></svg>Subscribed</span>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"view":{"editor":"enum","options":["feed","channel"],"default":"feed"},"$preview":{"width":1440,"height":900}}'>
+var EC = [['#15203A', '#4797F5', '#A855F7'], ['#1E1636', '#A855F7', '#F0ABFC'], ['#0B2E2D', '#14B8A6', '#A7F3D0'], ['#2A1F14', '#F59E0B', '#FDE68A'], ['#141C2B', '#3B82F6', '#A5B4FC'], ['#2B1424', '#EC4899', '#FBCFE8'], ['#17251A', '#65A30D', '#D9F99D'], ['#1F1A2E', '#6366F1', '#C4B5FD']];
+function eTri(x, y, u) { return [[x, y], [x + 40 * u, y + 20 * u], [x, y + 40 * u]].map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '); }
+function eCover(seed, w, h) {
+  var c = EC[seed % EC.length]; var x = seed * 7919 + 17;
+  function r() { x = (x * 9301 + 49297) % 233280; return x / 233280; }
+  var u = (Math.max(w, h) / 60) * (0.78 + r() * 0.42);
+  var ox = -0.3 * 60 * u + r() * w * 0.42; var oy = h / 2 - 30 * u + (r() - 0.5) * h * 0.36;
+  return { bg: c[0], c1: c[1], c2: c[2], sw: (5 * u).toFixed(1), t1: eTri(ox, oy, u), t2: eTri(ox, oy + 20 * u, u), t3: eTri(ox + 20 * u, oy + 10 * u, u) };
+}
+var SC = {
+  dusk: ['#1B2440', '#E58E6B', '#FFD27A', '#2B2F4A', '#3A3550', '#1F2235'],
+  morning: ['#A9D3F5', '#F7E3C4', '#FFF4D6', '#7FB88E', '#4F9A7A', '#2F6B5E'],
+  teal: ['#0F2A3A', '#2C6E7A', '#FFE28A', '#1B3B48', '#164050', '#0E2A35'],
+  cafe: ['#E9D9C3', '#C9B08E', '#6B3E26', '#8A5A3B', '#A87550', '#5E3A24'],
+  stage: ['#141117', '#4A3038', '#B8323A'],
+  stageBlue: ['#0E121B', '#2A3A5C', '#33518F'],
+  snow: ['#CFE3F2', '#EEF4F8', '#FFFFFF', '#B9D3E6', '#9DBCD4', '#7FA1BD'],
+  rain: ['#2A3442', '#56657A', '#F6C27E', '#2B3443', '#3A4555', '#232B37'],
+  market: ['#F3C9A2', '#F8E6CF', '#E2553D', '#7A4A3A', '#B08A6E', '#6E5B50']
+};
+function eScene(kind, pal, id) {
+  var c = SC[pal] || SC.dusk;
+  return { isLogo: false, isTalk: kind === 'talk', isCity: kind === 'city', isHills: kind === 'hills', isHarbour: kind === 'harbour', isTable: kind === 'table', isStreet: kind === 'street',
+    p1: c[0], p2: c[1], p3: c[2], h1: c[3] || c[0], h2: c[4] || c[1], h3: c[5] || c[0], gid: id, gref: 'url(#' + id + ')' };
+}
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var p = this.props || {};
+    var s = this.state || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var isChannel = p.view === 'channel';
+    var manage = s.manage != null ? s.manage : p.dialog === 'manage';
+    var chans = [
+      { name: 'TED', i: 'T', bg: '#B91C1C', kind: 'Channel', lang: 'English' },
+      { name: 'City Walks', i: 'C', bg: '#0F766E', kind: 'Channel', lang: 'English' },
+      { name: 'Kitchen Talk', i: 'K', bg: '#B45309', kind: 'Playlist', lang: 'English' },
+      { name: 'Slow Morning English', i: 'S', bg: '#4338CA', kind: 'Channel', lang: 'English' },
+      { name: 'Science Shorts', i: 'S', bg: '#7E22CE', kind: 'Channel', lang: 'English' },
+      { name: '散歩日記', i: '散', bg: '#334155', kind: 'Channel', lang: 'Japanese' }
+    ];
+    var channels = chans.map(function (c, i) { return { name: c.name, i: c.i, bg: c.bg, kind: c.kind, lang: c.lang, ring: 'transparent' }; });
+    var vids = [
+      { t: 'What your morning routine says about attention', sc: ['talk', 'stage'], c: 0, meta: 'TED · 3 hours ago', dur: '12:04', lib: false },
+      { t: 'A slow walk through the old harbour', sc: ['harbour', 'dusk'], c: 1, meta: 'City Walks · 5 hours ago', dur: '18:32', lib: true },
+      { t: 'The one pan dinner I make every week', sc: ['table', 'cafe'], c: 2, meta: 'Kitchen Talk · yesterday', dur: '9:15', lib: false },
+      { t: 'Small talk at the bus stop, slowly', sc: ['street', 'morning'], c: 3, meta: 'Slow Morning English · yesterday', dur: '6:48', lib: false },
+      { t: 'Why ice is slippery (it is not what you think)', sc: ['hills', 'snow'], c: 4, meta: 'Science Shorts · 2 days ago', dur: '4:51', lib: true },
+      { t: 'How to disagree without starting a fight', sc: ['talk', 'stageBlue'], c: 0, meta: 'TED · 3 days ago', dur: '14:27', lib: false },
+      { t: '雨の日の商店街', sc: ['street', 'rain'], c: 5, meta: '散歩日記 · 4 days ago', dur: '11:02', lib: false },
+      { t: 'Ten phrases for a hotel check-in', sc: ['city', 'teal'], c: 3, meta: 'Slow Morning English · 5 days ago', dur: '7:30', lib: false }
+    ];
+    if (isChannel) vids = vids.filter(function (v) { return v.c === 0; }).concat([
+      { t: 'The surprising science of boredom', sc: ['talk', 'stage'], c: 0, meta: 'TED · 1 week ago', dur: '11:46', lib: false },
+      { t: 'What we can learn from very old trees', sc: ['talk', 'stageBlue'], c: 0, meta: 'TED · 2 weeks ago', dur: '15:20', lib: true },
+      { t: 'The art of asking better questions', sc: ['talk', 'stage'], c: 0, meta: 'TED · 2 weeks ago', dur: '10:58', lib: false }
+    ]).map(function (v) { return Object.assign({}, v, { meta: v.meta.replace('TED · ', '') }); });
+    var feed = vids.map(function (v, i) {
+      var cv = eCover(i * 3 + 11, 160, 90); var ch = chans[v.c];
+      var d = v; var o = { title: v.t, meta: v.meta, dur: v.dur, inLib: v.lib, canAdd: !v.lib, playAria: 'Play ' + v.t, ci: ch.i, cbg: ch.bg,
+        gid: 'dv' + i, gref: 'url(#dv' + i + ')', bg: cv.bg, c1: cv.c1, c2: cv.c2, sw: cv.sw, t1: cv.t1, t2: cv.t2, t3: cv.t3, isLogo: true, isTalk: false, isCity: false, isHills: false, isHarbour: false, isTable: false, isStreet: false };
+      if (d.sc) { var sc = eScene(d.sc[0], d.sc[1], o.gid); for (var key in sc) o[key] = sc[key]; o.bg = sc.p1; }
+      return o;
+    });
+    return {
+      theme: theme, themeClass: 'e-' + theme, isFeed: !isChannel, isChannel: isChannel,
+      channels: channels, feed: feed, showManage: manage,
+      openManage: function () { self.setState({ manage: true }); }, closeManage: function () { self.setState({ manage: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

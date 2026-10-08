@@ -1,4 +1,4 @@
-/// Format [Duration] as `mm:ss` or `h:mm:ss` with zero-padded segments (player UI).
+/// Format [Duration] as `m:ss` or `h:mm:ss` (player UI; the Duet boards' clock style).
 library;
 
 String formatDurationHms(Duration d) {
@@ -6,15 +6,15 @@ String formatDurationHms(Duration d) {
   final h = d.inHours;
   final m = d.inMinutes.remainder(60);
   final s = d.inSeconds.remainder(60);
-  if (h > 0) return '${two(h)}:${two(m)}:${two(s)}';
-  return '${two(m)}:${two(s)}';
+  if (h > 0) return '$h:${two(m)}:${two(s)}';
+  return '$m:${two(s)}';
 }
 
-/// Player-style `mm:ss` / `h:mm:ss` from a millisecond duration.
+/// Player-style `m:ss` / `h:mm:ss` from a millisecond duration.
 String formatDurationHmsMs(int milliseconds) =>
     formatDurationHms(Duration(milliseconds: milliseconds));
 
-/// Player-style `mm:ss` / `h:mm:ss` from a (possibly fractional) second count.
+/// Player-style `m:ss` / `h:mm:ss` from a (possibly fractional) second count.
 ///
 /// Fractional seconds are rounded to the nearest millisecond before formatting
 /// so transport chrome and library tiles stay consistent.

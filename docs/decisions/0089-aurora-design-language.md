@@ -1,6 +1,6 @@
 # ADR-0089 — Aurora design language (supersedes the ADR-0083 palette, type, and chrome clauses)
 
-**Status**: Accepted
+**Status**: Superseded in part by [ADR-0093](0093-duet-design-language.md) — §4 (icons), §6 (interaction), and §7 (motion) still stand
 **Date**: 2026-09-28
 
 **Supersedes**: [ADR-0083](0083-paper-graphite-light-dark.md) §1 (paper / graphite neutrals), §4 (chrome), §5 (type + radii). ADR-0083 §3 (System / Light / Dark theme mode) still stands.

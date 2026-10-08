@@ -12,8 +12,8 @@ import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 
 const int kMaxAvatarsSummary = 4;
-const double kSummaryAvatarSize = 26;
-const double kSummaryAvatarOverlap = 8;
+const double kSummaryAvatarSize = 28;
+const double kSummaryAvatarOverlap = 7;
 
 /// Internal building block for `CommunityActivityCard`; not public API.
 String initials(String name) {

@@ -99,6 +99,7 @@ void main() {
         expect(label, isNot(contains('æ̃ˈxyz')));
       }
     },
+    variant: TargetPlatformVariant.desktop(),
   );
 
   testWidgets('karaoke off: nested cue tap still fires as a line tap', (

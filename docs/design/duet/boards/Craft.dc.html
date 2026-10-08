@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Craft</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--you:#8B2FE0;--you-ink:#7E22CE;--you-soft:#F4ECFE;--you-line:#D8B4FE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--shadow:0 1px 2px rgba(18,20,26,.05),0 14px 44px rgba(18,20,26,.12);--lift:0 1px 2px rgba(18,20,26,.08),0 0 0 1px rgba(18,20,26,.05);color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--you:#8F55F0;--you-ink:#C7A0FF;--you-soft:rgba(143,85,240,.16);--you-line:rgba(167,120,250,.5);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--shadow:0 1px 2px rgba(0,0,0,.4),0 18px 52px rgba(0,0,0,.55);--lift:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) :is(button,textarea){font:inherit;color:inherit}
+:where(.e) button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible,.e textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:40px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.e-btn svg{width:18px;height:18px;flex-shrink:0}
+.e-sm{height:32px;padding:0 11px;border-radius:10px;font-size:13px}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-ghost:hover,.e-row:hover{background:var(--sunk)}
+.e-ghost{color:var(--ink2)}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:20px}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-h1{margin:0;font-family:var(--content);font-size:42px;line-height:1.08;font-weight:500;letter-spacing:-.02em}
+.e-h2{margin:0;font-family:var(--content);font-size:22px;line-height:1.2;font-weight:500;letter-spacing:-.01em}
+.e-seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--sunk);gap:2px;flex-shrink:0}
+.e-seg>button{height:32px;padding:0 14px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.e-seg>button[aria-pressed="true"]{background:var(--raised);color:var(--ink);box-shadow:var(--lift)}
+.e-chip{height:34px;padding:0 13px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:500;border:1px solid var(--line);background:var(--paper);color:var(--ink2);white-space:nowrap}
+.e-chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.e-area{width:100%;border:0;outline:none;resize:none;background:transparent;line-height:1.6}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+.c-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:1050px){.c-two{grid-template-columns:1fr}}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.e-h1{font-size:32px}.e-noph{display:none!important}.c-steps{display:none!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden; position: relative">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="craft" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 1080px; margin: 0 auto; padding: 44px 40px 72px">
+
+        <header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+          <div>
+            <div class="e-ov">Practice audio from your own words</div>
+            <h1 class="e-h1" style="margin-top: 12px">Craft</h1>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center">
+            <div class="e-seg">
+              <button aria-pressed="{{ expressPressed }}" onClick="{{ toExpress }}">Express</button>
+              <button aria-pressed="{{ advancedPressed }}" onClick="{{ toAdvanced }}">Advanced</button>
+            </div>
+            <a href="CraftHistory.dc.html" class="e-btn e-sec" aria-label="Craft history">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path><path d="M12 8v4l3 2"></path></svg>
+              <span class="e-noph">History</span>
+            </a>
+          </div>
+        </header>
+
+        <sc-if value="{{ isExpress }}" hint-placeholder-val="{{ true }}">
+          <ol class="c-steps" style="list-style: none; margin: 30px 0 0; padding: 0; display: flex; align-items: center; gap: 10px">
+            <sc-for list="{{ steps }}" as="st" hint-placeholder-count="3">
+              <li style="display: flex; align-items: center; gap: 10px">
+                <span style="display: inline-flex; align-items: center; gap: 9px; height: 34px; padding: 0 14px 0 6px; border-radius: 999px; font-size: 13.5px; font-weight: 600; background: {{ st.bg }}; color: {{ st.fg }}">
+                  <span style="width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font: 600 12px/1 var(--mono); background: {{ st.numBg }}; color: {{ st.numFg }}">{{ st.n }}</span>{{ st.label }}
+                </span>
+                <sc-if value="{{ st.sep }}" hint-placeholder-val="{{ true }}"><span style="width: 32px; height: 1px; background: var(--line)"></span></sc-if>
+              </li>
+            </sc-for>
+          </ol>
+
+          <sc-if value="{{ isCapture }}" hint-placeholder-val="{{ true }}">
+            <section class="e-card" style="margin-top: 22px; border-radius: 28px; padding: 56px 32px 48px; display: flex; flex-direction: column; align-items: center; text-align: center">
+              <button onClick="{{ toRewrite }}" aria-label="Record" style="width: 128px; height: 128px; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center">
+                <span style="position: absolute; inset: 0; border-radius: 50%; background: var(--you-soft)"></span>
+                <span style="position: absolute; inset: 14px; border-radius: 50%; border: 2px solid var(--you-line)"></span>
+                <span style="position: relative; width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--you); color: #FFFFFF; box-shadow: 0 10px 30px rgba(124,58,237,.35)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width: 34px; height: 34px"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5 10.5v.5a7 7 0 0 0 14 0v-.5"></path><path d="M12 18v3.5"></path></svg>
+                </span>
+              </button>
+              <h2 style="margin: 30px 0 0; font-family: var(--content); font-size: 34px; font-weight: 500; letter-spacing: -0.015em">Say what's on your mind</h2>
+              <p style="margin: 10px 0 0; font-size: 15px; color: var(--ink2)">Tap to record. Speak naturally in your language.</p>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 22px; font-size: 13px; color: var(--ink3)">
+                <span style="height: 28px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; background: var(--sunk); color: var(--ink2); font-weight: 600">中文</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+                <span style="height: 28px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; background: var(--brand-soft); color: var(--brand-ink); font-weight: 600">English</span>
+              </div>
+              <button class="e-btn e-ghost" style="margin-top: 18px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"></rect><path d="M6 10h.01"></path><path d="M10 10h.01"></path><path d="M14 10h.01"></path><path d="M18 10h.01"></path><path d="M7 14h10"></path></svg>
+                Type instead
+              </button>
+            </section>
+          </sc-if>
+
+          <sc-if value="{{ isRewrite }}" hint-placeholder-val="{{ false }}">
+            <div class="c-two" style="margin-top: 22px">
+              <section class="e-card" style="padding: 20px 22px">
+                <div style="display: flex; align-items: center; justify-content: space-between"><span class="e-ov">Your words · 中文</span><button class="e-btn e-ghost e-sm">Re-translate</button></div>
+                <textarea class="e-area" rows="5" aria-label="Your words" style="margin-top: 12px; font-size: 17px; padding: 14px 16px; border-radius: 14px; background: var(--ground)">我每天早上坐渡轮去上班。它比地铁慢，但是让我一整天心情都很好。</textarea>
+              </section>
+              <section class="e-card" style="padding: 20px 22px; border-color: var(--brand-ink)">
+                <div style="display: flex; align-items: center; justify-content: space-between"><span class="e-ov" style="color: var(--brand-ink)">In English</span><span style="font: 600 11px/1 var(--mono); padding: 5px 7px; border-radius: 6px; background: var(--brand-soft); color: var(--brand-ink)">EN</span></div>
+                <textarea class="e-area" rows="5" aria-label="In English" style="margin-top: 12px; font-family: var(--content); font-size: 19px; padding: 14px 16px; border-radius: 14px; background: var(--ground)">I take the ferry to work every morning. It's slower than the subway, but it keeps me in a good mood all day.</textarea>
+              </section>
+            </div>
+            <section class="e-card" style="margin-top: 20px; padding: 20px 22px">
+              <div class="e-ov">Style</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">
+                <sc-for list="{{ styles }}" as="sy" hint-placeholder-count="8"><button class="e-chip" aria-pressed="{{ sy.on }}">{{ sy.n }}</button></sc-for>
+              </div>
+              <div style="height: 1px; background: var(--line); margin: 18px 0"></div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span class="e-ov">Voice</span>
+                  <button class="e-chip" style="border-radius: 11px">Ava · English (US)<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><path d="m6 9 6 6 6-6"></path></svg></button>
+                </div>
+                <div style="display: flex; gap: 8px">
+                  <button class="e-btn e-ghost" onClick="{{ toCapture }}">Back</button>
+                  <button class="e-btn e-brand" onClick="{{ toAudio }}">Create audio</button>
+                </div>
+              </div>
+            </section>
+          </sc-if>
+
+          <sc-if value="{{ isAudio }}" hint-placeholder-val="{{ false }}">
+            <section class="e-card" style="margin-top: 22px; padding: 26px 28px; border-radius: 26px">
+              <div style="display: flex; align-items: center; gap: 10px"><span style="font: 600 11px/1 var(--mono); padding: 5px 7px; border-radius: 6px; background: var(--sunk); color: var(--ink2)">ZH → EN</span><span style="font-size: 12.5px; color: var(--ink3)">Natural · Ava</span></div>
+              <p style="margin: 16px 0 0; font-family: var(--content); font-size: 26px; line-height: 1.45; letter-spacing: -0.01em">I take the ferry to work every morning. It's slower than the subway, but it keeps me in a good mood all day.</p>
+              <div style="display: flex; align-items: center; gap: 16px; margin-top: 26px; padding: 14px 16px; border-radius: 18px; background: var(--ground)">
+                <button aria-label="Play preview" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--brand); color: #FFFFFF; flex-shrink: 0"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; margin-left: 2px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></button>
+                <span style="font: 500 12.5px/1 var(--mono); color: var(--ink2)">0:00</span>
+                <span style="position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--sunk)"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: var(--blue)"></span></span>
+                <span style="font: 500 12.5px/1 var(--mono); color: var(--ink3)">0:09</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: 14px; background: var(--brand-soft); color: var(--brand-ink); font-size: 13.5px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width: 17px; height: 17px; flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>
+                This audio is only kept while this page is open. Save it to practice it in the player.
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; flex-wrap: wrap">
+                <button class="e-chip" style="border-radius: 11px">Voice · Ava · English (US)<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><path d="m6 9 6 6 6-6"></path></svg></button>
+                <div style="display: flex; gap: 8px">
+                  <button class="e-btn e-ghost" onClick="{{ toRewrite }}">Back</button>
+                  <button class="e-btn e-brand">Save to library</button>
+                </div>
+              </div>
+            </section>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ isAdvanced }}" hint-placeholder-val="{{ false }}">
+          <div class="c-two" style="margin-top: 28px">
+            <section class="e-card" style="padding: 22px 24px">
+              <div style="display: flex; align-items: center; justify-content: space-between"><h2 class="e-h2">Translate</h2><span style="font-size: 12.5px; color: var(--ink3)">Step 1 · optional</span></div>
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; align-items: center; margin-top: 16px; padding: 4px; border-radius: 13px; background: var(--sunk)">
+                <button style="height: 36px; border-radius: 10px; font-size: 13.5px; font-weight: 500">中文</button>
+                <button aria-label="Swap languages" style="width: 32px; height: 32px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg></button>
+                <button style="height: 36px; border-radius: 10px; font-size: 13.5px; font-weight: 600; background: var(--raised); box-shadow: var(--lift)">English</button>
+              </div>
+              <label class="e-ov" for="csrc" style="display: block; margin-top: 18px">Source text</label>
+              <textarea id="csrc" class="e-area" rows="4" style="margin-top: 8px; font-size: 15.5px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line)">周末我们去海边，风很大，但是很舒服。</textarea>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; flex-wrap: wrap">
+                <button class="e-chip" style="border-radius: 11px">Style · Natural<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><path d="m6 9 6 6 6-6"></path></svg></button>
+                <button class="e-btn e-sec">Translate</button>
+              </div>
+              <div style="margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--brand-soft)">
+                <div style="display: flex; align-items: center; justify-content: space-between"><span class="e-ov" style="color: var(--brand-ink)">Translated text</span><button class="e-btn e-ghost e-sm">Copy</button></div>
+                <div style="font-family: var(--content); font-size: 17px; line-height: 1.5; margin-top: 8px">We went to the seaside at the weekend. It was windy, but lovely.</div>
+                <button class="e-btn e-sec e-sm" style="margin-top: 12px">Use translated text</button>
+              </div>
+            </section>
+            <section class="e-card" style="padding: 22px 24px">
+              <div style="display: flex; align-items: center; justify-content: space-between"><h2 class="e-h2">Synthesize</h2><span style="font-size: 12.5px; color: var(--ink3)">Step 2</span></div>
+              <label class="e-ov" for="csyn" style="display: block; margin-top: 18px">Text to synthesize</label>
+              <textarea id="csyn" class="e-area" rows="5" style="margin-top: 8px; font-family: var(--content); font-size: 17px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line)">We went to the seaside at the weekend. It was windy, but lovely.</textarea>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; flex-wrap: wrap">
+                <button class="e-chip" style="border-radius: 11px">Voice · Andrew · English (US)<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><path d="m6 9 6 6 6-6"></path></svg></button>
+                <button class="e-btn e-sec">Synthesize</button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 12px 14px; border-radius: 16px; background: var(--ground)">
+                <button aria-label="Play preview" style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--brand); color: #FFFFFF"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 16px; height: 16px; margin-left: 2px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></button>
+                <span style="position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--sunk)"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 35%; background: var(--blue); border-radius: 2px"></span></span>
+                <span style="font: 500 12.5px/1 var(--mono); color: var(--ink3)">0:02 / 0:05</span>
+              </div>
+              <button class="e-btn e-brand" style="margin-top: 16px">Save to library</button>
+            </section>
+          </div>
+        </sc-if>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="home" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"mode":{"editor":"enum","options":["express","advanced"],"default":"express"},"stage":{"editor":"enum","options":["capture","rewrite","audio"],"default":"capture"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var p = this.props || {};
+    var s = this.state || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var mode = s.mode || p.mode || 'express';
+    var stage = s.stage || p.stage || 'capture';
+    var order = ['capture', 'rewrite', 'audio'];
+    var at = order.indexOf(stage);
+    var steps = [['Capture', 'capture'], ['Rewrite', 'rewrite'], ['Audio', 'audio']].map(function (x, i) {
+      var cur = i === at, done = i < at;
+      return { n: done ? '✓' : String(i + 1), label: x[0], sep: i < 2,
+        bg: cur ? 'var(--paper)' : 'transparent', fg: cur ? 'var(--ink)' : 'var(--ink3)',
+        numBg: cur ? 'var(--brand)' : done ? 'var(--brand-soft)' : 'var(--sunk)', numFg: cur ? '#FFFFFF' : done ? 'var(--brand-ink)' : 'var(--ink3)' };
+    });
+    var styles = ['Auto', 'Literal', 'Natural', 'Casual', 'Formal', 'Simplified', 'Detailed', 'Custom'].map(function (n) { return { n: n, on: n === 'Natural' ? 'true' : 'false' }; });
+    function to(st) { return function () { self.setState({ stage: st, mode: 'express' }); }; }
+    return {
+      theme: theme, themeClass: 'e-' + theme,
+      isExpress: mode === 'express', isAdvanced: mode === 'advanced',
+      expressPressed: mode === 'express' ? 'true' : 'false', advancedPressed: mode === 'advanced' ? 'true' : 'false',
+      toExpress: function () { self.setState({ mode: 'express' }); }, toAdvanced: function () { self.setState({ mode: 'advanced' }); },
+      isCapture: stage === 'capture', isRewrite: stage === 'rewrite', isAudio: stage === 'audio',
+      toCapture: to('capture'), toRewrite: to('rewrite'), toAudio: to('audio'),
+      steps: steps, styles: styles
+    };
+  }
+}
+</script>
+</body>
+</html>

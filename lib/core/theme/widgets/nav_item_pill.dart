@@ -1,10 +1,10 @@
-/// Sidebar-style navigation row: icon + label with a quiet selection plate.
+/// Sidebar-style navigation row: icon + label with a paper selection plate.
 ///
 /// Shared by [AppSidebar]'s desktop nav and the Settings two-pane rail —
 /// both render the same "selected nav item" treatment, so they share this
-/// primitive (ADR-0018). Aurora styling (ADR-0089): compact 34px rows,
-/// continuous corners, a lifted plate for the selected item (white card on
-/// porcelain, lit wash on midnight), filled glyph + iris ink when selected.
+/// primitive (ADR-0018). Duet styling (ADR-0093): 38px rows at radius 11,
+/// a paper plate with the lift shadow for the selected item, and the
+/// brand-ink glyph when selected.
 library;
 
 import 'package:flutter/material.dart';
@@ -22,7 +22,7 @@ class NavItemPill extends StatelessWidget {
     this.selectedIcon,
     this.iconWidget,
     this.selectedIconWidget,
-    this.iconSize = 18,
+    this.iconSize = 20,
     this.maxLines,
     this.overflow,
     this.trailing,
@@ -55,38 +55,21 @@ class NavItemPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final light = Theme.of(context).brightness == Brightness.light;
-    final radius = BorderRadius.circular(t.radiusSm + 1);
+    final radius = BorderRadius.circular(t.radiusControl - 1);
 
     final plate = selected
         ? ShapeDecoration(
-            color: light ? t.card : cs.onSurface.withValues(alpha: 0.075),
-            shape: RoundedSuperellipseBorder(
-              borderRadius: radius,
-              side: BorderSide(
-                color: light
-                    ? t.hairline
-                    : Colors.white.withValues(alpha: 0.04),
-              ),
-            ),
-            shadows: light
-                ? const [
-                    BoxShadow(
-                      color: Color(0x0F16161D),
-                      blurRadius: 3,
-                      offset: Offset(0, 1),
-                    ),
-                  ]
-                : const [],
+            color: t.paper,
+            shape: RoundedSuperellipseBorder(borderRadius: radius),
+            shadows: t.shadowLift,
           )
         : ShapeDecoration(
             shape: RoundedSuperellipseBorder(borderRadius: radius),
           );
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: t.space8 + 2, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: EnjoyPressable(
         onTap: onTap,
         borderRadius: radius,
@@ -97,15 +80,15 @@ class NavItemPill extends StatelessWidget {
         child: AnimatedContainer(
           duration: t.motionFast,
           curve: Curves.easeOutCubic,
-          constraints: const BoxConstraints(minHeight: 34),
-          padding: EdgeInsets.symmetric(horizontal: t.space8 + 2, vertical: 6),
+          constraints: const BoxConstraints(minHeight: 38),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           decoration: plate,
           child: Row(
             children: [
               IconTheme(
                 data: IconThemeData(
                   size: iconSize,
-                  color: selected ? t.accentInk : cs.onSurfaceVariant,
+                  color: selected ? t.brandInk : t.ink2,
                 ),
                 child: selected
                     ? (selectedIconWidget ??
@@ -113,20 +96,21 @@ class NavItemPill extends StatelessWidget {
                           Icon(selectedIcon ?? icon, size: iconSize))
                     : (iconWidget ?? Icon(icon, size: iconSize)),
               ),
-              SizedBox(width: t.space8 + 2),
+              const SizedBox(width: 11),
               Expanded(
                 child: Text(
                   label,
                   maxLines: maxLines,
                   overflow: overflow,
                   style: tt.labelLarge?.copyWith(
-                    fontSize: 13.5,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: selected ? cs.onSurface : cs.onSurfaceVariant,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.1,
+                    color: selected ? t.ink : t.ink2,
                   ),
                 ),
               ),
-              if (trailing != null) ...[SizedBox(width: t.space8), trailing!],
+              if (trailing != null) ...[const SizedBox(width: 8), trailing!],
             ],
           ),
         ),

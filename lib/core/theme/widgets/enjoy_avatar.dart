@@ -1,9 +1,10 @@
-/// Aurora avatar, tier badge, and keycap primitives.
+/// Duet avatar, tier badge, and keycap primitives.
 library;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 
@@ -43,8 +44,8 @@ class EnjoyAvatar extends StatelessWidget {
     final hasImage = url != null && url.isNotEmpty;
     final seed = name.codeUnits.fold<int>(0, (a, b) => a + b);
     final hueShift = (seed % 5) / 5;
-    final start = Color.lerp(t.auroraStart, t.auroraEnd, hueShift)!;
-    final end = Color.lerp(t.auroraEnd, const Color(0xFFEC6FCF), hueShift)!;
+    final start = Color.lerp(t.logoStart, t.logoEnd, hueShift)!;
+    final end = Color.lerp(t.logoEnd, t.logoStart, hueShift * 0.5)!;
 
     final Widget face = hasImage
         ? CachedNetworkImage(
@@ -61,10 +62,20 @@ class EnjoyAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: ring ? Border.all(color: cs.surface, width: 2) : null,
-      ),
+      padding: ring ? const EdgeInsets.all(2) : null,
+      decoration: ring
+          ? const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.logoStart, AppColors.logoEnd],
+              ),
+            )
+          : BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: cs.surface, width: 2),
+            ),
       child: ClipOval(child: face),
     );
   }
@@ -121,7 +132,7 @@ class EnjoyTierBadge extends StatelessWidget {
   /// sidebar Upgrade pill, the tier catalog) scale it up.
   final EdgeInsetsGeometry padding;
 
-  /// Solid fill override — drops the aurora gradient (e.g. "Current plan" on
+  /// Solid fill override — drops the brand gradient (e.g. "Current plan" on
   /// `secondaryContainer`).
   final Color? color;
 
@@ -148,7 +159,7 @@ class EnjoyTierBadge extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: ShapeDecoration(
-        gradient: solid == null ? t.aurora : null,
+        gradient: solid == null ? t.brand : null,
         color: solid,
         shape: shape,
       ),
@@ -214,15 +225,17 @@ class EnjoyKeycap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
       decoration: ShapeDecoration(
-        color: cs.onSurface.withValues(alpha: 0.05),
+        color: t.paper,
         shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(t.radiusXs - 1),
-          side: BorderSide(color: t.hairline),
+          borderRadius: BorderRadius.circular(t.radiusKeycap),
+          side: BorderSide(color: t.line),
         ),
+        shadows: [
+          BoxShadow(color: t.line, blurRadius: 0, offset: const Offset(0, 1)),
+        ],
       ),
       child: Text(
         label,
@@ -230,9 +243,9 @@ class EnjoyKeycap extends StatelessWidget {
         style: enjoyMonoStyle(
           context,
           size: 10.5,
-          weight: FontWeight.w600,
-          color: t.textFaint,
-          height: 1.35,
+          weight: FontWeight.w500,
+          color: t.ink,
+          height: 1,
         ),
       ),
     );

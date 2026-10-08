@@ -8,7 +8,6 @@ import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/expanded_player_widgets.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/player_frosted_back_button.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -132,7 +131,7 @@ void main() {
       await tester.pump();
 
       expect(find.byType(PlayerSurfaceTarget), findsNothing);
-      expect(find.byType(PlayerFrostedBackButton), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.back), findsOneWidget);
     },
   );
 
@@ -175,11 +174,7 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         container: container,
-        child: ExpandedPlayerChromeBody(
-          mediaId: 'm1',
-          chrome: chrome,
-          accent: Colors.amber,
-        ),
+        child: ExpandedPlayerChromeBody(mediaId: 'm1', chrome: chrome),
       ),
     );
     await tester.pump();
@@ -206,11 +201,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           container: container,
-          child: ExpandedPlayerChromeBody(
-            mediaId: 'm1',
-            chrome: chrome,
-            accent: null,
-          ),
+          child: ExpandedPlayerChromeBody(mediaId: 'm1', chrome: chrome),
         ),
       );
       await tester.pump();
@@ -224,7 +215,7 @@ void main() {
     },
   );
 
-  test('ExpandedPlayerChromeBody accepts null accent for both paths', () {
+  test('ExpandedPlayerChromeBody constructs for both paths', () {
     final audioChrome = (
       mediaId: 'm1',
       dexieTargetType: 'Audio',
@@ -243,16 +234,8 @@ void main() {
       durationSeconds: 60.0,
       language: 'en',
     );
-    final audio = ExpandedPlayerChromeBody(
-      mediaId: 'm1',
-      chrome: audioChrome,
-      accent: null,
-    );
-    final video = ExpandedPlayerChromeBody(
-      mediaId: 'm2',
-      chrome: videoChrome,
-      accent: null,
-    );
+    final audio = ExpandedPlayerChromeBody(mediaId: 'm1', chrome: audioChrome);
+    final video = ExpandedPlayerChromeBody(mediaId: 'm2', chrome: videoChrome);
     expect(audio, isNotNull);
     expect(video, isNotNull);
   });

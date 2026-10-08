@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
-import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
@@ -60,10 +59,8 @@ Finder _resetButtons(String tooltip) => find.ancestor(
   matching: find.byType(IconButton),
 );
 
-Finder _scopeHeading(String label) => find.descendant(
-  of: find.byType(EnjoySectionHeader),
-  matching: find.text(label),
-);
+Finder _scopeHeading(String label) =>
+    find.byWidgetPredicate((w) => w is Text && w.data == label);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -88,8 +85,7 @@ void main() {
       expect(scopes.length, greaterThan(1));
 
       expect(find.byType(EnjoyCard), findsNWidgets(scopes.length));
-      expect(find.byType(EnjoyIconTile), findsNWidgets(scopes.length));
-      expect(find.byType(EnjoySectionHeader), findsNWidgets(scopes.length));
+      expect(find.byType(EnjoyIconTile), findsNothing);
 
       for (final scope in scopes) {
         expect(

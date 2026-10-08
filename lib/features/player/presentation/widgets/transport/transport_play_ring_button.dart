@@ -6,14 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 
-/// Rides the aurora signature kit exactly like its sibling, the shadow-
-/// reading record FAB: the lit fill via [enjoyLitFillDecoration], the press
-/// interaction (wash, press-scale, keyboard activation, focus ring) via
-/// [EnjoyPressable]. The kit's built-in tap haptic stays off because callers
-/// wrap [onPressed] in `Haptics.wrapTap` — enabling both would double-fire.
+/// The flat brand gradient with the brand-button shadow; the press
+/// interaction (wash, press-scale, keyboard activation, focus ring) rides
+/// [EnjoyPressable]. The built-in tap haptic stays off because callers wrap
+/// [onPressed] in `Haptics.wrapTap` — enabling both would double-fire.
 class TransportPlayRingButton extends StatelessWidget {
   const TransportPlayRingButton({
     super.key,
@@ -32,9 +30,7 @@ class TransportPlayRingButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final t = EnjoyThemeTokens.of(context);
-    final ringColor = accentColor ?? cs.primary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -49,17 +45,10 @@ class TransportPlayRingButton extends StatelessWidget {
             duration: t.motionFast,
             width: 46,
             height: 46,
-            decoration: enjoyLitFillDecoration(
-              base: ringColor,
-              shape: CircleBorder(side: enjoyLitHighlightSide(alpha: 0.16)),
-              sheen: 0.14,
-              shadow: enjoyLitShadow(
-                ringColor,
-                alpha: 0.38,
-                blurRadius: 16,
-                spreadRadius: -4,
-                offset: const Offset(0, 6),
-              ),
+            decoration: ShapeDecoration(
+              gradient: t.brand,
+              shape: const CircleBorder(),
+              shadows: t.shadowBrandButton,
             ),
             child: Center(
               child: buffering

@@ -24,8 +24,8 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 class DiscoverChannelFilterStrip extends ConsumerStatefulWidget {
   const DiscoverChannelFilterStrip({super.key});
 
-  static const chipSize = 38.0;
-  static const rowHeight = 52.0;
+  static const avatarSize = 60.0;
+  static const rowHeight = 96.0;
 
   @override
   ConsumerState<DiscoverChannelFilterStrip> createState() =>
@@ -51,7 +51,6 @@ class _DiscoverChannelFilterStripState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
     final selectedId = ref.watch(discoverSelectedChannelProvider);
     final subsAsync = ref.watch(discoverSubscriptionsProvider);
 
@@ -78,13 +77,8 @@ class _DiscoverChannelFilterStripState
                     controller: _scrollController,
                     scrollDirection: Axis.horizontal,
                     primary: false,
-                    padding: EdgeInsets.fromLTRB(
-                      gutter,
-                      t.space4,
-                      gutter,
-                      t.space8,
-                    ),
-                    separatorBuilder: (_, _) => SizedBox(width: t.space8),
+                    padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 6),
+                    separatorBuilder: (_, _) => const SizedBox(width: 18),
                     itemCount: 2 + subs.length,
                     itemBuilder: (context, index) {
                       if (index == 0) {
@@ -101,7 +95,7 @@ class _DiscoverChannelFilterStripState
                       }
                       if (index == 1 + subs.length) {
                         return _ManageFilterChip(
-                          tooltip: l10n.discoverManageChannels,
+                          tooltip: l10n.discoverStripSubscribe,
                           onTap: () {
                             Haptics.selection(context);
                             unawaited(showDiscoverManageChannels(context, ref));
@@ -131,52 +125,51 @@ class _DiscoverChannelFilterStripState
   }
 }
 
-/// Shared circular chip shell for filter strip items — a "story ring" that
-/// lights up in iris around the selected channel.
-class _FilterChipShell extends StatelessWidget {
-  const _FilterChipShell({
-    required this.selected,
+/// One avatar column in the strip: a 60px circle over its label.
+class _StripColumn extends StatelessWidget {
+  const _StripColumn({
+    required this.label,
     required this.onTap,
-    required this.child,
-    this.tooltip,
+    required this.circle,
+    this.labelStyle,
   });
 
-  final bool selected;
+  final String label;
   final VoidCallback onTap;
-  final Widget child;
-  final String? tooltip;
+  final Widget circle;
+  final TextStyle? labelStyle;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-
-    final chip = EnjoyPressable(
+    final tt = Theme.of(context).textTheme;
+    return EnjoyPressable(
       onTap: onTap,
       haptic: false,
-      selected: selected,
-      showHoverWash: false,
-      hoverScale: 1.06,
-      pressedScale: 0.92,
-      borderRadius: BorderRadius.circular(t.radiusFull),
-      child: AnimatedContainer(
-        duration: t.motionFast,
-        width: DiscoverChannelFilterStrip.chipSize,
-        height: DiscoverChannelFilterStrip.chipSize,
-        padding: const EdgeInsets.all(2),
-        decoration: ShapeDecoration(
-          shape: CircleBorder(
-            side: BorderSide(
-              color: selected ? t.accentInk : t.hairline,
-              width: selected ? 2 : 1,
+      pressedScale: 0.95,
+      borderRadius: BorderRadius.circular(t.radiusControl),
+      child: SizedBox(
+        width: 72,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: DiscoverChannelFilterStrip.avatarSize,
+              child: circle,
             ),
-          ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style:
+                  labelStyle ??
+                  tt.bodySmall?.copyWith(fontSize: 12.5, color: t.ink2),
+            ),
+          ],
         ),
-        child: Center(child: child),
       ),
     );
-
-    if (tooltip == null) return chip;
-    return Tooltip(message: tooltip, child: chip);
   }
 }
 
@@ -194,31 +187,28 @@ class _AllFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-
-    return EnjoyPressable(
+    return _StripColumn(
+      label: label,
       onTap: onTap,
-      haptic: false,
-      selected: selected,
-      pressedScale: 0.95,
-      borderRadius: BorderRadius.circular(t.radiusFull),
-      child: AnimatedContainer(
-        duration: t.motionFast,
-        height: DiscoverChannelFilterStrip.chipSize,
-        padding: EdgeInsets.symmetric(horizontal: t.space16),
-        decoration: ShapeDecoration(
-          color: selected ? cs.onSurface : t.fill,
-          shape: const StadiumBorder(),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: tt.labelMedium?.copyWith(
+      labelStyle: selected
+          ? tt.bodySmall?.copyWith(
+              fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: selected ? cs.surface : cs.onSurface,
-            ),
-          ),
+              color: t.ink,
+            )
+          : null,
+      circle: Container(
+        width: DiscoverChannelFilterStrip.avatarSize,
+        height: DiscoverChannelFilterStrip.avatarSize,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? t.ink : t.sunk,
+          shape: BoxShape.circle,
+        ),
+        child: Text(
+          label.characters.first.toUpperCase(),
+          style: tt.titleMedium?.copyWith(color: t.paper),
         ),
       ),
     );
@@ -238,22 +228,36 @@ class _ChannelFilterChip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = EnjoyThemeTokens.of(context);
     final avatarAsync = ref.watch(
       recommendedChannelAvatarProvider(channel.channelId),
     );
     final avatarUrl = remoteThumbnailForCard(
       avatarAsync.valueOrNull ?? channel.thumbnailUrl,
     );
-
-    return _FilterChipShell(
-      selected: selected,
+    return _StripColumn(
+      label: channel.displayName,
       onTap: onTap,
-      tooltip: channel.displayName,
-      child: DiscoverChannelAvatar(
-        url: avatarUrl,
-        displayName: channel.displayName,
-        seed: channel.channelId,
-        size: DiscoverChannelFilterStrip.chipSize - 6,
+      circle: Container(
+        width: DiscoverChannelFilterStrip.avatarSize,
+        height: DiscoverChannelFilterStrip.avatarSize,
+        padding: const EdgeInsets.all(2.5),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: selected ? t.brandInk : t.line,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: t.ground, width: 2.5),
+          ),
+          child: DiscoverChannelAvatar(
+            url: avatarUrl,
+            displayName: channel.displayName,
+            seed: channel.channelId,
+            size: DiscoverChannelFilterStrip.avatarSize - 10,
+          ),
+        ),
       ),
     );
   }
@@ -267,18 +271,15 @@ class _ManageFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final t = EnjoyThemeTokens.of(context);
-
-    return _FilterChipShell(
-      selected: false,
+    return _StripColumn(
+      label: tooltip,
       onTap: onTap,
-      tooltip: tooltip,
-      child: Container(
-        decoration: BoxDecoration(color: t.fill, shape: BoxShape.circle),
-        child: Center(
-          child: Icon(EnjoyIcons.add, size: 16, color: cs.onSurfaceVariant),
-        ),
+      circle: Container(
+        width: DiscoverChannelFilterStrip.avatarSize,
+        height: DiscoverChannelFilterStrip.avatarSize,
+        decoration: BoxDecoration(color: t.sunk, shape: BoxShape.circle),
+        child: Icon(EnjoyIcons.add, size: 20, color: t.ink2),
       ),
     );
   }

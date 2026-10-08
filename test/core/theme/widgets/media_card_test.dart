@@ -52,13 +52,31 @@ void main() {
       'mediaCardTileGridAspectRatioForWidth uses width/(9/16*w+meta+inset)',
       () {
         final ratio = mediaCardTileGridAspectRatioForWidth(280);
-        expect(ratio, closeTo(280 / 218.5, 0.001));
+        expect(
+          ratio,
+          closeTo(
+            280 /
+                (280 * 9 / 16 +
+                    mediaCardTileMetaHeight +
+                    mediaCardTileBorderInset),
+            0.001,
+          ),
+        );
       },
     );
 
     test('mediaCardTileGridAspectRatioForWidth handles small widths', () {
       final ratio = mediaCardTileGridAspectRatioForWidth(120);
-      expect(ratio, closeTo(120 / 128.5, 0.001));
+      expect(
+        ratio,
+        closeTo(
+          120 /
+              (120 * 9 / 16 +
+                  mediaCardTileMetaHeight +
+                  mediaCardTileBorderInset),
+          0.001,
+        ),
+      );
     });
 
     test('mediaCardTileGridDelegateForMaxTileWidth builds a grid delegate', () {
@@ -187,24 +205,27 @@ void main() {
       expect(tapped, 1);
     });
 
-    testWidgets('badge with onBadgeTap renders', (tester) async {
-      var tapped = 0;
-      await tester.pumpWidget(
-        _wrap(
-          child: MediaCardTile(
-            title: 'T',
-            badge: 'zh',
-            onBadgeTap: () => tapped++,
-            onTap: () {},
+    for (final placement in MediaCardLanguagePlacement.values) {
+      testWidgets('language on the $placement is tappable', (tester) async {
+        var tapped = 0;
+        await tester.pumpWidget(
+          _wrap(
+            child: MediaCardTile(
+              title: 'T',
+              language: 'ZH',
+              languagePlacement: placement,
+              onLanguageTap: () => tapped++,
+              onTap: () {},
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('zh'), findsOneWidget);
-      await tester.tap(find.text('zh'));
-      await tester.pumpAndSettle();
-      expect(tapped, 1);
-    });
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('ZH'), findsOneWidget);
+        await tester.tap(find.text('ZH'));
+        await tester.pumpAndSettle();
+        expect(tapped, 1);
+      });
+    }
 
     testWidgets('desktop onDelete shows inline IconButton', (tester) async {
       await _withPlatform(TargetPlatform.macOS, () async {
@@ -491,7 +512,7 @@ void main() {
   });
 
   group('MediaCardRow', () {
-    testWidgets('renders title and chevron', (tester) async {
+    testWidgets('renders title without a chevron', (tester) async {
       await tester.pumpWidget(
         _wrap(
           child: MediaCardRow(title: 'Audio', onTap: () {}),
@@ -499,7 +520,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Audio'), findsOneWidget);
-      expect(find.byIcon(EnjoyIcons.chevronRight), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.chevronRight), findsNothing);
     });
 
     testWidgets('renders subtitle when provided', (tester) async {
@@ -619,35 +640,24 @@ void main() {
       });
     });
 
-    testWidgets('badge with onBadgeTap triggers callback', (tester) async {
+    testWidgets('row language chip triggers its callback', (tester) async {
       var tapped = 0;
       await tester.pumpWidget(
         _wrap(
           child: MediaCardRow(
             title: 'T',
-            badge: 'en',
-            onBadgeTap: () => tapped++,
+            language: 'EN',
+            durationLabel: '0:56',
+            onLanguageTap: () => tapped++,
             onTap: () {},
           ),
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('en'), findsOneWidget);
-      await tester.tap(find.text('en'));
+      expect(find.text('0:56'), findsOneWidget);
+      await tester.tap(find.text('EN'));
       await tester.pumpAndSettle();
       expect(tapped, 1);
-    });
-
-    testWidgets('badge without onBadgeTap renders without language icon', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _wrap(
-          child: MediaCardRow(title: 'T', badge: 'en', onTap: () {}),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('en'), findsOneWidget);
     });
 
     testWidgets('heroArtworkMediaId wraps row thumbnail', (tester) async {

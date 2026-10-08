@@ -1,13 +1,15 @@
 /// Scaffold bodies for [ExpandedPlayerScreen] (loading, error, main chrome).
 library;
 
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'package:enjoy_player/core/theme/widgets/app_background.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/local_thumbnail.dart'
     show thumbnailCacheWidthFor;
@@ -17,14 +19,15 @@ import 'package:enjoy_player/features/player/application/player_preferences_prov
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/audio_player_layout.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_unavailable_message.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/application/youtube_open_preview_provider.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/player_collapse_control.dart';
-import 'package:enjoy_player/features/player/presentation/widgets/youtube_unavailable_message.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_loading_stage.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_top_bar.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_loading_video_stage.dart';
 
 import 'package:enjoy_player/features/transcript/presentation/transcript_panel.dart';
@@ -55,33 +58,62 @@ class ExpandedPlayerLoadingBody extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: Stack(
-        fit: StackFit.expand,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (isYoutube)
-            Align(
-              alignment: Alignment.topCenter,
-              child: YoutubeLoadingVideoStage(
-                mediaId: mediaId,
-                overlayBuilder: (_) =>
-                    const PlayerCollapseControl.loadingChrome(),
-              ),
-            )
-          else if (isLocalVideo)
-            Align(
-              alignment: Alignment.topCenter,
-              child: _LocalLoadingVideoStage(
-                thumbnailUrl: videoRow.value!.thumbnailUrl,
-              ),
-            )
-          else
-            const Center(child: SkeletonAppBootstrap()),
-          if (!isYoutube)
-            const Align(
-              alignment: Alignment.topCenter,
-              child: PlayerCollapseControl.loadingChrome(useSafeArea: true),
+          const _LoadingTopBar(),
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (isYoutube)
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: YoutubeLoadingVideoStage(
+                      mediaId: mediaId,
+                      overlayBuilder: (_) => const SizedBox.shrink(),
+                    ),
+                  )
+                else if (isLocalVideo)
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: _LocalLoadingVideoStage(
+                      thumbnailUrl: videoRow.value!.thumbnailUrl,
+                    ),
+                  )
+                else
+                  const Center(child: SkeletonAppBootstrap()),
+              ],
             ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// The 60px top-bar slot with only the collapse chevron while the session
+/// is still opening.
+class _LoadingTopBar extends ConsumerWidget {
+  const _LoadingTopBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = EnjoyThemeTokens.of(context);
+    return Container(
+      height: t.playerTopBarHeight,
+      decoration: BoxDecoration(
+        color: t.paper,
+        border: Border(bottom: BorderSide(color: t.line)),
+      ),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          icon: const Icon(EnjoyIcons.back, size: 20),
+          color: t.ink2,
+          onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
+        ),
       ),
     );
   }
@@ -170,34 +202,33 @@ class ExpandedPlayerYoutubeUnavailableBody extends StatelessWidget {
     final youtubeUrl = this.youtubeUrl;
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: Stack(
-        fit: StackFit.expand,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    youtubeUnavailableMessage(l10n, reason),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (youtubeUrl != null) ...[
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: () => _openInBrowser(context, youtubeUrl),
-                      icon: const Icon(EnjoyIcons.link, size: 18),
-                      label: Text(l10n.youtubeOpenInBrowser),
+          const _LoadingTopBar(),
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      youtubeUnavailableMessage(l10n, reason),
+                      textAlign: TextAlign.center,
                     ),
+                    if (youtubeUrl != null) ...[
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: () => _openInBrowser(context, youtubeUrl),
+                        icon: const Icon(EnjoyIcons.link, size: 18),
+                        label: Text(l10n.youtubeOpenInBrowser),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
-          ),
-          const Align(
-            alignment: Alignment.topCenter,
-            child: PlayerCollapseControl.loadingChrome(useSafeArea: true),
           ),
         ],
       ),
@@ -219,18 +250,16 @@ class ExpandedPlayerYoutubeUnavailableBody extends StatelessWidget {
   }
 }
 
-/// Main expanded player: AppBar + ambient backdrop + video/audio layout.
+/// Main expanded player: Duet top bar over the video/audio layout.
 class ExpandedPlayerChromeBody extends ConsumerWidget {
   const ExpandedPlayerChromeBody({
     super.key,
     required this.mediaId,
     required this.chrome,
-    required this.accent,
   });
 
   final String mediaId;
   final PlaybackChrome chrome;
-  final Color? accent;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -254,14 +283,14 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
           )
         : AudioPlayerLayout(transcript: transcript);
 
-    return PlayerAmbientBackdrop(
-      accentColor: accent,
-      intensity: 0.08,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        extendBodyBehindAppBar: isVideo,
-        appBar: null,
-        body: mediaBody,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          PlayerTopBar(mediaId: mediaId),
+          Expanded(child: mediaBody),
+        ],
       ),
     );
   }

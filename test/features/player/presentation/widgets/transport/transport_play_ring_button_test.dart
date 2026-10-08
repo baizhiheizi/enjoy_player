@@ -3,15 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
+import 'package:enjoy_player/core/theme/colors.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_play_ring_button.dart';
 
 import '../../../../../helpers/chrome_icon_finders.dart';
 
-Widget _host(Widget child) => MaterialApp(
-  theme: buildAppTheme(Brightness.dark),
-  home: Scaffold(body: Center(child: child)),
-);
+Widget _host(Widget child, [Brightness brightness = Brightness.dark]) =>
+    MaterialApp(
+      theme: buildAppTheme(brightness),
+      home: Scaffold(body: Center(child: child)),
+    );
 
 AnimatedContainer _litFillContainer(WidgetTester tester) =>
     tester.widget<AnimatedContainer>(
@@ -29,25 +32,37 @@ AnimatedContainer _litFillContainer(WidgetTester tester) =>
     );
 
 void main() {
-  testWidgets('paints the kit lit fill behind the play glyph', (tester) async {
-    await tester.pumpWidget(
-      _host(
-        const TransportPlayRingButton(
-          playing: false,
-          buffering: false,
-          tooltip: 'Play',
-          onPressed: null,
+  testWidgets('paints the flat brand gradient behind the play glyph', (
+    tester,
+  ) async {
+    for (final brightness in [Brightness.light, Brightness.dark]) {
+      await tester.pumpWidget(
+        _host(
+          const TransportPlayRingButton(
+            playing: false,
+            buffering: false,
+            tooltip: 'Play',
+            onPressed: null,
+          ),
+          brightness,
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(findChromeIcon(EnjoyChromeGlyph.play), findsOneWidget);
+      expect(findChromeIcon(EnjoyChromeGlyph.play), findsOneWidget);
 
-    final decoration = _litFillContainer(tester).decoration as ShapeDecoration;
-    expect(decoration.shape, isA<CircleBorder>());
-    expect(decoration.gradient, isA<LinearGradient>());
-    expect(decoration.shadows, hasLength(1));
+      final decoration =
+          _litFillContainer(tester).decoration as ShapeDecoration;
+      expect(decoration.shape, isA<CircleBorder>());
+      final gradient = decoration.gradient! as LinearGradient;
+      expect(gradient.colors, [AppColors.brandStart, AppColors.brandEnd]);
+      expect(
+        decoration.shadows,
+        EnjoyThemeTokens.build(
+          ColorScheme.fromSeed(seedColor: Colors.blue, brightness: brightness),
+        ).shadowBrandButton,
+      );
+    }
   });
 
   testWidgets('taps ride EnjoyPressable and fire onPressed once', (

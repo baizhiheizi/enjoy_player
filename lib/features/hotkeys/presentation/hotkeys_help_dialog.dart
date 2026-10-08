@@ -78,7 +78,7 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
         },
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: t.contentMaxWidth,
+            maxWidth: t.transcriptMaxListen,
             maxHeight: MediaQuery.sizeOf(context).height * 0.85,
           ),
           child: Padding(

@@ -165,7 +165,7 @@ void main() {
       expect(find.byType(Chip), findsNothing);
 
       final ipaText = tester.widget<Text>(find.text(helloIpa).first);
-      expect(ipaText.style?.color, AppColors.echoActive);
+      expect(ipaText.style?.color, AppColors.ink3Light);
 
       await tester.tap(find.byType(EnjoyPressable).first);
       expect(taps, 1);

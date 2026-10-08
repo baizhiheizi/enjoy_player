@@ -210,7 +210,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: t.aurora,
+                            gradient: t.logo,
                           ),
                           child: Container(
                             padding: const EdgeInsets.all(3),
@@ -263,7 +263,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     copyable: mixinCopyable,
                   ),
                   SizedBox(height: t.space32),
-                  EnjoyButton.primary(
+                  EnjoyButton.brand(
                     onPressed: _saving ? null : () => _save(p, l10n),
                     child: _saving
                         ? const LoadingIcon(size: 22)

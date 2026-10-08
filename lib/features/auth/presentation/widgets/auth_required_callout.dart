@@ -102,7 +102,6 @@ class AuthRequiredCallout extends ConsumerWidget {
           );
         }
         return EmptyState(
-          icon: EnjoyIcons.lockPerson,
           title: title,
           subtitle: body,
           action: () => _openSignIn(context),
@@ -136,7 +135,6 @@ class AuthRequiredCallout extends ConsumerWidget {
           );
         }
         return EmptyState(
-          icon: EnjoyIcons.lockPerson,
           title: title,
           subtitle: body,
           action: () => _openSignIn(context),
@@ -207,7 +205,7 @@ class _CompactCallout extends StatelessWidget {
               ],
             ),
             SizedBox(height: t.space12),
-            EnjoyButton.primary(
+            EnjoyButton.brand(
               icon: EnjoyIcons.signIn,
               onPressed: onSignIn,
               child: Text(buttonLabel),

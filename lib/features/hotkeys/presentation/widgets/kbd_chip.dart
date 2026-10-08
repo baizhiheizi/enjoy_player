@@ -28,7 +28,7 @@ class KbdChordRow extends StatelessWidget {
     final separator = Text(
       '+',
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: t.textFaint,
+        color: t.ink3,
         fontWeight: FontWeight.w500,
       ),
     );

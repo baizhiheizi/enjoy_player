@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/features/settings/application/settings_search_query_provider.dart';
 import 'package:enjoy_player/features/settings/application/settings_selected_section_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_section_spec.dart';
@@ -22,6 +23,8 @@ import 'package:enjoy_player/features/settings/presentation/widgets/settings_sec
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_rail_item.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+const double _kRailWidth = 250;
+
 class SettingsLayoutTwoPane extends ConsumerWidget {
   const SettingsLayoutTwoPane({super.key});
 
@@ -29,7 +32,6 @@ class SettingsLayoutTwoPane extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final query = ref.watch(settingsSearchQueryProvider);
     final selected = ref.watch(settingsSelectedSectionProvider);
 
@@ -57,10 +59,10 @@ class SettingsLayoutTwoPane extends ConsumerWidget {
     final spec = sections.firstWhere((s) => s.sectionId == effectiveSelected);
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: t.sidebarWidth,
+          width: _kRailWidth,
           child: SingleChildScrollView(
             padding: EdgeInsets.only(top: t.space8, bottom: t.space24),
             child: Column(
@@ -80,24 +82,43 @@ class SettingsLayoutTwoPane extends ConsumerWidget {
             ),
           ),
         ),
-        Container(width: 1, color: cs.outlineVariant.withValues(alpha: 0.18)),
+        const SizedBox(width: 28),
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              t.pageGutter,
-              0,
-              t.pageGutter,
-              t.space32,
+            padding: EdgeInsets.only(bottom: t.space32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  spec.title(l10n),
+                  style: enjoyDisplayStyle(
+                    context,
+                    size: 26,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    height: 1.2,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, bottom: 20),
+                  child: Text(
+                    spec.hint(l10n),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 13.5,
+                      color: t.ink3,
+                    ),
+                  ),
+                ),
+                spec.wrapInCard
+                    ? SettingsSectionCard(
+                        title: spec.title(l10n),
+                        hint: spec.hint(l10n),
+                        icon: spec.icon,
+                        padding: EdgeInsets.zero,
+                        child: spec.body(),
+                      )
+                    : spec.body(),
+              ],
             ),
-            child: spec.wrapInCard
-                ? SettingsSectionCard(
-                    title: spec.title(l10n),
-                    hint: spec.hint(l10n),
-                    icon: spec.icon,
-                    padding: EdgeInsets.zero,
-                    child: spec.body(),
-                  )
-                : spec.body(),
           ),
         ),
       ],

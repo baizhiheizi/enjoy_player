@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--you:#8B2FE0;--you-ink:#7E22CE;--you-soft:#F4ECFE;--you-line:#D8B4FE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--shadow:0 1px 2px rgba(18,20,26,.05),0 14px 44px rgba(18,20,26,.12);--lift:0 1px 2px rgba(18,20,26,.08),0 0 0 1px rgba(18,20,26,.05);--scrim:rgba(18,20,26,.32);--shape:#DCE0E6;color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--you:#8F55F0;--you-ink:#C7A0FF;--you-soft:rgba(143,85,240,.16);--you-line:rgba(167,120,250,.5);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--shadow:0 1px 2px rgba(0,0,0,.4),0 18px 52px rgba(0,0,0,.55);--lift:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);--scrim:rgba(0,0,0,.55);--shape:#2C313B;color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) :is(button,input){font:inherit;color:inherit}
+:where(.e) button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:40px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.e-btn svg{width:18px;height:18px;flex-shrink:0}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-ghost{color:var(--ink2)}
+.e-sec:hover,.e-ghost:hover,.e-row:hover{background:var(--sunk)}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:20px}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-h1{margin:0;font-family:var(--content);font-size:42px;line-height:1.08;font-weight:500;letter-spacing:-.02em}
+.e-h2{margin:0;font-family:var(--content);font-size:24px;line-height:1.2;font-weight:500;letter-spacing:-.01em}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tile{color:var(--ink)!important}
+.e-tile:hover .e-cover{transform:scale(1.03)}
+.e-cover{transition:transform .3s}
+.e-tabs{display:none!important}
+.h-hero{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:20px}
+.h-cont{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr)}
+@media (max-width:1180px){.h-hero{grid-template-columns:1fr}.h-side{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.e-h1{font-size:32px}.e-noph{display:none!important}.h-cont{grid-template-columns:1fr}.h-cover{aspect-ratio:16/9;min-height:0!important}.h-side{grid-template-columns:1fr!important}.h-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden; position: relative">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="home" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 1180px; margin: 0 auto; padding: 44px 40px 72px">
+
+        <header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px">
+          <div style="min-width: 0">
+            <div class="e-ov">Wednesday · October 1</div>
+            <h1 class="e-h1" style="margin-top: 12px">Good evening, Alex</h1>
+          </div>
+          <div style="display: flex; gap: 8px; position: relative">
+            <a href="Craft.dc.html" class="e-btn e-sec" title="Craft · C" aria-label="Craft">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"></path><path d="m13.5 6.5 4 4"></path></svg>
+              <span class="e-noph">Craft</span>
+            </a>
+            <button class="e-btn e-brand" onClick="{{ toggleImport }}" aria-expanded="{{ importExpanded }}" aria-label="Import">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+              <span class="e-noph">Import</span>
+            </button>
+
+            <sc-if value="{{ showImport }}" hint-placeholder-val="{{ false }}">
+              <div aria-label="Import media" style="position: absolute; right: 0; top: 50px; z-index: 6; width: 268px; padding: 6px; border-radius: 16px; background: var(--raised); border: 1px solid var(--line); box-shadow: var(--shadow)">
+                <button class="e-row" style="width: 100%; display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 12px; border-radius: 11px; font-size: 14px; text-align: left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--ink2)"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"></path><path d="M14 3v5h5"></path></svg>
+                  From file…
+                </button>
+                <button class="e-row" style="width: 100%; display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 12px; border-radius: 11px; font-size: 14px; text-align: left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--ink2)"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                  From YouTube URL…
+                </button>
+                <div style="height: 1px; background: var(--line); margin: 4px 8px"></div>
+                <a href="Craft.dc.html" class="e-row" style="display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 12px; border-radius: 11px; font-size: 14px; color: var(--ink)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--ink2)"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"></path><path d="m13.5 6.5 4 4"></path></svg>
+                  Craft…
+                </a>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showTip }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; right: 0; top: 56px; z-index: 6; width: 300px; padding: 18px 18px 14px; border-radius: 18px; background: var(--ink); color: var(--paper); box-shadow: var(--shadow)">
+                <span aria-hidden="true" style="position: absolute; top: -6px; right: 30px; width: 12px; height: 12px; background: var(--ink); transform: rotate(45deg); border-radius: 2px"></span>
+                <div style="display: flex; align-items: center; justify-content: space-between"><span style="font: 500 12px/1 var(--mono); opacity: .7">1 / 2</span></div>
+                <div style="font-size: 15.5px; font-weight: 600; margin-top: 10px">Import media</div>
+                <div style="font-size: 13.5px; line-height: 1.5; opacity: .82; margin-top: 6px">Bring in a local file or YouTube video to practice with.</div>
+                <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 14px">
+                  <button onClick="{{ hideTip }}" style="height: 34px; padding: 0 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; opacity: .8">Skip</button>
+                  <button onClick="{{ hideTip }}" style="height: 34px; padding: 0 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600; background: var(--paper); color: var(--ink)">Next</button>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </header>
+
+        <div class="h-hero" style="margin-top: 32px">
+          <sc-if value="{{ hasContinue }}" hint-placeholder-val="{{ true }}">
+            <a href="Main.dc.html" class="e-card e-tile h-cont" style="overflow: hidden; border-radius: 24px">
+              <div class="h-cover" style="position: relative; min-height: 230px; overflow: hidden; background: {{ hero.bg }}">
+                <svg class="e-cover" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%">
+                  <defs><linearGradient id="hg0" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ hero.c1 }}"></stop><stop offset="1" stop-color="{{ hero.c2 }}"></stop></linearGradient></defs>
+                  <g fill="url(#hg0)" stroke="url(#hg0)" stroke-width="{{ hero.sw }}" stroke-linejoin="round">
+                    <polygon points="{{ hero.t1 }}" opacity=".35"></polygon>
+                    <polygon points="{{ hero.t2 }}" opacity=".65"></polygon>
+                    <polygon points="{{ hero.t3 }}"></polygon>
+                  </g>
+                </svg>
+                <span style="position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.22)"><span style="display: block; width: 43%; height: 100%; background: #FFFFFF"></span></span>
+                <span aria-hidden="true" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.92); color: #4F46E5; box-shadow: 0 10px 30px rgba(0,0,0,.25)"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 22px; height: 22px; margin-left: 3px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></span>
+              </div>
+              <div style="padding: 22px 24px 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0">
+                <span class="e-ov" style="color: var(--brand-ink)">Continue practicing</span>
+                <span style="font-size: 18px; font-weight: 600; letter-spacing: -0.01em">The Ferry at Six</span>
+                <span style="font-size: 13px; color: var(--ink3)">Audio · line 6 of 14 · Echo on · 43%</span>
+                <span style="font-family: var(--content); font-size: 19px; line-height: 1.45; color: var(--ink2); margin-top: 2px">“You don't take the ferry to save time; you take it to slow down.”</span>
+                <span style="flex: 1"></span>
+                <span class="e-btn e-brand" style="align-self: flex-start; margin-top: 6px">
+                  <svg viewBox="0 0 24 24" fill="currentColor" style="width: 15px; height: 15px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg>
+                  Continue
+                </span>
+              </div>
+            </a>
+          </sc-if>
+          <sc-if value="{{ noContinue }}" hint-placeholder-val="{{ false }}">
+            <section class="e-card" style="border-radius: 24px; padding: 34px 32px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap">
+              <svg viewBox="10 4 92 92" aria-hidden="true" style="width: 120px; height: 120px; flex-shrink: 0">
+                <defs><linearGradient id="hEmpty" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4797F5"></stop><stop offset="1" stop-color="#A855F7"></stop></linearGradient></defs>
+                <g stroke="url(#hEmpty)" stroke-width="5" stroke-linejoin="round" fill="url(#hEmpty)">
+                  <polygon points="30,20 70,40 30,60" opacity=".18"></polygon>
+                  <polygon points="30,40 70,60 30,80" opacity=".32"></polygon>
+                  <polygon points="50,30 90,50 50,70" opacity=".55"></polygon>
+                </g>
+              </svg>
+              <div style="flex: 1; min-width: 220px">
+                <h2 class="e-h2">No recent media</h2>
+                <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.55; color: var(--ink2)">Import media or drop a file here to start.</p>
+                <div style="display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap">
+                  <button class="e-btn e-brand" onClick="{{ toggleImport }}">Import media</button>
+                  <a href="Discover.dc.html" class="e-btn e-sec">Browse Discover</a>
+                </div>
+              </div>
+            </section>
+          </sc-if>
+
+          <div class="h-side" style="display: flex; flex-direction: column; gap: 20px">
+            <section class="e-card" style="padding: 20px 22px; display: flex; align-items: center; gap: 18px">
+              <div style="position: relative; width: 88px; height: 88px; flex-shrink: 0">
+                <svg viewBox="0 0 88 88" width="88" height="88" aria-hidden="true" style="transform: rotate(-90deg)">
+                  <defs><linearGradient id="hRing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4797F5"></stop><stop offset="1" stop-color="#A855F7"></stop></linearGradient></defs>
+                  <circle cx="44" cy="44" r="37" fill="none" stroke-width="8" style="stroke: var(--sunk)"></circle>
+                  <circle cx="44" cy="44" r="37" fill="none" stroke="url(#hRing)" stroke-width="8" stroke-linecap="round" stroke-dasharray="232.5" stroke-dashoffset="{{ goalOffset }}"></circle>
+                </svg>
+                <span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center">
+                  <span style="font-family: var(--content); font-size: 27px; font-weight: 500; line-height: 1">{{ goalDone }}</span>
+                  <span style="font-size: 11.5px; color: var(--ink3); margin-top: 3px">of 15 min</span>
+                </span>
+              </div>
+              <div style="min-width: 0">
+                <div class="e-ov">Today's goal</div>
+                <div style="font-size: 15px; font-weight: 600; margin-top: 9px">{{ goalMsg }}</div>
+                <div style="font-size: 13px; color: var(--ink3); margin-top: 4px">{{ goalSub }}</div>
+              </div>
+            </section>
+            <section class="e-card" style="padding: 20px 22px">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <span class="e-ov">Community today</span>
+                <span style="display: inline-flex">
+                  <sc-for list="{{ people }}" as="pp" hint-placeholder-count="3">
+                    <span style="width: 28px; height: 28px; border-radius: 50%; margin-left: -7px; border: 2px solid var(--paper); display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 600; color: #FFFFFF; background: {{ pp.bg }}">{{ pp.i }}</span>
+                  </sc-for>
+                </span>
+              </div>
+              <div style="display: flex; gap: 24px; margin-top: 14px">
+                <div><div style="font-family: var(--content); font-size: 26px; font-weight: 500; line-height: 1">1,703</div><div style="font-size: 12.5px; color: var(--ink3); margin-top: 5px">Recordings</div></div>
+                <div><div style="font-family: var(--content); font-size: 26px; font-weight: 500; line-height: 1">2h 31m</div><div style="font-size: 12.5px; color: var(--ink3); margin-top: 5px">Practice time</div></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink2); margin-top: 14px"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--blue)"></span>3 people learning</div>
+            </section>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasMedia }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 44px">
+            <h2 class="e-h2">Recent media</h2>
+            <a href="Library.dc.html" style="font-size: 13.5px; font-weight: 600">Open library</a>
+          </div>
+          <div class="h-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 24px 20px; margin-top: 18px">
+            <sc-for list="{{ media }}" as="m" hint-placeholder-count="8">
+              <a href="Main.dc.html" class="e-tile" style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+                <div style="position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: {{ m.bg }}">
+                  <sc-if value="{{ m.isLogo }}" hint-placeholder-val="{{ true }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%">
+                    <defs><linearGradient id="{{ m.gid }}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ m.c1 }}"></stop><stop offset="1" stop-color="{{ m.c2 }}"></stop></linearGradient></defs>
+                    <g fill="{{ m.gref }}" stroke="{{ m.gref }}" stroke-width="{{ m.sw }}" stroke-linejoin="round">
+                      <polygon points="{{ m.t1 }}" opacity=".35"></polygon>
+                      <polygon points="{{ m.t2 }}" opacity=".65"></polygon>
+                      <polygon points="{{ m.t3 }}"></polygon>
+                    </g>
+                  </svg></sc-if>
+                  <sc-if value="{{ m.isTalk }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><rect width="160" height="90" fill="{{ m.p1 }}"></rect><ellipse cx="80" cy="40" rx="46" ry="44" fill="{{ m.p2 }}" opacity=".55"></ellipse><ellipse cx="80" cy="99" rx="74" ry="17" fill="{{ m.p3 }}"></ellipse><path d="M56 92 C57 70 66 63 80 63 C94 63 103 70 104 92 Z" fill="#0F1118"></path><circle cx="80" cy="49" r="11.5" fill="#0F1118"></circle><path d="M69.4 45.5 A11.5 11.5 0 0 1 86.5 39.5" fill="none" stroke="#F1E4D8" stroke-width="1.4" opacity=".55"></path></svg></sc-if>
+                  <sc-if value="{{ m.isCity }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><defs><linearGradient id="{{ m.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ m.p1 }}"></stop><stop offset="1" stop-color="{{ m.p2 }}"></stop></linearGradient></defs><rect width="160" height="90" fill="{{ m.gref }}"></rect><circle cx="118" cy="28" r="9" fill="{{ m.p3 }}" opacity=".9"></circle><g fill="#0E1322"><rect x="0" y="40" width="16" height="50"></rect><rect x="14" y="28" width="20" height="62"></rect><rect x="32" y="48" width="14" height="42"></rect><rect x="44" y="20" width="18" height="70"></rect><rect x="60" y="44" width="16" height="46"></rect><rect x="74" y="34" width="22" height="56"></rect><rect x="94" y="52" width="12" height="38"></rect><rect x="104" y="26" width="18" height="64"></rect><rect x="120" y="46" width="16" height="44"></rect><rect x="134" y="36" width="26" height="54"></rect></g><g fill="{{ m.p3 }}" opacity=".85"><rect x="18" y="34" width="3" height="3"></rect><rect x="26" y="44" width="3" height="3"></rect><rect x="48" y="26" width="3" height="3"></rect><rect x="54" y="38" width="3" height="3"></rect><rect x="48" y="54" width="3" height="3"></rect><rect x="78" y="40" width="3" height="3"></rect><rect x="88" y="50" width="3" height="3"></rect><rect x="108" y="32" width="3" height="3"></rect><rect x="114" y="46" width="3" height="3"></rect><rect x="140" y="42" width="3" height="3"></rect><rect x="148" y="56" width="3" height="3"></rect></g><rect y="80" width="160" height="10" fill="#0A0F1C"></rect></svg></sc-if>
+                  <sc-if value="{{ m.isHills }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><defs><linearGradient id="{{ m.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ m.p1 }}"></stop><stop offset="1" stop-color="{{ m.p2 }}"></stop></linearGradient></defs><rect width="160" height="90" fill="{{ m.gref }}"></rect><circle cx="112" cy="32" r="12" fill="{{ m.p3 }}"></circle><path d="M0 58 C30 44 54 46 80 56 C104 64 130 48 160 52 V90 H0 Z" fill="{{ m.h1 }}"></path><path d="M0 68 C34 58 60 62 86 70 C112 78 136 64 160 66 V90 H0 Z" fill="{{ m.h2 }}"></path><path d="M0 80 C40 72 74 76 100 82 C124 88 144 80 160 80 V90 H0 Z" fill="{{ m.h3 }}"></path></svg></sc-if>
+                  <sc-if value="{{ m.isHarbour }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><defs><linearGradient id="{{ m.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ m.p1 }}"></stop><stop offset="1" stop-color="{{ m.p2 }}"></stop></linearGradient></defs><rect width="160" height="90" fill="{{ m.gref }}"></rect><circle cx="44" cy="52" r="10" fill="{{ m.p3 }}"></circle><rect y="56" width="160" height="34" fill="{{ m.h3 }}"></rect><rect x="30" y="62" width="28" height="2" rx="1" fill="{{ m.p3 }}" opacity=".6"></rect><rect x="36" y="68" width="16" height="2" rx="1" fill="{{ m.p3 }}" opacity=".4"></rect><path d="M86 60 h40 l-6 8 h-28 z" fill="#0E1322"></path><path d="M104 60 V34" stroke="#0E1322" stroke-width="1.6"></path><path d="M105.5 36 L121 57 H105.5 Z" fill="#F4F1EA" opacity=".92"></path><path d="M128 62 h22 l-4 5 h-15 z" fill="#0E1322"></path><rect x="0" y="63" width="30" height="3" fill="#0E1322"></rect><rect x="6" y="63" width="2" height="12" fill="#0E1322"></rect><rect x="22" y="63" width="2" height="12" fill="#0E1322"></rect></svg></sc-if>
+                  <sc-if value="{{ m.isTable }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><rect width="160" height="90" fill="{{ m.p1 }}"></rect><rect x="112" y="10" width="34" height="26" rx="2" fill="{{ m.p2 }}" opacity=".7"></rect><rect y="60" width="160" height="30" fill="{{ m.h2 }}"></rect><rect y="60" width="160" height="3" fill="{{ m.h1 }}"></rect><ellipse cx="80" cy="67" rx="30" ry="5" fill="#000000" opacity=".16"></ellipse><path d="M64 34 H96 V54 C96 62 90 66 80 66 C70 66 64 62 64 54 Z" fill="#F4F1EA"></path><path d="M96 40 C106 40 106 54 96 54" fill="none" stroke="#F4F1EA" stroke-width="4"></path><ellipse cx="80" cy="34" rx="16" ry="3" fill="{{ m.p3 }}"></ellipse><path d="M74 27 C70 21 78 17 74 11" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity=".55"></path><path d="M85 27 C81 21 89 17 85 11" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity=".35"></path></svg></sc-if>
+                  <sc-if value="{{ m.isStreet }}" hint-placeholder-val="{{ false }}"><svg class="e-cover" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"><defs><linearGradient id="{{ m.gid }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ m.p1 }}"></stop><stop offset="1" stop-color="{{ m.p2 }}"></stop></linearGradient></defs><rect width="160" height="90" fill="{{ m.gref }}"></rect><rect y="56" width="160" height="34" fill="{{ m.h2 }}"></rect><polygon points="54,90 106,90 84,56 76,56" fill="{{ m.h3 }}"></polygon><path d="M80 60 V65 M80 70 V77 M80 82 V90" stroke="{{ m.p3 }}" stroke-width="1.4"></path><rect x="0" y="28" width="36" height="30" fill="{{ m.h1 }}"></rect><rect x="32" y="40" width="22" height="18" fill="{{ m.h1 }}" opacity=".85"></rect><path d="M0 42 h36 l-4 5 h-32 z" fill="{{ m.p3 }}"></path><rect x="118" y="32" width="42" height="26" fill="{{ m.h1 }}"></rect><rect x="104" y="44" width="18" height="14" fill="{{ m.h1 }}" opacity=".85"></rect><path d="M118 44 h42 v5 h-38 z" fill="{{ m.p3 }}" opacity=".8"></path><circle cx="44" cy="36" r="2.4" fill="{{ m.p3 }}"></circle><circle cx="112" cy="38" r="2.4" fill="{{ m.p3 }}"></circle></svg></sc-if>
+                  <sc-if value="{{ m.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 8px; top: 8px; height: 22px; padding: 0 8px; border-radius: 7px; display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 600; color: #FFFFFF; background: rgba(12,14,18,.55)">{{ m.badge }}</span></sc-if>
+                  <span style="position: absolute; left: 8px; bottom: 8px; height: 22px; padding: 0 7px; border-radius: 7px; display: inline-flex; align-items: center; font: 600 11px/1 var(--mono); color: #FFFFFF; background: rgba(12,14,18,.55)">{{ m.lang }}</span>
+                  <span style="position: absolute; right: 8px; bottom: 8px; height: 22px; padding: 0 7px; border-radius: 7px; display: inline-flex; align-items: center; font: 500 11.5px/1 var(--mono); color: #FFFFFF; background: rgba(12,14,18,.55)">{{ m.dur }}</span>
+                </div>
+                <div style="font-size: 14.5px; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{ m.title }}</div>
+                <div style="font-size: 12.5px; color: var(--ink3); margin-top: -4px">{{ m.meta }}</div>
+              </a>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="home" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"state":{"editor":"enum","options":["normal","first-run"],"default":"normal"},"$preview":{"width":1440,"height":900}}'>
+var EC = [['#15203A', '#4797F5', '#A855F7'], ['#1E1636', '#A855F7', '#F0ABFC'], ['#0B2E2D', '#14B8A6', '#A7F3D0'], ['#2A1F14', '#F59E0B', '#FDE68A'], ['#141C2B', '#3B82F6', '#A5B4FC'], ['#2B1424', '#EC4899', '#FBCFE8'], ['#17251A', '#65A30D', '#D9F99D'], ['#1F1A2E', '#6366F1', '#C4B5FD']];
+function eTri(x, y, u) { return [[x, y], [x + 40 * u, y + 20 * u], [x, y + 40 * u]].map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '); }
+function eCover(seed, w, h) {
+  var c = EC[seed % EC.length]; var x = seed * 7919 + 17;
+  function r() { x = (x * 9301 + 49297) % 233280; return x / 233280; }
+  var u = (Math.max(w, h) / 60) * (0.78 + r() * 0.42);
+  var ox = -0.3 * 60 * u + r() * w * 0.42; var oy = h / 2 - 30 * u + (r() - 0.5) * h * 0.36;
+  return { bg: c[0], c1: c[1], c2: c[2], sw: (5 * u).toFixed(1), t1: eTri(ox, oy, u), t2: eTri(ox, oy + 20 * u, u), t3: eTri(ox + 20 * u, oy + 10 * u, u) };
+}
+var SC = {
+  dusk: ['#1B2440', '#E58E6B', '#FFD27A', '#2B2F4A', '#3A3550', '#1F2235'],
+  morning: ['#A9D3F5', '#F7E3C4', '#FFF4D6', '#7FB88E', '#4F9A7A', '#2F6B5E'],
+  teal: ['#0F2A3A', '#2C6E7A', '#FFE28A', '#1B3B48', '#164050', '#0E2A35'],
+  cafe: ['#E9D9C3', '#C9B08E', '#6B3E26', '#8A5A3B', '#A87550', '#5E3A24'],
+  stage: ['#141117', '#4A3038', '#B8323A'],
+  stageBlue: ['#0E121B', '#2A3A5C', '#33518F'],
+  snow: ['#CFE3F2', '#EEF4F8', '#FFFFFF', '#B9D3E6', '#9DBCD4', '#7FA1BD'],
+  rain: ['#2A3442', '#56657A', '#F6C27E', '#2B3443', '#3A4555', '#232B37'],
+  market: ['#F3C9A2', '#F8E6CF', '#E2553D', '#7A4A3A', '#B08A6E', '#6E5B50']
+};
+function eScene(kind, pal, id) {
+  var c = SC[pal] || SC.dusk;
+  return { isLogo: false, isTalk: kind === 'talk', isCity: kind === 'city', isHills: kind === 'hills', isHarbour: kind === 'harbour', isTable: kind === 'table', isStreet: kind === 'street',
+    p1: c[0], p2: c[1], p3: c[2], h1: c[3] || c[0], h2: c[4] || c[1], h3: c[5] || c[0], gid: id, gref: 'url(#' + id + ')' };
+}
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var p = this.props || {};
+    var s = this.state || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var first = (p.state || 'normal') === 'first-run';
+    var showImport = s.importOpen != null ? s.importOpen : p.menu === 'import';
+    var showTip = first && !s.tipHidden && !showImport;
+    var defs = [
+      { t: 'The Ferry at Six', meta: 'Audio · today', dur: '0:56', lang: 'EN', badge: 'Craft' },
+      { t: 'How Cities Sound', meta: 'Video · yesterday', dur: '48:10', lang: 'EN', badge: '', sc: ['city', 'dusk'] },
+      { t: 'Why we forget what we read', meta: 'Video · Sep 29', dur: '5:49', lang: 'EN', badge: 'YouTube', sc: ['talk', 'stage'] },
+      { t: 'Morning Market Tour', meta: 'Video · Sep 28', dur: '6:42', lang: 'EN', badge: '', sc: ['street', 'market'] },
+      { t: 'Slow Science, Episode 8', meta: 'Audio · Sep 26', dur: '12:48', lang: 'EN', badge: '' },
+      { t: '朝の散歩', meta: 'Video · Sep 24', dur: '3:20', lang: 'JA', badge: 'YouTube', sc: ['hills', 'morning'] },
+      { t: 'Ordering coffee without panicking', meta: 'Video · Sep 22', dur: '4:12', lang: 'EN', badge: 'YouTube', sc: ['table', 'cafe'] },
+      { t: 'Notes from a Night Train', meta: 'Audio · Sep 20', dur: '9:30', lang: 'EN', badge: '' }
+    ];
+    var media = defs.map(function (d, i) {
+      var c = eCover(i + 3, 160, 90);
+      var o = { title: d.t, meta: d.meta, dur: d.dur, lang: d.lang, badge: d.badge, hasBadge: !!d.badge, gid: 'hm' + i, gref: 'url(#hm' + i + ')', bg: c.bg, c1: c.c1, c2: c.c2, sw: c.sw, t1: c.t1, t2: c.t2, t3: c.t3, isLogo: true, isTalk: false, isCity: false, isHills: false, isHarbour: false, isTable: false, isStreet: false };
+      if (d.sc) { var sc = eScene(d.sc[0], d.sc[1], o.gid); for (var key in sc) o[key] = sc[key]; o.bg = sc.p1; }
+      return o;
+    });
+    var hero = eCover(0, 160, 100);
+    var done = first ? 0 : 12;
+    var palette = ['#2563EB', '#7C3AED', '#0D9488'];
+    return {
+      theme: theme, themeClass: 'e-' + theme,
+      showImport: showImport, importExpanded: showImport ? 'true' : 'false',
+      toggleImport: function () { var cur = self.state && self.state.importOpen != null ? self.state.importOpen : p.menu === 'import'; self.setState({ importOpen: !cur }); },
+      showTip: showTip, hideTip: function () { self.setState({ tipHidden: true }); },
+      hasContinue: !first, noContinue: first, hasMedia: !first, hero: hero, media: media,
+      goalDone: done, goalOffset: (232.5 * (1 - done / 15)).toFixed(1),
+      goalMsg: first ? 'Start your practice now!' : 'Almost there! Keep going!',
+      goalSub: first ? '0 / 15 min today' : '12 / 15 min · 3 min to go',
+      people: ['M', 'J', 'S'].map(function (ch, i) { return { i: ch, bg: palette[i] }; })
+    };
+  }
+}
+</script>
+</body>
+</html>

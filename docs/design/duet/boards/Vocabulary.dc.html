@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vocabulary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;family=Noto+Sans:wght@400&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--you:#8B2FE0;--you-ink:#7E22CE;--you-soft:#F4ECFE;--you-line:#D8B4FE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--s1:#C7D2FE;--s2:#A5B4FC;--s3:#6366F1;--s4:#3730A3;--shadow:0 1px 2px rgba(18,20,26,.05),0 14px 44px rgba(18,20,26,.12);--lift:0 1px 2px rgba(18,20,26,.08),0 0 0 1px rgba(18,20,26,.05);color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--you:#8F55F0;--you-ink:#C7A0FF;--you-soft:rgba(143,85,240,.16);--you-line:rgba(167,120,250,.5);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--s1:#312E81;--s2:#4338CA;--s3:#818CF8;--s4:#C7D2FE;--shadow:0 1px 2px rgba(0,0,0,.4),0 18px 52px rgba(0,0,0,.55);--lift:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace;--ipa:'Noto Sans',system-ui,sans-serif}
+:where(.e) :is(button,input){font:inherit;color:inherit}
+:where(.e) button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible,.e input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:40px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.e-btn svg{width:18px;height:18px;flex-shrink:0}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-row:hover,.e-ib:hover{background:var(--sunk)}
+.e-ib{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink3);flex-shrink:0}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:20px}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-h1{margin:0;font-family:var(--content);font-size:42px;line-height:1.08;font-weight:500;letter-spacing:-.02em}
+.e-h2{margin:0;font-family:var(--content);font-size:24px;line-height:1.2;font-weight:500;letter-spacing:-.01em}
+.e-seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--sunk);gap:2px;flex-shrink:0}
+.e-seg>button{height:32px;padding:0 14px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.e-seg>button[aria-pressed="true"]{background:var(--raised);color:var(--ink);box-shadow:var(--lift)}
+.e-chip{height:36px;padding:0 12px;border-radius:11px;display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:500;background:var(--paper);border:1px solid var(--line);color:var(--ink2);white-space:nowrap;flex-shrink:0}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+.v-stats{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,2fr);gap:20px}
+.v-review{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px}
+@media (max-width:1100px){.v-stats,.v-review{grid-template-columns:1fr}}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.e-h1{font-size:32px}.e-noph{display:none!important}.v-row{grid-template-columns:minmax(0,1fr) auto!important}.v-hide{display:none!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden; position: relative">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="vocabulary" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 1180px; margin: 0 auto; padding: 44px 40px 72px">
+
+        <header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px">
+          <div>
+            <div class="e-ov">Your word book</div>
+            <h1 class="e-h1" style="margin-top: 12px">Vocabulary</h1>
+          </div>
+          <div style="display: flex; gap: 8px">
+            <button class="e-btn e-sec e-noph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg>
+              Export to Anki
+              <span style="height: 20px; padding: 0 7px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; color: #FFFFFF; background: var(--brand)">Pro</span>
+            </button>
+            <a href="Review.dc.html" class="e-btn e-brand">Review 24 due</a>
+          </div>
+        </header>
+
+        <div class="v-stats" style="margin-top: 30px">
+          <section class="e-card" style="padding: 22px 24px; display: flex; align-items: center; gap: 20px">
+            <div style="position: relative; width: 76px; height: 76px; flex-shrink: 0">
+              <svg viewBox="10 4 92 92" aria-hidden="true" style="width: 76px; height: 76px">
+                <defs><linearGradient id="vDue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4797F5"></stop><stop offset="1" stop-color="#A855F7"></stop></linearGradient></defs>
+                <g stroke="url(#vDue)" stroke-width="5" stroke-linejoin="round" fill="url(#vDue)"><polygon points="30,20 70,40 30,60" opacity=".35"></polygon><polygon points="30,40 70,60 30,80" opacity=".65"></polygon><polygon points="50,30 90,50 50,70"></polygon></g>
+              </svg>
+            </div>
+            <div>
+              <div style="font-family: var(--content); font-size: 44px; font-weight: 500; line-height: 1; letter-spacing: -0.02em">24 <span style="font-family: var(--ui); font-size: 15px; font-weight: 500; color: var(--ink3); letter-spacing: 0">due today</span></div>
+              <div style="font-size: 13px; color: var(--ink3); margin-top: 8px">Words scheduled for today or earlier · about 6 min</div>
+            </div>
+          </section>
+          <section class="e-card" style="padding: 22px 24px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between">
+              <span class="e-ov">248 words</span>
+              <span style="font-size: 12.5px; color: var(--ink3)">by status</span>
+            </div>
+            <div style="display: flex; height: 10px; border-radius: 5px; overflow: hidden; gap: 2px; margin-top: 16px">
+              <span style="flex: 31; background: var(--s1)"></span><span style="flex: 57; background: var(--s2)"></span><span style="flex: 112; background: var(--s3)"></span><span style="flex: 48; background: var(--s4)"></span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px">
+              <sc-for list="{{ statuses }}" as="st" hint-placeholder-count="4">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink2)"><span style="width: 9px; height: 9px; border-radius: 3px; background: {{ st.c }}"></span>{{ st.n }}</div>
+                  <div style="font-family: var(--content); font-size: 24px; font-weight: 500; margin-top: 6px">{{ st.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 32px; flex-wrap: wrap">
+          <div class="e-seg">
+            <button aria-pressed="{{ wordsPressed }}" onClick="{{ toWords }}">All Words</button>
+            <button aria-pressed="{{ reviewPressed }}" onClick="{{ toReview }}">Review</button>
+          </div>
+          <span style="flex: 1"></span>
+          <sc-if value="{{ isWords }}" hint-placeholder-val="{{ true }}">
+            <label style="flex: 0 1 280px; height: 36px; display: flex; align-items: center; gap: 9px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--paper)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              <input aria-label="Search words" placeholder="Search words" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 14px">
+            </label>
+            <button class="e-chip">Status: All<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--ink3)"><path d="m6 9 6 6 6-6"></path></svg></button>
+            <button class="e-chip e-noph">Language: All<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--ink3)"><path d="m6 9 6 6 6-6"></path></svg></button>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ isWords }}" hint-placeholder-val="{{ true }}">
+          <div class="e-card" style="margin-top: 16px; overflow: hidden">
+            <sc-for list="{{ words }}" as="w" hint-placeholder-count="8">
+              <div class="e-row v-row" style="display: grid; grid-template-columns: minmax(0, 1fr) 120px 110px 54px 36px; align-items: center; gap: 16px; padding: 14px 16px 14px 22px; border-bottom: 1px solid var(--line)">
+                <div style="min-width: 0">
+                  <div style="display: flex; align-items: baseline; gap: 10px">
+                    <span style="font-family: var(--content); font-size: 20px; font-weight: 500">{{ w.word }}</span>
+                    <span style="font: 400 13.5px/1 var(--ipa); color: var(--ink3)">{{ w.ipa }}</span>
+                  </div>
+                  <div style="font-size: 13px; color: var(--ink3); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ w.ctx }}</div>
+                </div>
+                <span class="v-hide" style="justify-self: start; height: 26px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; background: var(--sunk); color: var(--ink2)"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{ w.sc }}"></span>{{ w.status }}</span>
+                <span style="font-size: 13px; color: {{ w.dueColor }}; font-weight: {{ w.dueWeight }}">{{ w.due }}</span>
+                <span class="v-hide" style="font: 600 11px/1 var(--mono); color: var(--ink3)">{{ w.lang }}</span>
+                <button class="e-ib v-hide" aria-label="Remove from vocabulary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 17px; height: 17px"><path d="M4 7h16"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M6 7l1 13h10l1-13"></path><path d="M9 7V4h6v3"></path></svg></button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+          <div class="v-review" style="margin-top: 16px">
+            <section class="e-card" style="padding: 28px; display: flex; flex-direction: column; gap: 14px">
+              <span class="e-ov" style="color: var(--brand-ink)">Due items</span>
+              <div style="font-family: var(--content); font-size: 34px; font-weight: 500; line-height: 1.15">24 words are waiting</div>
+              <div style="font-size: 14px; line-height: 1.55; color: var(--ink2)">Words scheduled for today or earlier. Space flips a card; 1, 2 and 3 rate it.</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px">
+                <sc-for list="{{ preview }}" as="pw" hint-placeholder-count="6"><span style="height: 30px; padding: 0 11px; border-radius: 999px; display: inline-flex; align-items: center; font-family: var(--content); font-size: 15px; background: var(--sunk)">{{ pw }}</span></sc-for>
+              </div>
+              <span style="flex: 1"></span>
+              <a href="Review.dc.html" class="e-btn e-brand" style="align-self: flex-start; margin-top: 8px">Start review</a>
+            </section>
+            <section class="e-card" style="padding: 24px 24px 22px">
+              <div style="display: flex; align-items: baseline; justify-content: space-between"><h2 class="e-h2" style="font-size: 21px">Custom review</h2><span style="font-size: 12.5px; color: var(--ink3)">Choose what to review</span></div>
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px">
+                <sc-for list="{{ options }}" as="o" hint-placeholder-count="5">
+                  <button role="radio" aria-checked="{{ o.checked }}" onClick="{{ o.pick }}" style="display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; text-align: left; border: 1px solid {{ o.border }}; background: {{ o.bg }}">
+                    <span style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid {{ o.dot }}; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{ o.fill }}"></span></span>
+                    <span><span style="display: block; font-size: 14px; font-weight: 600">{{ o.t }}</span><span style="display: block; font-size: 12.5px; color: var(--ink3); margin-top: 2px">{{ o.h }}</span></span>
+                    <span style="font: 500 12.5px/1 var(--mono); color: var(--ink3)">{{ o.n }}</span>
+                  </button>
+                </sc-for>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px">
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink2)">Number of words
+                  <span style="display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 11px; overflow: hidden">
+                    <button aria-label="Fewer" style="width: 34px; height: 34px">−</button>
+                    <span style="width: 40px; text-align: center; font: 500 13.5px/1 var(--mono)">20</span>
+                    <button aria-label="More" style="width: 34px; height: 34px">+</button>
+                  </span>
+                </div>
+                <a href="Review.dc.html" class="e-btn e-sec">Start review</a>
+              </div>
+            </section>
+          </div>
+        </sc-if>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="profile" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"tab":{"editor":"enum","options":["words","review"],"default":"words"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var p = this.props || {};
+    var s = this.state || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var tab = s.tab || p.tab || 'words';
+    var sc = { New: 'var(--s1)', Learning: 'var(--s2)', Reviewing: 'var(--s3)', Mastered: 'var(--s4)' };
+    var raw = [
+      ['regulars', 'ˈrɛɡjələrz', 'By the second week, I knew the faces of the regulars.', 'Learning', 'Today', 'EN'],
+      ['slow down', 'sloʊ daʊn', 'You take it to slow down.', 'New', 'Today', 'EN'],
+      ['thermos', 'ˈθɝməs', 'The man with the thermos always offered me a cup.', 'Reviewing', 'Overdue', 'EN'],
+      ['by accident', 'baɪ ˈæksədənt', 'I started taking it last spring, mostly by accident.', 'Learning', 'Tomorrow', 'EN'],
+      ['follow your nose', 'ˈfɑloʊ jʊr noʊz', 'You don’t read a night market; you follow your nose.', 'Mastered', 'in 21 days', 'EN'],
+      ['cancelled', 'ˈkænsəld', 'My usual train was cancelled.', 'Reviewing', 'in 3 days', 'EN'],
+      ['slippery', 'ˈslɪpəri', 'Why ice is slippery (it is not what you think).', 'New', 'Today', 'EN'],
+      ['散歩', 'sanpo', '雨の日の散歩も悪くない。', 'Learning', 'Tomorrow', 'JA'],
+      ['nodded', 'ˈnɑdɪd', 'We never talked much, but we always nodded.', 'Mastered', 'in 34 days', 'EN']
+    ];
+    var words = raw.map(function (r) {
+      var urgent = r[4] === 'Today' || r[4] === 'Overdue';
+      return { word: r[0], ipa: r[1], ctx: r[2], status: r[3], sc: sc[r[3]], due: r[4], dueColor: r[4] === 'Overdue' ? 'var(--you-ink)' : urgent ? 'var(--ink)' : 'var(--ink3)', dueWeight: urgent ? 600 : 400, lang: r[5] };
+    });
+    var sel = s.opt != null ? s.opt : 0;
+    var opts = [
+      { t: 'Due items', h: 'Words scheduled for today or earlier', n: '24' },
+      { t: 'All words', h: 'Review every word in your book', n: '248' },
+      { t: 'By status', h: 'Focus on new, learning, reviewing, or mastered', n: '' },
+      { t: 'By language', h: 'Limit the session to one source language', n: '' },
+      { t: 'Random', h: 'Shuffle and take a short practice set', n: '' }
+    ].map(function (o, i) {
+      var on = i === sel;
+      return { t: o.t, h: o.h, n: o.n, checked: on ? 'true' : 'false', border: on ? 'var(--brand-ink)' : 'var(--line)', bg: on ? 'var(--brand-soft)' : 'transparent', dot: on ? 'var(--brand-ink)' : 'var(--line)', fill: on ? 'var(--brand-ink)' : 'transparent', pick: function () { self.setState({ opt: i }); } };
+    });
+    return {
+      theme: theme, themeClass: 'e-' + theme,
+      isWords: tab === 'words', isReview: tab === 'review',
+      wordsPressed: tab === 'words' ? 'true' : 'false', reviewPressed: tab === 'review' ? 'true' : 'false',
+      toWords: function () { self.setState({ tab: 'words' }); }, toReview: function () { self.setState({ tab: 'review' }); },
+      statuses: [{ n: 'New', v: 31, c: 'var(--s1)' }, { n: 'Learning', v: 57, c: 'var(--s2)' }, { n: 'Reviewing', v: 112, c: 'var(--s3)' }, { n: 'Mastered', v: 48, c: 'var(--s4)' }],
+      words: words, options: opts, preview: ['regulars', 'slow down', 'thermos', 'slippery', 'by accident', '+19']
+    };
+  }
+}
+</script>
+</body>
+</html>

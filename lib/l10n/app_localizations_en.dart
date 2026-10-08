@@ -99,6 +99,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nothing in your library matches this search.';
 
   @override
+  String get librarySearchHint => 'Search library';
+
+  @override
   String get librarySearchClear => 'Clear search';
 
   @override
@@ -551,6 +554,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get echoMode => 'Echo mode';
 
   @override
+  String get playerListenModeTitle => 'Listen';
+
+  @override
+  String get playerDockHideText => 'Hide text';
+
+  @override
+  String playerDockLinePosition(int line, int total) {
+    return 'Line $line of $total';
+  }
+
+  @override
+  String get playerDockLooping => '· looping';
+
+  @override
+  String playerDockLinesSpanPosition(int start, int end, int total) {
+    return 'Lines $start–$end of $total';
+  }
+
+  @override
+  String get playerDockOriginal => 'Original';
+
+  @override
   String get exitEchoMode => 'Exit echo mode';
 
   @override
@@ -568,6 +593,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noTranscript => 'No transcript yet';
+
+  @override
+  String get transcriptEmptyOverline => 'Transcript';
+
+  @override
+  String get transcriptEmptyGenerateDesc =>
+      'Transcribe the speech in this item. Uses credits.';
+
+  @override
+  String get transcriptEmptyExtractDesc =>
+      'Use the subtitle tracks inside the file, if it has any.';
+
+  @override
+  String get transcriptEmptyImportDesc =>
+      'Import an .srt or .vtt file and choose its language.';
 
   @override
   String get importSrtOrVtt => 'Import an .srt or .vtt file.';
@@ -748,6 +788,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shrinkEchoForward => 'Shrink echo forward';
 
   @override
+  String get echoLoopEarlierLine => 'Earlier line';
+
+  @override
+  String get echoLoopLaterLine => 'Later line';
+
+  @override
   String get shadowReadingTitle => 'Shadow reading';
 
   @override
@@ -783,6 +829,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shadowRecordingTake => 'Take';
+
+  @override
+  String get shadowTakesLabel => 'Takes';
+
+  @override
+  String get shadowTakesEmptyPrefix =>
+      'No recordings for this segment yet. Press';
+
+  @override
+  String get shadowTakesEmptySuffix => 'and say it back.';
 
   @override
   String get shadowRecordingPlay => 'Play';
@@ -1287,6 +1343,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assessmentReassess => 'Re-assess';
+
+  @override
+  String get assessmentScoring => 'Scoring…';
+
+  @override
+  String get assessmentScoreAction => 'Score';
 
   @override
   String get assessmentOverallScore => 'Overall score';
@@ -2124,6 +2186,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAccountOpenProfile => 'Open profile';
 
   @override
+  String sidebarPlanSubtitle(String tier) {
+    return '$tier plan';
+  }
+
+  @override
   String get settingsAccountSignIn => 'Sign in';
 
   @override
@@ -2136,13 +2203,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get communityActivity => 'Community Activity';
 
   @override
-  String get communityToday => 'Community Today';
+  String get communityToday => 'Community today';
 
   @override
   String get homeRecordingsToday => 'Recordings';
 
   @override
-  String get homePracticeTime => 'Practice Time';
+  String get homePracticeTime => 'Practice time';
 
   @override
   String get homeActiveLearners => 'Active Learners';
@@ -3167,6 +3234,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get practicePosterShareAction => 'Share poster';
 
   @override
+  String get practicePosterShareLabel => 'Share';
+
+  @override
   String get practicePosterShareSuccess => 'Poster shared.';
 
   @override
@@ -4003,4 +4073,228 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transcriptEmptyFetchYoutube => 'Fetch transcript';
+
+  @override
+  String homeGoalOfMinutes(int minutes) {
+    return 'of $minutes min';
+  }
+
+  @override
+  String homeGoalProgressRemaining(int done, int goal, int left) {
+    return '$done / $goal min · $left min to go';
+  }
+
+  @override
+  String homeGoalProgressDone(int done, int goal) {
+    return '$done / $goal min';
+  }
+
+  @override
+  String get homeContinueAction => 'Continue';
+
+  @override
+  String get homeOpenLibrary => 'Open library';
+
+  @override
+  String homeContinueLine(int line, int total) {
+    return 'line $line of $total';
+  }
+
+  @override
+  String get homeContinueEchoOn => 'Echo on';
+
+  @override
+  String get mediaRelativeToday => 'today';
+
+  @override
+  String get mediaRelativeYesterday => 'yesterday';
+
+  @override
+  String libraryTileAdded(String date) {
+    return 'Added $date';
+  }
+
+  @override
+  String get vocabularyOverline => 'Your word book';
+
+  @override
+  String vocabularyReviewDueAction(int count) {
+    return 'Review $count due';
+  }
+
+  @override
+  String get vocabularyDueToday => 'due today';
+
+  @override
+  String vocabularyDueEstimate(int minutes) {
+    return 'Words scheduled for today or earlier · about $minutes min';
+  }
+
+  @override
+  String get vocabularyByStatus => 'by status';
+
+  @override
+  String vocabularyDueWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count words are waiting',
+      one: '$count word is waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vocabularyDueReviewBody =>
+      'Words scheduled for today or earlier. Space flips a card; 1, 2 and 3 rate it.';
+
+  @override
+  String vocabularyFilterValue(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String get vocabularyFewer => 'Fewer';
+
+  @override
+  String get vocabularyMore => 'More';
+
+  @override
+  String get vocabularyProBadge => 'Pro';
+
+  @override
+  String get libraryOverlineLocal => 'On this device';
+
+  @override
+  String get libraryOverlineCloud => 'Saved to your Enjoy account';
+
+  @override
+  String librarySearchResults(int count, String query) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count matches for “$query”',
+      one: '1 match for “$query”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileSyncedFromAccount => 'Synced from your account';
+
+  @override
+  String get profileCreditsToday => 'Credits today';
+
+  @override
+  String get profileCreditsUsageLink => 'Usage';
+
+  @override
+  String get profileCreditsResetsDaily => 'Resets daily';
+
+  @override
+  String profileCreditsResetsWithPermanent(String count) {
+    return 'Resets daily · plus $count permanent credits';
+  }
+
+  @override
+  String get profileMinutesUnit => 'min';
+
+  @override
+  String get profileSettingsHint =>
+      'Appearance, AI providers, recording, shortcuts';
+
+  @override
+  String vocabularyReviewDueValue(int count) {
+    return '$count due';
+  }
+
+  @override
+  String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsSectionAccountHint => 'Your Enjoy identity and sign-out';
+
+  @override
+  String get discoverOverline => 'YouTube channels you follow';
+
+  @override
+  String get discoverRecentUploads => 'Recent uploads';
+
+  @override
+  String discoverUpdatedAgo(String age) {
+    return 'Updated $age';
+  }
+
+  @override
+  String discoverHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String discoverDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String get discoverAddToLibraryAction => 'Add to library';
+
+  @override
+  String get discoverStripSubscribe => 'Subscribe';
+
+  @override
+  String get subscriptionSummaryCurrentPlan => 'Current plan';
+
+  @override
+  String get subscriptionSummaryStatus => 'Status';
+
+  @override
+  String get subscriptionSummaryExpiration => 'Expiration';
+
+  @override
+  String get subscriptionSummaryDailyCredits => 'Daily credits limit';
+
+  @override
+  String get subscriptionChoosePlan => 'Choose your plan';
+
+  @override
+  String get creditsUsageUtcDates => 'UTC dates';
+
+  @override
+  String get subscriptionPackagesLink => 'Credits packages';
+
+  @override
+  String get playerEchoShort => 'Echo';
+
+  @override
+  String playerLineOfTotal(Object line, Object total) {
+    return 'Line $line of $total';
+  }
+
+  @override
+  String syncLastSyncToday(String time) {
+    return 'Today, $time';
+  }
+
+  @override
+  String get syncRowWaiting => 'Waiting';
+
+  @override
+  String get syncRowFailed => 'Failed';
+
+  @override
+  String syncRowRetries(int count) {
+    return '$count attempts';
+  }
+
+  @override
+  String get syncEntityRecording => 'Recording';
+
+  @override
+  String get syncEntityVocabulary => 'Vocabulary item';
+
+  @override
+  String get assessmentWordsSection => 'Words';
+
+  @override
+  String get assessmentMarginOverline => 'Pronunciation';
 }

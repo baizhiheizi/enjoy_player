@@ -11,7 +11,6 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -166,17 +165,27 @@ void main() {
 
       await _scrollUntilVisible(tester, find.text(l10n.vocabularyProfileEntry));
       expect(find.text(l10n.vocabularyProfileEntry), findsOneWidget);
-      expect(find.byType(SettingsValuePill), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
+      expect(find.text(l10n.vocabularyReviewDueValue(3)), findsOneWidget);
     },
   );
 
-  testWidgets('ProfileContent hides due-review count pill when due is 0', (
+  testWidgets('ProfileContent hides the due value when due is 0', (
     tester,
   ) async {
     final authCtrl = _FakeAuthCtrl();
     await tester.pumpWidget(
-      _harness(const ProfileContent(), authCtrl: authCtrl),
+      _harness(
+        const ProfileContent(),
+        authCtrl: authCtrl,
+        vocabStats: const VocabularyStats(
+          total: 5,
+          due: 0,
+          newCount: 1,
+          learningCount: 2,
+          reviewingCount: 1,
+          masteredCount: 1,
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -184,7 +193,6 @@ void main() {
 
     await _scrollUntilVisible(tester, find.text(l10n.vocabularyProfileEntry));
     expect(find.text(l10n.vocabularyProfileEntry), findsOneWidget);
-    expect(find.byType(SettingsValuePill), findsNothing);
-    expect(find.text('0'), findsNothing);
+    expect(find.text(l10n.vocabularyReviewDueValue(0)), findsNothing);
   });
 }

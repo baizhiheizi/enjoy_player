@@ -63,6 +63,7 @@ void main() {
   group('kSettingsRegistry', () {
     test('only references section ids that still exist', () {
       const knownSectionIds = {
+        SettingsSectionIds.account,
         SettingsSectionIds.cloudSync,
         SettingsSectionIds.appearanceLanguage,
         SettingsSectionIds.aiProviders,

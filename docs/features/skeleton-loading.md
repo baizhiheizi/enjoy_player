@@ -40,15 +40,11 @@ re-implement motion handling around `Skeleton` — the widget already does it.
 
 ### Colors
 
-`Skeleton` reads from `Theme.of(context).colorScheme`:
-
-- Base → `surfaceContainerHighest` at `alpha 0.55`.
-- Highlight → `surfaceContainerHigh` at `alpha 0.95`.
-
-Both colors are theme-derived, so Aurora palette changes ([ADR-0089](../decisions/0089-aurora-design-language.md),
-which superseded the palette / chrome / type clauses of [ADR-0083](../decisions/0083-paper-graphite-light-dark.md))
-flow through automatically. New placeholders should not introduce their own
-colors.
+`Skeleton` reads from `EnjoyThemeTokens`: base → `sunk`, highlight → a
+light lerp of the base. Both colors are theme-derived, so Duet palette
+changes ([ADR-0093](../decisions/0093-duet-design-language.md), pinned by
+`test/core/theme/duet_tokens_test.dart`) flow through automatically. New
+placeholders should not introduce their own colors.
 
 ## Pre-built placeholders
 

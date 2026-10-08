@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vocabulary review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;family=Noto+Sans:wght@400&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--you:#8B2FE0;--you-ink:#7E22CE;--you-soft:#F4ECFE;--you-line:#D8B4FE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--shadow:0 1px 2px rgba(18,20,26,.05),0 24px 60px rgba(18,20,26,.10);--lift:0 1px 2px rgba(18,20,26,.08),0 0 0 1px rgba(18,20,26,.05);color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--you:#8F55F0;--you-ink:#C7A0FF;--you-soft:rgba(143,85,240,.16);--you-line:rgba(167,120,250,.5);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--shadow:0 1px 2px rgba(0,0,0,.4),0 24px 60px rgba(0,0,0,.55);--lift:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace;--ipa:'Noto Sans',system-ui,sans-serif}
+:where(.e) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:40px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.e-btn svg{width:17px;height:17px;flex-shrink:0}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-ghost:hover{background:var(--sunk)}
+.e-ghost{color:var(--ink2)}
+.e-kc{font:500 10.5px/1 var(--mono);padding:3px 5px;border-radius:5px;background:var(--sunk);color:var(--ink2);border:1px solid var(--line)}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--sunk);gap:2px}
+.e-seg>button{height:32px;padding:0 14px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.e-seg>button[aria-pressed="true"]{background:var(--raised);color:var(--ink);box-shadow:var(--lift)}
+.r-rate:hover{border-color:var(--brand-ink)!important}
+@media (max-width:599px){.r-word{font-size:52px!important}.r-card{padding:28px 22px!important}.e-noph{display:none!important}.r-rates{grid-template-columns:repeat(3,minmax(0,1fr))!important}.r-skip{grid-column:1 / -1}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; flex-direction: column; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden">
+  <header style="flex-shrink: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; height: 64px; padding: 0 16px">
+    <a href="Vocabulary.dc.html" class="e-btn e-ghost" style="justify-self: start; padding: 0 12px 0 8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      <span class="e-noph">Exit review</span>
+      <span class="e-kc e-noph">Esc</span>
+    </a>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 7px; width: min(320px, 46vw)">
+      <span style="font: 500 13px/1 var(--mono); color: var(--ink2)">{{ progressLabel }}</span>
+      <span style="position: relative; width: 100%; height: 4px; border-radius: 2px; background: var(--sunk); overflow: hidden"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{ progressPct }}; background: var(--logo); border-radius: 2px"></span></span>
+    </div>
+    <div style="justify-self: end; display: flex; align-items: center; gap: 10px">
+      <span class="e-noph" style="font-size: 12.5px; color: var(--ink3)">{{ remaining }}</span>
+      <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}">
+        <button class="e-btn e-ghost" style="padding: 0 12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 0 10h-3"></path></svg>
+          Undo
+        </button>
+      </sc-if>
+    </div>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 12px 16px 24px">
+    <sc-if value="{{ isFront }}" hint-placeholder-val="{{ true }}">
+      <button class="r-card" onClick="{{ flip }}" aria-label="Flip card" style="margin: auto 0; width: min(720px, 100%); min-height: 420px; padding: 48px; border-radius: 30px; background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center">
+        <span class="e-ov">How well do you know this?</span>
+        <span class="r-word" style="font-family: var(--content); font-size: 76px; line-height: 1.05; font-weight: 500; letter-spacing: -0.03em">regulars</span>
+        <span style="font: 400 20px/1 var(--ipa); color: var(--ink3)">ˈrɛɡjələrz</span>
+        <span style="display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; font-size: 13px; color: var(--ink3)">Tap or press <span class="e-kc">Space</span> to flip</span>
+      </button>
+    </sc-if>
+
+    <sc-if value="{{ isBack }}" hint-placeholder-val="{{ false }}">
+      <div class="r-card" style="margin: auto 0; width: min(760px, 100%); padding: 36px 40px 30px; border-radius: 30px; background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow)">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+          <div>
+            <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap">
+              <span class="r-word" style="font-family: var(--content); font-size: 52px; line-height: 1.05; font-weight: 500; letter-spacing: -0.025em">regulars</span>
+              <span style="font: 400 18px/1 var(--ipa); color: var(--ink3)">ˈrɛɡjələrz</span>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 12px; font-size: 12.5px; color: var(--ink3)"><span style="height: 24px; padding: 0 9px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--ink2); background: var(--sunk)"><span style="width: 8px; height: 8px; border-radius: 3px; background: #A5B4FC"></span>Learning</span><span style="height: 24px; display: inline-flex; align-items: center">noun · 常客；老主顾</span></div>
+          </div>
+          <button onClick="{{ flip }}" class="e-btn e-ghost" style="height: 34px; padding: 0 10px">Flip back <span class="e-kc">Space</span></button>
+        </div>
+        <div class="e-seg" style="margin-top: 24px">
+          <button aria-pressed="true">Context</button>
+          <button aria-pressed="false">Dictionary</button>
+          <button aria-pressed="false">Notes</button>
+        </div>
+        <div style="margin-top: 18px; padding: 22px 24px; border-radius: 20px; background: var(--ground)">
+          <div style="font-family: var(--content); font-size: 23px; line-height: 1.45">By the second week, I knew the faces of the <span style="font-weight: 600; text-decoration-line: underline; text-decoration-color: var(--brand-ink); text-decoration-thickness: 2px; text-underline-offset: 5px">regulars</span>.</div>
+          <div style="font-size: 15px; line-height: 1.55; color: var(--ink2); margin-top: 8px">到了第二周，我已经认得那些常客的脸了。</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap">
+            <span style="font-size: 12.5px; color: var(--ink3)">The Ferry at Six · 0:25 · context 1 of 2</span>
+            <span style="display: flex; gap: 6px; flex-wrap: wrap">
+              <button class="e-btn" style="height: 34px; padding: 0 12px; font-size: 13px; background: var(--blue-soft); color: var(--blue-ink)"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 12px; height: 12px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg>Play clip</button>
+              <button class="e-btn" style="height: 34px; padding: 0 12px; font-size: 13px; background: var(--you-soft); color: var(--you-ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5 10.5v.5a7 7 0 0 0 14 0v-.5"></path><path d="M12 18v3.5"></path></svg>Echo reading</button>
+              <a href="Main.dc.html" class="e-btn e-sec" style="height: 34px; padding: 0 12px; font-size: 13px">Open in player</a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+      <div style="margin: auto 0; width: min(560px, 100%); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px">
+        <svg viewBox="10 4 92 92" aria-hidden="true" style="width: 120px; height: 120px">
+          <defs><linearGradient id="rDone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4797F5"></stop><stop offset="1" stop-color="#A855F7"></stop></linearGradient></defs>
+          <g stroke="url(#rDone)" stroke-width="5" stroke-linejoin="round" fill="url(#rDone)"><polygon points="30,20 70,40 30,60" opacity=".35"></polygon><polygon points="30,40 70,60 30,80" opacity=".65"></polygon><polygon points="50,30 90,50 50,70"></polygon></g>
+        </svg>
+        <h1 style="margin: 8px 0 0; font-family: var(--content); font-size: 44px; font-weight: 500; letter-spacing: -0.02em">Review complete</h1>
+        <p style="margin: 0; font-size: 16px; color: var(--ink2)">Nice work. Your ratings are saved.</p>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; margin-top: 18px">
+          <div style="padding: 16px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line)"><div style="font-family: var(--content); font-size: 30px; font-weight: 500">15</div><div style="font-size: 12.5px; color: var(--ink3); margin-top: 4px">Know Well</div></div>
+          <div style="padding: 16px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line)"><div style="font-family: var(--content); font-size: 30px; font-weight: 500">6</div><div style="font-size: 12.5px; color: var(--ink3); margin-top: 4px">Know</div></div>
+          <div style="padding: 16px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line)"><div style="font-family: var(--content); font-size: 30px; font-weight: 500">3</div><div style="font-size: 12.5px; color: var(--ink3); margin-top: 4px">Don't Know</div></div>
+        </div>
+        <a href="Vocabulary.dc.html" class="e-btn e-brand" style="margin-top: 18px; min-width: 160px">Done</a>
+      </div>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}">
+    <footer style="flex-shrink: 0; padding: 0 16px 26px; display: flex; justify-content: center">
+      <div class="r-rates" style="width: min(760px, 100%); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 10px">
+        <sc-for list="{{ rates }}" as="rt" hint-placeholder-count="3">
+          <button class="r-rate" onClick="{{ rt.go }}" style="height: 60px; border-radius: 16px; border: 1px solid var(--line); background: var(--paper); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14.5px; font-weight: 600">
+            <span aria-hidden="true" style="display: inline-flex; align-items: flex-end; gap: 2px; height: 14px"><span style="width: 4px; height: 6px; border-radius: 1px; background: {{ rt.b1 }}"></span><span style="width: 4px; height: 10px; border-radius: 1px; background: {{ rt.b2 }}"></span><span style="width: 4px; height: 14px; border-radius: 1px; background: {{ rt.b3 }}"></span></span>
+            {{ rt.label }}
+            <span class="e-kc e-noph">{{ rt.key }}</span>
+          </button>
+        </sc-for>
+        <button class="r-skip" onClick="{{ next }}" style="height: 60px; padding: 0 18px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink2)">Skip <span class="e-kc e-noph">→</span></button>
+      </div>
+    </footer>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"side":{"editor":"enum","options":["front","back","done"],"default":"front"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var p = this.props || {};
+    var s = this.state || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var side = s.side || p.side || 'front';
+    var n = s.n != null ? s.n : 7;
+    var go = function () { var c = self.state && self.state.n != null ? self.state.n : 7; if (c >= 24) { self.setState({ side: 'done' }); return; } self.setState({ n: c + 1, side: 'front' }); };
+    var ink = 'var(--ink)', off = 'var(--line)';
+    return {
+      theme: theme, themeClass: 'e-' + theme,
+      isFront: side === 'front', isBack: side === 'back', isDone: side === 'done', notDone: side !== 'done',
+      progressLabel: side === 'done' ? '24 / 24' : n + ' / 24', progressPct: ((side === 'done' ? 24 : n - 1) / 24 * 100).toFixed(1) + '%',
+      remaining: side === 'done' ? '' : (24 - n + 1) + ' remaining',
+      flip: function () { var c = (self.state && self.state.side) || p.side || 'front'; self.setState({ side: c === 'front' ? 'back' : 'front' }); },
+      next: go,
+      rates: [
+        { label: "Don't Know", key: '1', b1: ink, b2: off, b3: off, go: go },
+        { label: 'Know', key: '2', b1: ink, b2: ink, b3: off, go: go },
+        { label: 'Know Well', key: '3', b1: ink, b2: ink, b3: ink, go: go }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

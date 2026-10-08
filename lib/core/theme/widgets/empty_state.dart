@@ -1,20 +1,20 @@
-/// Editorial empty-state primitive (Aurora).
+/// Editorial empty-state primitive (Duet).
 ///
-/// A softly lit icon orb, a serif title, a measured line of copy, and up to
-/// two actions — centered with generous breathing room.
+/// The logo's three planes at low intensity, a serif title, a measured line
+/// of copy, and up to two actions — centered with generous breathing room.
 library;
 
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 
 import '../enjoy_tokens.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
-    required this.icon,
     required this.title,
     required this.subtitle,
     this.action,
@@ -23,7 +23,6 @@ class EmptyState extends StatelessWidget {
     this.secondaryActionLabel,
   });
 
-  final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback? action;
@@ -52,7 +51,7 @@ class EmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              EnjoyIconOrb(icon: icon),
+              const EnjoyLogoMark(size: 88, opacity: 0.4),
               SizedBox(height: t.space24),
               Text(
                 title,
@@ -80,7 +79,7 @@ class EmptyState extends StatelessWidget {
                   runSpacing: t.space8,
                   children: [
                     if (hasPrimary)
-                      EnjoyButton.primary(
+                      EnjoyButton.brand(
                         onPressed: action,
                         child: Text(actionLabel!),
                       ),
@@ -122,8 +121,8 @@ class EnjoyIconOrb extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  t.auroraEnd.withValues(alpha: light ? 0.14 : 0.20),
-                  t.auroraStart.withValues(alpha: 0),
+                  t.logoEnd.withValues(alpha: light ? 0.14 : 0.20),
+                  t.logoStart.withValues(alpha: 0),
                 ],
               ),
             ),
@@ -138,12 +137,12 @@ class EnjoyIconOrb extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   Color.alphaBlend(
-                    t.auroraStart.withValues(alpha: light ? 0.12 : 0.22),
-                    t.card,
+                    t.logoStart.withValues(alpha: light ? 0.12 : 0.22),
+                    t.paper,
                   ),
                   Color.alphaBlend(
-                    t.auroraEnd.withValues(alpha: light ? 0.14 : 0.26),
-                    t.card,
+                    t.logoEnd.withValues(alpha: light ? 0.14 : 0.26),
+                    t.paper,
                   ),
                 ],
               ),
@@ -154,9 +153,9 @@ class EnjoyIconOrb extends StatelessWidget {
                       : Colors.white.withValues(alpha: 0.08),
                 ),
               ),
-              shadows: t.shadowCard,
+              shadows: t.shadowLift,
             ),
-            child: Icon(icon, size: size * 0.4, color: t.accentInk),
+            child: Icon(icon, size: size * 0.4, color: t.brandInk),
           ),
         ],
       ),

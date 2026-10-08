@@ -1,5 +1,5 @@
-/// Editorial page header — large Instrument Serif title, optional overline,
-/// trailing actions. The signature voice of Aurora page chrome (ADR-0089).
+/// Editorial page header — large Literata title, optional overline,
+/// trailing actions. The signature voice of Duet page chrome (ADR-0093).
 library;
 
 import 'package:flutter/material.dart';
@@ -9,8 +9,12 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 /// How [EditorialHeader] applies horizontal insets on wide panes.
 enum EditorialHeaderWidthMode {
-  /// Match browse bodies: [pageGutterOf] only (full-bleed title row).
+  /// [pageGutterOf] only (full-bleed title row).
   gutter,
+
+  /// The browse column: gutter plus half the width beyond
+  /// [EnjoyThemeTokens.pageMaxBrowse] (matches [EnjoyPageMetrics]).
+  browse,
 
   /// Center within [columnMaxWidth] (hub / form), with at least page gutter.
   column,
@@ -63,7 +67,7 @@ class EditorialHeader extends StatelessWidget {
         final paneWidth = constraints.maxWidth;
         final narrow = paneWidth < t.breakpointCompact;
         final gutter = pageGutterOf(context, paneWidth);
-        final top = compact ? t.space16 : (narrow ? t.space16 : t.space32);
+        final top = compact ? t.space16 : (narrow ? t.space20 : 44.0);
         final bottom = compact ? t.space12 : t.space20;
 
         final double horizontal;
@@ -71,6 +75,13 @@ class EditorialHeader extends StatelessWidget {
         switch (widthMode) {
           case EditorialHeaderWidthMode.gutter:
             horizontal = gutter;
+            titleMaxWidth = null;
+          case EditorialHeaderWidthMode.browse:
+            horizontal = EnjoyPageMetrics.of(
+              context,
+              kind: EnjoyPageKind.browse,
+              paneWidth: paneWidth,
+            ).horizontalInset;
             titleMaxWidth = null;
           case EditorialHeaderWidthMode.column:
             final cap = columnMaxWidth ?? t.hubMaxWidth;
@@ -82,12 +93,13 @@ class EditorialHeader extends StatelessWidget {
 
         final titleStyle = compact
             ? tt.headlineMedium
-            : (narrow
-                  ? tt.displaySmall?.copyWith(fontSize: 34, letterSpacing: -0.6)
-                  : tt.displaySmall?.copyWith(
-                      fontSize: 40,
-                      letterSpacing: -0.8,
-                    ));
+            : tt.displaySmall?.copyWith(
+                fontSize: narrow ? 32 : 42,
+                letterSpacing: narrow ? -0.64 : -0.84,
+              );
+
+        final stackTrailing =
+            narrow && titleAccessory != null && trailing != null;
 
         return Padding(
           padding:
@@ -100,7 +112,7 @@ class EditorialHeader extends StatelessWidget {
                 maxWidth: titleMaxWidth ?? double.infinity,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: Column(
@@ -109,25 +121,26 @@ class EditorialHeader extends StatelessWidget {
                       children: [
                         if (overline != null) ...[
                           EnjoyOverline(overline!),
-                          SizedBox(height: t.space4),
+                          SizedBox(height: t.space12),
                         ],
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        Wrap(
+                          spacing: t.space12,
+                          runSpacing: t.space8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            Flexible(
-                              child: Text(
-                                title,
-                                style: titleStyle,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                            Text(
+                              title,
+                              style: titleStyle,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            if (titleAccessory != null) ...[
-                              SizedBox(width: t.space12),
-                              titleAccessory!,
-                            ],
+                            ?titleAccessory,
                           ],
                         ),
+                        if (stackTrailing) ...[
+                          SizedBox(height: t.space16),
+                          trailing!,
+                        ],
                         if (subtitle != null) ...[
                           SizedBox(height: t.space4),
                           Text(
@@ -144,7 +157,7 @@ class EditorialHeader extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (trailing != null) ...[
+                  if (trailing != null && !stackTrailing) ...[
                     SizedBox(width: t.space16),
                     trailing!,
                   ],
@@ -173,10 +186,10 @@ class EnjoyOverline extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        letterSpacing: 1.3,
+        letterSpacing: 0.88,
         fontSize: 11,
         fontWeight: FontWeight.w600,
-        color: color ?? t.textFaint,
+        color: color ?? t.ink3,
       ),
     );
   }
@@ -216,10 +229,11 @@ class EnjoySectionHeader extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tt.titleMedium?.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.25,
+                    style: tt.displaySmall?.copyWith(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.24,
+                      height: 1.2,
                     ),
                   ),
                 ),
@@ -228,7 +242,7 @@ class EnjoySectionHeader extends StatelessWidget {
                   Text(
                     caption!,
                     style: tt.bodySmall?.copyWith(
-                      color: t.textFaint,
+                      color: t.ink3,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),

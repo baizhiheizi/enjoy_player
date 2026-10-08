@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Keyboard shortcuts</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--raised:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--blue-ink:#1D64C8;--blue-soft:#E9F2FE;--you-ink:#7E22CE;--you-soft:#F4ECFE;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--shadow:0 1px 2px rgba(18,20,26,.05),0 14px 44px rgba(18,20,26,.12);--scrim:rgba(18,20,26,.32);color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--raised:#1F232B;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--blue-ink:#7DB8FF;--blue-soft:rgba(90,162,255,.15);--you-ink:#C7A0FF;--you-soft:rgba(143,85,240,.16);--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--shadow:0 1px 2px rgba(0,0,0,.4),0 18px 52px rgba(0,0,0,.55);--scrim:rgba(0,0,0,.55);color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) :is(button,input){font:inherit;color:inherit}
+:where(.e) button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible,.e input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:38px;padding:0 14px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:600;white-space:nowrap}
+.e-ib{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink3)}
+.e-ib:hover,.e-row:hover,.e-ghost:hover{background:var(--sunk)}
+.e-ghost{color:var(--ink2)}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.e-kc{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:7px;font:500 12px/1 var(--mono);background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:0 1px 0 var(--line)}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+.k-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.k-grid{grid-template-columns:1fr}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden; position: relative">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="settings" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <header style="flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 20px; border-bottom: 1px solid var(--line)">
+      <a href="Settings.dc.html" class="e-ib" aria-label="Back to Settings" style="width: 40px; height: 40px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="flex: 1; font-size: 16px; font-weight: 600">Keyboard shortcuts</span>
+      <button class="e-btn e-ghost">Reset all shortcuts</button>
+    </header>
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 840px; margin: 0 auto; padding: 28px 24px 64px">
+        <label style="height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: 13px; border: 1px solid var(--line); background: var(--paper)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 17px; height: 17px; color: var(--ink3)"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input aria-label="Search shortcuts" placeholder="Search shortcuts" style="flex: 1; border: 0; outline: none; background: transparent; font-size: 14.5px">
+        </label>
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 10px; margin: 28px 4px 12px">
+            <span style="width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: {{ g.tile }}; color: {{ g.fg }}; font: 600 11px/1 var(--mono)">{{ g.mark }}</span>
+            <span style="font-size: 15px; font-weight: 600">{{ g.name }}</span>
+            <span style="font: 500 12px/1 var(--mono); color: var(--ink3)">{{ g.count }}</span>
+          </div>
+          <div class="e-card">
+            <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="6">
+              <div class="e-row" style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 10px 10px 10px 18px; border-bottom: 1px solid var(--line)">
+                <span style="font-size: 14px; display: flex; align-items: center; gap: 8px">{{ r.d }}<sc-if value="{{ r.custom }}" hint-placeholder-val="{{ false }}"><span style="height: 20px; padding: 0 8px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; background: var(--brand-soft); color: var(--brand-ink)">Custom</span></sc-if></span>
+                <span style="display: inline-flex; gap: 4px"><sc-for list="{{ r.keys }}" as="k" hint-placeholder-count="1"><span class="e-kc">{{ k }}</span></sc-for></span>
+                <span style="display: inline-flex">
+                  <button class="e-ib" aria-label="Edit shortcut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"></path></svg></button>
+                  <button class="e-ib" aria-label="Reset" disabled="{{ r.notCustom }}" style="opacity: {{ r.resetOp }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg></button>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="profile" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+
+  <sc-if value="{{ showSheet }}" hint-placeholder-val="{{ false }}">
+    <button aria-label="Close" onClick="{{ closeSheet }}" style="position: absolute; inset: 0; z-index: 8; background: var(--scrim); cursor: default"></button>
+    <div aria-label="Keyboard shortcuts" class="e-scroll" style="position: absolute; z-index: 9; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(720px, calc(100% - 32px)); max-height: 85%; overflow-y: auto; border-radius: 24px; background: var(--raised); box-shadow: var(--shadow); padding: 20px 24px 18px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <label style="flex: 1; height: 42px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: 12px; background: var(--sunk)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input aria-label="Search shortcuts" placeholder="Search shortcuts" style="flex: 1; border: 0; outline: none; background: transparent; font-size: 14.5px">
+        </label>
+        <button class="e-ib" aria-label="Close" onClick="{{ closeSheet }}" style="width: 40px; height: 40px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" style="width: 20px; height: 20px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+      </div>
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+        <div style="font: 600 11px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); margin: 20px 2px 6px">{{ g.name }}</div>
+        <div class="k-grid">
+          <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 2px; border-bottom: 1px solid var(--line); font-size: 13.5px">
+              <span style="color: var(--ink2)">{{ r.d }}</span>
+              <span style="display: inline-flex; gap: 4px"><sc-for list="{{ r.keys }}" as="k" hint-placeholder-count="1"><span class="e-kc" style="min-width: 24px; height: 24px; font-size: 11.5px">{{ k }}</span></sc-for></span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px; font-size: 13px; color: var(--ink3)">
+        <span>Press Shift+/ (?) to open this list.</span>
+        <a href="Keyboard.dc.html" style="font-weight: 600">Customize shortcuts</a>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var p = this.props || {};
+    var s = this.state || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var sheet = s.sheet != null ? s.sheet : p.dialog === 'cheatsheet';
+    function rows(list) { return list.map(function (r) { return { d: r[0], keys: r[1], custom: !!r[2], notCustom: !r[2], resetOp: r[2] ? 1 : 0.35 }; }); }
+    var groups = [
+      { name: 'Global', mark: 'G', tile: 'var(--brand-soft)', fg: 'var(--brand-ink)', rows: rows([['Show keyboard shortcuts', ['?']], ['Open search', ['Ctrl', 'K']], ['Open settings', ['Ctrl', ',']], ['Open Craft', ['C']]]) },
+      { name: 'Player', mark: 'P', tile: 'var(--blue-soft)', fg: 'var(--blue-ink)', rows: rows([['Play / Pause', ['Space']], ['Play previous line', ['A']], ['Play next line', ['D']], ['Replay current line', ['S']], ['Toggle Echo mode', ['E']], ['Hide text (blur practice)', ['H']], ['Start/Stop recording', ['R'], true], ['Play/Pause recording', ['G']], ['Score the take', ['V']], ['Show/Hide pitch contour', ['P']], ['Expand Echo backward / forward', ['[', ']']], ['Shrink Echo backward / forward', ['{', '}']], ['Slower / faster', ['<', '>']], ['Collapse player', ['Ctrl', 'Shift', 'P']], ['Toggle fullscreen', ['F11']]]) },
+      { name: 'Library', mark: 'L', tile: 'var(--sunk)', fg: 'var(--ink2)', rows: rows([['Focus search', ['/']]]) },
+      { name: 'Modal', mark: 'M', tile: 'var(--sunk)', fg: 'var(--ink2)', rows: rows([['Close overlay, exit fullscreen, or cancel recording', ['Esc']]]) }
+    ].map(function (g) { g.count = g.rows.length; return g; });
+    return { theme: theme, themeClass: 'e-' + theme, groups: groups, showSheet: sheet, closeSheet: function () { self.setState({ sheet: false }); } };
+  }
+}
+</script>
+</body>
+</html>

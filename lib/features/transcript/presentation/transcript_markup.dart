@@ -25,7 +25,7 @@ String formatTranscriptTimestampMs(int startMs) {
   if (h > 0) {
     return '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
-  return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  return '$m:${s.toString().padLeft(2, '0')}';
 }
 
 /// Builds a [TextSpan] tree from SSA/HTML-like subtitle markup.
@@ -40,6 +40,7 @@ TextSpan transcriptMarkupToTextSpan(
   bool emphasize = false,
   WordTextRange? highlightRange,
   Color? highlightFill,
+  bool highlightUnderline = false,
 }) {
   final segments = parseSubtitleMarkup(raw);
   if (segments.isEmpty) {
@@ -52,6 +53,7 @@ TextSpan transcriptMarkupToTextSpan(
         _cueStyle(baseStyle, defaultColor: defaultColor, emphasize: emphasize),
         highlightRange,
         highlightFill,
+        highlightUnderline: highlightUnderline,
       ),
     );
   }
@@ -75,6 +77,7 @@ TextSpan transcriptMarkupToTextSpan(
         style,
         highlightRange,
         highlightFill,
+        highlightUnderline: highlightUnderline,
       ),
     );
     offset += seg.text.length;
@@ -87,8 +90,9 @@ List<InlineSpan> _spansForPlainChunk(
   int chunkStart,
   TextStyle style,
   WordTextRange? highlightRange,
-  Color? highlightFill,
-) {
+  Color? highlightFill, {
+  bool highlightUnderline = false,
+}) {
   if (text.isEmpty) return const [];
   final range = highlightRange;
   final fill = highlightFill;
@@ -107,11 +111,16 @@ List<InlineSpan> _spansForPlainChunk(
   if (localStart > 0) {
     out.add(TextSpan(text: text.substring(0, localStart), style: style));
   }
+  final highlightStyle = highlightUnderline
+      ? style.copyWith(
+          decoration: TextDecoration.underline,
+          decorationColor: fill,
+          decorationStyle: TextDecorationStyle.solid,
+          decorationThickness: 2,
+        )
+      : style.copyWith(backgroundColor: fill);
   out.add(
-    TextSpan(
-      text: text.substring(localStart, localEnd),
-      style: style.copyWith(backgroundColor: fill),
-    ),
+    TextSpan(text: text.substring(localStart, localEnd), style: highlightStyle),
   );
   if (localEnd < text.length) {
     out.add(TextSpan(text: text.substring(localEnd), style: style));

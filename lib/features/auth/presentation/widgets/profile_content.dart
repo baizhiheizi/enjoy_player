@@ -11,7 +11,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
+import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
@@ -19,10 +23,7 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
-import 'package:enjoy_player/features/auth/presentation/widgets/profile_account_card.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_hero_card.dart';
-import 'package:enjoy_player/features/auth/presentation/widgets/profile_sign_out_button.dart';
-import 'package:enjoy_player/features/auth/presentation/widgets/profile_stats.dart';
 import 'package:enjoy_player/features/credits/application/todays_credits_provider.dart';
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
@@ -112,46 +113,68 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
         final creditsUsed = creditsUsedAsync.valueOrNull;
         final dueCount = ref.watch(vocabularyStatsProvider).due;
 
+        final permanent = ref
+            .watch(creditsSummaryProvider)
+            .valueOrNull
+            ?.permanentAvailable;
+        final learning = p.learningLanguage;
+        final prefsValue = [
+          if (p.goal != null) '${p.goal} ${l10n.profileMinutesUnit}',
+          if (learning != null && learning.isNotEmpty)
+            focusLanguageLabel(l10n, learning),
+        ].join(' · ');
+
         final children = <Widget>[
           ProfileHeroCard(profile: p),
-          SizedBox(height: t.space16),
-          ProfilePracticeSection(
-            stats: ref.watch(profilePracticeStatsProvider),
+          const SizedBox(height: 20),
+          _ProfileTopCards(
+            practice: ProfilePracticeCard(
+              stats: ref.watch(profilePracticeStatsProvider).valueOrNull,
+            ),
+            credits: ProfileCreditsCard(
+              used: creditsUsed,
+              limit: dailyLimit,
+              permanent: permanent,
+            ),
           ),
-          SizedBox(height: t.space8),
-          ProfileAccountCard(
-            creditsUsedToday: creditsUsed,
-            dailyLimit: dailyLimit,
-            onCreditsTap: () => context.push('/credits'),
-            onSubscriptionTap: () => context.push('/subscription'),
-          ),
-          SizedBox(height: t.space16),
+          const SizedBox(height: 20),
           _ProfileNavSection(
             rows: [
               SettingsRow(
                 leadingIcon: EnjoyIcons.book,
+                leadingIconTone: EnjoyIconTileTone.brand,
                 title: l10n.vocabularyProfileEntry,
                 subtitle: l10n.vocabularyProfileEntryHint,
                 valueBadge: dueCount > 0
-                    ? Semantics(
-                        container: true,
-                        label: '${l10n.vocabularyDue}: $dueCount',
-                        child: SettingsValuePill(
-                          label: '$dueCount',
-                          foregroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                        ),
-                      )
+                    ? _RowValue(l10n.vocabularyReviewDueValue(dueCount))
                     : null,
                 onTap: () => context.push('/vocabulary'),
                 responsive: false,
               ),
-            ],
-          ),
-          SizedBox(height: t.space8),
-          _ProfileNavSection(
-            rows: [
+              SettingsRow(
+                leadingIcon: EnjoyIcons.crown,
+                leadingIconTone: EnjoyIconTileTone.brand,
+                title: l10n.profileSubscriptionTile,
+                subtitle: l10n.profileSubscriptionSubtitle,
+                valueBadge: _RowValue(subscriptionTierLabel(l10n, tier)),
+                onTap: () => context.push('/subscription'),
+                responsive: false,
+              ),
+              SettingsRow(
+                leadingIcon: EnjoyIcons.receipt,
+                title: l10n.profileCreditsUsageTile,
+                subtitle: l10n.profileCreditsUsageSubtitle,
+                onTap: () => context.push('/credits'),
+                responsive: false,
+              ),
+              SettingsRow(
+                leadingIcon: EnjoyIcons.tune,
+                title: l10n.profileSectionPreferences,
+                subtitle: l10n.profileSectionPreferencesHint,
+                valueBadge: prefsValue.isEmpty ? null : _RowValue(prefsValue),
+                onTap: () => context.push('/profile/preferences'),
+                responsive: false,
+              ),
               SettingsRow(
                 leadingIcon: EnjoyIcons.manageAccount,
                 title: l10n.profileEditEntry,
@@ -160,16 +183,9 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
                 responsive: false,
               ),
               SettingsRow(
-                leadingIcon: EnjoyIcons.tune,
-                title: l10n.profileSectionPreferences,
-                subtitle: l10n.profileSectionPreferencesHint,
-                onTap: () => context.push('/profile/preferences'),
-                responsive: false,
-              ),
-              SettingsRow(
                 leadingIcon: EnjoyIcons.settings,
                 title: l10n.settingsTitle,
-                subtitle: l10n.settingsSubtitle,
+                subtitle: l10n.profileSettingsHint,
                 valueBadge: ref.watch(updateAvailableBadgeProvider)
                     ? UpdateNotificationDot(
                         semanticsLabel: l10n.updateAvailableBadgeSemantics,
@@ -180,10 +196,13 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
               ),
             ],
           ),
-          SizedBox(height: t.space32),
-          ProfileSignOutButton(
-            saving: _signingOut,
-            onPressed: _confirmAndSignOut,
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: EnjoyButton.secondary(
+              onPressed: _signingOut ? null : _confirmAndSignOut,
+              child: Text(l10n.authSignOut, style: TextStyle(color: t.danger)),
+            ),
           ),
         ];
 
@@ -198,7 +217,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
               onRefresh: _refresh,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: metrics.padding(top: t.space16, bottom: t.space32),
+                padding: metrics.padding(top: 44, bottom: 72),
                 children: children,
               ),
             );
@@ -207,6 +226,57 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
       },
       loading: () => const SkeletonProfile(),
       error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
+    );
+  }
+}
+
+/// Practice and Credits today side by side; stacked on narrow panes.
+class _ProfileTopCards extends StatelessWidget {
+  const _ProfileTopCards({required this.practice, required this.credits});
+
+  final Widget practice;
+  final Widget credits;
+
+  static const double _kSplitMinWidth = 640;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < _kSplitMinWidth) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [practice, const SizedBox(height: 20), credits],
+          );
+        }
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: practice),
+              const SizedBox(width: 20),
+              Expanded(child: credits),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _RowValue extends StatelessWidget {
+  const _RowValue(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        fontSize: 13,
+        color: EnjoyThemeTokens.of(context).ink3,
+      ),
     );
   }
 }

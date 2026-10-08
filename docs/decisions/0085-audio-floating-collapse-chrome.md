@@ -1,7 +1,7 @@
 # ADR-0085: Audio expanded chrome is a floating frosted collapse control
 
 ## Status
-Accepted (supersedes the audio clause of ADR-0077; video rules unchanged)
+Superseded by [ADR-0093](0093-duet-design-language.md) — the player has a solid top bar. (Was: Accepted, superseding the audio clause of ADR-0077; video rules unchanged.)
 
 ## Context
 ADR-0077 replaced audio's blank `AppBar` with a reserved in-body collapse strip (`SafeArea` + `kToolbarHeight` + plain chevron `IconButton`). The audio screen is transcript-only — title and playback chrome live in the global transport bar — so that 56px strip is a mostly-empty band above the transcript. In review it still read as a blank navbar with dead spacing, just slimmer.

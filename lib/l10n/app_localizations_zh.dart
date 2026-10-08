@@ -96,6 +96,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get librarySearchNoMatchesHint => '资料库中没有符合此搜索的内容。';
 
   @override
+  String get librarySearchHint => '搜索媒体库';
+
+  @override
   String get librarySearchClear => '清除搜索';
 
   @override
@@ -529,6 +532,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get echoMode => '回声模式';
 
   @override
+  String get playerListenModeTitle => '聆听';
+
+  @override
+  String get playerDockHideText => '隐藏文本';
+
+  @override
+  String playerDockLinePosition(int line, int total) {
+    return '第 $line / $total 句';
+  }
+
+  @override
+  String get playerDockLooping => '· 循环中';
+
+  @override
+  String playerDockLinesSpanPosition(int start, int end, int total) {
+    return '第 $start–$end / $total 句';
+  }
+
+  @override
+  String get playerDockOriginal => '原声';
+
+  @override
   String get exitEchoMode => '退出回声模式';
 
   @override
@@ -545,6 +570,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noTranscript => '暂无字幕稿';
+
+  @override
+  String get transcriptEmptyOverline => '字幕';
+
+  @override
+  String get transcriptEmptyGenerateDesc => '转写此条目中的语音。将消耗点数。';
+
+  @override
+  String get transcriptEmptyExtractDesc => '使用文件内嵌的字幕轨道（如有）。';
+
+  @override
+  String get transcriptEmptyImportDesc => '导入 .srt 或 .vtt 文件并选择语言。';
 
   @override
   String get importSrtOrVtt => '导入 .srt 或 .vtt 文件。';
@@ -717,6 +754,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shrinkEchoForward => '向前收缩回声';
 
   @override
+  String get echoLoopEarlierLine => '上一句';
+
+  @override
+  String get echoLoopLaterLine => '下一句';
+
+  @override
   String get shadowReadingTitle => '跟读';
 
   @override
@@ -751,6 +794,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get shadowRecordingTake => '录音';
+
+  @override
+  String get shadowTakesLabel => '录音';
+
+  @override
+  String get shadowTakesEmptyPrefix => '这段还没有录音，按';
+
+  @override
+  String get shadowTakesEmptySuffix => '读一遍。';
 
   @override
   String get shadowRecordingPlay => '播放';
@@ -1227,6 +1279,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get assessmentReassess => '重新评测';
+
+  @override
+  String get assessmentScoring => '打分中…';
+
+  @override
+  String get assessmentScoreAction => '评分';
 
   @override
   String get assessmentOverallScore => '总分';
@@ -2028,6 +2086,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsAccountOpenProfile => '打开个人资料';
+
+  @override
+  String sidebarPlanSubtitle(String tier) {
+    return '$tier方案';
+  }
 
   @override
   String get settingsAccountSignIn => '登录';
@@ -3030,6 +3093,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get practicePosterShareAction => '分享海报';
 
   @override
+  String get practicePosterShareLabel => '分享';
+
+  @override
   String get practicePosterShareSuccess => '海报已分享。';
 
   @override
@@ -3823,6 +3889,216 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transcriptEmptyFetchYoutube => '获取字幕';
+
+  @override
+  String homeGoalOfMinutes(int minutes) {
+    return '共 $minutes 分钟';
+  }
+
+  @override
+  String homeGoalProgressRemaining(int done, int goal, int left) {
+    return '$done / $goal 分钟 · 还差 $left 分钟';
+  }
+
+  @override
+  String homeGoalProgressDone(int done, int goal) {
+    return '$done / $goal 分钟';
+  }
+
+  @override
+  String get homeContinueAction => '继续';
+
+  @override
+  String get homeOpenLibrary => '打开媒体库';
+
+  @override
+  String homeContinueLine(int line, int total) {
+    return '第 $line/$total 行';
+  }
+
+  @override
+  String get homeContinueEchoOn => '跟读中';
+
+  @override
+  String get mediaRelativeToday => '今天';
+
+  @override
+  String get mediaRelativeYesterday => '昨天';
+
+  @override
+  String libraryTileAdded(String date) {
+    return '添加于 $date';
+  }
+
+  @override
+  String get vocabularyOverline => '我的单词本';
+
+  @override
+  String vocabularyReviewDueAction(int count) {
+    return '复习 $count 个到期单词';
+  }
+
+  @override
+  String get vocabularyDueToday => '今天到期';
+
+  @override
+  String vocabularyDueEstimate(int minutes) {
+    return '今天及之前到期的单词 · 约 $minutes 分钟';
+  }
+
+  @override
+  String get vocabularyByStatus => '按状态';
+
+  @override
+  String vocabularyDueWaiting(int count) {
+    return '$count 个单词等你复习';
+  }
+
+  @override
+  String get vocabularyDueReviewBody => '今天及之前到期的单词。空格翻卡，1、2、3 评分。';
+
+  @override
+  String vocabularyFilterValue(String label, String value) {
+    return '$label：$value';
+  }
+
+  @override
+  String get vocabularyFewer => '减少';
+
+  @override
+  String get vocabularyMore => '增加';
+
+  @override
+  String get vocabularyProBadge => 'Pro';
+
+  @override
+  String get libraryOverlineLocal => '本设备';
+
+  @override
+  String get libraryOverlineCloud => '保存在你的 Enjoy 账户';
+
+  @override
+  String librarySearchResults(int count, String query) {
+    return '“$query” 有 $count 个结果';
+  }
+
+  @override
+  String get profileSyncedFromAccount => '已从账户同步';
+
+  @override
+  String get profileCreditsToday => '今日积分';
+
+  @override
+  String get profileCreditsUsageLink => '用量';
+
+  @override
+  String get profileCreditsResetsDaily => '每日重置';
+
+  @override
+  String profileCreditsResetsWithPermanent(String count) {
+    return '每日重置 · 另有 $count 永久积分';
+  }
+
+  @override
+  String get profileMinutesUnit => '分钟';
+
+  @override
+  String get profileSettingsHint => '外观、AI 服务、录音、快捷键';
+
+  @override
+  String vocabularyReviewDueValue(int count) {
+    return '$count 个到期';
+  }
+
+  @override
+  String get settingsSectionAccount => '账户';
+
+  @override
+  String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
+
+  @override
+  String get discoverOverline => '你订阅的 YouTube 频道';
+
+  @override
+  String get discoverRecentUploads => '最新上传';
+
+  @override
+  String discoverUpdatedAgo(String age) {
+    return '更新于 $age';
+  }
+
+  @override
+  String discoverHoursAgo(int count) {
+    return '$count 小时前';
+  }
+
+  @override
+  String discoverDaysAgo(int count) {
+    return '$count 天前';
+  }
+
+  @override
+  String get discoverAddToLibraryAction => '加入媒体库';
+
+  @override
+  String get discoverStripSubscribe => '订阅';
+
+  @override
+  String get subscriptionSummaryCurrentPlan => '当前方案';
+
+  @override
+  String get subscriptionSummaryStatus => '状态';
+
+  @override
+  String get subscriptionSummaryExpiration => '有效期至';
+
+  @override
+  String get subscriptionSummaryDailyCredits => '每日积分上限';
+
+  @override
+  String get subscriptionChoosePlan => '选择你的方案';
+
+  @override
+  String get creditsUsageUtcDates => 'UTC 日期';
+
+  @override
+  String get subscriptionPackagesLink => '积分包';
+
+  @override
+  String get playerEchoShort => '回声';
+
+  @override
+  String playerLineOfTotal(Object line, Object total) {
+    return '第 $line/$total 行';
+  }
+
+  @override
+  String syncLastSyncToday(String time) {
+    return '今天，$time';
+  }
+
+  @override
+  String get syncRowWaiting => '等待中';
+
+  @override
+  String get syncRowFailed => '失败';
+
+  @override
+  String syncRowRetries(int count) {
+    return '$count 次尝试';
+  }
+
+  @override
+  String get syncEntityRecording => '录音';
+
+  @override
+  String get syncEntityVocabulary => '单词条目';
+
+  @override
+  String get assessmentWordsSection => '单词';
+
+  @override
+  String get assessmentMarginOverline => '发音评估';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -3915,6 +4191,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get librarySearchNoMatchesHint => '没有符合条件的内容。';
+
+  @override
+  String get librarySearchHint => '搜索媒体库';
 
   @override
   String get librarySearchClear => '清除搜索';
@@ -4311,6 +4590,28 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get echoMode => '回声模式';
 
   @override
+  String get playerListenModeTitle => '聆听';
+
+  @override
+  String get playerDockHideText => '隐藏文本';
+
+  @override
+  String playerDockLinePosition(int line, int total) {
+    return '第 $line / $total 句';
+  }
+
+  @override
+  String get playerDockLooping => '· 循环中';
+
+  @override
+  String playerDockLinesSpanPosition(int start, int end, int total) {
+    return '第 $start–$end / $total 句';
+  }
+
+  @override
+  String get playerDockOriginal => '原声';
+
+  @override
   String get exitEchoMode => '退出回声模式';
 
   @override
@@ -4327,6 +4628,18 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get noTranscript => '暂无字幕稿';
+
+  @override
+  String get transcriptEmptyOverline => '字幕';
+
+  @override
+  String get transcriptEmptyGenerateDesc => '转写此条目中的语音。将消耗点数。';
+
+  @override
+  String get transcriptEmptyExtractDesc => '使用文件内嵌的字幕轨道（如有）。';
+
+  @override
+  String get transcriptEmptyImportDesc => '导入 .srt 或 .vtt 文件并选择语言。';
 
   @override
   String get importSrtOrVtt => '导入 .srt 或 .vtt 文件';
@@ -4499,6 +4812,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get shrinkEchoForward => '向前收缩回声';
 
   @override
+  String get echoLoopEarlierLine => '上一句';
+
+  @override
+  String get echoLoopLaterLine => '下一句';
+
+  @override
   String get shadowReadingTitle => '跟读';
 
   @override
@@ -4533,6 +4852,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get shadowRecordingTake => '录音';
+
+  @override
+  String get shadowTakesLabel => '录音';
+
+  @override
+  String get shadowTakesEmptyPrefix => '这段还没有录音，按';
+
+  @override
+  String get shadowTakesEmptySuffix => '读一遍。';
 
   @override
   String get shadowRecordingPlay => '播放';
@@ -4826,6 +5154,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get assessmentReassess => '重新评测';
+
+  @override
+  String get assessmentScoring => '打分中…';
+
+  @override
+  String get assessmentScoreAction => '评分';
 
   @override
   String get assessmentOverallScore => '总分';
@@ -5381,6 +5715,11 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsAccountOpenProfile => '打开个人资料';
+
+  @override
+  String sidebarPlanSubtitle(String tier) {
+    return '$tier方案';
+  }
 
   @override
   String get settingsAccountSignIn => '登录';
@@ -6375,6 +6714,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get practicePosterShareAction => '分享海报';
 
   @override
+  String get practicePosterShareLabel => '分享';
+
+  @override
   String get practicePosterShareSuccess => '海报已分享。';
 
   @override
@@ -6969,4 +7311,214 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get transcriptEmptyFetchYoutube => '获取字幕';
+
+  @override
+  String homeGoalOfMinutes(int minutes) {
+    return '共 $minutes 分钟';
+  }
+
+  @override
+  String homeGoalProgressRemaining(int done, int goal, int left) {
+    return '$done / $goal 分钟 · 还差 $left 分钟';
+  }
+
+  @override
+  String homeGoalProgressDone(int done, int goal) {
+    return '$done / $goal 分钟';
+  }
+
+  @override
+  String get homeContinueAction => '继续';
+
+  @override
+  String get homeOpenLibrary => '打开媒体库';
+
+  @override
+  String homeContinueLine(int line, int total) {
+    return '第 $line/$total 行';
+  }
+
+  @override
+  String get homeContinueEchoOn => '跟读中';
+
+  @override
+  String get mediaRelativeToday => '今天';
+
+  @override
+  String get mediaRelativeYesterday => '昨天';
+
+  @override
+  String libraryTileAdded(String date) {
+    return '添加于 $date';
+  }
+
+  @override
+  String get vocabularyOverline => '我的单词本';
+
+  @override
+  String vocabularyReviewDueAction(int count) {
+    return '复习 $count 个到期单词';
+  }
+
+  @override
+  String get vocabularyDueToday => '今天到期';
+
+  @override
+  String vocabularyDueEstimate(int minutes) {
+    return '今天及之前到期的单词 · 约 $minutes 分钟';
+  }
+
+  @override
+  String get vocabularyByStatus => '按状态';
+
+  @override
+  String vocabularyDueWaiting(int count) {
+    return '$count 个单词等你复习';
+  }
+
+  @override
+  String get vocabularyDueReviewBody => '今天及之前到期的单词。空格翻卡，1、2、3 评分。';
+
+  @override
+  String vocabularyFilterValue(String label, String value) {
+    return '$label：$value';
+  }
+
+  @override
+  String get vocabularyFewer => '减少';
+
+  @override
+  String get vocabularyMore => '增加';
+
+  @override
+  String get vocabularyProBadge => 'Pro';
+
+  @override
+  String get libraryOverlineLocal => '本设备';
+
+  @override
+  String get libraryOverlineCloud => '保存在你的 Enjoy 账户';
+
+  @override
+  String librarySearchResults(int count, String query) {
+    return '“$query” 有 $count 个结果';
+  }
+
+  @override
+  String get profileSyncedFromAccount => '已从账户同步';
+
+  @override
+  String get profileCreditsToday => '今日积分';
+
+  @override
+  String get profileCreditsUsageLink => '用量';
+
+  @override
+  String get profileCreditsResetsDaily => '每日重置';
+
+  @override
+  String profileCreditsResetsWithPermanent(String count) {
+    return '每日重置 · 另有 $count 永久积分';
+  }
+
+  @override
+  String get profileMinutesUnit => '分钟';
+
+  @override
+  String get profileSettingsHint => '外观、AI 服务、录音、快捷键';
+
+  @override
+  String vocabularyReviewDueValue(int count) {
+    return '$count 个到期';
+  }
+
+  @override
+  String get settingsSectionAccount => '账户';
+
+  @override
+  String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
+
+  @override
+  String get discoverOverline => '你订阅的 YouTube 频道';
+
+  @override
+  String get discoverRecentUploads => '最新上传';
+
+  @override
+  String discoverUpdatedAgo(String age) {
+    return '更新于 $age';
+  }
+
+  @override
+  String discoverHoursAgo(int count) {
+    return '$count 小时前';
+  }
+
+  @override
+  String discoverDaysAgo(int count) {
+    return '$count 天前';
+  }
+
+  @override
+  String get discoverAddToLibraryAction => '加入媒体库';
+
+  @override
+  String get discoverStripSubscribe => '订阅';
+
+  @override
+  String get subscriptionSummaryCurrentPlan => '当前方案';
+
+  @override
+  String get subscriptionSummaryStatus => '状态';
+
+  @override
+  String get subscriptionSummaryExpiration => '有效期至';
+
+  @override
+  String get subscriptionSummaryDailyCredits => '每日积分上限';
+
+  @override
+  String get subscriptionChoosePlan => '选择你的方案';
+
+  @override
+  String get creditsUsageUtcDates => 'UTC 日期';
+
+  @override
+  String get subscriptionPackagesLink => '积分包';
+
+  @override
+  String get playerEchoShort => '回声';
+
+  @override
+  String playerLineOfTotal(Object line, Object total) {
+    return '第 $line/$total 行';
+  }
+
+  @override
+  String syncLastSyncToday(String time) {
+    return '今天，$time';
+  }
+
+  @override
+  String get syncRowWaiting => '等待中';
+
+  @override
+  String get syncRowFailed => '失败';
+
+  @override
+  String syncRowRetries(int count) {
+    return '$count 次尝试';
+  }
+
+  @override
+  String get syncEntityRecording => '录音';
+
+  @override
+  String get syncEntityVocabulary => '单词条目';
+
+  @override
+  String get assessmentWordsSection => '单词';
+
+  @override
+  String get assessmentMarginOverline => '发音评估';
 }

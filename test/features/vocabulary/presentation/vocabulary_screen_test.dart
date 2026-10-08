@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/vocabulary/data/vocabulary_repository.dart';
@@ -25,10 +26,11 @@ void main() {
   Widget harness() {
     return ProviderScope(
       overrides: [appDatabaseProvider.overrideWithValue(db)],
-      child: const MaterialApp(
+      child: MaterialApp(
+        theme: buildAppTheme(Brightness.light),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: VocabularyScreen(),
+        home: const VocabularyScreen(),
       ),
     );
   }
@@ -44,18 +46,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
   }
 
-  testWidgets('empty book shows no-words state and tabs', (tester) async {
-    await pumpScreen(tester);
-
-    expect(find.text('Vocabulary'), findsOneWidget);
-    expect(find.text('Review'), findsOneWidget);
-    expect(find.text('All Words'), findsOneWidget);
-    expect(find.text('No words yet'), findsOneWidget);
-
-    await disposeHarness(tester);
-  });
-
-  testWidgets('stats sheet and due badge when item is due', (tester) async {
+  Future<void> addHello(DateTime nextReviewAt) async {
     final repo = VocabularyRepository(db);
     final created = await repo.addWithContext(
       word: 'hello',
@@ -66,52 +57,72 @@ void main() {
       sourceId: 'v1',
       mediaLocator: const MediaLocator(start: 0, duration: 1000),
     );
+    await (db.update(db.vocabularyItems)
+          ..where((t) => t.id.equals(created.item.id)))
+        .write(VocabularyItemsCompanion(nextReviewAt: Value(nextReviewAt)));
+  }
 
-    await (db.update(
-      db.vocabularyItems,
-    )..where((t) => t.id.equals(created.item.id))).write(
-      VocabularyItemsCompanion(nextReviewAt: Value(DateTime.utc(2000))),
-    );
-
+  testWidgets('empty book shows the no-words state under the header', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await pumpScreen(tester);
 
-    expect(find.text('No words yet'), findsNothing);
-    expect(find.text('Total'), findsNothing);
-    expect(find.text('1'), findsWidgets);
+    expect(find.text('YOUR WORD BOOK'), findsOneWidget);
+    expect(find.text('Vocabulary'), findsOneWidget);
+    expect(find.text('No words yet'), findsOneWidget);
+    expect(find.text('All Words'), findsNothing);
 
-    await tester.tap(find.byTooltip('Show status breakdown'));
+    await disposeHarness(tester);
+  });
+
+  testWidgets('a due word shows the due card, status card and Review action', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await addHello(DateTime.utc(2000));
+    await pumpScreen(tester);
+
+    expect(
+      find.textContaining('due today', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.text('Review 1 due'), findsOneWidget);
+    expect(find.text('by status'), findsOneWidget);
+    expect(find.text('hello'), findsOneWidget);
+    expect(find.text('Hello world'), findsOneWidget);
+
+    await tester.tap(find.text('Review'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.text('Total'), findsOneWidget);
-    expect(find.text('Due'), findsWidgets);
+    expect(find.text('1 word is waiting'), findsOneWidget);
+    expect(find.text('Custom review'), findsOneWidget);
 
     await disposeHarness(tester);
   });
 
-  testWidgets('no-due state offers custom review', (tester) async {
-    final repo = VocabularyRepository(db);
-    final created = await repo.addWithContext(
-      word: 'hello',
-      language: 'en',
-      targetLanguage: 'zh',
-      text: 'Hello world',
-      sourceType: VocabularySourceType.video,
-      sourceId: 'v1',
-      mediaLocator: const MediaLocator(start: 0, duration: 1000),
-    );
-
-    await (db.update(
-      db.vocabularyItems,
-    )..where((t) => t.id.equals(created.item.id))).write(
-      VocabularyItemsCompanion(nextReviewAt: Value(DateTime.utc(2099))),
-    );
-
+  testWidgets('nothing due drops the Review action and says so', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await addHello(DateTime.utc(2099));
     await pumpScreen(tester);
+
+    expect(find.textContaining('Review 0'), findsNothing);
+
+    await tester.tap(find.text('Review'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.text('Nothing due right now'), findsOneWidget);
     expect(find.text('Custom review'), findsOneWidget);
-    expect(find.text('Start review'), findsNothing);
 
     await disposeHarness(tester);
   });

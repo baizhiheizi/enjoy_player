@@ -91,10 +91,10 @@ class _TransportVolumeButtonState extends ConsumerState<TransportVolumeButton> {
       onEnter: (_) => _onPointerInside(true),
       onExit: (_) => _onPointerInside(false),
       child: Material(
-        color: t.popover,
+        color: t.raised,
         shape: RoundedSuperellipseBorder(
           borderRadius: BorderRadius.circular(t.radiusMd),
-          side: BorderSide(color: t.hairline),
+          side: BorderSide(color: t.line),
         ),
         clipBehavior: Clip.antiAlias,
         elevation: 10,

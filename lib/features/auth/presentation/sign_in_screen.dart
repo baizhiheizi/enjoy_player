@@ -93,7 +93,7 @@ class SignInScreen extends ConsumerWidget {
                     style: tt.titleLarge,
                   ),
                   SizedBox(height: t.space24),
-                  EnjoyButton.primary(
+                  EnjoyButton.brand(
                     onPressed: () => ref.invalidate(authCtrlProvider),
                     child: Text(l10n.retry),
                   ),
@@ -150,19 +150,19 @@ class _SignInHub extends ConsumerWidget {
                   width: 72,
                   height: 72,
                   decoration: ShapeDecoration(
-                    color: t.card,
+                    color: t.paper,
                     shape: RoundedSuperellipseBorder(
                       borderRadius: BorderRadius.circular(t.radiusXl),
-                      side: BorderSide(color: t.hairline),
+                      side: BorderSide(color: t.line),
                     ),
                     shadows: [
                       BoxShadow(
-                        color: t.auroraEnd.withValues(alpha: 0.35),
+                        color: t.logoEnd.withValues(alpha: 0.35),
                         blurRadius: 40,
                         spreadRadius: -6,
                         offset: const Offset(0, 12),
                       ),
-                      ...t.shadowCard,
+                      ...t.shadowLift,
                     ],
                   ),
                   child: Padding(
@@ -215,7 +215,7 @@ class _SignInHub extends ConsumerWidget {
                   ),
                   SizedBox(height: t.space12 - 2),
                 ],
-                EnjoyButton.primary(
+                EnjoyButton.brand(
                   size: EnjoyButtonSize.large,
                   expand: true,
                   icon: EnjoyIcons.mail,
@@ -225,15 +225,15 @@ class _SignInHub extends ConsumerWidget {
                 SizedBox(height: t.space24),
                 Row(
                   children: [
-                    Expanded(child: Divider(color: t.hairline)),
+                    Expanded(child: Divider(color: t.line)),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: t.space12),
                       child: Text(
                         l10n.authOrDivider,
-                        style: tt.labelMedium?.copyWith(color: t.textFaint),
+                        style: tt.labelMedium?.copyWith(color: t.ink3),
                       ),
                     ),
-                    Expanded(child: Divider(color: t.hairline)),
+                    Expanded(child: Divider(color: t.line)),
                   ],
                 ),
                 SizedBox(height: t.space12),

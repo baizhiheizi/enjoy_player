@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Page not found</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--ink:#12141A;--ink2:#3D4350;--blue:#4797F5;color-scheme:light}
+.e-dark{--ground:#0E1014;--ink:#EEF0F4;--ink2:#B8BEC9;--blue:#6AAEFF;color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--content:'Literata','Noto Serif SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif}
+.e a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+</style>
+</helmet>
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); overflow: hidden">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="none" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px">
+    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 440px">
+      <svg viewBox="10 4 92 92" aria-hidden="true" style="width: 132px; height: 132px; transform: rotate(180deg)">
+        <defs><linearGradient id="nf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4797F5"></stop><stop offset="1" stop-color="#A855F7"></stop></linearGradient></defs>
+        <g stroke="url(#nf)" stroke-width="5" stroke-linejoin="round" fill="url(#nf)"><polygon points="30,20 70,40 30,60" opacity=".2"></polygon><polygon points="30,40 70,60 30,80" opacity=".35"></polygon><polygon points="50,30 90,50 50,70" opacity=".55"></polygon></g>
+      </svg>
+      <h1 style="margin: 20px 0 0; font-family: var(--content); font-size: 40px; font-weight: 500; letter-spacing: -0.02em">Page not found</h1>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink2)">This link doesn't lead anywhere in Enjoy Player.</p>
+      <a href="Home.dc.html" style="margin-top: 24px; height: 44px; padding: 0 20px; border-radius: 12px; display: inline-flex; align-items: center; font-size: 14.5px; font-weight: 600; color: #FFFFFF; text-decoration: none; background: var(--brand)">Back to Home</a>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { var t = this.props.theme === 'dark' ? 'dark' : 'light'; return { theme: t, themeClass: 'e-' + t }; }
+}
+</script>
+</body>
+</html>

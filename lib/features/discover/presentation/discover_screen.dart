@@ -12,6 +12,8 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
@@ -60,22 +62,36 @@ class DiscoverScreen extends ConsumerWidget {
           slivers: [
             SliverToBoxAdapter(
               child: EditorialHeader(
+                widthMode: EditorialHeaderWidthMode.browse,
+                overline: l10n.discoverOverline,
                 title: l10n.discoverTitle,
-                trailing: isDesktop
-                    ? (refreshing
-                          ? SizedBox(
-                              width: 36,
-                              height: 36,
-                              child: Center(
-                                child: LoadingIcon(size: 18, color: cs.primary),
-                              ),
-                            )
-                          : EnjoyIconButton(
-                              icon: EnjoyIcons.refresh,
-                              tooltip: l10n.lookupRefresh,
-                              onPressed: () => unawaited(onRefresh()),
-                            ))
-                    : null,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (refreshing)
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: Center(
+                          child: LoadingIcon(size: 18, color: cs.primary),
+                        ),
+                      )
+                    else
+                      EnjoyIconButton(
+                        icon: EnjoyIcons.refresh,
+                        tooltip: l10n.lookupRefresh,
+                        onPressed: () => unawaited(onRefresh()),
+                      ),
+                    if (isDesktop) ...[
+                      const SizedBox(width: 8),
+                      EnjoyButton.secondary(
+                        onPressed: () =>
+                            unawaited(showDiscoverManageChannels(context, ref)),
+                        child: Text(l10n.discoverManageChannels),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             if (refreshing)
@@ -104,7 +120,6 @@ class DiscoverScreen extends ConsumerWidget {
                   return SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyState(
-                      icon: EnjoyIcons.rss,
                       title: l10n.discoverFeedEmptyTitle,
                       subtitle: l10n.discoverNoSubscriptionsHint,
                       action: () =>
@@ -116,7 +131,7 @@ class DiscoverScreen extends ConsumerWidget {
                 return _DiscoverFeedSliver(
                   feedAsync: feedAsync,
                   onRefresh: onRefresh,
-                  gutter: metrics.gutter,
+                  inset: metrics.horizontalInset,
                 );
               },
             ),
@@ -156,12 +171,12 @@ class _DiscoverFeedSliver extends StatelessWidget {
   const _DiscoverFeedSliver({
     required this.feedAsync,
     required this.onRefresh,
-    required this.gutter,
+    required this.inset,
   });
 
   final AsyncValue<List<DiscoverFeedItem>> feedAsync;
   final Future<void> Function() onRefresh;
-  final double gutter;
+  final double inset;
 
   @override
   Widget build(BuildContext context) {
@@ -171,13 +186,12 @@ class _DiscoverFeedSliver extends StatelessWidget {
     return feedAsync.when(
       loading: () => SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: gutter),
+          padding: EdgeInsets.symmetric(horizontal: inset),
           child: const SkeletonMediaList(itemCount: 5),
         ),
       ),
       error: (_, _) => SliverToBoxAdapter(
         child: EmptyState(
-          icon: EnjoyIcons.cloudOff,
           title: l10n.discoverFeedErrorTitle,
           subtitle: l10n.discoverFeedErrorHint,
           action: () => unawaited(onRefresh()),
@@ -188,7 +202,6 @@ class _DiscoverFeedSliver extends StatelessWidget {
         if (entries.isEmpty) {
           return SliverToBoxAdapter(
             child: EmptyState(
-              icon: EnjoyIcons.rss,
               title: l10n.discoverFeedEmptyTitle,
               subtitle: l10n.discoverFeedEmptyHint,
               action: () => unawaited(onRefresh()),
@@ -196,75 +209,120 @@ class _DiscoverFeedSliver extends StatelessWidget {
             ),
           );
         }
-        return SliverPadding(
-          padding: EdgeInsets.fromLTRB(gutter, t.space8, gutter, t.space32),
-          sliver: SliverLayoutBuilder(
-            builder: (context, constraints) {
-              const minTileWidth = 320.0;
-              final crossAxisCount =
-                  (constraints.crossAxisExtent / minTileWidth).floor().clamp(
-                    1,
-                    4,
+        final newest = entries
+            .map((e) => e.entry.publishedAt)
+            .reduce((a, b) => a.isAfter(b) ? a : b);
+
+        return SliverMainAxisGroup(
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(inset, 22, inset, 0),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.discoverRecentUploads,
+                        style: enjoyDisplayStyle(
+                          context,
+                          size: 24,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      l10n.discoverUpdatedAgo(_shortAge(newest)),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 12.5,
+                        color: t.ink3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(inset, 18, inset, t.space32),
+              sliver: SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.crossAxisExtent < 320) {
+                    return SliverList.separated(
+                      itemCount: entries.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 28),
+                      itemBuilder: (context, index) => KeyedSubtree(
+                        key: ValueKey<String>(
+                          'discover-feed-${entries[index].entry.videoId}',
+                        ),
+                        child: DiscoverFeedTile(
+                          entry: entries[index].entry,
+                          inLibrary: entries[index].inLibrary,
+                          channelName: entries[index].channelName,
+                          channelAvatarUrl: entries[index].channelAvatarUrl,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final crossAxisSpacing = 22.0;
+                  final crossAxisCount =
+                      ((constraints.crossAxisExtent + crossAxisSpacing) /
+                              (250 + crossAxisSpacing))
+                          .floor()
+                          .clamp(1, 6);
+                  final tileWidth =
+                      (constraints.crossAxisExtent -
+                          crossAxisSpacing * (crossAxisCount - 1)) /
+                      crossAxisCount;
+                  return SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      mainAxisSpacing: 28,
+                      crossAxisSpacing: crossAxisSpacing,
+                      childAspectRatio: mediaCardTileGridAspectRatioForWidth(
+                        tileWidth,
+                        metaHeight: discoverFeedTileMetaHeight,
+                      ),
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Align(
+                        key: ValueKey<String>(
+                          'discover-feed-${entries[index].entry.videoId}',
+                        ),
+                        alignment: Alignment.topCenter,
+                        child: DiscoverFeedTile(
+                          entry: entries[index].entry,
+                          inLibrary: entries[index].inLibrary,
+                          channelName: entries[index].channelName,
+                          channelAvatarUrl: entries[index].channelAvatarUrl,
+                        ),
+                      ),
+                      childCount: entries.length,
+                      findChildIndexCallback: (key) =>
+                          findSliverIndexByPrefixedId(
+                            items: entries,
+                            key: key,
+                            prefix: 'discover-feed-',
+                            idOf: (e) => e.entry.videoId,
+                          ),
+                    ),
                   );
-
-              if (crossAxisCount == 1) {
-                return SliverList.separated(
-                  itemCount: entries.length,
-                  separatorBuilder: (_, _) => SizedBox(height: t.space20),
-                  itemBuilder: (context, index) => KeyedSubtree(
-                    key: ValueKey<String>(
-                      'discover-feed-${entries[index].entry.videoId}',
-                    ),
-                    child: DiscoverFeedTile(
-                      entry: entries[index].entry,
-                      inLibrary: entries[index].inLibrary,
-                      channelName: entries[index].channelName,
-                      channelAvatarUrl: entries[index].channelAvatarUrl,
-                    ),
-                  ),
-                );
-              }
-
-              final tileWidth =
-                  (constraints.crossAxisExtent -
-                      t.space16 * (crossAxisCount - 1)) /
-                  crossAxisCount;
-
-              return SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  mainAxisSpacing: t.space20,
-                  crossAxisSpacing: t.space16,
-                  childAspectRatio: discoverFeedTileGridAspectRatioForWidth(
-                    tileWidth,
-                  ),
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => Align(
-                    key: ValueKey<String>(
-                      'discover-feed-${entries[index].entry.videoId}',
-                    ),
-                    alignment: Alignment.topCenter,
-                    child: DiscoverFeedTile(
-                      entry: entries[index].entry,
-                      inLibrary: entries[index].inLibrary,
-                      channelName: entries[index].channelName,
-                      channelAvatarUrl: entries[index].channelAvatarUrl,
-                    ),
-                  ),
-                  childCount: entries.length,
-                  findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
-                    items: entries,
-                    key: key,
-                    prefix: 'discover-feed-',
-                    idOf: (e) => e.entry.videoId,
-                  ),
-                ),
-              );
-            },
-          ),
+                },
+              ),
+            ),
+          ],
         );
       },
     );
   }
+}
+
+/// `3h ago` / `2d ago` compact feed age, for the Updated caption.
+String _shortAge(DateTime at, {DateTime? now}) {
+  final reference = now ?? DateTime.now();
+  final diff = reference.difference(at.toLocal());
+  if (diff.inHours < 1) return '${diff.inMinutes}m';
+  if (diff.inHours < 24) return '${diff.inHours}h';
+  return '${diff.inDays}d';
 }

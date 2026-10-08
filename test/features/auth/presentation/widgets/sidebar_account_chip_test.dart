@@ -242,7 +242,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Pro Reader'), findsOneWidget);
-    expect(find.text('Pro'), findsOneWidget);
+    expect(find.text('Pro plan'), findsOneWidget);
     expect(find.text('Upgrade'), findsNothing);
   });
 
@@ -282,7 +282,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Lite Reader'), findsOneWidget);
-    expect(find.text('Lite'), findsOneWidget);
+    expect(find.text('Lite plan'), findsOneWidget);
     expect(find.text('Upgrade'), findsNothing);
   });
 

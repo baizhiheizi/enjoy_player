@@ -10,7 +10,9 @@ import 'package:intl/intl.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
@@ -24,7 +26,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 /// (14 px × 1.25 leading) + 2 gap + published line (12.5 px × 1.2) ≈ 58, plus
 /// 6 of air. The air absorbs fonts whose line box runs taller than the `height`
 /// multiplier (see `docs/features/discover.md`) — without it the row overflows.
-const double discoverFeedTileMetaHeight = 64;
+const double discoverFeedTileMetaHeight = 110;
 
 /// Grid width÷height for a feed-tile column of [tileWidth], sized from
 /// [discoverFeedTileMetaHeight] so the cell always fits the tile.
@@ -146,7 +148,6 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final entry = widget.entry;
     final thumb = remoteThumbnailForCard(entry.thumbnailUrl);
@@ -154,6 +155,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     final channelAvatar = widget.channelAvatarUrl;
     final inLibrary = widget.inLibrary;
     final publishedLabel = _formatPublishedLabel(context, entry.publishedAt);
+    final l10n = AppLocalizations.of(context)!;
     final durationLabel = _durationLabel(entry);
 
     return MediaCardTile(
@@ -166,45 +168,67 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
       inLibrary: inLibrary,
       metaHeight: discoverFeedTileMetaHeight,
       meta: Padding(
-        padding: EdgeInsets.only(top: t.space8 - 2),
-        child: Row(
+        padding: const EdgeInsets.only(top: 8),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _ChannelAvatar(
-              imageUrl: channelAvatar,
-              label: channelName,
-              seed: entry.channelId,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ChannelAvatar(
+                  imageUrl: channelAvatar,
+                  label: channelName,
+                  seed: entry.channelId,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        entry.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: tt.titleSmall?.copyWith(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.1,
+                          height: 1.35,
+                          color: t.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$channelName · $publishedLabel',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tt.bodySmall?.copyWith(
+                          fontSize: 12.5,
+                          color: t.ink3,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: t.space8 + 2),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    entry.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: tt.titleSmall?.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.2,
-                      height: 1.25,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$channelName · $publishedLabel',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tt.bodySmall?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      height: 1.2,
-                    ),
-                  ),
-                ],
+            if (!inLibrary) ...[
+              const SizedBox(height: 10),
+              EnjoyButton.secondary(
+                size: EnjoyButtonSize.small,
+                onPressed: _adding ? null : () => unawaited(_addToLibrary()),
+                child: _adding
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: LoadingIcon(size: 14),
+                      )
+                    : Text(l10n.discoverAddToLibraryAction),
               ),
-            ),
+            ],
           ],
         ),
       ),

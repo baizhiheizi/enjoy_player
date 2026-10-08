@@ -112,12 +112,12 @@ abstract final class AppNotice {
 
       switch (kind) {
         case _AppNoticeKind.success:
-          iconColor = AppColors.scoreGoodDark;
+          iconColor = const Color(0xFFF4F4F7);
           icon = EnjoyIcons.checkCircleFill;
           duration = const Duration(seconds: 3);
           wantsDismiss = false;
         case _AppNoticeKind.error:
-          iconColor = AppColors.scoreBadDark;
+          iconColor = AppColors.dangerDark;
           icon = EnjoyIcons.errorFill;
           duration = const Duration(seconds: 5);
           wantsDismiss = true;
@@ -127,7 +127,7 @@ abstract final class AppNotice {
           duration = const Duration(seconds: 3);
           wantsDismiss = false;
         case _AppNoticeKind.warning:
-          iconColor = AppColors.scoreWarnDark;
+          iconColor = const Color(0xFFF4F4F7);
           icon = EnjoyIcons.warning;
           duration = const Duration(seconds: 4);
           wantsDismiss = true;

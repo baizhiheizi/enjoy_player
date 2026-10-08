@@ -206,7 +206,7 @@ class OtpResumePane extends ConsumerWidget {
                     ),
                   ),
                   SizedBox(height: t.space24),
-                  EnjoyButton.primary(
+                  EnjoyButton.brand(
                     onPressed: () => context.push('/sign-in/email'),
                     child: Text(l10n.authOtpResumeAction),
                   ),
@@ -313,7 +313,7 @@ class _EmailStep extends StatelessWidget {
             onSubmitted: (_) => busy ? null : onSubmit(),
           ),
           SizedBox(height: t.space24),
-          EnjoyButton.primary(
+          EnjoyButton.brand(
             onPressed: busy ? null : onSubmit,
             child: busy
                 ? SizedBox(
@@ -463,7 +463,7 @@ class _OtpStepState extends State<_OtpStep> {
             ),
           ],
           SizedBox(height: t.space24),
-          EnjoyButton.primary(
+          EnjoyButton.brand(
             onPressed: (widget.busy || _code.length != 6)
                 ? null
                 : () => widget.onVerify(_code),

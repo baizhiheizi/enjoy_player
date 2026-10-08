@@ -4,7 +4,7 @@
 /// presentation against the same [OnboardingController] `tryStart*` interface,
 /// each surface with its own memo / race rules:
 ///
-/// * `GlobalTransportBar` kept a `mediaId|echo=` dedupe key in its widget
+/// * `PlayerDock` kept a `mediaId|echo=` dedupe key in its widget
 ///   State and scheduled `tryStartPracticeChain` post-frame from two
 ///   `ref.listen`s plus a build-time call;
 /// * `TranscriptPanel` waited for the transcript lines query to resolve and

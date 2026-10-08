@@ -44,26 +44,26 @@ void main() {
       expect(tokens.motionExit, const Duration(milliseconds: 160));
       expect(tokens.motionMedium, const Duration(milliseconds: 220));
 
-      expect(tokens.echoActive, AppColors.echoActive);
-      expect(tokens.blurActive, AppColors.blurActive);
-      expect(tokens.scoreGood, AppColors.scoreGoodDark);
-      expect(tokens.scoreWarn, AppColors.scoreWarnDark);
-      expect(tokens.scoreBad, AppColors.scoreBadDark);
-      expect(tokens.scoreGoodContainer, AppColors.scoreGoodContainer);
-      expect(tokens.scoreWarnContainer, AppColors.scoreWarnContainer);
-      expect(tokens.scoreBadContainer, AppColors.scoreBadContainer);
-      expect(tokens.accentSoft, AppColors.accentSoft);
-      expect(tokens.accentInk, AppColors.brandOnDark);
-      expect(tokens.intelligenceInk, AppColors.intelligenceInkDark);
-      expect(tokens.echoInk, AppColors.echoInkDark);
+      expect(tokens.echoActive, AppColors.youDark);
+      expect(tokens.blurActive, AppColors.inkDark);
+      expect(tokens.scoreGood, AppColors.ink2Dark);
+      expect(tokens.scoreWarn, AppColors.ink2Dark);
+      expect(tokens.scoreBad, AppColors.dangerDark);
+      expect(tokens.scoreGoodContainer, AppColors.sunkDark);
+      expect(tokens.scoreWarnContainer, AppColors.sunkDark);
+      expect(tokens.scoreBadContainer, AppColors.sunkDark);
+      expect(tokens.accentSoft, AppColors.brandSoftDark);
+      expect(tokens.accentInk, AppColors.brandInkDark);
+      expect(tokens.intelligenceInk, AppColors.originalInkDark);
+      expect(tokens.echoInk, AppColors.youInkDark);
       expect(tokens.ccBadge, scheme.primary);
-      expect(tokens.contentMaxWidth, 720);
+      expect(tokens.contentMaxWidth, 700);
       expect(tokens.formMaxWidth, 680);
       expect(tokens.hubMaxWidth, 840);
       expect(tokens.pageGutterCompact, 16);
-      expect(tokens.pageGutter, 24);
+      expect(tokens.pageGutter, 40);
       expect(tokens.miniBarBlurSigma, 24);
-      expect(tokens.sidebarWidth, 236);
+      expect(tokens.sidebarWidth, 244);
       expect(tokens.sidebarBrandHeight, 52);
       expect(tokens.transportHeight, 88);
       expect(tokens.heroTitleLetterSpacing, -0.9);
@@ -72,26 +72,23 @@ void main() {
       expect(tokens.modalMaxWidth, 400);
       expect(tokens.modalMaxWidthLarge, 560);
       expect(tokens.focusRingWidth, 2);
-      expect(tokens.canvas, AppColors.canvasDark);
-      expect(tokens.card, AppColors.cardDark);
-      expect(tokens.popover, AppColors.popoverDark);
-      expect(tokens.hairline, AppColors.borderDark);
-      expect(tokens.fill, AppColors.fillDark);
-      expect(tokens.textFaint, AppColors.faintDark);
-      expect(tokens.auroraStart, AppColors.auroraBlue);
-      expect(tokens.auroraEnd, AppColors.auroraViolet);
-      expect(tokens.shellInset, 8);
-      expect(tokens.panelRadius, 14);
+      expect(tokens.canvas, AppColors.groundDark);
+      expect(tokens.card, AppColors.paperDark);
+      expect(tokens.popover, AppColors.raisedDark);
+      expect(tokens.hairline, AppColors.lineDark);
+      expect(tokens.fill, AppColors.sunkDark);
+      expect(tokens.textFaint, AppColors.ink3Dark);
+      expect(tokens.logoStart, AppColors.logoStart);
+      expect(tokens.logoEnd, AppColors.logoEnd);
+      expect(tokens.shellInset, 0);
+      expect(tokens.panelRadius, 0);
       expect(tokens.controlHeightSm, 32);
       expect(tokens.controlHeight, 40);
-      expect(tokens.controlHeightLg, 48);
-      expect(tokens.shadowCard, isNotEmpty);
+      expect(tokens.controlHeightLg, 50);
+      expect(tokens.shadowLift, isNotEmpty);
       expect(tokens.shadowFloat, isNotEmpty);
       expect(tokens.shadowPopover, isNotEmpty);
-      expect(tokens.aurora.colors, [
-        AppColors.auroraBlue,
-        AppColors.auroraViolet,
-      ]);
+      expect(tokens.logo.colors, [AppColors.logoStart, AppColors.logoEnd]);
 
       expect(
         tokens.transcriptLinePadding,
@@ -99,28 +96,26 @@ void main() {
       );
     });
 
-    test('dark glass is a translucent lifted midnight with a lit edge', () {
+    test('dark glass aliases the Duet paper and line surfaces', () {
       final tokens = EnjoyThemeTokens.build(const ColorScheme.dark());
 
-      expect(tokens.glassTint, const Color(0xFF1C1C22).withValues(alpha: 0.62));
-      expect(tokens.glassBorder, Colors.white.withValues(alpha: 0.09));
+      expect(tokens.glassTint, AppColors.paperDark);
+      expect(tokens.glassBorder, AppColors.lineDark);
+      expect(tokens.topHighlight, Colors.transparent);
     });
 
     test('light palette uses porcelain inks and denser glass', () {
       const scheme = ColorScheme.light();
       final tokens = EnjoyThemeTokens.build(scheme);
 
-      expect(tokens.accentInk, AppColors.brandOnLight);
-      expect(tokens.intelligenceInk, AppColors.intelligenceInkLight);
-      expect(tokens.echoInk, AppColors.echoInkLight);
-      expect(tokens.scoreGood, AppColors.scoreGoodLight);
-      expect(tokens.glassTint, Colors.white.withValues(alpha: 0.8));
-      expect(
-        tokens.glassBorder,
-        const Color(0xFF16161D).withValues(alpha: 0.08),
-      );
-      expect(tokens.canvas, AppColors.canvasLight);
-      expect(tokens.card, AppColors.cardLight);
+      expect(tokens.accentInk, AppColors.brandInkLight);
+      expect(tokens.intelligenceInk, AppColors.originalInkLight);
+      expect(tokens.echoInk, AppColors.youInkLight);
+      expect(tokens.scoreGood, AppColors.ink2Light);
+      expect(tokens.glassTint, AppColors.paperLight);
+      expect(tokens.glassBorder, AppColors.lineLight);
+      expect(tokens.canvas, AppColors.groundLight);
+      expect(tokens.card, AppColors.paperLight);
       expect(tokens.radiusSm, 8);
       expect(tokens.space48, 48);
     });
@@ -419,13 +414,13 @@ void main() {
       expect(result.breakpointRail, 1350);
       expect(result.breakpointTranscriptSideBySide, 1080);
 
-      expect(result.contentMaxWidth, 1080);
+      expect(result.contentMaxWidth, 1070);
       expect(result.formMaxWidth, 1020);
       expect(result.hubMaxWidth, 1260);
       expect(result.pageGutterCompact, 24);
-      expect(result.pageGutter, 36);
+      expect(result.pageGutter, 44);
       expect(result.miniBarBlurSigma, 32);
-      expect(result.sidebarWidth, 366);
+      expect(result.sidebarWidth, 370);
       expect(result.sidebarBrandHeight, 82);
       expect(result.transportHeight, 132);
       expect(result.heroTitleLetterSpacing, closeTo(-1.65, 1e-10));

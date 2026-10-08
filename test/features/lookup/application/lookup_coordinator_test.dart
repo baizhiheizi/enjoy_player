@@ -105,9 +105,14 @@ void main() {
       DictionaryLookupPresentation.bottomSheet,
     ),
     (
-      'just below rail 899x800',
-      const Size(899, 800),
+      'just below compact 599x800',
+      const Size(599, 800),
       DictionaryLookupPresentation.bottomSheet,
+    ),
+    (
+      'compact 600x800',
+      const Size(600, 800),
+      DictionaryLookupPresentation.dialog,
     ),
     ('rail 900x800', const Size(900, 800), DictionaryLookupPresentation.dialog),
     (

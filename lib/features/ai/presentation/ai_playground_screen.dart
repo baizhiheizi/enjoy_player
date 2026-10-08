@@ -399,7 +399,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                     icon: EnjoyIcons.upload,
                     child: Text(l10n.aiPlaygroundPickAudio),
                   ),
-                  EnjoyButton.primary(
+                  EnjoyButton.brand(
                     onPressed: busy == null ? _runAsr : null,
                     child: _RunLabel(
                       busy: busy == _PlaygroundAction.asr,
@@ -431,7 +431,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
               SizedBox(height: t.space12),
               Align(
                 alignment: Alignment.centerLeft,
-                child: EnjoyButton.primary(
+                child: EnjoyButton.brand(
                   onPressed: busy == null ? _runChat : null,
                   child: _RunLabel(
                     busy: busy == _PlaygroundAction.chat,
@@ -477,7 +477,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
               SizedBox(height: t.space12),
               Align(
                 alignment: Alignment.centerLeft,
-                child: EnjoyButton.primary(
+                child: EnjoyButton.brand(
                   onPressed: busy == null ? _runTranslate : null,
                   child: _RunLabel(
                     busy: busy == _PlaygroundAction.translate,
@@ -522,7 +522,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
               SizedBox(height: t.space12),
               Align(
                 alignment: Alignment.centerLeft,
-                child: EnjoyButton.primary(
+                child: EnjoyButton.brand(
                   onPressed: busy == null ? _runDictionary : null,
                   child: _RunLabel(
                     busy: busy == _PlaygroundAction.dictionary,
@@ -561,7 +561,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
               SizedBox(height: t.space12),
               Align(
                 alignment: Alignment.centerLeft,
-                child: EnjoyButton.primary(
+                child: EnjoyButton.brand(
                   onPressed: busy == null ? _runAssessment : null,
                   child: _RunLabel(
                     busy: busy == _PlaygroundAction.assessment,
@@ -699,7 +699,7 @@ class _GroupRow extends StatelessWidget {
                 ),
               ),
             ] else
-              Icon(EnjoyIcons.chevronRight, size: 15, color: t.textFaint),
+              Icon(EnjoyIcons.chevronRight, size: 15, color: t.ink3),
           ],
         ),
       ),
@@ -804,10 +804,7 @@ class _ConsolePanel extends StatelessWidget {
               style: enjoyDisplayStyle(context, size: 20, color: cs.onSurface),
             ),
             SizedBox(height: t.space8),
-            Text(
-              '—',
-              style: enjoyMonoStyle(context, size: 13, color: t.textFaint),
-            ),
+            Text('—', style: enjoyMonoStyle(context, size: 13, color: t.ink3)),
           ],
         ),
       );

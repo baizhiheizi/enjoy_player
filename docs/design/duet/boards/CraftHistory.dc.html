@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Craft history</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:34px;padding:0 12px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-row:hover,.e-ib:hover{background:var(--sunk)}
+.e-ib{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink3)}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:16px!important}.ch-meta{display:none!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="craft" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <header style="flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 20px; border-bottom: 1px solid var(--line)">
+      <a href="Craft.dc.html" class="e-ib" aria-label="Back to Craft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="font-size: 16px; font-weight: 600">Craft history</span>
+    </header>
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 840px; margin: 0 auto; padding: 32px 24px 64px">
+        <div style="display: flex; flex-direction: column; border-radius: 20px; background: var(--paper); border: 1px solid var(--line); overflow: hidden">
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+            <div class="e-row" style="display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 16px 16px 18px; border-bottom: 1px solid var(--line)">
+              <span style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--brand-soft); color: var(--brand-ink)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"></path><path d="m13.5 6.5 4 4"></path></svg>
+              </span>
+              <div style="min-width: 0">
+                <div style="font-family: var(--content); font-size: 17px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.text }}</div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; font-size: 12.5px; color: var(--ink3)">
+                  <span style="font: 600 11px/1 var(--mono); padding: 4px 6px; border-radius: 6px; background: var(--sunk); color: var(--ink2)">{{ r.pair }}</span>
+                  <span class="ch-meta">{{ r.meta }}</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px">
+                <a href="Main.dc.html" class="e-btn e-sec">Open</a>
+                <a href="Craft.dc.html" class="e-btn e-sec ch-meta">Edit</a>
+                <button class="e-ib" aria-label="Remove Craft record" title="Remove Craft record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 17px; height: 17px"><path d="M4 7h16"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M6 7l1 13h10l1-13"></path><path d="M9 7V4h6v3"></path></svg></button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin: 14px 4px 0; font-size: 12.5px; color: var(--ink3)">Removing a Craft record keeps its practice audio in your library.</p>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="home" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var p = this.props || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var rows = [
+      ['I take the ferry to work every morning. It’s slower than the subway, but it keeps me in a good mood all day.', 'ZH → EN', 'Express · Natural · Ava · 0:09 · today'],
+      ['We went to the seaside at the weekend. It was windy, but lovely.', 'ZH → EN', 'Advanced · Andrew · 0:05 · yesterday'],
+      ['Could I get the soup without onions, please?', 'EN', 'Advanced · Speak directly · Ava · 0:03 · Sep 28'],
+      ['My neighbour plays the cello every evening and I have started to look forward to it.', 'ZH → EN', 'Express · Casual · Andrew · 0:07 · Sep 26'],
+      ['The schwa is the most common vowel sound in English.', 'EN', 'Advanced · Speak directly · Ava · 0:04 · Sep 10'],
+      ['明日は雨が降るかもしれないので、傘を持って行きます。', 'ZH → JA', 'Express · Natural · Nanami · 0:06 · Sep 4']
+    ].map(function (r) { return { text: r[0], pair: r[1], meta: r[2] }; });
+    return { theme: theme, themeClass: 'e-' + theme, rows: rows };
+  }
+}
+</script>
+</body>
+</html>

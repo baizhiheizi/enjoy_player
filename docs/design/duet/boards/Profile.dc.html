@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Profile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.e,.e *{box-sizing:border-box}
+.e-light{--ground:#F5F6F8;--paper:#FFFFFF;--sunk:#EDEFF2;--line:#E3E6EB;--ink:#12141A;--ink2:#3D4350;--ink3:#5E6573;--blue:#4797F5;--brand-soft:#EEEBFE;--brand-ink:#4F46E5;--danger:#B42318;color-scheme:light}
+.e-dark{--ground:#0E1014;--paper:#16191F;--sunk:#23272F;--line:#2A2F38;--ink:#EEF0F4;--ink2:#B8BEC9;--ink3:#8A91A0;--blue:#6AAEFF;--brand-soft:rgba(124,58,237,.2);--brand-ink:#B4AFFF;--danger:#FF8A80;color-scheme:dark}
+.e{--brand:linear-gradient(135deg,#2563EB,#7C3AED);--logo:linear-gradient(135deg,#4797F5,#A855F7);--content:'Literata','Noto Serif SC','Songti SC',Georgia,serif;--ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+:where(.e) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+.e button:focus-visible,.e a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+:where(.e) a{color:var(--brand-ink);text-decoration:none}
+.e-btn{height:40px;padding:0 16px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.e-brand{background:var(--brand)!important;color:#FFFFFF!important;box-shadow:0 6px 18px rgba(79,70,229,.26)}
+.e-sec{background:var(--paper);color:var(--ink)!important;border:1px solid var(--line)}
+.e-sec:hover,.e-row:hover{background:var(--sunk)}
+.e-card{background:var(--paper);border:1px solid var(--line);border-radius:22px}
+.e-ov{font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.e-scroll{scrollbar-width:none}
+.e-scroll::-webkit-scrollbar{display:none}
+.e-tabs{display:none!important}
+.p-top{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
+@media (max-width:1050px){.p-top{grid-template-columns:1fr}}
+@media (max-width:899px){.e-side{display:none!important}.e-tabs{display:block!important}}
+@media (max-width:599px){.e-pad{padding:20px 16px 40px!important}.p-hero{flex-direction:column;align-items:flex-start!important}.p-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+</style>
+</helmet>
+
+<div class="e {{ themeClass }}" style="height: 100vh; display: flex; background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; overflow: hidden">
+  <div class="e-side" style="flex-shrink: 0; display: flex"><dc-import name="Sidebar" current="profile" theme="{{ theme }}" hint-size="244px,100vh"></dc-import></div>
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+    <main class="e-scroll" style="flex: 1; min-height: 0; overflow-y: auto">
+      <div class="e-pad" style="max-width: 920px; margin: 0 auto; padding: 44px 32px 72px">
+
+        <section class="e-card p-hero" style="padding: 28px; display: flex; align-items: center; gap: 22px; border-radius: 26px">
+          <span style="width: 92px; height: 92px; border-radius: 50%; padding: 3px; background: var(--logo); flex-shrink: 0">
+            <span style="width: 86px; height: 86px; border-radius: 50%; border: 3px solid var(--paper); display: flex; align-items: center; justify-content: center; background: var(--sunk); font-family: var(--content); font-size: 36px; font-weight: 500">A</span>
+          </span>
+          <div style="flex: 1; min-width: 0">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+              <h1 style="margin: 0; font-family: var(--content); font-size: 36px; font-weight: 500; letter-spacing: -0.02em">Alex Chen</h1>
+              <span style="height: 24px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; background: var(--sunk); color: var(--ink2)">Free</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--ink3)">
+              Enjoy ID <span style="font: 500 13px/1 var(--mono); color: var(--ink2)">1048 2231</span>
+              <button aria-label="Copy Enjoy ID" style="width: 26px; height: 26px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg></button>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <a href="ProfileEdit.dc.html" class="e-btn e-sec">Edit profile</a>
+            <a href="Subscription.dc.html" class="e-btn e-brand">Upgrade to Pro</a>
+          </div>
+        </section>
+
+        <div class="p-top" style="margin-top: 20px">
+          <section class="e-card" style="padding: 22px 24px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between"><span class="e-ov">Practice</span><span style="font-size: 12.5px; color: var(--ink3)">Synced from your account</span></div>
+            <div class="p-stats" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px">
+              <div><div style="font-family: var(--content); font-size: 32px; font-weight: 500; line-height: 1">12<span style="font-size: 16px; color: var(--ink3)"> min</span></div><div style="font-size: 12.5px; color: var(--ink3); margin-top: 8px">Today</div></div>
+              <div><div style="font-family: var(--content); font-size: 32px; font-weight: 500; line-height: 1">1h 48m</div><div style="font-size: 12.5px; color: var(--ink3); margin-top: 8px">This week</div></div>
+              <div><div style="font-family: var(--content); font-size: 32px; font-weight: 500; line-height: 1">6h 02m</div><div style="font-size: 12.5px; color: var(--ink3); margin-top: 8px">This month</div></div>
+            </div>
+          </section>
+          <section class="e-card" style="padding: 22px 24px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between"><span class="e-ov">Credits today</span><a href="Credits.dc.html" style="font-size: 13px; font-weight: 600">Usage</a></div>
+            <div style="font-family: var(--content); font-size: 32px; font-weight: 500; line-height: 1; margin-top: 18px">640 <span style="font-family: var(--ui); font-size: 14px; color: var(--ink3)">/ 1,000</span></div>
+            <div style="position: relative; height: 8px; border-radius: 4px; background: var(--sunk); margin-top: 14px; overflow: hidden"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 64%; border-radius: 4px; background: var(--logo)"></span></div>
+            <div style="font-size: 12.5px; color: var(--ink3); margin-top: 10px">Resets daily · plus 2,400 permanent credits</div>
+          </section>
+        </div>
+
+        <section class="e-card" style="margin-top: 20px; overflow: hidden">
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+            <a href="{{ r.href }}" class="e-row" style="display: grid; grid-template-columns: 38px minmax(0, 1fr) auto 18px; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); color: var(--ink)">
+              <span style="width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: {{ r.tint }}; color: {{ r.ink }}">
+                <sc-if value="{{ r.isVocab }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 19px; height: 19px"><rect x="3.5" y="6" width="13" height="15" rx="2"></rect><path d="M7.5 3h11a2 2 0 0 1 2 2v13"></path></svg></sc-if>
+                <sc-if value="{{ r.isSub }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 19px; height: 19px"><path d="m3 8 4.5 4L12 5l4.5 7L21 8l-2 11H5Z"></path></svg></sc-if>
+                <sc-if value="{{ r.isCredits }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 19px; height: 19px"><ellipse cx="12" cy="6" rx="7" ry="3"></ellipse><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"></path><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"></path></svg></sc-if>
+                <sc-if value="{{ r.isPrefs }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 19px; height: 19px"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 3v2"></path></svg></sc-if>
+                <sc-if value="{{ r.isEdit }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 19px; height: 19px"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></sc-if>
+                <sc-if value="{{ r.isSettings }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 19px; height: 19px"><path d="M4 7h10"></path><path d="M4 17h6"></path><circle cx="17" cy="7" r="3"></circle><circle cx="13" cy="17" r="3"></circle><path d="M20 17h-4"></path></svg></sc-if>
+              </span>
+              <span style="min-width: 0"><span style="display: block; font-size: 14.5px; font-weight: 600">{{ r.t }}</span><span style="display: block; font-size: 12.5px; color: var(--ink3); margin-top: 3px">{{ r.h }}</span></span>
+              <span style="font-size: 13px; color: var(--ink3)">{{ r.v }}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: var(--ink3)"><path d="m9 6 6 6-6 6"></path></svg>
+            </a>
+          </sc-for>
+        </section>
+
+        <button class="e-btn e-sec" style="margin-top: 20px; color: var(--danger)!important">Sign out</button>
+      </div>
+    </main>
+    <div class="e-tabs"><dc-import name="TabBar" current="profile" theme="{{ theme }}" hint-size="100%,84px"></dc-import></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var p = this.props || {};
+    var theme = p.theme === 'dark' ? 'dark' : 'light';
+    var defs = [
+      { k: 'Vocab', t: 'Vocabulary', h: 'Review saved words and flashcards', v: '24 due', href: 'Vocabulary.dc.html', tint: 'var(--brand-soft)', ink: 'var(--brand-ink)' },
+      { k: 'Sub', t: 'Subscription', h: 'View your plan and upgrade to Pro', v: 'Free', href: 'Subscription.dc.html', tint: 'var(--brand-soft)', ink: 'var(--brand-ink)' },
+      { k: 'Credits', t: 'Credits usage', h: 'View AI credits consumption from your account', v: '', href: 'Credits.dc.html', tint: 'var(--sunk)', ink: 'var(--ink2)' },
+      { k: 'Prefs', t: 'Preferences', h: 'Daily goal and language settings', v: '15 min · English', href: 'ProfilePrefs.dc.html', tint: 'var(--sunk)', ink: 'var(--ink2)' },
+      { k: 'Edit', t: 'Edit profile', h: 'Username, avatar, and account IDs', v: '', href: 'ProfileEdit.dc.html', tint: 'var(--sunk)', ink: 'var(--ink2)' },
+      { k: 'Settings', t: 'Settings', h: 'Appearance, AI providers, recording, shortcuts', v: '', href: 'Settings.dc.html', tint: 'var(--sunk)', ink: 'var(--ink2)' }
+    ];
+    return { theme: theme, themeClass: 'e-' + theme, rows: defs.map(function (d) {
+      return { t: d.t, h: d.h, v: d.v, href: d.href, tint: d.tint, ink: d.ink, isVocab: d.k === 'Vocab', isSub: d.k === 'Sub', isCredits: d.k === 'Credits', isPrefs: d.k === 'Prefs', isEdit: d.k === 'Edit', isSettings: d.k === 'Settings' };
+    }) };
+  }
+}
+</script>
+</body>
+</html>

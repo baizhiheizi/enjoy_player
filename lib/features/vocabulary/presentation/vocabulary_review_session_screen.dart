@@ -259,7 +259,7 @@ class _VocabularyReviewSessionScreenState
                             child: Center(
                               child: ConstrainedBox(
                                 constraints: BoxConstraints(
-                                  maxWidth: t.contentMaxWidth,
+                                  maxWidth: t.transcriptMaxListen,
                                 ),
                                 child: VocabularyFlashcard(
                                   item: session.currentItem!,
@@ -480,7 +480,7 @@ class _CompleteBody extends StatelessWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
+        constraints: BoxConstraints(maxWidth: t.transcriptMaxListen),
         child: Padding(
           padding: EdgeInsets.all(t.space24),
           child: EnjoyCard(
@@ -512,7 +512,7 @@ class _CompleteBody extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: t.space24),
-                EnjoyButton.primary(
+                EnjoyButton.brand(
                   onPressed: onDone,
                   child: Text(l10n.vocabularyDone),
                 ),

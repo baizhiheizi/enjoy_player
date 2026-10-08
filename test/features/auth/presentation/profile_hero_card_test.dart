@@ -45,8 +45,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('24000001'), findsOneWidget);
+    expect(find.text('2400 0001'), findsOneWidget);
     expect(find.text('reader@example.com'), findsNothing);
     expect(find.text('Reader'), findsOneWidget);
+    expect(find.text('Edit profile'), findsOneWidget);
+  });
+
+  test('formatEnjoyId groups numeric ids and leaves others alone', () {
+    expect(formatEnjoyId('10482231'), '1048 2231');
+    expect(formatEnjoyId('42'), '42');
+    expect(formatEnjoyId('u1_x'), 'u1_x');
   });
 }

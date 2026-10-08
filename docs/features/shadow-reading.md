@@ -37,9 +37,44 @@ Craft's `CaptureStage` still owns its own capture loop (it needs the amplitude s
 
 ## Idle toolbar (centered FAB)
 
-- The panel shows an **idle toolbar** with the **pitch icon**, a centered **FAB** (start recording), **play**, and **pronunciation assess**. Delete moves into a **more** menu gated by a confirmation dialog.
-- When recording is in flight, the panel swaps to **recording-only focus**: FAB + countdown vs the active echo segment, with the pitch chart and takes list hidden until the take is committed. The countdown ring has a **single timing source** (review on #815): one `Ticker` sets the elapsed seconds on an `AnimationController` that exists purely as the painter's `repaint` listenable inside a `RepaintBoundary` (issue #810 E2), so each vsync **repaints the ring without rebuilding any element**, and the same tick re-evaluates the over-target pulse phase and bumps a `ValueNotifier<int>` of tenths-of-a-second. The elapsed caption is a `ValueListenableBuilder` over that notifier, so it rebuilds 10 times a second — never per frame, and with no second timer to drift from the ring (issue #818). The notifier is deliberately **not** the `AnimationController`: a `ListenableBuilder` on the controller would rebuild the caption on every vsync, which is the cost the paint-only design exists to avoid. Over-target state (error ring + pulse) still rebuilds discretely on the flip and at the 600 ms pulse cadence.
-- All idle toolbar controls use **≥44×44** hit targets where possible; the assessment badge control is **44×44** with explicit `Semantics(label, button)` so VoiceOver / TalkBack see it as a control, not only a tooltip.
+Two presentations share the panel (Duet, ADR-0093):
+
+- **Player embed** (`takesRowInLoop`): the strip below the loop is the
+  board's **takes row** — a `TAKES` overline, one stadium chip per take
+  (play circle, take number, mono duration, an uncolored score chip
+  that re-opens the assessment, or a `Score` action that runs it), the
+  "press R and say it back" hint when empty, and the Pitch pill that
+  toggles the contour. Record / cancel / stop live in the dock; while a
+  take records, the panel renders nothing and the loop block shows the
+  pulse label + countdown bar. The take **more menu (delete with
+  confirm)** has no player-embed home — the vocabulary embed keeps it
+  until take management moves into the assessment margin
+  ([`docs/design/duet/STATUS.md`](../design/duet/STATUS.md) decision
+  tracker).
+- **Vocabulary embed**: the original **idle toolbar** with the **pitch
+  icon**, a centered **FAB** (start recording), **play**, and
+  **pronunciation assess**. Delete moves into a **more** menu gated by a
+  confirmation dialog. When recording is in flight, the panel swaps to
+  **recording-only focus**: FAB + countdown vs the active echo segment,
+  with the pitch chart and takes list hidden until the take is
+  committed. The countdown ring has a **single timing source** (review
+  on #815): one `Ticker` sets the elapsed seconds on an
+  `AnimationController` that exists purely as the painter's `repaint`
+  listenable inside a `RepaintBoundary` (issue #810 E2), so each vsync
+  **repaints the ring without rebuilding any element**, and the same
+  tick re-evaluates the over-target pulse phase and bumps a
+  `ValueNotifier<int>` of tenths-of-a-second. The elapsed caption is a
+  `ValueListenableBuilder` over that notifier, so it rebuilds 10 times a
+  second — never per frame, and with no second timer to drift from the
+  ring (issue #818). The notifier is deliberately **not** the
+  `AnimationController`: a `ListenableBuilder` on the controller would
+  rebuild the caption on every vsync, which is the cost the paint-only
+  design exists to avoid. Over-target state (error ring + pulse) still
+  rebuilds discretely on the flip and at the 600 ms pulse cadence.
+- All toolbar controls use **≥44×44** hit targets where possible; the
+  assessment badge control is **44×44** with explicit
+  `Semantics(label, button)` so VoiceOver / TalkBack see it as a
+  control, not only a tooltip.
 
 ## Pitch contour
 
@@ -72,3 +107,23 @@ Silent FFmpeg WAV normalize is auto-detected and the resample chain is retried (
 - AI capability routes (assessment, chat, translation): [`docs/features/ai.md`](ai.md)
 - Native speech package: `packages/azure_speech/`
 - ADR: [`docs/decisions/0005-mvp-scope-local-only.md`](../decisions/0005-mvp-scope-local-only.md) (echo + shadow reading scope)
+
+## Presentation — the assessment (Duet, ADR-0093)
+
+The assessment dialog reads ink-on-raised: a Literata overall score with
+the level word and meter, uncolored ink bars for accuracy / fluency /
+completeness / prosody (the Excellent / Good / Fair / Poor thresholds
+stay in `score_level.dart`), and word chips whose per-error accents are
+reduced to the scheme's primary. No score colors anywhere.
+
+## Presentation — the pitch duet and takes (Duet, ADR-0093)
+
+The pitch chart draws the **pitch duet**: the reference contour as a 9 px
+original-blue band at 0.35 opacity, your contour as a 3 px you-violet
+line. Score chips on takes are uncolored — an ink number on a paper pill
+(the player takes strip) — and the Excellent / Good / Fair / Poor
+thresholds stay in `score_level.dart` and feed the assessment meter
+(D3.8). In the player the takes render as the strip under the loop
+(chips + Pitch pill); recording readouts (pulse label, countdown bar)
+render inside the loop block, and the dock carries Original + Record and
+Cancel + Stop.

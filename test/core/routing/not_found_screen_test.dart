@@ -1,4 +1,4 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +44,7 @@ void main() {
     await tester.pumpWidget(_harness());
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(EnjoyIcons.compassOff), findsOneWidget);
+    expect(find.byType(EnjoyLogoMark), findsOneWidget);
     expect(find.text('Page not found'), findsOneWidget);
     expect(find.textContaining('/missing'), findsOneWidget);
     expect(find.text('Back to home'), findsOneWidget);

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sidebar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&amp;family=Geist+Mono:wght@400..500&amp;family=Literata:opsz,wght@7..72,400..600&amp;display=swap">
+<style>
+body{margin:0}
+.sb,.sb *{box-sizing:border-box}
+.sb-light{--sb-ground:#F5F6F8;--sb-paper:#FFFFFF;--sb-sunk:#EDEFF2;--sb-line:#E3E6EB;--sb-ink:#12141A;--sb-ink2:#3D4350;--sb-ink3:#5E6573;--sb-blue:#4797F5;--sb-blue-ink:#1D64C8;--sb-you-soft:#F4ECFE;--sb-you-ink:#7E22CE;--sb-brand-ink:#4F46E5;--sb-lift:0 1px 2px rgba(18,20,26,.08),0 0 0 1px rgba(18,20,26,.05)}
+.sb-dark{--sb-ground:#0E1014;--sb-paper:#16191F;--sb-sunk:#23272F;--sb-line:#2A2F38;--sb-ink:#EEF0F4;--sb-ink2:#B8BEC9;--sb-ink3:#8A91A0;--sb-blue:#6AAEFF;--sb-blue-ink:#7DB8FF;--sb-you-soft:rgba(143,85,240,.16);--sb-you-ink:#C7A0FF;--sb-brand-ink:#B4AFFF;--sb-lift:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06)}
+.sb{--sb-brand:linear-gradient(135deg,#2563EB,#7C3AED);--sb-logo:linear-gradient(135deg,#4797F5,#A855F7);--sb-ui:'Geist','PingFang SC','Noto Sans SC',system-ui,sans-serif;--sb-mono:'Geist Mono',ui-monospace,monospace}
+:where(.sb) button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+.sb a:focus-visible,.sb button:focus-visible{outline:2px solid var(--sb-blue);outline-offset:2px}
+.sb-nav:hover{background:var(--sb-sunk)!important;color:var(--sb-ink)!important}
+.sb-search:hover{border-color:var(--sb-ink3)!important}
+.sb-kc{font:500 10.5px/1 var(--sb-mono);padding:3px 5px;border-radius:5px;background:var(--sb-sunk);color:var(--sb-ink2);border:1px solid var(--sb-line)}
+</style>
+</helmet>
+
+<nav aria-label="Main" class="sb {{ themeClass }}" style="width: 244px; height: 100vh; min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; padding: 14px 12px 14px; background: var(--sb-ground); color: var(--sb-ink); font-family: var(--sb-ui); border-right: 1px solid var(--sb-line)">
+  <a href="Home.dc.html" style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 8px; margin-bottom: 10px; color: var(--sb-ink); text-decoration: none">
+    <img src="/_blob/747775ae97e736fcc52ae3074fe11fa4" alt="" style="width: 28px; height: 28px">
+    <span style="font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em">Enjoy Player</span>
+  </a>
+
+  <button class="sb-search" style="width: 100%; height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 10px; border-radius: 11px; background: var(--sb-paper); border: 1px solid var(--sb-line); color: var(--sb-ink3); font-size: 13.5px; margin-bottom: 16px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+    <span style="flex: 1; text-align: left">Search library</span>
+    <span class="sb-kc">/</span>
+  </button>
+
+  <div style="display: flex; flex-direction: column; gap: 2px">
+    <sc-for list="{{ items }}" as="it" hint-placeholder-count="5">
+      <a href="{{ it.href }}" class="sb-nav" aria-current="{{ it.cur }}" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0 10px; border-radius: 11px; font-size: 14px; font-weight: 500; text-decoration: none; background: {{ it.bg }}; color: {{ it.fg }}; box-shadow: {{ it.sh }}">
+        <span style="width: 20px; height: 20px; display: inline-flex; color: {{ it.ic }}">
+          <sc-if value="{{ it.isHome }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="M3.5 10.5 12 3.5l8.5 7V20a1 1 0 0 1-1 1H15v-6.5H9V21H4.5a1 1 0 0 1-1-1Z"></path></svg></sc-if>
+          <sc-if value="{{ it.isDiscover }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><circle cx="12" cy="12" r="9"></circle><path d="m15.5 8.5-2 5-5 2 2-5Z"></path></svg></sc-if>
+          <sc-if value="{{ it.isLibrary }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><rect x="3.5" y="3.5" width="5" height="17" rx="1.2"></rect><rect x="10.5" y="3.5" width="5" height="17" rx="1.2"></rect><path d="m17.6 5 3.4 15"></path></svg></sc-if>
+          <sc-if value="{{ it.isVocab }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><rect x="3.5" y="6" width="13" height="15" rx="2"></rect><path d="M7.5 3h11a2 2 0 0 1 2 2v13"></path><path d="M7 11h6"></path><path d="M7 15h4"></path></svg></sc-if>
+          <sc-if value="{{ it.isCraft }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"></path><path d="m13.5 6.5 4 4"></path></svg></sc-if>
+        </span>
+        <span style="flex: 1">{{ it.label }}</span>
+        <sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px; font: 600 11px/20px var(--sb-mono); text-align: center; background: var(--sb-you-soft); color: var(--sb-you-ink)">{{ it.badge }}</span></sc-if>
+        <sc-if value="{{ it.hasKey }}" hint-placeholder-val="{{ false }}"><span class="sb-kc">{{ it.key }}</span></sc-if>
+      </a>
+    </sc-for>
+  </div>
+
+  <div style="flex: 1"></div>
+
+  <a href="Sync.dc.html" style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; font-size: 12.5px; color: var(--sb-ink3); text-decoration: none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--sb-blue-ink)"><path d="M20 6 9 17l-5-5"></path></svg>
+    Up to date
+  </a>
+  <a href="Settings.dc.html" class="sb-nav" aria-current="{{ settingsCur }}" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0 10px; border-radius: 11px; font-size: 14px; font-weight: 500; text-decoration: none; background: {{ settingsBg }}; color: {{ settingsFg }}; box-shadow: {{ settingsSh }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: {{ settingsIc }}"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"></path></svg>
+    Settings
+  </a>
+  <a href="Profile.dc.html" class="sb-nav" style="display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 8px; margin-top: 6px; border-radius: 13px; text-decoration: none; color: var(--sb-ink); background: {{ accountBg }}; box-shadow: {{ accountSh }}">
+    <span style="width: 34px; height: 34px; border-radius: 50%; padding: 2px; background: var(--sb-logo); flex-shrink: 0">
+      <span style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--sb-paper); font-size: 13px; font-weight: 600; color: var(--sb-ink)">A</span>
+    </span>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 13.5px; font-weight: 600">Alex Chen</span>
+      <span style="font-size: 12px; color: var(--sb-ink3)">Free plan</span>
+    </span>
+    <span style="height: 26px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: #FFFFFF; background: var(--sb-brand)">Upgrade</span>
+  </a>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"current":{"editor":"enum","options":["home","discover","library","vocabulary","craft","settings","profile","none"],"default":"home"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":244,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var cur = this.props.current ?? 'home';
+    var theme = this.props.theme === 'dark' ? 'dark' : 'light';
+    function st(on) { return { bg: on ? 'var(--sb-paper)' : 'transparent', fg: on ? 'var(--sb-ink)' : 'var(--sb-ink2)', sh: on ? 'var(--sb-lift)' : 'none', ic: on ? 'var(--sb-brand-ink)' : 'currentColor', cur: on ? 'page' : 'false' }; }
+    var defs = [
+      { id: 'home', label: 'Home', href: 'Home.dc.html' },
+      { id: 'discover', label: 'Discover', href: 'Discover.dc.html' },
+      { id: 'library', label: 'Library', href: 'Library.dc.html' },
+      { id: 'vocabulary', label: 'Vocabulary', href: 'Vocabulary.dc.html', badge: '24' },
+      { id: 'craft', label: 'Craft', href: 'Craft.dc.html', key: 'C' }
+    ];
+    var items = defs.map(function (d) {
+      var s = st(d.id === cur);
+      return { label: d.label, href: d.href, bg: s.bg, fg: s.fg, sh: s.sh, ic: s.ic, cur: s.cur,
+        isHome: d.id === 'home', isDiscover: d.id === 'discover', isLibrary: d.id === 'library', isVocab: d.id === 'vocabulary', isCraft: d.id === 'craft',
+        hasBadge: !!d.badge, badge: d.badge || '', hasKey: !!d.key, key: d.key || '' };
+    });
+    var se = st(cur === 'settings');
+    var pr = st(cur === 'profile');
+    return { themeClass: 'sb-' + theme, items: items,
+      settingsBg: se.bg, settingsFg: se.fg, settingsSh: se.sh, settingsIc: se.ic, settingsCur: se.cur,
+      accountBg: pr.bg, accountSh: pr.sh };
+  }
+}
+</script>
+</body>
+</html>

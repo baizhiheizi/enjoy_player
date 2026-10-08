@@ -109,6 +109,7 @@ abstract final class EnjoyIcons {
     fontFamily: 'PhosphorFill',
   );
   static const IconData close = IconData(0xe4f6, fontFamily: 'PhosphorRegular');
+  static const IconData cloud = IconData(0xe1aa, fontFamily: 'PhosphorRegular');
   static const IconData cloudDone = IconData(
     0xe1b0,
     fontFamily: 'PhosphorRegular',
@@ -178,6 +179,10 @@ abstract final class EnjoyIcons {
     fontFamily: 'PhosphorRegular',
   );
   static const IconData edit = IconData(0xe34c, fontFamily: 'PhosphorRegular');
+  static const IconData pencil = IconData(
+    0xe3b4,
+    fontFamily: 'PhosphorRegular',
+  );
   static const IconData error = IconData(0xe4e2, fontFamily: 'PhosphorRegular');
   static const IconData errorFill = IconData(
     0xe4e2,

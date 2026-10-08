@@ -1,0 +1,1020 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AiProviders.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "AI providers",
+      "w": 1440,
+      "x": 9120,
+      "y": 2640
+    },
+    "Craft.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Craft · Express — capture",
+      "w": 1440,
+      "x": 0,
+      "y": 1320
+    },
+    "CraftAdvanced.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Craft · Advanced — translate & synthesize",
+      "w": 1440,
+      "x": 4560,
+      "y": 1320
+    },
+    "CraftAudio.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Craft · Express — audio",
+      "w": 1440,
+      "x": 3040,
+      "y": 1320
+    },
+    "CraftHistory.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "practice",
+      "title": "Craft history",
+      "w": 1440,
+      "x": 6080,
+      "y": 1320
+    },
+    "CraftRewrite.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Craft · Express — rewrite",
+      "w": 1440,
+      "x": 1520,
+      "y": 1320
+    },
+    "Credits.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "Credits — packages and usage",
+      "w": 1440,
+      "x": 3040,
+      "y": 1320
+    },
+    "DCompact.dc.html": {
+      "expand": "fill",
+      "h": 560,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Smallest window 880×560 · the margin becomes a drawer",
+      "w": 880,
+      "x": 4560,
+      "y": 1320
+    },
+    "DDark.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Audio · Listen · dark",
+      "w": 1440,
+      "x": 3040,
+      "y": 2640
+    },
+    "DEcho.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Echo · the loop steps forward, the rest recedes",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "DEmpty.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "states",
+      "title": "No transcript yet · three ways to add one",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "DGenerating.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "states",
+      "title": "Creating an AI transcript · keep listening",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "DHide.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Listen · Hide text — word shapes, hover to peek",
+      "w": 1440,
+      "x": 1520,
+      "y": 1320
+    },
+    "DLocate.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "states",
+      "title": "Locate media file · added on another device",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "DRecording.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Echo · recording a take — the countdown runs along the words",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "DScored.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Echo · a scored take — notes land on the words, detail in the margin",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "DSubtitles.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Subtitles & display · word timings generating",
+      "w": 1440,
+      "x": 3040,
+      "y": 1320
+    },
+    "DVideo.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Video · Listen — picture beside the text",
+      "w": 1440,
+      "x": 0,
+      "y": 2640
+    },
+    "DWord.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Listen · look up a word in the margin (no dialog over the text)",
+      "w": 1440,
+      "x": 0,
+      "y": 1320
+    },
+    "DYoutubeDark.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "YouTube · Echo · dark",
+      "w": 1440,
+      "x": 1520,
+      "y": 2640
+    },
+    "Discover.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Discover — channels, language filter, recent uploads",
+      "w": 1440,
+      "x": 0,
+      "y": 1320
+    },
+    "DiscoverChannel.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Discover · one channel",
+      "w": 1440,
+      "x": 1520,
+      "y": 1320
+    },
+    "DiscoverManage.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Discover · manage channels",
+      "w": 1440,
+      "x": 3040,
+      "y": 1320
+    },
+    "Home.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Home — continue, today's goal, community, recent media",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "HomeDark.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Home · dark",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "HomeFirstRun.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Home · first run, with the onboarding tip",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "HomeImport.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Home · Import menu (file, YouTube URL, Craft)",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Keyboard.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "Keyboard shortcuts",
+      "w": 1440,
+      "x": 6080,
+      "y": 2640
+    },
+    "KeyboardCheatsheet.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "account",
+      "title": "Shortcuts cheatsheet (?)",
+      "w": 1440,
+      "x": 7600,
+      "y": 2640
+    },
+    "Library.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Library — local, video grid",
+      "w": 1440,
+      "x": 0,
+      "y": 2640
+    },
+    "LibraryAudio.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Library · audio list, searching “ferry”",
+      "w": 1440,
+      "x": 1520,
+      "y": 2640
+    },
+    "LibraryCloud.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Library · cloud",
+      "w": 1440,
+      "x": 3040,
+      "y": 2640
+    },
+    "LibraryDelete.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Library · delete confirmation",
+      "w": 1440,
+      "x": 4560,
+      "y": 2640
+    },
+    "LibraryImporting.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "app",
+      "title": "Library · importing media",
+      "w": 1440,
+      "x": 6080,
+      "y": 2640
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "player",
+      "title": "Listen · audio — interactive (play, click a word, switch to Echo, record)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "NotFound.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "Page not found",
+      "w": 1440,
+      "x": 1520,
+      "y": 3960
+    },
+    "PDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · Echo · dark",
+      "w": 390,
+      "x": 940,
+      "y": 1264
+    },
+    "PEcho.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · Echo",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "PHide.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · Hide text, hold to peek",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "PRecording.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · recording",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "PScored.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · scored take",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "PVideo.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · video · Listen",
+      "w": 390,
+      "x": 0,
+      "y": 1264
+    },
+    "PVideoEcho.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · video · Echo",
+      "w": 390,
+      "x": 470,
+      "y": 1264
+    },
+    "PWord.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · look up (sheet)",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "PhCraft.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Craft",
+      "w": 390,
+      "x": 3290,
+      "y": 0
+    },
+    "PhDiscover.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Discover",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "PhHome.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Home",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "PhHomeDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Home · dark",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "PhLibrary.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Library",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "PhProfile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Profile",
+      "w": 390,
+      "x": 3760,
+      "y": 0
+    },
+    "PhReview.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Review",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "PhSettings.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Settings",
+      "w": 390,
+      "x": 4230,
+      "y": 0
+    },
+    "PhSignIn.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Sign in",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "PhVocabulary.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "appphone",
+      "title": "Phone · Vocabulary",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "Phone.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "phone",
+      "title": "Phone · Listen — interactive",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "Poster.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "Share your practice · poster preview",
+      "w": 1440,
+      "x": 0,
+      "y": 3960
+    },
+    "Profile.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "Profile",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "ProfileEdit.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "Edit profile",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "ProfilePrefs.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "Preferences",
+      "w": 1440,
+      "x": 6080,
+      "y": 0
+    },
+    "Review.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Review · card front (full window)",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "ReviewBack.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Review · card back with context",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "ReviewDone.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Review · complete",
+      "w": 1440,
+      "x": 6080,
+      "y": 0
+    },
+    "Settings.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "account",
+      "title": "Settings — appearance & language (click the rail)",
+      "w": 1440,
+      "x": 0,
+      "y": 2640
+    },
+    "SettingsAbout.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "account",
+      "title": "Settings · About, with an update downloading",
+      "w": 1440,
+      "x": 1520,
+      "y": 2640
+    },
+    "SettingsDark.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "account",
+      "title": "Settings · account · dark",
+      "w": 1440,
+      "x": 3040,
+      "y": 2640
+    },
+    "Sidebar.dc.html": {
+      "h": 900,
+      "page": "system",
+      "title": "Sidebar (desktop shell)",
+      "w": 244,
+      "x": 1520,
+      "y": 0
+    },
+    "SignIn.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "account",
+      "title": "Sign in",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "SignInCode.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "account",
+      "title": "Sign in · email code",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Subscription.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "account",
+      "title": "Subscription — plans",
+      "w": 1440,
+      "x": 0,
+      "y": 1320
+    },
+    "SubscriptionPlans.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "account",
+      "title": "Subscription · auto-renew Pro",
+      "w": 1440,
+      "x": 1520,
+      "y": 1320
+    },
+    "Sync.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "page": "account",
+      "title": "Sync status",
+      "w": 1440,
+      "x": 4560,
+      "y": 2640
+    },
+    "System.dc.html": {
+      "h": 6360,
+      "page": "system",
+      "title": "Duet · design language",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "TabBar.dc.html": {
+      "h": 84,
+      "page": "system",
+      "title": "Tab bar (phone shell)",
+      "w": 390,
+      "x": 1844,
+      "y": 0
+    },
+    "Vocabulary.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Vocabulary — word book",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "VocabularyReview.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "practice",
+      "title": "Vocabulary · due and custom review",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-01T12:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "page": "app",
+    "view": "canvas"
+  },
+  "notes": {
+    "rowAppPhone": {
+      "kind": "title1",
+      "maxW": 4620,
+      "page": "appphone",
+      "text": "Phone · same screens at 390 px",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "rowCraft": {
+      "kind": "title1",
+      "maxW": 7520,
+      "page": "practice",
+      "text": "Craft",
+      "w": 240,
+      "x": 0,
+      "y": 1020
+    },
+    "rowDiscover": {
+      "kind": "title1",
+      "maxW": 4400,
+      "page": "app",
+      "text": "Discover",
+      "w": 240,
+      "x": 0,
+      "y": 1020
+    },
+    "rowElse": {
+      "kind": "title1",
+      "maxW": 2960,
+      "page": "account",
+      "text": "Elsewhere",
+      "w": 240,
+      "x": 0,
+      "y": 3660
+    },
+    "rowHome": {
+      "kind": "title1",
+      "maxW": 5920,
+      "page": "app",
+      "text": "Home",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "rowLibrary": {
+      "kind": "title1",
+      "maxW": 7520,
+      "page": "app",
+      "text": "Library",
+      "w": 240,
+      "x": 0,
+      "y": 2340
+    },
+    "rowListenEcho": {
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "player",
+      "text": "Listen & Echo — one transcript, two lenses",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "rowLookHide": {
+      "kind": "title1",
+      "maxW": 5440,
+      "page": "player",
+      "text": "Look up, hide, configure",
+      "w": 240,
+      "x": 0,
+      "y": 1020
+    },
+    "rowPhone": {
+      "kind": "title1",
+      "maxW": 2740,
+      "page": "phone",
+      "text": "Phone · portrait",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "rowPhoneVideo": {
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "phone",
+      "text": "Phone · video & dark",
+      "w": 240,
+      "x": 0,
+      "y": 964
+    },
+    "rowPlan": {
+      "kind": "title1",
+      "maxW": 4400,
+      "page": "account",
+      "text": "Plan & credits",
+      "w": 240,
+      "x": 0,
+      "y": 1020
+    },
+    "rowSettings": {
+      "kind": "title1",
+      "maxW": 8000,
+      "page": "account",
+      "text": "Settings",
+      "w": 240,
+      "x": 0,
+      "y": 2340
+    },
+    "rowSignin": {
+      "kind": "title1",
+      "maxW": 7520,
+      "page": "account",
+      "text": "Sign in & profile",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "rowStates": {
+      "kind": "title1",
+      "maxW": 4480,
+      "page": "states",
+      "text": "When there's no transcript, or no file",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "rowVideoDark": {
+      "kind": "title1",
+      "maxW": 4480,
+      "page": "player",
+      "text": "Video & dark",
+      "w": 240,
+      "x": 0,
+      "y": 2340
+    },
+    "rowVocab": {
+      "kind": "title1",
+      "maxW": 7520,
+      "page": "practice",
+      "text": "Vocabulary & review",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "stickyApp": {
+      "page": "app",
+      "text": "Same features as today; new look and layout.\n\n• Desktop sidebar: Home, Discover, Library, Vocabulary, Craft. Vocabulary moves up from Profile; Craft keeps its C shortcut.\n• Phone tabs unchanged: Home, Discover, Library, Profile.\n• Every screen is one responsive page: the sidebar becomes the tab bar under 900 px (the App · phone boards are these same files at 390 px).\n• Media without artwork gets a cover built from the logo.\n• Channel names, titles and numbers are sample content.",
+      "w": 380,
+      "x": 6080,
+      "y": 0
+    },
+    "stickyHide": {
+      "page": "player",
+      "text": "Hide text = Blur practice (H), drawn as word shapes instead of a blur.\n\nSame rule as today: the playing line never reveals itself. Hover (desktop) or press-and-hold (touch) peeks one line. Translation and IPA stay hidden with it.\n\nWord shapes are flat fills — no per-line blur layer to paint.",
+      "w": 380,
+      "x": 5520,
+      "y": 1320
+    },
+    "stickyLogo": {
+      "page": "system",
+      "text": "Logo alignment\n\n• Original = logo blue #4797F5. You = logo violet, deepened to #8B2FE0 for contrast. Brand = the logo gradient, deepened for white labels.\n• Blue and violet are close in hue, so the original is always the translucent layer and you the solid one (pitch, buttons, loop).\n• Echo lens fades through the logo’s opacity steps 1 / 0.65 / 0.35.",
+      "w": 380,
+      "x": 2320,
+      "y": 0
+    },
+    "stickyParity": {
+      "page": "player",
+      "text": "Nothing here is a new feature.\n\n• Listen = today's player. Echo = echo mode: the loop pauses and rewinds at its end — it never auto-loops.\n• Loop handles = [ ] { } (expand / shrink echo).\n• Original = replay (S). Record = R. A take plays from its chip (G plays the selected one). Score = assessment (V). Share = practice poster, top bar, in Echo once there are takes. Pitch = pitch contour (P).\n• Notes on words come from the stored Azure assessment (error type + per-word accuracy + phonemes).\n• The margin replaces the lookup dialog and the assessment dialog on wide windows.",
+      "w": 380,
+      "x": 6080,
+      "y": 0
+    },
+    "stickyPhone": {
+      "page": "phone",
+      "text": "Phones stay portrait (ADR-0059).\n\nThe margin becomes a bottom sheet. The mode switch sits at the top on every size, because it changes how the whole page reads; every action lives in the dock under the thumb.",
+      "w": 340,
+      "x": 2820,
+      "y": 0
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "DEcho.dc.html",
+    "DRecording.dc.html",
+    "DScored.dc.html",
+    "DWord.dc.html",
+    "DHide.dc.html",
+    "DSubtitles.dc.html",
+    "DCompact.dc.html",
+    "DVideo.dc.html",
+    "DYoutubeDark.dc.html",
+    "DDark.dc.html",
+    "DEmpty.dc.html",
+    "DGenerating.dc.html",
+    "DLocate.dc.html",
+    "Phone.dc.html",
+    "PEcho.dc.html",
+    "PRecording.dc.html",
+    "PScored.dc.html",
+    "PWord.dc.html",
+    "PHide.dc.html",
+    "PVideo.dc.html",
+    "PVideoEcho.dc.html",
+    "PDark.dc.html",
+    "System.dc.html",
+    "Home.dc.html",
+    "HomeImport.dc.html",
+    "HomeFirstRun.dc.html",
+    "HomeDark.dc.html",
+    "Discover.dc.html",
+    "DiscoverChannel.dc.html",
+    "DiscoverManage.dc.html",
+    "Library.dc.html",
+    "LibraryAudio.dc.html",
+    "LibraryCloud.dc.html",
+    "LibraryDelete.dc.html",
+    "LibraryImporting.dc.html",
+    "Vocabulary.dc.html",
+    "VocabularyReview.dc.html",
+    "Review.dc.html",
+    "ReviewBack.dc.html",
+    "ReviewDone.dc.html",
+    "Craft.dc.html",
+    "CraftRewrite.dc.html",
+    "CraftAudio.dc.html",
+    "CraftAdvanced.dc.html",
+    "CraftHistory.dc.html",
+    "SignIn.dc.html",
+    "SignInCode.dc.html",
+    "Profile.dc.html",
+    "ProfileEdit.dc.html",
+    "ProfilePrefs.dc.html",
+    "Subscription.dc.html",
+    "SubscriptionPlans.dc.html",
+    "Credits.dc.html",
+    "Settings.dc.html",
+    "SettingsAbout.dc.html",
+    "SettingsDark.dc.html",
+    "Sync.dc.html",
+    "Keyboard.dc.html",
+    "KeyboardCheatsheet.dc.html",
+    "AiProviders.dc.html",
+    "Poster.dc.html",
+    "NotFound.dc.html",
+    "PhSignIn.dc.html",
+    "PhHome.dc.html",
+    "PhHomeDark.dc.html",
+    "PhDiscover.dc.html",
+    "PhLibrary.dc.html",
+    "PhVocabulary.dc.html",
+    "PhReview.dc.html",
+    "PhCraft.dc.html",
+    "PhProfile.dc.html",
+    "PhSettings.dc.html",
+    "Sidebar.dc.html",
+    "TabBar.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "app",
+      "name": "App · desktop"
+    },
+    {
+      "id": "player",
+      "name": "Player · desktop"
+    },
+    {
+      "id": "practice",
+      "name": "Vocabulary & Craft"
+    },
+    {
+      "id": "account",
+      "name": "Account & settings"
+    },
+    {
+      "id": "appphone",
+      "name": "App · phone"
+    },
+    {
+      "id": "phone",
+      "name": "Player · phone"
+    },
+    {
+      "id": "states",
+      "name": "Player · before & around"
+    },
+    {
+      "id": "system",
+      "name": "Design language"
+    }
+  ],
+  "title": "Enjoy Player — Duet"
+}

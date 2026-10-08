@@ -95,15 +95,18 @@ class _TierCatalogState extends ConsumerState<TierCatalog> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          l10n.subscriptionTierCatalogTitle,
-          style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          l10n.subscriptionChoosePlan,
+          style: enjoyDisplayStyle(
+            context,
+            size: 30,
+            color: Theme.of(context).colorScheme.onSurface,
+            height: 1.15,
+          ),
         ),
-        SizedBox(height: t.space4),
+        const SizedBox(height: 6),
         Text(
           l10n.subscriptionTierCatalogDescription,
-          style: tt.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          style: tt.bodyMedium?.copyWith(color: t.ink3),
         ),
         SizedBox(height: t.space20),
         plansAsync.when(
@@ -569,7 +572,7 @@ class _PaidTierCard extends StatelessWidget {
                   style: enjoyDisplayStyle(
                     context,
                     size: 44,
-                    color: _isLite ? cs.onSurface : t.accentInk,
+                    color: _isLite ? cs.onSurface : t.brandInk,
                     height: 1,
                   ),
                 )
@@ -607,7 +610,7 @@ class _PaidTierCard extends StatelessWidget {
           : l10n.subscriptionTierCatalogSelectedInterval(amount, unitLabel),
       features: _paidTierFeatures(l10n),
       emphasizeFeatures: !_isLite,
-      cta: EnjoyButton.primary(
+      cta: EnjoyButton.brand(
         onPressed: ctaEnabled ? onChoose : null,
         child: Text(ctaLabelActual),
       ),
@@ -617,10 +620,10 @@ class _PaidTierCard extends StatelessWidget {
       return DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(t.radiusLg + 2),
-          gradient: t.aurora,
+          gradient: t.logo,
           boxShadow: [
             BoxShadow(
-              color: t.auroraEnd.withValues(alpha: 0.25),
+              color: t.logoEnd.withValues(alpha: 0.25),
               blurRadius: 32,
               spreadRadius: -6,
               offset: const Offset(0, 12),

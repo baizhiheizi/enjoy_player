@@ -1,4 +1,4 @@
-/// Aurora segmented controls.
+/// Duet segmented controls.
 ///
 /// [EnjoySegmentedControl] is the primary control: a recessed track with a
 /// lifted thumb that glides between equal-width segments (the iOS / macOS
@@ -11,59 +11,46 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 
 /// Shared styling for legacy [SegmentedButton] call sites.
 ButtonStyle enjoySegmentedButtonStyle(BuildContext context) {
   final t = EnjoyThemeTokens.of(context);
-  final cs = Theme.of(context).colorScheme;
   final tt = Theme.of(context).textTheme;
 
   return SegmentedButton.styleFrom(
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
     visualDensity: VisualDensity.compact,
-    backgroundColor: t.fill,
-    foregroundColor: cs.onSurfaceVariant,
-    selectedForegroundColor: cs.onSurface,
-    selectedBackgroundColor: t.card,
-    side: BorderSide(color: t.hairline),
+    backgroundColor: t.sunk,
+    foregroundColor: t.ink2,
+    selectedForegroundColor: t.ink,
+    selectedBackgroundColor: t.raised,
+    side: BorderSide(color: t.line),
     splashFactory: NoSplash.splashFactory,
     shape: RoundedSuperellipseBorder(
-      borderRadius: BorderRadius.circular(t.radiusSm + 1),
+      borderRadius: BorderRadius.circular(t.radiusControl),
     ),
     textStyle: tt.labelMedium?.copyWith(fontWeight: FontWeight.w600),
   );
 }
 
 /// Recessed track color shared by segmented controls and segmented [TabBar]s.
-Color enjoySegmentTrackColor(BuildContext context) {
-  final light = Theme.of(context).brightness == Brightness.light;
-  return light ? const Color(0xFFE9E9EF) : const Color(0xFF1E1E25);
-}
+Color enjoySegmentTrackColor(BuildContext context) =>
+    EnjoyThemeTokens.of(context).sunk;
 
 /// Lifted thumb decoration shared by segmented controls and segmented
 /// [TabBar] indicators.
 ShapeDecoration enjoySegmentThumbDecoration(
   BuildContext context, {
-  double radius = 8,
+  double radius = 9,
 }) {
-  final light = Theme.of(context).brightness == Brightness.light;
+  final t = EnjoyThemeTokens.of(context);
   return ShapeDecoration(
-    color: light ? Colors.white : const Color(0xFF34343E),
+    color: t.raised,
     shape: RoundedSuperellipseBorder(
       borderRadius: BorderRadius.circular(radius),
-      side: BorderSide(
-        color: light
-            ? const Color(0x0F16161D)
-            : Colors.white.withValues(alpha: 0.06),
-      ),
     ),
-    shadows: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: light ? 0.08 : 0.3),
-        blurRadius: 3,
-        offset: const Offset(0, 1),
-      ),
-    ],
+    shadows: t.shadowLift,
   );
 }
 
@@ -74,12 +61,16 @@ class EnjoySegment<T> {
     required this.label,
     this.icon,
     this.tooltip,
+    this.count,
   });
 
   final T value;
   final String label;
   final IconData? icon;
   final String? tooltip;
+
+  /// Mono ink3 figure after the label (`Video 9`).
+  final int? count;
 }
 
 class EnjoySegmentedControl<T> extends StatelessWidget {
@@ -105,16 +96,18 @@ class EnjoySegmentedControl<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final n = segments.length;
     final index = segments.indexWhere((s) => s.value == value).clamp(0, n - 1);
-    final height = compact ? 30.0 : 36.0;
-    final radius = compact ? t.radiusSm : t.radiusSm + 2;
+    final height = compact ? 30.0 : t.segmentHeight;
+    final radius = compact ? t.radiusSm : t.radiusControl;
     final instant = MediaQuery.disableAnimationsOf(context);
 
     final thumb = DecoratedBox(
-      decoration: enjoySegmentThumbDecoration(context, radius: radius - 2),
+      decoration: enjoySegmentThumbDecoration(
+        context,
+        radius: compact ? radius - 2 : t.radiusSegmentThumb,
+      ),
     );
 
     final row = Row(
@@ -128,10 +121,10 @@ class EnjoySegmentedControl<T> extends StatelessWidget {
               compact: compact,
               radius: radius - 2,
               textStyle: tt.labelMedium?.copyWith(
-                fontSize: compact ? 12.5 : 13,
+                fontSize: compact ? 12.5 : 13.5,
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.05,
-                color: i == index ? cs.onSurface : cs.onSurfaceVariant,
+                color: i == index ? t.ink : t.ink2,
               ),
               onTap: onChanged == null || i == index
                   ? null
@@ -203,7 +196,7 @@ class _SegmentButton<T> extends StatelessWidget {
             Icon(
               segment.icon,
               size: compact ? 14 : 15,
-              color: selected ? t.accentInk : textStyle?.color,
+              color: selected ? t.ink : textStyle?.color,
             ),
             if (segment.label.isNotEmpty) const SizedBox(width: 6),
           ],
@@ -216,6 +209,18 @@ class _SegmentButton<T> extends StatelessWidget {
                 style: textStyle,
               ),
             ),
+          if (segment.count != null) ...[
+            const SizedBox(width: 7),
+            Text(
+              '${segment.count}',
+              style: enjoyMonoStyle(
+                context,
+                size: 11.5,
+                weight: FontWeight.w500,
+                color: t.ink3,
+              ),
+            ),
+          ],
         ],
       ),
     );

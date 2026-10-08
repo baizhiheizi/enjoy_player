@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_progress_ring.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
@@ -12,7 +11,7 @@ import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.
 ///
 /// Extracted from `shadow_reading_panel.dart` — see issue #180. The ring and
 /// the lit inner button ride the aurora signature kit
-/// ([EnjoyProgressRingPainter], [enjoyLitFillDecoration]).
+/// ([EnjoyProgressRingPainter]).
 ///
 /// The ring is static ([ringProgress]) for the idle FAB, or driven per vsync
 /// by a live elapsed-seconds animation ([ringElapsedSec] +
@@ -117,18 +116,18 @@ class ShadowRecordFab extends StatelessWidget {
                   duration: tok.motionFast,
                   width: _fabInner,
                   height: _fabInner,
-                  decoration: enjoyLitFillDecoration(
-                    base: litBase,
-                    shape: CircleBorder(
-                      side: enjoyLitHighlightSide(alpha: 0.16),
-                    ),
-                    sheen: 0.14,
-                    shadow: enjoyLitShadow(
-                      litBase,
-                      alpha: recording ? 0.45 : 0.36,
-                      blurRadius: recording ? 24 : 16,
-                      spreadRadius: recording ? 1 : -3,
-                    ),
+                  decoration: ShapeDecoration(
+                    color: litBase,
+                    shape: const CircleBorder(),
+                    shadows: [
+                      BoxShadow(
+                        color: litBase.withValues(
+                          alpha: recording ? 0.45 : 0.32,
+                        ),
+                        blurRadius: recording ? 24 : 18,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                   child: Icon(
                     recording ? EnjoyIcons.stop : EnjoyIcons.micFill,

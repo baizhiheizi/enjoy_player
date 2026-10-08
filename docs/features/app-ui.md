@@ -1,28 +1,29 @@
-# App UI — Aurora Design System
+# App UI — Duet Design System
 
-**Status**: Implemented (Aurora redesign 2026-09-28, [ADR-0089](../decisions/0089-aurora-design-language.md); supersedes the 2026-05 "cinematic editorial" pass)
+**Status**: Implemented on `design-duet` ([ADR-0093](../decisions/0093-duet-design-language.md); replaces Aurora [ADR-0089](../decisions/0089-aurora-design-language.md)).
 
 ## Design direction
 
-**Aurora — quiet chrome, luminous content.** Material is the widget toolkit, not the look: no ink ripples, continuous (superellipse) corners, hairline + ambient-light depth instead of elevation, one icon family, and one motion language on every platform.
+**Duet — two voices, flat ground.** Material is the widget toolkit, not the look: no ink ripples, continuous (superellipse) corners, flat surfaces with line borders and the lift shadow instead of elevation, one icon family, and one motion language on every platform. **Blue (original)** is the original speaker — playback, the spoken word, reference pitch, Listen; **violet (you)** is the learner — the Echo loop, Record, takes, your pitch. The brand gradient between them is Enjoy itself (logo, Play, primary buttons, goal ring, Pro). Everything else is ink. Modes are lenses: Listen reads like a book; Echo grows the loop in place and fades the rest. Feedback lands on the words (karaoke underline, hide-text shapes, practiced dots), never in chrome.
 
-**Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`):
-- **Neutrals** — cool, with a faint iris cast. **Porcelain** light: page `#F7F7F9`, canvas `#ECECF1`, cards / popovers white. **Midnight** dark: page `#111115`, canvas `#09090B`, cards `#17171C`, popovers `#1E1E24`. Address surfaces by role: `t.canvas`, `cs.surface` (page), `t.card`, `t.popover`, `t.fill` (control fills), `t.hairline`, `t.textFaint`.
-- **Iris accent** — fills `#5B4BE8` (light) / `#6D5DFC` (dark), white labels ≥ 4.5:1; inks `#4F3FD6` / `#A99BFF` (`t.accentInk`) for small text. `t.accentSoft` for selected washes.
-- **Aurora** — the logo's blue `#4797F5` → violet `#A855F7` (`t.aurora`). Signature moments only: the page glow (`AuroraGlow`), goal ring, Pro badge (`EnjoyTierBadge`), credits meter, profile avatar ring, sign-in stage. The signature treatments live in one **aurora signature kit** in `core/theme/widgets/`: the lit fill (`enjoyLitFillBuilder` / `enjoyLitFillDecoration` / `enjoyLitShadow` / `enjoyLitHighlightSide`), the gradient pill (`EnjoyTierBadge`), and the ring (`EnjoyProgressRingPainter`). It is the single home of the ADR-0089 §2/§6 decisions — consume the kit instead of hand-rolling `t.aurora` gradients, lit fills, or progress rings.
-- **Semantic inks** — echo coral (`t.echoActive` / `t.echoInk`), intelligence blue (`t.intelligenceInk`), listening-focus teal (`t.blurActive`), scores (`t.scoreGood` / `scoreWarn` / `scoreBad`).
-- **Dynamic accent** — artwork palette (ADR-0007) still tints the play button and the player's ambient backdrop **on top of** these neutrals.
+**Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`; Duet values per [ADR-0093](../decisions/0093-duet-design-language.md) — Aurora-named fields alias them until the rename pass, values from [`tokens.json`](../../design/duet/tokens.json)):
+- **Flat neutrals** — one **ground** for sidebar and pages (light `#F5F6F8`, dark `#0E1014`), `paper` cards, `raised` menus / dialogs, `sunk` control fills, `line` separators; text inks `ink` / `ink2` / `ink3`. No floating content panel, no glass surfaces.
+- **Two voices** — **original** blue (`original` / `originalInk` / `originalSoft`) is the original speaker: playback, the spoken word, reference pitch, Listen. **You** violet (`you` / `youInk` / `youSoft` / `youLine` / `onYou`) is the learner: the Echo loop, Record, takes, your pitch, notes. The voices keep a ~1.9:1 lightness gap in both themes and never rely on hue alone (translucent layer vs solid).
+- **Brand** — the gradient between the voices: `brand` `#2563EB → #7C3AED` (`t.brand`) for Play, primary buttons, Pro, Upgrade; `logo` `#4797F5 → #A855F7` (`t.logo`) for the mark, goal ring, credits meter, avatar ring, generated covers. `brandInk` / `brandSoft` carry selected rows and tabs.
+- **Material `ColorScheme`** (`AppColors.colorScheme`) maps onto Duet: `primary`/`onPrimary` = `brandInk` / white (dark `ground`), `primaryContainer` = `brandSoft`, `secondary` = `original`, `tertiary`/`onTertiary` = `you`/`onYou`, `error` = `danger`, `surface` = `ground`, `surfaceContainer*` = `paper`/`raised`/`sunk`, `onSurface`/`onSurfaceVariant` = `ink`/`ink2`, `outline`/`outlineVariant` = `ink3`/`line`, `scrim` = the `scrim` token. Filled action buttons never take `ColorScheme.primary` — `EnjoyButton` owns its fills.
+- **Component accents** — switches, radios, checkboxes, and input focus borders use `brandInk`; sliders, text selection, and the sentence ruler use `original`. Dialogs sit on `raised` at radius 24 with the `scrim` token; sheets use radius 26; menus use `raised` + the float shadow; tooltips are ink-on-ground. `AppNotice` stays a dark toast in `ink`.
+- **Semantic inks** — `danger` for destructive actions and errors. Scores are **uncolored**: an ink number plus a four-step meter.
 
 ### Typography
 
-- UI (body, labels, buttons, nav): **Geist**.
-- Display (page titles, hero figures, empty-state titles): **Instrument Serif**, regular weight only — never embolden. `enjoyDisplayStyle(size:)` for one-off display moments.
-- Mono (timestamps, durations, scores): **Geist Mono** with tabular figures — `enjoyMonoStyle()`.
-- Transcript body: **Source Serif 4** (default on, toggleable) + Noto Serif CJK; secondary track Noto Sans.
+- UI (body, labels, buttons, nav): **Geist** 400 / 500 / 600.
+- Display (page titles, hero figures, empty-state titles): **Literata** 500. `enjoyDisplayStyle(size:)` for one-off display moments (defaults to weight 500).
+- Mono (timestamps, durations, scores, keycaps): **Geist Mono** 500 / 600 with tabular figures — `enjoyMonoStyle()`.
+- Transcript body: **Literata** 400 / 500 (default on, toggleable) + Noto Serif CJK; secondary track and IPA: Noto Sans 400.
 - CJK UI falls back to installed platform faces (`kCjkSansFallbacks` / `kCjkSerifFallbacks`) — no extra downloads.
-- Scale: `11.5 / 12.5 / 13.5 / 14 / 15 / 15.5 / 17 / 18 / 21 / 30 / 38 / 44 / 56`.
+- Scale (tokens.json → typography.scale): body 14.5 / 1.55, button 14 / 600, nav 14 / 500, caption 12.5, overline 11 / 600 caps 0.08em, time 12.5 mono / 500, score 13 mono / 600, keycap 10.5 mono / 500.
 
-**Font delivery** (issue #810, #818): every variant the app requests — Geist 400/500, Geist Mono 500, Instrument Serif 400, Source Serif 4 400/500/600, Playfair Display 700 + 600-italic (share poster), Noto Sans 400 (transcript secondary track + IPA layer) — ships in `assets/fonts/google_fonts/` in the google_fonts asset layout (filenames use the package's camelCase family ids, e.g. `GeistMono-Medium.ttf`), so the first theme build loads them from the bundle instead of fetching fonts.gstatic.com: no first-run FOUT / full-app relayout, correct fonts offline. `OFL-*.txt` files carry each family's license.
+**Font delivery** (issue #810, #818): every variant the app requests — Geist 400/500/600, Geist Mono 500/600, Literata 400/500/600, Playfair Display 700 + 600-italic (share poster, retired with D3.12), Noto Sans 400 — ships in `assets/fonts/google_fonts/` in the google_fonts asset layout (filenames use the package's camelCase family ids, e.g. `GeistMono-Medium.ttf`), so the first theme build loads them from the bundle instead of fetching fonts.gstatic.com: no first-run FOUT / full-app relayout, correct fonts offline. `OFL-*.txt` files carry each family's license.
 
 `GoogleFonts.config.allowRuntimeFetching = false` is set in `lib/main.dart`, so no font can ever trigger a runtime download. This is possible because **CJK is addressed by name, never through `google_fonts`**: the ~40 MB Noto SC/Kr/Jp variants are neither bundled nor loaded, and instead appear in `fontFamilyFallback` as the plain family ids `kCjkNotoSansFallbacks` / `kCjkNotoSerifFallbacks` (`NotoSansKR`, `NotoSansSC`, `NotoSansJP`, `NotoSerifKR`, `NotoSerifSC`, `NotoSerifJP`) plus the assembled `_kTranscriptCjkSansFallbacks` / `_kTranscriptCjkSerifFallbacks`. A `fontFamilyFallback` entry is resolved by the platform font matcher, so an absent family is skipped at no cost and the installed-platform lists `kCjkSansFallbacks` / `kCjkSerifFallbacks` take over. Do **not** reintroduce `GoogleFonts.notoSerifSc().fontFamily`-style lookups to "get" a family name — building the `TextStyle` to read `.fontFamily` is what forced the multi-megabyte fetch and a font registration on the text build path, once per transcript line. **Every** entry in those two lists must be a literal, including `'Geist'`, for the same reason. When adding a weight or family to `typography.dart`, bundle the matching file and extend `test/core/theme/bundled_google_fonts_test.dart`.
 
@@ -41,13 +42,13 @@ One stroke family — **Phosphor** (MIT) vendored as `PhosphorRegular` / `Phosph
 
 ## Theme mode
 
-Porcelain light + midnight dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0089). `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
+Duet light + dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0093); `duet_tokens_test.dart` pins each theme's values to `tokens.json`. `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
 
 ## Navigation
 
-- **Mobile**: `EnjoyBottomNav` — a floating frosted glass capsule (58pt + safe area) with a gliding selection **lens**; glyphs switch outline → filled. **Four** destinations: Home, Discover, Library, **Profile** (Settings is reached from a tile inside Profile). `RootShell` mounts it as `Scaffold.bottomNavigationBar` with `extendBody` over `AppBackground` (page color + aurora glow); the routed body reserves `rootShellBottomNavClearance`.
+- **Mobile**: `EnjoyBottomNav` — a solid full-width paper bar (58pt content + the real bottom safe inset; 84pt on home-indicator devices) with a top `line`. The selected tab gets a 52×30 `brandSoft` pill, a filled glyph in `brandInk`, and a 600 label. **Four** destinations: Home, Discover, Library, **Profile** (Settings is reached from a tile inside Profile); the update badge stays on Profile. `RootShell` mounts it as `Scaffold.bottomNavigationBar` with `extendBody`; the routed body reserves `rootShellBottomNavClearance`.
 - **Library source switch**: inside `LibraryScreen`, a compact **Local / Cloud** capsule (`LibrarySourceToggle`) beside the title; tap toggles source. Cloud mode uses `/library?source=cloud`; legacy `/cloud` redirects.
-- **Desktop (≥ 900 px)**: `AppSidebar` sits directly on the window **canvas** (no fill, no border); routed pages live on a floating continuous-corner **content panel** (inset `t.shellInset` 8, radius `t.panelRadius` 14, hairline edge, aurora glow). Sidebar rows are `NavItemPill` (34px, lifted plate when selected, filled glyph + iris ink). Search shows its hotkey as an `EnjoyKeycap`. Profile is reached via `SidebarAccountChip` (avatar, name, aurora tier badge; Free users get an aurora **Upgrade** pill).
+- **Desktop (≥ 900 px)**: `AppSidebar` sits on the flat **ground** with a right `line`; routed pages sit directly on the ground beside it — no floating panel. Sidebar (244px): brand row (logo + "Enjoy Player"), search field (paper, 38px, radius 11, `/` keycap), nav rows (`NavItemPill`, 38px, radius 11; the selected row is a paper plate with the lift shadow and a brandInk glyph): Home, Discover, Library, **Vocabulary** (a you-soft due-count pill from `vocabularyStatsProvider`), **Craft** (`C` keycap); footer: sync line (check + "Up to date" / counts → `/settings/sync`), **Settings** row, and `SidebarAccountChip` (34px logo-ring avatar, name, plan subtitle; Free users get a brand **Upgrade** pill). Route highlighting: `/vocabulary*`, `/craft*`, `/settings*`, `/profile` (the chip). The player and review routes still hide the sidebar.
 - Page transitions: one glide everywhere, Cupertino on iOS.
 
 ## Page layout
@@ -56,13 +57,22 @@ Adaptive page families ([ADR-0055](../decisions/0055-adaptive-page-layout-system
 
 | Kind | Width | Chrome | Examples |
 |------|-------|--------|----------|
-| `browse` | Full pane + `pageGutter` (16 / 24) | `EditorialHeader` (gutter-aligned) | Home, Discover, Library, channel feed |
-| `hub` | Centered `hubMaxWidth` (840) | Editorial or `EnjoySubpageAppBar` | Profile, Settings, Subscription, Credits, Hotkeys, AI providers, Vocabulary |
-| `form` | Centered `formMaxWidth` (680) | `EnjoySubpageAppBar` | Preferences, Edit Profile |
+| `browse` | Centered `pageMaxBrowse` (1180) + `gutter` (40 / 16 phone) | `EditorialHeader` (gutter-aligned) | Home, Discover, Library, channel feed |
+| `hub` | Centered `pageMaxHub` (840) | Editorial or `EnjoySubpageAppBar` | Profile, Settings, Subscription, Credits, Hotkeys, AI providers, Vocabulary |
+| `form` | Centered `pageMaxForm` (680) | `EnjoySubpageAppBar` | Preferences, Edit Profile |
+| `craft` | Centered `pageMaxCraft` (1080) | Craft header | Craft (adopted by the Craft rebuild, D4.6) |
 | `auth` | Centered `modalMaxWidth` (400) | Auth scaffold | Sign-in |
 | `playerChrome` | Player-owned | Player chrome | Expanded player |
 
+`EnjoySubpageAppBar` is 64px (`subpageHeaderHeight`): a quiet back chevron and a Geist 600 title. Not-found renders the logo mark rotated 180° at 0.55 opacity over a centered 440px column with a Literata 40 title and one brand button.
+
 Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-screen max widths or stretch form Save buttons to the full desktop pane.
+
+### Page bodies must not host their own `LayoutBuilder` sizing
+
+`EnjoyPage` and `Scaffold` already build their bodies inside a framework `LayoutBuilder`: the layout callback runs with render-tree mutations enabled, and a subtree that inflates there after its ancestors were laid out loses its relayout propagation (`markParentNeedsLayout` defers to the parent that is mid-callback) — the region then never lays out again, renders blank, and every pointer pass logs "Cannot hit test a render box that has never been laid out". Screens therefore take widths from the `EnjoyPageMetrics` handed to `body:` (Home's hero band does: `paneWidth - horizontalInset * 2`) instead of wrapping provider-driven cards in their own `LayoutBuilder`.
+
+The same class of failure arrives through intrinsics: `RenderImage.computeMaxIntrinsicHeight` returns the widget's `height` verbatim, so an image given `width`/`height: double.infinity` makes any ancestor `IntrinsicHeight` query abort `flushLayout` mid-pass, which strands every render object already queued for layout that frame. `MediaCardThumbnail` consequently never passes infinite sizes to its images, and the Continue-practicing cover keeps its thumbnail under `Positioned.fill` so the image's natural size never enters intrinsic math (the cover reports its designed 230px minimum).
 
 ## System chrome
 
@@ -79,26 +89,37 @@ Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-sc
 | `DiscoverScreen` | Serif title; channel strip with story-ring avatars and an inverted "All" pill; feed tiles share the poster artwork treatment |
 | `ExpandedPlayerScreen` | `PlayerAmbientBackdrop` artwork tint; glass transport capsule (lit play button, mono times, filled glyphs for active tools); transcript with lyric-style focus (context cues dim while a cue is active) |
 | `TranscriptPanel` | Source Serif 4 body, Geist Mono timestamps, continuous-corner active plate with iris rail, iris translation rule |
-| `ProfileScreen` | Hero card (aurora-ringed avatar, serif name, mono ID, aurora wash), one stat card with three serif figures, credits meter, grouped rows |
+| `ProfileScreen` | Hero card (logo-ring avatar, Literata name, tier chip, grouped mono Enjoy ID), Practice + Credits today cards, one neutral list, danger Sign out |
 | `SettingsScreen` | Serif title + description; grouped inset lists with colored `EnjoyIconTile`s; single-column groups get overline headings; two-pane rail uses `NavItemPill` |
 | `VocabularyScreen` | Segmented tab bar (shared track / thumb decoration); stat sheet with serif figures; stacked rating tiles in review |
 | `NotFoundScreen` | Router `errorBuilder` fallback; localized; single primary "Back to Home" |
 
 ## Design token reference (`EnjoyThemeTokens`)
 
+Duet tokens ([ADR-0093](../decisions/0093-duet-design-language.md)) come from [`docs/design/duet/tokens.json`](../../design/duet/tokens.json); `test/core/theme/duet_tokens_test.dart` pins every color, radius, size, breakpoint, motion, opacity, and stroke value to that file in light and dark. Aurora-named fields (`canvas`, `card`, `popover`, `fill`, `hairline`, `textFaint`, …) alias the Duet values until the rename pass.
+
 ```
-Spacing:   4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48
-Radii:     6 / 8 / 12 / 16 / 22 / 30 / pill   (radiusXs … radius2xl, superellipse)
-Controls:  32 / 40 / 48                        (controlHeightSm / controlHeight / controlHeightLg)
-Surfaces:  canvas / card / popover / fill / hairline / textFaint / topHighlight
-Aurora:    auroraStart #4797F5 → auroraEnd #A855F7 (t.aurora gradient)
-Shadows:   shadowCard / shadowFloat / shadowPopover
-Motion:    160 fast / 220 medium / 280 standard / 260 enter / 160 exit; ease + emphasized curves
-Shell:     sidebar 236 · brand row 52 · shellInset 8 · panelRadius 14 · bottom nav 64 (58 capsule)
-Widths:    content 720 · form 680 · hub 840 · modal 400 / 560
-Gutters:   pageGutter 24 · pageGutterCompact 16 (< 600)
-Breakpoints: compact 600 · rail 900 · transcript side-by-side 720
-Focus ring: 2px iris ink
+Surfaces:   ground / paper / raised / sunk / line         (sidebar+pages / cards / menus / control fill / separators)
+Inks:       ink / ink2 / ink3 · primary + onPrimary (ink fill) · danger · shape · tick · scrim · video
+Voices:     original · originalInk · originalSoft          (blue — playback, spoken word, reference pitch, Listen)
+            you · youInk · youSoft · youLine · onYou       (violet — Echo loop, Record, takes, your pitch)
+            brandInk · brandSoft                           (readable brand-gradient end)
+Gradients:  brand #2563EB → #7C3AED (buttons, Pro) · logo #4797F5 → #A855F7 (mark, rings, covers) — `t.brand` / `t.logo`
+Vocabulary: vocabNew / vocabLearning / vocabReviewing / vocabMastered
+Spacing:    4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48
+Radii:      keycap 5 · badge 7 · segment thumb 9 · control / segment track / input 12 · tile 14
+            card 20 · cardLarge / dialog 24 · sheet 26 · pill (legacy radiusXs 6 … radius2xl 30)
+Controls:   32 / 40 / 50                        (controlHeightSm / controlHeight / controlHeightLg)
+Sizes:      touch 44 · icon button 40 (44 phone) · segment 38 · chip 34 · take chip 42
+            play 60 (68 phone) · record 62 (76 phone) · Original pill 150 × 52 (56 phone)
+Shell:      sidebar 244 · brand row 52 · tab bar 84 + 26 safe inset · player top bar 60 · subpage header 64
+Player:     ruler hit 34 · margin 340 · Listen column 700 · Echo column 760 · video transcript column clamp(300 px, 28 %, 380 px) · take chip 36
+Pages:      browse 1180 · craft 1080 · hub 840 · form 680 · gutter 40 (16 phone)
+Breakpoints: compact 600 · rail 900 · margin drawer 1100 · transcript side-by-side 720
+Motion:     160 fast / 220 margin / 280 lens · echo lens opacity 1 / .65 / .35 / .2 · reference pitch band .35
+Strokes:    reference pitch 9 · your pitch 3 · loop bracket 2 · ruler track 4 · focus ring 2
+Shadows:    lift (cards) · float (chrome, popovers) · brandButton · recordButton
+Legacy:     `auroraStart`/`auroraEnd`/`aurora` = logo stops · `shadowCard`=lift · `shadowFloat`=`shadowPopover`=float
 ```
 
 ## Widgets reference
@@ -109,18 +130,18 @@ Focus ring: 2px iris ink
 | `EnjoyChromeIcon` | `core/theme/widgets/enjoy_chrome_icon.dart` | Shell / transport glyph enum → `EnjoyIcons` (`filled:` for active) |
 | `EnjoyPressable` | `core/interaction/enjoy_pressable.dart` | Press-scale + hover wash + focus ring + keyboard activation + haptics (no ripple); wash/ring default to a superellipse from `borderRadius`, `shape` overrides it (e.g. `CircleBorder` for circular chrome) |
 | `EnjoyTappableSurface` / `EnjoyTappableIcon` | `core/interaction/enjoy_tappable.dart` | Legacy API over `EnjoyPressable` / `IconButton` |
-| `EnjoyButton` (`primary` / `secondary` / `tonal` / `ghost` / `destructive`, `small` / `medium` / `large`, `expand`) | `core/theme/widgets/enjoy_button.dart` | Action buttons; primary is "lit" (`enjoyLitFillBuilder`). Decoration-level exports — `enjoyLitFillDecoration` / `enjoyLitShadow` / `enjoyLitHighlightSide` — serve circular signature controls (record FAB, transport play ring) |
-| `EnjoyIconButton` | same | Square icon-only action in the same variants |
-| `EnjoyCard` / `enjoyCardDecoration` | `core/theme/widgets/enjoy_card.dart` | Hairline card with ambient depth |
-| `EnjoyAvatar` / `EnjoyTierBadge` / `EnjoyKeycap` | `core/theme/widgets/enjoy_avatar.dart` | Gradient-initial avatar, aurora tier pill (`leading` icon, `padding` scale, `shape`, solid `color` override — also the sidebar Upgrade pill and the tier-catalog badges), shortcut keycap |
+| `EnjoyButton` (`brand` / `primary` / `secondary` / `ghost` / `destructive`, `small` / `medium` / `large`, `expand`) | `core/theme/widgets/enjoy_button.dart` | Action buttons at 32 / 40 / 50, radius 12, Geist 600 14: `brand` is the gradient with a white label and the brand-button shadow (one per screen), `primary` is the ink fill, `secondary` paper + line (legacy `tonal` aliases it), `ghost` ink2 text, `destructive` solid danger with a white label |
+| `EnjoyIconButton` | same | Square icon-only action in the same variants; 40 on desktop, 44 on phone |
+| `EnjoyCard` / `enjoyCardDecoration` | `core/theme/widgets/enjoy_card.dart` | Paper card with a line outline and the lift shadow, radius 20 |
+| `EnjoyAvatar` / `EnjoyTierBadge` / `EnjoyKeycap` | `core/theme/widgets/enjoy_avatar.dart` | Gradient-initial avatar with an optional logo-gradient ring, brand-gradient tier pill (`leading` icon, `padding` scale, `shape`, solid `color` override — also the sidebar Upgrade pill and the tier-catalog badges), paper keycap with a line border and 1px drop |
 | `EnjoyProgressRingPainter` | `core/theme/widgets/enjoy_progress_ring.dart` | Track circle + progress arc (solid color or aurora sweep gradient) — Today's Goal ring, record FAB countdown |
 | `EnjoyIconTile` / `EnjoyTint` / `enjoyTintForIcon` | `core/theme/widgets/enjoy_icon_tile.dart` | Colored icon tiles for grouped lists |
-| `EnjoySegmentedControl` / `EnjoySegment` | `core/theme/widgets/enjoy_segmented_control.dart` | Sliding-thumb segmented control (+ `enjoySegmentTrackColor` / `enjoySegmentThumbDecoration` for segmented `TabBar`s) |
-| `AppBackground` / `AuroraGlow` / `PlayerAmbientBackdrop` | `core/theme/widgets/app_background.dart` | Page color + aurora glow; player artwork tint |
+| `EnjoySegmentedControl` / `EnjoySegment` | `core/theme/widgets/enjoy_segmented_control.dart` | Sliding-thumb segmented control — 38 sunk track (radius 12) with a raised thumb (radius 9, lift shadow); 30 compact (+ shared track/thumb helpers for segmented `TabBar`s) |
+| `AppBackground` / `PlayerAmbientBackdrop` | `core/theme/widgets/app_background.dart` | Flat ground fill (the glow is fully deleted in Duet); player artwork tint |
 | `EnjoyPage` / `EnjoyPageKind` | `core/theme/widgets/enjoy_page.dart`, `core/layout/enjoy_page_kind.dart` | Adaptive page scaffold + width metrics |
 | `EnjoySubpageAppBar` / `EnjoyBackButton` | `core/theme/widgets/enjoy_subpage_app_bar.dart` | Push-route chrome |
-| `EditorialHeader` / `EnjoyOverline` / `EnjoySectionHeader` | `core/theme/widgets/editorial_header.dart` | Serif page title (+ `overline`, `subtitle`), eyebrow label, in-page section heading |
-| `EmptyState` / `EnjoyIconOrb` | `core/theme/widgets/empty_state.dart` | Icon orb + serif title + actions |
+| `EditorialHeader` / `EnjoyOverline` / `EnjoySectionHeader` | `core/theme/widgets/editorial_header.dart` | Literata 42 / 32 page title (+ `overline`, `subtitle`), Geist 600 11 caps eyebrow in ink3, Literata 24 section heading |
+| `EmptyState` / `EnjoyIconOrb` / `EnjoyLogoMark` | `core/theme/widgets/empty_state.dart`, `core/theme/widgets/enjoy_logo.dart` | The logo's three planes at low opacity + serif title + actions (`EnjoyIconOrb` survives only for surfaces not yet rebuilt) |
 | `EnjoyBottomNav` | `core/theme/widgets/enjoy_bottom_nav.dart` | Glass capsule tab bar with gliding lens |
 | `NavItemPill` | `core/theme/widgets/nav_item_pill.dart` | Sidebar / settings-rail row (ADR-0018) |
 | `showEnjoySheet` / `showEnjoyAdaptiveSheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Popover-surface sheets / dialogs, shared scrim + `enjoyDialogAnimationStyle` |

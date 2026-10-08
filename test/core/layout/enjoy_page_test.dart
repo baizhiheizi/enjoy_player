@@ -82,11 +82,11 @@ void main() {
     expect(metrics.maxWidth, tokens.formMaxWidth);
     expect(
       metrics.horizontalInset,
-      closeTo((1400 - tokens.formMaxWidth) / 2, 0.5),
+      closeTo(metrics.gutter + (1400 - tokens.formMaxWidth) / 2, 0.5),
     );
   });
 
-  testWidgets('browse EnjoyPage uses gutter-only horizontal inset', (
+  testWidgets('browse EnjoyPage centers its capped column on wide panes', (
     tester,
   ) async {
     late EnjoyPageMetrics metrics;
@@ -106,8 +106,11 @@ void main() {
     );
 
     final tokens = EnjoyThemeTokens.of(tester.element(find.text('browse')));
-    expect(metrics.maxWidth, isNull);
-    expect(metrics.horizontalInset, tokens.pageGutter);
+    expect(metrics.maxWidth, tokens.pageMaxBrowse);
+    expect(
+      metrics.horizontalInset,
+      metrics.gutter + (1400 - tokens.pageMaxBrowse) / 2,
+    );
     expect(find.byType(EnjoySubpageAppBar), findsNothing);
   });
 
@@ -118,11 +121,15 @@ void main() {
         brightness: Brightness.dark,
       ),
     );
-    expect(maxWidthForPageKind(tokens, EnjoyPageKind.browse), isNull);
-    expect(maxWidthForPageKind(tokens, EnjoyPageKind.hub), tokens.hubMaxWidth);
     expect(
-      maxWidthForPageKind(tokens, EnjoyPageKind.form),
-      tokens.formMaxWidth,
+      maxWidthForPageKind(tokens, EnjoyPageKind.browse),
+      tokens.pageMaxBrowse,
+    );
+    expect(maxWidthForPageKind(tokens, EnjoyPageKind.hub), tokens.pageMaxHub);
+    expect(maxWidthForPageKind(tokens, EnjoyPageKind.form), tokens.pageMaxForm);
+    expect(
+      maxWidthForPageKind(tokens, EnjoyPageKind.craft),
+      tokens.pageMaxCraft,
     );
     expect(
       maxWidthForPageKind(tokens, EnjoyPageKind.auth),

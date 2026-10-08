@@ -55,14 +55,17 @@ Cloud metadata sync status (see [`sync.md`](sync.md)). Shows the queue, last syn
 
 ## Account section
 
-Account management **no longer lives inside the Settings hub**. The signed-in profile is the dedicated `/profile` shell tab; Settings is reached from inside the Profile tab via a tile. The Settings hub therefore starts at the first post-account section (Cloud sync) and the previous `sections/account_hero_section.dart` widget — a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton and a retry affordance on load failure — is no longer wired into either layout. The widget is retained in the source tree because `test/features/settings/presentation/sections/settings_loading_states_test.dart` exercises its signed-in / signed-out / loading / error states in isolation; treat it as a **test-only fixture** until a future surface (e.g. an in-shell "switch account" sheet) reuses it.
+Settings has an **Account** section (first rail row, Duet): the identity card (logo-ring avatar, name, email, tier chip) with a danger **Sign out**, or **Sign in** when signed out — full profile management stays on `/profile`.
+
+Account management **no longer lives inside the Settings hub** as a hero. The signed-in profile is the dedicated `/profile` shell tab; Settings is reached from inside the Profile tab via a tile. The Settings hub therefore starts at the first post-account section (Cloud sync) and the previous `sections/account_hero_section.dart` widget — a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton and a retry affordance on load failure — is no longer wired into either layout. The widget is retained in the source tree because `test/features/settings/presentation/sections/settings_loading_states_test.dart` exercises its signed-in / signed-out / loading / error states in isolation; treat it as a **test-only fixture** until a future surface (e.g. an in-shell "switch account" sheet) reuses it.
 
 Settings still requires a signed-in Enjoy account ([ADR-0031](../decisions/0031-login-only-access.md)) for the sync / AI / appearance surfaces to make sense; unsigned users are redirected to sign-in before reaching this screen, and the Profile tab's sign-out flow returns them there.
 
 ### Reach paths
 
 - From the **Profile tab** — `ProfileContent` renders a Settings tile (`Icons.settings_outlined`, `l10n.settingsTitle` / `l10n.settingsSubtitle`) that pushes `/settings`.
-- From the **`SidebarAccountChip`** on desktop — the chip subtitle links to `/profile` (the account row itself is the Profile tab entry, not a Settings shortcut).
+- From the **`SidebarAccountChip`** on desktop — the chip opens `/profile` (the account row itself is the Profile tab entry).
+- From the dedicated **Settings row** at the sidebar footer (Duet, ADR-0093) — selected when the route is `/settings*`; the sync line above it links to `/settings/sync`.
 
 ## Sign-out flow
 

@@ -1,13 +1,18 @@
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/theme/widgets/nav_item_pill.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/sidebar_account_chip.dart';
-import 'package:enjoy_player/features/library/application/continue_practice_provider.dart';
-import 'package:enjoy_player/features/library/domain/media.dart';
-import 'package:enjoy_player/features/library/domain/practice_resume.dart';
-import 'package:enjoy_player/features/library/presentation/widgets/sidebar_continue_practice_card.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/app_sidebar.dart';
+import 'package:enjoy_player/features/sync/application/sync_providers.dart';
+import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -44,6 +49,43 @@ Widget buildHost(ProviderContainer container, GoRouter router) {
   );
 }
 
+class _SignedInAuthCtrl extends AuthCtrl {
+  @override
+  Future<AuthState> build() async => const AuthSignedIn(
+    profile: UserProfile(id: 'u1', email: 't@example.com', name: 'An Lee'),
+  );
+}
+
+GoRouter _router(String initial) => GoRouter(
+  initialLocation: initial,
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (_, _) => const Scaffold(body: AppSidebar()),
+    ),
+    GoRoute(
+      path: '/discover',
+      builder: (_, _) => const Scaffold(body: AppSidebar()),
+    ),
+    GoRoute(
+      path: '/library',
+      builder: (_, _) => const Scaffold(body: AppSidebar()),
+    ),
+    GoRoute(
+      path: '/vocabulary',
+      builder: (_, _) => const Scaffold(body: AppSidebar()),
+    ),
+    GoRoute(
+      path: '/craft',
+      builder: (_, _) => const Scaffold(body: AppSidebar()),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (_, _) => const Scaffold(body: AppSidebar()),
+    ),
+  ],
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -53,23 +95,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase(executor: NativeDatabase.memory());
-    router = GoRouter(
-      initialLocation: '/',
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (_, _) => const Scaffold(body: AppSidebar()),
-        ),
-        GoRoute(
-          path: '/discover',
-          builder: (_, _) => const Scaffold(body: AppSidebar()),
-        ),
-        GoRoute(
-          path: '/library',
-          builder: (_, _) => const Scaffold(body: AppSidebar()),
-        ),
-      ],
-    );
+    router = _router('/');
     container = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
@@ -84,31 +110,35 @@ void main() {
     await db.close();
   });
 
-  testWidgets('AppSidebar renders brand row, search field and nav pills', (
-    tester,
-  ) async {
+  Future<List<NavItemPill>> pumpAndFindPills(WidgetTester tester) async {
     await tester.binding.setSurfaceSize(const Size(400, 900));
     addTearDown(() => tester.view.resetPhysicalSize());
-
     await tester.pumpWidget(buildHost(container, router));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
+    return tester.widgetList<NavItemPill>(find.byType(NavItemPill)).toList();
+  }
+
+  testWidgets('AppSidebar renders brand row, search field and nav pills', (
+    tester,
+  ) async {
+    await pumpAndFindPills(tester);
 
     expect(findChromeIcon(EnjoyChromeGlyph.home), findsOneWidget);
     expect(findChromeIcon(EnjoyChromeGlyph.compass), findsOneWidget);
     expect(findChromeIcon(EnjoyChromeGlyph.library), findsOneWidget);
+    expect(findChromeIcon(EnjoyChromeGlyph.gear), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text(l10n.vocabularyTitle), findsOneWidget);
+    expect(find.text(l10n.craftScreenTitle), findsOneWidget);
+    expect(find.byType(EnjoyKeycap), findsNWidgets(2));
   });
 
   testWidgets('AppSidebar tapping the Discover nav pill navigates', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(400, 900));
-    addTearDown(() => tester.view.resetPhysicalSize());
-
-    await tester.pumpWidget(buildHost(container, router));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await pumpAndFindPills(tester);
 
     await tester.tap(findChromeIcon(EnjoyChromeGlyph.compass));
     await tester.pump();
@@ -119,12 +149,7 @@ void main() {
   testWidgets('AppSidebar search field calls setQuery on change', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(400, 900));
-    addTearDown(() => tester.view.resetPhysicalSize());
-
-    await tester.pumpWidget(buildHost(container, router));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await pumpAndFindPills(tester);
 
     await tester.enterText(find.byType(TextField).first, 'foo');
     await tester.pump();
@@ -136,67 +161,85 @@ void main() {
     expect(textField.controller?.text, 'foo');
   });
 
-  testWidgets('AppSidebar omits the continue card when there is no resume', (
+  testWidgets('AppSidebar shows the due badge when vocabulary has due items', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(400, 900));
-    addTearDown(() => tester.view.resetPhysicalSize());
-
-    await tester.pumpWidget(buildHost(container, router));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-
-    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    expect(find.text(l10n.homeContinuePracticing), findsNothing);
-  });
-
-  testWidgets('AppSidebar shows the continue card above the account chip', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(400, 900));
-    addTearDown(() => tester.view.resetPhysicalSize());
-
-    final resumeContainer = ProviderContainer(
+    final dueContainer = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
         deviceGlobalAppDatabaseProvider.overrideWithValue(db),
-        continuePracticeResumeProvider.overrideWith((ref) => _resume()),
+        vocabularyStatsProvider.overrideWithValue(
+          const VocabularyStats(
+            total: 120,
+            due: 14,
+            newCount: 10,
+            learningCount: 40,
+            reviewingCount: 50,
+            masteredCount: 20,
+          ),
+        ),
       ],
     );
-    addTearDown(resumeContainer.dispose);
+    addTearDown(dueContainer.dispose);
+    final saved = container;
+    container = dueContainer;
+    addTearDown(() => container = saved);
+    await pumpAndFindPills(tester);
 
-    await tester.pumpWidget(buildHost(resumeContainer, router));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-
-    expect(find.byType(SidebarContinuePracticeCard), findsOneWidget);
-    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    expect(find.text(l10n.homeContinuePracticing), findsOneWidget);
-
-    final cardTop = tester.getTopLeft(find.byType(SidebarContinuePracticeCard));
-    final chipTop = tester.getTopLeft(find.byType(SidebarAccountChip));
-    expect(cardTop.dy, lessThan(chipTop.dy));
+    expect(find.text('14'), findsOneWidget);
   });
-}
 
-PracticeResume _resume() {
-  final ts = DateTime.utc(2026, 1, 1);
-  return PracticeResume(
-    media: Media(
-      id: 'practiced-1',
-      kind: MediaKind.video,
-      title: 'Practiced talk',
-      sourceUri: 'file:///practiced-1',
-      durationMs: 60000,
-      language: 'en-US',
-      contentHash: 'practiced-1',
-      fileSize: 1,
-      createdAt: ts,
-      updatedAt: ts,
-    ),
-    positionMs: 15000,
-    echoActive: false,
-    lastActiveAt: ts,
-    sessionId: 's1',
-  );
+  testWidgets('AppSidebar maps routes to the selected row', (tester) async {
+    final cases = {
+      '/vocabulary': 'Vocabulary',
+      '/craft': 'Craft',
+      '/settings': 'Settings',
+    };
+    for (final entry in cases.entries) {
+      final routeRouter = _router(entry.key);
+      addTearDown(routeRouter.dispose);
+      final savedRouter = router;
+      router = routeRouter;
+      final pills = await pumpAndFindPills(tester);
+      final selected = pills.where((p) => p.selected).toList();
+      expect(selected, hasLength(1), reason: 'route ${entry.key}');
+      expect(selected.single.label, entry.value, reason: 'route ${entry.key}');
+      router = savedRouter;
+    }
+  });
+
+  testWidgets('AppSidebar drops the continue practicing card', (tester) async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await pumpAndFindPills(tester);
+
+    expect(find.text(l10n.homeContinuePracticing), findsNothing);
+  });
+
+  testWidgets('AppSidebar shows the sync line when signed in', (tester) async {
+    final authedContainer = ProviderContainer(
+      overrides: [
+        appDatabaseProvider.overrideWithValue(db),
+        deviceGlobalAppDatabaseProvider.overrideWithValue(db),
+        authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
+        syncQueueSnapshotProvider.overrideWith(
+          (ref) => Stream.value(
+            const SyncQueueSnapshot(
+              retryablePending: 0,
+              permanentlyFailed: 0,
+              detailRows: [],
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(authedContainer.dispose);
+    final saved = container;
+    container = authedContainer;
+    addTearDown(() => container = saved);
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await pumpAndFindPills(tester);
+
+    expect(find.text(l10n.syncSettingsTileSubtitleUpToDate), findsOneWidget);
+    expect(find.byType(SidebarAccountChip), findsOneWidget);
+  });
 }

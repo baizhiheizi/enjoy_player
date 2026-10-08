@@ -10,13 +10,12 @@ import 'package:enjoy_player/core/theme/typography.dart';
 const _bundledVariants = [
   'Geist-Regular',
   'Geist-Medium',
+  'Geist-SemiBold',
   'GeistMono-Medium',
-  'InstrumentSerif-Regular',
-  'SourceSerif4-Regular',
-  'SourceSerif4-Medium',
-  'SourceSerif4-SemiBold',
-  'PlayfairDisplay-Bold',
-  'PlayfairDisplay-SemiBoldItalic',
+  'GeistMono-SemiBold',
+  'Literata-Regular',
+  'Literata-Medium',
+  'Literata-SemiBold',
   'NotoSans-Regular',
 ];
 
@@ -47,11 +46,6 @@ void main() {
       await runZonedGuarded(() async {
         buildAppTheme(Brightness.light);
         buildAppTheme(Brightness.dark);
-        GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700);
-        GoogleFonts.playfairDisplay(
-          fontWeight: FontWeight.w600,
-          fontStyle: FontStyle.italic,
-        );
         GoogleFonts.notoSans(fontWeight: FontWeight.w400);
         await Future<void>.delayed(const Duration(milliseconds: 500));
       }, (error, stackTrace) {});

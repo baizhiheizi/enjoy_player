@@ -261,6 +261,12 @@ abstract class AppLocalizations {
   /// **'Nothing in your library matches this search.'**
   String get librarySearchNoMatchesHint;
 
+  /// No description provided for @librarySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search library'**
+  String get librarySearchHint;
+
   /// No description provided for @librarySearchClear.
   ///
   /// In en, this message translates to:
@@ -1065,6 +1071,42 @@ abstract class AppLocalizations {
   /// **'Echo mode'**
   String get echoMode;
 
+  /// Player top-bar segmented option for reading along (the non-echo mode).
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get playerListenModeTitle;
+
+  /// Dock pill that toggles hiding the transcript text (blur practice).
+  ///
+  /// In en, this message translates to:
+  /// **'Hide text'**
+  String get playerDockHideText;
+
+  /// Dock readout of the active transcript line.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {line} of {total}'**
+  String playerDockLinePosition(int line, int total);
+
+  /// Suffix shown in the dock while the Echo loop is active.
+  ///
+  /// In en, this message translates to:
+  /// **'· looping'**
+  String get playerDockLooping;
+
+  /// Dock readout when the Echo loop spans several lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Lines {start}–{end} of {total}'**
+  String playerDockLinesSpanPosition(int start, int end, int total);
+
+  /// Dock pill in Echo that replays the original loop audio.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get playerDockOriginal;
+
   /// No description provided for @exitEchoMode.
   ///
   /// In en, this message translates to:
@@ -1100,6 +1142,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No transcript yet'**
   String get noTranscript;
+
+  /// Overline above the empty-transcript title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript'**
+  String get transcriptEmptyOverline;
+
+  /// Empty-state row description for the AI transcript action.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribe the speech in this item. Uses credits.'**
+  String get transcriptEmptyGenerateDesc;
+
+  /// Empty-state row description for the extract action.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the subtitle tracks inside the file, if it has any.'**
+  String get transcriptEmptyExtractDesc;
+
+  /// Empty-state row description for the import action.
+  ///
+  /// In en, this message translates to:
+  /// **'Import an .srt or .vtt file and choose its language.'**
+  String get transcriptEmptyImportDesc;
 
   /// No description provided for @importSrtOrVtt.
   ///
@@ -1425,6 +1491,18 @@ abstract class AppLocalizations {
   /// **'Shrink echo forward'**
   String get shrinkEchoForward;
 
+  /// No description provided for @echoLoopEarlierLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier line'**
+  String get echoLoopEarlierLine;
+
+  /// No description provided for @echoLoopLaterLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Later line'**
+  String get echoLoopLaterLine;
+
   /// No description provided for @shadowReadingTitle.
   ///
   /// In en, this message translates to:
@@ -1496,6 +1574,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Take'**
   String get shadowRecordingTake;
+
+  /// No description provided for @shadowTakesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Takes'**
+  String get shadowTakesLabel;
+
+  /// No description provided for @shadowTakesEmptyPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'No recordings for this segment yet. Press'**
+  String get shadowTakesEmptyPrefix;
+
+  /// No description provided for @shadowTakesEmptySuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'and say it back.'**
+  String get shadowTakesEmptySuffix;
 
   /// No description provided for @shadowRecordingPlay.
   ///
@@ -2402,6 +2498,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Re-assess'**
   String get assessmentReassess;
+
+  /// No description provided for @assessmentScoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring…'**
+  String get assessmentScoring;
+
+  /// No description provided for @assessmentScoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get assessmentScoreAction;
 
   /// No description provided for @assessmentOverallScore.
   ///
@@ -3951,6 +4059,12 @@ abstract class AppLocalizations {
   /// **'Open profile'**
   String get settingsAccountOpenProfile;
 
+  /// Sidebar account chip subtitle naming the subscription tier.
+  ///
+  /// In en, this message translates to:
+  /// **'{tier} plan'**
+  String sidebarPlanSubtitle(String tier);
+
   /// No description provided for @settingsAccountSignIn.
   ///
   /// In en, this message translates to:
@@ -3978,7 +4092,7 @@ abstract class AppLocalizations {
   /// No description provided for @communityToday.
   ///
   /// In en, this message translates to:
-  /// **'Community Today'**
+  /// **'Community today'**
   String get communityToday;
 
   /// No description provided for @homeRecordingsToday.
@@ -3990,7 +4104,7 @@ abstract class AppLocalizations {
   /// No description provided for @homePracticeTime.
   ///
   /// In en, this message translates to:
-  /// **'Practice Time'**
+  /// **'Practice time'**
   String get homePracticeTime;
 
   /// No description provided for @homeActiveLearners.
@@ -5859,6 +5973,12 @@ abstract class AppLocalizations {
   /// **'Share poster'**
   String get practicePosterShareAction;
 
+  /// No description provided for @practicePosterShareLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get practicePosterShareLabel;
+
   /// No description provided for @practicePosterShareSuccess.
   ///
   /// In en, this message translates to:
@@ -7337,6 +7457,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fetch transcript'**
   String get transcriptEmptyFetchYoutube;
+
+  /// Caption under the minutes practiced inside the Home goal ring.
+  ///
+  /// In en, this message translates to:
+  /// **'of {minutes} min'**
+  String homeGoalOfMinutes(int minutes);
+
+  /// Home goal card summary while the goal is not met.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {goal} min · {left} min to go'**
+  String homeGoalProgressRemaining(int done, int goal, int left);
+
+  /// Home goal card summary once the goal is met.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {goal} min'**
+  String homeGoalProgressDone(int done, int goal);
+
+  /// Button on the Home Continue practicing card.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get homeContinueAction;
+
+  /// Link beside the Home Recent media heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Open library'**
+  String get homeOpenLibrary;
+
+  /// Continue practicing meta: the transcript line to resume at.
+  ///
+  /// In en, this message translates to:
+  /// **'line {line} of {total}'**
+  String homeContinueLine(int line, int total);
+
+  /// Continue practicing meta when the session was in Echo.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo on'**
+  String get homeContinueEchoOn;
+
+  /// Media tile meta: added or opened today.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get mediaRelativeToday;
+
+  /// Media tile meta: added or opened yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get mediaRelativeYesterday;
+
+  /// Library tile meta: when the item was added (date is today / yesterday / a short date).
+  ///
+  /// In en, this message translates to:
+  /// **'Added {date}'**
+  String libraryTileAdded(String date);
+
+  /// Overline above the Vocabulary page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your word book'**
+  String get vocabularyOverline;
+
+  /// Vocabulary header action that starts a due-items review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review {count} due'**
+  String vocabularyReviewDueAction(int count);
+
+  /// Unit after the due count on the Vocabulary due card.
+  ///
+  /// In en, this message translates to:
+  /// **'due today'**
+  String get vocabularyDueToday;
+
+  /// Vocabulary due card caption with the estimated review time.
+  ///
+  /// In en, this message translates to:
+  /// **'Words scheduled for today or earlier · about {minutes} min'**
+  String vocabularyDueEstimate(int minutes);
+
+  /// Caption on the Vocabulary status breakdown card.
+  ///
+  /// In en, this message translates to:
+  /// **'by status'**
+  String get vocabularyByStatus;
+
+  /// Headline of the Vocabulary Review tab due card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} word is waiting} other{{count} words are waiting}}'**
+  String vocabularyDueWaiting(int count);
+
+  /// Body of the Vocabulary Review tab due card.
+  ///
+  /// In en, this message translates to:
+  /// **'Words scheduled for today or earlier. Space flips a card; 1, 2 and 3 rate it.'**
+  String get vocabularyDueReviewBody;
+
+  /// Vocabulary filter button: the filter name and its current value.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: {value}'**
+  String vocabularyFilterValue(String label, String value);
+
+  /// Stepper button: fewer words.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer'**
+  String get vocabularyFewer;
+
+  /// Stepper button: more words.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get vocabularyMore;
+
+  /// Pro badge on the Export to Anki button.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get vocabularyProBadge;
+
+  /// Overline above the Library title for local media.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device'**
+  String get libraryOverlineLocal;
+
+  /// Overline above the Library title for cloud media.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to your Enjoy account'**
+  String get libraryOverlineCloud;
+
+  /// Line above library results while a search is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 match for “{query}”} other{{count} matches for “{query}”}}'**
+  String librarySearchResults(int count, String query);
+
+  /// Caption on the Profile practice card.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced from your account'**
+  String get profileSyncedFromAccount;
+
+  /// Overline of the Profile credits card.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits today'**
+  String get profileCreditsToday;
+
+  /// Link from the Profile credits card to the credits log.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage'**
+  String get profileCreditsUsageLink;
+
+  /// Profile credits card caption.
+  ///
+  /// In en, this message translates to:
+  /// **'Resets daily'**
+  String get profileCreditsResetsDaily;
+
+  /// Profile credits card caption when permanent credits exist (count is formatted).
+  ///
+  /// In en, this message translates to:
+  /// **'Resets daily · plus {count} permanent credits'**
+  String profileCreditsResetsWithPermanent(String count);
+
+  /// Unit after a minute figure on the Profile practice card.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get profileMinutesUnit;
+
+  /// Profile list: Settings row hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance, AI providers, recording, shortcuts'**
+  String get profileSettingsHint;
+
+  /// Profile list: due words value beside Vocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} due'**
+  String vocabularyReviewDueValue(int count);
+
+  /// Settings rail/section: the account section.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsSectionAccount;
+
+  /// Settings account section hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Enjoy identity and sign-out'**
+  String get settingsSectionAccountHint;
+
+  /// Overline above the Discover title.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube channels you follow'**
+  String get discoverOverline;
+
+  /// Heading above the Discover feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent uploads'**
+  String get discoverRecentUploads;
+
+  /// Caption beside Recent uploads: how fresh the feed is.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {age}'**
+  String discoverUpdatedAgo(String age);
+
+  /// Compact age of a feed entry or refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String discoverHoursAgo(int count);
+
+  /// Compact age of a feed entry or refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String discoverDaysAgo(int count);
+
+  /// Discover feed tile action button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to library'**
+  String get discoverAddToLibraryAction;
+
+  /// Trailing tile in the Discover channel strip; opens manage / subscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get discoverStripSubscribe;
+
+  /// Subscription summary strip cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan'**
+  String get subscriptionSummaryCurrentPlan;
+
+  /// Subscription summary strip cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get subscriptionSummaryStatus;
+
+  /// Subscription summary strip cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiration'**
+  String get subscriptionSummaryExpiration;
+
+  /// Subscription summary strip cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily credits limit'**
+  String get subscriptionSummaryDailyCredits;
+
+  /// Heading above the plan catalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your plan'**
+  String get subscriptionChoosePlan;
+
+  /// Caption at the trailing edge of the credits filter row.
+  ///
+  /// In en, this message translates to:
+  /// **'UTC dates'**
+  String get creditsUsageUtcDates;
+
+  /// Subscription link card to the Credits screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits packages'**
+  String get subscriptionPackagesLink;
+
+  /// Short label for the Echo mode segment in the player top bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo'**
+  String get playerEchoShort;
+
+  /// No description provided for @playerLineOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {line} of {total}'**
+  String playerLineOfTotal(Object line, Object total);
+
+  /// No description provided for @syncLastSyncToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today, {time}'**
+  String syncLastSyncToday(String time);
+
+  /// No description provided for @syncRowWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get syncRowWaiting;
+
+  /// No description provided for @syncRowFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get syncRowFailed;
+
+  /// No description provided for @syncRowRetries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} attempts'**
+  String syncRowRetries(int count);
+
+  /// No description provided for @syncEntityRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording'**
+  String get syncEntityRecording;
+
+  /// No description provided for @syncEntityVocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary item'**
+  String get syncEntityVocabulary;
+
+  /// No description provided for @assessmentWordsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Words'**
+  String get assessmentWordsSection;
+
+  /// No description provided for @assessmentMarginOverline.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation'**
+  String get assessmentMarginOverline;
 }
 
 class _AppLocalizationsDelegate

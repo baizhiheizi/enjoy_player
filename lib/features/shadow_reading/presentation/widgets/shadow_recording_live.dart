@@ -56,10 +56,8 @@ class _ShadowRecordingLiveState extends State<ShadowRecordingLive>
     with TickerProviderStateMixin {
   static const _kOverPulseStepMs = 600;
 
-  late final AnimationController _elapsedSec = AnimationController.unbounded(
-    vsync: this,
-  );
-  late final Ticker _ticker = createTicker(_onTick);
+  late final AnimationController _elapsedSec;
+  late final Ticker _ticker;
   final ValueNotifier<int> _elapsedTenths = ValueNotifier<int>(0);
   bool _overPulseHigh = false;
   bool _over = false;
@@ -68,6 +66,8 @@ class _ShadowRecordingLiveState extends State<ShadowRecordingLive>
   @override
   void initState() {
     super.initState();
+    _elapsedSec = AnimationController.unbounded(vsync: this);
+    _ticker = createTicker(_onTick);
     unawaited(_ticker.start());
   }
 

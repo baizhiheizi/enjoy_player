@@ -11,7 +11,6 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_button.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_flow.dart';
-import 'package:enjoy_player/features/shadow_reading/presentation/score_level.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// `PopupMenuButton` value tokens for the takes menu — kept library-private.
@@ -152,6 +151,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                   ref: ref,
                   l10n: l10n,
                   row: row,
+                  marginWhenWide: true,
                   forceRun: true,
                 ),
               );
@@ -191,10 +191,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                               padding: const EdgeInsets.only(left: 8),
                               child: DecoratedBox(
                                 decoration: ShapeDecoration(
-                                  color: assessmentScoreBackground(
-                                    scheme,
-                                    assessmentScoreLevel(score),
-                                  ),
+                                  color: t.sunk,
                                   shape: RoundedSuperellipseBorder(
                                     borderRadius: BorderRadius.circular(
                                       t.radiusFull,
@@ -211,10 +208,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: assessmentScoreColor(
-                                        scheme,
-                                        assessmentScoreLevel(score),
-                                      ),
+                                      color: t.ink2,
                                     ),
                                   ),
                                 ),

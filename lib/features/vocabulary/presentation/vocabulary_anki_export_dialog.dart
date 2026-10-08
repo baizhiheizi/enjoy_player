@@ -69,7 +69,7 @@ class _VocabularyAnkiExportDialogState
                 children: [
                   Text(l10n.vocabularyProRequiredDescription),
                   SizedBox(height: t.space16),
-                  EnjoyButton.primary(
+                  EnjoyButton.brand(
                     onPressed: () async {
                       Navigator.of(context).pop();
                       await context.push('/subscription');

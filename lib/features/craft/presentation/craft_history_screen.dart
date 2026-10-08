@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +46,6 @@ class CraftHistoryScreen extends ConsumerWidget {
         data: (items) {
           if (items.isEmpty) {
             return EmptyState(
-              icon: EnjoyIcons.sparkle,
               title: l10n.craftHistoryEmptyTitle,
               subtitle: l10n.craftHistoryEmptyHint,
               action: () => context.go('/craft'),
@@ -160,12 +160,11 @@ class _CraftHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
     final dateFmt = DateFormat.yMMMd().add_jm();
 
     return SettingsRow(
       leadingIcon: EnjoyIcons.sparkle,
-      leadingIconTint: t.accentInk,
+      leadingIconTone: EnjoyIconTileTone.brand,
       title: media.title,
       subtitle: dateFmt.format(media.updatedAt.toLocal()),
       onTap: onTap,

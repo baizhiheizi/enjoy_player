@@ -25,39 +25,14 @@ class LookupCoordinator extends _$LookupCoordinator {
     if (!context.mounted) return;
     _log.fine('lookup sheet: "${request.selectedText}"');
     final w = MediaQuery.sizeOf(context).width;
-    final rail = EnjoyThemeTokens.of(context).breakpointRail;
-    if (w >= rail) {
-      final scheme = Theme.of(context).colorScheme;
-      final t = EnjoyThemeTokens.of(context);
-      await showEnjoyDialog<void>(
-        context: context,
-        useRootNavigator: true,
-        builder: (ctx) {
-          return Dialog(
-            backgroundColor: scheme.surfaceContainerHigh,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(t.radiusXl),
-            ),
-            insetPadding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 32,
-            ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: 560,
-                maxHeight: MediaQuery.sizeOf(ctx).height * 0.88,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(t.radiusXl),
-                child: DictionaryLookupSheet(
-                  presentation: DictionaryLookupPresentation.dialog,
-                  request: request,
-                ),
-              ),
-            ),
-          );
-        },
-      );
+    final compact = EnjoyThemeTokens.of(context).breakpointCompact;
+    if (w >= compact) {
+      // Duet side margin (ADR-0093): a right-edge drawer route — the surface
+      // parks (ADR-0066), Esc closes, and it slides in over motionMargin.
+      await Navigator.of(
+        context,
+        rootNavigator: true,
+      ).push(_LookupMarginRoute(request: request));
       releasePrimaryFocusForGlobalHotkeys();
       return;
     }
@@ -73,5 +48,89 @@ class LookupCoordinator extends _$LookupCoordinator {
       ),
     );
     releasePrimaryFocusForGlobalHotkeys();
+  }
+}
+
+/// The right-edge lookup margin drawer (ADR-0093): 380px raised panel over
+/// the scrim, sliding from the right edge.
+class _LookupMarginRoute extends PopupRoute<void> {
+  _LookupMarginRoute({required this.request});
+
+  final LookupRequest request;
+
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  String? get barrierLabel => 'Word lookup';
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 220);
+
+  @override
+  Duration get reverseTransitionDuration => const Duration(milliseconds: 180);
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    final t = EnjoyThemeTokens.of(context);
+    return Align(
+      alignment: Alignment.centerRight,
+      child: SizedBox(
+        width: t.marginWidth,
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            color: t.raised,
+            shape: const RoundedSuperellipseBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(18),
+                bottomLeft: Radius.circular(18),
+              ),
+            ),
+            shadows: t.shadowFloat,
+          ),
+          child: ClipRSuperellipse(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+            ),
+            child: MediaQuery.removePadding(
+              context: context,
+              removeLeft: true,
+              child: DictionaryLookupSheet(
+                presentation: DictionaryLookupPresentation.dialog,
+                request: request,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final slide = Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+    return SlideTransition(
+      position: slide,
+      child: FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: child,
+      ),
+    );
   }
 }

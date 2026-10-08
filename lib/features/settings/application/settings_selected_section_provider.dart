@@ -15,7 +15,7 @@ final settingsSelectedSectionProvider =
 
 class SettingsSelectedSectionNotifier extends Notifier<String> {
   @override
-  String build() => SettingsSectionIds.cloudSync;
+  String build() => SettingsSectionIds.appearanceLanguage;
 
   void select(String sectionId) => state = sectionId;
 }

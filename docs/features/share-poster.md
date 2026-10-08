@@ -73,3 +73,8 @@ Logical size: `practicePosterLogicalWidth Ã— practicePosterLogicalHeight = 360 Ã
 
 - Echo mode (parent context, share-poster blurb updated to link here): [`docs/features/echo-mode.md`](echo-mode.md)
 - Shadow reading (the take-source for the poster's stats + quote): [`docs/features/shadow-reading.md`](shadow-reading.md)
+
+## Poster typography (Duet, ADR-0093)
+
+The poster quote and stat figures are set in **Literata** (italic quote,
+600 weights); Playfair Display is retired from the bundle.
