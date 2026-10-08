@@ -43,12 +43,13 @@ No `apt install`, no `sudo`, no Snap/Flatpak abstraction layer. The AppImage is 
 | Recording uploads | Upload `client_platform=linux` to the existing endpoint |
 | Keyboard hotkeys | Full support (desktop shortcuts) |
 | Settings / preferences | Full support (libsecret / GNOME Keyring backed secure storage) |
+| YouTube import / playback | **Supported** (rolling out — [ADR-0091](../decisions/0091-youtube-linux-playback.md), [ADR-0092](../decisions/0092-linux-youtube-host-runtime.md)). The same embedded-browser engine as Windows/macOS. The GStreamer codec set ships inside the AppImage; the WPE WebKit runtime itself is resolved from the host — install `wpewebkit` (Arch) / `wpewebkit` + GStreamer plugins (Ubuntu/Debian) if YouTube shows the unavailable notice. Availability is decided at runtime, and systems without a usable runtime show a localized notice with an "open in browser" fallback. YouTube sign-in stays disabled on Linux for now. |
 
 ## What is not yet available
 
 | Feature | Linux status |
 |---------|-------------|
-| **YouTube import / playback** | **Not available** (coming soon). `flutter_inappwebview` ships no Linux backend (Android/iOS/macOS/Windows/web only), so the WebView engine can never mount. Opening a YouTube video — or opening the YouTube sign-in screen — shows the localized "YouTube is not yet available on Linux — coming soon" notice instead ([ADR-0048](../decisions/0048-linux-platform-support.md)). |
+| **YouTube sign-in screen** | **Disabled.** In-player anonymous playback is the supported YouTube posture ([ADR-0025](../decisions/0025-youtube-player-block-google-signin-nav.md)); enabling the sign-in WebView on Linux is a follow-up ([ADR-0091](../decisions/0091-youtube-linux-playback.md)). |
 | **In-app auto-update** | **Not available.** The `auto_updater: ^1.0.0` plugin is Windows/macOS-only. To update, download a new AppImage from the landing page. AppImageUpdate integration is planned for a future release. |
 | **Package manager installs (.deb / .rpm / Flatpak / snap)** | Not available. Only AppImage for v1. |
 
@@ -61,8 +62,17 @@ sudo apt-get install -y \
   clang cmake curl git jq ninja-build pkg-config unzip xz-utils zip \
   libgtk-3-dev liblzma-dev libsqlite3-dev \
   libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-  libsecret-1-dev libmpv-dev ffmpeg
+  libsecret-1-dev libmpv-dev ffmpeg \
+  libwpewebkit-2.0-dev libwpe-1.0-1 libwpebackend-fdo-1.0-dev
 ```
+
+The trailing WPE line is required by the `flutter_inappwebview_linux` plugin
+(YouTube playback, [ADR-0091](../decisions/0091-youtube-linux-playback.md)) —
+build-time only; release artifacts bundle the runtime. On Arch:
+`wpewebkit libwpe wpebackend-fdo`. At runtime, YouTube playback also needs the
+GStreamer plugin set (`gst-plugins-good`, `gst-plugins-bad`, `gst-libav`) —
+bundled inside the release AppImage, so the packages above are for source
+builds and debugging only.
 
 Then follow the standard README build instructions:
 
@@ -95,11 +105,23 @@ Performance budgets for playback, scrolling, and transcript rendering are identi
 
 ## Troubleshooting
 
-### "YouTube is not yet available on Linux — coming soon"
+### "YouTube is not available on this device"
 
-This is expected. YouTube will be enabled in a future release. The notice replaces the player screen (with a back button) and the YouTube sign-in screen. In the meantime, download the video locally (e.g., with `yt-dlp`) and import the local file — the transcript and everything else work.
+YouTube availability is decided at runtime ([ADR-0091](../decisions/0091-youtube-linux-playback.md)): the app probes the bundled WPE WebKit runtime the first time a YouTube flow runs. When the probe fails — damaged bundle, missing system graphics stack — every YouTube entry point shows this notice with an **Open in browser** action, and the rest of the app keeps working. The open fails **before any engine swap**: a YouTube open never installs the WebView engine and never disposes the running `media_kit` engine, so audio/video playback opened afterwards keeps working (the 2026-08-29 regression briefly left every later open stuck on the loading skeleton after a failed YouTube open). Local/URL opens are additionally bounded by a 30 s `engine.open` timeout that surfaces a wedged native layer as an open failure instead of an infinite spinner. If the notice appears on a stock install of the official AppImage, file a report with the diagnostic log (Settings → About → Export diagnostic report).
 
-The open fails **before any engine swap**: a YouTube open never installs the WebView engine and never disposes the running `media_kit` engine, so audio/video playback opened afterwards keeps working (the 2026-08-29 regression briefly left every later open stuck on the loading skeleton after a failed YouTube open). Local/URL opens are additionally bounded by a 30 s `engine.open` timeout that surfaces a wedged native layer as an open failure instead of an infinite spinner.
+### YouTube plays audio but the video area is black
+
+Some GPU driver + compositor combinations hit a WPE WebKit hardware frame
+export stall (verified on AMD + Hyprland with wpewebkit 2.48–2.52). Launch the
+app with software GL for the embedded browser:
+
+```bash
+LIBGL_ALWAYS_SOFTWARE=1 ./enjoy-player-*.AppImage
+```
+
+An automatic detection-and-relaunch fallback is planned (specs/047 T047). If
+YouTube shows the unavailable notice instead, install the runtime: `wpewebkit`
+plus `gst-plugins-good gst-plugins-bad gst-libav` ([ADR-0092](../decisions/0092-linux-youtube-host-runtime.md)).
 
 ### AppImage won't run: "Permission denied"
 

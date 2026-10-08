@@ -38,6 +38,9 @@ Future<void> _bootstrap() async {
   if (defaultTargetPlatform == TargetPlatform.windows) {
     unawaited(ensureWindowsWebViewEnvironment());
   }
+  if (defaultTargetPlatform == TargetPlatform.linux) {
+    unawaited(ensureLinuxWebViewEnvironment());
+  }
   if (defaultTargetPlatform == TargetPlatform.android) {
     unawaited(_provisionAndroidEspeak());
   }
