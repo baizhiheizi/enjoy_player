@@ -465,11 +465,10 @@ release_write_asc_api_private_key() {
   fi
 }
 
-# Upload an iOS IPA to TestFlight via altool using the already-loaded ASC env.
-# Stages the .p8 under ${RUNNER_TEMP:-/tmp}, exports API_PRIVATE_KEYS_DIR for
-# altool's discovery, runs `xcrun altool --upload-app`, and guarantees the
-# temporary key is removed (trap-based) so a failed upload does not leak the
-# credential on disk.
+# Upload an iOS IPA to TestFlight via fastlane pilot using the already-loaded
+# ASC env (see fastlane/Fastfile `ios beta`). Stages the .p8 under
+# ${RUNNER_TEMP:-/tmp} and guarantees the temporary key is removed (trap-based)
+# so a failed upload does not leak the credential on disk.
 #
 # Required env (call release_load_asc_env first):
 #   APP_STORE_CONNECT_API_KEY_ID, APP_STORE_CONNECT_ISSUER_ID,
@@ -491,16 +490,13 @@ release_upload_testflight_ipa() {
   fi
 
   release_write_asc_api_private_key "${key_path}"
-  # altool discovers AuthKey_<id>.p8 on its private-keys search path.
-  export API_PRIVATE_KEYS_DIR="$(dirname "${key_path}")"
 
-  # Ensure the temporary key is removed even if altool fails mid-upload.
+  # Ensure the temporary key is removed even if pilot fails mid-upload.
   trap 'rm -f "${key_path}"' RETURN
 
   echo ">>> Upload IPA to TestFlight: ${ipa}"
-  xcrun altool --upload-app --type ios --file "${ipa}" \
-    --apiKey "${APP_STORE_CONNECT_API_KEY_ID}" \
-    --apiIssuer "${APP_STORE_CONNECT_ISSUER_ID}"
+  ASC_KEY_PATH="${key_path}" IPA_PATH="${ipa}" \
+    bash "$(dirname "${BASH_SOURCE[0]}")/fastlane.sh" ios beta
 }
 
 # Stop stale Gradle daemons so the next bundle build picks up gradle.properties

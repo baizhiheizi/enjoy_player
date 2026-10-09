@@ -75,8 +75,10 @@ mise.local.toml
 .github/scripts/publish_env.local.ps1
 .github/scripts/publish_env.local.sh
 
-# Play Store upload venv (created by ensure_play_upload_tooling.sh)
-.github/scripts/.play-upload-venv/
+# fastlane (repo-local bundler install + lane run reports)
+.github/scripts/.fastlane-bundle/
+.bundle/
+fastlane/report.xml
 # Local Play service-account JSON (never commit)
 .github/scripts/play-service-account.json
 
