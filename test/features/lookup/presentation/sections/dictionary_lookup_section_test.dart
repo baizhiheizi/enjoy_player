@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/dictionary_lookup_section.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -194,9 +195,8 @@ void main() {
     expect(find.text('Sign in'), findsOneWidget);
   });
 
-  testWidgets('shows error row with View plans CTA on CreditsFailure', (
-    tester,
-  ) async {
+  testWidgets('shows compact credits notice without in-section CTA on '
+      'CreditsFailure', (tester) async {
     await tester.pumpWidget(
       _harness(
         overrides: baseOverrides(
@@ -209,16 +209,18 @@ void main() {
     );
     await _expand(tester);
 
-    expect(find.byType(LookupErrorRow), findsOneWidget);
-    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
+    expect(find.byType(LookupCreditsNotice), findsOneWidget);
+    expect(find.byType(LookupErrorRow), findsNothing);
+    expect(find.byIcon(EnjoyIcons.wallet), findsOneWidget);
     expect(
       find.text(
         lookupAppLocalizations(
           const Locale('en'),
         ).subscriptionViewPlansAndPackages,
       ),
-      findsOneWidget,
+      findsNothing,
     );
+    expect(find.text('Retry'), findsOneWidget);
   });
 
   testWidgets('shows the numbered credits message when the 402 carries the '

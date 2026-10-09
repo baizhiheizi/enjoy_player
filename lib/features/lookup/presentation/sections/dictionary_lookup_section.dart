@@ -6,8 +6,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:go_router/go_router.dart';
-
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -16,8 +14,11 @@ import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
+import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
@@ -68,39 +69,40 @@ class DictionaryLookupSection extends ConsumerWidget {
             final async = ref.watch(lookupSheetDictionaryProvider(params));
             return async.when(
               skipLoadingOnReload: true,
-              data: (DictionaryResult d) => _DictionaryBody(
-                d: d,
-                l10n: l10n,
-                refreshControl: LookupRefreshIconButton(
+              data: (DictionaryResult d) {
+                scheduleLookupCreditsClear(ref, LookupSectionId.dictionary);
+                return _DictionaryBody(
+                  d: d,
                   l10n: l10n,
-                  isRefreshing: async.isRefreshing,
-                  onPressed: forceRefresh,
-                ),
-              ),
+                  refreshControl: LookupRefreshIconButton(
+                    l10n: l10n,
+                    isRefreshing: async.isRefreshing,
+                    onPressed: forceRefresh,
+                  ),
+                );
+              },
               loading: () => const LookupSectionShimmer(),
               error: (Object e, StackTrace st) {
                 if (e is AuthFailure) {
+                  scheduleLookupCreditsClear(ref, LookupSectionId.dictionary);
                   return const AuthRequiredCallout(
                     surface: AuthRequiredSurface.lookupDictionary,
                     compact: true,
                   );
                 }
                 if (e is CreditsFailure) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      LookupErrorRow(
-                        message: lookupErrorUserMessage(e, l10n),
-                        onRetry: forceRefresh,
-                        isRetrying: async.hasError && async.isLoading,
-                      ),
-                      TextButton(
-                        onPressed: () => context.push('/subscription'),
-                        child: Text(creditsCtaLabel(l10n)),
-                      ),
-                    ],
+                  scheduleLookupCreditsReport(
+                    ref,
+                    LookupSectionId.dictionary,
+                    creditsFailureMessage(e, l10n),
+                  );
+                  return LookupCreditsNotice(
+                    message: creditsFailureMessage(e, l10n),
+                    onRetry: forceRefresh,
+                    isRetrying: async.hasError && async.isLoading,
                   );
                 }
+                scheduleLookupCreditsClear(ref, LookupSectionId.dictionary);
                 return LookupErrorRow(
                   message: lookupErrorUserMessage(e, l10n),
                   onRetry: forceRefresh,

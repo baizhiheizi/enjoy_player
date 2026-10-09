@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
@@ -21,9 +20,12 @@ import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_params.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
+import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
@@ -104,6 +106,8 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
   /// Last error message; shown with a busy retry control until the retry completes.
   String? _lastErrorUserMessage;
 
+  bool _lastErrorWasCredits = false;
+
   bool _retryInFlight = false;
 
   @override
@@ -139,6 +143,7 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
     if (oldWidget.params != widget.params) {
       _staleSuccess = null;
       _lastErrorUserMessage = null;
+      _lastErrorWasCredits = false;
       _retryInFlight = false;
       _beginFetch(forceRefresh: false, notifyPostFrameOnly: false);
     }
@@ -292,6 +297,13 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
           }
           if (_retryInFlight &&
               (_lastErrorUserMessage ?? '').trim().isNotEmpty) {
+            if (_lastErrorWasCredits) {
+              return LookupCreditsNotice(
+                message: _lastErrorUserMessage!,
+                onRetry: _retryAfterError,
+                isRetrying: true,
+              );
+            }
             return LookupErrorRow(
               message: _lastErrorUserMessage!,
               onRetry: _retryAfterError,
@@ -305,33 +317,42 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
           _staleSuccess = null;
           _retryInFlight = false;
           if (e is AuthFailure) {
+            scheduleLookupCreditsClear(
+              ref,
+              LookupSectionId.contextualTranslation,
+            );
             return const AuthRequiredCallout(
               surface: AuthRequiredSurface.lookupContextual,
               compact: true,
             );
           }
           if (e is CreditsFailure) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LookupErrorRow(
-                  message: creditsFailureMessage(e, widget.l10n),
-                  onRetry: _retryAfterError,
-                ),
-                TextButton(
-                  onPressed: () => context.push('/subscription'),
-                  child: Text(creditsCtaLabel(widget.l10n)),
-                ),
-              ],
+            final message = creditsFailureMessage(e, widget.l10n);
+            _lastErrorUserMessage = message;
+            _lastErrorWasCredits = true;
+            scheduleLookupCreditsReport(
+              ref,
+              LookupSectionId.contextualTranslation,
+              message,
+            );
+            return LookupCreditsNotice(
+              message: message,
+              onRetry: _retryAfterError,
             );
           }
+          scheduleLookupCreditsClear(
+            ref,
+            LookupSectionId.contextualTranslation,
+          );
           final msg = lookupErrorUserMessage(e, widget.l10n);
           _lastErrorUserMessage = msg;
+          _lastErrorWasCredits = false;
           return LookupErrorRow(message: msg, onRetry: _retryAfterError);
         }
         final d = snapshot.data!;
         _staleSuccess = d;
         _retryInFlight = false;
+        scheduleLookupCreditsClear(ref, LookupSectionId.contextualTranslation);
         return _resultStack(
           isRefreshing: false,
           onRefresh: () =>

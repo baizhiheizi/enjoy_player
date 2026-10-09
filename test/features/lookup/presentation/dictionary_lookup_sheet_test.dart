@@ -11,6 +11,7 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/dictionary_lookup_sheet.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -18,6 +19,13 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 class _AuthSignedOutCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedOut();
+}
+
+class _SeededLookupCredits extends LookupCreditsExhausted {
+  @override
+  Map<LookupSectionId, String> build() => const {
+    LookupSectionId.translation: 'AI credits are exhausted for today.',
+  };
 }
 
 Widget _harness({required List<Override> overrides, required Widget child}) {
@@ -200,6 +208,43 @@ void main() {
 
       expect(find.text('English'), findsOneWidget);
       expect(find.text('中文'), findsOneWidget);
+    });
+
+    testWidgets('shows one credits banner with a single plans CTA', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _harness(
+          overrides: [
+            ...baseOverrides(),
+            lookupCreditsExhaustedProvider.overrideWith(
+              _SeededLookupCredits.new,
+            ),
+          ],
+          child: const SizedBox(
+            height: 600,
+            child: DictionaryLookupSheet(request: request),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('AI credits are exhausted for today.'), findsOneWidget);
+      expect(
+        find.text(
+          lookupAppLocalizations(
+            const Locale('en'),
+          ).subscriptionViewPlansAndPackages,
+        ),
+        findsOneWidget,
+      );
     });
   });
 

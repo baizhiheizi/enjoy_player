@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/contextual_translation_lookup_section.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -201,7 +202,8 @@ void main() {
   );
 
   testWidgets(
-    'shows the friendly credits message with View plans CTA on CreditsFailure',
+    'shows the friendly credits message in a compact notice without the '
+    'in-section CTA on CreditsFailure',
     (tester) async {
       final cap = _FakeContextualCapability(
         const CreditsFailure(
@@ -221,6 +223,7 @@ void main() {
       await _expand(tester);
       await tester.pumpAndSettle();
 
+      expect(find.byType(LookupCreditsNotice), findsOneWidget);
       expect(find.textContaining('750'), findsOneWidget);
       expect(find.text('HTTP 402'), findsNothing);
       expect(
@@ -229,7 +232,7 @@ void main() {
             const Locale('en'),
           ).subscriptionViewPlansAndPackages,
         ),
-        findsOneWidget,
+        findsNothing,
       );
     },
   );
