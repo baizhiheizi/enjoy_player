@@ -282,21 +282,30 @@ class SentenceRulerPainter extends CustomPainter {
       );
     }
 
-    if (loopStart != null && loopEnd != null && loopEnd! > loopStart!) {
-      final x0 = size.width * loopStart!;
-      final x1 = size.width * loopEnd!;
-      const bracketHeight = 7;
-      final bracketPaint = Paint()
-        ..color = t.you
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = t.strokeLoopBracket
-        ..strokeCap = StrokeCap.round;
-      final path = Path()
-        ..moveTo(x0, trackTop - 2)
-        ..lineTo(x0, trackTop - 2 - bracketHeight)
-        ..lineTo(x1, trackTop - 2 - bracketHeight)
-        ..lineTo(x1, trackTop - 2);
-      canvas.drawPath(path, bracketPaint);
+    if (loopStart != null && loopEnd != null) {
+      final x0 = size.width * loopStart!.clamp(0.0, 1.0);
+      final x1 = size.width * loopEnd!.clamp(0.0, 1.0);
+      if (x1 > x0) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(x0, trackTop, x1 - x0, t.strokeRulerTrack),
+            const Radius.circular(2),
+          ),
+          Paint()..color = t.you.withValues(alpha: 0.18),
+        );
+        const bracketHeight = 7;
+        final bracketPaint = Paint()
+          ..color = t.you
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = t.strokeLoopBracket
+          ..strokeCap = StrokeCap.round;
+        final path = Path()
+          ..moveTo(x0, trackTop - 2)
+          ..lineTo(x0, trackTop - 2 - bracketHeight)
+          ..lineTo(x1, trackTop - 2 - bracketHeight)
+          ..lineTo(x1, trackTop - 2);
+        canvas.drawPath(path, bracketPaint);
+      }
     }
 
     final dotPaint = Paint()..color = t.you;

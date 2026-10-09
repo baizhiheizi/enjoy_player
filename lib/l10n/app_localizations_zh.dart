@@ -760,6 +760,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get echoLoopLaterLine => '下一句';
 
   @override
+  String echoLoopCaptionLine(String range, String seconds) {
+    return '循环 · 第 $range 句 · $seconds 秒';
+  }
+
+  @override
+  String echoLoopCaptionLines(String range, String seconds) {
+    return '循环 · 第 $range 句 · $seconds 秒';
+  }
+
+  @override
+  String echoLoopCaptionRecording(int count) {
+    return '录音 · 第 $count 遍';
+  }
+
+  @override
+  String get playerDockRecord => '录音';
+
+  @override
   String get shadowReadingTitle => '跟读';
 
   @override
@@ -4822,6 +4840,24 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get echoLoopLaterLine => '下一句';
+
+  @override
+  String echoLoopCaptionLine(String range, String seconds) {
+    return '循环 · 第 $range 句 · $seconds 秒';
+  }
+
+  @override
+  String echoLoopCaptionLines(String range, String seconds) {
+    return '循环 · 第 $range 句 · $seconds 秒';
+  }
+
+  @override
+  String echoLoopCaptionRecording(int count) {
+    return '录音 · 第 $count 遍';
+  }
+
+  @override
+  String get playerDockRecord => '录音';
 
   @override
   String get shadowReadingTitle => '跟读';

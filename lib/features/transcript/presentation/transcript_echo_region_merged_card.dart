@@ -202,12 +202,15 @@ class EchoRegionMergedCard extends ConsumerWidget {
       3600.0,
     );
     final secondsLabel = loopSeconds.toStringAsFixed(1);
-    final lineRangeLabel = loopLines > 1
-        ? 'LINES ${echo.startLineIndex + 1}–${echo.endLineIndex + 1}'
-        : 'LINE ${echo.startLineIndex + 1}';
+    final l10n = AppLocalizations.of(context)!;
     final loopLabel = recording
-        ? 'RECORDING TAKE ${maxTakeNumber + 1}'
-        : 'LOOP · $lineRangeLabel · $secondsLabel S';
+        ? l10n.echoLoopCaptionRecording(maxTakeNumber + 1)
+        : loopLines > 1
+        ? l10n.echoLoopCaptionLines(
+            '${echo.startLineIndex + 1}–${echo.endLineIndex + 1}',
+            secondsLabel,
+          )
+        : l10n.echoLoopCaptionLine('${echo.startLineIndex + 1}', secondsLabel);
 
     final tt = Theme.of(context).textTheme;
     final typography = TranscriptTypographyTokens.of(context);
