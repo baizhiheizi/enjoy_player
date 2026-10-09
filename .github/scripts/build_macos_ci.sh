@@ -35,6 +35,10 @@ build_with_retry() {
   apple_retry_spm_command "${root}" \
     flutter build macos --"${config_flag}" --config-only
 
+  # --config-only regenerates the ephemeral SwiftPM package symlinks, so the
+  # floor patch must run after it and before xcodebuild resolves packages.
+  apple_raise_swiftpm_macos_floors "${root}" "12.0"
+
   apple_retry_spm_command "${root}" \
     xcodebuild \
     -workspace macos/Runner.xcworkspace \
