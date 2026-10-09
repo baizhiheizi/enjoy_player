@@ -86,7 +86,7 @@ See [ci-self-hosted-runners.md](ci-self-hosted-runners.md) for registration and 
 
 ```bash
 flutter doctor
-java -version   # 17+
+java -version   # 17+ (pinned as temurin-17 in mise.toml; mise exec sets JAVA_HOME)
 python3 --version   # local feed smoke-test only; Play AAB upload needs Ruby (fastlane)
 echo "$ANDROID_SDK_ROOT"
 sdkmanager "platforms;android-35" "build-tools;35.0.0"

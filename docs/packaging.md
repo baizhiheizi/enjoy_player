@@ -139,7 +139,7 @@ flutter test
 
 ### Linux (Android)
 
-- **Flutter** + **Android SDK** (Java 17)
+- **Flutter** + **Android SDK** — Java 17 is pinned as `temurin-17` in [`mise.toml`](../mise.toml) (`mise exec`/`mise install` provides `java` + `JAVA_HOME`; the system JDK is ignored inside the repo)
 - After `flutter pub get`, run [`tool/patch_agp9_pub_plugins.sh`](../tool/patch_agp9_pub_plugins.sh) (done automatically by release script)
 
 ### Linux (AppImage)
