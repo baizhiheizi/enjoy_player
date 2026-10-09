@@ -135,7 +135,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
               used: creditsUsed,
               limit: dailyLimit,
               permanent: permanent,
-              showUpgrade: tier == SubscriptionTier.free,
+              tier: tier,
             ),
           ),
           const SizedBox(height: 20),

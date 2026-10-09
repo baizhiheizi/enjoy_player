@@ -97,6 +97,7 @@ class ProfileHeroCard extends ConsumerWidget {
               ),
             ),
             Container(
+              constraints: const BoxConstraints(minHeight: 24),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: ShapeDecoration(
                 color: tier == SubscriptionTier.free ? t.sunk : t.brandSoft,
@@ -324,15 +325,15 @@ class ProfileCreditsCard extends StatelessWidget {
     required this.used,
     required this.limit,
     required this.permanent,
-    this.showUpgrade = false,
+    this.tier,
   });
+
+  static const _kLowCreditsFraction = 0.9;
 
   final int? used;
   final int limit;
   final int? permanent;
-
-  /// Shows the upgrade CTA once usage crosses the low threshold.
-  final bool showUpgrade;
+  final SubscriptionTier? tier;
 
   @override
   Widget build(BuildContext context) {
@@ -344,7 +345,11 @@ class ProfileCreditsCard extends StatelessWidget {
     final fraction = used == null || limit <= 0
         ? 0.0
         : (used! / limit).clamp(0.0, 1.0);
-    final isLow = used != null && limit > 0 && fraction >= 0.9;
+    final isLow =
+        used != null &&
+        limit > 0 &&
+        fraction >= ProfileCreditsCard._kLowCreditsFraction;
+    final upgradeVisible = isLow && tier == SubscriptionTier.free;
     final extra = permanent;
     return EnjoyCard(
       child: Padding(
@@ -356,7 +361,7 @@ class ProfileCreditsCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(child: EnjoyOverline(l10n.profileCreditsToday)),
-                if (showUpgrade && isLow) ...[
+                if (upgradeVisible) ...[
                   EnjoyButton.brand(
                     size: EnjoyButtonSize.small,
                     onPressed: () => context.push('/subscription'),
@@ -408,11 +413,15 @@ class ProfileCreditsCard extends StatelessWidget {
                       widthFactor: fraction,
                       heightFactor: 1,
                       child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: isLow ? null : t.logo,
-                          color: isLow ? t.danger : null,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                        decoration: isLow
+                            ? BoxDecoration(
+                                color: t.danger,
+                                borderRadius: BorderRadius.circular(4),
+                              )
+                            : BoxDecoration(
+                                gradient: t.logo,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                       ),
                     ),
                   ],

@@ -1,6 +1,7 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
@@ -10,7 +11,11 @@ import 'package:enjoy_player/features/auth/application/profile_practice_stats_pr
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
+import 'package:enjoy_player/features/credits/application/todays_credits_provider.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
+import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
+import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
+import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -52,6 +57,7 @@ Widget _harness(
   Widget child, {
   required _FakeAuthCtrl authCtrl,
   VocabularyStats vocabStats = _emptyVocabStats,
+  List<Override> extraOverrides = const [],
 }) {
   final scheme = ColorScheme.fromSeed(
     seedColor: const Color(0xFF7B61FF),
@@ -65,6 +71,7 @@ Widget _harness(
         (ref) async => LearningStatistics.empty(),
       ),
       vocabularyStatsProvider.overrideWithValue(vocabStats),
+      ...extraOverrides,
     ],
     child: MaterialApp(
       theme: ThemeData(
@@ -195,4 +202,67 @@ void main() {
     expect(find.text(l10n.vocabularyProfileEntry), findsOneWidget);
     expect(find.text(l10n.vocabularyReviewDueValue(0)), findsNothing);
   });
+
+  testWidgets(
+    'free tier at 95% daily credits surfaces the running-low caption and '
+    'upgrade CTA end to end',
+    (tester) async {
+      final authCtrl = _FakeAuthCtrl();
+      await tester.pumpWidget(
+        _harness(
+          const ProfileContent(),
+          authCtrl: authCtrl,
+          extraOverrides: [
+            currentTierProvider.overrideWithValue(SubscriptionTier.free),
+            todaysCreditsUsedProvider.overrideWith((ref) => 950),
+            subscriptionStatusProvider.overrideWith(
+              (ref) async => const SubscriptionStatus(
+                subscriptionActive: false,
+                subscriptionTier: SubscriptionTier.free,
+              ),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = await AppLocalizations.delegate.load(
+        const Locale('en', 'US'),
+      );
+
+      expect(find.text(l10n.profileCreditsRunningLow), findsOneWidget);
+      expect(find.text(l10n.subscriptionUpgradeShort), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'pro tier at the same usage gets neither the caption nor the CTA',
+    (tester) async {
+      final authCtrl = _FakeAuthCtrl();
+      await tester.pumpWidget(
+        _harness(
+          const ProfileContent(),
+          authCtrl: authCtrl,
+          extraOverrides: [
+            currentTierProvider.overrideWithValue(SubscriptionTier.pro),
+            todaysCreditsUsedProvider.overrideWith((ref) => 57000),
+            subscriptionStatusProvider.overrideWith(
+              (ref) async => const SubscriptionStatus(
+                subscriptionActive: true,
+                subscriptionTier: SubscriptionTier.pro,
+              ),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = await AppLocalizations.delegate.load(
+        const Locale('en', 'US'),
+      );
+
+      expect(find.text(l10n.profileCreditsRunningLow), findsOneWidget);
+      expect(find.text(l10n.subscriptionUpgradeShort), findsNothing);
+    },
+  );
 }

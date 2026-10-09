@@ -108,7 +108,7 @@ void main() {
           used: 950,
           limit: 1000,
           permanent: null,
-          showUpgrade: true,
+          tier: SubscriptionTier.free,
         ),
       ),
     );
@@ -130,7 +130,7 @@ void main() {
           used: 640,
           limit: 1000,
           permanent: 2400,
-          showUpgrade: true,
+          tier: SubscriptionTier.free,
         ),
       ),
     );
