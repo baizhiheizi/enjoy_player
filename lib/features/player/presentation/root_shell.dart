@@ -35,7 +35,12 @@ class RootShell extends ConsumerStatefulWidget {
 
 class _RootShellState extends ConsumerState<RootShell> {
   int _navIndexForPath(String path) {
-    if (path.startsWith('/profile') || path.startsWith('/settings')) return 3;
+    if (path.startsWith('/profile') ||
+        path.startsWith('/settings') ||
+        path.startsWith('/subscription') ||
+        path.startsWith('/credits')) {
+      return 3;
+    }
     if (path.startsWith('/library') || path.startsWith('/cloud')) return 2;
     if (path.startsWith('/discover')) return 1;
     return 0;
