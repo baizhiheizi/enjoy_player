@@ -136,6 +136,41 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
+    testWidgets('cloud refresh shares the title row on narrow widths', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final router = GoRouter(
+        initialLocation: '/library?source=cloud',
+        routes: [
+          GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        _themedRouter(
+          router: router,
+          overrides: [
+            authCtrlProvider.overrideWith(_SignedOutAuthCtrl.new),
+            libraryFilteredListsProvider.overrideWith(
+              (ref) => Stream.value((audio: <Media>[], video: <Media>[])),
+            ),
+            libraryMediaProvider.overrideWith((ref) => Stream.value(<Media>[])),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final refreshDy = tester.getCenter(find.byTooltip('Refresh this tab')).dy;
+      final segmentDy = tester.getCenter(find.text('Cloud').first).dy;
+      expect(refreshDy, closeTo(segmentDy, 2));
+    });
+
     testWidgets('source toggle navigates to cloud query', (tester) async {
       final router = GoRouter(
         initialLocation: '/library',

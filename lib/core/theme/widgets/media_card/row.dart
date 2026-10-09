@@ -241,7 +241,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
                 children: [
                   Text(
                     widget.title,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: tt.titleSmall?.copyWith(
                       fontSize: 14.5,

@@ -172,14 +172,30 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                   ? l10n.libraryOverlineCloud
                   : l10n.libraryOverlineLocal,
               title: l10n.libraryTitle,
-              titleAccessory: _sourceSegment(l10n, source),
-              trailing: isCloud
-                  ? EnjoyIconButton(
-                      icon: EnjoyIcons.refresh,
-                      tooltip: l10n.cloudRefreshTooltip,
-                      onPressed: () =>
-                          _cloudBodyKey.currentState?.refreshActiveTab(),
+              titleAccessory: phone && isCloud
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _sourceSegment(l10n, source),
+                        const SizedBox(width: 8),
+                        EnjoyIconButton(
+                          icon: EnjoyIcons.refresh,
+                          tooltip: l10n.cloudRefreshTooltip,
+                          onPressed: () =>
+                              _cloudBodyKey.currentState?.refreshActiveTab(),
+                        ),
+                      ],
                     )
+                  : _sourceSegment(l10n, source),
+              trailing: isCloud
+                  ? (phone
+                        ? null
+                        : EnjoyIconButton(
+                            icon: EnjoyIcons.refresh,
+                            tooltip: l10n.cloudRefreshTooltip,
+                            onPressed: () =>
+                                _cloudBodyKey.currentState?.refreshActiveTab(),
+                          ))
                   : metrics.paneWidth < t.breakpointCompact
                   ? EnjoyIconButton(
                       icon: EnjoyIcons.add,
