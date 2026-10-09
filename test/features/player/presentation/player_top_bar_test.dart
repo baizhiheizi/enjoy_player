@@ -4,11 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('echo shortcut chip renders only on desktop platforms', () {
-    final chip = echoModeShortcutChip();
-    if (isDesktop) {
-      expect(chip, isNotNull);
-    } else {
-      expect(chip, isNull);
-    }
+    expect(echoModeShortcutVisible(), isDesktop);
   });
 }

@@ -193,8 +193,7 @@ class PlayerTopBar extends ConsumerWidget {
   }
 }
 
-Widget? echoModeShortcutChip() =>
-    isDesktop ? const EnjoyKeycap(label: 'E') : null;
+bool echoModeShortcutVisible() => isDesktop;
 
 class _ModeSegmented extends StatelessWidget {
   const _ModeSegmented({
@@ -300,7 +299,9 @@ class _ModeSegmented extends StatelessWidget {
               selectedFg: t.youInk,
               onTap: onEcho,
               tooltip: l10n.hotkeysDescToggleEchoMode,
-              trailing: echoModeShortcutChip(),
+              trailing: echoModeShortcutVisible()
+                  ? const EnjoyKeycap(label: 'E')
+                  : null,
             ),
           ),
         ],

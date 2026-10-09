@@ -429,7 +429,6 @@ class _DockLabeledControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -437,10 +436,11 @@ class _DockLabeledControl extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           label,
-          style: tt.labelMedium?.copyWith(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: color,
+            height: 1.3,
           ),
         ),
       ],
@@ -776,6 +776,9 @@ class _ListenControls extends StatelessWidget {
   }
 }
 
+const double _kEchoCaptionBlockHeight = 22;
+const double _kEchoSkipIconHalf = 24;
+
 class _EchoControls extends StatelessWidget {
   const _EchoControls({
     super.key,
@@ -833,75 +836,74 @@ class _EchoControls extends StatelessWidget {
         ],
       ],
     );
-    final center = phone
-        ? Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 38),
-                child: _DockIconButton(
-                  icon: EnjoyIcons.skipBack,
-                  tooltip: l10n.previousLine,
-                  onTap: onPrev,
-                ),
+    final original = _OriginalPill(phone: phone, onPlay: onOriginal);
+    final record = _RecordButton(phone: phone, onToggle: onRecord);
+    final skipBack = _DockIconButton(
+      icon: EnjoyIcons.skipBack,
+      tooltip: l10n.previousLine,
+      onTap: onPrev,
+    );
+    final skipForward = _DockIconButton(
+      icon: EnjoyIcons.skipForward,
+      tooltip: l10n.nextLine,
+      onTap: onNext,
+    );
+    final Widget center;
+    if (phone) {
+      final skipBaseline =
+          t.recordButtonSizePhone / 2 +
+          _kEchoCaptionBlockHeight -
+          _kEchoSkipIconHalf;
+      center = Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(bottom: skipBaseline),
+            child: skipBack,
+          ),
+          const SizedBox(width: 10),
+          _DockLabeledControl(
+            label: l10n.playerDockOriginal,
+            color: t.originalInk,
+            child: original,
+          ),
+          const SizedBox(width: 16),
+          _DockLabeledControl(
+            label: l10n.playerDockRecord,
+            color: t.youInk,
+            child: record,
+          ),
+          const SizedBox(width: 10),
+          Padding(
+            padding: EdgeInsets.only(bottom: skipBaseline),
+            child: skipForward,
+          ),
+        ],
+      );
+    } else {
+      center = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          skipBack,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: ShapeDecoration(
+                color: t.sunk,
+                shape: const StadiumBorder(),
               ),
-              const SizedBox(width: 10),
-              _DockLabeledControl(
-                label: l10n.playerDockOriginal,
-                color: t.originalInk,
-                child: _OriginalPill(phone: phone, onPlay: onOriginal),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [original, const SizedBox(width: 6), record],
               ),
-              const SizedBox(width: 16),
-              _DockLabeledControl(
-                label: l10n.playerDockRecord,
-                color: t.youInk,
-                child: _RecordButton(phone: phone, onToggle: onRecord),
-              ),
-              const SizedBox(width: 10),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 38),
-                child: _DockIconButton(
-                  icon: EnjoyIcons.skipForward,
-                  tooltip: l10n.nextLine,
-                  onTap: onNext,
-                ),
-              ),
-            ],
-          )
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _DockIconButton(
-                icon: EnjoyIcons.skipBack,
-                tooltip: l10n.previousLine,
-                onTap: onPrev,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: ShapeDecoration(
-                    color: t.sunk,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _OriginalPill(phone: phone, onPlay: onOriginal),
-                      const SizedBox(width: 6),
-                      _RecordButton(phone: phone, onToggle: onRecord),
-                    ],
-                  ),
-                ),
-              ),
-              _DockIconButton(
-                icon: EnjoyIcons.skipForward,
-                tooltip: l10n.nextLine,
-                onTap: onNext,
-              ),
-            ],
-          );
+            ),
+          ),
+          skipForward,
+        ],
+      );
+    }
     final right = !phone
         ? Row(
             mainAxisAlignment: MainAxisAlignment.end,
