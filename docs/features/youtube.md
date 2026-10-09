@@ -64,7 +64,13 @@ timed text) and cached on the worker. The chain has three tiers:
 or `und`. An unknown language only narrows the Tier 1 lookup and the
 `preferredLang` hint passed to the fetcher; the fetcher itself still discovers
 all available languages (spec 013 FR-004) and stores them as separate
-`TranscriptRow`s keyed by `(target, source, language)`.
+`TranscriptRow`s keyed by `(target, source, language)`. The fetcher's own
+preference ranking is alias-aware: tracks matching the requested tag exactly
+rank first, tracks sharing its primary subtag second (so a `no` track still
+counts as preferred for `nb-NO` via `kLanguageTagAliases`, ADR-0087), and
+everything else last
+([`youtube_caption_fetcher.dart`](../../lib/features/transcript/data/youtube_caption_fetcher.dart),
+#848).
 
 ### Primary selection
 
