@@ -9,7 +9,7 @@ Guidance for humans and AI coding agents working in this repository.
 3. [docs/architecture.md](docs/architecture.md) — modules & data flow
 4. [docs/conventions.md](docs/conventions.md) — Dart / Flutter rules
 5. [docs/decisions/README.md](docs/decisions/README.md) — ADR index
-6. [docs/design/duet/](docs/design/duet/README.md) — the Duet design ([ADR-0093](docs/decisions/0093-duet-design-language.md)); all UI work follows it. While the redesign is in flight on `design-duet`, take tasks from [PLAN.md](docs/design/duet/PLAN.md) and keep [STATUS.md](docs/design/duet/STATUS.md) current
+6. [docs/design/duet/](docs/design/duet/README.md) — the Duet design ([ADR-0093](docs/decisions/0093-duet-design-language.md)); all UI work follows it. The redesign has merged to `main` (PR #853); remaining tasks and open decisions live in [PLAN.md](docs/design/duet/PLAN.md) / [STATUS.md](docs/design/duet/STATUS.md) — update STATUS.md in the same PR when a tracked task moves
 
 ## Hard rules
 
@@ -61,6 +61,8 @@ Before pushing Dart / `lib` / `packages` / `test` changes, run the same cheap ga
 bash .github/scripts/validate_ci_gates.sh
 # auto-fix format + regenerate codegen when needed:
 bash .github/scripts/validate_ci_gates.sh --fix
+# only the tests for lib/test sources this branch touched (with --test):
+bash .github/scripts/validate_ci_gates.sh --test --changed-only
 # full local mirror (slower):
 bash .github/scripts/validate_ci_gates.sh --all
 ```

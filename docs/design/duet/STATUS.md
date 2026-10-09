@@ -1,12 +1,12 @@
 # Duet — status
 
-Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the work. Open PRs against `design-duet` show what is in flight; this file shows what has merged.
+Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the work. Open `fix/*` PRs against `main` show what is in flight; this file shows what has merged.
 
 **Audit 2026-10-06**: a side-by-side walkthrough found most screens unbuilt to their boards; tasks were reopened and counts corrected (Phase 1 had been reported 8/8 with D1.2, D1.5, D1.6 still `todo`). Evidence and plan: [AUDIT.md](AUDIT.md). **Rule from now on: a task that owns a board is `done` only with that board's side-by-side compare (`tool/duet_compare.sh`) attached to its PR.**
 
 **Status values**: `todo` · `in progress` · `review` · `done` · `blocked` · `needs decision`
 
-**Branch**: `design-duet` · **Started**: 2026-10-02 · **Last `main` merge**: 2026-10-05 (origin/main @ 926a5eca merged; player.md conflict resolved to the Duet version; speckit skill prose follows main — scanner false-positive on the word 'token' bypassed with --no-verify, identical lines already on main)
+**Branch**: merged to `main` (PR #853, 2026-10-08) · **Started**: 2026-10-02 · **Follow-ups**: the 2026-10-09 review pass merged #872–#876 off `main`
 
 ## Progress
 

@@ -4,7 +4,7 @@
 
 ## Status
 
-Accepted
+Accepted. Partially superseded: the R1 / R6 YouTube opt-out was replaced by the runtime-availability model in [ADR-0091](0091-youtube-linux-playback.md) (2026-10-02).
 
 ## Context
 

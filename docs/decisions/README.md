@@ -71,7 +71,7 @@ Trade-offs, follow-up work, risks.
 | [0045](0045-ai-result-cache-hierarchy.md) | Unified two-tier AI result cache (L1 LRU+TTL / L2 Drift) and `AiCacheFingerprint` keying |
 | [0046](0046-discover-feed-append-only.md) | Discover feed cache is append-only between unsubscribe events |
 | [0047](0047-youtube-discover-innertube.md) | InnerTube `browse` as primary source for YouTube channel discover (superseded by 0051) |
-| [0048](0048-linux-platform-support.md) | Linux as a first-class supported desktop platform (AppImage) |
+| [0048](0048-linux-platform-support.md) | Linux as a first-class supported desktop platform (AppImage) (the R1 / R6 YouTube opt-out is **superseded by 0091**) |
 | [0049](0049-youtube-language-aware-captions.md) | YouTube language-aware caption discovery & primary selection |
 | [0050](0050-path-linked-local-media.md) | Path-linked local media — prefer lasting link, copy fallback (partial supersession of 0005 import storage) |
 | [0051](0051-youtube-worker-discovery.md) | YouTube discovery via server-side RSSHub proxy (supersedes 0021 and 0047) |

@@ -9,6 +9,7 @@ bash .github/scripts/validate_ci_gates.sh
 bash .github/scripts/validate_ci_gates.sh --fix             # write format + regenerate codegen
 bash .github/scripts/validate_ci_gates.sh --test --coverage # + test, then enforce the coverage gate
 bash .github/scripts/validate_ci_gates.sh --all             # + analyze + test + coverage gate + path packages
+bash .github/scripts/validate_ci_gates.sh --test --changed-only # only the test files that exist for the lib/test sources this branch touched (vs the merge base; excludes --coverage)
 ```
 
 Individual commands:
