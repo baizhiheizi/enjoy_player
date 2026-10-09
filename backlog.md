@@ -19,9 +19,13 @@ change), NOT on every position tick. Ratings below reflect the VERIFIED recomput
 - Optimize: sweep-line / interval approach. Sort recordings by referenceStart; sort lines by
   startMs; maintain an active set while advancing line startMs; O((n+m) log(n+m)) vs O(n×m).
   MUST preserve exact overlap rule `max(startA,startB) < min(endA,endB)` (boundary semantics,
-  zero-duration intervals) — existing tests pin these.
-- Measure: (a) structural — count `recordingOverlapsLine` entries bounded by ~n×log(m);
-  (b) microbenchmark 10k lines × 200 recordings, loose ceiling (docs/perf-measurement.md template).
+  zero-duration intervals) — `test/features/transcript/transcript_recording_counts_test.dart`
+  pins zero-duration line/recording semantics + boundary cases.
+- Structural test (additive, low-risk before/after):
+  - Wrap `recordingOverlapsLine` in a counter (only the helper, not the public API) and assert
+    the count is bounded by ~n×(active-window size) on 10k lines × 200 random recordings.
+  - Existing `transcript_recording_counts_test.dart` will catch any semantics regression.
+- Wall-clock (local-only): 10k lines × 200 recordings, loose ceiling (docs/perf-measurement.md template).
 - Risk: MED (algorithmic change, edge cases). Only attempt where tests can run (network runner).
 
 ## P2 — TranscriptStreamGroup double-resolve on every DB tick
