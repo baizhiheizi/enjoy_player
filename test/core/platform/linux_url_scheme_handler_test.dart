@@ -71,7 +71,7 @@ void main() {
         content,
         contains('"${Platform.resolvedExecutable.replaceAll('%', '%%')}"'),
       );
-    });
+    }, skip: !Platform.isLinux);
 
     test('is idempotent — unchanged entries are not rewritten', () async {
       Future<void> write() => ensureEnjoyplayerSchemeHandler(
@@ -84,6 +84,6 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 20));
       await write();
       expect(file.statSync().modified, before);
-    });
+    }, skip: !Platform.isLinux);
   });
 }

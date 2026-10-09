@@ -10,23 +10,18 @@ PODS:
     - FlutterMacOS
   - ffmpeg_kit_flutter_new/full-gpl (1.0.0):
     - FlutterMacOS
-  - flutter_inappwebview_macos (0.0.1):
-    - FlutterMacOS
-    - OrderedSet (~> 6.0.3)
   - FlutterMacOS (1.0.0)
   - media_kit_libs_macos_video (1.0.4):
     - FlutterMacOS
   - media_kit_video (0.0.1):
     - FlutterMacOS
   - MicrosoftCognitiveServicesSpeech-macOS (1.49.1)
-  - OrderedSet (6.0.3)
   - Sparkle (2.9.2)
 
 DEPENDENCIES:
   - auto_updater_macos (from `Flutter/ephemeral/.symlinks/plugins/auto_updater_macos/macos`)
   - azure_speech (from `Flutter/ephemeral/.symlinks/plugins/azure_speech/macos`)
   - ffmpeg_kit_flutter_new (from `Flutter/ephemeral/.symlinks/plugins/ffmpeg_kit_flutter_new/macos`)
-  - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
@@ -34,7 +29,6 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - MicrosoftCognitiveServicesSpeech-macOS
-    - OrderedSet
     - Sparkle
 
 EXTERNAL SOURCES:
@@ -44,8 +38,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/azure_speech/macos
   ffmpeg_kit_flutter_new:
     :path: Flutter/ephemeral/.symlinks/plugins/ffmpeg_kit_flutter_new/macos
-  flutter_inappwebview_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   media_kit_libs_macos_video:
@@ -57,12 +49,10 @@ SPEC CHECKSUMS:
   auto_updater_macos: 3a42f1a06be6981f1a18be37e6e7bf86aa732118
   azure_speech: ae48a8cde92ea9b57a7406a9ad9632e707d91b47
   ffmpeg_kit_flutter_new: 4eb1908463948e877ff5c4f2c7bb28f2a5dfd11b
-  flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
   MicrosoftCognitiveServicesSpeech-macOS: dd6553a510acf213e02e768eb66022551f3930f8
-  OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   Sparkle: 2d0c930d42d53ee0fdf98bbb342c08eaf18ab5f0
 
 PODFILE CHECKSUM: 1411983d7157b6ecdfa5410888ad4011abd01f95
