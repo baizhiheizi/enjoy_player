@@ -28,6 +28,44 @@ apple_sanitize_git_env_for_spm() {
   export GIT_CONFIG_VALUE_0="HTTP/1.1"
 }
 
+apple_raise_swiftpm_macos_floors() {
+  # Raise SwiftPM plugin macOS deployment floors to the app minimum.
+  #
+  # SwiftPM builds a plugin package at the platform declared in its own
+  # Package.swift, so macos/Podfile's post_install bump to 12.0 does not
+  # apply. flutter_inappwebview 6.2.0-beta.3 declares .macOS("10.14") while
+  # conforming to the macOS 10.15+ ASWebAuthenticationPresentationContextProviding
+  # ungated, which the macOS 26.x SDK rejects at target 10.14
+  # ("protocol ... requires 'presentationAnchor(for:)'"), failing the build
+  # with exit 65. Mirroring the Podfile post_install policy (any floor below
+  # 12.0 becomes 12.0) keeps the SwiftPM path consistent with the CocoaPods
+  # one; every plugin must already build at 12.0 because the app requires it.
+  #
+  # The .packages entries are symlinks into the shared pub cache, so the edit
+  # is persistent on self-hosted runners but idempotent: it re-runs on every
+  # build, and a plugin version bump changes the symlink target so the stale
+  # patched copy is never reused. iOS floors are left alone; none are known
+  # to be lower than the APIs their packages use.
+  local root="${1:?apple_raise_swiftpm_macos_floors: repo root required}"
+  local floor="${2:-12.0}"
+  local packages_dir="${root}/macos/Flutter/ephemeral/Packages/.packages"
+  [[ -d "${packages_dir}" ]] || return 0
+
+  local link target manifest current
+  for link in "${packages_dir}"/*; do
+    [[ -L "${link}" ]] || continue
+    target="$(readlink "${link}")"
+    manifest="${target}/Package.swift"
+    [[ -f "${manifest}" ]] || continue
+    current="$(sed -nE 's/.*\.macOS\("([0-9.]+)"\).*/\1/p' "${manifest}" | head -n 1)"
+    [[ -n "${current}" ]] || continue
+    if awk "BEGIN{exit !(${current} < ${floor})}"; then
+      sed -i '' -E "s/\.macOS\(\"[0-9.]+\"\)/.macOS(\"${floor}\")/g" "${manifest}"
+      echo "Raised SwiftPM macOS floor of $(basename "${link}") from ${current} to ${floor}" >&2
+    fi
+  done
+}
+
 apple_clear_spm_caches() {
   local root="${1:-.}"
   rm -rf "${HOME}/Library/Caches/org.swift.swiftpm"
