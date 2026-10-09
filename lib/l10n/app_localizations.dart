@@ -7632,6 +7632,18 @@ abstract class AppLocalizations {
   /// **'Resets daily · plus {count} permanent credits'**
   String profileCreditsResetsWithPermanent(String count);
 
+  /// Profile credits card caption once usage passes the low threshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s credits are almost used up'**
+  String get profileCreditsRunningLow;
+
+  /// Profile practice card hint while every stat is zero.
+  ///
+  /// In en, this message translates to:
+  /// **'Start your first echo session to fill these in'**
+  String get profilePracticeEmptyHint;
+
   /// Unit after a minute figure on the Profile practice card.
   ///
   /// In en, this message translates to:

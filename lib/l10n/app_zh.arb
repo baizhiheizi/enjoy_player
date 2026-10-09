@@ -1630,6 +1630,8 @@
   "profileCreditsUsageLink": "用量",
   "profileCreditsResetsDaily": "每日重置",
   "profileCreditsResetsWithPermanent": "每日重置 · 另有 {count} 永久积分",
+  "profileCreditsRunningLow": "今日积分即将用完",
+  "profilePracticeEmptyHint": "开始你的第一次跟读，数据就会出现在这里",
   "profileMinutesUnit": "分钟",
   "profileSettingsHint": "外观、AI 服务、录音、快捷键",
   "vocabularyReviewDueValue": "{count} 个到期",
