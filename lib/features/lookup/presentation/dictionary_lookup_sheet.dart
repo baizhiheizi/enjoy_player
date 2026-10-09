@@ -273,7 +273,14 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                         children: [
                           if (creditsExhausted.isNotEmpty) ...[
                             LookupCreditsBanner(
-                              message: creditsExhausted.values.first,
+                              message:
+                                  creditsExhausted[LookupSectionId
+                                      .translation] ??
+                                  creditsExhausted[LookupSectionId
+                                      .dictionary] ??
+                                  creditsExhausted[LookupSectionId
+                                      .contextualTranslation] ??
+                                  '',
                             ),
                             SizedBox(height: t.space8),
                           ],

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('report, clear, and clearAll track section credits state', () {
+  test('report and clear track section credits state', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final keepAlive = container.listen(
@@ -40,8 +40,5 @@ void main() {
           .containsKey(LookupSectionId.translation),
       isFalse,
     );
-
-    notifier.clearAll();
-    expect(container.read(lookupCreditsExhaustedProvider), isEmpty);
   });
 }

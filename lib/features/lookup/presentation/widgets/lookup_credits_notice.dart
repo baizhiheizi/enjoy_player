@@ -29,10 +29,8 @@ class _LookupCreditsNoticeState extends State<LookupCreditsNotice> {
   @override
   void didUpdateWidget(covariant LookupCreditsNotice oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isRetrying) {
-      if (_tapLatched) setState(() => _tapLatched = false);
-    } else if (oldWidget.isRetrying && !widget.isRetrying) {
-      if (_tapLatched) setState(() => _tapLatched = false);
+    if (_tapLatched && oldWidget.isRetrying != widget.isRetrying) {
+      setState(() => _tapLatched = false);
     }
   }
 

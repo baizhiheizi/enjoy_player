@@ -46,7 +46,11 @@ class TranslationLookupSection extends ConsumerWidget {
             return async.when(
               skipLoadingOnReload: true,
               data: (TranslationResult d) {
-                scheduleLookupCreditsClear(ref, LookupSectionId.translation);
+                scheduleLookupCreditsClear(
+                  context,
+                  ref,
+                  LookupSectionId.translation,
+                );
                 if (d.translatedText.trim().isEmpty) {
                   return Text(
                     l10n.lookupEmpty,
@@ -64,7 +68,11 @@ class TranslationLookupSection extends ConsumerWidget {
               loading: () => const LookupSectionShimmer(),
               error: (Object e, StackTrace st) {
                 if (e is AuthFailure) {
-                  scheduleLookupCreditsClear(ref, LookupSectionId.translation);
+                  scheduleLookupCreditsClear(
+                    context,
+                    ref,
+                    LookupSectionId.translation,
+                  );
                   return const AuthRequiredCallout(
                     surface: AuthRequiredSurface.lookupTranslation,
                     compact: true,
@@ -72,6 +80,7 @@ class TranslationLookupSection extends ConsumerWidget {
                 }
                 if (e is CreditsFailure) {
                   scheduleLookupCreditsReport(
+                    context,
                     ref,
                     LookupSectionId.translation,
                     creditsFailureMessage(e, l10n),
@@ -83,7 +92,11 @@ class TranslationLookupSection extends ConsumerWidget {
                     isRetrying: async.hasError && async.isLoading,
                   );
                 }
-                scheduleLookupCreditsClear(ref, LookupSectionId.translation);
+                scheduleLookupCreditsClear(
+                  context,
+                  ref,
+                  LookupSectionId.translation,
+                );
                 return LookupErrorRow(
                   message: lookupErrorUserMessage(e, l10n),
                   onRetry: () =>

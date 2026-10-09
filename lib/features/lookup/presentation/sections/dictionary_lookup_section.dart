@@ -70,7 +70,11 @@ class DictionaryLookupSection extends ConsumerWidget {
             return async.when(
               skipLoadingOnReload: true,
               data: (DictionaryResult d) {
-                scheduleLookupCreditsClear(ref, LookupSectionId.dictionary);
+                scheduleLookupCreditsClear(
+                  context,
+                  ref,
+                  LookupSectionId.dictionary,
+                );
                 return _DictionaryBody(
                   d: d,
                   l10n: l10n,
@@ -84,7 +88,11 @@ class DictionaryLookupSection extends ConsumerWidget {
               loading: () => const LookupSectionShimmer(),
               error: (Object e, StackTrace st) {
                 if (e is AuthFailure) {
-                  scheduleLookupCreditsClear(ref, LookupSectionId.dictionary);
+                  scheduleLookupCreditsClear(
+                    context,
+                    ref,
+                    LookupSectionId.dictionary,
+                  );
                   return const AuthRequiredCallout(
                     surface: AuthRequiredSurface.lookupDictionary,
                     compact: true,
@@ -92,6 +100,7 @@ class DictionaryLookupSection extends ConsumerWidget {
                 }
                 if (e is CreditsFailure) {
                   scheduleLookupCreditsReport(
+                    context,
                     ref,
                     LookupSectionId.dictionary,
                     creditsFailureMessage(e, l10n),
@@ -102,7 +111,11 @@ class DictionaryLookupSection extends ConsumerWidget {
                     isRetrying: async.hasError && async.isLoading,
                   );
                 }
-                scheduleLookupCreditsClear(ref, LookupSectionId.dictionary);
+                scheduleLookupCreditsClear(
+                  context,
+                  ref,
+                  LookupSectionId.dictionary,
+                );
                 return LookupErrorRow(
                   message: lookupErrorUserMessage(e, l10n),
                   onRetry: forceRefresh,

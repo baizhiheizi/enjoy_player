@@ -20,9 +20,4 @@ class LookupCreditsExhausted extends _$LookupCreditsExhausted {
     if (!state.containsKey(section)) return;
     state = Map.of(state)..remove(section);
   }
-
-  void clearAll() {
-    if (state.isEmpty) return;
-    state = const {};
-  }
 }
