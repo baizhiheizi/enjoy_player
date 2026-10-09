@@ -369,21 +369,30 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
     });
 
-    shellTest('selects Profile icon at /subscription and /credits', (
-      tester,
-    ) async {
-      for (final path in ['/subscription', '/credits']) {
-        final router = _router(initial: path);
-        await _pump(
-          tester,
-          router: router,
-          overrides: _shellOverrides(db),
-          surface: const Size(400, 900),
-        );
+    shellTest('selects Profile icon at /subscription', (tester) async {
+      final router = _router(initial: '/subscription');
+      await _pump(
+        tester,
+        router: router,
+        overrides: _shellOverrides(db),
+        surface: const Size(400, 900),
+      );
 
-        final nav = tester.widget<EnjoyBottomNav>(find.byType(EnjoyBottomNav));
-        expect(nav.selectedIndex, 3, reason: path);
-      }
+      expect(find.text('subscription-page'), findsOneWidget);
+      expect(findFilledChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
+    });
+
+    shellTest('selects Profile icon at /credits', (tester) async {
+      final router = _router(initial: '/credits');
+      await _pump(
+        tester,
+        router: router,
+        overrides: _shellOverrides(db),
+        surface: const Size(400, 900),
+      );
+
+      expect(find.text('credits-page'), findsOneWidget);
+      expect(findFilledChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
     });
 
     shellTest('selects Library icon at /cloud', (tester) async {

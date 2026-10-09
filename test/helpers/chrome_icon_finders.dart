@@ -8,3 +8,13 @@ Finder findChromeIcon(EnjoyChromeGlyph glyph) {
     description: 'EnjoyChromeIcon($glyph)',
   );
 }
+
+Finder findFilledChromeIcon(EnjoyChromeGlyph glyph) {
+  return find.byWidgetPredicate(
+    (widget) =>
+        widget is EnjoyChromeIcon &&
+        widget.glyph == glyph &&
+        widget.filled == true,
+    description: 'EnjoyChromeIcon($glyph, filled)',
+  );
+}

@@ -34,30 +34,39 @@ class RootShell extends ConsumerStatefulWidget {
 }
 
 class _RootShellState extends ConsumerState<RootShell> {
+  static const _navHome = 0;
+  static const _navDiscover = 1;
+  static const _navLibrary = 2;
+  static const _navAccount = 3;
+
+  static const _accountPrefixes = {
+    '/profile',
+    '/settings',
+    '/subscription',
+    '/credits',
+  };
+
   int _navIndexForPath(String path) {
-    if (path.startsWith('/profile') ||
-        path.startsWith('/settings') ||
-        path.startsWith('/subscription') ||
-        path.startsWith('/credits')) {
-      return 3;
+    if (_accountPrefixes.any(path.startsWith)) return _navAccount;
+    if (path.startsWith('/library') || path.startsWith('/cloud')) {
+      return _navLibrary;
     }
-    if (path.startsWith('/library') || path.startsWith('/cloud')) return 2;
-    if (path.startsWith('/discover')) return 1;
-    return 0;
+    if (path.startsWith('/discover')) return _navDiscover;
+    return _navHome;
   }
 
   void _goNavIndex(BuildContext context, int index) {
     switch (index) {
-      case 0:
+      case _navHome:
         context.go('/');
         return;
-      case 1:
+      case _navDiscover:
         context.go('/discover');
         return;
-      case 2:
+      case _navLibrary:
         context.go('/library');
         return;
-      case 3:
+      case _navAccount:
         context.go('/profile');
         return;
       default:
