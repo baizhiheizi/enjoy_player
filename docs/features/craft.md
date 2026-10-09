@@ -11,11 +11,11 @@ Craft ships two modes (see [ADR-0060](../decisions/0060-craft-voice-express-dual
 | **Express** (default) | Speak a thought | Voice-first linear flow: speak → ASR → AI rewrite → TTS → save/loop | You want to capture spontaneous thoughts fast |
 | **Advanced** | Paste / type text | Two-tool layout: Translate panel + Synthesize panel | You already have prepared text |
 
-The mode is selected with an `EnjoySegmentedControl<CraftScreenMode>` (the Aurora sliding-thumb primitive from [ADR-0089](../decisions/0089-aurora-design-language.md)) centred under the app bar, with `craftModeExpress` / `craftModeAdvanced` labels and mic / edit icons. Switching modes still routes through `_changeMode`, so unsaved in-memory TTS previews are confirmed before being discarded.
+The mode is selected with an `EnjoySegmentedControl<CraftScreenMode>` (the Duet sliding-thumb primitive from [ADR-0093](../decisions/0093-duet-design-language.md)) centred under the app bar, with `craftModeExpress` / `craftModeAdvanced` labels and mic / edit icons. Switching modes still routes through `_changeMode`, so unsaved in-memory TTS previews are confirmed before being discarded.
 
 ## Visual language
 
-Craft's presentation layer follows [ADR-0089](../decisions/0089-aurora-design-language.md) — same primitives as the already-migrated player, home, and settings surfaces:
+Craft's presentation layer follows [ADR-0093](../decisions/0093-duet-design-language.md) — same primitives as the already-migrated player, home, and settings surfaces:
 
 | Concern | Primitive |
 |---------|-----------|

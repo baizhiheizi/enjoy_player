@@ -3,7 +3,7 @@
 | Concern | Choice | Notes |
 |---------|--------|-------|
 | Language | Dart ^3.12 | Strict analysis; matches `sdk: ^3.12.0` in `pubspec.yaml`. Flutter pinned in [`mise.toml`](../mise.toml). |
-| UI | Flutter 3.x / Material 3 + `google_fonts` | Aurora `buildAppTheme(Brightness)` + `EnjoyThemeTokens` in `lib/core/theme/` ([ADR-0089](decisions/0089-aurora-design-language.md); supersedes the palette / chrome / type clauses of [ADR-0083](decisions/0083-paper-graphite-light-dark.md)) |
+| UI | Flutter 3.x / Material 3 + `google_fonts` | Duet `buildAppTheme(Brightness)` + `EnjoyThemeTokens` in `lib/core/theme/` ([ADR-0093](decisions/0093-duet-design-language.md); supersedes Aurora [ADR-0089](decisions/0089-aurora-design-language.md) and the palette / chrome / type clauses of [ADR-0083](decisions/0083-paper-graphite-light-dark.md)) |
 | State | `flutter_riverpod` + `riverpod_annotation` | `@Riverpod` notifiers, `build_runner` |
 | Navigation | `go_router` | Shell route; player transport only on `/player/` |
 | Playback | `media_kit` + `media_kit_video` + `media_kit_libs_video` | Single `Player` instance |

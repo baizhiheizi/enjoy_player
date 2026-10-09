@@ -16,7 +16,7 @@ Keyboard shortcuts mirror the Enjoy web app defaults (`stores/hotkeys.ts`). Cust
 
 Settings → **Keyboard shortcuts** → **Customize shortcuts** opens `/settings/keyboard` with filter, per-row edit/reset, and reset-all in the app bar (confirmation required). From the cheatsheet, **Customize shortcuts** navigates to the same screen. Legacy `/settings?section=keyboard` redirects to `/settings/keyboard` on desktop. The capture dialog shows **live chord text** (including invalid attempts) with screen-reader semantics. Reset per row or reset all restores defaults. The cheatsheet dialog is up to **`contentMaxWidth` (720)** wide and **85%** of viewport height so the two-column grid and large text scales remain usable.
 
-### Aurora layout (ADR-0089, issue #793)
+### Duet layout (ADR-0093, issue #793)
 
 `/settings/keyboard` follows the Settings/Profile **grouped inset list** rhythm rather than a flat column:
 

@@ -94,7 +94,7 @@ Missing BYOK credentials are surfaced **before** the capability runs, by the `By
 
 **Settings → Developer → AI playground** shows the active provider label per modality and exercises ASR, chat, translation, dictionary, and assessment.
 
-The screen follows the Aurora design language ([ADR-0089](../../docs/decisions/0089-aurora-design-language.md)) on an `EnjoyPageKind.hub` page:
+The screen follows the Duet design language ([ADR-0093](../decisions/0093-duet-design-language.md)) on an `EnjoyPageKind.hub` page:
 
 - **Active providers** — one grouped `EnjoyCard` with an `EnjoyIconTile` per modality (`robot` / `mic` / `speak` / `insights`, tinted by `enjoyTintForIcon`), hairline dividers, the provider label as the trailing value, and an `EnjoyPressable` row that pushes `/settings/ai-providers`.
 - **Modality groups** — an `EnjoySectionHeader` per group (ASR, Chat, Translation, Dictionary, TTS / Assessment) with the resolved provider as the muted inline caption, above an `EnjoyCard` holding that group's fields and its run action.

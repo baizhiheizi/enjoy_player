@@ -179,4 +179,4 @@ New placeholders should:
 - [app-ui.md](app-ui.md) — design tokens, motion, and reduced-motion conventions.
 - [features/library.md](library.md) — first-paint loading order on the Library screen.
 - [features/settings.md](settings.md#account-section) — single-column / two-pane account hero loading state.
-- [ADR-0089](../decisions/0089-aurora-design-language.md) — Aurora palette that drives `Skeleton` colors (supersedes the palette / chrome / type clauses of [ADR-0083](../decisions/0083-paper-graphite-light-dark.md); ADR-0083 §3 still defines the System / Light / Dark appearance mode).
+- [ADR-0093](../decisions/0093-duet-design-language.md) — Duet palette that drives `Skeleton` colors (supersedes Aurora [ADR-0089](../decisions/0089-aurora-design-language.md) and the palette / chrome / type clauses of [ADR-0083](../decisions/0083-paper-graphite-light-dark.md); ADR-0083 §3 still defines the System / Light / Dark appearance mode).
