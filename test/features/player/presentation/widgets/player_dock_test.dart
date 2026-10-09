@@ -165,6 +165,17 @@ void main() {
     expect(find.byIcon(EnjoyIcons.skipBack), findsOneWidget);
   });
 
+  testWidgets('Echo dock labels Original and Record on phone', (tester) async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await pumpDock(tester, echoActive: true);
+
+    expect(find.text(l10n.playerDockOriginal), findsOneWidget);
+    expect(find.text(l10n.playerDockRecord), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Recording dock shows Cancel and Stop', (tester) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     await tester.binding.setSurfaceSize(const Size(1280, 900));

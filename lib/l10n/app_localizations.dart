@@ -1503,6 +1503,30 @@ abstract class AppLocalizations {
   /// **'Later line'**
   String get echoLoopLaterLine;
 
+  /// Echo loop caption for a single line.
+  ///
+  /// In en, this message translates to:
+  /// **'LOOP · LINE {range} · {seconds} S'**
+  String echoLoopCaptionLine(String range, String seconds);
+
+  /// Echo loop caption for a line span.
+  ///
+  /// In en, this message translates to:
+  /// **'LOOP · LINES {range} · {seconds} S'**
+  String echoLoopCaptionLines(String range, String seconds);
+
+  /// Echo loop caption while recording a take.
+  ///
+  /// In en, this message translates to:
+  /// **'RECORDING TAKE {count}'**
+  String echoLoopCaptionRecording(int count);
+
+  /// Caption under the phone Echo record button.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get playerDockRecord;
+
   /// No description provided for @shadowReadingTitle.
   ///
   /// In en, this message translates to:

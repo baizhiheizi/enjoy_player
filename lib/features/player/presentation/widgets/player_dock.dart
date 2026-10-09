@@ -416,6 +416,38 @@ class _PlayButton extends StatelessWidget {
   }
 }
 
+class _DockLabeledControl extends StatelessWidget {
+  const _DockLabeledControl({
+    required this.label,
+    required this.color,
+    required this.child,
+  });
+
+  final String label;
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        child,
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: tt.labelMedium?.copyWith(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _RecordButton extends StatelessWidget {
   const _RecordButton({required this.phone, required this.onToggle});
 
@@ -801,39 +833,75 @@ class _EchoControls extends StatelessWidget {
         ],
       ],
     );
-    final center = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _DockIconButton(
-          icon: EnjoyIcons.skipBack,
-          tooltip: l10n.previousLine,
-          onTap: onPrev,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Container(
-            padding: const EdgeInsets.all(5),
-            decoration: ShapeDecoration(
-              color: t.sunk,
-              shape: const StadiumBorder(),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _OriginalPill(phone: phone, onPlay: onOriginal),
-                const SizedBox(width: 6),
-                _RecordButton(phone: phone, onToggle: onRecord),
-              ],
-            ),
-          ),
-        ),
-        _DockIconButton(
-          icon: EnjoyIcons.skipForward,
-          tooltip: l10n.nextLine,
-          onTap: onNext,
-        ),
-      ],
-    );
+    final center = phone
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 38),
+                child: _DockIconButton(
+                  icon: EnjoyIcons.skipBack,
+                  tooltip: l10n.previousLine,
+                  onTap: onPrev,
+                ),
+              ),
+              const SizedBox(width: 10),
+              _DockLabeledControl(
+                label: l10n.playerDockOriginal,
+                color: t.originalInk,
+                child: _OriginalPill(phone: phone, onPlay: onOriginal),
+              ),
+              const SizedBox(width: 16),
+              _DockLabeledControl(
+                label: l10n.playerDockRecord,
+                color: t.youInk,
+                child: _RecordButton(phone: phone, onToggle: onRecord),
+              ),
+              const SizedBox(width: 10),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 38),
+                child: _DockIconButton(
+                  icon: EnjoyIcons.skipForward,
+                  tooltip: l10n.nextLine,
+                  onTap: onNext,
+                ),
+              ),
+            ],
+          )
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _DockIconButton(
+                icon: EnjoyIcons.skipBack,
+                tooltip: l10n.previousLine,
+                onTap: onPrev,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: ShapeDecoration(
+                    color: t.sunk,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _OriginalPill(phone: phone, onPlay: onOriginal),
+                      const SizedBox(width: 6),
+                      _RecordButton(phone: phone, onToggle: onRecord),
+                    ],
+                  ),
+                ),
+              ),
+              _DockIconButton(
+                icon: EnjoyIcons.skipForward,
+                tooltip: l10n.nextLine,
+                onTap: onNext,
+              ),
+            ],
+          );
     final right = !phone
         ? Row(
             mainAxisAlignment: MainAxisAlignment.end,

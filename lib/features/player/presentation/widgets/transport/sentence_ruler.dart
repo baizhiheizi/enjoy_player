@@ -285,6 +285,14 @@ class SentenceRulerPainter extends CustomPainter {
     if (loopStart != null && loopEnd != null && loopEnd! > loopStart!) {
       final x0 = size.width * loopStart!;
       final x1 = size.width * loopEnd!;
+      final clampedX1 = x1.clamp(x0, size.width);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x0, trackTop, clampedX1 - x0, t.strokeRulerTrack),
+          const Radius.circular(2),
+        ),
+        Paint()..color = t.you.withValues(alpha: 0.18),
+      );
       const bracketHeight = 7;
       final bracketPaint = Paint()
         ..color = t.you

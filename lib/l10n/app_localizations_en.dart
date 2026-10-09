@@ -794,6 +794,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get echoLoopLaterLine => 'Later line';
 
   @override
+  String echoLoopCaptionLine(String range, String seconds) {
+    return 'LOOP · LINE $range · $seconds S';
+  }
+
+  @override
+  String echoLoopCaptionLines(String range, String seconds) {
+    return 'LOOP · LINES $range · $seconds S';
+  }
+
+  @override
+  String echoLoopCaptionRecording(int count) {
+    return 'RECORDING TAKE $count';
+  }
+
+  @override
+  String get playerDockRecord => 'Record';
+
+  @override
   String get shadowReadingTitle => 'Shadow reading';
 
   @override

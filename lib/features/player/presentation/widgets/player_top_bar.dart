@@ -16,6 +16,7 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
+import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
@@ -192,6 +193,9 @@ class PlayerTopBar extends ConsumerWidget {
   }
 }
 
+Widget? echoModeShortcutChip() =>
+    isDesktop ? const EnjoyKeycap(label: 'E') : null;
+
 class _ModeSegmented extends StatelessWidget {
   const _ModeSegmented({
     required this.echoActive,
@@ -296,7 +300,7 @@ class _ModeSegmented extends StatelessWidget {
               selectedFg: t.youInk,
               onTap: onEcho,
               tooltip: l10n.hotkeysDescToggleEchoMode,
-              trailing: const EnjoyKeycap(label: 'E'),
+              trailing: echoModeShortcutChip(),
             ),
           ),
         ],
