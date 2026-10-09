@@ -121,6 +121,14 @@ GoRouter _router({required String initial}) {
             builder: (_, _) => const Scaffold(body: Text('settings-page')),
           ),
           GoRoute(
+            path: '/subscription',
+            builder: (_, _) => const Scaffold(body: Text('subscription-page')),
+          ),
+          GoRoute(
+            path: '/credits',
+            builder: (_, _) => const Scaffold(body: Text('credits-page')),
+          ),
+          GoRoute(
             path: '/cloud',
             builder: (_, _) => const Scaffold(body: Text('cloud-page')),
           ),
@@ -359,6 +367,32 @@ void main() {
       );
 
       expect(findChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
+    });
+
+    shellTest('selects Profile icon at /subscription', (tester) async {
+      final router = _router(initial: '/subscription');
+      await _pump(
+        tester,
+        router: router,
+        overrides: _shellOverrides(db),
+        surface: const Size(400, 900),
+      );
+
+      expect(find.text('subscription-page'), findsOneWidget);
+      expect(findFilledChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
+    });
+
+    shellTest('selects Profile icon at /credits', (tester) async {
+      final router = _router(initial: '/credits');
+      await _pump(
+        tester,
+        router: router,
+        overrides: _shellOverrides(db),
+        surface: const Size(400, 900),
+      );
+
+      expect(find.text('credits-page'), findsOneWidget);
+      expect(findFilledChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
     });
 
     shellTest('selects Library icon at /cloud', (tester) async {
