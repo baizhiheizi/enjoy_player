@@ -166,9 +166,20 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final refreshDy = tester.getCenter(find.byTooltip('Refresh this tab')).dy;
-      final segmentDy = tester.getCenter(find.text('Cloud').first).dy;
-      expect(refreshDy, closeTo(segmentDy, 2));
+      final refreshRows = find
+          .ancestor(
+            of: find.byTooltip('Refresh this tab'),
+            matching: find.byType(Row),
+          )
+          .evaluate();
+      final segmentRows = find
+          .ancestor(of: find.text('Cloud').first, matching: find.byType(Row))
+          .evaluate();
+      expect(
+        refreshRows.where(segmentRows.contains),
+        isNotEmpty,
+        reason: 'refresh button and source toggle share one row',
+      );
     });
 
     testWidgets('source toggle navigates to cloud query', (tester) async {

@@ -367,6 +367,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
 
     return MediaCardRow(
       title: item.title,
+      maxTitleLines: 2,
       language: item.language == kUnknownMediaLanguageTag
           ? null
           : languageCodeLabel(item.language),
