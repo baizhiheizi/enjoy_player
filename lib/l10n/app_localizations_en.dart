@@ -4197,6 +4197,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get profileCreditsRunningLow => 'Today\'s credits are almost used up';
+
+  @override
+  String get profilePracticeEmptyHint =>
+      'Start your first echo session to fill these in';
+
+  @override
   String get profileMinutesUnit => 'min';
 
   @override

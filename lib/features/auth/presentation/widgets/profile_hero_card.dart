@@ -97,11 +97,9 @@ class ProfileHeroCard extends ConsumerWidget {
               ),
             ),
             Container(
-              height: 24,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: ShapeDecoration(
-                color: t.sunk,
+                color: tier == SubscriptionTier.free ? t.sunk : t.brandSoft,
                 shape: const StadiumBorder(),
               ),
               child: Text(
@@ -109,7 +107,7 @@ class ProfileHeroCard extends ConsumerWidget {
                 style: tt.labelSmall?.copyWith(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: t.ink2,
+                  color: tier == SubscriptionTier.free ? t.ink2 : t.brandInk,
                 ),
               ),
             ),
@@ -220,6 +218,10 @@ class ProfilePracticeCard extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
     final s = stats;
+    final totalMs =
+        (s?.today.recordingDurationMs ?? 0) +
+        (s?.week.recordingDurationMs ?? 0) +
+        (s?.month.recordingDurationMs ?? 0);
     final cells = [
       (l10n.profileStatTodayTitle, s?.today.recordingDurationMs),
       (l10n.profileStatWeekTitle, s?.week.recordingDurationMs),
@@ -275,6 +277,13 @@ class ProfilePracticeCard extends StatelessWidget {
                   ),
               ],
             ),
+            if (totalMs == 0) ...[
+              const SizedBox(height: 14),
+              Text(
+                l10n.profilePracticeEmptyHint,
+                style: tt.bodySmall?.copyWith(fontSize: 12.5, color: t.ink3),
+              ),
+            ],
           ],
         ),
       ),
@@ -315,11 +324,15 @@ class ProfileCreditsCard extends StatelessWidget {
     required this.used,
     required this.limit,
     required this.permanent,
+    this.showUpgrade = false,
   });
 
   final int? used;
   final int limit;
   final int? permanent;
+
+  /// Shows the upgrade CTA once usage crosses the low threshold.
+  final bool showUpgrade;
 
   @override
   Widget build(BuildContext context) {
@@ -331,6 +344,7 @@ class ProfileCreditsCard extends StatelessWidget {
     final fraction = used == null || limit <= 0
         ? 0.0
         : (used! / limit).clamp(0.0, 1.0);
+    final isLow = used != null && limit > 0 && fraction >= 0.9;
     final extra = permanent;
     return EnjoyCard(
       child: Padding(
@@ -342,6 +356,14 @@ class ProfileCreditsCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(child: EnjoyOverline(l10n.profileCreditsToday)),
+                if (showUpgrade && isLow) ...[
+                  EnjoyButton.brand(
+                    size: EnjoyButtonSize.small,
+                    onPressed: () => context.push('/subscription'),
+                    child: Text(l10n.subscriptionUpgradeShort),
+                  ),
+                  const SizedBox(width: 12),
+                ],
                 EnjoyPressable(
                   onTap: () => context.push('/credits'),
                   showHoverWash: false,
@@ -387,7 +409,8 @@ class ProfileCreditsCard extends StatelessWidget {
                       heightFactor: 1,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          gradient: t.logo,
+                          gradient: isLow ? null : t.logo,
+                          color: isLow ? t.danger : null,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -398,10 +421,15 @@ class ProfileCreditsCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              extra != null && extra > 0
+              isLow
+                  ? l10n.profileCreditsRunningLow
+                  : extra != null && extra > 0
                   ? l10n.profileCreditsResetsWithPermanent(number.format(extra))
                   : l10n.profileCreditsResetsDaily,
-              style: tt.bodySmall?.copyWith(fontSize: 12.5, color: t.ink3),
+              style: tt.bodySmall?.copyWith(
+                fontSize: 12.5,
+                color: isLow ? t.danger : t.ink3,
+              ),
             ),
           ],
         ),

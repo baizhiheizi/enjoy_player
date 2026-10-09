@@ -4000,6 +4000,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get profileCreditsRunningLow => '今日积分即将用完';
+
+  @override
+  String get profilePracticeEmptyHint => '开始你的第一次跟读，数据就会出现在这里';
+
+  @override
   String get profileMinutesUnit => '分钟';
 
   @override
@@ -7420,6 +7426,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String profileCreditsResetsWithPermanent(String count) {
     return '每日重置 · 另有 $count 永久积分';
   }
+
+  @override
+  String get profileCreditsRunningLow => '今日积分即将用完';
+
+  @override
+  String get profilePracticeEmptyHint => '开始你的第一次跟读，数据就会出现在这里';
 
   @override
   String get profileMinutesUnit => '分钟';
