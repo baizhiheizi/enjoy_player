@@ -136,6 +136,52 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
+    testWidgets('cloud refresh shares the title row on narrow widths', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final router = GoRouter(
+        initialLocation: '/library?source=cloud',
+        routes: [
+          GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        _themedRouter(
+          router: router,
+          overrides: [
+            authCtrlProvider.overrideWith(_SignedOutAuthCtrl.new),
+            libraryFilteredListsProvider.overrideWith(
+              (ref) => Stream.value((audio: <Media>[], video: <Media>[])),
+            ),
+            libraryMediaProvider.overrideWith((ref) => Stream.value(<Media>[])),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final refreshRows = find
+          .ancestor(
+            of: find.byTooltip('Refresh this tab'),
+            matching: find.byType(Row),
+          )
+          .evaluate();
+      final segmentRows = find
+          .ancestor(of: find.text('Cloud').first, matching: find.byType(Row))
+          .evaluate();
+      expect(
+        refreshRows.where(segmentRows.contains),
+        isNotEmpty,
+        reason: 'refresh button and source toggle share one row',
+      );
+    });
+
     testWidgets('source toggle navigates to cloud query', (tester) async {
       final router = GoRouter(
         initialLocation: '/library',

@@ -74,13 +74,15 @@ ApiClient _dummyClient() {
 RemoteLibraryItem _audioItem({
   String id = 'audio-1',
   String title = 'Podcast Episode 1',
+  String language = 'en',
+  int durationSeconds = 300,
 }) {
   return RemoteLibraryItem(
     id: id,
     isVideo: false,
     title: title,
-    durationSeconds: 300,
-    language: 'en',
+    durationSeconds: durationSeconds,
+    language: language,
     provider: 'user',
     rawJson: {'id': id, 'updatedAt': '2024-01-01T00:00:00Z'},
   );
@@ -222,6 +224,40 @@ void main() {
       expect(find.text('Podcast Episode 1'), findsOneWidget);
       expect(find.text('Podcast Episode 2'), findsOneWidget);
     });
+
+    testWidgets(
+      'hides unknown language badge and zero duration on audio rows',
+      (tester) async {
+        final stateKey = GlobalKey<CloudLibraryBodyState>();
+        await tester.pumpWidget(
+          _harness(
+            stateKey: stateKey,
+            initialTabIndex: 1,
+            overrides: signedInOverrides(
+              audios: [
+                _audioItem(
+                  id: 'a1',
+                  title: 'Her curiosity',
+                  language: 'und',
+                  durationSeconds: 0,
+                ),
+                _audioItem(id: 'a2', title: 'American life', language: 'en'),
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        stateKey.currentState!.refreshActiveTab();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Her curiosity'), findsOneWidget);
+        expect(find.text('UND'), findsNothing);
+        expect(find.text('0:00'), findsNothing);
+        expect(find.text('EN'), findsOneWidget);
+        expect(find.text('5:00'), findsOneWidget);
+      },
+    );
 
     testWidgets('shows empty state for videos when no items', (tester) async {
       final stateKey = GlobalKey<CloudLibraryBodyState>();

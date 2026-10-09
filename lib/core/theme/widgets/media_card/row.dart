@@ -35,9 +35,13 @@ class MediaCardRow extends StatefulWidget {
     this.deleteTooltip,
     this.onLanguageTap,
     this.heroArtworkMediaId,
+    this.maxTitleLines = 1,
   });
 
   final String title;
+
+  /// Titles longer than this wrap; rows with a subtitle line keep 1.
+  final int maxTitleLines;
   final VoidCallback onTap;
   final File? thumbnailFile;
   final String? thumbnailNetworkUrl;
@@ -241,7 +245,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
                 children: [
                   Text(
                     widget.title,
-                    maxLines: 1,
+                    maxLines: widget.maxTitleLines,
                     overflow: TextOverflow.ellipsis,
                     style: tt.titleSmall?.copyWith(
                       fontSize: 14.5,

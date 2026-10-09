@@ -163,6 +163,42 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         final kind = _kindSegment(l10n, source);
         const search = LibrarySearchField();
 
+        final refreshButton = EnjoyIconButton(
+          icon: EnjoyIcons.refresh,
+          tooltip: l10n.cloudRefreshTooltip,
+          onPressed: () => _cloudBodyKey.currentState?.refreshActiveTab(),
+        );
+        final Widget titleAccessory;
+        final Widget? trailing;
+        if (isCloud && phone) {
+          titleAccessory = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _sourceSegment(l10n, source),
+              SizedBox(width: t.space8),
+              refreshButton,
+            ],
+          );
+          trailing = null;
+        } else if (isCloud) {
+          titleAccessory = _sourceSegment(l10n, source);
+          trailing = refreshButton;
+        } else {
+          titleAccessory = _sourceSegment(l10n, source);
+          trailing = metrics.paneWidth < t.breakpointCompact
+              ? EnjoyIconButton(
+                  icon: EnjoyIcons.add,
+                  tooltip: l10n.actionImport,
+                  variant: EnjoyButtonVariant.brand,
+                  onPressed: () => showImportChooser(context, ref),
+                )
+              : EnjoyButton.brand(
+                  icon: EnjoyIcons.add,
+                  onPressed: () => showImportChooser(context, ref),
+                  child: Text(l10n.actionImport),
+                );
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -172,26 +208,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                   ? l10n.libraryOverlineCloud
                   : l10n.libraryOverlineLocal,
               title: l10n.libraryTitle,
-              titleAccessory: _sourceSegment(l10n, source),
-              trailing: isCloud
-                  ? EnjoyIconButton(
-                      icon: EnjoyIcons.refresh,
-                      tooltip: l10n.cloudRefreshTooltip,
-                      onPressed: () =>
-                          _cloudBodyKey.currentState?.refreshActiveTab(),
-                    )
-                  : metrics.paneWidth < t.breakpointCompact
-                  ? EnjoyIconButton(
-                      icon: EnjoyIcons.add,
-                      tooltip: l10n.actionImport,
-                      variant: EnjoyButtonVariant.brand,
-                      onPressed: () => showImportChooser(context, ref),
-                    )
-                  : EnjoyButton.brand(
-                      icon: EnjoyIcons.add,
-                      onPressed: () => showImportChooser(context, ref),
-                      child: Text(l10n.actionImport),
-                    ),
+              titleAccessory: titleAccessory,
+              trailing: trailing,
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(inset, 8, inset, 18),
