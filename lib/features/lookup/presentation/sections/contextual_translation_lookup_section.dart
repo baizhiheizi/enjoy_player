@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
@@ -21,9 +20,12 @@ import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_params.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
+import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
@@ -101,8 +103,8 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
   /// Last successful result; kept visible while a refresh is in flight.
   ContextualTranslationResult? _staleSuccess;
 
-  /// Last error message; shown with a busy retry control until the retry completes.
-  String? _lastErrorUserMessage;
+  /// Last failure; drives the retry-in-flight row until the retry completes.
+  Object? _lastError;
 
   bool _retryInFlight = false;
 
@@ -138,7 +140,7 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.params != widget.params) {
       _staleSuccess = null;
-      _lastErrorUserMessage = null;
+      _lastError = null;
       _retryInFlight = false;
       _beginFetch(forceRefresh: false, notifyPostFrameOnly: false);
     }
@@ -290,10 +292,19 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
                     ),
             );
           }
-          if (_retryInFlight &&
-              (_lastErrorUserMessage ?? '').trim().isNotEmpty) {
+          if (_retryInFlight && _lastError != null) {
+            if (_lastError is CreditsFailure) {
+              return LookupCreditsNotice(
+                message: creditsFailureMessage(
+                  _lastError! as CreditsFailure,
+                  widget.l10n,
+                ),
+                onRetry: _retryAfterError,
+                isRetrying: true,
+              );
+            }
             return LookupErrorRow(
-              message: _lastErrorUserMessage!,
+              message: lookupErrorUserMessage(_lastError!, widget.l10n),
               onRetry: _retryAfterError,
               isRetrying: true,
             );
@@ -304,34 +315,49 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
           final e = snapshot.error!;
           _staleSuccess = null;
           _retryInFlight = false;
+          _lastError = e;
           if (e is AuthFailure) {
+            scheduleLookupCreditsClear(
+              context,
+              ref,
+              LookupSectionId.contextualTranslation,
+            );
             return const AuthRequiredCallout(
               surface: AuthRequiredSurface.lookupContextual,
               compact: true,
             );
           }
           if (e is CreditsFailure) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LookupErrorRow(
-                  message: creditsFailureMessage(e, widget.l10n),
-                  onRetry: _retryAfterError,
-                ),
-                TextButton(
-                  onPressed: () => context.push('/subscription'),
-                  child: Text(creditsCtaLabel(widget.l10n)),
-                ),
-              ],
+            scheduleLookupCreditsReport(
+              context,
+              ref,
+              LookupSectionId.contextualTranslation,
+              creditsFailureMessage(e, widget.l10n),
+            );
+            return LookupCreditsNotice(
+              message: creditsFailureMessage(e, widget.l10n),
+              onRetry: _retryAfterError,
             );
           }
-          final msg = lookupErrorUserMessage(e, widget.l10n);
-          _lastErrorUserMessage = msg;
-          return LookupErrorRow(message: msg, onRetry: _retryAfterError);
+          scheduleLookupCreditsClear(
+            context,
+            ref,
+            LookupSectionId.contextualTranslation,
+          );
+          return LookupErrorRow(
+            message: lookupErrorUserMessage(e, widget.l10n),
+            onRetry: _retryAfterError,
+          );
         }
         final d = snapshot.data!;
         _staleSuccess = d;
         _retryInFlight = false;
+        _lastError = null;
+        scheduleLookupCreditsClear(
+          context,
+          ref,
+          LookupSectionId.contextualTranslation,
+        );
         return _resultStack(
           isRefreshing: false,
           onRefresh: () =>

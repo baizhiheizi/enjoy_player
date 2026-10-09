@@ -4,13 +4,14 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:go_router/go_router.dart';
-
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/features/ai/domain/models/translation_result.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
+import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
@@ -45,6 +46,11 @@ class TranslationLookupSection extends ConsumerWidget {
             return async.when(
               skipLoadingOnReload: true,
               data: (TranslationResult d) {
+                scheduleLookupCreditsClear(
+                  context,
+                  ref,
+                  LookupSectionId.translation,
+                );
                 if (d.translatedText.trim().isEmpty) {
                   return Text(
                     l10n.lookupEmpty,
@@ -62,29 +68,35 @@ class TranslationLookupSection extends ConsumerWidget {
               loading: () => const LookupSectionShimmer(),
               error: (Object e, StackTrace st) {
                 if (e is AuthFailure) {
+                  scheduleLookupCreditsClear(
+                    context,
+                    ref,
+                    LookupSectionId.translation,
+                  );
                   return const AuthRequiredCallout(
                     surface: AuthRequiredSurface.lookupTranslation,
                     compact: true,
                   );
                 }
                 if (e is CreditsFailure) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      LookupErrorRow(
-                        message: lookupErrorUserMessage(e, l10n),
-                        onRetry: () => ref.invalidate(
-                          lookupSheetTranslationProvider(params),
-                        ),
-                        isRetrying: async.hasError && async.isLoading,
-                      ),
-                      TextButton(
-                        onPressed: () => context.push('/subscription'),
-                        child: Text(creditsCtaLabel(l10n)),
-                      ),
-                    ],
+                  scheduleLookupCreditsReport(
+                    context,
+                    ref,
+                    LookupSectionId.translation,
+                    creditsFailureMessage(e, l10n),
+                  );
+                  return LookupCreditsNotice(
+                    message: creditsFailureMessage(e, l10n),
+                    onRetry: () =>
+                        ref.invalidate(lookupSheetTranslationProvider(params)),
+                    isRetrying: async.hasError && async.isLoading,
                   );
                 }
+                scheduleLookupCreditsClear(
+                  context,
+                  ref,
+                  LookupSectionId.translation,
+                );
                 return LookupErrorRow(
                   message: lookupErrorUserMessage(e, l10n),
                   onRetry: () =>
