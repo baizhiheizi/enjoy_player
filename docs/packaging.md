@@ -145,6 +145,16 @@ flutter test
   ```
 - No signing key required; AppImage auto-update is intentionally out of scope for v1 (see [ADR-0048](decisions/0048-linux-platform-support.md)).
 
+#### Bundled runtimes (YouTube playback, ADR-0091)
+
+YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-youtube-linux-playback.md), [ADR-0092](decisions/0092-linux-youtube-host-runtime.md)), so [`linux/packaging/make_appimage.sh`](../linux/packaging/make_appimage.sh) bundles more than the Flutter build output (spec 047 T027 / T035 / T046; contract: [specs/047 release artifact](../specs/047-youtube-linux-playback/contracts/release-artifact.md)):
+
+- **GStreamer runtime + plugin set**: the host's GStreamer plugins directory is copied into `usr/lib/gstreamer-1.0`, and the transitive non-glibc dependency closure of the bundled libraries and plugins is resolved into `usr/lib`. Link-time dependency walkers never see these — WPE `dlopen`s GStreamer plugins at runtime for MSE playback — so the set is an explicit, reviewed list rather than an incidental `linuxdeploy` side effect.
+- **AppRun environment wiring**: the generated AppRun exports `GST_PLUGIN_PATH`, `GST_PLUGIN_SYSTEM_PATH`, `GST_PLUGIN_SCANNER` (when the scanner ships), and `LD_LIBRARY_PATH` pointing into the bundle before exec.
+- **Host GL / Mesa exclusion**: the `libGL*` / `libEGL*` / `libGLES*` / `libGLX*` / `libGLdispatch*` family and the Mesa DRI/VA drivers stay out of the bundle on purpose — their DRI/VA drivers are `dlopen`ed from compiled-in host paths a bundled copy cannot see, so a bundled Mesa breaks GL entirely (verified: black webview even under `LIBGL_ALWAYS_SOFTWARE=1`).
+- **Software GL default + frame watchdog**: WPE 2.48 / 2.52 hardware frame export stalls on some GPU / compositor combinations, so playback defaults to software GL ([`webview_software_gl.dart`](../lib/core/platform/webview_software_gl.dart)); [`YoutubeFrameWatchdog`](../lib/features/player/application/engines/youtube/youtube_frame_watchdog.dart) restarts the engine on the software path when hardware frame export stops producing frames (spec 047 T046 / T047).
+- **Budgets, recorded per release**: download delta ≤ +150 MB and cold-start regression ≤ 2 s vs. the previous release, with the bundled WPE WebKit / GStreamer identities, plugin list, and license inventory recorded in this file for every release that ships them (spec 047 contract R5–R7, R9). Failing the clean-VM self-containment gate reopens the route decision rather than relaxing the contract.
+
 ### macOS (Apple)
 
 - **Xcode** + **CocoaPods** + Apple Developer team **`46X685R747`**
