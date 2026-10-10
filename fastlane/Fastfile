@@ -5,12 +5,9 @@
 # `AuthKey_<KEY_ID>.p8` are picked up automatically for local runs.
 # Run via .github/scripts/fastlane.sh so the pinned Gemfile.lock is used.
 
+require "time"
+
 opt_out_usage
-#
-# All lanes read credentials from the environment (same variables as the
-# release scripts); `~/.config/enjoy-player/asc.env` +
-# `AuthKey_<KEY_ID>.p8` are picked up automatically for local runs.
-# Run via .github/scripts/fastlane.sh so the pinned Gemfile.lock is used.
 
 def load_asc_env_defaults
   env_file = File.expand_path("~/.config/enjoy-player/asc.env")
@@ -30,6 +27,38 @@ def asc_key_path
     File.expand_path("~/.config/enjoy-player/AuthKey_#{key_id}.p8")
 end
 
+def app_identifier
+  ENV.fetch("APP_BUNDLE_IDENTIFIER", "ai.enjoy.player")
+end
+
+# AppStoreState values that mean App Review (or release gating) is still
+# holding a version — mirrors spaceship's
+# Spaceship::ConnectAPI::AppStoreVersion::AppStoreState enum. Everything
+# else (ACCEPTED, READY_FOR_SALE, *_REMOVED_FROM_SALE, REPLACED_*) is
+# historical/live and not what the review loop cares about.
+IN_FLIGHT_REVIEW_STATES = [
+  "PREPARE_FOR_SUBMISSION",
+  "WAITING_FOR_EXPORT_COMPLIANCE",
+  "WAITING_FOR_REVIEW",
+  "READY_FOR_REVIEW",
+  "IN_REVIEW",
+  "PROCESSING_FOR_APP_STORE",
+  "PENDING_CONTRACT",
+  "PENDING_APPLE_RELEASE",
+  "PENDING_DEVELOPER_RELEASE",
+  "REJECTED",
+  "METADATA_REJECTED",
+  "DEVELOPER_REJECTED",
+  "INVALID_BINARY"
+].freeze
+
+REJECTED_STATES = [
+  "REJECTED",
+  "METADATA_REJECTED",
+  "DEVELOPER_REJECTED",
+  "INVALID_BINARY"
+].freeze
+
 default_platform(:ios)
 
 platform :android do
@@ -44,7 +73,7 @@ platform :android do
 
     upload_to_play_store(
       aab: ENV.fetch("PLAY_AAB_PATH"),
-      package_name: ENV.fetch("GOOGLE_PLAY_PACKAGE_NAME", "ai.enjoy.player"),
+      package_name: ENV.fetch("GOOGLE_PLAY_PACKAGE_NAME", app_identifier),
       track: ENV.fetch("GOOGLE_PLAY_TRACK", "alpha"),
       release_status: ENV.fetch("GOOGLE_PLAY_RELEASE_STATUS", "draft"),
       json_key_data: sa_json,
@@ -73,6 +102,7 @@ platform :ios do
   lane :submit_review do
     deliver(
       api_key: asc_api_key,
+      app_identifier: app_identifier,
       app_version: ENV.fetch("APP_VERSION"),
       submit_for_review: true,
       automatic_release: false,
@@ -88,7 +118,7 @@ platform :ios do
     )
   end
 
-  desc "Print the review state of the in-flight / latest App Store version"
+  desc "Print the review state of the in-flight (or latest) App Store version"
   lane :review_status do
     load_asc_env_defaults
     Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
@@ -96,14 +126,17 @@ platform :ios do
       issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
       filepath: asc_key_path
     )
-    app = Spaceship::ConnectAPI::App.find("ai.enjoy.player")
-    UI.user_error!("ai.enjoy.player not found in App Store Connect") if app.nil?
+    app = Spaceship::ConnectAPI::App.find(app_identifier)
+    UI.user_error!("#{app_identifier} not found in App Store Connect") if app.nil?
 
-    version = app.get_edit_app_store_version || app.get_latest_app_store_version
+    version = app.get_app_store_versions
+                 .select { |v| IN_FLIGHT_REVIEW_STATES.include?(v.app_store_state) }
+                 .max_by { |v| Time.parse(v.created_date) }
+    version ||= app.get_latest_app_store_version
     UI.user_error!("No App Store version found") if version.nil?
 
     UI.message("version=#{version.version_string} state=#{version.app_store_state}")
-    if version.app_store_state == "REJECTED"
+    if REJECTED_STATES.include?(version.app_store_state)
       UI.message("Rejected — read the review notes in App Store Connect → Resolution Center.")
     end
   end

@@ -64,8 +64,11 @@ bash "${scripts}/verify_android_aab_for_play.sh" "${AAB}"
 echo ">>> Upload AAB to Google Play (package=${package} track=${track} status=${status})"
 echo "    $(basename "${AAB}")"
 
-GOOGLE_PLAY_SERVICE_ACCOUNT_JSON="$(cat "${sa_file}")" \
-PLAY_AAB_PATH="${AAB}" \
+(
+  export GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH="${sa_file}"
+  export PLAY_AAB_PATH="${AAB}"
+  unset GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
   bash "${scripts}/fastlane.sh" android beta
+)
 
 echo "Play upload complete."

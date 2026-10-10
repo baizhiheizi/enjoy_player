@@ -10,9 +10,8 @@ if ! command -v ruby >/dev/null 2>&1; then
   exit 1
 fi
 
-ruby_version="$(ruby -e 'puts RUBY_VERSION')"
-if [[ "$(printf '%s\n3.2\n' "${ruby_version}" | sort -V | head -1)" != "3.2" ]]; then
-  echo "::error::fastlane needs ruby >= 3.2, found ${ruby_version}" >&2
+if ! ruby -e 'exit(Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.2"))'; then
+  echo "::error::fastlane needs ruby >= 3.2, found $(ruby -e 'puts RUBY_VERSION')" >&2
   exit 1
 fi
 
