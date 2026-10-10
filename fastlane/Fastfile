@@ -17,7 +17,7 @@ def load_asc_env_defaults
     key, value = line.strip.split("=", 2)
     next if key.nil? || value.nil? || ENV.key?(key)
 
-    ENV[key] = value
+    ENV[key] = value.gsub(/\A"(.*)"\z/m, '\1').gsub(/\A'(.*)'\z/m, '\1')
   end
 end
 
@@ -29,6 +29,12 @@ end
 
 def app_identifier
   ENV.fetch("APP_BUNDLE_IDENTIFIER", "ai.enjoy.player")
+end
+
+def version_created_at(version)
+  Time.parse(version.created_date)
+rescue ArgumentError, TypeError
+  Time.at(0)
 end
 
 # AppStoreState values that mean App Review (or release gating) is still
@@ -100,17 +106,25 @@ platform :ios do
 
   desc "Attach the latest processed build and submit the edited version for review"
   lane :submit_review do
+    # run_precheck_before_submit stays off: precheck validates marketing
+    # metadata (name, keywords, descriptions, screenshots) that this lane
+    # never uploads (skip_metadata/skip_screenshots below) — a precheck
+    # failure would block resubmission over content this pipeline doesn't
+    # own. Warnings still surface; no force flag to silence them.
     deliver(
       api_key: asc_api_key,
       app_identifier: app_identifier,
       app_version: ENV.fetch("APP_VERSION"),
       submit_for_review: true,
       automatic_release: false,
-      force: true,
       skip_binary_upload: true,
       skip_screenshots: true,
       skip_metadata: true,
       run_precheck_before_submit: false,
+      # Load-bearing compliance claims: the app ships no proprietary crypto
+      # (HTTPS via OS TLS only) and embeds third-party content — GPL FFmpeg /
+      # eSpeak-NG (ADR-0094 Consequences, ADR-0072). Swap either dependency
+      # or add crypto and re-answer here before the next submission.
       submission_information: {
         export_compliance_uses_encryption: false,
         content_rights_contains_third_party_content: true
@@ -131,7 +145,7 @@ platform :ios do
 
     version = app.get_app_store_versions
                  .select { |v| IN_FLIGHT_REVIEW_STATES.include?(v.app_store_state) }
-                 .max_by { |v| Time.parse(v.created_date) }
+                 .max_by { |v| version_created_at(v) }
     version ||= app.get_latest_app_store_version
     UI.user_error!("No App Store version found") if version.nil?
 

@@ -54,6 +54,17 @@ else
 fi
 trap '[[ -n "${cleanup_sa}" ]] && rm -f "${cleanup_sa}"' EXIT
 
+# Preserve the old Python uploader's early-fail: a malformed credential
+# should die here with a clear reason, not as an opaque fastlane error.
+if ! jq -e . "${sa_file}" >/dev/null 2>&1; then
+  echo "Service account JSON is invalid: ${sa_file} is not parseable JSON" >&2
+  exit 1
+fi
+if ! jq -e 'has("client_email") and has("private_key")' "${sa_file}" >/dev/null 2>&1; then
+  echo "Service account JSON is invalid: missing client_email / private_key" >&2
+  exit 1
+fi
+
 package="${GOOGLE_PLAY_PACKAGE_NAME:-ai.enjoy.player}"
 track="${GOOGLE_PLAY_TRACK:-alpha}"
 status="${GOOGLE_PLAY_RELEASE_STATUS:-draft}"
