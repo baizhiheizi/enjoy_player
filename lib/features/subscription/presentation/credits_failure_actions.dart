@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Builds the user-facing message for [failure].
@@ -54,7 +55,7 @@ void showCreditsFailureNotice(BuildContext context, CreditsFailure failure) {
     creditsFailureMessage(failure, l10n),
     action: (
       label: creditsCtaLabel(l10n),
-      onPressed: () => router.push('/subscription'),
+      onPressed: () => router.push(kSubscriptionRoutePath),
     ),
   );
 }

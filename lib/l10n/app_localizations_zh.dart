@@ -2720,6 +2720,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lookupSourceResetToLearning => '源语言已重置为学习语言默认值';
 
   @override
+  String lookupCreditsRemainingLabel(String n) {
+    return '今日剩 $n 积分';
+  }
+
+  @override
+  String lookupCreditsRunningLowLabel(String n) {
+    return '即将用完 · 今日剩 $n 积分';
+  }
+
+  @override
   String get vocabularyAddToVocabulary => '加入生词本';
 
   @override
@@ -6363,6 +6373,16 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get lookupSourceResetToLearning => '源语言已重置为学习语言默认值';
+
+  @override
+  String lookupCreditsRemainingLabel(String n) {
+    return '今日剩 $n 积分';
+  }
+
+  @override
+  String lookupCreditsRunningLowLabel(String n) {
+    return '即将用完 · 今日剩 $n 积分';
+  }
 
   @override
   String get vocabularyAddToVocabulary => '加入生词本';

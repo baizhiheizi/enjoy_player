@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
@@ -22,7 +23,6 @@ import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
-import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_hero_card.dart';
 import 'package:enjoy_player/features/credits/application/todays_credits_provider.dart';
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
@@ -107,7 +107,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
         final tier = ref.watch(currentTierProvider);
         final status = ref.watch(subscriptionStatusProvider).valueOrNull;
         final dailyLimit =
-            status?.dailyCreditsLimit ?? _fallbackDailyLimit(tier);
+            status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier);
 
         final creditsUsedAsync = ref.watch(todaysCreditsUsedProvider);
         final creditsUsed = creditsUsedAsync.valueOrNull;
@@ -158,14 +158,14 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
                 title: l10n.profileSubscriptionTile,
                 subtitle: l10n.profileSubscriptionSubtitle,
                 valueBadge: _RowValue(subscriptionTierLabel(l10n, tier)),
-                onTap: () => context.push('/subscription'),
+                onTap: () => context.push(kSubscriptionRoutePath),
                 responsive: false,
               ),
               SettingsRow(
                 leadingIcon: EnjoyIcons.receipt,
                 title: l10n.profileCreditsUsageTile,
                 subtitle: l10n.profileCreditsUsageSubtitle,
-                onTap: () => context.push('/credits'),
+                onTap: () => context.push(kCreditsRoutePath),
                 responsive: false,
               ),
               SettingsRow(
@@ -299,19 +299,5 @@ class _ProfileNavSection extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Column(mainAxisSize: MainAxisSize.min, children: children),
     );
-  }
-}
-
-/// Tier-based fallback for the daily credit limit when the live subscription
-/// status has not loaded yet. Matches the entitlements in
-/// [SubscriptionStatus.dailyCreditsLimit].
-int _fallbackDailyLimit(SubscriptionTier tier) {
-  switch (tier) {
-    case SubscriptionTier.pro:
-      return 60000;
-    case SubscriptionTier.lite:
-      return 12000;
-    case SubscriptionTier.free:
-      return 1000;
   }
 }

@@ -5253,6 +5253,18 @@ abstract class AppLocalizations {
   /// **'Source language reset to learning default'**
   String get lookupSourceResetToLearning;
 
+  /// Lookup sheet credits chip: today's remaining AI credits.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} left today'**
+  String lookupCreditsRemainingLabel(String n);
+
+  /// Lookup sheet credits chip once remaining credits pass the low threshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost out — {n} left today'**
+  String lookupCreditsRunningLowLabel(String n);
+
   /// No description provided for @vocabularyAddToVocabulary.
   ///
   /// In en, this message translates to:

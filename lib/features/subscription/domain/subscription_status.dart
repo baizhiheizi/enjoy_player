@@ -4,6 +4,22 @@ library;
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/domain/auto_renew_billing.dart';
 
+/// The tier daily-credit table — the single source of truth for the
+/// entitlement mapping. [SubscriptionStatus.dailyCreditsLimit] gates the
+/// paid tiers behind [SubscriptionStatus.isPaidTier]; cold-start call sites
+/// (profile credits card, lookup sheet chip) read the bare tier until the
+/// live status resolves.
+int dailyCreditsLimitForTier(SubscriptionTier tier) {
+  switch (tier) {
+    case SubscriptionTier.pro:
+      return 60000;
+    case SubscriptionTier.lite:
+      return 12000;
+    case SubscriptionTier.free:
+      return 1000;
+  }
+}
+
 class SubscriptionStatus {
   const SubscriptionStatus({
     required this.subscriptionActive,
@@ -46,11 +62,9 @@ class SubscriptionStatus {
   /// True when the user has a living auto-renew Stripe subscription.
   bool get hasActiveAutoRenewPlan => autoRenew?.isActivelyRenewing ?? false;
 
-  int get dailyCreditsLimit {
-    if (isPro) return 60_000;
-    if (isLite) return 12_000;
-    return 1_000;
-  }
+  int get dailyCreditsLimit => dailyCreditsLimitForTier(
+    isPaidTier ? subscriptionTier : SubscriptionTier.free,
+  );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

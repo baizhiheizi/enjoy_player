@@ -34,6 +34,7 @@
 - **Modes are lenses.** Listen reads like a book; Echo grows the loop line in place and fades the rest through the logo's opacity steps (1 / 0.65 / 0.35 / 0.2). One transcript, no screen change.
 - **Controls below, context beside.** Every player control lives in the dock. The side margin (340 px) opens only for a word lookup or a take's assessment; under 1100 px it is a drawer, on phones a bottom sheet. It replaces today's lookup dialog and assessment dialog.
 - **Feedback on the words.** Mispronounced words get a wavy violet underline, a missing pause gets a violet pause mark, the recording countdown fills along the words. Scores are never colored: a number plus a four-step meter.
+- **Danger is for failures, not for business states.** Red (`danger` / the Material `error` scheme) is reserved for real faults — a request that failed and needs a retry. Recoverable product states — credits exhausted, network flaking, sync pending — read as neutral content (sunk surface, ink text) with exactly **one** primary CTA into the fix (usually plans & packages, `/subscription`); never a red box, and never the same CTA repeated per section. A pre-failure threshold (today's credits ≥ 90% used) may tint the number `danger` to draw the eye (profile meter, lookup credits chip), but the surrounding surface stays calm.
 - **Scores**: Excellent ≥ 91 · Good ≥ 81 · Fair ≥ 61 · Poor below (same thresholds as `score_level.dart`).
 
 ## Board → code map
@@ -148,4 +149,4 @@ New boards that scroll past their frame and need a full-length render go into `f
 
 ## Not drawn yet
 
-AI playground (developer builds), YouTube sign-in web view, vocabulary clip practice and echo-reading overlay, language picker sheets, playback speed sheet, YouTube-URL import dialog, subtitle-import language dialog, and the onboarding tips other than Home → Import.
+AI playground (developer builds), YouTube sign-in web view, vocabulary clip practice and echo-reading overlay, language picker sheets, playback speed sheet, YouTube-URL import dialog, subtitle-import language dialog, the onboarding tips other than Home → Import, and the phone renders of the Subscription and Credits screens (`PhSubscription` / `PhCredits` — the 2026-10-09 phone review, issue #870 §1.5, had to judge `/subscription` against the desktop `Subscription` board for this reason).

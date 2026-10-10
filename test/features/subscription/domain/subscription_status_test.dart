@@ -5,6 +5,14 @@ import 'package:enjoy_player/features/subscription/domain/subscription_status.da
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('dailyCreditsLimitForTier', () {
+    test('maps each tier to its daily pool', () {
+      expect(dailyCreditsLimitForTier(SubscriptionTier.pro), 60_000);
+      expect(dailyCreditsLimitForTier(SubscriptionTier.lite), 12_000);
+      expect(dailyCreditsLimitForTier(SubscriptionTier.free), 1_000);
+    });
+  });
+
   group('SubscriptionStatus.fromJson', () {
     test('parses pro active status', () {
       final status = SubscriptionStatus.fromJson({
