@@ -50,6 +50,7 @@ runs-on:
 runs-on-slim:
 - self-hosted
 - linux
+- slim
 # ==== customized end  ====
 
 source: githubnext/agentics/workflows/large-file-simplifier.md@055e90108e3d3c40e842f8aa40288f8a19204c4e

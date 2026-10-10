@@ -83,6 +83,7 @@ runs-on:
 runs-on-slim:
 - self-hosted
 - linux
+- slim
 
 imports:
 - shared/engine-minimax.md

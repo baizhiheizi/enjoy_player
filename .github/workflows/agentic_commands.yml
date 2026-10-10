@@ -52,6 +52,7 @@ jobs:
     runs-on: 
       - self-hosted
       - linux
+      - slim
     timeout-minutes: 15
     permissions:
       actions: write
