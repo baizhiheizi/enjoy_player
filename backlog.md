@@ -60,9 +60,20 @@ change), NOT on every position tick. Ratings below reflect the VERIFIED recomput
 - No subtitle-parser throughput test. Add a deterministic 5k-line SRT parse microbenchmark
   (`lib/data/subtitle/subtitle_parser.dart`), loose ceiling. LOW risk, closes a real gap.
 - No dedicated test/perf/ dir or benchmark CI smoke job (deferred by maintainers).
+- Only existing `*perf*` test in the repo: `test/features/transcript/transcript_blur_long_list_perf_test.dart`.
 
 ## Considered and de-prioritized
 - Karaoke 50 ms rebuild path (transcript_scrollable_list active tile rebuilds ~20 Hz). Cached
   provider; real but tuning territory, needs DevTools profiling, not a blind change.
 - Subtitle `_parseCache` FIFO eviction looseness (subtitle_markup_parser.dart) — LOW, cosmetic cap.
 - Position-tracker double enforceTick (player_position_tracker.dart) — LOW-MED, needs profiling.
+
+## Repo-wide context (from repo-assist 2026-10-10 run #841)
+- The #827 perf audit (#828–#832) absorbed the active perf queue and all merged.
+- Repo Assist shipped the eight Oct 1–8 drafts (#848 YouTube caption alias, #849 CHANGELOG,
+  #851 shared timeline threshold, #852 language descriptor tests, #859 haptics tests,
+  #860 `--changed-only` CI flag, lookup equality tightening, ai_kind_policies tests).
+- Polish phase: #872/#873/#874/#875/#876 (lookup banner / library cloud / shell nav /
+  player echo) + #884 (EnjoyThemeTokens split) + #885 (lookup credits chip).
+- The #870 follow-up #793 (macOS integrated title bar) still needs hardware.
+- Remaining open issues (#771, #797, #840, #841, #850, #864, #886) are automation / auto-managed.
