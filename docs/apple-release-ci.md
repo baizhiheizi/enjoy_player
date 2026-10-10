@@ -142,10 +142,12 @@ On the Mac that runs GitHub Actions:
 flutter doctor
 xcodebuild -version
 pod --version
+ruby --version   # 3.2+ for fastlane (TestFlight upload via pilot); brew install ruby
+bundle --version
 brew bundle install --file=macos/Brewfile
 ```
 
-Runner user must be able to run `codesign`, `xcrun notarytool`, and access Keychain certs.
+Runner user must be able to run `codesign`, `xcrun notarytool`, and access Keychain certs. The TestFlight upload itself runs via fastlane `pilot` ([`fastlane/Fastfile`](../fastlane/Fastfile)); `ensure_fastlane_tooling.sh` installs the `Gemfile.lock`-pinned gems into a repo-local path on first use.
 
 **Local Apple secrets** (same Mac as the self-hosted runner) live in one directory:
 
@@ -192,6 +194,24 @@ cp .github/scripts/publish_env.example.sh .github/scripts/publish_env.local.sh
 # edit AWS_* / PUBLISH_* values
 bash .github/scripts/release.sh --platform apple --publish-only --publish
 ```
+
+---
+
+## App Store review cycle (fastlane)
+
+After TestFlight builds are healthy, the review loop is two lanes (same ASC credentials as above; no macOS-only tooling, so they also run on Linux):
+
+```bash
+# Where is the submission? (READY_FOR_REVIEW / IN_REVIEW / REJECTED / …)
+bash .github/scripts/fastlane.sh ios review_status
+
+# Fix, rebuild, re-upload to TestFlight, then submit the edited version again:
+bash .github/scripts/release.sh --platform apple --ios-only --testflight --skip-build --skip-checks
+APP_VERSION="$(bash .github/scripts/read_pubspec_version.sh)" \
+  bash .github/scripts/fastlane.sh ios submit_review
+```
+
+`submit_review` auto-answers the export-compliance / third-party-content questionnaire and attaches the latest processed build. Rejection reasons themselves are only in App Store Connect → Resolution Center (and email) — no API exposes them, so the human read stays manual.
 
 ---
 

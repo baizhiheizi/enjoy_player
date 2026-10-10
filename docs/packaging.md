@@ -73,6 +73,21 @@ flowchart TD
 
 ---
 
+## Store uploads & review (fastlane)
+
+Store-facing uploads and App Store review actions run through [fastlane](https://docs.fastlane.tools) ([ADR-0094](decisions/0094-fastlane-store-uploads.md)) — pinned by the root [`Gemfile`](../Gemfile) / `Gemfile.lock`, Ruby 3.4 pinned in `mise.toml`. Builds stay with the platform scripts; fastlane only uploads and talks to the store APIs.
+
+| Lane | What it does | Entry point |
+|------|--------------|-------------|
+| `android beta` | `upload_to_play_store` — AAB → Play **alpha** track, **draft** | `release.sh --platform android --play` |
+| `ios beta` | `pilot` — IPA → TestFlight | `release.sh --platform apple --testflight` |
+| `ios review_status` | Print the in-flight App Store version's review state | `bash .github/scripts/fastlane.sh ios review_status` |
+| `ios submit_review` | Attach the latest processed build, answer the questionnaire, submit for review | `APP_VERSION="$(bash .github/scripts/read_pubspec_version.sh)" bash .github/scripts/fastlane.sh ios submit_review` |
+
+All lanes read the same credentials as the release scripts (`APP_STORE_CONNECT_*`, `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON*`); local runs pick up `~/.config/enjoy-player/{asc.env,AuthKey_<KEY_ID>.p8}` automatically. Reviewer replies and rejection notes stay manual — Apple's API exposes the review *state*, not the Resolution Center messages.
+
+---
+
 ## Host matrix
 
 | Host | Platforms | Command |
@@ -124,7 +139,7 @@ flutter test
 
 ### Linux (Android)
 
-- **Flutter** + **Android SDK** (Java 17)
+- **Flutter** + **Android SDK** — Java 17 is pinned as `temurin-17` in [`mise.toml`](../mise.toml) (`mise exec`/`mise install` provides `java` + `JAVA_HOME`; the system JDK is ignored inside the repo)
 - After `flutter pub get`, run [`tool/patch_agp9_pub_plugins.sh`](../tool/patch_agp9_pub_plugins.sh) (done automatically by release script)
 
 ### Linux (AppImage)
@@ -188,7 +203,7 @@ YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-yo
       --password "@keychain:AC_PASSWORD"
     ```
   - **API key** (CI / local): the three `APP_STORE_CONNECT_*` values (env or `~/.config/enjoy-player/`) — the release script registers profile `enjoy-notary` automatically when `--notarize` is set
-- **TestFlight upload** (for `--testflight`): same ASC credentials. `--testflight` fails hard if credentials are still missing (no silent skip). Build outputs (IPA / zip) stay under `build/` and are ephemeral — not part of credential setup.
+- **TestFlight upload** (for `--testflight`): same ASC credentials; the IPA goes up via fastlane `pilot` ([ADR-0094](decisions/0094-fastlane-store-uploads.md)). `--testflight` fails hard if credentials are still missing (no silent skip). Build outputs (IPA / zip) stay under `build/` and are ephemeral — not part of credential setup.
 - **Sparkle auto-update** (before `--publish`): run once on Mac — `dart run auto_updater:generate_keys`, **paste the printed `SUPublicEDKey` into [`macos/Runner/Info.plist`](../macos/Runner/Info.plist)** (private key stays in Keychain), then `bash .github/scripts/verify_sparkle_setup.sh`
 
 ### Android signing
@@ -207,7 +222,7 @@ One-time API access (see [android-release-ci.md](android-release-ci.md#upload-to
 2. Play Console → **Users and permissions** → invite the service account email with permission to manage closed testing (alpha) releases for `ai.enjoy.player`.
 3. Locally set `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH` to that JSON file (or put the path in `publish_env.local.*`). CI uses secret `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64` (`base64 -w0` of the JSON).
 
-Defaults: package `ai.enjoy.player`, track `alpha`, status `draft`. Override with `GOOGLE_PLAY_TRACK` / `GOOGLE_PLAY_RELEASE_STATUS` if needed. Requires **Python 3** (`ensure_play_upload_tooling.sh` installs API client deps into a repo-local venv).
+Defaults: package `ai.enjoy.player`, track `alpha`, status `draft`. Override with `GOOGLE_PLAY_TRACK` / `GOOGLE_PLAY_RELEASE_STATUS` if needed. The upload runs via fastlane `supply` ([ADR-0094](decisions/0094-fastlane-store-uploads.md)) and needs **Ruby ≥ 3.2** (pinned in [`mise.toml`](../mise.toml); `ensure_fastlane_tooling.sh` installs the `Gemfile.lock`-pinned gems into a repo-local path).
 
 ### Apple signing
 

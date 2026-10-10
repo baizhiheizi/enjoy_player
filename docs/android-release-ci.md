@@ -86,8 +86,8 @@ See [ci-self-hosted-runners.md](ci-self-hosted-runners.md) for registration and 
 
 ```bash
 flutter doctor
-java -version   # 17+
-python3 --version   # Play AAB upload (--play); ensure_linux_tooling installs python3 + python3-venv
+java -version   # 17+ (pinned as temurin-17 in mise.toml; mise exec sets JAVA_HOME)
+python3 --version   # local feed smoke-test only; Play AAB upload needs Ruby (fastlane)
 echo "$ANDROID_SDK_ROOT"
 sdkmanager "platforms;android-35" "build-tools;35.0.0"
 ```
@@ -110,7 +110,7 @@ Most sideload users want **`EnjoyPlayer-vX.Y.Z-arm64-v8a.apk`** only.
 
 ## Upload to Google Play
 
-CI and local releases share [`.github/scripts/upload_play_aab.sh`](../.github/scripts/upload_play_aab.sh) (Play Android Publisher API). Defaults: package `ai.enjoy.player`, track **`alpha`**, status **`draft`** — you review and roll out in Play Console.
+CI and local releases share [`.github/scripts/upload_play_aab.sh`](../.github/scripts/upload_play_aab.sh), which runs fastlane `supply` (`upload_to_play_store`, [fastlane/Fastfile](../fastlane/Fastfile)). Defaults: package `ai.enjoy.player`, track **`alpha`**, status **`draft`** — you review and roll out in Play Console. Requires **Ruby ≥ 3.2** (`mise.toml` pins 3.4; `ensure_fastlane_tooling.sh` installs the `Gemfile.lock`-pinned gems into a repo-local path).
 
 ### One-time service account setup
 
@@ -153,8 +153,8 @@ If Play credentials are unset, the script logs *Skipping Play upload* and exits 
 | *Invalid control character* / invalid JSON for Play SA | Use **base64** secret (`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64`), not raw JSON in a GHA env var |
 | Play API 403 / permission denied | Re-check Play Console invite + closed-testing permissions for the service account |
 | *signed with the wrong key* / *Android debug keystore* | AAB was not signed with the Play **upload** key. This machine needs `android/key.properties` + the upload `.jks` (SHA1 must match Play Console → Setup → App signing → Upload key). Rebuild after fixing — `--publish-only` will keep re-uploading a bad AAB. GitHub already stores `ANDROID_KEYSTORE_*`; copy that same keystore locally. |
-| Upload `TimeoutError` / chunk retries exhausted | Store AAB is large (~180MB). Uploader uses resumable 8 MiB chunks with a 600s HTTP timeout; raise `GOOGLE_PLAY_UPLOAD_TIMEOUT_SEC` or `GOOGLE_PLAY_UPLOAD_CHUNK_RETRIES` if the link is slow. Retry with `--publish-only --play` (no rebuild). |
-| `python3` missing | Install Python 3 on the release host; `ensure_play_upload_tooling.sh` needs it for the API client venv |
+| Upload `TimeoutError` / chunk retries exhausted | Store AAB is large (~180MB) and fastlane `supply` streams it to the Play Android Developer API. On a slow link, retry with `--publish-only --play` (no rebuild). |
+| `ruby` / `bundle` missing | Play upload runs via fastlane. Install Ruby ≥ 3.2 (`mise install` picks up the `mise.toml` pin) — `ensure_fastlane_tooling.sh` fails fast when it is absent |
 | R8 / ProGuard missing class | Extend [`proguard-rules.pro`](../android/app/proguard-rules.pro) per Gradle hint |
 
 ---
