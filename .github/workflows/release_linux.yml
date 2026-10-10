@@ -25,7 +25,7 @@ permissions:
 jobs:
   release:
     name: Linux release
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, ci]
     steps:
       - uses: actions/checkout@v6
         with:

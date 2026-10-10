@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   build-linux:
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, ci]
     steps:
       - uses: actions/checkout@v6
 

@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   analyze-test:
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, ci]
     # Format/analyze run in minutes; the covered app suite plus path-package
     # suites land well under half an hour. 60 min only bites when a hung
     # network or test process stalls the job (self-hosted has no default
