@@ -4,6 +4,20 @@ library;
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/domain/auto_renew_billing.dart';
 
+/// Tier entitlement fallback for the daily credit pool when the live status
+/// has not loaded yet. [SubscriptionStatus.dailyCreditsLimit] is the
+/// authoritative reading once status resolves.
+int fallbackDailyCreditsLimit(SubscriptionTier tier) {
+  switch (tier) {
+    case SubscriptionTier.pro:
+      return 60000;
+    case SubscriptionTier.lite:
+      return 12000;
+    case SubscriptionTier.free:
+      return 1000;
+  }
+}
+
 class SubscriptionStatus {
   const SubscriptionStatus({
     required this.subscriptionActive,

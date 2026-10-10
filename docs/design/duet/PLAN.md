@@ -478,6 +478,7 @@ Read [player.md](../../features/player.md), [transcript.md](../../features/trans
     - Translation, Definition, and Contextual translation sections (expand to load).
   - `LookupCoordinator.open` uses the margin when called from the player route and keeps today's dialog / sheet elsewhere.
 - **Keep:** lookup requests, caching, the auth gate, language rules (ADR-0042 / ADR-0087), add-to-vocabulary, and credits.
+- **Behavior, not decoration:** the sections' **expand to load** is a credits-saving behavior, not a visual flourish. A collapsed section must issue no request; expanding is what spends credits. Shipping the three sections auto-opened (or omitting the collapse) triples the cost of every lookup — flagged by the 2026-10-09 phone review (issue #870 §2.4).
 - **Tests:**
   - margin mode per width;
   - a drawer opened over video parks the surface (route present);

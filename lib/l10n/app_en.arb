@@ -1453,6 +1453,16 @@
   "lookupLanguagePtPt": "Português (Portugal)",
   "lookupLanguageRuRu": "Русский",
   "lookupSourceResetToLearning": "Source language reset to learning default",
+  "lookupCreditsRemainingLabel": "{n} left today",
+  "@lookupCreditsRemainingLabel": {
+    "description": "Lookup sheet credits chip: today's remaining AI credits.",
+    "placeholders": {"n": {"type": "String"}}
+  },
+  "lookupCreditsRunningLowLabel": "Almost out — {n} left today",
+  "@lookupCreditsRunningLowLabel": {
+    "description": "Lookup sheet credits chip once remaining credits pass the low threshold.",
+    "placeholders": {"n": {"type": "String"}}
+  },
   "vocabularyAddToVocabulary": "Add to Vocabulary",
   "vocabularyAddContext": "Add Context",
   "vocabularyAlreadyInVocabulary": "Already in Vocabulary",

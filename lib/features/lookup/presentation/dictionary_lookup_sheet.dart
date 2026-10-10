@@ -25,6 +25,7 @@ import 'package:enjoy_player/features/lookup/presentation/sections/contextual_tr
 import 'package:enjoy_player/features/lookup/presentation/sections/dictionary_lookup_section.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/translation_lookup_section.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_banner.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_chip.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_language_picker_row.dart';
 import 'package:enjoy_player/features/pronounce/application/pronounce_playback_controller.dart';
 import 'package:enjoy_player/features/pronounce/domain/pronounce_target.dart';
@@ -249,6 +250,7 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                 ),
               ),
             ),
+            constrain(const LookupCreditsChip()),
             Divider(
               height: 1,
               color: scheme.outlineVariant.withValues(alpha: 0.2),

@@ -2847,6 +2847,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Source language reset to learning default';
 
   @override
+  String lookupCreditsRemainingLabel(String n) {
+    return '$n left today';
+  }
+
+  @override
+  String lookupCreditsRunningLowLabel(String n) {
+    return 'Almost out — $n left today';
+  }
+
+  @override
   String get vocabularyAddToVocabulary => 'Add to Vocabulary';
 
   @override

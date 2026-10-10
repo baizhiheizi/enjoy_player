@@ -6,7 +6,7 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 
 **Status values**: `todo` · `in progress` · `review` · `done` · `blocked` · `needs decision`
 
-**Branch**: merged to `main` (PR #853, 2026-10-08) · **Started**: 2026-10-02 · **Follow-ups**: the 2026-10-09 review pass merged #872–#876 off `main`
+**Branch**: merged to `main` (PR #853, 2026-10-08) · **Started**: 2026-10-02 · **Follow-ups**: the 2026-10-09 review pass merged #872–#876 off `main`; #878 added the lookup credits chip (issue #870 §2.5 — `creditsSummaryProvider` already carried the balance, no backend needed), wrote the danger-vs-neutral status rule into the [README](README.md), and marked PWord's expand-to-load as behavior in [PLAN.md](PLAN.md §d37-side-margin--word-lookup). Still open from the review, needing backend / product / design: `PhSubscription` / `PhCredits` boards (§1.5), cloud tab counts + search (§4.3, cursor-paginated API), the practice-card sync timestamp (§3.4, no field in the model), and the YouTube webview chrome decision (§5.1/§5.2).
 
 ## Progress
 
