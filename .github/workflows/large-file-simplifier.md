@@ -46,6 +46,7 @@ timeout-minutes: 20
 # ==== customized start  ====
 runs-on:
 - self-hosted
+- agentic
 - linux
 runs-on-slim:
 - self-hosted

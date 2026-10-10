@@ -37,6 +37,7 @@ safe-outputs:
 runs-on:
 - self-hosted
 - linux
+- agentic
 runs-on-slim:
 - self-hosted
 - linux

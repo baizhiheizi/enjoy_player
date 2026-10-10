@@ -30,6 +30,7 @@ timeout-minutes: 10
 runs-on:
 - self-hosted
 - linux
+- agentic
 runs-on-slim:
 - self-hosted
 - linux
