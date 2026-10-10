@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
@@ -46,7 +47,7 @@ class LookupCreditsBanner extends StatelessWidget {
             SizedBox(height: t.space12),
             EnjoyButton.brand(
               size: EnjoyButtonSize.small,
-              onPressed: () => context.push('/subscription'),
+              onPressed: () => context.push(kSubscriptionRoutePath),
               child: Text(creditsCtaLabel(l10n)),
             ),
           ],

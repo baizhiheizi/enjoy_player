@@ -16,6 +16,7 @@ import 'package:enjoy_player/core/player/player_surface_overlay_navigator_observ
 import 'package:enjoy_player/core/routing/auth_redirect.dart';
 import 'package:enjoy_player/core/routing/auth_router_tick.dart';
 import 'package:enjoy_player/core/routing/not_found_screen.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_screen.dart';
 import 'package:enjoy_player/features/ai/presentation/settings/ai_providers_screen.dart';
@@ -274,12 +275,12 @@ GoRouter appRouter(Ref ref) {
           ),
           GoRoute(
             name: 'credits',
-            path: '/credits',
+            path: kCreditsRoutePath,
             builder: (context, state) => const CreditsUsageScreen(),
           ),
           GoRoute(
             name: 'subscription',
-            path: '/subscription',
+            path: kSubscriptionRoutePath,
             builder: (context, state) => const SubscriptionScreen(),
           ),
           GoRoute(

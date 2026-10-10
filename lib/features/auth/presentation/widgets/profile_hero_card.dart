@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -20,6 +21,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/credits/domain/credits_thresholds.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -159,7 +161,7 @@ class ProfileHeroCard extends ConsumerWidget {
         ),
         if (tier == SubscriptionTier.free)
           EnjoyButton.brand(
-            onPressed: () => context.push('/subscription'),
+            onPressed: () => context.push(kSubscriptionRoutePath),
             child: Text(l10n.subscriptionUpgrade),
           ),
       ],
@@ -328,8 +330,6 @@ class ProfileCreditsCard extends StatelessWidget {
     this.tier,
   });
 
-  static const _kLowCreditsFraction = 0.9;
-
   final int? used;
   final int limit;
   final int? permanent;
@@ -346,9 +346,7 @@ class ProfileCreditsCard extends StatelessWidget {
         ? 0.0
         : (used! / limit).clamp(0.0, 1.0);
     final isLow =
-        used != null &&
-        limit > 0 &&
-        fraction >= ProfileCreditsCard._kLowCreditsFraction;
+        used != null && limit > 0 && fraction >= kLowCreditsUsedFraction;
     final upgradeVisible = isLow && tier == SubscriptionTier.free;
     final extra = permanent;
     return EnjoyCard(
@@ -364,13 +362,13 @@ class ProfileCreditsCard extends StatelessWidget {
                 if (upgradeVisible) ...[
                   EnjoyButton.brand(
                     size: EnjoyButtonSize.small,
-                    onPressed: () => context.push('/subscription'),
+                    onPressed: () => context.push(kSubscriptionRoutePath),
                     child: Text(l10n.subscriptionUpgradeShort),
                   ),
                   const SizedBox(width: 12),
                 ],
                 EnjoyPressable(
-                  onTap: () => context.push('/credits'),
+                  onTap: () => context.push(kCreditsRoutePath),
                   showHoverWash: false,
                   child: Text(
                     l10n.profileCreditsUsageLink,

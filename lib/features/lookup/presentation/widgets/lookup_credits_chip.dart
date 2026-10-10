@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -14,6 +15,7 @@ import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
+import 'package:enjoy_player/features/credits/domain/credits_thresholds.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
@@ -21,15 +23,13 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Signed-in-only stadium chip showing today's remaining worker credits so
 /// the sheet warns before a lookup is rejected, not after. Renders nothing
-/// while signed out or while the summary has not loaded (loading / error),
-/// so it never adds noise to anonymous or offline use.
+/// while signed out, or while the summary has not loaded: an anonymous or
+/// offline lookup has no quota context to show, and a stale/failed balance
+/// must not claim one.
 class LookupCreditsChip extends ConsumerWidget {
   const LookupCreditsChip({super.key});
 
   static const double _hPad = 20;
-
-  /// Mirrors the profile meter's low threshold: 90% of the daily pool used.
-  static const _kLowRemainingFraction = 0.1;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,16 +39,14 @@ class LookupCreditsChip extends ConsumerWidget {
     final summary = ref.watch(creditsSummaryProvider).valueOrNull;
     if (summary == null) return const SizedBox.shrink();
 
-    final l10n = AppLocalizations.of(context);
-    if (l10n == null) return const SizedBox.shrink();
-
+    final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final status = ref.watch(subscriptionStatusProvider).valueOrNull;
     final tier = ref.watch(currentTierProvider);
-    final limit = status?.dailyCreditsLimit ?? fallbackDailyCreditsLimit(tier);
+    final limit = status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier);
 
     final remaining = summary.dailyRemaining.clamp(0, limit);
-    final isLow = remaining <= limit * _kLowRemainingFraction;
+    final isLow = 1 - remaining / limit >= kLowCreditsUsedFraction;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final count = NumberFormat.decimalPattern(locale).format(remaining);
     final label = isLow
@@ -63,7 +61,8 @@ class LookupCreditsChip extends ConsumerWidget {
         child: EnjoyPressable(
           shape: const StadiumBorder(),
           semanticsLabel: label,
-          onTap: () => context.push(isLow ? '/subscription' : '/credits'),
+          onTap: () =>
+              context.push(isLow ? kSubscriptionRoutePath : kCreditsRoutePath),
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: 3),
             child: Row(

@@ -42,8 +42,10 @@ Widget _harness({
   required AuthState auth,
   CreditsSummary? summary,
   Object? summaryError,
+  Key? key,
 }) {
   return ProviderScope(
+    key: key,
     overrides: [
       authCtrlProvider.overrideWith(() => _StubAuthController(auth)),
       subscriptionStatusProvider.overrideWith(
@@ -107,6 +109,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Almost out — 40 left today'), findsOneWidget);
+  });
+
+  testWidgets('low threshold boundary matches the profile meter', (
+    tester,
+  ) async {
+    Future<void> pumpRemaining(int remaining) async {
+      await tester.pumpWidget(
+        _harness(
+          key: UniqueKey(),
+          auth: AuthSignedIn(profile: _stubProfile()),
+          summary: _summary(remaining),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await pumpRemaining(100);
+    expect(find.text('Almost out — 100 left today'), findsOneWidget);
+
+    await pumpRemaining(101);
+    expect(find.text('101 left today'), findsOneWidget);
   });
 
   testWidgets('renders nothing while the summary has not loaded', (

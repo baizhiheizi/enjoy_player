@@ -12,9 +12,9 @@ void scheduleLookupCreditsReport(
   LookupSectionId section,
   String message,
 ) {
+  _refreshCreditsSummary(context, ref);
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (!context.mounted) return;
-    ref.invalidate(creditsSummaryProvider);
     ref.read(lookupCreditsExhaustedProvider.notifier).report(section, message);
   });
 }
@@ -24,9 +24,17 @@ void scheduleLookupCreditsClear(
   WidgetRef ref,
   LookupSectionId section,
 ) {
+  _refreshCreditsSummary(context, ref);
   final notifier = ref.read(lookupCreditsExhaustedProvider.notifier);
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (!context.mounted) return;
     notifier.clear(section);
+  });
+}
+
+void _refreshCreditsSummary(BuildContext context, WidgetRef ref) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!context.mounted) return;
+    ref.invalidate(creditsSummaryProvider);
   });
 }

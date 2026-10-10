@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
@@ -106,7 +107,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
         final tier = ref.watch(currentTierProvider);
         final status = ref.watch(subscriptionStatusProvider).valueOrNull;
         final dailyLimit =
-            status?.dailyCreditsLimit ?? fallbackDailyCreditsLimit(tier);
+            status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier);
 
         final creditsUsedAsync = ref.watch(todaysCreditsUsedProvider);
         final creditsUsed = creditsUsedAsync.valueOrNull;
@@ -157,14 +158,14 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
                 title: l10n.profileSubscriptionTile,
                 subtitle: l10n.profileSubscriptionSubtitle,
                 valueBadge: _RowValue(subscriptionTierLabel(l10n, tier)),
-                onTap: () => context.push('/subscription'),
+                onTap: () => context.push(kSubscriptionRoutePath),
                 responsive: false,
               ),
               SettingsRow(
                 leadingIcon: EnjoyIcons.receipt,
                 title: l10n.profileCreditsUsageTile,
                 subtitle: l10n.profileCreditsUsageSubtitle,
-                onTap: () => context.push('/credits'),
+                onTap: () => context.push(kCreditsRoutePath),
                 responsive: false,
               ),
               SettingsRow(
