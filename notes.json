@@ -56,6 +56,14 @@
       "status": "open",
       "updated_at": "2026-10-07",
       "note": "YouTube caption matcher uses primary-subtag aliasing. 25/25 youtube_caption_fetcher_test, 476/476 test/features/transcript/. Format + analyze clean."
+    },
+    {
+      "issue": 888,
+      "pr": null,
+      "branch": "repo-assist/split-player-dock-primitives-2026-10-11",
+      "status": "open",
+      "updated_at": "2026-10-11",
+      "note": "PR 1 of 5: primitives extracted into player_dock_primitives.dart (458 LOC). player_dock.dart trimmed 1077 -> 663 lines. 6426/6426 tests pass, flutter analyze clean, format clean."
     }
   ],
   "checks": [],
@@ -100,6 +108,21 @@
       "task": 9,
       "item": "PR #864 ai_kind_policies tests",
       "note": "Draft PR (2026-10-08) adding 11 focused tests for AiKindPolicy + defaultAiKindPolicies. 11/11 new; 335/335 test/features/ai/."
+    },
+    {
+      "task": 5,
+      "item": "Follow-up PR 2: extract _ListenControls into player_dock_listen_controls.dart",
+      "note": "Branches off the PR 1 commit. Will rename to ListenDockControls."
+    },
+    {
+      "task": 5,
+      "item": "Follow-up PR 3: extract _EchoControls into player_dock_echo_controls.dart",
+      "note": "Branches off PR 1. Will rename to EchoDockControls; pulls in kEchoCaptionBlockHeight/kEchoSkipIconHalf."
+    },
+    {
+      "task": 5,
+      "item": "Follow-up PR 4: extract _RecordingControls into player_dock_recording_controls.dart",
+      "note": "Branches off PR 1. Will rename to RecordingDockControls."
     }
   ]
 }
