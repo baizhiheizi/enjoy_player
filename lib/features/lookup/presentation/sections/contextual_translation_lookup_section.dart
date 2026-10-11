@@ -10,23 +10,20 @@ import 'package:logging/logging.dart';
 
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
 import 'package:enjoy_player/core/analytics/analytics_provider.dart';
-import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/lookup_markdown_style.dart';
-import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/ai/application/ai_cache_fingerprint.dart';
 import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_params.dart';
-import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
+import 'package:enjoy_player/features/lookup/presentation/lookup_section_error_widget.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_auth_gate.dart';
@@ -293,18 +290,13 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
             );
           }
           if (_retryInFlight && _lastError != null) {
-            if (_lastError is CreditsFailure) {
-              return LookupCreditsNotice(
-                message: creditsFailureMessage(
-                  _lastError! as CreditsFailure,
-                  widget.l10n,
-                ),
-                onRetry: _retryAfterError,
-                isRetrying: true,
-              );
-            }
-            return LookupErrorRow(
-              message: lookupErrorUserMessage(_lastError!, widget.l10n),
+            return lookupSectionErrorWidget(
+              context: context,
+              ref: ref,
+              l10n: widget.l10n,
+              section: LookupSectionId.contextualTranslation,
+              surface: AuthRequiredSurface.lookupContextual,
+              error: _lastError!,
               onRetry: _retryAfterError,
               isRetrying: true,
             );
@@ -316,36 +308,13 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
           _staleSuccess = null;
           _retryInFlight = false;
           _lastError = e;
-          if (e is AuthFailure) {
-            scheduleLookupCreditsClear(
-              context,
-              ref,
-              LookupSectionId.contextualTranslation,
-            );
-            return const AuthRequiredCallout(
-              surface: AuthRequiredSurface.lookupContextual,
-              compact: true,
-            );
-          }
-          if (e is CreditsFailure) {
-            scheduleLookupCreditsReport(
-              context,
-              ref,
-              LookupSectionId.contextualTranslation,
-              creditsFailureMessage(e, widget.l10n),
-            );
-            return LookupCreditsNotice(
-              message: creditsFailureMessage(e, widget.l10n),
-              onRetry: _retryAfterError,
-            );
-          }
-          scheduleLookupCreditsClear(
-            context,
-            ref,
-            LookupSectionId.contextualTranslation,
-          );
-          return LookupErrorRow(
-            message: lookupErrorUserMessage(e, widget.l10n),
+          return lookupSectionErrorWidget(
+            context: context,
+            ref: ref,
+            l10n: widget.l10n,
+            section: LookupSectionId.contextualTranslation,
+            surface: AuthRequiredSurface.lookupContextual,
+            error: e,
             onRetry: _retryAfterError,
           );
         }
