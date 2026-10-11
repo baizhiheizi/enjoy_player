@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/ai/application/ai_cache_fingerprint.dart';
@@ -18,9 +17,7 @@ import 'package:enjoy_player/features/lookup/application/lookup_credits_exhauste
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
-import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
+import 'package:enjoy_player/features/lookup/presentation/lookup_section_error_widget.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_auth_gate.dart';
@@ -86,42 +83,16 @@ class DictionaryLookupSection extends ConsumerWidget {
                 );
               },
               loading: () => const LookupSectionShimmer(),
-              error: (Object e, StackTrace st) {
-                if (e is AuthFailure) {
-                  scheduleLookupCreditsClear(
-                    context,
-                    ref,
-                    LookupSectionId.dictionary,
-                  );
-                  return const AuthRequiredCallout(
-                    surface: AuthRequiredSurface.lookupDictionary,
-                    compact: true,
-                  );
-                }
-                if (e is CreditsFailure) {
-                  scheduleLookupCreditsReport(
-                    context,
-                    ref,
-                    LookupSectionId.dictionary,
-                    creditsFailureMessage(e, l10n),
-                  );
-                  return LookupCreditsNotice(
-                    message: creditsFailureMessage(e, l10n),
-                    onRetry: forceRefresh,
-                    isRetrying: async.hasError && async.isLoading,
-                  );
-                }
-                scheduleLookupCreditsClear(
-                  context,
-                  ref,
-                  LookupSectionId.dictionary,
-                );
-                return LookupErrorRow(
-                  message: lookupErrorUserMessage(e, l10n),
-                  onRetry: forceRefresh,
-                  isRetrying: async.hasError && async.isLoading,
-                );
-              },
+              error: (Object e, StackTrace st) => lookupSectionErrorWidget(
+                context: context,
+                ref: ref,
+                l10n: l10n,
+                section: LookupSectionId.dictionary,
+                surface: AuthRequiredSurface.lookupDictionary,
+                error: e,
+                onRetry: forceRefresh,
+                isRetrying: async.hasError && async.isLoading,
+              ),
             );
           },
         ),
