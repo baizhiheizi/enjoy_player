@@ -111,6 +111,11 @@ String _normalizeMainToken(String raw) {
 
 bool _modifiersMatch(ParsedHotkey p) {
   final hk = HardwareKeyboard.instance;
+  if (p.ctrl && !p.meta && defaultTargetPlatform == TargetPlatform.macOS) {
+    return (hk.isControlPressed || hk.isMetaPressed) &&
+        p.shift == hk.isShiftPressed &&
+        p.alt == hk.isAltPressed;
+  }
   return p.ctrl == hk.isControlPressed &&
       p.shift == hk.isShiftPressed &&
       p.alt == hk.isAltPressed &&
@@ -150,52 +155,105 @@ bool hotkeyMatchesBinding(KeyEvent event, String binding) {
   }
 }
 
+/// Shifted punctuation the platforms report as its own logical key (Linux and
+/// macOS send `?` for Shift+/, `<` for Shift+, …), mapped back to the key that
+/// bindings name.
+final Map<LogicalKeyboardKey, LogicalKeyboardKey> _shiftedToBase = {
+  LogicalKeyboardKey.question: LogicalKeyboardKey.slash,
+  LogicalKeyboardKey.less: LogicalKeyboardKey.comma,
+  LogicalKeyboardKey.greater: LogicalKeyboardKey.period,
+  LogicalKeyboardKey.braceLeft: LogicalKeyboardKey.bracketLeft,
+  LogicalKeyboardKey.braceRight: LogicalKeyboardKey.bracketRight,
+  LogicalKeyboardKey.colon: LogicalKeyboardKey.semicolon,
+  LogicalKeyboardKey.quote: LogicalKeyboardKey.quoteSingle,
+  LogicalKeyboardKey.underscore: LogicalKeyboardKey.minus,
+  LogicalKeyboardKey.add: LogicalKeyboardKey.equal,
+  LogicalKeyboardKey.tilde: LogicalKeyboardKey.backquote,
+  LogicalKeyboardKey.bar: LogicalKeyboardKey.backslash,
+};
+
+/// US-position punctuation by physical key, used only when the logical key is
+/// not one the bindings know (layouts or IMEs that report another character).
+final Map<PhysicalKeyboardKey, LogicalKeyboardKey> _physicalPunctuation = {
+  PhysicalKeyboardKey.slash: LogicalKeyboardKey.slash,
+  PhysicalKeyboardKey.comma: LogicalKeyboardKey.comma,
+  PhysicalKeyboardKey.period: LogicalKeyboardKey.period,
+  PhysicalKeyboardKey.bracketLeft: LogicalKeyboardKey.bracketLeft,
+  PhysicalKeyboardKey.bracketRight: LogicalKeyboardKey.bracketRight,
+  PhysicalKeyboardKey.semicolon: LogicalKeyboardKey.semicolon,
+  PhysicalKeyboardKey.quote: LogicalKeyboardKey.quoteSingle,
+  PhysicalKeyboardKey.minus: LogicalKeyboardKey.minus,
+  PhysicalKeyboardKey.equal: LogicalKeyboardKey.equal,
+  PhysicalKeyboardKey.backquote: LogicalKeyboardKey.backquote,
+  PhysicalKeyboardKey.backslash: LogicalKeyboardKey.backslash,
+};
+
+/// The unshifted key a binding names for [event]: shifted punctuation folds
+/// back to its base key, and unknown punctuation falls back to the physical
+/// key's US position.
+LogicalKeyboardKey hotkeyBaseKey(KeyEvent event) {
+  final logical = event.logicalKey;
+  final base = _shiftedToBase[logical];
+  if (base != null) return base;
+  if (_physicalPunctuation.containsValue(logical)) return logical;
+  final isPrintable =
+      logical.keyId <= LogicalKeyboardKey.valueMask &&
+      !(logical.keyId >= 0x61 && logical.keyId <= 0x7a) &&
+      !(logical.keyId >= 0x30 && logical.keyId <= 0x39) &&
+      logical != LogicalKeyboardKey.space;
+  if (isPrintable) {
+    return _physicalPunctuation[event.physicalKey] ?? logical;
+  }
+  return logical;
+}
+
 bool _mainKeyMatches(KeyDownEvent e, String main, ParsedHotkey full) {
+  final key = hotkeyBaseKey(e);
   switch (main) {
     case 'space':
-      return e.logicalKey == LogicalKeyboardKey.space;
+      return key == LogicalKeyboardKey.space;
     case 'escape':
-      return e.logicalKey == LogicalKeyboardKey.escape;
+      return key == LogicalKeyboardKey.escape;
     case 'enter':
     case 'return':
-      return e.logicalKey == LogicalKeyboardKey.enter;
+      return key == LogicalKeyboardKey.enter;
     case 'tab':
-      return e.logicalKey == LogicalKeyboardKey.tab;
+      return key == LogicalKeyboardKey.tab;
     case 'backspace':
-      return e.logicalKey == LogicalKeyboardKey.backspace;
+      return key == LogicalKeyboardKey.backspace;
     case 'delete':
-      return e.logicalKey == LogicalKeyboardKey.delete;
+      return key == LogicalKeyboardKey.delete;
     case 'comma':
-      return e.logicalKey == LogicalKeyboardKey.comma;
+      return key == LogicalKeyboardKey.comma;
     case 'period':
-      return e.logicalKey == LogicalKeyboardKey.period;
+      return key == LogicalKeyboardKey.period;
     case 'slash':
-      return e.logicalKey == LogicalKeyboardKey.slash;
+      return key == LogicalKeyboardKey.slash;
     case 'backslash':
-      return e.logicalKey == LogicalKeyboardKey.backslash;
+      return key == LogicalKeyboardKey.backslash;
     case 'minus':
-      return e.logicalKey == LogicalKeyboardKey.minus;
+      return key == LogicalKeyboardKey.minus;
     case 'equal':
-      return e.logicalKey == LogicalKeyboardKey.equal;
+      return key == LogicalKeyboardKey.equal;
     case 'semicolon':
-      return e.logicalKey == LogicalKeyboardKey.semicolon;
+      return key == LogicalKeyboardKey.semicolon;
     case 'quote':
     case 'apostrophe':
-      return e.logicalKey == LogicalKeyboardKey.quote;
+      return key == LogicalKeyboardKey.quoteSingle;
     case 'bracketleft':
     case '[':
-      return e.logicalKey == LogicalKeyboardKey.bracketLeft;
+      return key == LogicalKeyboardKey.bracketLeft;
     case 'bracketright':
     case ']':
-      return e.logicalKey == LogicalKeyboardKey.bracketRight;
+      return key == LogicalKeyboardKey.bracketRight;
     case 'arrowleft':
-      return e.logicalKey == LogicalKeyboardKey.arrowLeft;
+      return key == LogicalKeyboardKey.arrowLeft;
     case 'arrowright':
-      return e.logicalKey == LogicalKeyboardKey.arrowRight;
+      return key == LogicalKeyboardKey.arrowRight;
     case 'arrowup':
-      return e.logicalKey == LogicalKeyboardKey.arrowUp;
+      return key == LogicalKeyboardKey.arrowUp;
     case 'arrowdown':
-      return e.logicalKey == LogicalKeyboardKey.arrowDown;
+      return key == LogicalKeyboardKey.arrowDown;
   }
 
   if (main.length == 1) {
@@ -229,29 +287,29 @@ bool _mainKeyMatches(KeyDownEvent e, String main, ParsedHotkey full) {
         LogicalKeyboardKey.keyY,
         LogicalKeyboardKey.keyZ,
       ];
-      return e.logicalKey == letterKeys[code - 0x61];
+      return key == letterKeys[code - 0x61];
     }
     switch (main) {
       case '/':
-        return e.logicalKey == LogicalKeyboardKey.slash;
+        return key == LogicalKeyboardKey.slash;
       case '`':
-        return e.logicalKey == LogicalKeyboardKey.backquote;
+        return key == LogicalKeyboardKey.backquote;
       case '[':
-        return e.logicalKey == LogicalKeyboardKey.bracketLeft;
+        return key == LogicalKeyboardKey.bracketLeft;
       case ']':
-        return e.logicalKey == LogicalKeyboardKey.bracketRight;
+        return key == LogicalKeyboardKey.bracketRight;
       case ',':
-        return e.logicalKey == LogicalKeyboardKey.comma;
+        return key == LogicalKeyboardKey.comma;
       case '.':
-        return e.logicalKey == LogicalKeyboardKey.period;
+        return key == LogicalKeyboardKey.period;
       case ';':
-        return e.logicalKey == LogicalKeyboardKey.semicolon;
+        return key == LogicalKeyboardKey.semicolon;
       case '\'':
-        return e.logicalKey == LogicalKeyboardKey.quote;
+        return key == LogicalKeyboardKey.quoteSingle;
       case '-':
-        return e.logicalKey == LogicalKeyboardKey.minus;
+        return key == LogicalKeyboardKey.minus;
       case '=':
-        return e.logicalKey == LogicalKeyboardKey.equal;
+        return key == LogicalKeyboardKey.equal;
     }
   }
 
@@ -272,7 +330,7 @@ bool _mainKeyMatches(KeyDownEvent e, String main, ParsedHotkey full) {
         LogicalKeyboardKey.f11,
         LogicalKeyboardKey.f12,
       ];
-      if (n <= 12) return e.logicalKey == bases[n - 1];
+      if (n <= 12) return key == bases[n - 1];
     }
   }
 
@@ -298,7 +356,7 @@ String? serializeChordFromKeyEvent(KeyDownEvent event) {
   if (hk.isAltPressed) mods.add('alt');
   if (hk.isMetaPressed) mods.add('meta');
 
-  final key = event.logicalKey;
+  final key = hotkeyBaseKey(event);
 
   if (hk.isShiftPressed &&
       !hk.isControlPressed &&

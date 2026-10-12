@@ -45,6 +45,10 @@ The listener is a thin shell: it filters KeyUp / editable-text focus, then runs 
 4. Shadow-reading bus pulses — `player.toggleRecording` / `player.playRecording` / `player.togglePitchContour` / `player.toggleAssessment` (`features/shadow_reading/application/shadow_reading_hotkey_commands.dart`).
 5. Session-gated player keys — `player.togglePlay`, `player.toggleExpand`, `player.toggleFullscreen`, line / echo / playback rate (the rate reducer is `decidePlaybackRateStep` / D10 in `features/player/domain/transport_decisions.dart`) (`features/player/application/hotkeys/player_hotkey_commands.dart`).
 
+**Key matching** (`hotkey_chord.dart`). Bindings name the unshifted key (`shift+slash`, `shift+comma`, `{` = Shift+`[`), but Linux and macOS deliver shifted punctuation as its own logical key (`?`, `<`, `>`, `{`, `}`). `hotkeyBaseKey` folds those back to the base key before matching and before capture serializes a rebinding, and falls back to the physical key's US position when a layout or IME reports punctuation the bindings don't know. On macOS a `ctrl+…` binding also accepts ⌘ (and keycaps render `⌘`); elsewhere ⌘/Win never satisfies Ctrl. `test/features/hotkeys/domain/hotkey_platform_events_test.dart` replays the event each platform sends for every default binding.
+
+**`global.search`** (`Ctrl+K` / `⌘K`) focuses library search — the same field `/` focuses; from the player it returns to Library first.
+
 A matched binding whose `canExecute` gate fails does **not** consume the key — dispatch keeps scanning, matching the if-chain's fall-through. Two rebound bindings therefore can never flip behavior nondeterministically: the first command (in this order) whose `actionId` matches and whose gate passes wins.
 
 Each command owns its `canExecute` gate and its `execute` side effects, living next to the logic it calls. **Adding a new hotkey action is one `HotkeyDefinition` plus one `HotkeyCommand`** in the owning feature — no listener edit, no new if-branch in the chain.

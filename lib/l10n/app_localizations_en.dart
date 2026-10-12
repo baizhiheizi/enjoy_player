@@ -1345,9 +1345,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Close overlay, exit fullscreen, or cancel recording';
 
   @override
-  String get hotkeysStubSearch => 'Search is not available yet.';
-
-  @override
   String get assessmentTitle => 'Pronunciation assessment';
 
   @override

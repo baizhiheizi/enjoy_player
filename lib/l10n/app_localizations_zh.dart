@@ -1281,9 +1281,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeysDescCloseModal => '关闭浮层、退出全屏或取消录音';
 
   @override
-  String get hotkeysStubSearch => '搜索功能尚未提供。';
-
-  @override
   String get assessmentTitle => '发音评测';
 
   @override
@@ -5213,9 +5210,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get hotkeysDescCloseModal => '关闭浮层、退出全屏或取消录音';
-
-  @override
-  String get hotkeysStubSearch => '搜索功能尚未提供。';
 
   @override
   String get assessmentTitle => '发音评测';

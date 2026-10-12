@@ -1,10 +1,15 @@
 /// Display-only formatting for hotkey strings (subset of web `format-hotkey`).
 library;
 
+import 'package:flutter/foundation.dart';
+
 /// Tokens for UI key-cap rows (same rules as [formatHotkeyForDisplay]).
 List<String> hotkeyDisplayTokens(String binding) {
   final s = binding.trim().toLowerCase();
   if (s == 'shift+slash') return const ['?'];
+  if (s == 'shift+comma') return const ['<'];
+  if (s == 'shift+period') return const ['>'];
+  final mac = defaultTargetPlatform == TargetPlatform.macOS;
 
   final parts = s
       .split('+')
@@ -18,7 +23,7 @@ List<String> hotkeyDisplayTokens(String binding) {
     switch (p) {
       case 'ctrl':
       case 'control':
-        out.add('Ctrl');
+        out.add(mac ? '⌘' : 'Ctrl');
         break;
       case 'shift':
         out.add('Shift');
@@ -28,7 +33,7 @@ List<String> hotkeyDisplayTokens(String binding) {
         break;
       case 'meta':
       case 'cmd':
-        out.add('Win');
+        out.add(mac ? '⌘' : 'Win');
         break;
       case 'comma':
         out.add(',');

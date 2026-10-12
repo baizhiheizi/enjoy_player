@@ -2487,12 +2487,6 @@ abstract class AppLocalizations {
   /// **'Close overlay, exit fullscreen, or cancel recording'**
   String get hotkeysDescCloseModal;
 
-  /// No description provided for @hotkeysStubSearch.
-  ///
-  /// In en, this message translates to:
-  /// **'Search is not available yet.'**
-  String get hotkeysStubSearch;
-
   /// No description provided for @assessmentTitle.
   ///
   /// In en, this message translates to:
