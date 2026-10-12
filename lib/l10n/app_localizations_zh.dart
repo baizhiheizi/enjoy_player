@@ -1123,6 +1123,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsRecordingMicAutoNoDevice => '自动 · 系统默认';
 
   @override
+  String get settingsRecordingMicAutoShort => '自动';
+
+  @override
   String get settingsRecordingMicEmpty => '未检测到麦克风';
 
   @override
@@ -2359,6 +2362,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsLanguageSubtitleDeviceOnly => '保存在本机，登录账号后可同步。';
+
+  @override
+  String get settingsNativeLanguageGateSubtitle => '当前学习语言下只有一种母语可选。';
 
   @override
   String get settingsLanguageOptionEnUs => '英语（美国）';
@@ -5029,6 +5035,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get settingsRecordingMicAutoNoDevice => '自动 · 系统默认';
 
   @override
+  String get settingsRecordingMicAutoShort => '自动';
+
+  @override
   String get settingsRecordingMicEmpty => '未检测到麦克风';
 
   @override
@@ -6011,6 +6020,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsLanguageSubtitleDeviceOnly => '保存在本机，登录账号后可同步。';
+
+  @override
+  String get settingsNativeLanguageGateSubtitle => '当前学习语言下只有一种母语可选。';
 
   @override
   String get settingsLanguageOptionEnUs => '英语（美国）';

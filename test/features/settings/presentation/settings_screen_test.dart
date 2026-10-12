@@ -13,6 +13,7 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/settings/application/settings_selected_section_provider.dart';
 import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_hub.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_single_column.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_two_pane.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
@@ -110,9 +111,7 @@ void main() {
   });
 
   group('SettingsScreen layout', () {
-    testWidgets('renders single-column layout below the rail breakpoint', (
-      tester,
-    ) async {
+    testWidgets('renders phone hub below the rail breakpoint', (tester) async {
       tester.view.physicalSize = const Size(700, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -121,7 +120,8 @@ void main() {
       await tester.pumpWidget(_harness(db: db));
       await tester.pumpAndSettle();
 
-      expect(find.byType(SettingsLayoutSingleColumn), findsOneWidget);
+      expect(find.byType(SettingsLayoutHub), findsOneWidget);
+      expect(find.byType(SettingsLayoutSingleColumn), findsNothing);
       expect(find.byType(SettingsLayoutTwoPane), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -195,9 +195,10 @@ void main() {
     );
   });
 
-  group('SettingsScreen sections (single column)', () {
+  group('SettingsScreen sections', () {
     testWidgets(
-      'all sections render content immediately (no collapse headers)',
+      'the phone hub lists section rows; search renders matching sections '
+      'inline without collapse headers',
       (tester) async {
         tester.view.physicalSize = const Size(700, 2400);
         tester.view.devicePixelRatio = 1.0;
@@ -209,18 +210,19 @@ void main() {
 
         final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
-        expect(
-          find.text(l10n.settingsAppearanceDisplayLanguage),
-          findsOneWidget,
-        );
-        expect(find.text(l10n.settingsAiProvidersTileTitle), findsOneWidget);
+        expect(find.text(l10n.settingsSectionSync), findsOneWidget);
+        expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsNothing);
+
+        await tester.enterText(find.byType(TextField), 'playground');
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
+        expect(find.text(l10n.settingsApiBaseUrl), findsOneWidget);
 
         expect(find.text(l10n.settingsTranscriptEnrichmentTitle), findsNothing);
         expect(find.text(l10n.settingsTranscriptKaraokeTitle), findsNothing);
         expect(find.text(l10n.settingsTranscriptIpaOverlayTitle), findsNothing);
 
-        expect(find.text(l10n.settingsApiBaseUrl), findsOneWidget);
-        expect(find.text(l10n.appTitle), findsWidgets);
         expect(tester.takeException(), isNull);
       },
     );

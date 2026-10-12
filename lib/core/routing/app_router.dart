@@ -40,8 +40,10 @@ import 'package:enjoy_player/features/player/domain/player_launch_request.dart';
 import 'package:enjoy_player/features/player/presentation/expanded_player_screen.dart';
 import 'package:enjoy_player/features/player/presentation/root_shell.dart';
 import 'package:enjoy_player/features/player/presentation/youtube_login_screen.dart';
+import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';
 import 'package:enjoy_player/features/settings/presentation/hotkeys_settings_screen.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
+import 'package:enjoy_player/features/settings/presentation/settings_section_page.dart';
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
 import 'package:enjoy_player/features/subscription/presentation/subscription_screen.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
@@ -114,6 +116,9 @@ GoRouter appRouter(Ref ref) {
           : state.matchedLocation;
 
       if (kReleaseMode && loc.startsWith('/settings/ai-playground')) {
+        return '/settings';
+      }
+      if (kReleaseMode && loc.startsWith('/settings/developer')) {
         return '/settings';
       }
       if (loc.startsWith('/settings/keyboard') && !isDesktop) {
@@ -247,6 +252,34 @@ GoRouter appRouter(Ref ref) {
             name: 'settings-ai-providers',
             path: '/settings/ai-providers',
             builder: (context, state) => const AiProvidersScreen(),
+          ),
+          GoRoute(
+            name: 'settings-appearance-language',
+            path: '/settings/appearance-language',
+            builder: (context, state) => const SettingsSectionPageScreen(
+              sectionId: SettingsSectionIds.appearanceLanguage,
+            ),
+          ),
+          GoRoute(
+            name: 'settings-recording',
+            path: '/settings/recording',
+            builder: (context, state) => const SettingsSectionPageScreen(
+              sectionId: SettingsSectionIds.recording,
+            ),
+          ),
+          GoRoute(
+            name: 'settings-developer',
+            path: '/settings/developer',
+            builder: (context, state) => const SettingsSectionPageScreen(
+              sectionId: SettingsSectionIds.developer,
+            ),
+          ),
+          GoRoute(
+            name: 'settings-about',
+            path: '/settings/about',
+            builder: (context, state) => const SettingsSectionPageScreen(
+              sectionId: SettingsSectionIds.about,
+            ),
           ),
           GoRoute(
             name: 'settings-ai-playground',

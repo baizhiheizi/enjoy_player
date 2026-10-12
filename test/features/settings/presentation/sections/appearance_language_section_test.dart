@@ -142,7 +142,7 @@ void main() {
       final rowWidget = tester.widget<SettingsRow>(nativeRow);
       expect(rowWidget.onTap, isNull);
       expect(rowWidget.showChevron, isFalse);
-      expect(rowWidget.subtitle, isNotEmpty);
+      expect(rowWidget.subtitle, l10n.settingsNativeLanguageGateSubtitle);
 
       await tester.tap(find.text(l10n.settingsAppearanceNativeLanguage));
       await tester.pumpAndSettle();
@@ -169,6 +169,7 @@ void main() {
       final rowWidget = tester.widget<SettingsRow>(nativeRow);
       expect(rowWidget.onTap, isNotNull);
       expect(rowWidget.showChevron, isTrue);
+      expect(rowWidget.subtitle, isNull);
       expect(tester.takeException(), isNull);
     },
   );

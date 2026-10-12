@@ -2187,6 +2187,12 @@ abstract class AppLocalizations {
   /// **'Auto · system default'**
   String get settingsRecordingMicAutoNoDevice;
 
+  /// Short trailing value for the settings hub recording row when the microphone is auto-picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get settingsRecordingMicAutoShort;
+
   /// Subtitle / empty state when the OS reports no input devices.
   ///
   /// In en, this message translates to:
@@ -4556,6 +4562,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stored on this device until you sign in.'**
   String get settingsLanguageSubtitleDeviceOnly;
+
+  /// No description provided for @settingsNativeLanguageGateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one native language is available for your learning language.'**
+  String get settingsNativeLanguageGateSubtitle;
 
   /// No description provided for @settingsLanguageOptionEnUs.
   ///

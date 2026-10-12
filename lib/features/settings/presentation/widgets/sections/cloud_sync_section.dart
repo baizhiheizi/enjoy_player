@@ -1,7 +1,7 @@
 /// Cloud sync row body — status pill, sign-in prompt, loading/error states.
 ///
 /// Extracted 1:1 from `settings_screen.dart`'s inline Cloud sync `Consumer`;
-/// preserves the `_SyncQueueStatusPill` states. Rendered inside a
+/// preserves the sync queue status pill states. Rendered inside a
 /// [SettingsSectionCard] by the layout, not wrapped here.
 library;
 
@@ -74,7 +74,7 @@ class CloudSyncSectionBody extends ConsumerWidget {
             leadingIcon: EnjoyIcons.cloudSync,
             title: l10n.syncSettingsTileTitle,
             subtitle: l10n.settingsSectionSyncHint,
-            valueBadge: _SyncQueueStatusPill(
+            valueBadge: SyncQueueStatusPill(
               retryablePending: queueCounts.retryablePending,
               permanentlyFailed: queueCounts.permanentlyFailed,
               l10n: l10n,
@@ -126,8 +126,12 @@ class CloudSyncSectionBody extends ConsumerWidget {
   }
 }
 
-class _SyncQueueStatusPill extends StatelessWidget {
-  const _SyncQueueStatusPill({
+/// Sync queue status pill — up-to-date check, waiting/failed counts.
+///
+/// Also serves as the phone hub row's trailing value source via [label].
+class SyncQueueStatusPill extends StatelessWidget {
+  const SyncQueueStatusPill({
+    super.key,
     required this.retryablePending,
     required this.permanentlyFailed,
     required this.l10n,
@@ -137,23 +141,30 @@ class _SyncQueueStatusPill extends StatelessWidget {
   final int permanentlyFailed;
   final AppLocalizations l10n;
 
+  String get label {
+    if (retryablePending == 0 && permanentlyFailed == 0) {
+      return l10n.syncSettingsTileSubtitleUpToDate;
+    }
+    return l10n.syncSettingsTileSubtitleCounts(
+      retryablePending,
+      permanentlyFailed,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     if (retryablePending == 0 && permanentlyFailed == 0) {
       return SettingsValuePill(
         icon: EnjoyIcons.checkCircle,
-        label: l10n.syncSettingsTileSubtitleUpToDate,
+        label: label,
         foregroundColor: cs.primary,
       );
     }
     final hasFailed = permanentlyFailed > 0;
     return SettingsValuePill(
       icon: hasFailed ? EnjoyIcons.warning : EnjoyIcons.hourglass,
-      label: l10n.syncSettingsTileSubtitleCounts(
-        retryablePending,
-        permanentlyFailed,
-      ),
+      label: label,
       foregroundColor: hasFailed ? cs.error : cs.onSurface,
     );
   }

@@ -293,6 +293,11 @@ final Map<String, SettingsSectionSpec> _specsById = {
   for (final spec in kSettingsSectionSpecs) spec.sectionId: spec,
 };
 
+/// Resolves a section id (e.g. a route argument) to its spec; `null` when the
+/// id matches no section.
+SettingsSectionSpec? settingsSectionSpecById(String sectionId) =>
+    _specsById[sectionId];
+
 /// Resolves `kSettingsRegistry` descriptors into localized, searchable
 /// [SettingsSearchEntry] values (section headers and rows alike) by looking
 /// each descriptor up in its section's [SettingsSectionSpec] — this replaces

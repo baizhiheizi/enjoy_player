@@ -17,7 +17,7 @@ import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_card.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_hub.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
@@ -163,8 +163,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+
       final settingsCard = tester.getTopLeft(
-        find.byType(SettingsSectionCard).first,
+        find
+            .ancestor(
+              of: find.text(l10n.settingsSectionSync),
+              matching: find.byType(EnjoyCard),
+            )
+            .first,
       );
       expect(settingsCard.dx, closeTo(expectedInset, 0.5));
       expect(settingsCard.dx, closeTo(profileCard.dx, 0.5));

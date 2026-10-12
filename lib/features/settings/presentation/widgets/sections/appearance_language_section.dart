@@ -43,6 +43,7 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
         final native = state.effectiveNativeLanguage;
         final nativeChoices = allowedNativeTags(learn);
         String labelForTag(String tag) => focusLanguageLabel(l10n, tag);
+        final nativeLocked = nativeChoices.length <= 1;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -55,7 +56,7 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
               },
               title: l10n.settingsAppearanceTheme,
               valueBadge: SettingsValuePill(
-                label: _themeModeLabel(l10n, state.themeMode),
+                label: appearanceThemeModeLabel(l10n, state.themeMode),
               ),
               showChevron: true,
               onTap: () async {
@@ -135,11 +136,14 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
             SettingsRow(
               leadingIcon: EnjoyIcons.speak,
               title: l10n.settingsAppearanceNativeLanguage,
-              subtitle: langSubtitle,
+              subtitle: nativeLocked
+                  ? l10n.settingsNativeLanguageGateSubtitle
+                  : null,
               valueBadge: SettingsValuePill(label: labelForTag(native)),
-              showChevron: nativeChoices.length > 1,
-              onTap: nativeChoices.length > 1
-                  ? () async {
+              showChevron: !nativeLocked,
+              onTap: nativeLocked
+                  ? null
+                  : () async {
                       final opts = <LanguageChoiceOption>[
                         for (final tag in nativeChoices)
                           LanguageChoiceOption(
@@ -159,8 +163,7 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
                       await ref
                           .read(appPreferencesCtrlProvider.notifier)
                           .setNativeLanguage(picked);
-                    }
-                  : null,
+                    },
             ),
           ],
         );
@@ -183,7 +186,7 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
   }
 }
 
-String _themeModeLabel(AppLocalizations l10n, ThemeMode mode) {
+String appearanceThemeModeLabel(AppLocalizations l10n, ThemeMode mode) {
   switch (mode) {
     case ThemeMode.light:
       return l10n.settingsAppearanceThemeLight;

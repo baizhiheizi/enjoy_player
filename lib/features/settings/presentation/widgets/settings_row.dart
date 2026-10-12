@@ -216,6 +216,10 @@ const double kSettingsRowLeadingGap = 12;
 /// styled after it).
 const double kSettingsRowPressedScale = 0.995;
 
+/// Width cap for a trailing plain-text value (pill labels cap themselves);
+/// keeps long values ellipsizing instead of crowding the row title.
+const double kSettingsRowValueTextMaxWidth = 148;
+
 /// Thin horizontal divider between two [SettingsRow]s inside the same card.
 class SettingsRowDivider extends StatelessWidget {
   const SettingsRowDivider({super.key, this.insetForLeading = true});

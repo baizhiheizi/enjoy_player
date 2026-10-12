@@ -716,6 +716,10 @@
   "@settingsRecordingMicAutoNoDevice": {
     "description": "Subtitle of the mic tile when auto-picking and no devices were enumerated yet."
   },
+  "settingsRecordingMicAutoShort": "Auto",
+  "@settingsRecordingMicAutoShort": {
+    "description": "Short trailing value for the settings hub recording row when the microphone is auto-picked."
+  },
   "settingsRecordingMicEmpty": "No microphones detected",
   "@settingsRecordingMicEmpty": {
     "description": "Subtitle / empty state when the OS reports no input devices."
@@ -1304,6 +1308,7 @@
   "settingsAppearanceSyncedFromProfile": "Synced from your account profile",
   "settingsLanguageSubtitleSignedIn": "Also updates your Enjoy profile when online.",
   "settingsLanguageSubtitleDeviceOnly": "Stored on this device until you sign in.",
+  "settingsNativeLanguageGateSubtitle": "Only one native language is available for your learning language.",
   "settingsLanguageOptionEnUs": "English (United States)",
   "settingsLanguageOptionEnGb": "English (United Kingdom)",
   "settingsLanguageOptionJaJp": "Japanese",

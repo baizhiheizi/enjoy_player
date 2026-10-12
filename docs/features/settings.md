@@ -2,7 +2,7 @@
 
 ## Summary
 
-The Settings hub is reached at `/settings` and groups every preference surface in one editorial screen. It's **searchable**, renders as a **single-column** list on narrow/mobile widths and a **two-pane** rail + detail layout at/above `EnjoyThemeTokens.breakpointRail` (900px) on desktop, and default-collapses the low-frequency Developer and About sections. It also hosts two **sub-screens** — `/settings/hotkeys` (keyboard shortcuts) and `/settings/sync` (cloud metadata sync status) — and the **About / update** entry.
+The Settings hub is reached at `/settings` and groups every preference surface in one editorial screen. It's **searchable**; below `EnjoyThemeTokens.breakpointRail` (900px) it renders the **phone hub** — account card, one grouped card of section rows with short trailing values, drill-in section pages, and the mono version footer (the `Settings` board's `st-narrow` layout) — and at/above the breakpoint a **two-pane** rail + detail layout on desktop. Typing in search on the hub swaps back to the flat single-column stack so matches render inline. It also hosts **sub-screens** — `/settings/hotkeys` (keyboard shortcuts) and `/settings/sync` (cloud metadata sync status) — and the **About / update** entry.
 
 Section content lives in one file per section under `lib/features/settings/presentation/widgets/sections/`, shared by both the single-column and two-pane layouts (see [Code map](#code-map)). See `specs/004-settings-redesign/` for the redesign spec/plan/tasks that produced this structure.
 
@@ -11,6 +11,10 @@ Section content lives in one file per section under `lib/features/settings/prese
 | Path | Purpose |
 |------|---------|
 | `/settings` | Hub screen |
+| `/settings/appearance-language` | Appearance & Language section page (hub drill-in) |
+| `/settings/recording` | Recording section page (hub drill-in) |
+| `/settings/developer` | Developer section page (hub drill-in; non-release builds only) |
+| `/settings/about` | About section page (hub drill-in) |
 | `/settings/hotkeys` | Keyboard shortcuts editor (sub-screen) |
 | `/settings/sync` | Cloud metadata sync status (sub-screen) |
 
@@ -26,7 +30,7 @@ Section content lives in one file per section under `lib/features/settings/prese
 
 `SettingsScreen` uses a `LayoutBuilder` keyed on `EnjoyThemeTokens.breakpointRail`:
 
-- **Below the breakpoint** → `SettingsLayoutSingleColumn`: every section rendered in reading order via `SettingsSectionCard`/`SettingsCollapsibleSection`, applying default-collapse from `settingsSectionCollapseProvider` (`Map<String, bool>`, seeded `true` only for `developer` and `about`). Horizontal inset comes solely from `EnjoyPageMetrics` (`EnjoyPageKind.hub`) — the same hub gutter Profile uses — so cards align with Profile; section cards and `AboutSectionCard` do **not** add a second horizontal pad.
+- **Below the breakpoint** → `SettingsLayoutHub`: the board's phone layout — an account card (logo-ring avatar, name, "tier · email", chevron → `/profile`), one grouped card of section rows (tinted icon tile, title, short trailing value, chevron) built from `visibleSettingsSections` so the platform/build gates still apply, and the centered mono version footer. Tapping a row pushes the section's page (`SettingsSectionPageScreen` under `/settings/<section>`; Cloud sync, AI, and Keyboard shortcuts keep their dedicated screens). With a search query active the hub swaps to `SettingsLayoutSingleColumn`, rendering every matching section inline — the search contract (matches visible in place, no-results state, clear affordance) is unchanged. Horizontal inset comes solely from `EnjoyPageMetrics` (`EnjoyPageKind.hub`) — the same hub gutter Profile uses.
 - **At/above the breakpoint** → `SettingsLayoutTwoPane`: a rail of `SettingsSectionRailItem`s (selected-state highlight matching `AppSidebar`) plus a detail pane rendering the selected section's rows via the *same* `sections/*.dart` widgets. Selection is tracked by `settingsSelectedSectionProvider` (defaults to the first rail entry — `cloudSync` — since Account is no longer in the rail) and survives repeated resizing across the breakpoint. The Account section was moved out of the rail entirely when the Profile tab was introduced; see [Account section](#account-section) below.
 
 Both layouts map over the presentation-layer section specs ([`lib/features/settings/presentation/settings_section_spec.dart`](../../lib/features/settings/presentation/settings_section_spec.dart)) — icon, localized title/hint/searchable-text accessors, visibility predicate, body builder, card/collapse shape, one `SettingsSectionSpec` per top-level section — instead of per-section `switch`/if-chains. Ordering derives from the domain registry: `visibleSettingsSections(l10n, query)` walks `kSettingsRegistry`'s section headers, resolves each through the spec list, and applies the platform/build gates (`isDesktop` for Keyboard shortcuts, `!kReleaseMode` for Developer — expressed once, on the spec) plus the search filter, so the single-column stack, the two-pane rail, and the no-results state always agree on the visible-section set (see [contracts/settings-section-registry.md](../../specs/004-settings-redesign/contracts/settings-section-registry.md), amended 2026-09).
@@ -55,7 +59,7 @@ Cloud metadata sync status (see [`sync.md`](sync.md)). Shows the queue, last syn
 
 ## Account section
 
-Settings has an **Account** section (first rail row, Duet): the identity card (logo-ring avatar, name, email, tier chip) with a danger **Sign out**, or **Sign in** when signed out — full profile management stays on `/profile`.
+Settings has an **Account** section (first rail row, Duet): the identity card (logo-ring avatar, name, email, tier chip) with a danger **Sign out**, or **Sign in** when signed out — full profile management stays on `/profile`. On the **phone hub** the board's account card drops Sign out entirely (avatar, name, "tier · email", chevron → `/profile`), so sign-out is only one tap away on the Profile tab.
 
 Account management **no longer lives inside the Settings hub** as a hero. The signed-in profile is the dedicated `/profile` shell tab; Settings is reached from inside the Profile tab via a tile. The Settings hub therefore starts at the first post-account section (Cloud sync) and the previous `sections/account_hero_section.dart` widget — a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton and a retry affordance on load failure — is no longer wired into either layout. The widget is retained in the source tree because `test/features/settings/presentation/sections/settings_loading_states_test.dart` exercises its signed-in / signed-out / loading / error states in isolation; treat it as a **test-only fixture** until a future surface (e.g. an in-shell "switch account" sheet) reuses it.
 
@@ -83,7 +87,9 @@ Confirmation dialog explains cloud-side consequences (per-target recordings will
 |------|------|
 | Hub screen (search + layout switch) | [`lib/features/settings/presentation/settings_screen.dart`](../../lib/features/settings/presentation/settings_screen.dart) |
 | Search field | [`lib/features/settings/presentation/widgets/settings_search_field.dart`](../../lib/features/settings/presentation/widgets/settings_search_field.dart) |
-| Single-column layout | [`lib/features/settings/presentation/widgets/settings_layout_single_column.dart`](../../lib/features/settings/presentation/widgets/settings_layout_single_column.dart) |
+| Single-column layout (search results on the hub) | [`lib/features/settings/presentation/widgets/settings_layout_single_column.dart`](../../lib/features/settings/presentation/widgets/settings_layout_single_column.dart) |
+| Phone hub layout | [`lib/features/settings/presentation/widgets/settings_layout_hub.dart`](../../lib/features/settings/presentation/widgets/settings_layout_hub.dart) |
+| Drill-in section page | [`lib/features/settings/presentation/settings_section_page.dart`](../../lib/features/settings/presentation/settings_section_page.dart) |
 | Two-pane layout | [`lib/features/settings/presentation/widgets/settings_layout_two_pane.dart`](../../lib/features/settings/presentation/widgets/settings_layout_two_pane.dart) |
 | Rail item | [`lib/features/settings/presentation/widgets/settings_section_rail_item.dart`](../../lib/features/settings/presentation/widgets/settings_section_rail_item.dart) |
 | Row primitive | [`lib/features/settings/presentation/widgets/settings_row.dart`](../../lib/features/settings/presentation/widgets/settings_row.dart) |
