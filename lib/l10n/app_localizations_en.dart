@@ -4264,6 +4264,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionAccountHint => 'Your Enjoy identity and sign-out';
 
   @override
+  String settingsAccountCreditsTodayValue(String used, String limit) {
+    return '$used / $limit today';
+  }
+
+  @override
   String get discoverOverline => 'YouTube channels you follow';
 
   @override

@@ -4063,6 +4063,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
 
   @override
+  String settingsAccountCreditsTodayValue(String used, String limit) {
+    return '今日 $used / $limit';
+  }
+
+  @override
   String get discoverOverline => '你订阅的 YouTube 频道';
 
   @override
@@ -7537,6 +7542,11 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
+
+  @override
+  String settingsAccountCreditsTodayValue(String used, String limit) {
+    return '今日 $used / $limit';
+  }
 
   @override
   String get discoverOverline => '你订阅的 YouTube 频道';

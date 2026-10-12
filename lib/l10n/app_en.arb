@@ -2118,6 +2118,8 @@
   "settingsSectionAccount": "Account",
   "@settingsSectionAccount": {"description": "Settings rail/section: the account section."},
   "settingsSectionAccountHint": "Your Enjoy identity and sign-out",
+  "settingsAccountCreditsTodayValue": "{used} / {limit} today",
+  "@settingsAccountCreditsTodayValue": {"description": "Settings → Account: credits used today out of the daily limit, beside Credits usage.", "placeholders": {"used": {"type": "String"}, "limit": {"type": "String"}}},
   "@settingsSectionAccountHint": {"description": "Settings account section hint."},
   "discoverOverline": "YouTube channels you follow",
   "@discoverOverline": {"description": "Overline above the Discover title."},

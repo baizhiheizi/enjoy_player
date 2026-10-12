@@ -7734,6 +7734,12 @@ abstract class AppLocalizations {
   /// **'Your Enjoy identity and sign-out'**
   String get settingsSectionAccountHint;
 
+  /// Settings → Account: credits used today out of the daily limit, beside Credits usage.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} / {limit} today'**
+  String settingsAccountCreditsTodayValue(String used, String limit);
+
   /// Overline above the Discover title.
   ///
   /// In en, this message translates to:

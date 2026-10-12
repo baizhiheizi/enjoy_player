@@ -137,6 +137,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
     title: (l10n) => l10n.settingsSectionAccount,
     hint: (l10n) => l10n.settingsSectionAccountHint,
     body: () => const AccountSection(),
+    wrapInCard: false,
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.cloudSync,

@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_card.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
@@ -156,6 +157,10 @@ void main() {
 
       expect(find.byType(AccountSection), findsOneWidget);
       expect(find.text('Sign out'), findsOneWidget);
+      expect(find.text('Edit profile'), findsOneWidget);
+      expect(find.text('Subscription'), findsOneWidget);
+      expect(find.text('Credits usage'), findsOneWidget);
+      expect(find.byType(SettingsSectionCard), findsNothing);
     },
   );
 

@@ -1421,6 +1421,7 @@
   "vocabularyReviewDueValue": "{count} 个到期",
   "settingsSectionAccount": "账户",
   "settingsSectionAccountHint": "你的 Enjoy 身份与退出登录",
+  "settingsAccountCreditsTodayValue": "今日 {used} / {limit}",
   "discoverOverline": "你订阅的 YouTube 频道",
   "discoverRecentUploads": "最新上传",
   "discoverUpdatedAgo": "更新于 {age}",
