@@ -33,7 +33,7 @@
       "number": 841,
       "state": "commented",
       "updated_at": "2026-10-12",
-      "note": "Monthly activity summary for October 2026 — updated each run by Task 11. Body refreshed 2026-10-12 with new DockActionPill PR row + Run History entry."
+      "note": "Monthly activity summary for October 2026 — updated each run by Task 11. Body refreshed 2026-10-12 with new DockRecordRing PR row + Run History entry covering both the #895 refactor and the validate_ci_gates --changed-only bash precedence fix."
     },
     {
       "number": 850,
@@ -49,21 +49,21 @@
     },
     {
       "number": 891,
-      "state": "deferred",
+      "state": "resolution_recommended",
       "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Parent of #895 + #896. #896 closed by DockActionPill draft PR. #895 needs maintainer design call on inner-dot shape (Stop borderRadius: 4 vs DockRecordButton BoxShape.circle). Close once #896 lands."
+      "note": "[duplicate-code] Parent of #895 + #896. #896 closed by DockActionPill draft PR #897. #895 closed by this run's DockRecordRing draft PR. Recommend close once both PRs merge."
     },
     {
       "number": 895,
-      "state": "deferred",
+      "state": "resolution_recommended",
       "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Record Ring Stack duplication between DockRecordButton and _RecordingControls. Widen DockRecordButton to accept recordingModeSize/innerShape parameter and unify the two shapes."
+      "note": "[duplicate-code] Record Ring Stack duplication between DockRecordButton and _RecordingControls — closed by this run's DockRecordRing primitive (innerShape param: circle / stopSquare). Behavior byte-identical; recommend close-on-PR-merge."
     },
     {
       "number": 896,
-      "state": "deferred",
+      "state": "resolution_recommended",
       "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Action Pill shell duplication closed by draft PR (branch repo-assist/improve-dock-action-pill-primitive-2026-10-12). DockActionPill primitive + _DockPillIconSlot helper extracted. 3/3 new tests; 6436/6436 full suite pass."
+      "note": "[duplicate-code] Action Pill shell duplication — closed by draft PR #897. DockActionPill primitive + _DockPillIconSlot helper extracted. 3/3 new tests; 6436/6436 full suite pass. Recommend close-on-PR-merge."
     }
   ],
   "fixes": [
@@ -77,20 +77,34 @@
     },
     {
       "issue": 896,
-      "pr": null,
+      "pr": 897,
       "branch": "repo-assist/improve-dock-action-pill-primitive-2026-10-12",
       "status": "open",
       "updated_at": "2026-10-12",
       "note": "DockActionPill primitive + _DockPillIconSlot helper. Cancel button + DockOriginalPill desktop branch refactored; phone branch uses helper. 3/3 new tests; 6/6 player_dock tests; 6436/6436 full suite; analyze + format clean. Net diff: 3 files, 263+/117-."
+    },
+    {
+      "issue": 895,
+      "pr": null,
+      "branch": "repo-assist/improve-895-record-ring-primitive-2026-10-12",
+      "status": "open",
+      "updated_at": "2026-10-12",
+      "note": "DockRecordRing primitive + DockRecordDotShape enum replaces the duplicated you record disk in DockRecordButton and _RecordingControls Stop button. 3/3 new tests; 7/7 player_dock_test.dart; 787/787 test/features/player/; analyze + format clean. Net diff: 4 files, 197+/36-."
     }
   ],
-  "checks": [],
-  "completed_actions": [],
-  "priorities": [
+  "checks": [
     {
-      "task": 5,
-      "item": "PR follow-up: #895 record-ring stack dedupe",
-      "note": "Draft PR this run closed #896. #895 follow-up: widen DockRecordButton to accept recordingModeSize/innerShape; reuse from _RecordingControls. Needs maintainer design call on inner-dot shape."
+      "area": "ci",
+      "checked_at": "2026-10-12",
+      "result": "validate_ci_gates.sh --changed-only was reporting wrong target list due to bash `|| true | awk` precedence trap. Grouped the fallback in { } so awk stays in the pipeline; verified on current branch, 10/10 tests run.",
+      "follow_up": "PR ready for review: branch repo-assist/improve-895-record-ring-primitive-2026-10-12 (combined with #895 refactor)."
     }
-  ]
+  ],
+  "completed_actions": [
+    {
+      "key": "#895 record-ring stack dedupe",
+      "completed_at": "2026-10-12"
+    }
+  ],
+  "priorities": []
 }
