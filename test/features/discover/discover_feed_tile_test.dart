@@ -93,7 +93,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(EnjoyIcons.check), findsOneWidget);
-    expect(find.text('In library'), findsNothing);
+    expect(find.text('In library'), findsOneWidget);
   });
 
   testWidgets(

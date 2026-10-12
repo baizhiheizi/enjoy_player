@@ -6,7 +6,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/asr/domain/asr_long_form_constants.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -19,24 +18,12 @@ Future<bool?> showAsrLongMediaConfirmDialog(
     return Future.value(true);
   }
   final minutes = (mediaDurationSeconds / 60).round();
-  final t = EnjoyThemeTokens.of(context);
   final l10n = AppLocalizations.of(context)!;
-  return showEnjoyAlertDialog<bool>(
+  return showEnjoyConfirmDialog(
     context: context,
-    title: Text(l10n.asrLongMediaConfirmTitle),
-    content: Text(l10n.asrLongMediaConfirmBody(minutes)),
-    actionsBuilder: (ctx) => [
-      TextButton(
-        onPressed: () => Navigator.of(ctx).pop(false),
-        child: Text(l10n.asrLongMediaConfirmCancel),
-      ),
-      FilledButton(
-        onPressed: () => Navigator.of(ctx).pop(true),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: t.space8),
-          child: Text(l10n.asrLongMediaConfirmContinue),
-        ),
-      ),
-    ],
+    title: l10n.asrLongMediaConfirmTitle,
+    message: l10n.asrLongMediaConfirmBody(minutes),
+    confirmLabel: l10n.asrLongMediaConfirmContinue,
+    cancelLabel: l10n.asrLongMediaConfirmCancel,
   );
 }

@@ -116,6 +116,9 @@ abstract final class AppColors {
   static const onPrimaryInkLight = Color(0xFFFFFFFF);
   static const dangerLight = Color(0xFFB42318);
   static const shapeLight = Color(0xFFDCE0E6);
+
+  /// Sign-in brand panel ground (both themes; the `SignIn` board's art side).
+  static const Color brandArtGround = Color(0xFF0C0E14);
   static const Color tickLight = Color.fromRGBO(18, 20, 26, 0.26);
   static const Color scrimLight = Color.fromRGBO(18, 20, 26, 0.32);
   static const videoLight = Color(0xFF0B0D11);

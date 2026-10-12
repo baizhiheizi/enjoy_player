@@ -10,20 +10,12 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 /// Returns `true` when the user confirms discarding the unsaved preview.
 Future<bool> confirmDiscardUnsavedCraftPreview(BuildContext context) async {
   final l10n = AppLocalizations.of(context)!;
-  final confirmed = await showEnjoyAlertDialog<bool>(
+  final confirmed = await showEnjoyConfirmDialog(
     context: context,
-    title: Text(l10n.craftAudioDiscardTitle),
-    content: Text(l10n.craftAudioDiscardMessage),
-    actionsBuilder: (ctx) => [
-      TextButton(
-        onPressed: () => Navigator.pop(ctx, false),
-        child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-      ),
-      TextButton(
-        onPressed: () => Navigator.pop(ctx, true),
-        child: Text(l10n.craftAudioDiscardConfirm),
-      ),
-    ],
+    title: l10n.craftAudioDiscardTitle,
+    message: l10n.craftAudioDiscardMessage,
+    confirmLabel: l10n.craftAudioDiscardConfirm,
+    destructive: true,
   );
   return confirmed == true;
 }

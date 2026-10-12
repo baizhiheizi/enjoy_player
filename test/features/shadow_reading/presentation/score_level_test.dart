@@ -29,28 +29,15 @@ void main() {
   group('assessmentScoreColor + assessmentScoreBackground', () {
     final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
 
-    test('maps each level to a distinct color from the scheme', () {
-      expect(
-        assessmentScoreColor(scheme, AssessmentScoreLevel.excellent),
-        scheme.primary,
-      );
-      expect(
-        assessmentScoreColor(scheme, AssessmentScoreLevel.good),
-        scheme.secondary,
-      );
-      expect(
-        assessmentScoreColor(scheme, AssessmentScoreLevel.fair),
-        scheme.tertiary,
-      );
-      expect(
-        assessmentScoreColor(scheme, AssessmentScoreLevel.poor),
-        scheme.error,
-      );
+    test('every level reads in ink — scores are never colored', () {
+      for (final level in AssessmentScoreLevel.values) {
+        expect(assessmentScoreColor(scheme, level), scheme.onSurface);
+      }
     });
 
-    test('background applies 0.16 alpha over the level color', () {
-      final level = AssessmentScoreLevel.excellent;
-      final expected = scheme.primary.withValues(alpha: 0.16);
+    test('background applies 0.08 alpha over ink', () {
+      final level = AssessmentScoreLevel.poor;
+      final expected = scheme.onSurface.withValues(alpha: 0.08);
       expect(assessmentScoreBackground(scheme, level), expected);
     });
   });

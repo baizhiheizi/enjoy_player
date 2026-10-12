@@ -151,7 +151,7 @@ class _TierCatalogState extends ConsumerState<TierCatalog> {
         SizedBox(height: t.space20),
         LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 840;
+            final wide = constraints.maxWidth >= 640;
             final freeCard = _FreeTierCard(
               expand: wide,
               isCurrent:
@@ -425,6 +425,8 @@ class _TierCardScaffold extends StatelessWidget {
   }
 }
 
+const double _kTierPriceSize = 38;
+
 class _FreeTierCard extends StatelessWidget {
   const _FreeTierCard({required this.expand, required this.isCurrent});
 
@@ -452,7 +454,7 @@ class _FreeTierCard extends StatelessWidget {
         l10n.subscriptionTierFreePrice,
         style: enjoyDisplayStyle(
           context,
-          size: 44,
+          size: _kTierPriceSize,
           color: Theme.of(context).colorScheme.onSurface,
           height: 1,
         ),
@@ -562,18 +564,23 @@ class _PaidTierCard extends StatelessWidget {
     }
 
     final price = Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Flexible(
           child: amount != null
-              ? Text(
-                  '\$$amount',
-                  style: enjoyDisplayStyle(
-                    context,
-                    size: 44,
-                    color: _isLite ? cs.onSurface : t.brandInk,
-                    height: 1,
+              ? FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    '\$$amount',
+                    maxLines: 1,
+                    softWrap: false,
+                    style: enjoyDisplayStyle(
+                      context,
+                      size: _kTierPriceSize,
+                      color: cs.onSurface,
+                      height: 1,
+                    ),
                   ),
                 )
               : SizedBox(
@@ -588,11 +595,12 @@ class _PaidTierCard extends StatelessWidget {
                 ),
         ),
         SizedBox(width: t.space4),
-        Flexible(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 3),
           child: Text(
             '/ $unitLabel',
+            maxLines: 1,
             style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -665,14 +673,17 @@ class _Bullet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final t = EnjoyThemeTokens.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          EnjoyIcons.checkCircleFill,
-          size: 18,
-          color: emphasize ? cs.primary : cs.onSurfaceVariant,
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            EnjoyIcons.check,
+            size: 15,
+            color: emphasize ? t.brandInk : t.ink3,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(child: Text(text, style: tt.bodyMedium)),

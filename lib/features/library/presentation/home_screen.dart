@@ -255,7 +255,7 @@ class _HomeHeader extends ConsumerWidget {
           : l10n.homeGreetingNamed(greeting, firstName),
       trailing: _HomeHeaderActions(
         onCraft: () => context.push('/craft'),
-        onImport: () => showImportChooser(context, ref),
+        onImport: (anchor) => showImportChooser(context, ref, anchor: anchor),
       ),
     );
   }
@@ -266,7 +266,7 @@ class _HomeHeaderActions extends ConsumerWidget {
   const _HomeHeaderActions({required this.onCraft, required this.onImport});
 
   final VoidCallback onCraft;
-  final VoidCallback onImport;
+  final void Function(BuildContext? anchor) onImport;
 
   void _act(WidgetRef ref, OnboardingTipId tip, VoidCallback action) {
     unawaited(
@@ -281,7 +281,8 @@ class _HomeHeaderActions extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
     final narrow = MediaQuery.sizeOf(context).width < t.breakpointCompact;
     void craft() => _act(ref, OnboardingTipId.homeCraft, onCraft);
-    void import() => _act(ref, OnboardingTipId.homeImport, onImport);
+    void import(BuildContext anchor) =>
+        _act(ref, OnboardingTipId.homeImport, () => onImport(anchor));
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -303,19 +304,21 @@ class _HomeHeaderActions extends ConsumerWidget {
         SizedBox(width: t.space8),
         OnboardingTarget(
           tipId: OnboardingTipId.homeImport,
-          onTargetAction: onImport,
-          child: narrow
-              ? EnjoyIconButton(
-                  icon: EnjoyIcons.add,
-                  tooltip: l10n.actionImport,
-                  variant: EnjoyButtonVariant.brand,
-                  onPressed: import,
-                )
-              : EnjoyButton.brand(
-                  icon: EnjoyIcons.add,
-                  onPressed: import,
-                  child: Text(l10n.actionImport),
-                ),
+          onTargetAction: () => onImport(null),
+          child: Builder(
+            builder: (anchor) => narrow
+                ? EnjoyIconButton(
+                    icon: EnjoyIcons.add,
+                    tooltip: l10n.actionImport,
+                    variant: EnjoyButtonVariant.brand,
+                    onPressed: () => import(anchor),
+                  )
+                : EnjoyButton.brand(
+                    icon: EnjoyIcons.add,
+                    onPressed: () => import(anchor),
+                    child: Text(l10n.actionImport),
+                  ),
+          ),
         ),
       ],
     );
@@ -482,9 +485,12 @@ class _HomeEmptyCard extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                EnjoyButton.brand(
-                  onPressed: () => showImportChooser(context, ref),
-                  child: Text(l10n.actionImport),
+                Builder(
+                  builder: (anchor) => EnjoyButton.brand(
+                    onPressed: () =>
+                        showImportChooser(context, ref, anchor: anchor),
+                    child: Text(l10n.actionImport),
+                  ),
                 ),
                 EnjoyButton.secondary(
                   onPressed: () => context.go('/discover'),

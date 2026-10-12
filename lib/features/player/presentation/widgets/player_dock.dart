@@ -88,7 +88,9 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                   ),
                   for (final option in kPlaybackRatePresets)
                     ListTile(
-                      title: Text(formatRateCore(option)),
+                      title: Text(
+                        l10n.playbackRateTimes(formatRateCore(option)),
+                      ),
                       trailing: playbackRatesEqual(option, rate)
                           ? Icon(EnjoyIcons.check, color: t.brandInk)
                           : null,

@@ -130,24 +130,13 @@ class AccountSection extends ConsumerWidget {
 
   Future<void> _confirmAndSignOut(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showEnjoyAlertDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
+      title: l10n.profileSignOutConfirmTitle,
+      message: l10n.profileSignOutConfirmMessage,
+      confirmLabel: l10n.authSignOut,
       useRootNavigator: true,
-      title: Text(l10n.profileSignOutConfirmTitle),
-      content: Text(l10n.profileSignOutConfirmMessage),
-      actionsBuilder: (ctx) => [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: Text(
-            l10n.authSignOut,
-            style: TextStyle(color: Theme.of(ctx).colorScheme.error),
-          ),
-        ),
-      ],
+      destructive: true,
     );
     if (confirmed != true || !context.mounted) return;
     await ref.read(authCtrlProvider.notifier).signOut();

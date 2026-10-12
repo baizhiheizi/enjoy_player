@@ -44,7 +44,10 @@ Two presentations share the panel (Duet, ADR-0093):
   (play circle, take number, mono duration, an uncolored score chip
   that re-opens the assessment, or a `Score` action that runs it), the
   "press R and say it back" hint when empty, and the Pitch pill that
-  toggles the contour. Record / cancel / stop live in the dock; while a
+  toggles the contour. Desktop keeps the chips on one horizontally
+  scrolling line; phones drop the overline and chip durations and wrap
+  the chips plus an icon-only Pitch button onto as many rows as needed,
+  so every take stays one tap away (the `PEcho` board). Record / cancel / stop live in the dock; while a
   take records, the panel renders nothing and the loop block shows the
   pulse label + countdown bar. The take **more menu (delete with
   confirm)** has no player-embed home — the vocabulary embed keeps it
@@ -120,10 +123,17 @@ reduced to the scheme's primary. No score colors anywhere.
 
 The pitch chart draws the **pitch duet**: the reference contour as a 9 px
 original-blue band at 0.35 opacity, your contour as a 3 px you-violet
-line. Score chips on takes are uncolored — an ink number on a paper pill
-(the player takes strip) — and the Excellent / Good / Fair / Poor
-thresholds stay in `score_level.dart` and feed the assessment meter
-(D3.8). In the player the takes render as the strip under the loop
+line. Scores are never colored: chips on takes are an ink number on a
+paper pill, `assessmentScoreColor` returns ink for every level, and the
+Excellent / Good / Fair / Poor thresholds stay in `score_level.dart` for
+labels and the meter (D3.8). Word-level feedback in the assessment body
+uses the learner's voice — mispronounced and inserted words read
+`youInk` on `youSoft`; omissions and breaks stay neutral. On wide player
+windows the assessment opens in the 340 px side margin, which hosts the
+same `AssessmentResultBody` as the narrow sheet (overall score, dimension
+bars, replay, re-assess, per-word phoneme analysis); the margin route
+wraps the panel in a transparent `Material` so plain text never falls
+back to the debug error style. In the player the takes render as the strip under the loop
 (chips + Pitch pill); recording readouts (pulse label, countdown bar)
 render inside the loop block, and the dock carries Play/Pause + Record
 and Cancel + Stop.

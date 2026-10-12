@@ -175,7 +175,33 @@ void main() {
     return l10n;
   }
 
-  testWidgets('renders one chip per take, newest first, with durations', (
+  testWidgets(
+    'desktop renders one chip per take, newest first, with durations',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        final l10n = await pumpRow(
+          tester,
+          takes: [
+            _row(id: 't2', localPath: '/tmp/t2.wav', duration: 4600),
+            _row(id: 't1', localPath: '/tmp/t1.wav', duration: 3900),
+          ],
+          selectedId: 't2',
+        );
+
+        expect(find.text('${l10n.shadowRecordingTake} 2'), findsOneWidget);
+        expect(find.text('${l10n.shadowRecordingTake} 1'), findsOneWidget);
+        expect(find.text('4.6 s'), findsOneWidget);
+        expect(find.text('3.9 s'), findsOneWidget);
+        expect(find.text(l10n.shadowTakesLabel.toUpperCase()), findsOneWidget);
+        expect(find.text(l10n.pitchContourTitle), findsOneWidget);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
+
+  testWidgets('mobile wraps compact chips without overline or durations', (
     tester,
   ) async {
     final l10n = await pumpRow(
@@ -187,11 +213,13 @@ void main() {
       selectedId: 't2',
     );
 
+    expect(find.byType(Wrap), findsOneWidget);
+    expect(find.byType(SingleChildScrollView), findsNothing);
     expect(find.text('${l10n.shadowRecordingTake} 2'), findsOneWidget);
     expect(find.text('${l10n.shadowRecordingTake} 1'), findsOneWidget);
-    expect(find.text('4.6 s'), findsOneWidget);
-    expect(find.text('3.9 s'), findsOneWidget);
-    expect(find.text(l10n.shadowTakesLabel.toUpperCase()), findsOneWidget);
+    expect(find.text('4.6 s'), findsNothing);
+    expect(find.text(l10n.shadowTakesLabel.toUpperCase()), findsNothing);
+    expect(find.text(l10n.pitchContourTitle), findsNothing);
   });
 
   testWidgets('scored take shows its uncolored score chip', (tester) async {
@@ -217,23 +245,33 @@ void main() {
     expect(find.text(l10n.assessmentScoreAction), findsOneWidget);
   });
 
-  testWidgets('chips sit on one horizontally scrollable line', (tester) async {
-    await pumpRow(
-      tester,
-      takes: [
-        _row(id: 't3', localPath: '/tmp/t3.wav'),
-        _row(id: 't2', localPath: '/tmp/t2.wav'),
-        _row(id: 't1', localPath: '/tmp/t1.wav'),
-      ],
-      selectedId: 't3',
-    );
+  testWidgets('desktop chips sit on one horizontally scrollable line', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      await pumpRow(
+        tester,
+        takes: [
+          _row(id: 't3', localPath: '/tmp/t3.wav'),
+          _row(id: 't2', localPath: '/tmp/t2.wav'),
+          _row(id: 't1', localPath: '/tmp/t1.wav'),
+        ],
+        selectedId: 't3',
+      );
 
-    final scrolls = tester.widgetList<SingleChildScrollView>(
-      find.byType(SingleChildScrollView),
-    );
-    expect(scrolls, isNotEmpty);
-    expect(scrolls.every((s) => s.scrollDirection == Axis.horizontal), isTrue);
-    expect(tester.takeException(), isNull);
+      final scrolls = tester.widgetList<SingleChildScrollView>(
+        find.byType(SingleChildScrollView),
+      );
+      expect(scrolls, isNotEmpty);
+      expect(
+        scrolls.every((s) => s.scrollDirection == Axis.horizontal),
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('mouse wheel scrolls the chip line horizontally', (tester) async {

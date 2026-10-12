@@ -1,38 +1,46 @@
 /// D3.8 (ADR-0093): pronunciation assessment in the player's side margin —
 /// a 340px raised panel sliding from the right edge, replacing the centered
-/// dialog on wide player windows. The overall score reads in Literata, the
-/// dimension rows are four-step meters, and mispronounced words get the
-/// wavy you underline.
+/// dialog on wide player windows. It hosts the same [AssessmentResultBody]
+/// as the narrow sheet, so replay, re-assess and per-word analysis stay
+/// available on every window size.
 library;
 
 import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_body.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Opens [assessment] in the side margin (wide player windows).
 Future<void> showAssessmentMargin({
   required BuildContext context,
   required AzurePronunciationAssessmentResult assessment,
+  String? localeTag,
   String? recordingPath,
 }) {
   final route = _AssessmentMarginRoute(
     assessment: assessment,
+    localeTag: localeTag ?? kDefaultLearningLanguageTag,
     recordingPath: recordingPath,
   );
   return Navigator.of(context, rootNavigator: true).push(route);
 }
 
 class _AssessmentMarginRoute extends PopupRoute<void> {
-  _AssessmentMarginRoute({required this.assessment, this.recordingPath});
+  _AssessmentMarginRoute({
+    required this.assessment,
+    required this.localeTag,
+    this.recordingPath,
+  });
 
   final AzurePronunciationAssessmentResult assessment;
+  final String localeTag;
   final String? recordingPath;
 
   @override
@@ -77,10 +85,14 @@ class _AssessmentMarginRoute extends PopupRoute<void> {
               topLeft: Radius.circular(18),
               bottomLeft: Radius.circular(18),
             ),
-            child: AssessmentMarginPanel(
-              assessment: assessment,
-              recordingPath: recordingPath,
-              onClose: () => Navigator.of(context).maybePop(),
+            child: Material(
+              type: MaterialType.transparency,
+              child: AssessmentMarginPanel(
+                assessment: assessment,
+                localeTag: localeTag,
+                recordingPath: recordingPath,
+                onClose: () => Navigator.of(context).maybePop(),
+              ),
             ),
           ),
         ),
@@ -113,72 +125,38 @@ class AssessmentMarginPanel extends ConsumerWidget {
   const AssessmentMarginPanel({
     super.key,
     required this.assessment,
+    required this.localeTag,
     this.recordingPath,
     this.onClose,
   });
 
   final AzurePronunciationAssessmentResult assessment;
+  final String localeTag;
   final String? recordingPath;
   final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
     final nBest = assessment.nBest.isEmpty ? null : assessment.nBest.first;
-    if (nBest == null) {
-      return _MarginFrame(
-        onClose: onClose,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(l10n.assessmentNoResultSummary),
-        ),
-      );
-    }
-    final scores = nBest.pronunciationAssessment;
-    final overall = scores.pronScore.round();
-    final words = nBest.words;
-
     return _MarginFrame(
       onClose: onClose,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 6, 20, 28),
-        children: [
-          Text(
-            '${overall.clamp(0, 100)}',
-            style: enjoyDisplayStyle(
-              context,
-              size: 56,
-              color: t.ink,
-              height: 0.86,
-              letterSpacing: -1.6,
+      child: nBest == null
+          ? Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(l10n.assessmentNoResultSummary),
+            )
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+              children: [
+                AssessmentResultBody(
+                  nBest: nBest,
+                  localeTag: localeTag,
+                  recordingPath: recordingPath,
+                  layoutCompact: true,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
-          _ScoreRow(
-            label: l10n.assessmentAccuracy,
-            value: scores.accuracyScore,
-          ),
-          _ScoreRow(label: l10n.assessmentFluency, value: scores.fluencyScore),
-          _ScoreRow(
-            label: l10n.assessmentCompleteness,
-            value: scores.completenessScore,
-          ),
-          _ScoreRow(
-            label: l10n.assessmentProsody,
-            value: scores.prosodyScore ?? 0,
-          ),
-          const SizedBox(height: 24),
-          EnjoyOverline(l10n.assessmentWordsSection),
-          const SizedBox(height: 10),
-          for (final w in words)
-            _WordRow(
-              word: w.word,
-              score: w.pronunciationAssessment.accuracyScore,
-              errorType: w.pronunciationAssessment.errorType,
-            ),
-        ],
-      ),
     );
   }
 }
@@ -217,83 +195,6 @@ class _MarginFrame extends StatelessWidget {
         Divider(height: 1, thickness: 1, color: t.line),
         Expanded(child: child),
       ],
-    );
-  }
-}
-
-class _ScoreRow extends StatelessWidget {
-  const _ScoreRow({required this.label, required this.value});
-
-  final String label;
-  final double value;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final tt = Theme.of(context).textTheme;
-    final clamped = value.clamp(0.0, 100.0);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Expanded(child: Text(label, style: tt.bodyMedium)),
-          Text(
-            clamped.round().toString(),
-            style: enjoyMonoStyle(context, size: 13, color: t.ink2),
-          ),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 84,
-            height: 4,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: clamped / 100,
-                minHeight: 4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WordRow extends StatelessWidget {
-  const _WordRow({required this.word, required this.score, this.errorType});
-
-  final String word;
-  final double score;
-  final String? errorType;
-
-  bool get _mispronounced =>
-      errorType != null && errorType != 'None' && errorType != 'Omission';
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final tt = Theme.of(context).textTheme;
-    final text = Text(
-      word,
-      style: tt.bodyMedium?.copyWith(
-        color: _mispronounced ? t.ink : t.ink2,
-        decoration: _mispronounced ? TextDecoration.underline : null,
-        decorationStyle: TextDecorationStyle.wavy,
-        decorationColor: t.you,
-        decorationThickness: 1.5,
-      ),
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(child: text),
-          Text(
-            score.round().toString(),
-            style: enjoyMonoStyle(context, size: 12.5, color: t.ink3),
-          ),
-        ],
-      ),
     );
   }
 }

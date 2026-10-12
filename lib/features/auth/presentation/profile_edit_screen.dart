@@ -11,11 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
-import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -23,6 +21,8 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/avatar_pick_constraints.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/profile_form_actions.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/profile_hero_card.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_identity_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -250,6 +250,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   ProfileIdentityRow(
                     label: l10n.profileFieldEnjoyId,
                     value: p.id,
+                    displayValue: formatEnjoyId(p.id),
+                    mono: true,
                     copyable: true,
                   ),
                   ProfileIdentityRow(
@@ -263,11 +265,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     copyable: mixinCopyable,
                   ),
                   SizedBox(height: t.space32),
-                  EnjoyButton.brand(
-                    onPressed: _saving ? null : () => _save(p, l10n),
-                    child: _saving
-                        ? const LoadingIcon(size: 22)
-                        : Text(l10n.profileSave),
+                  ProfileFormActions(
+                    saving: _saving,
+                    saveLabel: l10n.profileSave,
+                    onSave: () => _save(p, l10n),
                   ),
                 ],
               ),

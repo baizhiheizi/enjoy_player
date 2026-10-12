@@ -268,20 +268,12 @@ class _SubtitleTrackPickerSheetState
 
   Future<void> _deleteTrack(TranscriptTrack track) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showEnjoyAlertDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
-      title: Text(l10n.subtitlesDeleteTrack),
-      content: Text(track.label.isEmpty ? track.id : track.label),
-      actionsBuilder: (ctx) => [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: Text(MaterialLocalizations.of(ctx).deleteButtonTooltip),
-        ),
-      ],
+      title: l10n.subtitlesDeleteTrack,
+      message: track.label.isEmpty ? track.id : track.label,
+      confirmLabel: MaterialLocalizations.of(context).deleteButtonTooltip,
+      destructive: true,
     );
     if (confirmed != true) return;
     await ref.read(transcriptRepositoryProvider).deleteTranscript(track.id);

@@ -64,10 +64,10 @@ Future<void> _pumpBar(WidgetTester tester) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: _overrides(),
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
+        home: Scaffold(
           body: SizedBox(width: 360, child: PlayerTopBar(mediaId: _mediaId)),
         ),
       ),

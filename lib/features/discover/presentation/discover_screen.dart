@@ -23,6 +23,7 @@ import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/application/discover_feed_join.dart';
+import 'package:enjoy_player/features/discover/presentation/discover_age_label.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_channel_filter_strip.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_feed_tile.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_manage_channels.dart';
@@ -233,7 +234,13 @@ class _DiscoverFeedSliver extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      l10n.discoverUpdatedAgo(_shortAge(newest)),
+                      l10n.discoverUpdatedAgo(
+                        discoverAgeLabel(
+                          l10n,
+                          Localizations.localeOf(context).toString(),
+                          newest,
+                        ),
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontSize: 12.5,
                         color: t.ink3,
@@ -319,10 +326,3 @@ class _DiscoverFeedSliver extends StatelessWidget {
 }
 
 /// `3h ago` / `2d ago` compact feed age, for the Updated caption.
-String _shortAge(DateTime at, {DateTime? now}) {
-  final reference = now ?? DateTime.now();
-  final diff = reference.difference(at.toLocal());
-  if (diff.inHours < 1) return '${diff.inMinutes}m';
-  if (diff.inHours < 24) return '${diff.inHours}h';
-  return '${diff.inDays}d';
-}

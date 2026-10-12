@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -139,7 +141,8 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
     final snapshotAsync = ref.watch(syncQueueSnapshotProvider);
     final lastSyncAsync = ref.watch(syncLastFullSyncAtProvider);
 
-    final timeFmt = DateFormat.Hm();
+    final locale = Localizations.localeOf(context).toString();
+    final timeFmt = DateFormat.Hm(locale);
 
     Widget lastSyncText(AppLocalizations l10n, String? iso) {
       if (iso == null || iso.isEmpty) {
@@ -163,7 +166,11 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
       return Text(
         sameDay
             ? l10n.syncLastSyncToday(timeFmt.format(parsed))
-            : DateFormat.yMMMd().add_jm().format(parsed),
+            : (parsed.year == now.year
+                      ? DateFormat.MMMd(locale)
+                      : DateFormat.yMMMd(locale))
+                  .add_Hm()
+                  .format(parsed),
         style: enjoyDisplayStyle(context, size: 24, color: t.ink),
       );
     }
@@ -181,25 +188,38 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            EnjoyOverline(l10n.syncScreenLastSyncLabel),
-                            const SizedBox(height: 8),
-                            lastSyncAsync.when(
-                              data: (iso) => lastSyncText(l10n, iso),
-                              loading: () => const SizedBox(
-                                height: 28,
-                                width: 28,
-                                child: LoadingIcon(size: 18),
-                              ),
-                              error: (e, _) => Text(
-                                l10n.error,
-                                style: enjoyDisplayStyle(
-                                  context,
-                                  size: 24,
-                                  color: t.danger,
-                                ),
+                            const EnjoyIconTile(
+                              icon: EnjoyIcons.cloud,
+                              tone: EnjoyIconTileTone.original,
+                              size: 40,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  EnjoyOverline(l10n.syncScreenLastSyncLabel),
+                                  const SizedBox(height: 8),
+                                  lastSyncAsync.when(
+                                    data: (iso) => lastSyncText(l10n, iso),
+                                    loading: () => const SizedBox(
+                                      height: 28,
+                                      width: 28,
+                                      child: LoadingIcon(size: 18),
+                                    ),
+                                    error: (e, _) => Text(
+                                      l10n.error,
+                                      style: enjoyDisplayStyle(
+                                        context,
+                                        size: 24,
+                                        color: t.danger,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],

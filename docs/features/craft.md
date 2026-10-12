@@ -11,7 +11,7 @@ Craft ships two modes (see [ADR-0060](../decisions/0060-craft-voice-express-dual
 | **Express** (default) | Speak a thought | Voice-first linear flow: speak → ASR → AI rewrite → TTS → save/loop | You want to capture spontaneous thoughts fast |
 | **Advanced** | Paste / type text | Two-tool layout: Translate panel + Synthesize panel | You already have prepared text |
 
-The mode is selected with an `EnjoySegmentedControl<CraftScreenMode>` (the Duet sliding-thumb primitive from [ADR-0093](../decisions/0093-duet-design-language.md)) centred under the app bar, with `craftModeExpress` / `craftModeAdvanced` labels and mic / edit icons. Switching modes still routes through `_changeMode`, so unsaved in-memory TTS previews are confirmed before being discarded.
+Craft is a top-level page (the `Craft` / `PhCraft` boards): an `EditorialHeader` with the `craftOverline` eyebrow and Literata title, and the mode `EnjoySegmentedControl<CraftScreenMode>` (the Duet sliding-thumb primitive from [ADR-0093](../decisions/0093-duet-design-language.md), `craftModeExpress` / `craftModeAdvanced` labels) plus a **History** button on the header row — beside the title on wide panes, under it below the compact breakpoint (History becomes an icon button there). Express adds a **Capture → Rewrite → Audio** stepper (`CraftStageStepper`, driven by `CraftJobState.stage`) and renders its stages inside one paper card; the capture card caps at 460 px and hugs the top. The idle capture view reads mic → Literata prompt → subtitle → source/target **endonym** chips (`languageEndonymLabel`, e.g. `中文 → English`) → Type instead; the recording view uses the you-violet voice (timer, pulse, stop), never the danger red. Switching modes still routes through `_changeMode`, so unsaved in-memory TTS previews are confirmed before being discarded.
 
 ## Visual language
 
@@ -20,7 +20,7 @@ Craft's presentation layer follows [ADR-0093](../decisions/0093-duet-design-lang
 | Concern | Primitive |
 |---------|-----------|
 | Mode switcher | `EnjoySegmentedControl` (sliding thumb, no Material `SegmentedButton`) |
-| App-bar action | `EnjoyIconButton` (history) |
+| Header actions | Mode segmented + `EnjoyButton.secondary` History (icon button below the compact breakpoint) |
 | Surfaces | `EnjoyCard`; hand-rolled surfaces use `ShapeDecoration` + `RoundedSuperellipseBorder` / `ClipRSuperellipse` |
 | Buttons | `EnjoyButton.primary` / `.secondary` / `.ghost` / `.destructive`, `EnjoyIconButton` |
 | Tappables | `EnjoyPressable` — no `InkWell` / `Material` ink islands (ADR-0089 §6) |

@@ -2,7 +2,9 @@
 ///
 /// One horizontal line: the overline stays pinned left, chips scroll
 /// between it and the Pitch pill (touch pans natively; desktop drags the
-/// scrollbar thumb or scrolls the mouse wheel).
+/// scrollbar thumb or scrolls the mouse wheel). Phones wrap the chips and an
+/// icon-only Pitch button onto as many rows as needed, without the overline
+/// or chip durations, so every take stays one tap away.
 library;
 
 import 'dart:async';
@@ -80,7 +82,6 @@ class _ShadowTakesRowState extends ConsumerState<ShadowTakesRow> {
   /// Only claims it while the line actually overflows; otherwise the wheel
   /// keeps scrolling the page.
   void _onPointerSignal(PointerSignalEvent event) {
-    if (isMobilePlatform) return;
     if (event is! PointerScrollEvent) return;
     if (event.scrollDelta.dx != 0) return;
     if (!_chipsScroll.hasClients) return;
@@ -136,31 +137,48 @@ class _ShadowTakesRowState extends ConsumerState<ShadowTakesRow> {
           child: EnjoyPressable(
             onTap: widget.onTogglePitch,
             borderRadius: BorderRadius.circular(tok.radiusControl),
-            child: Container(
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: ShapeDecoration(
-                color: widget.pitchExpanded ? tok.sunk : Colors.transparent,
-                shape: RoundedSuperellipseBorder(
-                  borderRadius: BorderRadius.circular(tok.radiusControl),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(EnjoyIcons.waveform, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.pitchContourTitle,
-                    style: tt.labelMedium?.copyWith(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w500,
+            child: isMobilePlatform
+                ? Container(
+                    width: tok.takeChipHeight,
+                    height: tok.takeChipHeight,
+                    alignment: Alignment.center,
+                    decoration: ShapeDecoration(
+                      color: widget.pitchExpanded ? tok.sunk : tok.paper,
+                      shape: CircleBorder(side: BorderSide(color: tok.line)),
+                    ),
+                    child: Icon(
+                      EnjoyIcons.waveform,
+                      size: 18,
                       color: widget.pitchExpanded ? tok.ink : tok.ink2,
                     ),
+                  )
+                : Container(
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: ShapeDecoration(
+                      color: widget.pitchExpanded
+                          ? tok.sunk
+                          : Colors.transparent,
+                      shape: RoundedSuperellipseBorder(
+                        borderRadius: BorderRadius.circular(tok.radiusControl),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(EnjoyIcons.waveform, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n.pitchContourTitle,
+                          style: tt.labelMedium?.copyWith(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w500,
+                            color: widget.pitchExpanded ? tok.ink : tok.ink2,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
           ),
         ),
       ),
@@ -203,6 +221,15 @@ class _ShadowTakesRowState extends ConsumerState<ShadowTakesRow> {
           ),
           pitchPill,
         ],
+      );
+    }
+
+    if (isMobilePlatform) {
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [...chips, pitchPill],
       );
     }
 
@@ -350,16 +377,18 @@ class _TakeChip extends ConsumerWidget {
                         color: tok.ink,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$duration s',
-                      style: tt.labelSmall?.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: tok.ink3,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                    if (!isMobilePlatform) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        '$duration s',
+                        style: tt.labelSmall?.copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: tok.ink3,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),

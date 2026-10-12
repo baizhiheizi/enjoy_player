@@ -109,20 +109,12 @@ class CraftHistoryScreen extends ConsumerWidget {
     Media media,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showEnjoyAlertDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
-      title: Text(l10n.craftHistoryRemoveTitle),
-      content: Text(l10n.craftHistoryRemoveMessage(media.title)),
-      actionsBuilder: (ctx) => [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: Text(l10n.craftHistoryRemoveConfirm),
-        ),
-      ],
+      title: l10n.craftHistoryRemoveTitle,
+      message: l10n.craftHistoryRemoveMessage(media.title),
+      confirmLabel: l10n.craftHistoryRemoveConfirm,
+      destructive: true,
     );
     if (confirmed != true || !context.mounted) return;
 

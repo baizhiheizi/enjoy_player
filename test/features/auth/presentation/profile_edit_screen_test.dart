@@ -65,7 +65,7 @@ void main() {
     final l10n = await AppLocalizations.delegate.load(const Locale('en', 'US'));
 
     expect(find.text(l10n.profileEditTitle), findsOneWidget);
-    expect(find.text('24000001'), findsOneWidget);
+    expect(find.text('2400 0001'), findsOneWidget);
     expect(find.text('reader@example.com'), findsOneWidget);
     expect(find.text(l10n.profileMixinNotLinked), findsOneWidget);
     expect(find.text(l10n.profileFieldName), findsOneWidget);

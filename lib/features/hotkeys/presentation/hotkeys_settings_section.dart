@@ -245,7 +245,7 @@ class _HotkeyEditRow extends StatelessWidget {
             KbdChordRow(binding: binding, compact: true),
             SizedBox(width: t.space8),
             EnjoyIconButton(
-              icon: EnjoyIcons.tune,
+              icon: EnjoyIcons.edit,
               onPressed: onEdit,
               tooltip: editTooltip,
               size: kHotkeyRowActionSize,

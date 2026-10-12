@@ -142,12 +142,10 @@ class WordChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pa = word.pronunciationAssessment;
-    final score = pa.accuracyScore;
     final err = pa.errorType;
     final (Color fg, Color? bg, Color? border) = _wordColors(
-      scheme,
+      EnjoyThemeTokens.of(context),
       err,
-      score,
     );
 
     final highlightBorder = karaokeCurrent
@@ -185,42 +183,22 @@ class WordChip extends StatelessWidget {
 }
 
 (Color fg, Color? bg, Color? border) _wordColors(
-  ColorScheme scheme,
+  EnjoyThemeTokens t,
   String errorType,
-  double score,
 ) {
   switch (errorType) {
     case 'Insertion':
-      return (scheme.error, scheme.error.withValues(alpha: 0.12), scheme.error);
-    case 'Omission':
-      return (
-        scheme.onSurfaceVariant,
-        scheme.surfaceContainerHighest.withValues(alpha: 0.7),
-        scheme.outline,
-      );
     case 'Mispronunciation':
-      return (scheme.error, scheme.error.withValues(alpha: 0.12), scheme.error);
-    case 'UnexpectedBreak':
-      return (
-        scheme.secondary,
-        scheme.secondary.withValues(alpha: 0.12),
-        scheme.secondary,
-      );
+      return (t.youInk, t.youSoft, t.you);
+    case 'Omission':
     case 'MissingBreak':
-      return (
-        scheme.onSurfaceVariant,
-        scheme.surfaceContainerHighest,
-        scheme.outline,
-      );
+      return (t.ink3, t.sunk, t.line);
+    case 'UnexpectedBreak':
     case 'Monotone':
-      return (
-        scheme.tertiary,
-        scheme.tertiary.withValues(alpha: 0.08),
-        scheme.tertiary,
-      );
+      return (t.ink2, t.sunk, t.line);
     case 'None':
     default:
-      return (scheme.primary, scheme.surfaceContainerHighest, scheme.primary);
+      return (t.ink, t.sunk, t.ink2);
   }
 }
 
@@ -308,7 +286,9 @@ class SelectedWordPanel extends StatelessWidget {
                 if (err != 'None')
                   Text(
                     assessmentErrorTypeLabel(l10n, err),
-                    style: tt.labelMedium?.copyWith(color: scheme.error),
+                    style: tt.labelMedium?.copyWith(
+                      color: EnjoyThemeTokens.of(context).youInk,
+                    ),
                   ),
               ],
             ),

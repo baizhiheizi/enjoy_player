@@ -1,4 +1,4 @@
-/// Tiered score coloring (mirrors web `getScoreLevel` thresholds).
+/// Tiered score levels (mirrors web `getScoreLevel` thresholds).
 library;
 
 import 'package:flutter/material.dart';
@@ -12,18 +12,14 @@ AssessmentScoreLevel assessmentScoreLevel(num score) {
   return AssessmentScoreLevel.poor;
 }
 
-Color assessmentScoreColor(ColorScheme scheme, AssessmentScoreLevel level) {
-  return switch (level) {
-    AssessmentScoreLevel.excellent => scheme.primary,
-    AssessmentScoreLevel.good => scheme.secondary,
-    AssessmentScoreLevel.fair => scheme.tertiary,
-    AssessmentScoreLevel.poor => scheme.error,
-  };
-}
+/// Scores are never colored (ADR-0093): every level reads in ink; the level
+/// itself is conveyed by the number, label and meter.
+Color assessmentScoreColor(ColorScheme scheme, AssessmentScoreLevel level) =>
+    scheme.onSurface;
 
 Color assessmentScoreBackground(
   ColorScheme scheme,
   AssessmentScoreLevel level,
 ) {
-  return assessmentScoreColor(scheme, level).withValues(alpha: 0.16);
+  return assessmentScoreColor(scheme, level).withValues(alpha: 0.08);
 }

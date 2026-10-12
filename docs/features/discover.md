@@ -22,6 +22,8 @@ The Discover tab shows a **merged video feed** only (responsive grid of recent u
 
 Desktop: header **Refresh** button. No inline subscription or recommended lists on the main scroll.
 
+Feed tiles show the channel and a compact relative age (`discoverAgeLabel`: just now, `12m ago`, `3h ago`, yesterday, `4d ago`, then a short date); the "Updated …" caption beside **Recent uploads** uses the same helper. Imported entries carry a labeled **✓ In library** chip on the artwork instead of the **+ Add to library** button.
+
 Feed-tile meta rows ([`DiscoverFeedTile`](../../lib/features/discover/presentation/discover_feed_tile.dart)) render in their own `discoverFeedTileMetaHeight` budget (64 px): 6 gap + 2-line title (14 px × 1.25 leading = 35) + 2 gap + published line (12.5 px × 1.2 = 15) ≈ 58, plus 6 of air. The air is load-bearing — at the nominal leading the row lands within half a pixel of the 58 px budget the built-in meta block gets, so any font whose line box runs taller than its `height` multiplier (a platform fallback for `·` / `—`, the device's own text metrics) overflows the row by a couple of pixels. A row that still outgrows its budget grows the tile rather than overflowing; `discoverFeedTileGridAspectRatioForWidth` sizes each `SliverGrid` cell from the same budget so a grown tile stays inside its cell.
 
 ## Manage channels

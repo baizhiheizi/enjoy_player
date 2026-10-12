@@ -129,6 +129,10 @@ GoRouter _router({required String initial}) {
             builder: (_, _) => const Scaffold(body: Text('credits-page')),
           ),
           GoRoute(
+            path: '/vocabulary',
+            builder: (_, _) => const Scaffold(body: Text('vocabulary-page')),
+          ),
+          GoRoute(
             path: '/cloud',
             builder: (_, _) => const Scaffold(body: Text('cloud-page')),
           ),
@@ -392,6 +396,19 @@ void main() {
       );
 
       expect(find.text('credits-page'), findsOneWidget);
+      expect(findFilledChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
+    });
+
+    shellTest('selects Profile icon at /vocabulary', (tester) async {
+      final router = _router(initial: '/vocabulary');
+      await _pump(
+        tester,
+        router: router,
+        overrides: _shellOverrides(db),
+        surface: const Size(400, 900),
+      );
+
+      expect(find.text('vocabulary-page'), findsOneWidget);
       expect(findFilledChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
     });
 

@@ -106,4 +106,20 @@ void main() {
       expect(values, contains('nb-NO'));
     });
   });
+
+  group('languageEndonymLabel', () {
+    test('matches exact lookup rows and primary-subtag fallbacks', () {
+      expect(languageEndonymLabel('zh-CN'), '中文');
+      expect(languageEndonymLabel('en'), 'English');
+      expect(languageEndonymLabel('en-GB'), 'English (UK)');
+      expect(languageEndonymLabel('ja'), '日本語');
+    });
+
+    test('returns null for invalid or unknown tags', () {
+      expect(languageEndonymLabel(null), isNull);
+      expect(languageEndonymLabel(''), isNull);
+      expect(languageEndonymLabel('und'), isNull);
+      expect(languageEndonymLabel('xx-YY'), isNull);
+    });
+  });
 }

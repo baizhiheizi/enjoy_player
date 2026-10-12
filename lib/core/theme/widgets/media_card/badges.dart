@@ -12,6 +12,7 @@ import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../../enjoy_tokens.dart';
 import '../../generative_media_cover.dart';
@@ -469,16 +470,36 @@ class MediaCardInLibraryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: ShapeDecoration(
-        color: const Color(0x99000000),
-        shape: CircleBorder(
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+    final label = AppLocalizations.of(context)!.discoverInLibrary;
+    return Semantics(
+      label: label,
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(6, 3, 8, 3),
+        decoration: ShapeDecoration(
+          color: const Color(0x99000000),
+          shape: StadiumBorder(
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(EnjoyIcons.check, size: 12, color: Colors.white),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 10.5,
+                letterSpacing: 0.1,
+                height: 1.25,
+              ),
+            ),
+          ],
         ),
       ),
-      child: const Icon(EnjoyIcons.check, size: 13, color: Colors.white),
     );
   }
 }

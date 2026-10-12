@@ -7,6 +7,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/dexie_target_type_provider.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
@@ -250,6 +251,9 @@ List<Override> _listenOverrides(
 }) => [
   ...baseOverrides(db, playerController: _SessionController.new),
   playerEngineTestDoubleProvider.overrideWithValue(engine),
+  dexieTargetTypeForMediaProvider(
+    _mediaId,
+  ).overrideWith((ref) async => 'Audio'),
   transcriptHasLinesForMediaProvider(
     _mediaId,
   ).overrideWith((ref) => Stream.value(true)),

@@ -144,7 +144,7 @@ final class PosthogAnalytics implements Analytics {
     _enabled = enabled;
     if (!_ready) return;
     _run(
-      enabled ? Posthog().enable() : Posthog().disable(),
+      enabled ? Posthog().optIn() : Posthog().optOut(),
       'setEnabled($enabled)',
     );
     if (enabled && _currentUserId != null) {

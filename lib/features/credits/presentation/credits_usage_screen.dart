@@ -25,6 +25,8 @@ import 'package:enjoy_player/features/credits/presentation/credits_packages_card
 import 'package:enjoy_player/features/credits/domain/credits_usage_filters.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_log.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_page.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/profile_hero_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Service type values accepted by the Worker filter (matches web credits page).
@@ -566,7 +568,7 @@ class _UsageTable extends StatelessWidget {
     );
 
     Widget cellOf(Widget child, {bool right = false}) => Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Align(
         alignment: right ? Alignment.centerRight : Alignment.centerLeft,
         child: child,
@@ -574,7 +576,7 @@ class _UsageTable extends StatelessWidget {
     );
 
     return Table(
-      defaultVerticalAlignment: TableCellVerticalAlignment.top,
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       defaultColumnWidth: const FlexColumnWidth(),
       columnWidths: const {
         3: FixedColumnWidth(90),
@@ -625,7 +627,7 @@ class _UsageTable extends StatelessWidget {
                   ),
                 ),
               ),
-              cellOf(Text(log.tier, style: cellMuted)),
+              cellOf(Text(_tierLabel(l10n, log.tier), style: cellMuted)),
               cellOf(
                 Text(
                   number.format(log.creditsRequired),
@@ -725,7 +727,9 @@ class _UsageLogCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: t.space8),
-              Expanded(child: _UsageMetaPill(label: log.tier)),
+              Expanded(
+                child: _UsageMetaPill(label: _tierLabel(l10n, log.tier)),
+              ),
             ],
           ),
           SizedBox(height: t.space12),
@@ -828,3 +832,7 @@ class _UsageMetaPill extends StatelessWidget {
     );
   }
 }
+
+String _tierLabel(AppLocalizations l10n, String tier) => tier.isEmpty
+    ? tier
+    : subscriptionTierLabel(l10n, subscriptionTierFromJson(tier));

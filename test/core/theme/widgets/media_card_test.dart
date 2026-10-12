@@ -6,6 +6,7 @@ import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,8 @@ ThemeData _buildTheme(Brightness brightness) {
 Widget _wrap({required Widget child, ThemeData? theme}) {
   return MaterialApp(
     theme: theme ?? _buildTheme(Brightness.dark),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
   );
 }
@@ -342,6 +345,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(MediaCardInLibraryChip), findsOneWidget);
       expect(find.byIcon(EnjoyIcons.check), findsOneWidget);
+      expect(find.text('In library'), findsOneWidget);
     });
 
     testWidgets('default tile renders neither scrim nor in-library chip', (
