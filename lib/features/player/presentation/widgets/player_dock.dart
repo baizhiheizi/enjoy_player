@@ -561,7 +561,7 @@ class _RecordingControls extends StatelessWidget {
                     borderRadius: BorderRadius.circular(t.radiusFull),
                     pressedScale: 0.96,
                     child: Container(
-                      width: 150,
+                      width: isDesktop ? 150 : null,
                       height: 52,
                       padding: const EdgeInsets.only(left: 8, right: 12),
                       decoration: ShapeDecoration(
@@ -570,6 +570,7 @@ class _RecordingControls extends StatelessWidget {
                         shadows: t.shadowLift,
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
                             width: 36,
