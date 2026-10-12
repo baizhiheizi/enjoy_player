@@ -113,27 +113,36 @@ Silent FFmpeg WAV normalize is auto-detected and the resample chain is retried (
 
 ## Presentation — the assessment (Duet, ADR-0093)
 
-The assessment dialog reads ink-on-raised: a Literata overall score with
-the level word and meter, uncolored ink bars for accuracy / fluency /
-completeness / prosody (the Excellent / Good / Fair / Poor thresholds
-stay in `score_level.dart`), and word chips whose per-error accents are
-reduced to the scheme's primary. No score colors anywhere.
+The assessment reads on raised paper: a level-colored ring around the
+Literata overall score with a level pill and a *Play my recording* button,
+colored bars for accuracy / completeness / fluency / prosody, then the
+word chips and the selected-word panel (see the color scale below).
 
 ## Presentation — the pitch duet and takes (Duet, ADR-0093)
 
 The pitch chart draws the **pitch duet**: the reference contour as a 9 px
 original-blue band at 0.35 opacity, your contour as a 3 px you-violet
-line. Scores are never colored: chips on takes are an ink number on a
-paper pill, `assessmentScoreColor` returns ink for every level, and the
-Excellent / Good / Fair / Poor thresholds stay in `score_level.dart` for
-labels and the meter (D3.8). Word-level feedback in the assessment body
-uses the learner's voice — mispronounced and inserted words read
-`youInk` on `youSoft`; omissions and breaks stay neutral. On wide player
+line. Chips on takes are an ink number on a paper pill. The assessment
+result itself reads in color (user decision 2026-10-13, overriding the
+board's uncolored scores): `score_level.dart` maps Excellent / Good (≥ 81)
+to `scoreGood` green, Fair (61–80) to `scoreWarn` amber and Poor (< 61)
+to `scoreBad` red, each with its tinted container. The overall ring, the
+level pill, the dimension bars, the word chips (tinted fill + mono score;
+wavy underline for mispronunciation, strike-through for insertion and
+omission, a legend above), and the selected-word panel's per-phoneme tiles
+all use that scale; IPA renders in bundled Noto Sans. On wide player
 windows the assessment opens in the 340 px side margin, which hosts the
 same `AssessmentResultBody` as the narrow sheet (overall score, dimension
 bars, replay, re-assess, per-word phoneme analysis); the margin route
 wraps the panel in a transparent `Material` so plain text never falls
-back to the debug error style. In the player the takes render as the strip under the loop
+back to the debug error style.
+
+**Linux.** The vendored `azure_speech` plugin has no native Speech SDK on
+Linux, so `AzureSpeech.assess` posts the WAV to the REST short-audio
+endpoint (`AzureSpeechHttpAssessor`, `Pronunciation-Assessment` header,
+≤ 30 s of audio) and re-nests the flat REST scores into the SDK JSON shape
+before parsing and storing. WAV normalization runs the bundled or system
+`ffmpeg` CLI on Linux as on Windows (FFmpegKit ships no Linux plugin). In the player the takes render as the strip under the loop
 (chips + Pitch pill); recording readouts (pulse label, countdown bar)
 render inside the loop block, and the dock carries Play/Pause + Record
 and Cancel + Stop.

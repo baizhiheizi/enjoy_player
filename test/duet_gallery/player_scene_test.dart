@@ -387,21 +387,39 @@ void main() {
         ),
         frame: frame,
         db: db,
-        before: null,
+        before: board == 'DScored'
+            ? (tester) async => tester.tap(find.text('ferry').last)
+            : null,
       );
     });
   }
 }
 
 AzurePronunciationAssessmentResult _boardAssessment() {
-  const word = AzureWordAssessment(
+  AzurePhonemeAssessment phoneme(String p, double score) =>
+      AzurePhonemeAssessment(
+        phoneme: p,
+        offset: 0,
+        duration: 1000000,
+        pronunciationAssessment: AzurePhonemePronunciationAssessment(
+          accuracyScore: score,
+          nBestPhonemes: null,
+        ),
+      );
+  final word = AzureWordAssessment(
     word: 'ferry',
     offset: 0,
     duration: 4000000,
-    pronunciationAssessment: AzureWordPronunciationAssessment(
-      accuracyScore: 72,
+    pronunciationAssessment: const AzureWordPronunciationAssessment(
+      accuracyScore: 58,
       errorType: 'Mispronunciation',
     ),
+    phonemes: [
+      phoneme('f', 94),
+      phoneme('ɛ', 41),
+      phoneme('r', 63),
+      phoneme('i', 90),
+    ],
   );
   const good = AzureWordAssessment(
     word: 'slow',

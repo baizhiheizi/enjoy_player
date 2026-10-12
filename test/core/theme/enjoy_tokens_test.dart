@@ -46,12 +46,12 @@ void main() {
 
       expect(tokens.echoActive, AppColors.youDark);
       expect(tokens.blurActive, AppColors.inkDark);
-      expect(tokens.scoreGood, AppColors.ink2Dark);
-      expect(tokens.scoreWarn, AppColors.ink2Dark);
+      expect(tokens.scoreGood, AppColors.scoreGoodDark);
+      expect(tokens.scoreWarn, AppColors.scoreWarnDark);
       expect(tokens.scoreBad, AppColors.dangerDark);
-      expect(tokens.scoreGoodContainer, AppColors.sunkDark);
-      expect(tokens.scoreWarnContainer, AppColors.sunkDark);
-      expect(tokens.scoreBadContainer, AppColors.sunkDark);
+      expect(tokens.scoreGoodContainer, AppColors.scoreGoodContainer);
+      expect(tokens.scoreWarnContainer, AppColors.scoreWarnContainer);
+      expect(tokens.scoreBadContainer, AppColors.scoreBadContainer);
       expect(tokens.accentSoft, AppColors.brandSoftDark);
       expect(tokens.accentInk, AppColors.brandInkDark);
       expect(tokens.intelligenceInk, AppColors.originalInkDark);
@@ -111,7 +111,7 @@ void main() {
       expect(tokens.accentInk, AppColors.brandInkLight);
       expect(tokens.intelligenceInk, AppColors.originalInkLight);
       expect(tokens.echoInk, AppColors.youInkLight);
-      expect(tokens.scoreGood, AppColors.ink2Light);
+      expect(tokens.scoreGood, AppColors.scoreGoodLight);
       expect(tokens.glassTint, AppColors.paperLight);
       expect(tokens.glassBorder, AppColors.lineLight);
       expect(tokens.canvas, AppColors.groundLight);

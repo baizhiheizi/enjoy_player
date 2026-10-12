@@ -2170,5 +2170,13 @@
   "assessmentWordsSection": "Words",
   "@assessmentWordsSection": {},
   "assessmentMarginOverline": "Pronunciation",
+  "assessmentLevelExcellent": "Excellent",
+  "@assessmentLevelExcellent": {"description": "Assessment score level (91–100)."},
+  "assessmentLevelGood": "Good",
+  "@assessmentLevelGood": {"description": "Assessment score level (81–90)."},
+  "assessmentLevelFair": "Fair",
+  "@assessmentLevelFair": {"description": "Assessment score level (61–80)."},
+  "assessmentLevelPoor": "Needs work",
+  "@assessmentLevelPoor": {"description": "Assessment score level (below 61)."},
   "@assessmentMarginOverline": {}
 }

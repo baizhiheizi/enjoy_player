@@ -16,11 +16,12 @@ import 'dart:io';
 
 import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/material.dart';
+
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
-import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/pronounce/application/pronounce_playback_controller.dart';
 import 'package:enjoy_player/features/shadow_reading/domain/assessment_word_timing.dart';
@@ -302,23 +303,20 @@ class _AssessmentResultBodyState extends ConsumerState<AssessmentResultBody> {
       ],
     );
 
-    final takeControl = EnjoyTappableIcon(
-      tooltip: takeTooltip,
-      semanticLabel: takeTooltip,
-      iconSize: 22,
-      icon: takePlaying ? EnjoyIcons.stop : EnjoyIcons.play,
-      color: _recordingPlayable
-          ? scheme.primary
-          : scheme.onSurface.withValues(alpha: 0.38),
-      style: IconButton.styleFrom(
-        minimumSize: const Size(44, 44),
-        fixedSize: const Size(44, 44),
+    final takeControl = Tooltip(
+      message: takeTooltip,
+      child: EnjoyButton.secondary(
+        size: EnjoyButtonSize.small,
+        icon: takePlaying ? EnjoyIcons.stop : EnjoyIcons.play,
+        onPressed: _recordingPlayable
+            ? () => unawaited(_toggleFullTake())
+            : null,
+        child: Text(
+          takePlaying
+              ? l10n.assessmentStopMyRecording
+              : l10n.assessmentPlayMyRecording,
+        ),
       ),
-      onPressed: _recordingPlayable
-          ? () {
-              unawaited(_toggleFullTake());
-            }
-          : null,
     );
 
     return Column(
@@ -352,12 +350,17 @@ class _AssessmentResultBodyState extends ConsumerState<AssessmentResultBody> {
               Expanded(child: scoreBars),
             ],
           ),
-        const SizedBox(height: 24),
-        Text(l10n.assessmentPronunciationAnalysis, style: tt.titleSmall),
-        const SizedBox(height: 8),
+        const SizedBox(height: 28),
+        Text(
+          l10n.assessmentPronunciationAnalysis,
+          style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        const AssessmentWordLegend(),
+        const SizedBox(height: 12),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 6,
+          runSpacing: 6,
           children: [
             for (var i = 0; i < words.length; i++)
               WordChip(

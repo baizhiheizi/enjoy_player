@@ -1675,5 +1675,9 @@
   "syncEntityRecording": "录音",
   "syncEntityVocabulary": "单词条目",
   "assessmentWordsSection": "单词",
-  "assessmentMarginOverline": "发音评估"
+  "assessmentMarginOverline": "发音评估",
+  "assessmentLevelExcellent": "优秀",
+  "assessmentLevelGood": "良好",
+  "assessmentLevelFair": "一般",
+  "assessmentLevelPoor": "待提高"
 }

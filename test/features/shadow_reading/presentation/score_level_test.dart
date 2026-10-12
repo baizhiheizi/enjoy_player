@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 import 'package:enjoy_player/features/shadow_reading/presentation/score_level.dart';
 
@@ -28,17 +30,45 @@ void main() {
 
   group('assessmentScoreColor + assessmentScoreBackground', () {
     final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
+    final t = EnjoyThemeTokens.build(scheme);
 
-    test('every level reads in ink — scores are never colored', () {
-      for (final level in AssessmentScoreLevel.values) {
-        expect(assessmentScoreColor(scheme, level), scheme.onSurface);
-      }
+    test('green for Excellent / Good, amber for Fair, red for Poor', () {
+      expect(
+        assessmentScoreColor(t, AssessmentScoreLevel.excellent),
+        t.scoreGood,
+      );
+      expect(assessmentScoreColor(t, AssessmentScoreLevel.good), t.scoreGood);
+      expect(assessmentScoreColor(t, AssessmentScoreLevel.fair), t.scoreWarn);
+      expect(assessmentScoreColor(t, AssessmentScoreLevel.poor), t.scoreBad);
+      expect(t.scoreGood, isNot(t.scoreWarn));
+      expect(t.scoreWarn, isNot(t.scoreBad));
     });
 
-    test('background applies 0.08 alpha over ink', () {
-      final level = AssessmentScoreLevel.poor;
-      final expected = scheme.onSurface.withValues(alpha: 0.08);
-      expect(assessmentScoreBackground(scheme, level), expected);
+    test('backgrounds use the matching tinted containers', () {
+      expect(
+        assessmentScoreBackground(t, AssessmentScoreLevel.good),
+        t.scoreGoodContainer,
+      );
+      expect(
+        assessmentScoreBackground(t, AssessmentScoreLevel.fair),
+        t.scoreWarnContainer,
+      );
+      expect(
+        assessmentScoreBackground(t, AssessmentScoreLevel.poor),
+        t.scoreBadContainer,
+      );
     });
+  });
+
+  test('level labels', () async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(
+      assessmentScoreLevelLabel(l10n, AssessmentScoreLevel.excellent),
+      'Excellent',
+    );
+    expect(
+      assessmentScoreLevelLabel(l10n, AssessmentScoreLevel.poor),
+      'Needs work',
+    );
   });
 }

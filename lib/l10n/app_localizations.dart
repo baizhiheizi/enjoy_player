@@ -7889,6 +7889,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pronunciation'**
   String get assessmentMarginOverline;
+
+  /// Assessment score level (91–100).
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get assessmentLevelExcellent;
+
+  /// Assessment score level (81–90).
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get assessmentLevelGood;
+
+  /// Assessment score level (61–80).
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get assessmentLevelFair;
+
+  /// Assessment score level (below 61).
+  ///
+  /// In en, this message translates to:
+  /// **'Needs work'**
+  String get assessmentLevelPoor;
 }
 
 class _AppLocalizationsDelegate

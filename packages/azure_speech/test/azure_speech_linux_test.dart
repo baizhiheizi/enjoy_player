@@ -51,30 +51,6 @@ void main() {
   );
 
   test(
-    'assess reports an unsupported platform instead of a missing channel',
-    () async {
-      await expectLater(
-        linuxSpeech().assess(
-          const AzurePronunciationAssessmentParams(
-            audioPath: '/tmp/x.wav',
-            referenceText: 'hello',
-            language: 'en-US',
-            token: 'tok',
-            region: 'eastus',
-          ),
-        ),
-        throwsA(
-          isA<AzureSpeechException>().having(
-            (e) => e.code,
-            'code',
-            'unsupported_platform',
-          ),
-        ),
-      );
-    },
-  );
-
-  test(
     'transcribe reports an unsupported platform instead of a missing channel',
     () async {
       await expectLater(

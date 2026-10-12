@@ -40,12 +40,12 @@ final class _AccentColors {
   }) => _AccentColors(
     echoActive: light ? AppColors.youLight : AppColors.youDark,
     blurActive: light ? AppColors.inkLight : AppColors.inkDark,
-    scoreGood: light ? AppColors.ink2Light : AppColors.ink2Dark,
-    scoreWarn: light ? AppColors.ink2Light : AppColors.ink2Dark,
+    scoreGood: light ? AppColors.scoreGoodLight : AppColors.scoreGoodDark,
+    scoreWarn: light ? AppColors.scoreWarnLight : AppColors.scoreWarnDark,
     scoreBad: light ? AppColors.dangerLight : AppColors.dangerDark,
-    scoreGoodContainer: light ? AppColors.sunkLight : AppColors.sunkDark,
-    scoreWarnContainer: light ? AppColors.sunkLight : AppColors.sunkDark,
-    scoreBadContainer: light ? AppColors.sunkLight : AppColors.sunkDark,
+    scoreGoodContainer: AppColors.scoreGoodContainer,
+    scoreWarnContainer: AppColors.scoreWarnContainer,
+    scoreBadContainer: AppColors.scoreBadContainer,
     accentSoft: light ? AppColors.brandSoftLight : AppColors.brandSoftDark,
     accentInk: light ? AppColors.brandInkLight : AppColors.brandInkDark,
     intelligenceInk: light

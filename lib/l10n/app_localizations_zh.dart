@@ -4155,6 +4155,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get assessmentMarginOverline => '发音评估';
+
+  @override
+  String get assessmentLevelExcellent => '优秀';
+
+  @override
+  String get assessmentLevelGood => '良好';
+
+  @override
+  String get assessmentLevelFair => '一般';
+
+  @override
+  String get assessmentLevelPoor => '待提高';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7633,4 +7645,16 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get assessmentMarginOverline => '发音评估';
+
+  @override
+  String get assessmentLevelExcellent => '优秀';
+
+  @override
+  String get assessmentLevelGood => '良好';
+
+  @override
+  String get assessmentLevelFair => '一般';
+
+  @override
+  String get assessmentLevelPoor => '待提高';
 }

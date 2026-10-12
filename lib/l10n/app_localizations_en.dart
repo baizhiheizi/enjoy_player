@@ -4356,4 +4356,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assessmentMarginOverline => 'Pronunciation';
+
+  @override
+  String get assessmentLevelExcellent => 'Excellent';
+
+  @override
+  String get assessmentLevelGood => 'Good';
+
+  @override
+  String get assessmentLevelFair => 'Fair';
+
+  @override
+  String get assessmentLevelPoor => 'Needs work';
 }

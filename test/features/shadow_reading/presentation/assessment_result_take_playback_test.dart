@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
@@ -209,8 +210,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip(l10n.assessmentRecordingUnavailable), findsOneWidget);
-    final button = tester.widget<IconButton>(
-      find.widgetWithIcon(IconButton, EnjoyIcons.play),
+    final button = tester.widget<EnjoyButton>(
+      find.widgetWithIcon(EnjoyButton, EnjoyIcons.play),
     );
     expect(button.onPressed, isNull);
   });

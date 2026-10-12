@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import 'azure_speech_assessment_outcome.dart';
 import 'azure_speech_exception.dart';
+import 'azure_speech_http_assessor.dart';
 import 'azure_speech_http_synthesizer.dart';
 import 'azure_speech_params.dart';
 import 'azure_speech_synthesis_outcome.dart';
@@ -21,25 +22,31 @@ import 'models.dart';
 /// `AzureSpeechPlatform` interface + facade double layer collapsed into this
 /// class (one implementation existed; the interface was never reassigned).
 ///
-/// Linux ships no native Speech SDK implementation; [synthesize] falls back
-/// to the REST endpoint there ([AzureSpeechHttpSynthesizer]), while [assess]
-/// and [transcribe] report [AzureSpeechException] with code
-/// `unsupported_platform`.
+/// Linux ships no native Speech SDK implementation; [synthesize] and [assess]
+/// fall back to the REST endpoints there ([AzureSpeechHttpSynthesizer],
+/// [AzureSpeechHttpAssessor]), while [transcribe] reports
+/// [AzureSpeechException] with code `unsupported_platform`.
 final class AzureSpeech {
   AzureSpeech({
     MethodChannel? channel,
     HttpClient? httpClient,
     Uri Function(String region)? synthesizeEndpoint,
+    Uri Function(String region, String language)? assessEndpoint,
   }) : _channel = channel ?? const MethodChannel('azure_speech'),
        _httpSynthesizer = AzureSpeechHttpSynthesizer(
          client: httpClient,
          endpointFor: synthesizeEndpoint,
+       ),
+       _httpAssessor = AzureSpeechHttpAssessor(
+         client: httpClient,
+         endpointFor: assessEndpoint,
        );
 
   static final AzureSpeech instance = AzureSpeech();
 
   final MethodChannel _channel;
   final AzureSpeechHttpSynthesizer _httpSynthesizer;
+  final AzureSpeechHttpAssessor _httpAssessor;
 
   static bool get _onLinux =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
@@ -49,12 +56,7 @@ final class AzureSpeech {
     AzurePronunciationAssessmentParams params,
   ) => _guard(() async {
     if (_onLinux) {
-      throw const AzureSpeechException(
-        code: 'unsupported_platform',
-        message:
-            'Pronunciation assessment needs the native Speech SDK, which this '
-            'plugin does not ship for Linux yet.',
-      );
+      return _httpAssessor.assess(params);
     }
     final raw = await _channel.invokeMethod<String>('assess', params.toMap());
     if (raw == null || raw.isEmpty) {
