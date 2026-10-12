@@ -27,7 +27,6 @@ import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/share_poster/presentation/share_practice_poster_button.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_sheet.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -399,18 +398,6 @@ class _PhoneTopBar extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
-    final echo = ref.watch(echoModeProvider);
-    final total = ref
-        .watch(transcriptLinesForMediaProvider(mediaId))
-        .value
-        ?.length;
-    final cue = ref
-        .watch(transcriptPlaybackHighlightProvider(mediaId))
-        .cueIndex;
-    final lineCaption = total != null && total > 0 && cue >= 0
-        ? l10n.playerLineOfTotal(cue + 1, total)
-        : null;
-    final looping = echo.active ? ' ${l10n.playerDockLooping}' : '';
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -455,30 +442,15 @@ class _PhoneTopBar extends ConsumerWidget {
           child: Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      chrome?.mediaTitle ?? '',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.labelLarge?.copyWith(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: t.ink,
-                      ),
-                    ),
-                    if (lineCaption != null)
-                      Text(
-                        '$lineCaption$looping',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: tt.labelSmall?.copyWith(
-                          fontSize: 12,
-                          color: t.ink3,
-                        ),
-                      ),
-                  ],
+                child: Text(
+                  chrome?.mediaTitle ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: tt.labelLarge?.copyWith(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: t.ink,
+                  ),
                 ),
               ),
             ],

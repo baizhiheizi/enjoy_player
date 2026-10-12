@@ -17,6 +17,8 @@ import 'package:enjoy_player/features/player/application/player_state_providers.
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/video_line_info_chip.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/video_paused_gate.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_open_in_browser_button.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
@@ -321,19 +323,23 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
               ),
             ),
           const _VideoPausedTitleOverlay(),
-          if (isYoutube)
+          if (isYoutube) ...[
+            const Positioned(left: 12, bottom: 12, child: VideoLineInfoChip()),
             const Positioned(
               bottom: 12,
               right: 8,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  YoutubeOpenInBrowserButton(),
-                  SizedBox(width: 6),
-                  YoutubeLoginVideoFrameButton(),
-                ],
+              child: VideoPausedGate(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    YoutubeOpenInBrowserButton(),
+                    SizedBox(width: 6),
+                    YoutubeLoginVideoFrameButton(),
+                  ],
+                ),
               ),
             ),
+          ],
         ],
       ),
     );
