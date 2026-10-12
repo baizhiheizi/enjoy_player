@@ -120,6 +120,10 @@ install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
 install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   COMPONENT Runtime)
 
+# Sans-first CJK fallback, picked up by runner/main.cc (ADR-0095).
+install(FILES "runner/fontconfig/fonts.conf"
+  DESTINATION "${INSTALL_BUNDLE_DATA_DIR}/fontconfig" COMPONENT Runtime)
+
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 

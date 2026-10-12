@@ -375,97 +375,99 @@ class _IdleView extends StatelessWidget {
     final targetLang = state.targetLanguage.toUpperCase();
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: ShapeDecoration(
-              color: t.fill,
-              shape: RoundedSuperellipseBorder(
-                borderRadius: BorderRadius.circular(t.radiusFull),
-                side: BorderSide(color: t.line),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: ShapeDecoration(
+                color: t.fill,
+                shape: RoundedSuperellipseBorder(
+                  borderRadius: BorderRadius.circular(t.radiusFull),
+                  side: BorderSide(color: t.line),
+                ),
+              ),
+              child: Text(
+                '$sourceLang  →  $targetLang',
+                style: enjoyMonoStyle(
+                  context,
+                  size: 13,
+                  weight: FontWeight.w600,
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
             ),
-            child: Text(
-              '$sourceLang  →  $targetLang',
-              style: enjoyMonoStyle(
-                context,
-                size: 13,
-                weight: FontWeight.w600,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          SizedBox(height: t.space24),
-          Text(
-            l10n.craftCaptureTitle,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.3,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: t.space8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Text(
-              l10n.craftCaptureSubtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-                height: 1.4,
+            SizedBox(height: t.space24),
+            Text(
+              l10n.craftCaptureTitle,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.3,
               ),
               textAlign: TextAlign.center,
             ),
-          ),
-          SizedBox(height: t.space48),
-          SizedBox(
-            width: buttonSize * 2.2,
-            height: buttonSize * 2.2,
-            child: Center(
-              child: DecoratedBox(
-                decoration: ShapeDecoration(
-                  shape: const CircleBorder(),
-                  gradient: RadialGradient(
-                    colors: [
-                      scheme.primary.withValues(alpha: 0.28),
-                      scheme.primary.withValues(alpha: 0.12),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.35, 0.7, 1],
-                  ),
+            SizedBox(height: t.space8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 360),
+              child: Text(
+                l10n.craftCaptureSubtitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.4,
                 ),
-                child: EnjoyPressable(
-                  onTap: onMicTap,
-                  borderRadius: BorderRadius.circular(buttonSize / 2),
-                  pressedScale: 0.95,
-                  semanticsLabel: l10n.craftCaptureTitle,
-                  child: AnimatedContainer(
-                    duration: t.motionFast,
-                    width: buttonSize,
-                    height: buttonSize,
-                    decoration: ShapeDecoration(
-                      color: t.you,
-                      shape: const CircleBorder(),
-                      shadows: t.shadowRecordButton,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(height: t.space48),
+            SizedBox(
+              width: buttonSize * 2.2,
+              height: buttonSize * 2.2,
+              child: Center(
+                child: DecoratedBox(
+                  decoration: ShapeDecoration(
+                    shape: const CircleBorder(),
+                    gradient: RadialGradient(
+                      colors: [
+                        scheme.primary.withValues(alpha: 0.28),
+                        scheme.primary.withValues(alpha: 0.12),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.35, 0.7, 1],
                     ),
-                    child: Icon(
-                      EnjoyIcons.micFill,
-                      color: t.onYou,
-                      size: buttonSize * 0.46,
+                  ),
+                  child: EnjoyPressable(
+                    onTap: onMicTap,
+                    borderRadius: BorderRadius.circular(buttonSize / 2),
+                    pressedScale: 0.95,
+                    semanticsLabel: l10n.craftCaptureTitle,
+                    child: AnimatedContainer(
+                      duration: t.motionFast,
+                      width: buttonSize,
+                      height: buttonSize,
+                      decoration: ShapeDecoration(
+                        color: t.you,
+                        shape: const CircleBorder(),
+                        shadows: t.shadowRecordButton,
+                      ),
+                      child: Icon(
+                        EnjoyIcons.micFill,
+                        color: t.onYou,
+                        size: buttonSize * 0.46,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: t.space24),
-          EnjoyButton.ghost(
-            onPressed: onTypeInstead,
-            icon: EnjoyIcons.keyboard,
-            child: Text(l10n.craftCaptureTypeInstead),
-          ),
-        ],
+            SizedBox(height: t.space24),
+            EnjoyButton.ghost(
+              onPressed: onTypeInstead,
+              icon: EnjoyIcons.keyboard,
+              child: Text(l10n.craftCaptureTypeInstead),
+            ),
+          ],
+        ),
       ),
     );
   }

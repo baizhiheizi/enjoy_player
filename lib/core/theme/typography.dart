@@ -12,7 +12,12 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+/// Bundled multi-weight families declared in `pubspec.yaml` (ADR-0095).
+const String kGeistFamily = 'Geist';
+const String kGeistMonoFamily = 'GeistMono';
+const String kLiterataFamily = 'Literata';
+const String kNotoSansFamily = 'NotoSans';
 
 /// Installed-platform CJK sans faces, in preference order. Names that are not
 /// present on a platform are skipped by the engine at no cost.
@@ -58,9 +63,8 @@ const List<String> kCjkNotoSansFallbacks = [
 /// CJK fallbacks so Windows does not substitute low-quality system fonts.
 ///
 /// Every entry is a literal family name for the same reason as
-/// [kCjkNotoSansFallbacks]; `'Geist'` is the id `GoogleFonts.geist()` reports
-/// and is bundled, so naming it costs nothing and keeps the CJK path from ever
-/// constructing a `TextStyle` to read a name.
+/// [kCjkNotoSansFallbacks]; [kGeistFamily] is bundled, so naming it costs
+/// nothing.
 const List<String> _kTranscriptCjkSerifFallbacks = [
   ...kCjkNotoSerifFallbacks,
   ...kCjkSerifFallbacks,
@@ -68,7 +72,7 @@ const List<String> _kTranscriptCjkSerifFallbacks = [
 
 const List<String> _kTranscriptCjkSansFallbacks = [
   ...kCjkNotoSansFallbacks,
-  'Geist',
+  kGeistFamily,
   ...kCjkSansFallbacks,
 ];
 
@@ -90,15 +94,14 @@ TextStyle _display(
   required double height,
   required double letterSpacing,
 }) {
-  final style = GoogleFonts.literata(
+  return TextStyle(
+    fontFamily: kLiterataFamily,
+    fontFamilyFallback: kCjkSerifFallbacks,
     fontSize: size,
     fontWeight: FontWeight.w500,
     height: height,
     letterSpacing: letterSpacing,
     color: base?.color,
-  );
-  return style.copyWith(
-    fontFamilyFallback: [...?style.fontFamilyFallback, ...kCjkSerifFallbacks],
   );
 }
 
@@ -149,11 +152,13 @@ TextStyle enjoyMonoStyle(
   );
 }
 
-/// Builds the base [TextTheme]: Instrument Serif display + Geist UI.
+/// Builds the base [TextTheme]: Literata display + Geist UI.
 TextTheme buildBaseTextTheme(TextTheme base, ColorScheme scheme) {
-  final ui = GoogleFonts.geistTextTheme(
-    base,
-  ).apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
+  final ui = base.apply(
+    fontFamily: kGeistFamily,
+    bodyColor: scheme.onSurface,
+    displayColor: scheme.onSurface,
+  );
 
   return ui.copyWith(
     displayLarge: _display(
@@ -319,13 +324,11 @@ class TranscriptTypographyTokens
     required ColorScheme scheme,
   }) {
     if (useSerif) {
-      final serif = GoogleFonts.literataTextTheme(
-        base,
-      ).apply(bodyColor: scheme.onSurface);
       return TranscriptTypographyTokens(
         useSerif: true,
         bodyStyle: _withCjkFallbacks(
-          (serif.bodyLarge ?? const TextStyle()).copyWith(
+          (base.bodyLarge ?? const TextStyle()).copyWith(
+            fontFamily: kLiterataFamily,
             fontSize: 17,
             fontWeight: FontWeight.w400,
             height: 1.65,
@@ -335,7 +338,8 @@ class TranscriptTypographyTokens
           serif: true,
         ),
         secondaryStyle: _withCjkFallbacks(
-          GoogleFonts.notoSans(
+          TextStyle(
+            fontFamily: kNotoSansFamily,
             fontSize: 14,
             fontWeight: FontWeight.w400,
             height: 1.55,
@@ -344,7 +348,8 @@ class TranscriptTypographyTokens
           ),
           serif: false,
         ),
-        timestampStyle: GoogleFonts.geistMono(
+        timestampStyle: TextStyle(
+          fontFamily: kGeistMonoFamily,
           fontSize: 12,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1,
@@ -352,7 +357,8 @@ class TranscriptTypographyTokens
           color: scheme.onSurfaceVariant.withValues(alpha: 0.72),
         ),
         monoStyle: _withCjkFallbacks(
-          GoogleFonts.geistMono(
+          TextStyle(
+            fontFamily: kGeistMonoFamily,
             fontSize: 13,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.15,
@@ -386,7 +392,8 @@ class TranscriptTypographyTokens
         serif: false,
       ),
       secondaryStyle: _withCjkFallbacks(
-        GoogleFonts.notoSans(
+        TextStyle(
+          fontFamily: kNotoSansFamily,
           fontSize: 13.5,
           fontWeight: FontWeight.w400,
           height: 1.55,
@@ -395,14 +402,16 @@ class TranscriptTypographyTokens
         ),
         serif: false,
       ),
-      timestampStyle: GoogleFonts.geistMono(
+      timestampStyle: TextStyle(
+        fontFamily: kGeistMonoFamily,
         fontSize: 12,
         fontWeight: FontWeight.w500,
         fontFeatures: const [FontFeature.tabularFigures()],
         color: scheme.onSurfaceVariant.withValues(alpha: 0.72),
       ),
       monoStyle: _withCjkFallbacks(
-        GoogleFonts.geistMono(
+        TextStyle(
+          fontFamily: kGeistMonoFamily,
           fontSize: 13,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.15,

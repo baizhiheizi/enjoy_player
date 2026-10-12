@@ -8,7 +8,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -201,6 +200,8 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     final timestampText = formatTranscriptTimestampMs(widget.line.startMs);
     final timestampStyle = typography.timestampStyle.copyWith(
       fontSize: metrics.timeFontSize,
+      height: 1,
+      color: widget.isActive && !inLens ? tok.originalInk : null,
     );
 
     final primaryPlain = transcriptPlainForSelection(widget.line.text);
@@ -208,7 +209,10 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     final overlayOn = ref.watch(ipaOverlaySettingsProvider).value == true;
     final words = widget.line.timeline;
     final useAligned =
-        overlayOn && transcriptWordsHavePhones(words) && words != null;
+        overlayOn &&
+        !inLens &&
+        transcriptWordsHavePhones(words) &&
+        words != null;
 
     WordTextRange? karaokeRange;
     int? karaokeWordIndex;
@@ -344,6 +348,9 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             emphasize: widget.isActive,
             activeWordIndex: karaokeWordIndex,
             activeUnderlineColor: tok.original,
+            runSpacing: loopActive
+                ? metrics.loopAlignedRowGap
+                : metrics.alignedRowGap,
             onIpaTap: _onIpaTap,
             selectableWordBuilder: widget.selectable
                 ? (context, text, style) => TranscriptSelectableRichText(
@@ -398,6 +405,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
         final gutterTop = inLens
             ? metrics.contextGutterTop
             : metrics.gutterTop(active: widget.isActive);
+        final timeInGutter = showGutter && metrics.timeInGutter;
         final textBody = Padding(
           padding: widget.groupedInEcho
               ? EdgeInsets.zero
@@ -405,30 +413,38 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
               ? metrics.contextPadding
               : metrics.linePadding(active: widget.isActive),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: timeInGutter
+                ? CrossAxisAlignment.baseline
+                : CrossAxisAlignment.start,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              if (showGutter) ...[
+              if (timeInGutter) ...[
+                SizedBox(
+                  width: metrics.gutterWidth,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: AlignmentDirectional.topEnd,
+                    children: [
+                      Text(timestampText, style: timestampStyle, maxLines: 1),
+                      if (hasTakes)
+                        PositionedDirectional(
+                          top: metrics.timeFontSize + metrics.practicedDotGap,
+                          end: 0,
+                          child: practicedDot,
+                        ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: metrics.gutterGap),
+              ] else if (showGutter) ...[
                 SizedBox(
                   width: metrics.gutterWidth,
                   child: Padding(
                     padding: EdgeInsets.only(top: gutterTop),
-                    child: metrics.timeInGutter
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(timestampText, style: timestampStyle),
-                              if (hasTakes) ...[
-                                SizedBox(height: metrics.practicedDotGap),
-                                practicedDot,
-                              ],
-                            ],
-                          )
-                        : Align(
-                            alignment: Alignment.topLeft,
-                            child: hasTakes
-                                ? practicedDot
-                                : const SizedBox.shrink(),
-                          ),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: hasTakes ? practicedDot : const SizedBox.shrink(),
+                    ),
                   ),
                 ),
                 SizedBox(width: metrics.gutterGap),

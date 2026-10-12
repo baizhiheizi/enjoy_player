@@ -52,7 +52,7 @@ class TranscriptLensMetrics {
   double get timeAboveLineGap => 5;
   double get lineRadius => 10;
   double get timeFontSize => 11;
-  double get practicedDotGap => 6;
+  double get practicedDotGap => 4;
 
   double lineFontSize({required bool active}) => switch (surface) {
     TranscriptLensSurface.desktop => active ? 21 : 17,
@@ -88,6 +88,7 @@ class TranscriptLensMetrics {
   };
 
   double get alignedLineHeight => 1.32;
+  double get alignedRowGap => 8;
   double get plainLineHeight => 1.42;
   double get listenLetterSpacingEm => -0.006;
   double get listenIpaFontSize => isPhone ? 11.5 : 12;
@@ -127,6 +128,7 @@ class TranscriptLensMetrics {
   double get loopLineHeight => 1.3;
   double get loopLetterSpacingEm => isPhone ? -0.008 : -0.01;
   double get loopIpaFontSize => 13;
+  double get loopAlignedRowGap => 10;
   double get loopLineGap => 12;
   double get loopSecondaryTopGap => 6;
   double get loopSecondaryLineHeight => 1.5;

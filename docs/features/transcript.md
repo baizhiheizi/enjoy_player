@@ -311,6 +311,17 @@ word paints as an **original-blue underline** on the spoken word (plain
 markup path and aligned-words path alike). The recording-count badge is
 replaced by the gutter dot; the count stays in the accessibility label.
 
+The gutter timestamp shares the first text line's alphabetic baseline
+(the row aligns on baseline whenever the time is in the gutter), and the
+active cue's time takes original-ink. The practiced dot hangs below the
+timestamp out of layout flow, so a line with takes is exactly as tall as
+one without. With the IPA overlay on, each word is a column whose IPA
+label starts at the word's left edge (1px inset, never centred), words
+sit 0.26em apart, and wrapped rows are 8px apart (10px in the Echo loop),
+matching the `Main` board. Emphasized words keep the line's weight 500
+rather than a separate bold. Echo lens rows (the faded context around the
+loop) never show the IPA overlay.
+
 ## Karaoke highlight
 
 The "what is highlighted right now" question has a single owner:
