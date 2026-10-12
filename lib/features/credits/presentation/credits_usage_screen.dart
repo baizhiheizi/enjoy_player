@@ -560,7 +560,7 @@ class _UsageTable extends StatelessWidget {
     final cellMuted = enjoyMonoStyle(context, size: 12.5, color: t.ink3);
 
     Widget headerCell(String label, {bool right = false}) => Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(left: right ? _kCellGutter : 0, bottom: 12),
       child: Align(
         alignment: right ? Alignment.centerRight : Alignment.centerLeft,
         child: EnjoyOverline(label),
@@ -568,7 +568,7 @@ class _UsageTable extends StatelessWidget {
     );
 
     Widget cellOf(Widget child, {bool right = false}) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.fromLTRB(right ? _kCellGutter : 0, 10, 0, 10),
       child: Align(
         alignment: right ? Alignment.centerRight : Alignment.centerLeft,
         child: child,
@@ -775,6 +775,8 @@ IconData serviceTypeIcon(String serviceType) {
 }
 
 /// Aurora allowed / denied state pill.
+const double _kCellGutter = 16;
+
 class _UsageBadge extends StatelessWidget {
   const _UsageBadge({required this.allowed, required this.label});
 
@@ -786,18 +788,20 @@ class _UsageBadge extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     return Container(
       height: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 9),
-      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: ShapeDecoration(
         color: allowed ? t.sunk : t.ink,
         shape: const StadiumBorder(),
       ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: allowed ? t.ink2 : t.paper,
+      child: Center(
+        widthFactor: 1,
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: allowed ? t.ink2 : t.paper,
+          ),
         ),
       ),
     );
