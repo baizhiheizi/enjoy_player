@@ -257,6 +257,62 @@ class DockLabeledControl extends StatelessWidget {
   }
 }
 
+/// Inner dot glyph for a [`DockRecordRing`].
+enum DockRecordDotShape {
+  /// Echo record toggle (circular inner glyph).
+  circle,
+
+  /// Recording-mode stop glyph (rounded square).
+  stopSquare,
+}
+
+/// Shared "you" disk under the record buttons. The Echo dock's
+/// `DockRecordButton` and the recording-mode Stop button both render this
+/// ring with the same color, shadow, and inner-dot sizing; only the dot
+/// glyph differs.
+class DockRecordRing extends StatelessWidget {
+  const DockRecordRing({
+    required this.inner,
+    required this.innerShape,
+    super.key,
+  });
+
+  /// Diameter of the colored "you" disk (the parent stacks this in a larger
+  /// hit-target `SizedBox` so it can own its border radius and tap callback).
+  final double inner;
+
+  final DockRecordDotShape innerShape;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final dot = BoxDecoration(
+      color: t.onYou,
+      shape: switch (innerShape) {
+        DockRecordDotShape.circle => BoxShape.circle,
+        DockRecordDotShape.stopSquare => BoxShape.rectangle,
+      },
+      borderRadius: switch (innerShape) {
+        DockRecordDotShape.stopSquare => const BorderRadius.all(
+          Radius.circular(4),
+        ),
+        DockRecordDotShape.circle => null,
+      },
+    );
+    return Container(
+      width: inner,
+      height: inner,
+      alignment: Alignment.center,
+      decoration: ShapeDecoration(
+        color: t.you,
+        shape: const CircleBorder(),
+        shadows: t.shadowRecordButton,
+      ),
+      child: Container(width: 16, height: 16, decoration: dot),
+    );
+  }
+}
+
 /// Round "you" record button (Echo mode).
 class DockRecordButton extends StatelessWidget {
   const DockRecordButton({
@@ -287,23 +343,9 @@ class DockRecordButton extends StatelessWidget {
             width: size,
             height: size,
             child: Center(
-              child: Container(
-                width: inner,
-                height: inner,
-                alignment: Alignment.center,
-                decoration: ShapeDecoration(
-                  color: t.you,
-                  shape: const CircleBorder(),
-                  shadows: t.shadowRecordButton,
-                ),
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: t.onYou,
-                    shape: BoxShape.circle,
-                  ),
-                ),
+              child: DockRecordRing(
+                inner: inner,
+                innerShape: DockRecordDotShape.circle,
               ),
             ),
           ),

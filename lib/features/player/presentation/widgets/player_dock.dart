@@ -618,27 +618,13 @@ class _RecordingControls extends StatelessWidget {
                       onTap: onStop,
                       borderRadius: BorderRadius.circular(31),
                       pressedScale: 0.94,
-                      child: SizedBox(
+                      child: const SizedBox(
                         width: 62,
                         height: 62,
                         child: Center(
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            alignment: Alignment.center,
-                            decoration: ShapeDecoration(
-                              color: t.you,
-                              shape: const CircleBorder(),
-                              shadows: t.shadowRecordButton,
-                            ),
-                            child: Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: t.onYou,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
+                          child: DockRecordRing(
+                            inner: 50,
+                            innerShape: DockRecordDotShape.stopSquare,
                           ),
                         ),
                       ),
