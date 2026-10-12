@@ -620,7 +620,8 @@ class _TranscriptScrollableListState
                           lineIndex: lineIndex,
                         )
                       : null,
-                  onRetranslateSecondary: canRetranslateLine
+                  onRetranslateSecondary:
+                      canRetranslateLine && (isActive || inEcho)
                       ? () => unawaited(
                           ref
                               .read(

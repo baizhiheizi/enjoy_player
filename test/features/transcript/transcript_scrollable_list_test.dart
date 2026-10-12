@@ -1,13 +1,17 @@
 import 'package:drift/native.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
+import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
+import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -376,4 +380,119 @@ void main() {
     expect(activeRect.bottom, lessThan(viewportRect.bottom));
     await _disposeHarness(tester);
   });
+
+  testWidgets('retranslate affordance shows on active line and echo region', (
+    tester,
+  ) async {
+    final lines = _sampleLines(6);
+    final aiLines = List.generate(
+      lines.length,
+      (i) => TranscriptLine(text: '翻译 $i', startMs: i * 1000, durationMs: 1000),
+    );
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ..._scrollTestDbOverrides(),
+          playerIsPlayingProvider.overrideWith((ref) => Stream.value(true)),
+          transcriptLinesForMediaProvider(
+            _mediaId,
+          ).overrideWith((ref) => Stream.value(lines)),
+          secondaryTranscriptLinesForMediaProvider(
+            _mediaId,
+          ).overrideWith((ref) => Stream.value(aiLines)),
+          transcriptLineRecordingCountsProvider(
+            _mediaId,
+          ).overrideWithValue(const {}),
+          transcriptPlaybackHighlightProvider(_mediaId).overrideWith(
+            (ref) => (
+              cueIndex: ref.watch(_testHighlightIndexProvider),
+              wordIndex: null,
+            ),
+          ),
+          autoTranslateCtrlProvider(
+            _mediaId,
+          ).overrideWith(_ActiveAutoTranslateCtrl.new),
+          secondaryTranscriptIdProvider(
+            _mediaId,
+          ).overrideWith((ref) => Stream.value('$_mediaId-ai')),
+        ],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            final scheme = ColorScheme.fromSeed(
+              seedColor: const Color(0xFF003366),
+            );
+            return MaterialApp(
+              theme: ThemeData(
+                colorScheme: scheme,
+                extensions: [EnjoyThemeTokens.build(scheme)],
+              ),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SizedBox(
+                  height: 400,
+                  width: 360,
+                  child: TranscriptScrollableList(
+                    mediaId: _mediaId,
+                    lines: lines,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final affordance = find.byIcon(EnjoyIcons.refresh);
+    expect(affordance, findsOneWidget);
+
+    container.read(_testHighlightIndexProvider.notifier).state = 3;
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(affordance, findsOneWidget);
+    final iconY = tester.getCenter(affordance).dy;
+    final line2 = tester.getRect(find.text('Transcript line 2'));
+    final line4 = tester.getRect(find.text('Transcript line 4'));
+    expect(iconY, greaterThan(line2.top));
+    expect(iconY, lessThan(line4.bottom));
+
+    container
+        .read(echoModeProvider.notifier)
+        .activate(
+          startLineIndex: 0,
+          endLineIndex: 2,
+          startTimeSeconds: lines[0].startSeconds,
+          endTimeSeconds: lines[2].endSeconds,
+        );
+    await tester.pumpAndSettle();
+
+    expect(affordance, findsNWidgets(3));
+    final echoTop = tester
+        .getRect(find.textContaining('翻译 0', findRichText: true))
+        .top;
+    final echoBottom = tester
+        .getRect(find.textContaining('翻译 2', findRichText: true))
+        .bottom;
+    for (final element in affordance.evaluate()) {
+      final y = tester.getCenter(find.byWidget(element.widget)).dy;
+      expect(y, inInclusiveRange(echoTop, echoBottom));
+    }
+    await _disposeHarness(tester);
+  });
+}
+
+class _ActiveAutoTranslateCtrl extends AutoTranslateCtrl {
+  @override
+  AutoTranslateUiState build(String mediaId) => const AutoTranslateUiState(
+    status: AutoTranslateStatus.active,
+    aiTranscriptId: 'media-scroll-test-ai',
+    primaryTranscriptId: 'media-scroll-test-primary',
+  );
 }

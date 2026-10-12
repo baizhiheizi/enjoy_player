@@ -256,25 +256,49 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
     Widget? secondaryWidget;
     if (widget.secondaryText != null && !inLens) {
+      final secondarySpan = transcriptMarkupToTextSpan(
+        widget.secondaryText!,
+        secondaryTypographyStyle,
+        defaultColor: scheme.onSurfaceVariant,
+        emphasize: false,
+      );
+      final retranslate = widget.onRetranslateSecondary;
+      final retranslateLabel =
+          AppLocalizations.of(context)?.subtitlesAutoTranslateRetranslateLine ??
+          'Re-translate this line';
+      final span = retranslate == null
+          ? secondarySpan
+          : TextSpan(
+              children: [
+                secondarySpan,
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Semantics(
+                    label: retranslateLabel,
+                    button: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: retranslate,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 6, right: 2),
+                        child: Icon(
+                          EnjoyIcons.refresh,
+                          size: 15,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
       secondaryWidget = widget.selectable
           ? TranscriptSelectableRichText(
-              span: transcriptMarkupToTextSpan(
-                widget.secondaryText!,
-                secondaryTypographyStyle,
-                defaultColor: scheme.onSurfaceVariant,
-                emphasize: false,
-              ),
+              span: span,
               onTap: _revealHoldOnly,
               onLookupRequested: widget.onLookupRequested,
             )
-          : Text.rich(
-              transcriptMarkupToTextSpan(
-                widget.secondaryText!,
-                secondaryTypographyStyle,
-                defaultColor: scheme.onSurfaceVariant,
-                emphasize: false,
-              ),
-            );
+          : Text.rich(span);
     }
 
     return ValueListenableBuilder<bool>(
@@ -432,24 +456,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                       ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: blurredSecondary),
-                          if (widget.onRetranslateSecondary != null) ...[
-                            SizedBox(width: tok.space4),
-                            EnjoyTappableIcon(
-                              icon: EnjoyIcons.refresh,
-                              tooltip:
-                                  AppLocalizations.of(
-                                    context,
-                                  )?.subtitlesAutoTranslateRetranslateLine ??
-                                  'Re-translate this line',
-                              iconSize: 18,
-                              color: scheme.onSurfaceVariant,
-                              visualDensity: VisualDensity.compact,
-                              onPressed: widget.onRetranslateSecondary,
-                            ),
-                          ],
-                        ],
+                        children: [Expanded(child: blurredSecondary)],
                       ),
                     ],
                   ],
