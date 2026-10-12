@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -182,5 +184,92 @@ void main() {
     expect(formatEnjoyId('10482231'), '1048 2231');
     expect(formatEnjoyId('42'), '42');
     expect(formatEnjoyId('u1_x'), 'u1_x');
+  });
+
+  testWidgets('phone-width hero puts the avatar beside the name', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _themed(
+        overrides: [authCtrlProvider.overrideWith(_FakeAuthCtrl.new)],
+        child: const Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: 390,
+            child: ProfileHeroCard(profile: _profile),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final avatar = tester.getRect(find.byType(EnjoyAvatar));
+    final name = tester.getRect(find.text('Reader'));
+    expect(name.left, greaterThan(avatar.right));
+    expect(name.top, lessThan(avatar.bottom));
+    expect(avatar.width, lessThan(64));
+
+    final edit = tester.getSize(
+      find.ancestor(
+        of: find.text('Edit profile'),
+        matching: find.byType(EnjoyButton),
+      ),
+    );
+    final upgrade = tester.getSize(
+      find.ancestor(
+        of: find.text('Upgrade to Pro'),
+        matching: find.byType(EnjoyButton),
+      ),
+    );
+    expect(edit.width, moreOrLessEquals(upgrade.width, epsilon: 0.5));
+    expect(tester.getSize(find.byType(ProfileHeroCard)).height, lessThan(200));
+  });
+
+  testWidgets('practice figures scale to fit instead of truncating', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _themed(
+        overrides: const [],
+        child: const Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: 340,
+            child: ProfilePracticeCard(
+              stats: LearningStatistics(
+                today: PeriodStats(
+                  recordingDurationMs: 720000,
+                  recordingCount: 1,
+                ),
+                week: PeriodStats(
+                  recordingDurationMs: 6480000,
+                  recordingCount: 1,
+                ),
+                month: PeriodStats(
+                  recordingDurationMs: 21720000,
+                  recordingCount: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (final figure in ['1h 48m', '6h 02m']) {
+      final text = tester.widget<Text>(find.text(figure));
+      expect(text.overflow, isNot(TextOverflow.ellipsis));
+      expect(
+        find.ancestor(of: find.text(figure), matching: find.byType(FittedBox)),
+        findsOneWidget,
+      );
+    }
+    final labels = [
+      'Today',
+      'This week',
+      'This month',
+    ].map((label) => tester.getTopLeft(find.text(label)).dy).toSet();
+    expect(labels, hasLength(1));
   });
 }

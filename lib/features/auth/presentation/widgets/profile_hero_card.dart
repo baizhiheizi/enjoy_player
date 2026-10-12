@@ -27,7 +27,9 @@ import 'package:enjoy_player/features/subscription/application/current_tier_prov
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 const double _kAvatarSize = 92;
-const double _kHeroStackBelow = 600;
+const double _kCompactAvatarSize = 64;
+const double _kHeroCompactBelow = 600;
+const double _kFigureSize = 32;
 
 /// `10482231` → `1048 2231`; non-numeric ids are left alone.
 String formatEnjoyId(String id) {
@@ -59,25 +61,28 @@ class ProfileHeroCard extends ConsumerWidget {
     final tt = Theme.of(context).textTheme;
     final p = profile;
 
-    final avatar = Container(
-      width: _kAvatarSize,
-      height: _kAvatarSize,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(shape: BoxShape.circle, gradient: t.logo),
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: t.paper, width: 3),
+    Widget avatar(double size) {
+      final ring = size >= _kAvatarSize ? 3.0 : 2.0;
+      return Container(
+        width: size,
+        height: size,
+        padding: EdgeInsets.all(ring),
+        decoration: BoxDecoration(shape: BoxShape.circle, gradient: t.logo),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: t.paper, width: ring),
+          ),
+          child: EnjoyAvatar(
+            name: p.name,
+            imageUrl: rasterAvatarUrl(p.avatarUrl),
+            size: size - ring * 4,
+          ),
         ),
-        child: EnjoyAvatar(
-          name: p.name,
-          imageUrl: rasterAvatarUrl(p.avatarUrl),
-          size: _kAvatarSize - 12,
-        ),
-      ),
-    );
+      );
+    }
 
-    final identity = Column(
+    Widget identity({required bool compact}) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -92,10 +97,10 @@ class ProfileHeroCard extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
               style: enjoyDisplayStyle(
                 context,
-                size: 36,
+                size: compact ? 26 : 36,
                 color: t.ink,
                 height: 1.1,
-                letterSpacing: -0.72,
+                letterSpacing: compact ? -0.4 : -0.72,
               ),
             ),
             Container(
@@ -116,7 +121,7 @@ class ProfileHeroCard extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: compact ? 6 : 8),
         Wrap(
           spacing: 8,
           runSpacing: 4,
@@ -151,52 +156,73 @@ class ProfileHeroCard extends ConsumerWidget {
       ],
     );
 
-    final actions = Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        EnjoyButton.secondary(
-          onPressed: () => context.push('/profile/edit'),
-          child: Text(l10n.profileEditEntry),
-        ),
-        if (tier == SubscriptionTier.free)
-          EnjoyButton.brand(
-            onPressed: () => context.push(kSubscriptionRoutePath),
-            child: Text(l10n.subscriptionUpgrade),
-          ),
-      ],
-    );
-
-    return EnjoyCard(
-      radius: t.radiusSheet,
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < _kHeroStackBelow) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  avatar,
-                  const SizedBox(height: 18),
-                  identity,
-                  const SizedBox(height: 20),
-                  actions,
-                ],
-              );
-            }
-            return Row(
-              children: [
-                avatar,
-                const SizedBox(width: 22),
-                Expanded(child: identity),
-                const SizedBox(width: 16),
-                actions,
-              ],
-            );
-          },
-        ),
+    List<Widget> buttons({required bool expand}) => [
+      EnjoyButton.secondary(
+        expand: expand,
+        onPressed: () => context.push('/profile/edit'),
+        child: Text(l10n.profileEditEntry),
       ),
+      if (tier == SubscriptionTier.free)
+        EnjoyButton.brand(
+          expand: expand,
+          onPressed: () => context.push(kSubscriptionRoutePath),
+          child: Text(l10n.subscriptionUpgrade),
+        ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < _kHeroCompactBelow) {
+          return EnjoyCard(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      avatar(_kCompactAvatarSize),
+                      const SizedBox(width: 16),
+                      Expanded(child: identity(compact: true)),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      for (final (i, button) in buttons(
+                        expand: true,
+                      ).indexed) ...[
+                        if (i > 0) const SizedBox(width: 8),
+                        Expanded(child: button),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return EnjoyCard(
+          radius: t.radiusSheet,
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Row(
+              children: [
+                avatar(_kAvatarSize),
+                const SizedBox(width: 22),
+                Expanded(child: identity(compact: false)),
+                const SizedBox(width: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: buttons(expand: false),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -244,6 +270,7 @@ class ProfilePracticeCard extends StatelessWidget {
                   child: Text(
                     l10n.profileSyncedFromAccount,
                     maxLines: 1,
+                    textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
                     style: tt.bodySmall?.copyWith(
                       fontSize: 12.5,
@@ -257,7 +284,8 @@ class ProfilePracticeCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final (label, ms) in cells)
+                for (final (i, (label, ms)) in cells.indexed) ...[
+                  if (i > 0) const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,6 +306,7 @@ class ProfilePracticeCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                ],
               ],
             ),
             if (totalMs == 0) ...[
@@ -303,7 +332,7 @@ class _ProfileFigure extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final (value, unit) = parts;
-    return Text.rich(
+    final figure = Text.rich(
       TextSpan(
         children: [
           TextSpan(text: value),
@@ -315,8 +344,21 @@ class _ProfileFigure extends StatelessWidget {
         ],
       ),
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: enjoyDisplayStyle(context, size: 32, color: t.ink, height: 1),
+      softWrap: false,
+      style: enjoyDisplayStyle(
+        context,
+        size: _kFigureSize,
+        color: t.ink,
+        height: 1,
+      ),
+    );
+    return SizedBox(
+      height: _kFigureSize,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: AlignmentDirectional.bottomStart,
+        child: figure,
+      ),
     );
   }
 }

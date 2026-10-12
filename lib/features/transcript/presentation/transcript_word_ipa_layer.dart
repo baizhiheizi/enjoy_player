@@ -2,9 +2,9 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/data/subtitle/transcript_word_ipa.dart';
 
@@ -23,13 +23,16 @@ TextStyle transcriptIpaTextStyle(
   Color color, {
   double? fontSize,
 }) {
-  return GoogleFonts.notoSans(
+  return TextStyle(
+    fontFamily: kNotoSansFamily,
     fontSize: fontSize ?? (bodyStyle.fontSize ?? 16) * 0.75,
     height: 1.15,
     fontWeight: FontWeight.w400,
     color: color,
   );
 }
+
+const double _kWordGapEm = 0.26;
 
 /// Wrap of per-word columns: orthography on top, optional IPA underneath.
 ///
@@ -46,6 +49,7 @@ class TranscriptAlignedWords extends StatelessWidget {
     this.activeWordIndex,
     this.activeUnderlineColor,
     this.wavyWordIndexes,
+    this.runSpacing = 8,
     this.onIpaTap,
     this.selectableWordBuilder,
     super.key,
@@ -58,6 +62,9 @@ class TranscriptAlignedWords extends StatelessWidget {
   final bool emphasize;
   final int? activeWordIndex;
   final Color? activeUnderlineColor;
+
+  /// Vertical gap between wrapped word rows.
+  final double runSpacing;
 
   /// Word indexes that draw the wavy you-colored mispronunciation underline
   /// (assessment feedback, D3.8).
@@ -76,9 +83,8 @@ class TranscriptAlignedWords extends StatelessWidget {
     final activeColor =
         activeUnderlineColor ?? Theme.of(context).colorScheme.primary;
     return Wrap(
-      spacing: 8,
-      runSpacing: 4,
-      crossAxisAlignment: WrapCrossAlignment.end,
+      spacing: (wordStyle.fontSize ?? 16) * _kWordGapEm,
+      runSpacing: runSpacing,
       children: [
         for (var i = 0; i < words.length; i++)
           _AlignedWordColumn(
@@ -87,7 +93,6 @@ class TranscriptAlignedWords extends StatelessWidget {
             ipa: wordIpaSpelling(words[i]),
             wordStyle: wordStyle.copyWith(
               color: emphasize ? defaultColor : wordStyle.color ?? defaultColor,
-              fontWeight: emphasize ? FontWeight.w600 : wordStyle.fontWeight,
             ),
             ipaStyle: ipaStyle,
             isActive: activeWordIndex == i,
@@ -144,6 +149,7 @@ class _AlignedWordColumn extends StatelessWidget {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
@@ -161,7 +167,7 @@ class _AlignedWordColumn extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: onIpaTap,
             child: Padding(
-              padding: const EdgeInsets.only(top: 2),
+              padding: const EdgeInsets.only(top: 2, left: 1),
               child: ExcludeSemantics(
                 child: Text(ipa!, style: ipaStyle, maxLines: 1),
               ),

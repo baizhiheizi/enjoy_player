@@ -139,6 +139,35 @@ flutter:
   # not depend on a package whose IconData subclass breaks on new Flutter
   # releases. Only the three weights the UI uses ship. See ADR-0089.
   fonts:
+    # Duet text faces (ADR-0095), declared as real multi-weight families so a
+    # `fontWeight` change selects the matching face instead of keeping the
+    # variant a google_fonts family name was built for.
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/google_fonts/Geist-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/google_fonts/Geist-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/google_fonts/Geist-SemiBold.ttf
+          weight: 600
+    - family: GeistMono
+      fonts:
+        - asset: assets/fonts/google_fonts/GeistMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/google_fonts/GeistMono-SemiBold.ttf
+          weight: 600
+    - family: Literata
+      fonts:
+        - asset: assets/fonts/google_fonts/Literata-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/google_fonts/Literata-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/google_fonts/Literata-SemiBold.ttf
+          weight: 600
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/google_fonts/NotoSans-Regular.ttf
+          weight: 400
     - family: PhosphorRegular
       fonts:
         - asset: assets/fonts/phosphor/Phosphor-Regular.ttf

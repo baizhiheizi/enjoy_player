@@ -248,4 +248,52 @@ void main() {
       expect(find.text(worldIpa), findsOneWidget);
     },
   );
+
+  testWidgets('IPA labels start at their word instead of centring under it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        extraOverrides: transcriptIpaOverlayOnOverrides(),
+        child: TranscriptLineTile(
+          line: _untimedIpa,
+          mediaId: 'test',
+          secondaryText: null,
+          isActive: true,
+          inEcho: false,
+          selectable: false,
+          onTap: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (final (word, ipa) in [('Hello', helloIpa), ('world', worldIpa)]) {
+      final wordLeft = tester.getTopLeft(find.text(word)).dx;
+      final ipaLeft = tester.getTopLeft(find.text(ipa)).dx;
+      expect(ipaLeft - wordLeft, moreOrLessEquals(1, epsilon: 0.01));
+    }
+  });
+
+  testWidgets('echo lens rows drop the IPA overlay', (tester) async {
+    await tester.pumpWidget(
+      _harness(
+        extraOverrides: transcriptIpaOverlayOnOverrides(),
+        child: TranscriptLineTile(
+          line: _untimedIpa,
+          mediaId: 'test',
+          secondaryText: null,
+          isActive: false,
+          inEcho: false,
+          selectable: false,
+          lensDistance: 1,
+          onTap: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TranscriptAlignedWords), findsNothing);
+    expect(find.text(helloIpa), findsNothing);
+  });
 }
