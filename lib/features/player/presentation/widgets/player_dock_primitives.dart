@@ -248,6 +248,102 @@ class DockLabeledControl extends StatelessWidget {
   }
 }
 
+/// 36x36 circular icon slot shared by [DockActionPill] and the icon-only
+/// phone branch of [DockOriginalPill].
+class _DockPillIconSlot extends StatelessWidget {
+  const _DockPillIconSlot({required this.color, required this.child});
+
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      child: child,
+    );
+  }
+}
+
+/// Stadium-pill action button: paper pill with a 36x36 circular icon slot,
+/// a flexible label, and a trailing [EnjoyKeycap]. Used by the
+/// Recording-mode Cancel button and the Echo-mode Original pill.
+class DockActionPill extends StatelessWidget {
+  const DockActionPill({
+    required this.tooltip,
+    required this.onTap,
+    required this.icon,
+    required this.slotColor,
+    required this.inkColor,
+    required this.label,
+    required this.keycap,
+    this.width,
+    this.height,
+    this.padding = const EdgeInsets.only(left: 8, right: 12),
+    super.key,
+  });
+
+  final String tooltip;
+  final VoidCallback onTap;
+  final IconData icon;
+  final Color slotColor;
+  final Color inkColor;
+  final String label;
+  final String keycap;
+  final double? width;
+  final double? height;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Tooltip(
+      message: tooltip,
+      child: EnjoyPressable(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(t.radiusFull),
+        pressedScale: 0.96,
+        child: Container(
+          width: width,
+          height: height,
+          padding: padding,
+          decoration: ShapeDecoration(
+            color: t.paper,
+            shape: const StadiumBorder(),
+            shadows: t.shadowLift,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _DockPillIconSlot(
+                color: slotColor,
+                child: Icon(icon, size: 14, color: inkColor),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: inkColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              EnjoyKeycap(label: keycap),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Round "you" record button (Echo mode).
 class DockRecordButton extends StatelessWidget {
   const DockRecordButton({
@@ -351,74 +447,41 @@ class DockOriginalPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final width = phone ? t.originalButtonPhoneSize : t.originalPillWidth;
-    final height = phone ? 48.0 : t.originalPillHeight;
-    return Tooltip(
-      message: l10n.hotkeysDescReplayLine,
-      child: EnjoyPressable(
-        onTap: onPlay,
-        borderRadius: BorderRadius.circular(height / 2),
-        pressedScale: 0.96,
-        child: Container(
-          width: width,
-          height: height,
-          padding: phone ? EdgeInsets.zero : const EdgeInsets.only(left: 8),
-          decoration: ShapeDecoration(
-            color: t.paper,
-            shape: const StadiumBorder(),
-            shadows: t.shadowLift,
+    if (phone) {
+      return Tooltip(
+        message: l10n.hotkeysDescReplayLine,
+        child: EnjoyPressable(
+          onTap: onPlay,
+          borderRadius: BorderRadius.circular(24),
+          pressedScale: 0.96,
+          child: Container(
+            width: t.originalButtonPhoneSize,
+            height: 48,
+            alignment: Alignment.center,
+            decoration: ShapeDecoration(
+              color: t.paper,
+              shape: const StadiumBorder(),
+              shadows: t.shadowLift,
+            ),
+            child: _DockPillIconSlot(
+              color: t.originalSoft,
+              child: Icon(EnjoyIcons.play, size: 14, color: t.originalInk),
+            ),
           ),
-          child: phone
-              ? Center(
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: t.originalSoft,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      EnjoyIcons.play,
-                      size: 14,
-                      color: t.originalInk,
-                    ),
-                  ),
-                )
-              : Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: t.originalSoft,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        EnjoyIcons.play,
-                        size: 14,
-                        color: t.originalInk,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Flexible(
-                      child: Text(
-                        l10n.playerDockOriginal,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: t.originalInk,
-                            ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const EnjoyKeycap(label: 'S'),
-                  ],
-                ),
         ),
-      ),
+      );
+    }
+    return DockActionPill(
+      tooltip: l10n.hotkeysDescReplayLine,
+      onTap: onPlay,
+      icon: EnjoyIcons.play,
+      slotColor: t.originalSoft,
+      inkColor: t.originalInk,
+      label: l10n.playerDockOriginal,
+      keycap: 'S',
+      width: t.originalPillWidth,
+      height: t.originalPillHeight,
+      padding: const EdgeInsets.only(left: 8),
     );
   }
 }

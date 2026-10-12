@@ -12,7 +12,6 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
@@ -551,56 +550,16 @@ class _RecordingControls extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Tooltip(
-                  message: l10n.asrLongMediaConfirmCancel,
-                  child: EnjoyPressable(
-                    onTap: onCancel,
-                    borderRadius: BorderRadius.circular(t.radiusFull),
-                    pressedScale: 0.96,
-                    child: Container(
-                      width: 150,
-                      height: 52,
-                      padding: const EdgeInsets.only(left: 8, right: 12),
-                      decoration: ShapeDecoration(
-                        color: t.paper,
-                        shape: const StadiumBorder(),
-                        shadows: t.shadowLift,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: t.sunk,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              EnjoyIcons.close,
-                              size: 14,
-                              color: t.ink2,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: Text(
-                              l10n.asrLongMediaConfirmCancel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: t.ink2,
-                                  ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const EnjoyKeycap(label: 'Esc'),
-                        ],
-                      ),
-                    ),
-                  ),
+                DockActionPill(
+                  tooltip: l10n.asrLongMediaConfirmCancel,
+                  onTap: onCancel,
+                  icon: EnjoyIcons.close,
+                  slotColor: t.sunk,
+                  inkColor: t.ink2,
+                  label: l10n.asrLongMediaConfirmCancel,
+                  keycap: 'Esc',
+                  width: 150,
+                  height: 52,
                 ),
                 const SizedBox(width: 6),
                 Tooltip(
