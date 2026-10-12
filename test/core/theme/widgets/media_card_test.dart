@@ -533,6 +533,40 @@ void main() {
       expect(find.text('Channel'), findsOneWidget);
     });
 
+    testWidgets('mobile duration takes its intrinsic width', (tester) async {
+      await _withPlatform(TargetPlatform.android, () async {
+        await tester.pumpWidget(
+          _wrap(
+            child: MediaCardRow(
+              title: 'T',
+              durationLabel: '0:17',
+              onTap: () {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.getSize(find.text('0:17')).width, lessThan(64));
+      });
+    });
+
+    testWidgets('desktop duration keeps its right-aligned 64px column', (
+      tester,
+    ) async {
+      await _withPlatform(TargetPlatform.macOS, () async {
+        await tester.pumpWidget(
+          _wrap(
+            child: MediaCardRow(
+              title: 'T',
+              durationLabel: '0:17',
+              onTap: () {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.getSize(find.text('0:17')).width, 64);
+      });
+    });
+
     testWidgets('calls onTap on tap', (tester) async {
       var tapped = 0;
       await tester.pumpWidget(

@@ -97,14 +97,19 @@ class _MediaCardRowState extends State<MediaCardRow> {
       if (language != null)
         _RowLanguageChip(label: language, onTap: widget.onLanguageTap),
       if (duration != null)
-        SizedBox(
-          width: 64,
-          child: Text(
-            duration,
-            textAlign: TextAlign.right,
-            style: enjoyMonoStyle(context, size: 13, color: t.ink2),
-          ),
-        ),
+        isMobilePlatform
+            ? Text(
+                duration,
+                style: enjoyMonoStyle(context, size: 13, color: t.ink2),
+              )
+            : SizedBox(
+                width: 64,
+                child: Text(
+                  duration,
+                  textAlign: TextAlign.right,
+                  style: enjoyMonoStyle(context, size: 13, color: t.ink2),
+                ),
+              ),
     ];
     final Widget? action;
     if (widget.trailing != null) {
@@ -144,10 +149,10 @@ class _MediaCardRowState extends State<MediaCardRow> {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (final (i, w) in meta.indexed) ...[
-          if (i > 0) const SizedBox(width: 20),
+          if (i > 0) const SizedBox(width: 10),
           w,
         ],
-        if (action != null) ...[const SizedBox(width: 12), action],
+        if (action != null) ...[const SizedBox(width: 8), action],
       ],
     );
   }
@@ -271,7 +276,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             _buildTrailing(cs, t),
           ],
         ),
