@@ -2,14 +2,14 @@
   "version": 1,
   "cursors": {
     "labelling_after": null,
-    "investigation_after": 797
+    "investigation_after": 896
   },
   "issues": [
     {
       "number": 786,
       "state": "resolution_recommended",
       "updated_at": "2026-10-08",
-      "note": "Bokmål catalog shipped (#788); YouTube caption-code gap closed by draft PR #848. kAzureVoices Craft-voice graceful-degrade note remains open. Recommend close once #848 lands."
+      "note": "Bokmål catalog shipped (#788); YouTube caption-code gap closed by merged PR #848. kAzureVoices Craft-voice graceful-degrade note remains open. Recommend close once maintainer confirms."
     },
     {
       "number": 793,
@@ -32,8 +32,8 @@
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-08",
-      "note": "Monthly activity summary for October 2026 — updated each run by Task 11. Body refreshed 2026-10-08 with new ai_kind_policies PR row + Run History entry."
+      "updated_at": "2026-10-12",
+      "note": "Monthly activity summary for October 2026 — updated each run by Task 11. Body refreshed 2026-10-12 with new DockActionPill PR row + Run History entry."
     },
     {
       "number": 850,
@@ -46,6 +46,24 @@
       "state": "deferred",
       "updated_at": "2026-10-07",
       "note": "[aw] detection runs — auto-managed."
+    },
+    {
+      "number": 891,
+      "state": "deferred",
+      "updated_at": "2026-10-12",
+      "note": "[duplicate-code] Parent of #895 + #896. #896 closed by DockActionPill draft PR. #895 needs maintainer design call on inner-dot shape (Stop borderRadius: 4 vs DockRecordButton BoxShape.circle). Close once #896 lands."
+    },
+    {
+      "number": 895,
+      "state": "deferred",
+      "updated_at": "2026-10-12",
+      "note": "[duplicate-code] Record Ring Stack duplication between DockRecordButton and _RecordingControls. Widen DockRecordButton to accept recordingModeSize/innerShape parameter and unify the two shapes."
+    },
+    {
+      "number": 896,
+      "state": "deferred",
+      "updated_at": "2026-10-12",
+      "note": "[duplicate-code] Action Pill shell duplication closed by draft PR (branch repo-assist/improve-dock-action-pill-primitive-2026-10-12). DockActionPill primitive + _DockPillIconSlot helper extracted. 3/3 new tests; 6436/6436 full suite pass."
     }
   ],
   "fixes": [
@@ -53,76 +71,26 @@
       "issue": 786,
       "pr": 848,
       "branch": "repo-assist/fix-786-youtube-caption-alias-matching-628499ea392178eb",
-      "status": "open",
-      "updated_at": "2026-10-07",
+      "status": "merged",
+      "updated_at": "2026-10-09",
       "note": "YouTube caption matcher uses primary-subtag aliasing. 25/25 youtube_caption_fetcher_test, 476/476 test/features/transcript/. Format + analyze clean."
     },
     {
-      "issue": 888,
+      "issue": 896,
       "pr": null,
-      "branch": "repo-assist/split-player-dock-primitives-2026-10-11",
+      "branch": "repo-assist/improve-dock-action-pill-primitive-2026-10-12",
       "status": "open",
-      "updated_at": "2026-10-11",
-      "note": "PR 1 of 5: primitives extracted into player_dock_primitives.dart (458 LOC). player_dock.dart trimmed 1077 -> 663 lines. 6426/6426 tests pass, flutter analyze clean, format clean."
+      "updated_at": "2026-10-12",
+      "note": "DockActionPill primitive + _DockPillIconSlot helper. Cancel button + DockOriginalPill desktop branch refactored; phone branch uses helper. 3/3 new tests; 6/6 player_dock tests; 6436/6436 full suite; analyze + format clean. Net diff: 3 files, 263+/117-."
     }
   ],
   "checks": [],
   "completed_actions": [],
   "priorities": [
     {
-      "task": 6,
-      "item": "PR #848 YouTube caption alias gap",
-      "note": "Draft PR awaiting maintainer review; closes #786 residual caption-code gap. Land and close #786."
-    },
-    {
-      "task": 7,
-      "item": "PR #849 CHANGELOG October fixes",
-      "note": "Draft PR covering #838/#839/#843/#844 — pure markdown drift fix."
-    },
-    {
       "task": 5,
-      "item": "PR #851 timeline codec shared threshold",
-      "note": "Draft PR collapsing duplicate kEncodeTimelineJsonBytes to kPreloadTimelineJsonBytes."
-    },
-    {
-      "task": 9,
-      "item": "PR #852 language descriptor tests",
-      "note": "Draft PR adding direct unit coverage for splitLanguageTag, normalizeLanguageAlias, firstTagPerPrimary, isLookupRow."
-    },
-    {
-      "task": 5,
-      "item": "PR #859 haptics helpers direct tests",
-      "note": "Draft PR (2026-10-07) adding 16 focused tests for Haptics public surface — wrapTap, selection, impactMedium, success, warning; no production code changed."
-    },
-    {
-      "task": 4,
-      "item": "PR #860 --changed-only CI gate flag",
-      "note": "Draft PR (2026-10-07) adding --changed-only to validate_ci_gates.sh for local agent iteration; CI behaviour unchanged."
-    },
-    {
-      "task": 5,
-      "item": "Lookup equality strict types",
-      "note": "Draft PR (prior run) tightens LookupTextParams equality to require same runtimeType; flips doc/test contradiction."
-    },
-    {
-      "task": 9,
-      "item": "PR #864 ai_kind_policies tests",
-      "note": "Draft PR (2026-10-08) adding 11 focused tests for AiKindPolicy + defaultAiKindPolicies. 11/11 new; 335/335 test/features/ai/."
-    },
-    {
-      "task": 5,
-      "item": "Follow-up PR 2: extract _ListenControls into player_dock_listen_controls.dart",
-      "note": "Branches off the PR 1 commit. Will rename to ListenDockControls."
-    },
-    {
-      "task": 5,
-      "item": "Follow-up PR 3: extract _EchoControls into player_dock_echo_controls.dart",
-      "note": "Branches off PR 1. Will rename to EchoDockControls; pulls in kEchoCaptionBlockHeight/kEchoSkipIconHalf."
-    },
-    {
-      "task": 5,
-      "item": "Follow-up PR 4: extract _RecordingControls into player_dock_recording_controls.dart",
-      "note": "Branches off PR 1. Will rename to RecordingDockControls."
+      "item": "PR follow-up: #895 record-ring stack dedupe",
+      "note": "Draft PR this run closed #896. #895 follow-up: widen DockRecordButton to accept recordingModeSize/innerShape; reuse from _RecordingControls. Needs maintainer design call on inner-dot shape."
     }
   ]
 }
