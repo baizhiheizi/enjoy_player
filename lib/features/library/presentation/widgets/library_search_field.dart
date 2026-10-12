@@ -10,6 +10,7 @@ import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus_provider.dart';
 import 'package:enjoy_player/features/library/application/library_search_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -79,10 +80,15 @@ class _LibrarySearchFieldState extends ConsumerState<LibrarySearchField> {
           prefixIconConstraints: const BoxConstraints(minWidth: 38),
           suffixIconConstraints: const BoxConstraints(minWidth: 36),
           suffixIcon: query.isEmpty
-              ? const Padding(
-                  padding: EdgeInsets.only(right: 10),
-                  child: Center(widthFactor: 1, child: EnjoyKeycap(label: '/')),
-                )
+              ? (isDesktop
+                    ? const Padding(
+                        padding: EdgeInsets.only(right: 10),
+                        child: Center(
+                          widthFactor: 1,
+                          child: EnjoyKeycap(label: '/'),
+                        ),
+                      )
+                    : null)
               : Tooltip(
                   message: l10n.librarySearchClear,
                   child: EnjoyPressable(

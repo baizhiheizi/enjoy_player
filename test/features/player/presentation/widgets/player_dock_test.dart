@@ -141,7 +141,7 @@ void main() {
     expect(find.text(l10n.playerDockHideText), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
     expect(find.text('1x'), findsOneWidget);
-    expect(find.text(l10n.playerDockOriginal), findsNothing);
+    expect(find.text(l10n.playerDockRecord), findsNothing);
     expect(find.byType(TransportVolumeButton), findsOneWidget);
   });
 
@@ -152,26 +152,39 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Echo dock swaps in Original and Record', (tester) async {
+  testWidgets('Echo dock swaps in Play/Pause and Record', (tester) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     await tester.binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await pumpDock(tester, echoActive: true);
 
-    expect(find.text(l10n.playerDockOriginal), findsOneWidget);
+    expect(find.text(l10n.play), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.micFill), findsNothing);
     expect(find.textContaining('Lines 1–2'), findsOneWidget);
     expect(find.textContaining(l10n.playerDockLooping), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.skipBack), findsOneWidget);
   });
 
-  testWidgets('Echo dock labels Original and Record on phone', (tester) async {
+  testWidgets('Echo dock play/pause pill toggles playback', (tester) async {
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await tester.binding.setSurfaceSize(const Size(1280, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await pumpDock(tester, echoActive: true);
+
+    await tester.tap(find.byIcon(EnjoyIcons.play));
+    await tester.pump();
+    expect(engine.playOrPauseCallCount, 1);
+
+    expect(find.text(l10n.pause), findsNothing);
+  });
+
+  testWidgets('Echo dock labels Play and Record on phone', (tester) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     await tester.binding.setSurfaceSize(const Size(400, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await pumpDock(tester, echoActive: true);
 
-    expect(find.text(l10n.playerDockOriginal), findsOneWidget);
+    expect(find.text(l10n.play), findsOneWidget);
     expect(find.text(l10n.playerDockRecord), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -184,7 +197,7 @@ void main() {
 
     expect(find.text(l10n.asrLongMediaConfirmCancel), findsOneWidget);
     expect(find.bySemanticsLabel(l10n.shadowRecordingStop), findsOneWidget);
-    expect(find.text(l10n.playerDockOriginal), findsNothing);
+    expect(find.text(l10n.playerDockRecord), findsNothing);
   });
 
   testWidgets('dock sits on paper with the progress strip mounted', (

@@ -183,6 +183,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                         ]),
                         builder: (context, _) {
                           final showKeycap =
+                              isDesktop &&
                               searchKeys.isNotEmpty &&
                               !searchFocusNode.hasFocus &&
                               _searchController.text.isEmpty;
@@ -288,7 +289,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                   label: l10n.craftScreenTitle,
                   selected: path.startsWith('/craft'),
                   onTap: () => context.go('/craft'),
-                  trailing: EnjoyKeycap(label: craftKey),
+                  trailing: isDesktop ? EnjoyKeycap(label: craftKey) : null,
                 ),
 
                 const Spacer(),

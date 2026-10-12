@@ -186,12 +186,15 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             hidePillIconOnly: hidePillIconOnly,
                             blurEnabled: blurEnabled,
                             playbackRate: playbackRate,
+                            playing: playing,
                             loopStartLine: echo.startLineIndex,
                             loopEndLine: echo.endLineIndex,
                             onToggleHideText: interactions.toggleBlur,
                             onPrev: interactions.prevLine,
                             onNext: interactions.nextLine,
-                            onOriginal: interactions.replayLine,
+                            onTogglePlay: () => ref
+                                .read(playerControllerProvider.notifier)
+                                .togglePlay(),
                             onRecord: () => ref
                                 .read(shadowReadingHotkeyBusProvider.notifier)
                                 .pulseRecording(),
@@ -360,9 +363,6 @@ class _ListenControls extends StatelessWidget {
   }
 }
 
-const double _kEchoCaptionBlockHeight = 22;
-const double _kEchoSkipIconHalf = 24;
-
 class _EchoControls extends StatelessWidget {
   const _EchoControls({
     super.key,
@@ -372,12 +372,13 @@ class _EchoControls extends StatelessWidget {
     required this.hidePillIconOnly,
     required this.blurEnabled,
     required this.playbackRate,
+    required this.playing,
     required this.loopStartLine,
     required this.loopEndLine,
     required this.onToggleHideText,
     required this.onPrev,
     required this.onNext,
-    required this.onOriginal,
+    required this.onTogglePlay,
     required this.onRecord,
     required this.onSpeed,
   });
@@ -388,12 +389,13 @@ class _EchoControls extends StatelessWidget {
   final bool hidePillIconOnly;
   final bool blurEnabled;
   final double playbackRate;
+  final bool playing;
   final int loopStartLine;
   final int loopEndLine;
   final Future<void> Function() onToggleHideText;
   final Future<void> Function() onPrev;
   final Future<void> Function() onNext;
-  final Future<void> Function() onOriginal;
+  final VoidCallback onTogglePlay;
   final VoidCallback onRecord;
   final VoidCallback onSpeed;
 
@@ -420,7 +422,11 @@ class _EchoControls extends StatelessWidget {
         ],
       ],
     );
-    final original = DockOriginalPill(phone: phone, onPlay: onOriginal);
+    final playPause = DockPlayPausePill(
+      phone: phone,
+      playing: playing,
+      onToggle: onTogglePlay,
+    );
     final record = DockRecordButton(phone: phone, onToggle: onRecord);
     final skipBack = DockIconButton(
       icon: EnjoyIcons.skipBack,
@@ -434,35 +440,32 @@ class _EchoControls extends StatelessWidget {
     );
     final Widget center;
     if (phone) {
-      final skipBaseline =
-          t.recordButtonSizePhone / 2 +
-          _kEchoCaptionBlockHeight -
-          _kEchoSkipIconHalf;
+      final zone = t.recordButtonSizePhone;
+      Widget zoneBox(Widget child) => SizedBox(
+        height: zone,
+        child: Center(child: child),
+      );
       center = Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.only(bottom: skipBaseline),
-            child: skipBack,
-          ),
+          zoneBox(skipBack),
           const SizedBox(width: 10),
           DockLabeledControl(
-            label: l10n.playerDockOriginal,
+            zoneHeight: zone,
+            label: playing ? l10n.pause : l10n.play,
             color: t.originalInk,
-            child: original,
+            child: playPause,
           ),
           const SizedBox(width: 16),
           DockLabeledControl(
+            zoneHeight: zone,
             label: l10n.playerDockRecord,
             color: t.youInk,
             child: record,
           ),
           const SizedBox(width: 10),
-          Padding(
-            padding: EdgeInsets.only(bottom: skipBaseline),
-            child: skipForward,
-          ),
+          zoneBox(skipForward),
         ],
       );
     } else {
@@ -480,7 +483,7 @@ class _EchoControls extends StatelessWidget {
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [original, const SizedBox(width: 6), record],
+                children: [playPause, const SizedBox(width: 6), record],
               ),
             ),
           ),
@@ -595,8 +598,10 @@ class _RecordingControls extends StatelessWidget {
                                   ),
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          const EnjoyKeycap(label: 'Esc'),
+                          if (isDesktop) ...[
+                            const SizedBox(width: 6),
+                            const EnjoyKeycap(label: 'Esc'),
+                          ],
                         ],
                       ),
                     ),
@@ -615,38 +620,25 @@ class _RecordingControls extends StatelessWidget {
                       child: SizedBox(
                         width: 62,
                         height: 62,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox.expand(
-                              child: Padding(
-                                padding: const EdgeInsets.all(1.5),
-                                child: CustomPaint(
-                                  painter: DockRecordRingPainter(
-                                    color: t.youLine,
-                                  ),
-                                ),
+                        child: Center(
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            alignment: Alignment.center,
+                            decoration: ShapeDecoration(
+                              color: t.you,
+                              shape: const CircleBorder(),
+                              shadows: t.shadowRecordButton,
+                            ),
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: t.onYou,
+                                borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                            Container(
-                              width: 50,
-                              height: 50,
-                              alignment: Alignment.center,
-                              decoration: ShapeDecoration(
-                                color: t.you,
-                                shape: const CircleBorder(),
-                                shadows: t.shadowRecordButton,
-                              ),
-                              child: Container(
-                                width: 16,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: t.onYou,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),

@@ -125,5 +125,5 @@ line. Score chips on takes are uncolored — an ink number on a paper pill
 thresholds stay in `score_level.dart` and feed the assessment meter
 (D3.8). In the player the takes render as the strip under the loop
 (chips + Pitch pill); recording readouts (pulse label, countdown bar)
-render inside the loop block, and the dock carries Original + Record and
-Cancel + Stop.
+render inside the loop block, and the dock carries Play/Pause + Record
+and Cancel + Stop.

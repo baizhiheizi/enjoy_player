@@ -170,23 +170,36 @@ class _ShadowTakesRowState extends ConsumerState<ShadowTakesRow> {
       return Row(
         children: [
           Flexible(
-            child: Text.rich(
-              TextSpan(
-                text: l10n.shadowTakesEmptyPrefix,
-                style: tt.bodyMedium?.copyWith(fontSize: 13.5, color: tok.ink3),
-                children: [
-                  const WidgetSpan(child: SizedBox(width: 6)),
-                  const WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
-                    child: EnjoyKeycap(label: 'R'),
+            child: isMobilePlatform
+                ? Text(
+                    l10n.shadowRecordingEmpty,
+                    style: tt.bodyMedium?.copyWith(
+                      fontSize: 13.5,
+                      color: tok.ink3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : Text.rich(
+                    TextSpan(
+                      text: l10n.shadowTakesEmptyPrefix,
+                      style: tt.bodyMedium?.copyWith(
+                        fontSize: 13.5,
+                        color: tok.ink3,
+                      ),
+                      children: [
+                        const WidgetSpan(child: SizedBox(width: 6)),
+                        const WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: EnjoyKeycap(label: 'R'),
+                        ),
+                        const WidgetSpan(child: SizedBox(width: 6)),
+                        TextSpan(text: l10n.shadowTakesEmptySuffix),
+                      ],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const WidgetSpan(child: SizedBox(width: 6)),
-                  TextSpan(text: l10n.shadowTakesEmptySuffix),
-                ],
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
           ),
           pitchPill,
         ],

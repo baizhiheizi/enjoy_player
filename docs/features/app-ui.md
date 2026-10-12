@@ -114,7 +114,7 @@ Radii:      keycap 5 · badge 7 · segment thumb 9 · control / segment track / 
             card 20 · cardLarge / dialog 24 · sheet 26 · pill (legacy radiusXs 6 … radius2xl 30)
 Controls:   32 / 40 / 50                        (controlHeightSm / controlHeight / controlHeightLg)
 Sizes:      touch 44 · icon button 40 (44 phone) · segment 38 · chip 34 · take chip 42
-            play 60 (68 phone) · record 62 (76 phone) · Original pill 150 × 52 (56 phone)
+            play 60 (68 phone) · record 62 (76 phone) · Echo play/pause pill 150 × 52 (56 circle phone)
 Shell:      sidebar 244 · brand row 52 · tab bar 84 + 26 safe inset · player top bar 60 · subpage header 64
 Player:     ruler hit 34 · margin 340 · Listen column 700 · Echo column 760 · video transcript column clamp(300 px, 28 %, 380 px) · take chip 36
 Pages:      browse 1180 · craft 1080 · hub 840 · form 680 · gutter 40 (16 phone)

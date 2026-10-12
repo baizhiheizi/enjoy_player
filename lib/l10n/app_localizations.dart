@@ -1101,12 +1101,6 @@ abstract class AppLocalizations {
   /// **'Lines {start}–{end} of {total}'**
   String playerDockLinesSpanPosition(int start, int end, int total);
 
-  /// Dock pill in Echo that replays the original loop audio.
-  ///
-  /// In en, this message translates to:
-  /// **'Original'**
-  String get playerDockOriginal;
-
   /// No description provided for @exitEchoMode.
   ///
   /// In en, this message translates to:

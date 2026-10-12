@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -122,17 +123,28 @@ void main() {
   testWidgets('AppSidebar renders brand row, search field and nav pills', (
     tester,
   ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      await pumpAndFindPills(tester);
+
+      expect(findChromeIcon(EnjoyChromeGlyph.home), findsOneWidget);
+      expect(findChromeIcon(EnjoyChromeGlyph.compass), findsOneWidget);
+      expect(findChromeIcon(EnjoyChromeGlyph.library), findsOneWidget);
+      expect(findChromeIcon(EnjoyChromeGlyph.gear), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+      expect(find.text(l10n.vocabularyTitle), findsOneWidget);
+      expect(find.text(l10n.craftScreenTitle), findsOneWidget);
+      expect(find.byType(EnjoyKeycap), findsNWidgets(2));
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('AppSidebar hides shortcut keycaps on mobile', (tester) async {
     await pumpAndFindPills(tester);
 
-    expect(findChromeIcon(EnjoyChromeGlyph.home), findsOneWidget);
-    expect(findChromeIcon(EnjoyChromeGlyph.compass), findsOneWidget);
-    expect(findChromeIcon(EnjoyChromeGlyph.library), findsOneWidget);
-    expect(findChromeIcon(EnjoyChromeGlyph.gear), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
-    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    expect(find.text(l10n.vocabularyTitle), findsOneWidget);
-    expect(find.text(l10n.craftScreenTitle), findsOneWidget);
-    expect(find.byType(EnjoyKeycap), findsNWidgets(2));
+    expect(find.byType(EnjoyKeycap), findsNothing);
   });
 
   testWidgets('AppSidebar tapping the Discover nav pill navigates', (

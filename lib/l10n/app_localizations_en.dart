@@ -573,9 +573,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get playerDockOriginal => 'Original';
-
-  @override
   String get exitEchoMode => 'Exit echo mode';
 
   @override

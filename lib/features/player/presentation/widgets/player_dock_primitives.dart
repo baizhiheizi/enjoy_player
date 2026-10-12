@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
@@ -77,8 +78,10 @@ class DockHideTextPill extends StatelessWidget {
                     color: active ? t.paper : t.ink2,
                   ),
                 ),
-                const SizedBox(width: 8),
-                const EnjoyKeycap(label: 'H'),
+                if (isDesktop) ...[
+                  const SizedBox(width: 8),
+                  const EnjoyKeycap(label: 'H'),
+                ],
               ],
             ],
           ),
@@ -214,15 +217,18 @@ class DockPlayButton extends StatelessWidget {
   }
 }
 
-/// Column that pairs a control with a small caption beneath it (Echo only).
+/// Column that centers a control in a shared button zone with a caption
+/// beneath it (Echo dock phone row).
 class DockLabeledControl extends StatelessWidget {
   const DockLabeledControl({
+    required this.zoneHeight,
     required this.label,
     required this.color,
     required this.child,
     super.key,
   });
 
+  final double zoneHeight;
   final String label;
   final Color color;
   final Widget child;
@@ -232,7 +238,10 @@ class DockLabeledControl extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        child,
+        SizedBox(
+          height: zoneHeight,
+          child: Center(child: child),
+        ),
         const SizedBox(height: 6),
         Text(
           label,
@@ -277,36 +286,25 @@ class DockRecordButton extends StatelessWidget {
           child: SizedBox(
             width: size,
             height: size,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox.expand(
-                  child: Padding(
-                    padding: const EdgeInsets.all(1.5),
-                    child: CustomPaint(
-                      painter: DockRecordRingPainter(color: t.youLine),
-                    ),
+            child: Center(
+              child: Container(
+                width: inner,
+                height: inner,
+                alignment: Alignment.center,
+                decoration: ShapeDecoration(
+                  color: t.you,
+                  shape: const CircleBorder(),
+                  shadows: t.shadowRecordButton,
+                ),
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: t.onYou,
+                    shape: BoxShape.circle,
                   ),
                 ),
-                Container(
-                  width: inner,
-                  height: inner,
-                  alignment: Alignment.center,
-                  decoration: ShapeDecoration(
-                    color: t.you,
-                    shape: const CircleBorder(),
-                    shadows: t.shadowRecordButton,
-                  ),
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: t.onYou,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -315,76 +313,56 @@ class DockRecordButton extends StatelessWidget {
   }
 }
 
-/// Stroke ring that backs [DockRecordButton] and the Recording-mode stop button.
-class DockRecordRingPainter extends CustomPainter {
-  const DockRecordRingPainter({required this.color, super.repaint});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    final rect = Offset.zero & size;
-    canvas.drawArc(rect, 0, 2 * 3.141592653589793, false, paint);
-  }
-
-  @override
-  bool shouldRepaint(DockRecordRingPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-/// Replay-original pill (Echo mode).
-class DockOriginalPill extends StatelessWidget {
-  const DockOriginalPill({
+/// Echo dock play / pause control: soft-blue circle on phones, paper pill in
+/// the desktop sunk group.
+class DockPlayPausePill extends StatelessWidget {
+  const DockPlayPausePill({
     required this.phone,
-    required this.onPlay,
+    required this.playing,
+    required this.onToggle,
     super.key,
   });
 
   final bool phone;
-  final Future<void> Function() onPlay;
+  final bool playing;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final width = phone ? t.originalButtonPhoneSize : t.originalPillWidth;
-    final height = phone ? 48.0 : t.originalPillHeight;
     return Tooltip(
-      message: l10n.hotkeysDescReplayLine,
+      message: l10n.hotkeysDescTogglePlay,
       child: EnjoyPressable(
-        onTap: onPlay,
-        borderRadius: BorderRadius.circular(height / 2),
+        onTap: onToggle,
+        borderRadius: BorderRadius.circular(
+          phone ? t.originalButtonPhoneSize / 2 : t.originalPillHeight / 2,
+        ),
         pressedScale: 0.96,
-        child: Container(
-          width: width,
-          height: height,
-          padding: phone ? EdgeInsets.zero : const EdgeInsets.only(left: 8),
-          decoration: ShapeDecoration(
-            color: t.paper,
-            shape: const StadiumBorder(),
-            shadows: t.shadowLift,
-          ),
-          child: phone
-              ? Center(
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: t.originalSoft,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      EnjoyIcons.play,
-                      size: 14,
-                      color: t.originalInk,
-                    ),
-                  ),
-                )
-              : Row(
+        child: phone
+            ? Container(
+                width: t.originalButtonPhoneSize,
+                height: t.originalButtonPhoneSize,
+                decoration: BoxDecoration(
+                  color: t.originalSoft,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  playing ? EnjoyIcons.pause : EnjoyIcons.play,
+                  size: 20,
+                  color: t.originalInk,
+                ),
+              )
+            : Container(
+                width: t.originalPillWidth,
+                height: t.originalPillHeight,
+                padding: const EdgeInsets.only(left: 8),
+                decoration: ShapeDecoration(
+                  color: t.paper,
+                  shape: const StadiumBorder(),
+                  shadows: t.shadowLift,
+                ),
+                child: Row(
                   children: [
                     Container(
                       width: 36,
@@ -394,7 +372,7 @@ class DockOriginalPill extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        EnjoyIcons.play,
+                        playing ? EnjoyIcons.pause : EnjoyIcons.play,
                         size: 14,
                         color: t.originalInk,
                       ),
@@ -402,7 +380,7 @@ class DockOriginalPill extends StatelessWidget {
                     const SizedBox(width: 10),
                     Flexible(
                       child: Text(
-                        l10n.playerDockOriginal,
+                        playing ? l10n.pause : l10n.play,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.labelMedium
@@ -413,11 +391,10 @@ class DockOriginalPill extends StatelessWidget {
                             ),
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    const EnjoyKeycap(label: 'S'),
+                    const SizedBox(width: 12),
                   ],
                 ),
-        ),
+              ),
       ),
     );
   }

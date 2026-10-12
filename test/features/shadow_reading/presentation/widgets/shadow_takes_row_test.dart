@@ -333,10 +333,24 @@ void main() {
     }
   });
 
-  testWidgets('empty region shows the hint with the R keycap', (tester) async {
+  testWidgets('empty region shows the plain hint on mobile', (tester) async {
     final l10n = await pumpRow(tester, takes: const []);
 
-    expect(find.textContaining(l10n.shadowTakesEmptyPrefix), findsOneWidget);
-    expect(find.byType(EnjoyKeycap), findsOneWidget);
+    expect(find.text(l10n.shadowRecordingEmpty), findsOneWidget);
+    expect(find.byType(EnjoyKeycap), findsNothing);
+  });
+
+  testWidgets('empty region shows the hint with the R keycap on desktop', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      final l10n = await pumpRow(tester, takes: const []);
+
+      expect(find.textContaining(l10n.shadowTakesEmptyPrefix), findsOneWidget);
+      expect(find.byType(EnjoyKeycap), findsOneWidget);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 }
