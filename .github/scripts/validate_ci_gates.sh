@@ -111,7 +111,7 @@ if [[ "$do_test" -eq 1 ]]; then
       base_ref="origin/main"
     fi
     mapfile -t test_targets < <(
-      git diff --name-only --diff-filter=ACMR "$base_ref" -- 'lib/*.dart' 'test/*.dart' 2>/dev/null || true \
+      { git diff --name-only --diff-filter=ACMR "$base_ref" -- 'lib/*.dart' 'test/*.dart' 2>/dev/null || true; } \
         | awk '
             /\.dart$/ {
               if ($0 ~ /^test\// && $0 ~ /_test\.dart$/) print
