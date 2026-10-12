@@ -35,6 +35,8 @@ import 'package:enjoy_player/features/update/presentation/update_notification_do
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+const double _kCompactPaneWidth = 600;
+
 /// The profile view body: hero card, practice stats, account nav card,
 /// unlabeled learning/config sections, and sign-out button.
 ///
@@ -214,11 +216,12 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
               kind: EnjoyPageKind.hub,
               paneWidth: constraints.maxWidth,
             );
+            final compact = constraints.maxWidth < _kCompactPaneWidth;
             return RefreshIndicator(
               onRefresh: _refresh,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: metrics.padding(top: 44, bottom: 72),
+                padding: metrics.padding(top: compact ? 16 : 44, bottom: 72),
                 children: children,
               ),
             );
