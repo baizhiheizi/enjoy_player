@@ -395,7 +395,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
   }
 }
 
-const double _kLoopHandleHalfHeight = 17;
+const double _kLoopHandleHalfHeight = 12;
 
 enum _EchoLoopHandlePosition { top, bottom }
 
@@ -466,28 +466,30 @@ class _EchoLoopHandle extends ConsumerWidget {
       tip: expandTip,
       onTap: expandDisabled ? null : onExpand,
       child: Container(
-        height: 28,
+        height: 22,
         padding: top
-            ? const EdgeInsets.only(left: 8, right: 11)
-            : const EdgeInsets.only(left: 11, right: 8),
+            ? const EdgeInsets.only(left: 7, right: 9)
+            : const EdgeInsets.only(left: 9, right: 7),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (top) ...[
-              Icon(EnjoyIcons.add, size: 14, color: t.youInk),
-              const SizedBox(width: 5),
+              Icon(EnjoyIcons.add, size: 11, color: t.youInk),
+              const SizedBox(width: 4),
             ],
             Text(
               pillLabel,
-              style: tt.labelMedium?.copyWith(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+              style: tt.labelSmall?.copyWith(
+                fontSize: 11,
+                height: 1,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.1,
                 color: t.youInk,
               ),
             ),
             if (!top) ...[
-              const SizedBox(width: 5),
-              Icon(EnjoyIcons.add, size: 14, color: t.youInk),
+              const SizedBox(width: 4),
+              Icon(EnjoyIcons.add, size: 11, color: t.youInk),
             ],
           ],
         ),
@@ -498,19 +500,25 @@ class _EchoLoopHandle extends ConsumerWidget {
       tip: shrinkTip,
       onTap: shrinkDisabled ? null : onShrink,
       child: SizedBox(
-        width: 28,
-        height: 28,
-        child: Center(child: Icon(EnjoyIcons.minus, size: 14, color: t.youInk)),
+        width: 22,
+        height: 22,
+        child: Center(child: Icon(EnjoyIcons.minus, size: 11, color: t.youInk)),
       ),
     );
 
-    final divider = Container(width: 1, height: 14, color: t.youLine);
+    final divider = Container(
+      width: 1,
+      height: 10,
+      color: t.youLine.withValues(alpha: 0.6),
+    );
 
     return Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(1),
       decoration: ShapeDecoration(
-        color: t.paper,
-        shape: StadiumBorder(side: BorderSide(color: t.youLine)),
+        color: Color.alphaBlend(t.youSoft, t.paper),
+        shape: StadiumBorder(
+          side: BorderSide(color: t.youLine.withValues(alpha: 0.55)),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
