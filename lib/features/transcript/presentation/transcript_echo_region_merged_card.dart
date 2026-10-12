@@ -176,6 +176,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
           context: context,
           selectedText: t,
           lines: lines,
+          lineIndex: i,
         ),
         onRetranslateSecondary: canRetranslate
             ? () => unawaited(

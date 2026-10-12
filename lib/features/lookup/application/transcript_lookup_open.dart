@@ -32,6 +32,7 @@ void openTranscriptLookup({
   required BuildContext context,
   required String selectedText,
   required List<TranscriptLine> lines,
+  required int lineIndex,
 }) {
   final chrome = ref.read(playerControllerProvider.select(playbackChromeOf));
   final prefs = ref.read(appPreferencesCtrlProvider).valueOrNull;
@@ -56,6 +57,7 @@ void openTranscriptLookup({
     echo: echo,
     currentTimeSeconds: tSec,
     primaryLanguage: src,
+    seedLineIndex: lineIndex,
   );
   MediaVocabularyContext? mediaCtx;
   final mediaId = chrome?.mediaId;
@@ -74,6 +76,7 @@ void openTranscriptLookup({
         primaryLanguage: src,
         sourceType: sourceType,
         sourceId: mediaId,
+        seedLineIndex: lineIndex,
       );
     }
   }
@@ -92,7 +95,7 @@ void openTranscriptLookup({
     ref.read(lookupCoordinatorProvider.notifier).open(context, request),
   );
   _log.fine(
-    'lookup sheet: text="$selectedText" source=$src target=${request.targetLanguage} '
+    'lookup sheet: text="$selectedText" line=$lineIndex source=$src target=${request.targetLanguage} '
     '(chrome=${chrome?.language ?? "?"} activeTrack=${_resolveActiveTrackLanguage(ref, chrome?.mediaId) ?? "?"} '
     'learn=$learnTag native=$nativeTag)',
   );

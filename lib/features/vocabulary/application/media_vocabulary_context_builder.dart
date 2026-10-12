@@ -29,12 +29,14 @@ MediaVocabularyContext? buildMediaVocabularyContext({
   required String primaryLanguage,
   required VocabularySourceType sourceType,
   required String sourceId,
+  int? seedLineIndex,
 }) {
   final span = resolveVocabularyContextSpan(
     lines: lines,
     echo: echo,
     currentTimeSeconds: currentTimeSeconds,
     primaryLanguage: primaryLanguage,
+    seedLineIndex: seedLineIndex,
   );
   if (span == null) return null;
 

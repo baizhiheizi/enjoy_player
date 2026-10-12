@@ -617,6 +617,7 @@ class _TranscriptScrollableListState
                           context: context,
                           selectedText: t,
                           lines: widget.lines,
+                          lineIndex: lineIndex,
                         )
                       : null,
                   onRetranslateSecondary: canRetranslateLine

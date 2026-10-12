@@ -229,6 +229,75 @@ void main() {
       );
       expect(r, isNotNull);
     });
+
+    test('tapped cue wins over stale playback position (echo boundary)', () {
+      final lines = [
+        _line('We have to identify the systems that unlock.', startMs: 0),
+        _line(
+          'The places where one smart move creates ripple effects.',
+          startMs: 1000,
+        ),
+        _line('And the loop continues onward.', startMs: 2000),
+      ];
+      final r = resolveVocabularyContextSpan(
+        lines: lines,
+        echo: const EchoState(
+          active: true,
+          startLineIndex: 1,
+          endLineIndex: 1,
+          startTimeSeconds: 1.0,
+          endTimeSeconds: 2.0,
+        ),
+        currentTimeSeconds: 0.5,
+        primaryLanguage: 'en',
+        seedLineIndex: 1,
+      );
+      expect(r, isNotNull);
+      expect(r!.startLineIndex, 1);
+      expect(r.endLineIndex, 1);
+      expect(r.text, 'The places where one smart move creates ripple effects.');
+    });
+
+    test('seed outside the echo region uses the tapped sentence', () {
+      final lines = [
+        _line('Alpha sentence.', startMs: 0),
+        _line('Beta sentence.', startMs: 1000),
+        _line('Gamma sentence.', startMs: 2000),
+      ];
+      final r = resolveVocabularyContextSpan(
+        lines: lines,
+        echo: const EchoState(
+          active: true,
+          startLineIndex: 0,
+          endLineIndex: 1,
+          startTimeSeconds: 0,
+          endTimeSeconds: 2.0,
+        ),
+        currentTimeSeconds: 0.5,
+        primaryLanguage: 'en',
+        seedLineIndex: 2,
+      );
+      expect(r, isNotNull);
+      expect(r!.text, 'Gamma sentence.');
+      expect(r.startLineIndex, 2);
+      expect(r.endLineIndex, 2);
+    });
+
+    test('out-of-range tapped seed falls back to position-active cue', () {
+      final lines = [
+        _line('First sentence ends here.', startMs: 0),
+        _line('Second sentence here too.', startMs: 1000),
+      ];
+      final r = resolveVocabularyContextSpan(
+        lines: lines,
+        echo: EchoState.inactive,
+        currentTimeSeconds: 1.0,
+        primaryLanguage: 'en',
+        seedLineIndex: 99,
+      );
+      expect(r, isNotNull);
+      expect(r!.text, 'Second sentence here too.');
+    });
   });
 
   group('buildVocabularyContext', () {

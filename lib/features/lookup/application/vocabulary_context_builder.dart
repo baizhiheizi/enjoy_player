@@ -64,20 +64,27 @@ String? buildVocabularyContext({
   required EchoState echo,
   required double currentTimeSeconds,
   required String primaryLanguage,
+  int? seedLineIndex,
 }) => resolveVocabularyContextSpan(
   lines: lines,
   echo: echo,
   currentTimeSeconds: currentTimeSeconds,
   primaryLanguage: primaryLanguage,
+  seedLineIndex: seedLineIndex,
 )?.text;
 
 /// Resolves context text and the inclusive cue line range used to build it.
 ///
 /// Rules:
-/// 1. Prefer a **complete sentence** containing the seed cue (active line).
-/// 2. If echo is active and the echo region itself is **more than one sentence**,
-///    use the full echo region (do not shrink to a single sentence).
-/// 3. Expansion / no-punctuation fallback is always seeded from a **single**
+/// 1. Seed: the tapped cue ([seedLineIndex]) when valid, else the
+///    position-active cue, else the echo start. Playback position alone
+///    mis-seeds in echo mode, where the loop parks playback at the cue
+///    boundary.
+/// 2. Prefer a **complete sentence** containing the seed cue.
+/// 3. If echo is active, the seed lies inside the echo region, and the region
+///    itself is **more than one sentence**, use the full echo region (do not
+///    shrink to a single sentence).
+/// 4. Expansion / no-punctuation fallback is always seeded from a **single**
 ///    cue and capped at ±[kVocabularyContextLineRadius] lines — never the
 ///    unbounded echo window or full transcript.
 VocabularyContextSpan? resolveVocabularyContextSpan({
@@ -85,6 +92,7 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
   required EchoState echo,
   required double currentTimeSeconds,
   required String primaryLanguage,
+  int? seedLineIndex,
 }) {
   if (lines.isEmpty) return null;
 
@@ -96,7 +104,21 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
       echo.endLineIndex < lines.length &&
       echo.startLineIndex <= echo.endLineIndex;
 
-  if (echoValid) {
+  final tappedValid =
+      seedLineIndex != null &&
+      seedLineIndex >= 0 &&
+      seedLineIndex < lines.length;
+  final activeIdx = transcriptActiveIndex(lines, currentTimeSeconds);
+  final seedIdx = tappedValid
+      ? seedLineIndex
+      : activeIdx >= 0
+      ? activeIdx
+      : (echoValid ? echo.startLineIndex : -1);
+  if (seedIdx < 0) return null;
+
+  if (echoValid &&
+      seedIdx >= echo.startLineIndex &&
+      seedIdx <= echo.endLineIndex) {
     final echoText = _joinLines(lines, echo.startLineIndex, echo.endLineIndex);
     if (echoText != null && isMoreThanOneSentence(echoText, primaryLanguage)) {
       return (
@@ -106,12 +128,6 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
       );
     }
   }
-
-  final activeIdx = transcriptActiveIndex(lines, currentTimeSeconds);
-  final seedIdx = activeIdx >= 0
-      ? activeIdx
-      : (echoValid ? echo.startLineIndex : -1);
-  if (seedIdx < 0) return null;
 
   final expanded = expandContextLines(seedIdx, seedIdx, lines.length);
   final expStart = expanded.startArrayIndex;
