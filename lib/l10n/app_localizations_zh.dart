@@ -430,6 +430,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get youtubeUnavailableRuntimeInitFailed => 'YouTube 播放環境啟動失敗。';
 
   @override
+  String get youtubeUnavailableCodecsMissing =>
+      '此裝置缺少 YouTube 影片解碼器。請安裝 GStreamer 外掛（gst-plugins-good、gst-plugins-bad、gst-libav）後重新啟動應用程式。';
+
+  @override
   String get youtubeUnavailableDisabledByBuild => '此組建已停用 YouTube 播放。';
 
   @override
@@ -4523,6 +4527,10 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get youtubeUnavailableRuntimeInitFailed => 'YouTube 播放环境启动失败。';
+
+  @override
+  String get youtubeUnavailableCodecsMissing =>
+      '此设备缺少 YouTube 视频解码器。请安装 GStreamer 插件（gst-plugins-good、gst-plugins-bad、gst-libav）后重启应用。';
 
   @override
   String get youtubeUnavailableDisabledByBuild => '此构建已停用 YouTube 播放。';

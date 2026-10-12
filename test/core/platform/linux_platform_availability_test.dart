@@ -112,6 +112,38 @@ void main() {
     });
   });
 
+  group('youtubeAvailabilityFromCodecProbe', () {
+    test('a true probe result means YouTube can play', () {
+      expect(
+        linux_avail.youtubeAvailabilityFromCodecProbe(true).canPlay,
+        isTrue,
+      );
+    });
+
+    for (final result in <Object?>[false, null, 'true', 1]) {
+      test('probe result $result maps to codecsMissing', () {
+        final availability = linux_avail.youtubeAvailabilityFromCodecProbe(
+          result,
+        );
+
+        expect(availability, isA<linux_avail.YouTubeUnavailable>());
+        expect(
+          (availability as linux_avail.YouTubeUnavailable).reason,
+          linux_avail.YouTubeUnavailableReason.codecsMissing,
+        );
+      });
+    }
+
+    test('probe script checks MediaSource video and audio codecs', () {
+      const js = linux_avail.youtubeMediaSourceCodecProbeJs;
+      expect(js, contains('MediaSource'));
+      expect(js, contains('avc1'));
+      expect(js, contains('vp9'));
+      expect(js, contains('mp4a'));
+      expect(js, contains('opus'));
+    });
+  });
+
   test('googleSignInAvailableOnLinux is false (disabled per ADR-0084)', () {
     expect(
       linux_avail.googleSignInAvailableOnLinux,

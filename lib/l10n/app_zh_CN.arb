@@ -159,6 +159,7 @@
   "youtubeUnavailableOnDevice": "此设备无法播放 YouTube 视频。",
   "youtubeUnavailableRuntimeMissing": "此设备缺少 YouTube 播放运行时。",
   "youtubeUnavailableRuntimeInitFailed": "YouTube 播放环境启动失败。",
+  "youtubeUnavailableCodecsMissing": "此设备缺少 YouTube 视频解码器。请安装 GStreamer 插件（gst-plugins-good、gst-plugins-bad、gst-libav）后重启应用。",
   "youtubeUnavailableDisabledByBuild": "此构建已停用 YouTube 播放。",
   "youtubeTapToPlayHint": "点一下视频即可播放",
   "searchHint": "搜索",

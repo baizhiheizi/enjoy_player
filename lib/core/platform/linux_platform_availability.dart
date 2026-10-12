@@ -33,6 +33,7 @@ const youtubeEngineKillSwitchOn = false;
 enum YouTubeUnavailableReason {
   runtimeMissing,
   runtimeInitFailed,
+  codecsMissing,
   disabledByBuild,
 }
 
@@ -139,24 +140,53 @@ Future<YouTubeAvailability> _probeLinuxYouTubeRuntime() async {
   if (environment == null) {
     return const YouTubeUnavailable(YouTubeUnavailableReason.runtimeMissing);
   }
-  final loadStop = Completer<void>();
+  final loadStop = Completer<InAppWebViewController>();
   final headless = HeadlessInAppWebView(
     webViewEnvironment: environment,
     initialData: InAppWebViewInitialData(
       data: '<!doctype html><html><body></body></html>',
     ),
     onLoadStop: (controller, url) {
-      if (!loadStop.isCompleted) loadStop.complete();
+      if (!loadStop.isCompleted) loadStop.complete(controller);
     },
   );
   try {
     await headless.run();
-    await loadStop.future.timeout(const Duration(seconds: 3));
-    return const YouTubeAvailable();
+    final controller = await loadStop.future.timeout(
+      const Duration(seconds: 3),
+    );
+    final codecs = await controller
+        .evaluateJavascript(source: youtubeMediaSourceCodecProbeJs)
+        .timeout(const Duration(seconds: 1));
+    return youtubeAvailabilityFromCodecProbe(codecs);
   } finally {
     await headless.dispose();
   }
 }
+
+/// Evaluates to true when the WebView's MediaSource can play at least one
+/// YouTube video codec and one YouTube audio codec.
+@visibleForTesting
+const youtubeMediaSourceCodecProbeJs = '''
+(function () {
+  var ms = window.MediaSource;
+  if (!ms || typeof ms.isTypeSupported !== 'function') return false;
+  var ok = function (t) { try { return ms.isTypeSupported(t); } catch (e) { return false; } };
+  var video = ok('video/mp4; codecs="avc1.4d401f"') ||
+    ok('video/webm; codecs="vp9"') ||
+    ok('video/mp4; codecs="av01.0.05M.08"');
+  var audio = ok('audio/mp4; codecs="mp4a.40.2"') ||
+    ok('audio/webm; codecs="opus"');
+  return video && audio;
+})();
+''';
+
+/// Maps the [youtubeMediaSourceCodecProbeJs] result to an availability.
+@visibleForTesting
+YouTubeAvailability youtubeAvailabilityFromCodecProbe(Object? result) =>
+    result == true
+    ? const YouTubeAvailable()
+    : const YouTubeUnavailable(YouTubeUnavailableReason.codecsMissing);
 
 @Riverpod(keepAlive: true)
 Future<YouTubeAvailability> youtubeAvailability(Ref ref) =>

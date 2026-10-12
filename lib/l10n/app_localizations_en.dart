@@ -448,6 +448,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'YouTube playback failed to start on this device.';
 
   @override
+  String get youtubeUnavailableCodecsMissing =>
+      'YouTube video codecs are missing on this device. Install the GStreamer plugins (gst-plugins-good, gst-plugins-bad, gst-libav) and restart the app.';
+
+  @override
   String get youtubeUnavailableDisabledByBuild =>
       'YouTube playback is disabled in this build.';
 

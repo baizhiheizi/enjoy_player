@@ -123,6 +123,14 @@ An automatic detection-and-relaunch fallback is planned (specs/047 T047). If
 YouTube shows the unavailable notice instead, install the runtime: `wpewebkit`
 plus `gst-plugins-good gst-plugins-bad gst-libav` ([ADR-0092](../decisions/0092-linux-youtube-host-runtime.md)).
 
+The availability probe also asks the WebView's `MediaSource` whether it can
+play a YouTube video codec (H.264, VP9, or AV1) and audio codec (AAC or Opus).
+When the GStreamer demuxer/decoder plugins are missing — the common case for
+source builds, which use the host GStreamer instead of the AppImage's bundled
+set — the player shows the "codecs missing" notice naming those packages
+instead of loading a watch page whose `<video>` never leaves `readyState 0`.
+Check a host with `gst-inspect-1.0 qtdemux matroskademux avdec_h264`.
+
 ### AppImage won't run: "Permission denied"
 
 Run `chmod +x enjoy-player-*.AppImage` first.

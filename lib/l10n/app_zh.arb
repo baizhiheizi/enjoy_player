@@ -125,6 +125,7 @@
   "youtubeUnavailableOnDevice": "此裝置無法播放 YouTube 影片。",
   "youtubeUnavailableRuntimeMissing": "此裝置缺少 YouTube 播放執行環境。",
   "youtubeUnavailableRuntimeInitFailed": "YouTube 播放環境啟動失敗。",
+  "youtubeUnavailableCodecsMissing": "此裝置缺少 YouTube 影片解碼器。請安裝 GStreamer 外掛（gst-plugins-good、gst-plugins-bad、gst-libav）後重新啟動應用程式。",
   "youtubeUnavailableDisabledByBuild": "此組建已停用 YouTube 播放。",
   "youtubeTapToPlayHint": "點一下影片即可播放",
   "searchHint": "搜索",
