@@ -14,7 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_single_column.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_hub.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_two_pane.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_search_field.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -46,7 +46,7 @@ class SettingsScreen extends ConsumerWidget {
                     slivers: [
                       SliverToBoxAdapter(child: _EditorialHeaderSlot()),
                       SliverToBoxAdapter(child: SettingsSearchField()),
-                      SliverToBoxAdapter(child: SettingsLayoutSingleColumn()),
+                      SliverToBoxAdapter(child: SettingsLayoutHub()),
                     ],
                   ),
                 ),

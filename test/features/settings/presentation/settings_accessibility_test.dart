@@ -17,6 +17,8 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
+import 'package:enjoy_player/features/settings/presentation/settings_section_page.dart';
+import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
@@ -115,8 +117,8 @@ void main() {
   });
 
   testWidgets(
-    'with reduced motion and the largest text scale, the hub renders with '
-    'no overflow and all section content is visible',
+    'with reduced motion and the largest text scale, the phone hub renders '
+    'with no overflow and every row is reachable',
     (tester) async {
       tester.view.physicalSize = const Size(700, 2200);
       tester.view.devicePixelRatio = 1.0;
@@ -134,14 +136,56 @@ void main() {
 
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
-      expect(find.text(l10n.settingsApiBaseUrl), findsOneWidget);
+      expect(find.text(l10n.settingsSectionSync), findsOneWidget);
 
       final scrollable = find.byType(Scrollable).first;
       for (var i = 0; i < 15; i++) {
         await tester.drag(scrollable, const Offset(0, -500));
         await tester.pump();
       }
-      expect(find.text(l10n.appTitle), findsWidgets);
+      expect(find.textContaining(l10n.appTitle), findsWidgets);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'a drill-in section page also renders with no overflow at reduced '
+    'motion and the largest text scale',
+    (tester) async {
+      tester.view.physicalSize = const Size(700, 2200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final scheme = ColorScheme.fromSeed(
+        seedColor: const Color(0xFF7B61FF),
+        brightness: Brightness.dark,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _settingsTestOverrides(db),
+          child: MaterialApp(
+            theme: ThemeData(
+              colorScheme: scheme,
+              useMaterial3: true,
+              brightness: Brightness.dark,
+              extensions: [EnjoyThemeTokens.build(scheme)],
+            ),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const SettingsSectionPageScreen(
+              sectionId: SettingsSectionIds.developer,
+            ),
+          ),
+        ),
+      );
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+
+      expect(find.text(l10n.settingsApiBaseUrl), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

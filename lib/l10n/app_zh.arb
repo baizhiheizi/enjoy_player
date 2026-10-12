@@ -517,6 +517,10 @@
   "@settingsRecordingMicAutoNoDevice": {
     "description": "Subtitle of the mic tile when auto-picking and no devices were enumerated yet."
   },
+  "settingsRecordingMicAutoShort": "自动",
+  "@settingsRecordingMicAutoShort": {
+    "description": "Short trailing value for the settings hub recording row when the microphone is auto-picked."
+  },
   "settingsRecordingMicEmpty": "未检测到麦克风",
   "@settingsRecordingMicEmpty": {
     "description": "Subtitle / empty state when the OS reports no input devices."
@@ -1002,6 +1006,7 @@
   "settingsAppearanceSyncedFromProfile": "与账号个人资料同步",
   "settingsLanguageSubtitleSignedIn": "联网时会同步到你的 Enjoy 账号。",
   "settingsLanguageSubtitleDeviceOnly": "保存在本机，登录账号后可同步。",
+  "settingsNativeLanguageGateSubtitle": "当前学习语言下只有一种母语可选。",
   "settingsLanguageOptionEnUs": "英语（美国）",
   "settingsLanguageOptionEnGb": "英语（英国）",
   "settingsLanguageOptionJaJp": "日语",

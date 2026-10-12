@@ -1182,6 +1182,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRecordingMicAutoNoDevice => 'Auto · system default';
 
   @override
+  String get settingsRecordingMicAutoShort => 'Auto';
+
+  @override
   String get settingsRecordingMicEmpty => 'No microphones detected';
 
   @override
@@ -2465,6 +2468,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsLanguageSubtitleDeviceOnly =>
       'Stored on this device until you sign in.';
+
+  @override
+  String get settingsNativeLanguageGateSubtitle =>
+      'Only one native language is available for your learning language.';
 
   @override
   String get settingsLanguageOptionEnUs => 'English (United States)';

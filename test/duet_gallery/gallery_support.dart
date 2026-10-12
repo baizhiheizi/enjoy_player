@@ -58,17 +58,11 @@ Future<void> setUpGallery() async {
   buildAppTheme(Brightness.light);
   for (final weight in [FontWeight.w400, FontWeight.w500, FontWeight.w600]) {
     GoogleFonts.geist(fontWeight: weight);
-    GoogleFonts.sourceSerif4(fontWeight: weight);
+    GoogleFonts.literata(fontWeight: weight);
   }
   for (final weight in [FontWeight.w500, FontWeight.w600]) {
     GoogleFonts.geistMono(fontWeight: weight);
   }
-  GoogleFonts.instrumentSerif();
-  GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700);
-  GoogleFonts.playfairDisplay(
-    fontWeight: FontWeight.w600,
-    fontStyle: FontStyle.italic,
-  );
   GoogleFonts.notoSans();
   await GoogleFonts.pendingFonts();
 }

@@ -14,7 +14,7 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_single_column.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_hub.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_two_pane.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/account_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/appearance_language_section.dart';
@@ -174,8 +174,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.byType(SettingsLayoutSingleColumn), findsOneWidget);
-      expect(find.byType(AccountSection), findsOneWidget);
+      expect(find.byType(SettingsLayoutHub), findsOneWidget);
+      expect(find.text(_fakeProfile.name), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

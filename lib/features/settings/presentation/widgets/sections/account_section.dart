@@ -19,6 +19,31 @@ import 'package:enjoy_player/features/auth/presentation/widgets/profile_hero_car
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+/// Logo-ring avatar shared by the account surfaces (settings pane, hub card).
+class AccountAvatar extends StatelessWidget {
+  const AccountAvatar({super.key, required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Container(
+      width: 46,
+      height: 46,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(shape: BoxShape.circle, gradient: t.logo),
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: t.paper, width: 2),
+        ),
+        child: EnjoyAvatar(name: name, size: 38),
+      ),
+    );
+  }
+}
+
 class AccountSection extends ConsumerWidget {
   const AccountSection({super.key});
 
@@ -46,22 +71,7 @@ class AccountSection extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: t.logo,
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: t.paper, width: 2),
-                ),
-                child: EnjoyAvatar(name: profile.name, size: 38),
-              ),
-            ),
+            AccountAvatar(name: profile.name),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
