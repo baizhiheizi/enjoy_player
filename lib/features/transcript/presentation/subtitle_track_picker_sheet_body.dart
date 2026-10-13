@@ -14,6 +14,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/asr/presentation/asr_generation_launcher.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import '../application/all_transcripts_provider.dart';
@@ -21,12 +22,14 @@ import '../application/transcript_repository_provider.dart';
 import '../domain/auto_translate.dart';
 import '../domain/transcript_track.dart';
 import 'package:enjoy_player/data/subtitle/transcript_display_readiness.dart';
+import 'import_subtitle_file.dart';
 import 'subtitle_track_picker_actions.dart';
 import 'subtitle_track_picker_helpers.dart';
 import 'subtitle_track_picker_sections.dart';
 import 'subtitle_track_picker_sheet_action_handlers.dart';
 import 'subtitle_track_picker_tiles.dart';
 import 'transcript_display_settings_sheet.dart';
+import 'transcript_embedded_extract.dart';
 
 String? _autoTranslateBlockedMessage(
   AppLocalizations l10n,
@@ -280,11 +283,14 @@ List<Widget> buildTrackListBody({
       horizontalPadding: sheetHorizontalPadding(t),
       showExtractEmbedded: showExtractEmbedded,
       showImportFile: showImportFile,
-      onExtractEmbedded: () =>
-          runExtractEmbeddedSubtitles(context, ref, mediaId),
+      onExtractEmbedded: () => runEmbeddedSubtitleExtract(
+        context: context,
+        ref: ref,
+        mediaId: mediaId,
+      ),
       onRefreshCloud: () => refreshCloudTranscripts(context, ref, mediaId),
       onImportFile: () => pickAndImportSubtitleFile(context, ref, mediaId),
-      onGenerate: () => runGenerateTranscript(context, ref, mediaId),
+      onGenerate: () => launchAsrGeneration(context, ref, mediaId: mediaId),
       showGenerate: showImportFile,
       hasGeneratedTrack: tracks.any((track) => track.source == 'ai'),
     ),
