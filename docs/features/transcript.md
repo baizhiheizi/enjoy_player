@@ -72,8 +72,9 @@ Per-line padding, gutter widths, and lens type sizes come from [`TranscriptLensM
 The subtitle track picker is split into focused modules under
 [`lib/features/transcript/presentation/`](../../lib/features/transcript/presentation/),
 organized by dependency layer (helpers → primitives → tiles → sections →
-actions → sheet). The public API is unchanged; `showSubtitleTrackPicker`,
-`SubtitleTrackPickerSheet`, and `SubtitleTrackPickerPresentation` continue to
+actions → action handlers → body → popover route → sheet). The public API is
+unchanged; `showSubtitleTrackPicker`, `SubtitleTrackPickerSheet`, and
+`SubtitleTrackPickerPresentation` continue to
 be exported from [`subtitle_track_picker_sheet.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart).
 
 | File | Responsibility |
@@ -83,8 +84,11 @@ be exported from [`subtitle_track_picker_sheet.dart`](../../lib/features/transcr
 | [`subtitle_track_picker_tiles.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_tiles.dart) | `TrackOptionTile<T>` (per-track radio row with provider + language chips and delete action) and `NoneOptionTile` (the explicit "none" row in the translation list). |
 | [`subtitle_track_picker_sections.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sections.dart) | `CollapsibleTrackSection` (the expandable card used for both primary and translation lists) and `SelectionSummary` (collapsed-state label + chip summary). |
 | [`subtitle_track_picker_actions.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_actions.dart) | `SubtitleActionsSection` — Extract / Refresh / Import (and Generate) list inside `SubtitlePickerCard`. |
+| [`subtitle_track_picker_sheet_action_handlers.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_action_handlers.dart) | Free functions behind the action list: `pickAndImportSubtitleFile` (file pick → language dialog → repository import with analytics), `runExtractEmbeddedSubtitles`, `runGenerateTranscript`, `refreshCloudTranscripts`, `confirmAndDeleteTranscriptTrack`. |
+| [`subtitle_track_picker_sheet_body.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_body.dart) | Top-level builders: `buildSheetHeader`, `buildTracksContent` (async data / loading / error wiring), `buildTrackListBody` (primary + translation radio groups, blocked-message callouts, translation track list), `buildDialogSkeletonLoading`. |
+| [`subtitle_track_picker_popover_route.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_popover_route.dart) | `SubtitlesPopoverRoute` — the 384px raised-card `PopupRoute` anchored under the top bar's Subtitles button (ADR-0093 / ADR-0066). |
 | [`transcript_display_settings_sheet.dart`](../../lib/features/transcript/presentation/transcript_display_settings_sheet.dart) | `TranscriptDisplaySettingsSection` — gated karaoke + IPA toggles and the on-demand enrich tile. |
-| [`subtitle_track_picker_sheet.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart) | Slimmed sheet: `SubtitleTrackPickerPresentation` enum, `showSubtitleTrackPicker` launcher, and `SubtitleTrackPickerSheet` + its state class. Owns the `PickerSection` expand/collapse state and provider interactions (import file, extract embedded, refresh cloud, delete track). |
+| [`subtitle_track_picker_sheet.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart) | Slimmed sheet: `SubtitleTrackPickerPresentation` enum, `showSubtitleTrackPicker` launcher, and `SubtitleTrackPickerSheet` + its state class. Owns the `PickerSection` expand/collapse state, secondary-selection routing, provider watches, and the sheet vs. dialog layout decision. |
 
 Smoke coverage lives in
 [`subtitle_track_picker_sheet_test.dart`](../../test/features/transcript/subtitle_track_picker_sheet_test.dart)
