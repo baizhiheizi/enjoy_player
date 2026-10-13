@@ -121,7 +121,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| D6.0 | Re-export canvas v30 + re-plan | all player boards, `System`, `Keyboard` | — | review | | | Boards + `canvas.json` re-exported, 26 renders refreshed, README / PLAN / STATUS updated, R1 / R3 decided, R4–R6 opened. Shipped with it: margin token 340 → 360 (`tokens.json` + `tokens/spaces.dart`), shortcut copy (`H` = Dictate (hide text), `[ ]` add a line, `{ }` drop a line), pitch legend `Original pitch`. Baseline compares of every touched board attached to the PR — they show the Phase 6 gap, not a finished state |
+| D6.0 | Re-export canvas v30 + re-plan | all player boards, `System`, `Keyboard` | — | review | | [#916](https://github.com/baizhiheizi/enjoy_player/pull/916) | Boards + `canvas.json` re-exported, 26 renders refreshed, README / PLAN / STATUS updated, R1 / R3 decided, R4–R6 opened. Shipped with it: margin token 340 → 360 (`tokens.json` + `tokens/spaces.dart`), shortcut copy (`H` = Dictate (hide text), `[ ]` add a line, `{ }` drop a line), pitch legend `Original pitch`. Baseline compares of every touched board attached to the PR — they show the Phase 6 gap, not a finished state |
 | D6.1 | Three lenses: Listen · Echo · Dictate | `Main`, `DHide`, `PHide`, `Phone` | — | todo | | | Behavior gated by R4 |
 | D6.2 | Echo loop brackets + “+ line” / “−” rows | `DEcho`, `PEcho`, `DRecording`, `DCompact` | — | todo | | | UI only (`shrinkEcho*` already exist) |
 | D6.3 | Takes row + takes list, scored on demand | `DScored`, `PScored`, `DEcho`, `PEcho` | D6.12 | todo | | | R2 lands here |
