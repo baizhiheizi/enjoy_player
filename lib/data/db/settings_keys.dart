@@ -167,6 +167,16 @@ abstract final class SettingsKeys {
     defaultValue: null,
   );
 
+  /// One-time repair flag: vocabulary pulls shipped advancing the
+  /// `updatedAfter` cursor even when every page row failed to apply, so
+  /// affected installs must re-pull the whole server word book once.
+  static const syncVocabularyCursorRepairV1 = SettingKey<String?>(
+    name: 'sync.repair.vocab_cursor_dropped_rows.v1',
+    scope: SettingsScope.user,
+    codec: StringSettingCodec(),
+    defaultValue: null,
+  );
+
   /// ISO-8601 UTC timestamp of last fully successful full sync (downloads +
   /// queue). Kept a raw string: the sync status UI parses it for display.
   static const syncLastFullSyncAt = SettingKey<String?>(
@@ -304,6 +314,7 @@ abstract final class SettingsKeys {
     syncCursorRecording,
     syncCursorVocabularyItem,
     syncCursorVocabularyContext,
+    syncVocabularyCursorRepairV1,
     syncLastFullSyncAt,
     playerPreferencesV1,
     craftPreferencesV1,

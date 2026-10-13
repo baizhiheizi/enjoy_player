@@ -58,11 +58,36 @@ class SyncDownloadService {
 
   /// Word-book continuity (ADR-0054): unlike media, vocabulary pulls on
   /// every signed-in sync rather than only via manual "Add to library".
-  Future<SyncResult> downloadVocabularyItems() =>
-      _downloadVocabularyItemsInternal(resetCursor: false);
+  Future<SyncResult> downloadVocabularyItems() async {
+    await _repairVocabularyCursorsOnce();
+    return _downloadVocabularyItemsInternal(resetCursor: false);
+  }
 
-  Future<SyncResult> downloadVocabularyContexts() =>
-      _downloadVocabularyContextsInternal(resetCursor: false);
+  Future<SyncResult> downloadVocabularyContexts() async {
+    await _repairVocabularyCursorsOnce();
+    return _downloadVocabularyContextsInternal(resetCursor: false);
+  }
+
+  /// Vocabulary pulls shipped (v0.8.x–v0.9.0) advancing the `updatedAfter`
+  /// cursor even when every page row failed to merge — the server jsonb
+  /// `explanation` cast bug — leaving installs with an empty word book and a
+  /// cursor past the rows that never applied. Clears both vocabulary cursors
+  /// exactly once so the next pull re-fetches the full server word book.
+  Future<void> _repairVocabularyCursorsOnce() async {
+    final repaired = await _db.settingsDao.readSetting(
+      SettingsKeys.syncVocabularyCursorRepairV1,
+    );
+    if (repaired != null) return;
+    await _db.settingsDao.writeSetting(
+      SettingsKeys.syncVocabularyCursorRepairV1,
+      '1',
+    );
+    await _db.settingsDao.deleteSetting(SettingsKeys.syncCursorVocabularyItem);
+    await _db.settingsDao.deleteSetting(
+      SettingsKeys.syncCursorVocabularyContext,
+    );
+    _log.info('vocabulary cursor repair v1: cursors cleared for full re-pull');
+  }
 
   Future<SyncResult> _downloadAudiosInternal({required bool resetCursor}) {
     return _downloadEntityInternal<AudioRow>(
@@ -233,6 +258,7 @@ class SyncDownloadService {
         pendingUpserts[id] = m;
       }
 
+      var pageFailed = 0;
       if (pendingUpserts.isNotEmpty) {
         final counts = await _mergeAndUpsertPage(
           pendingUpserts,
@@ -243,17 +269,21 @@ class SyncDownloadService {
           merge: merge,
         );
         synced += counts.synced;
+        pageFailed = counts.failed;
         failed += counts.failed;
         errors.addAll(counts.errors);
       }
 
-      final maxIso = _maxUpdatedAtIso(batch);
-      if (maxIso != null) {
-        cursor = maxIso;
-        await _db.settingsDao.writeSetting(cursorKey, maxIso);
+      if (pageFailed == 0) {
+        final maxIso = _maxUpdatedAtIso(batch);
+        if (maxIso != null) {
+          cursor = maxIso;
+          await _db.settingsDao.writeSetting(cursorKey, maxIso);
+        }
       }
 
       if (batch.length < _pageSize) break;
+      if (pageFailed > 0) break;
     }
 
     return SyncResult(

@@ -81,6 +81,8 @@ class _FakeVocabularyApi extends VocabularyApi {
 
   final List<List<Map<String, dynamic>>> _itemPages;
   final List<List<Map<String, dynamic>>> _contextPages;
+  final List<String?> itemUpdatedAfterCalls = [];
+  final List<String?> contextUpdatedAfterCalls = [];
   int _itemCallCount = 0;
   int _contextCallCount = 0;
 
@@ -89,6 +91,7 @@ class _FakeVocabularyApi extends VocabularyApi {
     int? limit,
     String? updatedAfter,
   }) async {
+    itemUpdatedAfterCalls.add(updatedAfter);
     if (_itemCallCount >= _itemPages.length) return [];
     return _itemPages[_itemCallCount++];
   }
@@ -99,6 +102,7 @@ class _FakeVocabularyApi extends VocabularyApi {
     int? limit,
     String? updatedAfter,
   }) async {
+    contextUpdatedAfterCalls.add(updatedAfter);
     if (_contextCallCount >= _contextPages.length) return [];
     return _contextPages[_contextCallCount++];
   }
@@ -155,7 +159,7 @@ Map<String, dynamic> _recordingJson(String id) => {
   'createdAt': '2026-01-01T00:00:00.000Z',
 };
 
-Map<String, dynamic> _vocabItemJson(String id) => {
+Map<String, dynamic> _vocabItemJson(String id, {dynamic explanation}) => {
   'id': id,
   'word': 'hello',
   'language': 'en',
@@ -166,17 +170,19 @@ Map<String, dynamic> _vocabItemJson(String id) => {
   'nextReviewAt': '2026-01-02T00:00:00.000Z',
   'reviewsCount': 0,
   'contextsCount': 0,
+  if (explanation != null) 'explanation': explanation,
   'updatedAt': '2026-01-01T00:00:00.000Z',
   'createdAt': '2026-01-01T00:00:00.000Z',
 };
 
-Map<String, dynamic> _vocabContextJson(String id) => {
+Map<String, dynamic> _vocabContextJson(String id, {dynamic explanation}) => {
   'id': id,
   'vocabularyItemId': 'vi1',
-  'contextText': 'a greeting',
+  'text': 'a greeting',
   'sourceType': 'transcript',
   'sourceId': 'src1',
-  'locatorJson': '{}',
+  'locator': {'start': 0, 'duration': 1000},
+  if (explanation != null) 'explanation': explanation,
   'updatedAt': '2026-01-01T00:00:00.000Z',
   'createdAt': '2026-01-01T00:00:00.000Z',
 };
@@ -525,6 +531,171 @@ void main() {
       expect(await db.vocabularyItemDao.getById('vi1'), isNotNull);
     });
   });
+
+  group('SyncDownloadService.downloadVocabularyItems (server wire shape)', () {
+    test('persists rows whose explanation is a server jsonb object', () async {
+      final service = buildService(
+        vocabularyApi: _FakeVocabularyApi(
+          itemPages: [
+            [
+              _vocabItemJson('vi-empty', explanation: {}),
+              _vocabItemJson(
+                'vi-full',
+                explanation: {
+                  'entries': [
+                    {'term': 'hello', 'partOfSpeech': 'interjection'},
+                  ],
+                },
+              ),
+            ],
+          ],
+        ),
+      );
+
+      final result = await service.downloadVocabularyItems();
+
+      expect(result.success, isTrue);
+      expect(result.failed, 0);
+      expect(result.synced, 2);
+      final empty = await db.vocabularyItemDao.getById('vi-empty');
+      expect(empty, isNotNull);
+      expect(empty!.explanation, '{}');
+      final full = await db.vocabularyItemDao.getById('vi-full');
+      expect(full!.explanation, contains('interjection'));
+    });
+  });
+
+  group('SyncDownloadService.downloadVocabularyItems (cursor invariant)', () {
+    test(
+      'does not advance the cursor when a page row fails to merge',
+      () async {
+        final badRow = _vocabItemJson('vi-bad');
+        badRow['explanation'] = {1: 'unencodable'};
+        final api = _FakeVocabularyApi(
+          itemPages: [
+            [badRow, _vocabItemJson('vi-good')],
+          ],
+        );
+        final service = buildService(vocabularyApi: api);
+
+        final result = await service.downloadVocabularyItems();
+
+        expect(result.success, isFalse);
+        expect(result.failed, 1);
+        expect(await db.vocabularyItemDao.getById('vi-good'), isNotNull);
+        expect(
+          await db.settingsDao.readSetting(
+            SettingsKeys.syncCursorVocabularyItem,
+          ),
+          isNull,
+        );
+      },
+    );
+
+    test('stops paging when a full page had failures', () async {
+      final badRow = _vocabItemJson('vi-bad');
+      badRow['explanation'] = {1: 'unencodable'};
+      final api = _FakeVocabularyApi(
+        itemPages: [
+          List.generate(50, (i) {
+            final row = _vocabItemJson('vi-bad-$i');
+            row['explanation'] = {1: 'unencodable'};
+            return row;
+          }),
+          [_vocabItemJson('vi-next')],
+        ],
+      );
+      final service = buildService(vocabularyApi: api);
+
+      await service.downloadVocabularyItems();
+
+      expect(api.itemUpdatedAfterCalls.length, 1);
+      expect(api.itemUpdatedAfterCalls.single, isNull);
+      expect(await db.vocabularyItemDao.getById('vi-next'), isNull);
+    });
+  });
+
+  group('SyncDownloadService vocabulary cursor repair', () {
+    test('clears poisoned cursors once, then leaves them alone', () async {
+      await db.settingsDao.writeSetting(
+        SettingsKeys.syncCursorVocabularyItem,
+        '2026-10-12T06:15:25.871Z',
+      );
+      await db.settingsDao.writeSetting(
+        SettingsKeys.syncCursorVocabularyContext,
+        '2026-10-12T06:13:17.747Z',
+      );
+      final api = _FakeVocabularyApi(
+        itemPages: [
+          [_vocabItemJson('vi1')],
+        ],
+      );
+      final service = buildService(vocabularyApi: api);
+
+      await service.downloadVocabularyItems();
+
+      expect(api.itemUpdatedAfterCalls.single, isNull);
+      expect(
+        await db.settingsDao.readSetting(SettingsKeys.syncCursorVocabularyItem),
+        '2026-01-01T00:00:00.000Z',
+      );
+      expect(
+        await db.settingsDao.readSetting(
+          SettingsKeys.syncCursorVocabularyContext,
+        ),
+        isNull,
+      );
+      expect(
+        await db.settingsDao.readSetting(
+          SettingsKeys.syncVocabularyCursorRepairV1,
+        ),
+        '1',
+      );
+
+      await db.settingsDao.writeSetting(
+        SettingsKeys.syncCursorVocabularyItem,
+        '2026-02-02T00:00:00.000Z',
+      );
+      final second = _FakeVocabularyApi(
+        itemPages: [
+          [_vocabItemJson('vi2')],
+        ],
+      );
+      await buildService(vocabularyApi: second).downloadVocabularyItems();
+
+      expect(second.itemUpdatedAfterCalls.single, '2026-02-02T00:00:00.000Z');
+    });
+  });
+
+  group(
+    'SyncDownloadService.downloadVocabularyContexts (server wire shape)',
+    () {
+      test(
+        'persists rows whose explanation is a server jsonb object',
+        () async {
+          final service = buildService(
+            vocabularyApi: _FakeVocabularyApi(
+              contextPages: [
+                [
+                  _vocabContextJson('vc1', explanation: {'translation': '你好'}),
+                ],
+              ],
+            ),
+          );
+
+          final result = await service.downloadVocabularyContexts();
+
+          expect(result.success, isTrue);
+          expect(result.failed, 0);
+          expect(result.synced, 1);
+          final row = await db.vocabularyContextDao.getById('vc1');
+          expect(row, isNotNull);
+          expect(row!.contextText, 'a greeting');
+          expect(row.explanation, contains('你好'));
+        },
+      );
+    },
+  );
 
   group('SyncDownloadService.downloadVocabularyContexts', () {
     test('upserts vocabulary contexts', () async {
