@@ -4,12 +4,9 @@ library;
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 
-import 'package:cross_file/cross_file.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/features/asr/presentation/asr_generation_launcher.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -22,8 +19,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_fetch_co
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
-import 'package:enjoy_player/features/transcript/presentation/import_subtitle_language_dialog.dart';
+import 'package:enjoy_player/features/transcript/presentation/import_subtitle_file.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_empty_state.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_embedded_extract.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
@@ -58,37 +54,6 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
           mediaId: mediaId,
           routePath: GoRouterState.of(context).uri.path,
         );
-  }
-
-  Future<void> _import(BuildContext context, WidgetRef ref) async {
-    final pick = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: const ['srt', 'vtt'],
-    );
-    if (pick == null) return;
-    final f = pick;
-    final path = f.path;
-    if (path == null) return;
-    if (!context.mounted) return;
-
-    final hint = languageHintFromSubtitleFileName(f.name);
-    final lang = await showImportSubtitleLanguageDialog(
-      context,
-      initialLanguage: hint,
-    );
-    if (lang == null) return;
-    final trimmed = lang.trim();
-    if (trimmed.isEmpty) return;
-
-    await ref
-        .read(transcriptRepositoryProvider)
-        .importSubtitle(mediaId: mediaId, file: XFile(path), language: trimmed);
-    if (context.mounted) {
-      AppNotice.success(
-        context,
-        AppLocalizations.of(context)!.importSubtitleSuccess,
-      );
-    }
   }
 
   @override
@@ -184,7 +149,7 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
             );
           }
           return TranscriptEmptyState(
-            onImport: () => _import(context, ref),
+            onImport: () => pickAndImportSubtitleFile(context, ref, mediaId),
             onExtract: showExtractButton
                 ? () => runEmbeddedSubtitleExtract(
                     context: context,

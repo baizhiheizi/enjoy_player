@@ -84,7 +84,8 @@ be exported from [`subtitle_track_picker_sheet.dart`](../../lib/features/transcr
 | [`subtitle_track_picker_tiles.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_tiles.dart) | `TrackOptionTile<T>` (per-track radio row with provider + language chips and delete action) and `NoneOptionTile` (the explicit "none" row in the translation list). |
 | [`subtitle_track_picker_sections.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sections.dart) | `CollapsibleTrackSection` (the expandable card used for both primary and translation lists) and `SelectionSummary` (collapsed-state label + chip summary). |
 | [`subtitle_track_picker_actions.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_actions.dart) | `SubtitleActionsSection` — Extract / Refresh / Import (and Generate) list inside `SubtitlePickerCard`. |
-| [`subtitle_track_picker_sheet_action_handlers.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_action_handlers.dart) | Free functions behind the action list: `pickAndImportSubtitleFile` (file pick → language dialog → repository import with analytics), `runExtractEmbeddedSubtitles`, `runGenerateTranscript`, `refreshCloudTranscripts`, `confirmAndDeleteTranscriptTrack`. |
+| [`subtitle_track_picker_sheet_action_handlers.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_action_handlers.dart) | Free functions owned by the action list: `refreshCloudTranscripts`, `confirmAndDeleteTranscriptTrack`. Import / extract / generate live in their own modules so the transcript empty state shares one entrypoint per action. |
+| [`import_subtitle_file.dart`](../../lib/features/transcript/presentation/import_subtitle_file.dart) | `pickAndImportSubtitleFile` — the **single** local-file import flow (file pick → language dialog → repository import → success notice), plus `kSubtitleImportExtensions` and the `SubtitleFilePick` seam. Shared by the picker sheet and the transcript empty state; always emits the `transcriptGeneration*` funnel with `source: local_file`. |
 | [`subtitle_track_picker_sheet_body.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_body.dart) | Top-level builders: `buildSheetHeader`, `buildTracksContent` (async data / loading / error wiring), `buildTrackListBody` (primary + translation radio groups, blocked-message callouts, translation track list), `buildDialogSkeletonLoading`. |
 | [`subtitle_track_picker_popover_route.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_popover_route.dart) | `SubtitlesPopoverRoute` — the 384px raised-card `PopupRoute` anchored under the top bar's Subtitles button (ADR-0093 / ADR-0066). |
 | [`transcript_display_settings_sheet.dart`](../../lib/features/transcript/presentation/transcript_display_settings_sheet.dart) | `TranscriptDisplaySettingsSection` — gated karaoke + IPA toggles and the on-demand enrich tile. |
@@ -94,7 +95,11 @@ Smoke coverage lives in
 [`subtitle_track_picker_sheet_test.dart`](../../test/features/transcript/subtitle_track_picker_sheet_test.dart)
 (pumps the sheet in dialog presentation with faked providers and asserts the
 empty-tracks hint plus primary + translation section headers for a single
-track). The split is also recorded as
+track). The shared import flow is covered end to end by
+[`import_subtitle_file_test.dart`](../../test/features/transcript/presentation/import_subtitle_file_test.dart)
+(picker cancel, dialog cancel, blank and trimmed languages, success notice,
+the `transcriptGeneration*` funnel, and a repository-wiring case asserting the
+persisted track). The split is also recorded as
 [`2026-07-07-subtitle-track-picker-split-design.md`](../superpowers/specs/2026-07-07-subtitle-track-picker-split-design.md).
 
 ### Transcript repository shape
