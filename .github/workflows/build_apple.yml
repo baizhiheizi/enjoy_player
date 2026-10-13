@@ -38,6 +38,16 @@ env:
 permissions:
   contents: read
 
+# This host's route to github.com drops HTTP/2 connections mid-transfer
+# (LibreSSL SSL_ERROR_SYSCALL), which killed checkouts during network
+# brownouts. git 2.31+ honors GIT_CONFIG_* env vars, so pin HTTP/1.1 for
+# every step including checkout; apple_spm_hygiene.sh sets the same override
+# for the build steps.
+env:
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: http.version
+  GIT_CONFIG_VALUE_0: HTTP/1.1
+
 jobs:
   ios:
     name: iOS smoke

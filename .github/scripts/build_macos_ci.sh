@@ -32,12 +32,14 @@ config_flag="$(echo "${configuration}" | tr '[:upper:]' '[:lower:]')"
 apple_clear_spm_caches "${root}"
 
 build_with_retry() {
+  # "$@" inside apple_with_spm_host_lock runs this function with errexit
+  # exempted, so every step must forward its own failure explicitly.
   apple_retry_spm_command "${root}" \
-    flutter build macos --"${config_flag}" --config-only
+    flutter build macos --"${config_flag}" --config-only || return $?
 
   # --config-only regenerates the ephemeral SwiftPM package symlinks, so the
   # floor patch must run after it and before xcodebuild resolves packages.
-  apple_raise_swiftpm_macos_floors "${root}" "12.0"
+  apple_raise_swiftpm_macos_floors "${root}" "12.0" || return $?
 
   apple_retry_spm_command "${root}" \
     xcodebuild \
@@ -46,7 +48,7 @@ build_with_retry() {
     -configuration "${configuration}" \
     -derivedDataPath build/macos \
     CODE_SIGNING_ALLOWED=NO \
-    build
+    build || return $?
 }
 
 apple_with_spm_host_lock build_with_retry

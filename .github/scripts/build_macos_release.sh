@@ -25,9 +25,11 @@ fi
 release_append_posthog_defines dart_defines
 
 build_release() {
+  # "$@" inside apple_with_spm_host_lock runs this function with errexit
+  # exempted, so every step must forward its own failure explicitly.
   echo ">>> Configure macOS release"
   apple_retry_spm_command "${root}" \
-    flutter build macos --release --config-only "${dart_defines[@]}"
+    flutter build macos --release --config-only "${dart_defines[@]}" || return $?
 
   echo ">>> xcodebuild Release (compile-only signing)"
   apple_retry_spm_command "${root}" \
@@ -37,7 +39,7 @@ build_release() {
     -configuration Release \
     -derivedDataPath build/macos \
     CODE_SIGNING_ALLOWED=NO \
-    build
+    build || return $?
 }
 
 apple_with_spm_host_lock build_release
