@@ -30,6 +30,14 @@ concurrency:
 permissions:
   contents: write
 
+# Same HTTP/2-drop hardening as build_apple.yml: pin git to HTTP/1.1 for
+# checkout and every step; apple_spm_hygiene.sh sets the same override for
+# the build steps.
+env:
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: http.version
+  GIT_CONFIG_VALUE_0: HTTP/1.1
+
 jobs:
   release:
     name: iOS + macOS release

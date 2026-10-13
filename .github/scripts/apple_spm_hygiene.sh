@@ -5,7 +5,9 @@
 # self-hosted Mac that also runs Cursor/VS Code Copilot, inherited
 # GIT_CONFIG_*=safe.bareRepository=explicit breaks bare SPM caches and
 # surfaces as opaque "xcodebuild encountered an error (74)". Concurrent
-# Apple jobs on the same host can also race the shared SPM cache.
+# Apple jobs on the same host can also race the shared SPM cache. The host
+# lock records its holder's PID so a job cancelled mid-build cannot leave a
+# lock that blocks every later Apple job for up to an hour.
 #
 # Source this file; do not execute it directly.
 # shellcheck shell=bash
@@ -80,12 +82,25 @@ apple_clear_spm_caches() {
 
 apple_spm_failure_match() {
   # Reads log text on stdin; exit 0 if retryable SPM / error-74 failure.
+  # The pub-shaped patterns (handshake failures, "Failed to update packages.")
+  # cover network brownouts that abort `flutter build --config-only` before
+  # xcodebuild runs; retrying them beats failing the whole job.
   grep -qE \
-    'Could not resolve package dependencies|Couldn.t fetch updates from remote repositories|INTERNAL ERROR: Uncaught exception|xcodebuild encountered an error \(74\)|safe\.bareRepository is .explicit.|skipping cache due to an error'
+    'Could not resolve package dependencies|Couldn.t fetch updates from remote repositories|INTERNAL ERROR: Uncaught exception|xcodebuild encountered an error \(74\)|safe\.bareRepository is .explicit.|skipping cache due to an error|Failed to update packages\.|Connection terminated during handshake|SSL_ERROR_SYSCALL'
 }
 
 apple_spm_lock_dir() {
   echo "${TMPDIR:-/tmp}/enjoy-player-apple-spm.lockdir"
+}
+
+apple_spm_lock_holder_dead() {
+  local lockdir="${1:?apple_spm_lock_holder_dead: lockdir required}"
+  local pid_file="${lockdir}/pid"
+  [[ -f "${pid_file}" ]] || return 1
+  local pid
+  pid="$(cat "${pid_file}" 2>/dev/null)" || return 1
+  [[ "${pid}" =~ ^[0-9]+$ ]] || return 1
+  ! kill -0 "${pid}" 2>/dev/null
 }
 
 apple_spm_lock_acquire() {
@@ -97,6 +112,11 @@ apple_spm_lock_acquire() {
 
   while ! mkdir "${lockdir}" 2>/dev/null; do
     if [[ -d "${lockdir}" ]]; then
+      if apple_spm_lock_holder_dead "${lockdir}"; then
+        echo "Breaking Apple SPM host lock (${lockdir}); holder process is gone" >&2
+        rm -rf "${lockdir}"
+        continue
+      fi
       local age=0
       if stat_mtime="$(stat -f %m "${lockdir}" 2>/dev/null)"; then
         age=$(( $(date +%s) - stat_mtime ))
@@ -117,10 +137,11 @@ apple_spm_lock_acquire() {
     sleep 5
     waited=$((waited + 5))
   done
+  echo "$$" > "${lockdir}/pid"
 }
 
 apple_spm_lock_release() {
-  rmdir "$(apple_spm_lock_dir)" 2>/dev/null || true
+  rm -rf "$(apple_spm_lock_dir)"
 }
 
 # Run command under the host SPM lock with sanitized git env.

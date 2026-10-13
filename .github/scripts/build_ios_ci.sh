@@ -30,8 +30,10 @@ esac
 config_flag="$(echo "${configuration}" | tr '[:upper:]' '[:lower:]')"
 
 build_with_retry() {
+  # "$@" inside apple_with_spm_host_lock runs this function with errexit
+  # exempted, so every step must forward its own failure explicitly.
   apple_retry_spm_command "${root}" \
-    flutter build ios --"${config_flag}" --config-only --no-codesign
+    flutter build ios --"${config_flag}" --config-only --no-codesign || return $?
 
   apple_retry_spm_command "${root}" \
     xcodebuild \
@@ -42,7 +44,7 @@ build_with_retry() {
     -destination 'generic/platform=iOS' \
     -derivedDataPath build/ios/DerivedData \
     CODE_SIGNING_ALLOWED=NO \
-    build
+    build || return $?
 }
 
 apple_with_spm_host_lock build_with_retry
