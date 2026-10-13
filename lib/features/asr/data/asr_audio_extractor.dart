@@ -5,7 +5,7 @@
 ///   bytes are passed to the recognition service unchanged.
 /// * Video sources ([MediaKind.video]) go through FFmpeg: the audio
 ///   track is extracted to a temporary 16 kHz mono 16-bit PCM WAV
-///   (the format the Azure Speech SDK accepts). On Windows the
+///   (the format the Azure Speech SDK accepts). On Windows / Linux the
 ///   invocation runs in a worker isolate so a long re-encode does
 ///   not block the UI thread (mirrors `azure_assessment_wav_normalizer`).
 ///
@@ -150,10 +150,10 @@ class AsrAudioExtractor {
     required String outputWav,
     required void Function(double progress)? onProgress,
   }) async {
-    if (Platform.isWindows) {
+    if (FfmpegMediaProbe.usesFfmpegCli) {
       final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
       if (exe == null) {
-        _log.fine('asr_audio_extractor: no ffmpeg.exe on Windows');
+        _log.fine('asr_audio_extractor: no ffmpeg CLI found');
         throw AsrAudioExtractionException(
           AsrAudioExtractionFailureReason.ffmpegUnavailable,
           'ffmpeg not available',
@@ -161,8 +161,8 @@ class AsrAudioExtractor {
       }
       try {
         final result = await Isolate.run(
-          () => _windowsExtract(
-            _WindowsExtractArgs(
+          () => _cliExtract(
+            _CliExtractArgs(
               exe: exe,
               inputPath: input,
               outputWavPath: outputWav,
@@ -211,8 +211,8 @@ class AsrAudioExtractor {
   }
 }
 
-class _WindowsExtractArgs {
-  const _WindowsExtractArgs({
+class _CliExtractArgs {
+  const _CliExtractArgs({
     required this.exe,
     required this.inputPath,
     required this.outputWavPath,
@@ -222,8 +222,8 @@ class _WindowsExtractArgs {
   final String outputWavPath;
 }
 
-Future<({int exitCode, String stderr})> _windowsExtract(
-  _WindowsExtractArgs args,
+Future<({int exitCode, String stderr})> _cliExtract(
+  _CliExtractArgs args,
 ) async {
   final r = await Process.run(args.exe, <String>[
     '-nostdin',

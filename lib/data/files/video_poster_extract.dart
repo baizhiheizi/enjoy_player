@@ -67,8 +67,8 @@ double posterSeekSeconds(int? durationSeconds) {
 /// Uses **accurate** seek (`-i` then `-ss`) when the target time is small enough
 /// that decode cost is bounded; otherwise **fast** seek (`-ss` before `-i`).
 ///
-/// Windows: subprocess via [FfmpegMediaProbe.resolveFfmpegExecutable].
-/// Other platforms: [FFmpegKit.execute] (bundled libs on mobile).
+/// Windows / Linux: subprocess via [FfmpegMediaProbe.resolveFfmpegExecutable].
+/// Android / iOS / macOS: [FFmpegKit.execute] (bundled libs).
 ///
 /// Returns `true` when [outputJpegPath] exists and is non-empty after the run.
 Future<bool> writeVideoPosterJpeg({
@@ -93,10 +93,10 @@ Future<bool> writeVideoPosterJpeg({
   final net = _isNetworkMediaInput(input);
 
   try {
-    if (Platform.isWindows) {
+    if (FfmpegMediaProbe.usesFfmpegCli) {
       final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
       if (exe == null) {
-        _log.fine('video poster: no ffmpeg on Windows');
+        _log.fine('video poster: no ffmpeg CLI found');
         return false;
       }
       final List<String> args;

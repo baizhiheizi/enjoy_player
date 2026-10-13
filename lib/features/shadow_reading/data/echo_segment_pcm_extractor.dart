@@ -1,5 +1,6 @@
-/// Extracts mono `float32` PCM for a media time range via FFmpeg CLI (desktop)
-/// or FFmpegKit, with cooperative cancellation and a per-call timeout.
+/// Extracts mono `float32` PCM for a media time range via the FFmpeg CLI
+/// (Windows / Linux) or FFmpegKit (Android / iOS / macOS), with cooperative
+/// cancellation and a per-call timeout.
 ///
 /// The expensive byte→Float32 decode no longer runs here (or on the main
 /// isolate) — callers receive the temp `.raw` path produced by FFmpeg and
@@ -187,9 +188,9 @@ Future<void> _runFfmpegExtract({
   final ss = startSec.toStringAsFixed(4);
   final dur = durationSec.toStringAsFixed(4);
 
-  if (Platform.isWindows) {
+  if (FfmpegMediaProbe.usesFfmpegCli) {
     final exe = await _resolveFfmpegOrThrow();
-    await _runFfmpegWindowsProcess(
+    await _runFfmpegCliProcess(
       exe: exe,
       args: [
         '-nostdin',
@@ -237,9 +238,9 @@ Future<void> _runFfmpegFullDecode({
   required EchoPcmCancelToken? token,
   required Duration timeout,
 }) async {
-  if (Platform.isWindows) {
+  if (FfmpegMediaProbe.usesFfmpegCli) {
     final exe = await _resolveFfmpegOrThrow();
-    await _runFfmpegWindowsProcess(
+    await _runFfmpegCliProcess(
       exe: exe,
       args: [
         '-nostdin',
@@ -290,10 +291,10 @@ Future<String> _resolveFfmpegOrThrow() async {
   return exe;
 }
 
-/// Runs FFmpeg as a child [Process] (Windows) so we can [Process.kill] it on
-/// cancellation. The process itself runs off the Dart isolate, so this never
+/// Runs FFmpeg as a child [Process] (Windows / Linux) so we can
+/// [Process.kill] it on cancellation. The process itself runs off the Dart isolate, so this never
 /// blocks the UI thread.
-Future<void> _runFfmpegWindowsProcess({
+Future<void> _runFfmpegCliProcess({
   required String exe,
   required List<String> args,
   required EchoPcmCancelToken? token,
@@ -309,7 +310,7 @@ Future<void> _runFfmpegWindowsProcess({
   } catch (e) {
     throw EchoPcmExtractionException(
       EchoPcmFailureReason.ffmpegFailed,
-      'windows $failLabel spawn failed: $e',
+      'cli $failLabel spawn failed: $e',
     );
   }
   final stderrBuf = <List<int>>[];
@@ -344,12 +345,12 @@ Future<void> _runFfmpegWindowsProcess({
     _log.fine('echo ffmpeg $failLabel failed (exit $exitCode): $stderr');
     throw EchoPcmExtractionException(
       EchoPcmFailureReason.ffmpegFailed,
-      'windows $failLabel exit $exitCode',
+      'cli $failLabel exit $exitCode',
     );
   }
 }
 
-/// Runs FFmpeg via FFmpegKit (non-Windows). Uses [FFmpegKit.executeAsync] so a
+/// Runs FFmpeg via FFmpegKit (Android / iOS / macOS). Uses [FFmpegKit.executeAsync] so a
 /// session id is available for real cancellation via [FFmpegKit.cancel].
 Future<void> _runFfmpegKit({
   required String command,

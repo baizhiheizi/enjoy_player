@@ -74,6 +74,14 @@ class FfmpegMediaProbe {
     required bool isMacOS,
   }) => isAndroid || isIOS || isMacOS;
 
+  /// Whether this process must run the FFmpeg CLI binary (Windows / Linux)
+  /// rather than FFmpegKit.
+  static bool get usesFfmpegCli => !ffmpegKitRegistered(
+    isAndroid: Platform.isAndroid,
+    isIOS: Platform.isIOS,
+    isMacOS: Platform.isMacOS,
+  );
+
   /// Test seam: clears the memoized resolution so the next call re-probes.
   @visibleForTesting
   static void debugResetFfmpegExecutableCache() {

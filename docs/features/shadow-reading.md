@@ -140,8 +140,10 @@ back to the debug error style.
 **Linux.** Assessment runs the native Speech SDK through the
 `azure_speech` Linux plugin, the same path as the other platforms
 ([ADR-0096](../decisions/0096-native-azure-speech-sdk-on-linux.md)). WAV
-normalization runs the bundled or system `ffmpeg` CLI on Linux as on
-Windows (FFmpegKit ships no Linux plugin). In the player the takes render as the strip under the loop
+normalization and the pitch-contour PCM extraction
+(`echo_segment_pcm_extractor.dart`) run the bundled or system `ffmpeg` CLI
+on Linux as on Windows — `FfmpegMediaProbe.usesFfmpegCli` picks the CLI
+wherever FFmpegKit ships no plugin (Windows, Linux). In the player the takes render as the strip under the loop
 (chips + Pitch pill); recording readouts (pulse label, countdown bar)
 render inside the loop block, and the dock carries Play/Pause + Record
 and Cancel + Stop.

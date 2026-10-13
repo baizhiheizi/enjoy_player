@@ -128,7 +128,7 @@ Future<bool> normalizeWavForAzureAssessment({
 
   await _deleteIfExists(outputWavPath);
   final bool encoded;
-  if (Platform.isWindows || Platform.isLinux) {
+  if (FfmpegMediaProbe.usesFfmpegCli) {
     final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
     if (exe == null) {
       _log.fine('normalizeWav: no ffmpeg CLI found, skipping');
