@@ -110,7 +110,7 @@ Float32List decodeF32leBytes(Uint8List bytes) {
 }
 
 /// Runs FFmpeg to extract `[startSec, startSec + durationSec)` of [mediaFilePath]
-/// to a temp `.raw` (f32le, [kEchoPcmSampleRate] Hz, mono).
+/// (a local path or an `http(s)` URL) to a temp `.raw` (f32le, [kEchoPcmSampleRate] Hz, mono).
 ///
 /// Returns the temp file path; the **caller must delete it** (typically after a
 /// worker isolate has decoded+analyzed it). Throws [EchoPcmExtractionException]
@@ -129,7 +129,8 @@ Future<String> extractMonoFloat32SegmentToTempFile({
   if (durationSec <= 0 || mediaFilePath.trim().isEmpty) {
     throw const EchoPcmExtractionException(EchoPcmFailureReason.invalidInput);
   }
-  if (!File(mediaFilePath).existsSync()) {
+  if (!isNetworkMediaInput(mediaFilePath) &&
+      !File(mediaFilePath).existsSync()) {
     throw const EchoPcmExtractionException(EchoPcmFailureReason.fileMissing);
   }
   final outFile = await _newTempRawFile('echo_seg');
@@ -169,6 +170,17 @@ Future<String> extractEntireFileToTempF32(
   return outFile;
 }
 
+/// Whether [input] is an `http(s)` URL (cloud-streamed media) rather than a
+/// local file path.
+bool isNetworkMediaInput(String input) {
+  final lower = input.trimLeft().toLowerCase();
+  return lower.startsWith('http://') || lower.startsWith('https://');
+}
+
+List<String> _networkArgs(String input) => isNetworkMediaInput(input)
+    ? const ['-protocol_whitelist', 'file,http,https,tcp,tls,crypto']
+    : const [];
+
 Future<String> _newTempRawFile(String prefix) async {
   final tempDir = await getTemporaryDirectory();
   return p.join(
@@ -200,6 +212,7 @@ Future<void> _runFfmpegExtract({
         '-y',
         '-ss',
         ss,
+        ..._networkArgs(mediaPath),
         '-i',
         mediaPath,
         '-t',
@@ -222,6 +235,7 @@ Future<void> _runFfmpegExtract({
 
   final cmd =
       '-nostdin -hide_banner -loglevel error -y -ss $ss '
+      '${_networkArgs(mediaPath).join(' ')} '
       '-i ${shellEscape(mediaPath)} -t $dur -vn -ac 1 '
       '-ar $kEchoPcmSampleRate -f f32le ${shellEscape(outPath)}';
   await _runFfmpegKit(

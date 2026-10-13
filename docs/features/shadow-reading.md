@@ -137,6 +137,14 @@ bars, replay, re-assess, per-word phoneme analysis); the margin route
 wraps the panel in a transparent `Material` so plain text never falls
 back to the debug error style.
 
+**Pitch input.** The contour decodes the reference region with FFmpeg from
+`mediaAnalysisInputProvider`: the row's local file when it has one,
+otherwise its `http(s)` `mediaUrl`, so cloud-streamed library items get a
+contour too (FFmpeg seeks the remote file with `-ss` before `-i` and only
+fetches the segment). YouTube rows have no direct audio URL, so their Pitch
+button stays disabled. The input is read straight from the row, without
+opening a macOS security-scoped bookmark grant.
+
 **Linux.** Assessment runs the native Speech SDK through the
 `azure_speech` Linux plugin, the same path as the other platforms
 ([ADR-0096](../decisions/0096-native-azure-speech-sdk-on-linux.md)). WAV

@@ -17,7 +17,7 @@ import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/player/application/display_position_provider.dart';
-import 'package:enjoy_player/features/player/application/local_media_path_provider.dart';
+import 'package:enjoy_player/features/player/application/media_analysis_input_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
 import 'package:enjoy_player/core/analytics/analytics_provider.dart';
@@ -232,7 +232,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       return;
     }
 
-    await ref.read(localMediaPathProvider(widget.mediaId).future);
+    await ref.read(mediaAnalysisInputProvider(widget.mediaId).future);
 
     _setRecordingActiveOnBus(true);
     _recordingPending = true;
@@ -415,7 +415,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
     );
 
     final mediaPath = ref
-        .watch(localMediaPathProvider(widget.mediaId))
+        .watch(mediaAnalysisInputProvider(widget.mediaId))
         .valueOrNull;
     final recordings = ref.watch(echoRegionRecordingsProvider(_regionQuery));
 
