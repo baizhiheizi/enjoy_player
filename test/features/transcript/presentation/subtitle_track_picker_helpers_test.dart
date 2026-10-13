@@ -89,35 +89,13 @@ void main() {
   group('providerBadgeColors', () {
     ColorScheme scheme() => ColorScheme.fromSeed(seedColor: Colors.indigo);
 
-    test('official → primaryContainer/onPrimaryContainer', () {
-      final cs = scheme();
-      expect(providerBadgeColors(cs, 'official').bg, cs.primaryContainer);
-      expect(providerBadgeColors(cs, 'official').fg, cs.onPrimaryContainer);
-    });
-
-    test('auto → tertiaryContainer/onTertiaryContainer', () {
-      final cs = scheme();
-      expect(providerBadgeColors(cs, 'auto').bg, cs.tertiaryContainer);
-      expect(providerBadgeColors(cs, 'auto').fg, cs.onTertiaryContainer);
-    });
-
-    test('ai → secondaryContainer/onSecondaryContainer', () {
-      final cs = scheme();
-      expect(providerBadgeColors(cs, 'ai').bg, cs.secondaryContainer);
-      expect(providerBadgeColors(cs, 'ai').fg, cs.onSecondaryContainer);
-    });
-
-    test('user → surfaceContainerHighest/onSurfaceVariant', () {
-      final cs = scheme();
-      expect(providerBadgeColors(cs, 'user').bg, cs.surfaceContainerHighest);
-      expect(providerBadgeColors(cs, 'user').fg, cs.onSurfaceVariant);
-    });
-
-    test('unknown source → surfaceContainerHigh/onSurfaceVariant', () {
-      final cs = scheme();
-      expect(providerBadgeColors(cs, 'whatever').bg, cs.surfaceContainerHigh);
-      expect(providerBadgeColors(cs, 'whatever').fg, cs.onSurfaceVariant);
-    });
+    for (final source in ['official', 'auto', 'ai', 'user', 'whatever']) {
+      test('$source → neutral sunk badge (Duet: no hue per provider)', () {
+        final cs = scheme();
+        expect(providerBadgeColors(cs, source).bg, cs.surfaceContainerHighest);
+        expect(providerBadgeColors(cs, source).fg, cs.onSurfaceVariant);
+      });
+    }
   });
 
   group('trackPickerRadioTheme', () {

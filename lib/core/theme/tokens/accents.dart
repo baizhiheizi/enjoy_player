@@ -18,6 +18,7 @@ final class _AccentColors {
     required this.original,
     required this.originalInk,
     required this.originalSoft,
+    required this.originalLine,
     required this.you,
     required this.youInk,
     required this.youSoft,
@@ -58,6 +59,9 @@ final class _AccentColors {
     originalSoft: light
         ? AppColors.originalSoftLight
         : AppColors.originalSoftDark,
+    originalLine: light
+        ? AppColors.originalLineLight
+        : AppColors.originalLineDark,
     you: light ? AppColors.youLight : AppColors.youDark,
     youInk: light ? AppColors.youInkLight : AppColors.youInkDark,
     youSoft: light ? AppColors.youSoftLight : AppColors.youSoftDark,
@@ -119,6 +123,9 @@ final class _AccentColors {
   /// Translucent original wash (selected rows, soft pills).
   final Color originalSoft;
 
+  /// Original-tinted outline (the open Subtitles chip).
+  final Color originalLine;
+
   /// Learner violet: Echo loop, Record, takes, your pitch.
   final Color you;
 
@@ -176,6 +183,7 @@ final class _AccentColors {
     Color? youInk,
     Color? youSoft,
     Color? youLine,
+    Color? originalLine,
     Color? onYou,
     Color? brandInk,
     Color? brandSoft,
@@ -208,6 +216,7 @@ final class _AccentColors {
       youInk: youInk ?? this.youInk,
       youSoft: youSoft ?? this.youSoft,
       youLine: youLine ?? this.youLine,
+      originalLine: originalLine ?? this.originalLine,
       onYou: onYou ?? this.onYou,
       brandInk: brandInk ?? this.brandInk,
       brandSoft: brandSoft ?? this.brandSoft,
@@ -255,6 +264,7 @@ final class _AccentColors {
       youInk: Color.lerp(youInk, other.youInk, t)!,
       youSoft: Color.lerp(youSoft, other.youSoft, t)!,
       youLine: Color.lerp(youLine, other.youLine, t)!,
+      originalLine: Color.lerp(originalLine, other.originalLine, t)!,
       onYou: Color.lerp(onYou, other.onYou, t)!,
       brandInk: Color.lerp(brandInk, other.brandInk, t)!,
       brandSoft: Color.lerp(brandSoft, other.brandSoft, t)!,

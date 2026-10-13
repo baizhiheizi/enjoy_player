@@ -7919,6 +7919,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Needs work'**
   String get assessmentLevelPoor;
+
+  /// Top-bar button that opens the player's More menu.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get playerMore;
+
+  /// Section heading in the player's More menu and the phone Subtitles sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript'**
+  String get playerMoreTranscriptSection;
+
+  /// More menu: import a subtitle file for this media.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a subtitle file…'**
+  String get playerMoreAddSubtitleFile;
+
+  /// More menu: extract subtitle tracks embedded in the video file.
+  ///
+  /// In en, this message translates to:
+  /// **'Use embedded subtitles…'**
+  String get playerMoreUseEmbeddedSubtitles;
+
+  /// More menu: start AI transcription when no AI track exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an AI transcript…'**
+  String get playerMoreCreateAiTranscript;
+
+  /// More menu: run AI transcription again.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribe again…'**
+  String get playerMoreTranscribeAgain;
+
+  /// More menu: generate word timings and pronunciation for a local file.
+  ///
+  /// In en, this message translates to:
+  /// **'Add word timings & IPA'**
+  String get playerMoreAddWordTimings;
+
+  /// More menu: generate pronunciation for a streamed item (no word timings).
+  ///
+  /// In en, this message translates to:
+  /// **'Add pronunciation (IPA)'**
+  String get playerMoreAddIpa;
+
+  /// More menu: fetch transcripts from the cloud again.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh from cloud'**
+  String get playerMoreRefreshFromCloud;
+
+  /// More menu: open the keyboard shortcuts cheatsheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts'**
+  String get playerMoreKeyboardShortcuts;
+
+  /// Title of the Subtitles & display panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitles & display'**
+  String get subtitlesPanelTitle;
+
+  /// Section heading for the track rows in the Subtitles & display panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitles'**
+  String get subtitlesSectionSubtitles;
+
+  /// Section heading for the display options in the Subtitles & display panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get subtitlesSectionDisplay;
+
+  /// Accessible label for the Book / Clean typeface choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript type'**
+  String get transcriptTypefaceLabel;
+
+  /// Serif transcript typeface option.
+  ///
+  /// In en, this message translates to:
+  /// **'Book'**
+  String get transcriptTypefaceBook;
+
+  /// Sans-serif transcript typeface option.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean'**
+  String get transcriptTypefaceClean;
+
+  /// Display switch: underline the word being spoken.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlight the spoken word'**
+  String get subtitlesHighlightSpokenWord;
+
+  /// Hint under the highlight switch when available.
+  ///
+  /// In en, this message translates to:
+  /// **'Underline each word as it is said.'**
+  String get subtitlesHighlightSpokenWordHint;
+
+  /// Display switch: show IPA under each word.
+  ///
+  /// In en, this message translates to:
+  /// **'IPA under words'**
+  String get subtitlesIpaUnderWords;
+
+  /// Hint under the IPA switch when available.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a word to hear it.'**
+  String get subtitlesIpaUnderWordsHint;
+
+  /// Hint under a disabled display switch on desktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Add word timings & IPA first (··· More).'**
+  String get subtitlesNeedsWordTimingsMore;
+
+  /// Hint under a disabled display switch in the phone sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add word timings & IPA first (below).'**
+  String get subtitlesNeedsWordTimingsBelow;
+
+  /// Footer of the desktop Subtitles & display panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add or replace the transcript from ··· More.'**
+  String get subtitlesManageFromMore;
+
+  /// Progress card title while word timings generate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating word timings and pronunciation'**
+  String get transcriptEnrichRunningOwned;
+
+  /// Progress card title while pronunciation generates for a streamed item.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating pronunciation'**
+  String get transcriptEnrichRunningYoutube;
 }
 
 class _AppLocalizationsDelegate

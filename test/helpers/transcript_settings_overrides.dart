@@ -1,10 +1,12 @@
 /// Isolated-test overrides so transcript tiles never open SettingsDao.
 library;
 
+import 'package:flutter_riverpod/flutter_riverpod.dart' show AsyncData;
 import 'package:flutter_riverpod/misc.dart' show Override;
 
 import 'package:enjoy_player/features/settings/application/ipa_overlay_settings.dart';
 import 'package:enjoy_player/features/settings/application/karaoke_highlight_settings.dart';
+import 'package:enjoy_player/features/settings/application/transcript_typeface_settings.dart';
 
 class IpaOverlaySettingsOverride extends IpaOverlaySettings {
   IpaOverlaySettingsOverride(this.enabled);
@@ -40,3 +42,17 @@ List<Override> transcriptIpaOverlayOnOverrides() => [
     () => IpaOverlaySettingsOverride(true),
   ),
 ];
+
+class TranscriptTypefaceSettingsOverride extends TranscriptTypefaceSettings {
+  TranscriptTypefaceSettingsOverride([this.initial = TranscriptTypeface.book]);
+
+  final TranscriptTypeface initial;
+
+  @override
+  Future<TranscriptTypeface> build() async => initial;
+
+  @override
+  Future<void> select(TranscriptTypeface typeface) async {
+    state = AsyncData(typeface);
+  }
+}

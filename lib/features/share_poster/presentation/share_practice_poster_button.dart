@@ -1,9 +1,8 @@
 /// Player chrome entry for share-practice-poster when recordings exist.
 library;
 
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_top_bar_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -56,34 +55,12 @@ class SharePracticePosterButton extends ConsumerWidget {
     if (!hasRecordings) return const SizedBox.shrink();
 
     if (labeled) {
-      final t = EnjoyThemeTokens.of(context);
-      final tt = Theme.of(context).textTheme;
-      return Tooltip(
-        message: l10n.practicePosterShareTooltip,
-        child: EnjoyPressable(
-          onTap: () =>
-              showPracticePosterPreviewSheet(context, ref, mediaId: mediaId),
-          borderRadius: BorderRadius.circular(t.radiusControl),
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(EnjoyIcons.share, size: 18, color: iconColor),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.practicePosterShareLabel,
-                  style: tt.labelMedium?.copyWith(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    color: t.ink2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      return PlayerTopBarChip(
+        icon: EnjoyIcons.share,
+        label: l10n.practicePosterShareLabel,
+        tooltip: l10n.practicePosterShareTooltip,
+        onTap: () =>
+            showPracticePosterPreviewSheet(context, ref, mediaId: mediaId),
       );
     }
 

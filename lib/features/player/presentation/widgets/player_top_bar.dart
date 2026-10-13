@@ -1,5 +1,5 @@
-/// Duet player top bar (ADR-0093) — collapse + title/meta, the centered
-/// Listen/Echo segmented control, and share/subtitles actions.
+/// Duet player top bar (ADR-0093, canvas v30) — collapse + title/meta, the
+/// centered mode switch, then Share, the Subtitles chip and ⋯ More.
 library;
 
 import 'dart:async' show unawaited;
@@ -28,6 +28,8 @@ import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.
 import 'package:enjoy_player/features/share_poster/presentation/share_practice_poster_button.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_sheet.dart';
+import 'player_more_menu.dart';
+import 'player_top_bar_chip.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class PlayerTopBar extends ConsumerWidget {
@@ -57,7 +59,7 @@ class PlayerTopBar extends ConsumerWidget {
         color: t.paper,
         border: Border(bottom: BorderSide(color: t.line)),
       ),
-      padding: const EdgeInsets.fromLTRB(6, 0, 8, 0),
+      padding: EdgeInsets.fromLTRB(phone ? 6 : 10, 0, phone ? 8 : 14, 0),
       child: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth < t.breakpointCompact) {
@@ -150,6 +152,8 @@ class PlayerTopBar extends ConsumerWidget {
                       mediaId: mediaId,
                       showLabel: showSubtitleLabel,
                     ),
+                    const SizedBox(width: 4),
+                    _MoreAction(mediaId: mediaId),
                   ],
                 ),
               ),
@@ -301,49 +305,61 @@ class _ModeSegmented extends StatelessWidget {
   }
 }
 
-class _SubtitlesAction extends ConsumerWidget {
+class _SubtitlesAction extends ConsumerStatefulWidget {
   const _SubtitlesAction({required this.mediaId, required this.showLabel});
 
   final String mediaId;
   final bool showLabel;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SubtitlesAction> createState() => _SubtitlesActionState();
+}
+
+class _SubtitlesActionState extends ConsumerState<_SubtitlesAction> {
+  bool _open = false;
+
+  Future<void> _toggle() async {
+    setState(() => _open = true);
+    await showSubtitleTrackPicker(context, ref, widget.mediaId);
+    if (mounted) setState(() => _open = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return PlayerTopBarChip(
+      key: const ValueKey('player-top-bar-subtitles'),
+      icon: EnjoyIcons.subtitles,
+      label: l10n.subtitles,
+      tooltip: l10n.subtitlesPanelTitle,
+      showLabel: widget.showLabel,
+      open: _open,
+      onTap: _open ? null : () => unawaited(_toggle()),
+    );
+  }
+}
+
+class _MoreAction extends StatelessWidget {
+  const _MoreAction({required this.mediaId});
+
+  final String mediaId;
+
+  @override
+  Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final tt = Theme.of(context).textTheme;
-    return Tooltip(
-      message: l10n.subtitles,
-      child: EnjoyPressable(
-        onTap: () => unawaited(showSubtitleTrackPicker(context, ref, mediaId)),
-        borderRadius: BorderRadius.circular(t.radiusControl),
-        child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: ShapeDecoration(
-            shape: RoundedSuperellipseBorder(
-              borderRadius: BorderRadius.circular(t.radiusControl),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(EnjoyIcons.subtitles, size: 18),
-              if (showLabel) ...[
-                const SizedBox(width: 8),
-                Text(
-                  l10n.subtitles,
-                  style: tt.labelMedium?.copyWith(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    color: t.ink2,
-                  ),
-                ),
-              ],
-            ],
-          ),
+    return IconButton(
+      key: const ValueKey('player-top-bar-more'),
+      tooltip: l10n.playerMore,
+      icon: const Icon(EnjoyIcons.more, size: 20),
+      color: t.ink2,
+      style: IconButton.styleFrom(
+        fixedSize: const Size(40, 40),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusControl),
         ),
       ),
+      onPressed: () => openPlayerMoreMenu(context, mediaId),
     );
   }
 }

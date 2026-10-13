@@ -14,7 +14,6 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
-import 'package:enjoy_player/features/asr/presentation/asr_generation_launcher.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import '../application/all_transcripts_provider.dart';
@@ -22,14 +21,14 @@ import '../application/transcript_repository_provider.dart';
 import '../domain/auto_translate.dart';
 import '../domain/transcript_track.dart';
 import 'package:enjoy_player/data/subtitle/transcript_display_readiness.dart';
-import 'import_subtitle_file.dart';
 import 'subtitle_track_picker_actions.dart';
+import 'subtitle_track_picker_primitives.dart';
+import 'transcript_actions.dart';
 import 'subtitle_track_picker_helpers.dart';
 import 'subtitle_track_picker_sections.dart';
 import 'subtitle_track_picker_sheet_action_handlers.dart';
 import 'subtitle_track_picker_tiles.dart';
 import 'transcript_display_settings_sheet.dart';
-import 'transcript_embedded_extract.dart';
 
 String? _autoTranslateBlockedMessage(
   AppLocalizations l10n,
@@ -63,8 +62,6 @@ List<Widget> buildTrackListBody({
   required List<TranscriptTrack> tracks,
   required String? primaryId,
   required String? secondaryId,
-  required bool showExtractEmbedded,
-  required bool showImportFile,
   required bool isFetching,
   required bool inlineExpandedLists,
   required String? autoSelectionId,
@@ -86,14 +83,10 @@ List<Widget> buildTrackListBody({
   final blockedMessage = _autoTranslateBlockedMessage(l10n, autoTranslateState);
 
   return [
+    SubtitlePanelOverline(l10n.subtitlesSectionSubtitles),
     if (isFetching)
       Padding(
-        padding: EdgeInsets.fromLTRB(
-          sheetHorizontalPadding(t),
-          t.space8,
-          sheetHorizontalPadding(t),
-          t.space8,
-        ),
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
         child: Row(
           children: [
             LoadingIcon(size: 18, color: theme.colorScheme.primary),
@@ -111,18 +104,12 @@ List<Widget> buildTrackListBody({
       ),
     if (tracks.isEmpty)
       Padding(
-        padding: EdgeInsets.symmetric(horizontal: sheetHorizontalPadding(t)),
-        child: DecoratedBox(
-          decoration: subtitlePickerCardDecoration(context),
-          child: Padding(
-            padding: EdgeInsets.all(t.space16),
-            child: Text(
-              l10n.noTranscriptHint,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.45,
-              ),
-            ),
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        child: Text(
+          l10n.noTranscriptHint,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: t.ink2,
+            height: 1.45,
           ),
         ),
       )
@@ -169,7 +156,6 @@ List<Widget> buildTrackListBody({
           ),
         ),
       ),
-    SizedBox(height: t.space12),
     CollapsibleTrackSection(
       title: l10n.subtitlesTranslation,
       isExpanded: expandedSection == PickerSection.secondary,
@@ -215,12 +201,7 @@ List<Widget> buildTrackListBody({
                 ),
               if (blockedMessage != null)
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    sheetHorizontalPadding(t),
-                    t.space4,
-                    sheetHorizontalPadding(t),
-                    t.space8,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                   child: Text(
                     blockedMessage,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -231,12 +212,7 @@ List<Widget> buildTrackListBody({
               if (autoTranslateState.blockReason ==
                   AutoTranslateBlockReason.credits)
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    sheetHorizontalPadding(t),
-                    0,
-                    sheetHorizontalPadding(t),
-                    t.space8,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                   child: Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: TextButton(
@@ -248,12 +224,9 @@ List<Widget> buildTrackListBody({
               if (!signedIn &&
                   autoTranslateState.blockReason ==
                       AutoTranslateBlockReason.signedOut)
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: sheetHorizontalPadding(t),
-                    vertical: t.space8,
-                  ),
-                  child: const AuthRequiredCallout(
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: AuthRequiredCallout(
                     surface: AuthRequiredSurface.lookupTranslation,
                   ),
                 ),
@@ -272,70 +245,51 @@ List<Widget> buildTrackListBody({
         ),
       ),
     ),
-    SizedBox(height: t.space16),
+    const SubtitlePanelDivider(),
     TranscriptDisplaySettingsSection(
       mediaId: mediaId,
       readiness: readiness,
-      horizontalPadding: sheetHorizontalPadding(t),
+      actionsBelow: !inlineExpandedLists,
     ),
-    SizedBox(height: t.space16),
-    SubtitleActionsSection(
-      horizontalPadding: sheetHorizontalPadding(t),
-      showExtractEmbedded: showExtractEmbedded,
-      showImportFile: showImportFile,
-      onExtractEmbedded: () => runEmbeddedSubtitleExtract(
-        context: context,
-        ref: ref,
-        mediaId: mediaId,
+    if (inlineExpandedLists)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+        child: Text(
+          l10n.subtitlesManageFromMore,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontSize: 12.5,
+            height: 1.45,
+            color: t.ink3,
+          ),
+        ),
+      )
+    else ...[
+      const SubtitlePanelDivider(),
+      TranscriptActionsList(
+        actions: watchTranscriptActions(ref, l10n, mediaId),
       ),
-      onRefreshCloud: () => refreshCloudTranscripts(context, ref, mediaId),
-      onImportFile: () => pickAndImportSubtitleFile(context, ref, mediaId),
-      onGenerate: () => launchAsrGeneration(context, ref, mediaId: mediaId),
-      showGenerate: showImportFile,
-      hasGeneratedTrack: tracks.any((track) => track.source == 'ai'),
-    ),
+    ],
   ];
 }
 
 Widget buildSheetHeader(BuildContext context, EnjoyThemeTokens t) {
   final l10n = AppLocalizations.of(context)!;
-  final cs = Theme.of(context).colorScheme;
-
   return Padding(
-    padding: EdgeInsets.fromLTRB(
-      sheetHorizontalPadding(t),
-      t.space4,
-      sheetHorizontalPadding(t),
-      t.space4,
-    ),
+    padding: const EdgeInsets.fromLTRB(20, 4, 12, 4),
     child: Row(
       children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: cs.primaryContainer.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(t.radiusSm),
-          ),
-          child: Icon(EnjoyIcons.cc, size: 20, color: cs.primary),
-        ),
-        SizedBox(width: t.space12),
         Expanded(
           child: Text(
-            l10n.subtitles,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.2,
+            l10n.subtitlesPanelTitle,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: t.ink,
             ),
           ),
         ),
         IconButton(
-          style: IconButton.styleFrom(
-            minimumSize: const Size(40, 40),
-            fixedSize: const Size(40, 40),
-            backgroundColor: cs.surfaceContainerHighest.withValues(alpha: 0.65),
-          ),
-          icon: Icon(EnjoyIcons.close, size: 20, color: cs.onSurfaceVariant),
+          icon: Icon(EnjoyIcons.close, size: 20, color: t.ink2),
           tooltip: MaterialLocalizations.of(context).closeButtonLabel,
           onPressed: () => Navigator.pop(context),
         ),
@@ -353,8 +307,6 @@ Widget buildTracksContent({
   required AppLocalizations l10n,
   required AsyncValue<List<TranscriptTrack>> tracksAsync,
   required bool isDialog,
-  required bool showExtractEmbedded,
-  required bool showImportFile,
   required bool isFetching,
   required String? primaryId,
   required String? secondaryId,
@@ -380,8 +332,6 @@ Widget buildTracksContent({
       tracks: tracks,
       primaryId: primaryId,
       secondaryId: secondaryId,
-      showExtractEmbedded: showExtractEmbedded,
-      showImportFile: showImportFile,
       isFetching: isFetching,
       inlineExpandedLists: isDialog,
       autoSelectionId: autoSelectionId,

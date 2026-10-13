@@ -23,6 +23,7 @@ import 'package:enjoy_player/features/transcript/presentation/import_subtitle_fi
 import 'package:enjoy_player/features/transcript/presentation/transcript_empty_state.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_embedded_extract.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_typeface_scope.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:go_router/go_router.dart';
 
@@ -171,7 +172,9 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
             showFetchYoutubeButton: isYoutube,
           );
         }
-        return TranscriptScrollableList(mediaId: mediaId, lines: lines);
+        return TranscriptTypefaceScope(
+          child: TranscriptScrollableList(mediaId: mediaId, lines: lines),
+        );
       },
       loading: () => const SkeletonTranscript(),
       error: (e, _) => Center(

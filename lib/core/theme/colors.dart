@@ -105,6 +105,7 @@ abstract final class AppColors {
   static const originalLight = Color(0xFF4797F5);
   static const originalInkLight = Color(0xFF1D64C8);
   static const originalSoftLight = Color(0xFFE9F2FE);
+  static const originalLineLight = Color(0xFFC6DDFB);
   static const youLight = Color(0xFF8B2FE0);
   static const youInkLight = Color(0xFF7E22CE);
   static const youSoftLight = Color(0xFFF4ECFE);
@@ -138,6 +139,7 @@ abstract final class AppColors {
   static const originalDark = Color(0xFF6AAEFF);
   static const originalInkDark = Color(0xFF7DB8FF);
   static const Color originalSoftDark = Color.fromRGBO(90, 162, 255, 0.15);
+  static const Color originalLineDark = Color.fromRGBO(106, 174, 255, 0.4);
   static const youDark = Color(0xFF8F55F0);
   static const youInkDark = Color(0xFFC7A0FF);
   static const Color youSoftDark = Color.fromRGBO(143, 85, 240, 0.16);

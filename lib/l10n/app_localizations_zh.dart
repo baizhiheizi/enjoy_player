@@ -4171,6 +4171,81 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get assessmentLevelPoor => '待提高';
+
+  @override
+  String get playerMore => '更多';
+
+  @override
+  String get playerMoreTranscriptSection => '字幕文本';
+
+  @override
+  String get playerMoreAddSubtitleFile => '添加字幕文件…';
+
+  @override
+  String get playerMoreUseEmbeddedSubtitles => '使用内嵌字幕…';
+
+  @override
+  String get playerMoreCreateAiTranscript => '生成 AI 字幕…';
+
+  @override
+  String get playerMoreTranscribeAgain => '重新转写…';
+
+  @override
+  String get playerMoreAddWordTimings => '添加逐词时间与音标';
+
+  @override
+  String get playerMoreAddIpa => '添加音标（IPA）';
+
+  @override
+  String get playerMoreRefreshFromCloud => '从云端刷新';
+
+  @override
+  String get playerMoreKeyboardShortcuts => '键盘快捷键';
+
+  @override
+  String get subtitlesPanelTitle => '字幕与显示';
+
+  @override
+  String get subtitlesSectionSubtitles => '字幕';
+
+  @override
+  String get subtitlesSectionDisplay => '显示';
+
+  @override
+  String get transcriptTypefaceLabel => '字幕字体';
+
+  @override
+  String get transcriptTypefaceBook => '书本';
+
+  @override
+  String get transcriptTypefaceClean => '简洁';
+
+  @override
+  String get subtitlesHighlightSpokenWord => '高亮正在朗读的词';
+
+  @override
+  String get subtitlesHighlightSpokenWordHint => '朗读到哪个词，就在哪个词下画线。';
+
+  @override
+  String get subtitlesIpaUnderWords => '在词下显示音标';
+
+  @override
+  String get subtitlesIpaUnderWordsHint => '点按单词即可试听。';
+
+  @override
+  String get subtitlesNeedsWordTimingsMore => '请先添加逐词时间与音标（··· 更多）。';
+
+  @override
+  String get subtitlesNeedsWordTimingsBelow => '请先添加逐词时间与音标（见下方）。';
+
+  @override
+  String get subtitlesManageFromMore => '在 ··· 更多 中添加或替换字幕。';
+
+  @override
+  String get transcriptEnrichRunningOwned => '正在生成逐词时间与发音';
+
+  @override
+  String get transcriptEnrichRunningYoutube => '正在生成发音';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7665,4 +7740,79 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get assessmentLevelPoor => '待提高';
+
+  @override
+  String get playerMore => '更多';
+
+  @override
+  String get playerMoreTranscriptSection => '字幕文本';
+
+  @override
+  String get playerMoreAddSubtitleFile => '添加字幕文件…';
+
+  @override
+  String get playerMoreUseEmbeddedSubtitles => '使用内嵌字幕…';
+
+  @override
+  String get playerMoreCreateAiTranscript => '生成 AI 字幕…';
+
+  @override
+  String get playerMoreTranscribeAgain => '重新转写…';
+
+  @override
+  String get playerMoreAddWordTimings => '添加逐词时间与音标';
+
+  @override
+  String get playerMoreAddIpa => '添加音标（IPA）';
+
+  @override
+  String get playerMoreRefreshFromCloud => '从云端刷新';
+
+  @override
+  String get playerMoreKeyboardShortcuts => '键盘快捷键';
+
+  @override
+  String get subtitlesPanelTitle => '字幕与显示';
+
+  @override
+  String get subtitlesSectionSubtitles => '字幕';
+
+  @override
+  String get subtitlesSectionDisplay => '显示';
+
+  @override
+  String get transcriptTypefaceLabel => '字幕字体';
+
+  @override
+  String get transcriptTypefaceBook => '书本';
+
+  @override
+  String get transcriptTypefaceClean => '简洁';
+
+  @override
+  String get subtitlesHighlightSpokenWord => '高亮正在朗读的词';
+
+  @override
+  String get subtitlesHighlightSpokenWordHint => '朗读到哪个词，就在哪个词下画线。';
+
+  @override
+  String get subtitlesIpaUnderWords => '在词下显示音标';
+
+  @override
+  String get subtitlesIpaUnderWordsHint => '点按单词即可试听。';
+
+  @override
+  String get subtitlesNeedsWordTimingsMore => '请先添加逐词时间与音标（··· 更多）。';
+
+  @override
+  String get subtitlesNeedsWordTimingsBelow => '请先添加逐词时间与音标（见下方）。';
+
+  @override
+  String get subtitlesManageFromMore => '在 ··· 更多 中添加或替换字幕。';
+
+  @override
+  String get transcriptEnrichRunningOwned => '正在生成逐词时间与发音';
+
+  @override
+  String get transcriptEnrichRunningYoutube => '正在生成发音';
 }

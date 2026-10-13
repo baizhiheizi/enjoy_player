@@ -655,7 +655,7 @@ The rules above still apply. Rows marked **behavior** wait for their decision in
   - The dock's Hide text toggle goes; its slot becomes Replay (D6.5).
   - The Display "Hide text" switch in the Subtitles panel goes (the lens replaces it).
   - Segment height 34 desktop / 36 phone, labels 13.5.
-- **Behavior (R4):** Dictate as a segment beside Echo, and losing the dock toggle. Today Hide text is orthogonal to Echo (both can be on). Decide whether Dictate is exclusive with Echo or the segment only reflects the flag.
+- **Decided (R4, 2026-10-14):** Dictate is an exclusive lens: choosing it leaves Echo, choosing Echo leaves Dictate, and `H` / `E` switch lenses the same way. The dock toggle goes.
 - **Keep:** `H`, the reveal rules, the semantics strings.
 - **Docs:** [transcript.md](../../features/transcript.md), [player.md](../../features/player.md).
 
@@ -720,7 +720,7 @@ The rules above still apply. Rows marked **behavior** wait for their decision in
   - Display: **Transcript type** (Book = Literata / Clean = Geist), Highlight the spoken word, IPA under words (`I`).
   - The word-timings progress stays here.
   - Import, extract, regenerate and refresh move to ⋯ More (D6.8). The panel ends with `Add, replace or download the transcript from ⋯ More`.
-- **Behavior (R5):** Transcript type is a new setting (today `useSerif` is always `true` with no switch, ADR-0093 decision 2).
+- **Decided (R5, 2026-10-14):** Transcript type ships as the device flag `transcript.cleanTypeface` (default Book), applied by `TranscriptTypefaceScope`; ADR-0093 amendment.
 - **Docs:** [transcript.md](../../features/transcript.md).
 
 #### D6.8 ⋯ More menu
@@ -730,7 +730,8 @@ The rules above still apply. Rows marked **behavior** wait for their decision in
   - Media: Export the loop as a clip… · Edit details
   - Keyboard shortcuts `?`
 - **Existing actions** (build now): Add a subtitle file (`subtitlesImportFile`), Use embedded subtitles (`subtitlesExtractEmbedded`), Transcribe again (`subtitlesRegenerate`), Add word timings & IPA (enrichment), Refresh from cloud (`subtitlesRefreshCloud`), Keyboard shortcuts.
-- **Behavior (R6):** Edit transcript, Download transcript, Export the loop as a clip and Edit details have no feature today. Leave them out until R6 is decided.
+- **Decided (R6, 2026-10-14):** Edit transcript, Download transcript, Export the loop as a clip and Edit details stay out; they are #920–#923.
+- **Phone:** no More button (the `Phone` board draws none); the Subtitles sheet lists the same transcript actions at its foot.
 - **Docs:** [player.md](../../features/player.md), [transcript.md](../../features/transcript.md).
 
 #### D6.9 Word lookup

@@ -4,66 +4,50 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'subtitle_track_picker_helpers.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 
-/// Rounded card chrome shared by track lists, display toggles, and actions.
-class SubtitlePickerCard extends StatelessWidget {
-  const SubtitlePickerCard({
-    required this.child,
-    this.title,
-    this.emphasized = false,
-    this.withShadow = false,
-    super.key,
-  });
+/// Uppercase section heading inside the Subtitles & display panel.
+class SubtitlePanelOverline extends StatelessWidget {
+  const SubtitlePanelOverline(this.label, {super.key});
 
-  final Widget child;
-  final String? title;
-  final bool emphasized;
-  final bool withShadow;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-
-    return DecoratedBox(
-      decoration: subtitlePickerCardDecoration(
-        context,
-        emphasized: emphasized,
-        withShadow: withShadow,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(t.radiusLg),
-        child: Material(
-          type: MaterialType.transparency,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (title != null)
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    t.space16,
-                    t.space12,
-                    t.space16,
-                    t.space4,
-                  ),
-                  child: Text(
-                    title!,
-                    style: subtitlePickerSectionTitleStyle(context),
-                  ),
-                ),
-              child,
-            ],
-          ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 11 * 0.08,
+          color: t.ink3,
         ),
       ),
     );
   }
 }
 
-/// Compact switch row matching [TranscriptBusyListTile] density in the picker.
+/// Hairline between the panel's sections.
+class SubtitlePanelDivider extends StatelessWidget {
+  const SubtitlePanelDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: t.line,
+    );
+  }
+}
+
+/// Display switch row: title over an ink3 hint, switch at the end.
 class SubtitleToggleTile extends StatelessWidget {
   const SubtitleToggleTile({
-    required this.icon,
     required this.title,
     required this.subtitle,
     required this.value,
@@ -71,7 +55,6 @@ class SubtitleToggleTile extends StatelessWidget {
     super.key,
   });
 
-  final IconData icon;
   final String title;
   final String subtitle;
   final bool value;
@@ -80,33 +63,48 @@ class SubtitleToggleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
     final enabled = onChanged != null;
-
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: t.space12,
-        vertical: t.space4,
-      ),
-      leading: Icon(
-        icon,
-        size: 24,
-        color: enabled
-            ? cs.onSurfaceVariant
-            : cs.onSurface.withValues(alpha: 0.38),
-      ),
-      title: Text(title),
-      subtitle: Text(
-        subtitle,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: enabled
-              ? cs.onSurfaceVariant
-              : cs.onSurface.withValues(alpha: 0.38),
+    return MergeSemantics(
+      child: EnjoyPressable(
+        onTap: enabled ? () => onChanged!(!value) : null,
+        borderRadius: BorderRadius.circular(12),
+        pressedScale: 1,
+        washColor: t.sunk,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: tt.bodyMedium?.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: enabled ? t.ink : t.ink3,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: tt.bodySmall?.copyWith(
+                        fontSize: 12.5,
+                        height: 1.4,
+                        color: t.ink3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Switch.adaptive(value: value, onChanged: onChanged),
+            ],
+          ),
         ),
       ),
-      trailing: Switch.adaptive(value: value, onChanged: onChanged),
-      enabled: enabled,
-      onTap: enabled ? () => onChanged!(!value) : null,
     );
   }
 }
@@ -128,21 +126,21 @@ class MetaChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(
-        color: background.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(t.radiusFull),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: ShapeDecoration(
+        color: background,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: foreground,
           fontWeight: FontWeight.w600,
-          letterSpacing: 0.25,
           height: 1.1,
-          fontSize: 10.5,
+          fontSize: 11.5,
         ),
       ),
     );

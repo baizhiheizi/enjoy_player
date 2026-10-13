@@ -5,12 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/subtitle/transcript_display_readiness.dart';
-import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/settings/application/karaoke_highlight_settings.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
+import 'package:enjoy_player/features/settings/application/transcript_typeface_settings.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_enrichment_controller.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_primitives.dart';
-import 'package:enjoy_player/features/transcript/presentation/transcript_busy_action.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_display_settings_sheet.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -28,25 +26,20 @@ class _SpyKaraoke extends KaraokeHighlightSettingsOverride {
   }
 }
 
-class _ToggleBlurInteractions extends PlayerInteractions {
-  _ToggleBlurInteractions(super.ref);
-
-  @override
-  Future<void> toggleBlur() async {
-    ref.read(transcriptBlurModeProvider.notifier).toggle();
-  }
-}
-
 Widget _harness({
   required TranscriptDisplayReadiness readiness,
   required KaraokeHighlightSettings karaoke,
   List<Override> extraOverrides = const [],
+  bool actionsBelow = false,
 }) {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
   return ProviderScope(
     overrides: [
       karaokeHighlightSettingsProvider.overrideWith(() => karaoke),
       ...transcriptIpaOverlayOffOverrides(),
+      transcriptTypefaceSettingsProvider.overrideWith(
+        TranscriptTypefaceSettingsOverride.new,
+      ),
       ...extraOverrides,
     ],
     child: MaterialApp(
@@ -60,6 +53,7 @@ Widget _harness({
         body: TranscriptDisplaySettingsSection(
           mediaId: 'media-gating',
           readiness: readiness,
+          actionsBelow: actionsBelow,
         ),
       ),
     ),
@@ -73,73 +67,89 @@ void main() {
     l10n = await AppLocalizations.delegate.load(const Locale('en'));
   });
 
-  testWidgets('line-only disables karaoke/IPA and shows enrich', (
+  const lineOnly = TranscriptDisplayReadiness(
+    hasNestedWords: false,
+    hasTimedWords: false,
+    hasPhones: false,
+    canTrustWordTimes: true,
+    karaokeSwitchEnabled: false,
+    ipaSwitchEnabled: false,
+    showEnrich: true,
+  );
+
+  testWidgets('line-only disables highlight and IPA and points to ⋯ More', (
     tester,
   ) async {
     final karaoke = _SpyKaraoke(true);
-    await tester.pumpWidget(
-      _harness(
-        karaoke: karaoke,
-        readiness: const TranscriptDisplayReadiness(
-          hasNestedWords: false,
-          hasTimedWords: false,
-          hasPhones: false,
-          canTrustWordTimes: true,
-          karaokeSwitchEnabled: false,
-          ipaSwitchEnabled: false,
-          showEnrich: true,
-        ),
-      ),
-    );
+    await tester.pumpWidget(_harness(karaoke: karaoke, readiness: lineOnly));
     await tester.pumpAndSettle();
 
     final switches = tester.widgetList<Switch>(find.byType(Switch)).toList();
-    expect(switches, hasLength(3));
-    expect(switches.first.onChanged, isNotNull);
+    expect(switches, hasLength(2));
+    expect(switches[0].onChanged, isNull);
     expect(switches[1].onChanged, isNull);
-    expect(switches[2].onChanged, isNull);
-    expect(find.text(l10n.transcriptBlurDisplayTitle), findsOneWidget);
-    expect(find.byType(TranscriptBusyListTile), findsOneWidget);
-    expect(find.text(l10n.transcriptEnrichOwnedTitle), findsOneWidget);
+    expect(find.text(l10n.subtitlesNeedsWordTimingsMore), findsNWidgets(2));
+    expect(find.byType(TranscriptEnrichmentCard), findsNothing);
 
     await tester.tap(find.byType(SubtitleToggleTile).first);
     await tester.pump();
     expect(karaoke.writes, 0);
   });
 
-  testWidgets('blur switch flips transcriptBlurModeProvider', (tester) async {
+  testWidgets('phone sheet points the hint at the actions below', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _harness(
         karaoke: KaraokeHighlightSettingsOverride(false),
-        extraOverrides: [
-          playerInteractionsProvider.overrideWith(
-            (ref) => _ToggleBlurInteractions(ref),
-          ),
-        ],
-        readiness: const TranscriptDisplayReadiness(
-          hasNestedWords: false,
-          hasTimedWords: false,
-          hasPhones: false,
-          canTrustWordTimes: true,
-          karaokeSwitchEnabled: false,
-          ipaSwitchEnabled: false,
-          showEnrich: false,
-        ),
+        readiness: lineOnly,
+        actionsBelow: true,
       ),
     );
     await tester.pumpAndSettle();
 
+    expect(find.text(l10n.subtitlesNeedsWordTimingsBelow), findsNWidgets(2));
+  });
+
+  testWidgets('the panel has no Hide text switch (Dictate lens owns it)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        karaoke: KaraokeHighlightSettingsOverride(false),
+        readiness: lineOnly,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.transcriptBlurDisplayTitle), findsNothing);
+  });
+
+  testWidgets('Book / Clean writes the transcript typeface', (tester) async {
+    await tester.pumpWidget(
+      _harness(
+        karaoke: KaraokeHighlightSettingsOverride(false),
+        readiness: lineOnly,
+      ),
+    );
+    await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(
       tester.element(find.byType(TranscriptDisplaySettingsSection)),
     );
-    expect(container.read(transcriptBlurModeProvider), isFalse);
+    expect(
+      container.read(transcriptTypefaceSettingsProvider).value,
+      TranscriptTypeface.book,
+    );
 
-    await tester.tap(find.byType(SubtitleToggleTile).first);
+    await tester.tap(find.byKey(const ValueKey('typeface-clean')));
     await tester.pumpAndSettle();
-    expect(container.read(transcriptBlurModeProvider), isTrue);
+    expect(
+      container.read(transcriptTypefaceSettingsProvider).value,
+      TranscriptTypeface.clean,
+    );
   });
 
-  testWidgets('timed+phones+owned enables switches and hides enrich', (
+  testWidgets('timed+phones+owned enables both switches, no enrich card', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -159,13 +169,14 @@ void main() {
     await tester.pumpAndSettle();
 
     final switches = tester.widgetList<Switch>(find.byType(Switch)).toList();
-    expect(switches, hasLength(3));
-    expect(switches[1].onChanged, isNotNull);
-    expect(switches[1].value, isTrue);
-    expect(find.byType(TranscriptBusyListTile), findsNothing);
+    expect(switches, hasLength(2));
+    expect(switches[0].onChanged, isNotNull);
+    expect(switches[0].value, isTrue);
+    expect(find.text(l10n.subtitlesHighlightSpokenWordHint), findsOneWidget);
+    expect(find.byType(TranscriptEnrichmentCard), findsNothing);
   });
 
-  testWidgets('YouTube enrich copy when word times are not trusted', (
+  testWidgets('untrusted word times explain highlight is unavailable', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -184,14 +195,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text(l10n.transcriptEnrichYoutubeTitle), findsOneWidget);
     expect(
       find.text(l10n.transcriptKaraokeUnavailableRemoteHint),
       findsOneWidget,
     );
   });
 
-  testWidgets('running enrich tile shows cue progress', (tester) async {
+  testWidgets('running enrichment shows a progress card with Cancel', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _harness(
         karaoke: KaraokeHighlightSettingsOverride(false),
@@ -202,44 +214,32 @@ void main() {
             const TranscriptEnrichmentState.running(completed: 12, total: 240),
           ),
         ],
-        readiness: const TranscriptDisplayReadiness(
-          hasNestedWords: false,
-          hasTimedWords: false,
-          hasPhones: false,
-          canTrustWordTimes: true,
-          karaokeSwitchEnabled: false,
-          ipaSwitchEnabled: false,
-          showEnrich: true,
-        ),
+        readiness: lineOnly,
       ),
     );
     await tester.pump();
 
+    expect(find.text(l10n.transcriptEnrichRunningOwned), findsOneWidget);
     expect(find.text(l10n.transcriptEnrichCancel), findsOneWidget);
     expect(find.text(l10n.transcriptEnrichProgress(12, 240)), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('owned nested words without phones still show enrich', (
-    tester,
-  ) async {
+  testWidgets('failed enrichment offers a retry', (tester) async {
     await tester.pumpWidget(
       _harness(
         karaoke: KaraokeHighlightSettingsOverride(false),
-        readiness: const TranscriptDisplayReadiness(
-          hasNestedWords: true,
-          hasTimedWords: true,
-          hasPhones: false,
-          canTrustWordTimes: true,
-          karaokeSwitchEnabled: true,
-          ipaSwitchEnabled: false,
-          showEnrich: true,
-        ),
+        extraOverrides: [
+          transcriptEnrichmentControllerProvider(
+            'media-gating',
+          ).overrideWithValue(const TranscriptEnrichmentState.failed('empty')),
+        ],
+        readiness: lineOnly,
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
 
-    expect(find.byType(TranscriptBusyListTile), findsOneWidget);
-    expect(find.text(l10n.transcriptEnrichOwnedTitle), findsOneWidget);
+    expect(find.text(l10n.transcriptEnrichFailed), findsOneWidget);
+    expect(find.text(l10n.transcriptEnrichRetry), findsOneWidget);
   });
 }

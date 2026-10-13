@@ -96,6 +96,7 @@ final Map<String, Object? Function(EnjoyThemeTokens)> _tokenFields = {
   'youInk': (t) => t.youInk,
   'youSoft': (t) => t.youSoft,
   'youLine': (t) => t.youLine,
+  'originalLine': (t) => t.originalLine,
   'onYou': (t) => t.onYou,
   'brandInk': (t) => t.brandInk,
   'brandSoft': (t) => t.brandSoft,
