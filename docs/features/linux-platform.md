@@ -28,7 +28,7 @@ AArch64 (ARM64) Linux is **not supported** for v1. A follow-up ADR will add mult
    ./enjoy-player-*.AppImage
    ```
 
-No `apt install`, no `sudo`, no Snap/Flatpak abstraction layer. The AppImage is self-contained and includes the Flutter runtime, `media_kit`'s bundled `libmpv`, and a bundled `ffmpeg` from `media_kit_libs_video`.
+No `apt install`, no `sudo`, no Snap/Flatpak abstraction layer. The AppImage includes the Flutter runtime and `media_kit`'s `libmpv`. FFmpeg work — the Echo pitch contour, pronunciation-assessment WAV normalization, AI transcript audio extraction, import duration probes and video posters — runs the `ffmpeg` CLI, resolved from the app's `lib/` first and then the system `PATH` (`FfmpegMediaProbe.resolveFfmpegExecutable`); the AppImage does not bundle one today, so those features need a system `ffmpeg`.
 
 ## What works
 

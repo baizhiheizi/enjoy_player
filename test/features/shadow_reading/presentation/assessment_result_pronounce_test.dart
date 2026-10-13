@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_widgets.dart';
 
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
@@ -139,12 +140,7 @@ Widget _wrap(Widget child, {_TrackingPlaybackController? playback}) {
 }
 
 void main() {
-  late AppLocalizations l10n;
   late _TrackingPlaybackController playback;
-
-  setUpAll(() async {
-    l10n = await AppLocalizations.delegate.load(const Locale('en'));
-  });
 
   setUp(() {
     playback = _TrackingPlaybackController();
@@ -170,7 +166,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PronounceIconButton), findsOneWidget);
-    expect(find.text(l10n.assessmentAccuracyScore), findsOneWidget);
+    expect(find.byType(SelectedWordPanel), findsOneWidget);
   });
 
   testWidgets('chip change stops playback', (tester) async {

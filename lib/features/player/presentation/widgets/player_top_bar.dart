@@ -171,9 +171,8 @@ class PlayerTopBar extends ConsumerWidget {
         ? l10n.miniPlayerMediaVideo
         : l10n.miniPlayerMediaAudio;
     final duration = formatDurationHmsSeconds(chrome.durationSeconds);
-    final language = _languageLabel(context, chrome.language);
-    final native = _languageLabel(
-      context,
+    final language = languageEndonymLabel(chrome.language);
+    final native = languageEndonymLabel(
       ref.read(appPreferencesCtrlProvider).valueOrNull?.effectiveNativeLanguage,
     );
     return [
@@ -182,13 +181,6 @@ class PlayerTopBar extends ConsumerWidget {
       if (language != null) language,
       if (native != null && native != language) native,
     ].join(' · ');
-  }
-
-  String? _languageLabel(BuildContext context, String? tag) {
-    if (tag == null || tag.isEmpty) return null;
-    final getter = localizedLanguageLabelGetters[tag];
-    final l10n = AppLocalizations.of(context)!;
-    return getter != null ? getter(l10n) : tag;
   }
 }
 

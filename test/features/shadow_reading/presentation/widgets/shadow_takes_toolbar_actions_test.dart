@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:media_kit/media_kit.dart';
 
 const _kScoredJson = '''
@@ -645,16 +646,9 @@ void main() {
         expect(
           find.descendant(
             of: find.byType(AlertDialog),
-            matching: find.byType(TextButton),
+            matching: find.byType(EnjoyButton),
           ),
-          findsOneWidget,
-        );
-        expect(
-          find.descendant(
-            of: find.byType(AlertDialog),
-            matching: find.byType(FilledButton),
-          ),
-          findsOneWidget,
+          findsNWidgets(2),
         );
       },
     );
@@ -736,7 +730,7 @@ void main() {
           find
               .descendant(
                 of: find.byType(AlertDialog),
-                matching: find.byType(TextButton),
+                matching: find.byType(EnjoyButton),
               )
               .first,
         );

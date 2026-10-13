@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/validation/byok_secret_mask.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
@@ -140,226 +143,185 @@ class _ModalityProviderCardState extends ConsumerState<ModalityProviderCard> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final speechMode = _speechFormMode;
 
-    return Material(
-      elevation: 0,
-      color: cs.surfaceContainerLow.withValues(alpha: 0.9),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(t.radiusXl),
-        side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.22)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              cs.surfaceContainerHigh.withValues(alpha: 0.34),
-              cs.surfaceContainerLow.withValues(alpha: 0.04),
-            ],
-          ),
+    final byok = _provider == AIProvider.byok;
+    final showFooter = byok || _provider != widget.config.provider;
+    final toggle = EnjoySegmentedControl<AIProvider>(
+      compact: true,
+      segments: [
+        EnjoySegment(
+          value: AIProvider.enjoy,
+          label: l10n.settingsAiProvidersEnjoyAi,
         ),
-        child: Padding(
-          padding: EdgeInsets.all(t.space20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ModalityIcon(icon: _modalityIcon),
-                  SizedBox(width: t.space12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.title,
-                                style: tt.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
+        EnjoySegment(
+          value: AIProvider.byok,
+          label: l10n.settingsAiProvidersByok,
+        ),
+      ],
+      value: _provider,
+      onChanged: _saving ? null : (next) => setState(() => _provider = next),
+    );
+
+    return AnimatedContainer(
+      duration: t.motionFast,
+      decoration: ShapeDecoration(
+        color: t.paper,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusCard),
+          side: BorderSide(color: byok ? t.brandInk : t.line),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(t.space16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final stacked = constraints.maxWidth < _kToggleInlineMinWidth;
+                final heading = Row(
+                  children: [
+                    EnjoyIconTile(icon: _modalityIcon, size: 36),
+                    SizedBox(width: t.space12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: tt.titleSmall?.copyWith(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w600,
+                              color: t.ink,
                             ),
-                            SizedBox(width: t.space8),
-                            _ProviderPill(
-                              label: _provider == AIProvider.enjoy
-                                  ? l10n.settingsAiProvidersEnjoyAi
-                                  : l10n.settingsAiProvidersByok,
-                              selected: _provider == AIProvider.byok,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.subtitle,
+                            style: tt.bodySmall?.copyWith(
+                              color: t.ink3,
+                              height: 1.35,
                             ),
-                          ],
-                        ),
-                        SizedBox(height: t.space4),
-                        Text(
-                          widget.subtitle,
-                          style: tt.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                            height: 1.35,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: t.space16),
-              SegmentedButton<AIProvider>(
-                segments: [
-                  ButtonSegment(
-                    value: AIProvider.enjoy,
-                    icon: const Icon(EnjoyIcons.cloudDone),
-                    label: Text(l10n.settingsAiProvidersEnjoyAi),
-                  ),
-                  ButtonSegment(
-                    value: AIProvider.byok,
-                    icon: const Icon(EnjoyIcons.key),
-                    label: Text(l10n.settingsAiProvidersByok),
-                  ),
-                ],
-                selected: {_provider},
-                onSelectionChanged: _saving
-                    ? null
-                    : (selected) => setState(() => _provider = selected.first),
-                style: SegmentedButton.styleFrom(
-                  visualDensity: VisualDensity.comfortable,
-                  selectedBackgroundColor: cs.primaryContainer.withValues(
-                    alpha: 0.55,
-                  ),
-                  selectedForegroundColor: cs.onPrimaryContainer,
-                  foregroundColor: cs.onSurfaceVariant,
-                  side: BorderSide(
-                    color: cs.outlineVariant.withValues(alpha: 0.38),
-                  ),
-                ),
-              ),
-              AnimatedSwitcher(
-                duration: t.motionFast,
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                child: _provider == AIProvider.byok
-                    ? Padding(
-                        key: const ValueKey('byok-form'),
-                        padding: EdgeInsets.only(top: t.space16),
-                        child: _ByokPanel(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              if (widget.modality == ModalityKind.llm)
-                                LlmByokForm(
-                                  apiSpec: _apiSpec,
-                                  baseUrlController: _baseUrlController,
-                                  apiKeyController: _apiKeyController,
-                                  modelController: _modelController,
-                                  hasExistingKey: _hasExistingKey,
-                                  presetId: _presetId,
-                                  maskedApiKeyPreview: _maskedApiKeyPreview,
-                                  onSpecChanged: (spec) => setState(() {
-                                    _apiSpec = spec;
-                                    _presetId = null;
-                                  }),
-                                  onPresetSelected: (preset) => setState(() {
-                                    _apiSpec = preset.apiSpec;
-                                    _presetId = preset.id;
-                                    _baseUrlController.text = preset.baseUrl;
-                                    _modelController.text = preset.model;
-                                  }),
-                                ),
-                              if (speechMode != null)
-                                SpeechByokForm(
-                                  mode: speechMode,
-                                  kind: _speechKind,
-                                  apiKeyController: _apiKeyController,
-                                  regionController: _regionController,
-                                  baseUrlController: _baseUrlController,
-                                  modelController: _modelController,
-                                  hasExistingKey: _hasExistingKey,
-                                  maskedApiKeyPreview: _maskedApiKeyPreview,
-                                  onKindChanged: (kind) =>
-                                      setState(() => _speechKind = kind),
-                                  modelLabelText:
-                                      widget.modality == ModalityKind.tts
-                                      ? l10n.settingsAiProvidersSpeechTtsModelLabel
-                                      : null,
-                                  modelHintText:
-                                      widget.modality == ModalityKind.tts
-                                      ? l10n.settingsAiProvidersSpeechTtsModelHint
-                                      : null,
-                                ),
-                              if (!_supportsByokForm)
-                                Text(
-                                  l10n.settingsAiProvidersComingSoon,
-                                  style: tt.bodySmall?.copyWith(
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : const SizedBox.shrink(key: ValueKey('enjoy-empty')),
-              ),
-              SizedBox(height: t.space16),
-              Divider(
-                height: 1,
-                color: cs.outlineVariant.withValues(alpha: 0.2),
-              ),
-              SizedBox(height: t.space12),
-              Row(
-                children: [
-                  Icon(
-                    _provider == AIProvider.enjoy
-                        ? EnjoyIcons.cloudDone
-                        : EnjoyIcons.lock,
-                    size: 18,
-                    color: cs.onSurfaceVariant,
-                  ),
-                  SizedBox(width: t.space8),
-                  Expanded(
-                    child: Text(
-                      _provider == AIProvider.enjoy
-                          ? l10n.settingsAiProvidersEnjoyAi
-                          : l10n.settingsAiProvidersPrivacyNotice,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        height: 1.3,
+                        ],
                       ),
                     ),
+                    if (!stacked) ...[SizedBox(width: t.space12), toggle],
+                  ],
+                );
+                if (!stacked) return heading;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    heading,
+                    SizedBox(height: t.space12),
+                    toggle,
+                  ],
+                );
+              },
+            ),
+            AnimatedSwitcher(
+              duration: t.motionFast,
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: byok
+                  ? Padding(
+                      key: const ValueKey('byok-form'),
+                      padding: EdgeInsets.only(top: t.space16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (widget.modality == ModalityKind.llm)
+                            LlmByokForm(
+                              apiSpec: _apiSpec,
+                              baseUrlController: _baseUrlController,
+                              apiKeyController: _apiKeyController,
+                              modelController: _modelController,
+                              hasExistingKey: _hasExistingKey,
+                              presetId: _presetId,
+                              maskedApiKeyPreview: _maskedApiKeyPreview,
+                              onSpecChanged: (spec) => setState(() {
+                                _apiSpec = spec;
+                                _presetId = null;
+                              }),
+                              onPresetSelected: (preset) => setState(() {
+                                _apiSpec = preset.apiSpec;
+                                _presetId = preset.id;
+                                _baseUrlController.text = preset.baseUrl;
+                                _modelController.text = preset.model;
+                              }),
+                            ),
+                          if (speechMode != null)
+                            SpeechByokForm(
+                              mode: speechMode,
+                              kind: _speechKind,
+                              apiKeyController: _apiKeyController,
+                              regionController: _regionController,
+                              baseUrlController: _baseUrlController,
+                              modelController: _modelController,
+                              hasExistingKey: _hasExistingKey,
+                              maskedApiKeyPreview: _maskedApiKeyPreview,
+                              onKindChanged: (kind) =>
+                                  setState(() => _speechKind = kind),
+                              modelLabelText:
+                                  widget.modality == ModalityKind.tts
+                                  ? l10n.settingsAiProvidersSpeechTtsModelLabel
+                                  : null,
+                              modelHintText: widget.modality == ModalityKind.tts
+                                  ? l10n.settingsAiProvidersSpeechTtsModelHint
+                                  : null,
+                            ),
+                          if (!_supportsByokForm)
+                            Text(
+                              l10n.settingsAiProvidersComingSoon,
+                              style: tt.bodySmall?.copyWith(color: t.ink3),
+                            ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('enjoy-empty')),
+            ),
+            if (showFooter) ...[
+              SizedBox(height: t.space16),
+              Row(
+                children: [
+                  if (byok) ...[
+                    Icon(EnjoyIcons.lock, size: 16, color: t.ink3),
+                    SizedBox(width: t.space8),
+                  ],
+                  Expanded(
+                    child: byok
+                        ? Text(
+                            l10n.settingsAiProvidersPrivacyNotice,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: tt.bodySmall?.copyWith(
+                              color: t.ink3,
+                              height: 1.3,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                   if (widget.config.provider == AIProvider.byok) ...[
                     SizedBox(width: t.space12),
-                    TextButton(
+                    EnjoyButton.ghost(
                       onPressed: _saving ? null : _confirmRemove,
                       child: Text(l10n.settingsAiProvidersRemoveByok),
                     ),
                   ],
                   SizedBox(width: t.space8),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 132),
-                    child: EnjoyButton.brand(
-                      onPressed: _saving ? null : _save,
-                      child: _saving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l10n.settingsAiProvidersSave),
-                    ),
+                  EnjoyButton.brand(
+                    onPressed: _saving ? null : _save,
+                    child: _saving
+                        ? const LoadingIcon(size: 18)
+                        : Text(l10n.settingsAiProvidersSave),
                   ),
                 ],
               ),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -449,20 +411,13 @@ class _ModalityProviderCardState extends ConsumerState<ModalityProviderCard> {
 
   Future<void> _confirmRemove() async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showEnjoyAlertDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
-      title: Text(l10n.settingsAiProvidersRemoveByokTitle),
-      content: Text(l10n.settingsAiProvidersRemoveByokBody),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.settingsAiProvidersCancel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(l10n.settingsAiProvidersRemoveByok),
-        ),
-      ],
+      title: l10n.settingsAiProvidersRemoveByokTitle,
+      message: l10n.settingsAiProvidersRemoveByokBody,
+      confirmLabel: l10n.settingsAiProvidersRemoveByok,
+      cancelLabel: l10n.settingsAiProvidersCancel,
+      destructive: true,
     );
     if (confirmed != true || !mounted) return;
 
@@ -486,87 +441,4 @@ class _ModalityProviderCardState extends ConsumerState<ModalityProviderCard> {
   }
 }
 
-class _ModalityIcon extends StatelessWidget {
-  const _ModalityIcon({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        color: cs.primaryContainer.withValues(alpha: 0.38),
-        border: Border.all(color: cs.primary.withValues(alpha: 0.18)),
-      ),
-      child: Icon(icon, color: cs.primary, size: 22),
-    );
-  }
-}
-
-class _ProviderPill extends StatelessWidget {
-  const _ProviderPill({required this.label, required this.selected});
-
-  final String label;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: selected
-            ? cs.primaryContainer.withValues(alpha: 0.5)
-            : cs.surfaceContainerHighest.withValues(alpha: 0.34),
-        borderRadius: BorderRadius.circular(t.radiusFull),
-        border: Border.all(
-          color: selected
-              ? cs.primary.withValues(alpha: 0.34)
-              : cs.outlineVariant.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: t.space12,
-          vertical: t.space4,
-        ),
-        child: Text(
-          label,
-          style: tt.labelMedium?.copyWith(
-            color: selected ? cs.onPrimaryContainer : cs.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ByokPanel extends StatelessWidget {
-  const _ByokPanel({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLowest.withValues(alpha: 0.58),
-        borderRadius: BorderRadius.circular(t.radiusLg),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.18)),
-      ),
-      child: Padding(padding: EdgeInsets.all(t.space16), child: child),
-    );
-  }
-}
+const double _kToggleInlineMinWidth = 520;

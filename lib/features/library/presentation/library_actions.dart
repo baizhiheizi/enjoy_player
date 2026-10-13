@@ -17,6 +17,8 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/files/media_resolver.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -169,20 +171,12 @@ Future<void> confirmAndDeleteMedia(
   Media media,
 ) async {
   final l10n = AppLocalizations.of(context)!;
-  final confirmed = await showEnjoyAlertDialog<bool>(
+  final confirmed = await showEnjoyConfirmDialog(
     context: context,
-    title: Text(l10n.libraryDeleteMediaTitle),
-    content: Text(l10n.libraryDeleteMediaMessage(media.title)),
-    actionsBuilder: (ctx) => [
-      TextButton(
-        onPressed: () => Navigator.pop(ctx, false),
-        child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-      ),
-      TextButton(
-        onPressed: () => Navigator.pop(ctx, true),
-        child: Text(MaterialLocalizations.of(ctx).deleteButtonTooltip),
-      ),
-    ],
+    title: l10n.libraryDeleteMediaTitle,
+    message: l10n.libraryDeleteMediaMessage(media.title),
+    confirmLabel: MaterialLocalizations.of(context).deleteButtonTooltip,
+    destructive: true,
   );
   if (confirmed != true || !context.mounted) return;
   try {
@@ -206,9 +200,72 @@ Future<void> confirmAndDeleteMedia(
   }
 }
 
-/// Bottom sheet: choose file import vs YouTube URL.
-Future<void> showImportChooser(BuildContext context, WidgetRef ref) async {
+/// Import chooser: file, YouTube URL, or Craft. Desktop windows with an
+/// [anchor] (the Import button) get a menu dropped under it; otherwise a
+/// bottom sheet.
+Future<void> showImportChooser(
+  BuildContext context,
+  WidgetRef ref, {
+  BuildContext? anchor,
+}) async {
   final l10n = AppLocalizations.of(context)!;
+  final options = <(IconData, String, VoidCallback)>[
+    (
+      EnjoyIcons.folder,
+      l10n.importFromFile,
+      () => unawaited(importMediaFromPicker(context, ref)),
+    ),
+    (
+      EnjoyIcons.videoLibrary,
+      l10n.importFromYoutube,
+      () => unawaited(importYoutubeFromDialog(context, ref)),
+    ),
+    (
+      EnjoyIcons.sparkle,
+      l10n.importCraftFromText,
+      () => unawaited(context.push('/craft')),
+    ),
+  ];
+
+  final anchorBox = anchor?.findRenderObject();
+  if (!isMobilePlatform && anchorBox is RenderBox && anchorBox.hasSize) {
+    final overlay =
+        Navigator.of(anchor!).overlay!.context.findRenderObject()! as RenderBox;
+    final topLeft = anchorBox.localToGlobal(
+      Offset(0, anchorBox.size.height + 6),
+      ancestor: overlay,
+    );
+    final bottomRight = anchorBox.localToGlobal(
+      anchorBox.size.bottomRight(Offset.zero),
+      ancestor: overlay,
+    );
+    final picked = await showMenu<int>(
+      context: anchor,
+      constraints: const BoxConstraints(minWidth: 220, maxWidth: 320),
+      position: RelativeRect.fromLTRB(
+        bottomRight.dx,
+        topLeft.dy,
+        overlay.size.width - bottomRight.dx,
+        overlay.size.height - topLeft.dy,
+      ),
+      items: [
+        for (final (i, (icon, label, _)) in options.indexed)
+          PopupMenuItem<int>(
+            value: i,
+            child: Row(
+              children: [
+                Icon(icon, size: 18),
+                const SizedBox(width: 12),
+                Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+              ],
+            ),
+          ),
+      ],
+    );
+    if (picked != null) options[picked].$3();
+    return;
+  }
+
   await showEnjoySheet<void>(
     context: context,
     builder: (ctx) {
@@ -217,30 +274,15 @@ Future<void> showImportChooser(BuildContext context, WidgetRef ref) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             const PaddedSheetDragHandle(),
-            ListTile(
-              leading: const Icon(EnjoyIcons.folder),
-              title: Text(l10n.importFromFile),
-              onTap: () {
-                Navigator.pop(ctx);
-                unawaited(importMediaFromPicker(context, ref));
-              },
-            ),
-            ListTile(
-              leading: const Icon(EnjoyIcons.videoLibrary),
-              title: Text(l10n.importFromYoutube),
-              onTap: () {
-                Navigator.pop(ctx);
-                unawaited(importYoutubeFromDialog(context, ref));
-              },
-            ),
-            ListTile(
-              leading: const Icon(EnjoyIcons.sparkle),
-              title: Text(l10n.importCraftFromText),
-              onTap: () {
-                Navigator.pop(ctx);
-                unawaited(context.push('/craft'));
-              },
-            ),
+            for (final (icon, label, onTap) in options)
+              ListTile(
+                leading: Icon(icon),
+                title: Text(label),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  onTap();
+                },
+              ),
           ],
         ),
       );
@@ -288,11 +330,11 @@ Future<void> importYoutubeFromDialog(
       ),
     ),
     actionsBuilder: (ctx) => [
-      TextButton(
+      EnjoyButton.secondary(
         onPressed: () => Navigator.pop(ctx),
         child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
       ),
-      FilledButton(
+      EnjoyButton.brand(
         onPressed: () => Navigator.pop(ctx, controller.text.trim()),
         child: Text(l10n.actionImport),
       ),

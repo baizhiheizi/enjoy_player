@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -55,35 +56,31 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
                 ThemeMode.system => EnjoyIcons.monitor,
               },
               title: l10n.settingsAppearanceTheme,
-              valueBadge: SettingsValuePill(
-                label: appearanceThemeModeLabel(l10n, state.themeMode),
-              ),
-              showChevron: true,
-              onTap: () async {
-                final picked = await showLanguageChoiceSheet(
-                  context: context,
-                  title: l10n.settingsAppearanceTheme,
-                  options: [
-                    LanguageChoiceOption(
-                      value: 'system',
-                      label: l10n.settingsAppearanceThemeSystem,
-                    ),
-                    LanguageChoiceOption(
-                      value: 'light',
-                      label: l10n.settingsAppearanceThemeLight,
-                    ),
-                    LanguageChoiceOption(
-                      value: 'dark',
-                      label: l10n.settingsAppearanceThemeDark,
-                    ),
-                  ],
-                  selectedValue: themeModeToStorage(state.themeMode),
-                );
-                if (picked == null || !context.mounted) return;
-                await ref
+              subtitle: state.themeMode == ThemeMode.system
+                  ? l10n.settingsThemeDarkLocked
+                  : null,
+              stackBelowWidth: 460,
+              trailing: EnjoySegmentedControl<ThemeMode>(
+                compact: true,
+                segments: [
+                  EnjoySegment(
+                    value: ThemeMode.system,
+                    label: l10n.settingsAppearanceThemeSystem,
+                  ),
+                  EnjoySegment(
+                    value: ThemeMode.light,
+                    label: l10n.settingsAppearanceThemeLight,
+                  ),
+                  EnjoySegment(
+                    value: ThemeMode.dark,
+                    label: l10n.settingsAppearanceThemeDark,
+                  ),
+                ],
+                value: state.themeMode,
+                onChanged: (mode) => ref
                     .read(appPreferencesCtrlProvider.notifier)
-                    .setThemeMode(themeModeFromStorage(picked));
-              },
+                    .setThemeMode(mode),
+              ),
             ),
             const SettingsRowDivider(),
             SettingsRow(

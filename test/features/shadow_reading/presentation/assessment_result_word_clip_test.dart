@@ -225,6 +225,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PronounceIconButton), findsOneWidget);
+    await tester.ensureVisible(find.byTooltip(l10n.assessmentPlayMyClip));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip(l10n.assessmentPlayMyClip));
     await tester.pumpAndSettle();
 

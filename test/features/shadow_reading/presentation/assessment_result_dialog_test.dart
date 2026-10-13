@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_widgets.dart';
 import 'package:media_kit/media_kit.dart';
 
 const _kBaseJson = '''
@@ -181,7 +182,7 @@ void main() {
         reason: 'tapping a word chip should reveal the selected-word panel',
       );
 
-      expect(find.text(l10n.assessmentAccuracyScore), findsOneWidget);
+      expect(find.byType(SelectedWordPanel), findsOneWidget);
 
       await tester.tap(find.text('hi').first);
       await tester.pumpAndSettle();
@@ -192,7 +193,7 @@ void main() {
         initialHiCount,
         reason: 'second tap should hide the selected-word panel',
       );
-      expect(find.text(l10n.assessmentAccuracyScore), findsNothing);
+      expect(find.byType(SelectedWordPanel), findsNothing);
     },
   );
 

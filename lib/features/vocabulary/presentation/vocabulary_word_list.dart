@@ -13,7 +13,6 @@ import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_list_controller.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
@@ -283,20 +282,13 @@ class VocabularyWordRow extends ConsumerWidget {
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showEnjoyAlertDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
-      title: Text(l10n.vocabularyConfirmDeleteTitle),
-      content: Text(l10n.vocabularyConfirmDeleteBody),
-      actionsBuilder: (ctx) => [
-        EnjoyButton.ghost(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(l10n.vocabularyCancel),
-        ),
-        EnjoyButton.destructive(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text(l10n.vocabularyDelete),
-        ),
-      ],
+      title: l10n.vocabularyConfirmDeleteTitle,
+      message: l10n.vocabularyConfirmDeleteBody,
+      confirmLabel: l10n.vocabularyDelete,
+      cancelLabel: l10n.vocabularyCancel,
+      destructive: true,
     );
     if (confirmed != true) return;
     await ref.read(vocabularyRepositoryProvider).deleteItem(item.id);

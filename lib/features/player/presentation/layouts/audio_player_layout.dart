@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 
 class AudioPlayerLayout extends ConsumerWidget {
@@ -21,6 +22,7 @@ class AudioPlayerLayout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = EnjoyThemeTokens.of(context);
     final echoActive = ref.watch(echoModeProvider.select((e) => e.active));
+    final inset = TranscriptLensMetrics.of(context).isPhone ? 0.0 : 16.0;
 
     return SafeArea(
       bottom: false,
@@ -33,7 +35,7 @@ class AudioPlayerLayout extends ConsumerWidget {
             maxWidth: echoActive ? t.transcriptMaxEcho : t.transcriptMaxListen,
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            padding: EdgeInsets.fromLTRB(inset, 12, inset, 16),
             child: transcript,
           ),
         ),

@@ -4,15 +4,15 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/features/auth/presentation/widgets/profile_form_actions.dart';
+
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
-import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -218,42 +218,32 @@ class _ProfilePreferencesScreenState
                         error: (_, _) => const SizedBox.shrink(),
                       ),
                   SizedBox(height: t.space32),
-                  EnjoyButton.brand(
-                    onPressed: _saving
-                        ? null
-                        : () async {
-                            if (!_formKey.currentState!.validate()) return;
-                            setState(() => _saving = true);
-                            try {
-                              final goalText = _goal.text.trim();
-                              int? goal;
-                              if (goalText.isNotEmpty) {
-                                goal = int.tryParse(goalText);
-                              }
-                              await ref
-                                  .read(authCtrlProvider.notifier)
-                                  .updateProfile(
-                                    UpdateProfileRequest(goal: goal),
-                                  );
-                              final after = ref
-                                  .read(authCtrlProvider)
-                                  .valueOrNull;
-                              if (after is AuthSignedIn) {
-                                _applyProfile(after.profile);
-                              }
-                              if (context.mounted) {
-                                AppNotice.success(
-                                  context,
-                                  l10n.profileSaveSuccess,
-                                );
-                              }
-                            } finally {
-                              if (mounted) setState(() => _saving = false);
-                            }
-                          },
-                    child: _saving
-                        ? const LoadingIcon(size: 22)
-                        : Text(l10n.profileSave),
+                  ProfileFormActions(
+                    saving: _saving,
+                    saveLabel: l10n.profileSave,
+                    onSave: () async {
+                      if (!_formKey.currentState!.validate()) return;
+                      setState(() => _saving = true);
+                      try {
+                        final goalText = _goal.text.trim();
+                        int? goal;
+                        if (goalText.isNotEmpty) {
+                          goal = int.tryParse(goalText);
+                        }
+                        await ref
+                            .read(authCtrlProvider.notifier)
+                            .updateProfile(UpdateProfileRequest(goal: goal));
+                        final after = ref.read(authCtrlProvider).valueOrNull;
+                        if (after is AuthSignedIn) {
+                          _applyProfile(after.profile);
+                        }
+                        if (context.mounted) {
+                          AppNotice.success(context, l10n.profileSaveSuccess);
+                        }
+                      } finally {
+                        if (mounted) setState(() => _saving = false);
+                      }
+                    },
                   ),
                 ],
               ),

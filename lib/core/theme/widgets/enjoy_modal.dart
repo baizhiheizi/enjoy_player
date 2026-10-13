@@ -3,6 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+
 import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
@@ -142,6 +144,45 @@ Future<T?> showEnjoyAlertDialog<T>({
       );
     },
   );
+}
+
+/// Yes / no confirmation: a secondary Cancel and a confirm button that is
+/// [EnjoyButton.destructive] when [destructive], else [EnjoyButton.brand].
+/// Resolves `true` only when the user confirms.
+Future<bool> showEnjoyConfirmDialog({
+  required BuildContext context,
+  required String title,
+  required String confirmLabel,
+  String? message,
+  Widget? content,
+  String? cancelLabel,
+  bool destructive = false,
+  bool useRootNavigator = true,
+}) async {
+  final confirmed = await showEnjoyAlertDialog<bool>(
+    context: context,
+    useRootNavigator: useRootNavigator,
+    title: Text(title),
+    content: content ?? (message == null ? null : Text(message)),
+    actionsBuilder: (ctx) => [
+      EnjoyButton.secondary(
+        onPressed: () => Navigator.pop(ctx, false),
+        child: Text(
+          cancelLabel ?? MaterialLocalizations.of(ctx).cancelButtonLabel,
+        ),
+      ),
+      destructive
+          ? EnjoyButton.destructive(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(confirmLabel),
+            )
+          : EnjoyButton.brand(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(confirmLabel),
+            ),
+    ],
+  );
+  return confirmed ?? false;
 }
 
 /// [showDialog] with Enjoy scrim (e.g. custom [Dialog] / loading states).

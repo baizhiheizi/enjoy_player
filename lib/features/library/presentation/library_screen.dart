@@ -192,10 +192,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                   variant: EnjoyButtonVariant.brand,
                   onPressed: () => showImportChooser(context, ref),
                 )
-              : EnjoyButton.brand(
-                  icon: EnjoyIcons.add,
-                  onPressed: () => showImportChooser(context, ref),
-                  child: Text(l10n.actionImport),
+              : Builder(
+                  builder: (anchor) => EnjoyButton.brand(
+                    icon: EnjoyIcons.add,
+                    onPressed: () =>
+                        showImportChooser(context, ref, anchor: anchor),
+                    child: Text(l10n.actionImport),
+                  ),
                 );
         }
 

@@ -1,5 +1,6 @@
-/// Extracts mono `float32` PCM for a media time range via FFmpeg CLI (desktop)
-/// or FFmpegKit, with cooperative cancellation and a per-call timeout.
+/// Extracts mono `float32` PCM for a media time range via the FFmpeg CLI
+/// (Windows / Linux) or FFmpegKit (Android / iOS / macOS), with cooperative
+/// cancellation and a per-call timeout.
 ///
 /// The expensive byte→Float32 decode no longer runs here (or on the main
 /// isolate) — callers receive the temp `.raw` path produced by FFmpeg and
@@ -109,7 +110,7 @@ Float32List decodeF32leBytes(Uint8List bytes) {
 }
 
 /// Runs FFmpeg to extract `[startSec, startSec + durationSec)` of [mediaFilePath]
-/// to a temp `.raw` (f32le, [kEchoPcmSampleRate] Hz, mono).
+/// (a local path or an `http(s)` URL) to a temp `.raw` (f32le, [kEchoPcmSampleRate] Hz, mono).
 ///
 /// Returns the temp file path; the **caller must delete it** (typically after a
 /// worker isolate has decoded+analyzed it). Throws [EchoPcmExtractionException]
@@ -128,7 +129,8 @@ Future<String> extractMonoFloat32SegmentToTempFile({
   if (durationSec <= 0 || mediaFilePath.trim().isEmpty) {
     throw const EchoPcmExtractionException(EchoPcmFailureReason.invalidInput);
   }
-  if (!File(mediaFilePath).existsSync()) {
+  if (!isNetworkMediaInput(mediaFilePath) &&
+      !File(mediaFilePath).existsSync()) {
     throw const EchoPcmExtractionException(EchoPcmFailureReason.fileMissing);
   }
   final outFile = await _newTempRawFile('echo_seg');
@@ -168,6 +170,17 @@ Future<String> extractEntireFileToTempF32(
   return outFile;
 }
 
+/// Whether [input] is an `http(s)` URL (cloud-streamed media) rather than a
+/// local file path.
+bool isNetworkMediaInput(String input) {
+  final lower = input.trimLeft().toLowerCase();
+  return lower.startsWith('http://') || lower.startsWith('https://');
+}
+
+List<String> _networkArgs(String input) => isNetworkMediaInput(input)
+    ? const ['-protocol_whitelist', 'file,http,https,tcp,tls,crypto']
+    : const [];
+
 Future<String> _newTempRawFile(String prefix) async {
   final tempDir = await getTemporaryDirectory();
   return p.join(
@@ -187,9 +200,9 @@ Future<void> _runFfmpegExtract({
   final ss = startSec.toStringAsFixed(4);
   final dur = durationSec.toStringAsFixed(4);
 
-  if (Platform.isWindows) {
+  if (FfmpegMediaProbe.usesFfmpegCli) {
     final exe = await _resolveFfmpegOrThrow();
-    await _runFfmpegWindowsProcess(
+    await _runFfmpegCliProcess(
       exe: exe,
       args: [
         '-nostdin',
@@ -199,6 +212,7 @@ Future<void> _runFfmpegExtract({
         '-y',
         '-ss',
         ss,
+        ..._networkArgs(mediaPath),
         '-i',
         mediaPath,
         '-t',
@@ -221,6 +235,7 @@ Future<void> _runFfmpegExtract({
 
   final cmd =
       '-nostdin -hide_banner -loglevel error -y -ss $ss '
+      '${_networkArgs(mediaPath).join(' ')} '
       '-i ${shellEscape(mediaPath)} -t $dur -vn -ac 1 '
       '-ar $kEchoPcmSampleRate -f f32le ${shellEscape(outPath)}';
   await _runFfmpegKit(
@@ -237,9 +252,9 @@ Future<void> _runFfmpegFullDecode({
   required EchoPcmCancelToken? token,
   required Duration timeout,
 }) async {
-  if (Platform.isWindows) {
+  if (FfmpegMediaProbe.usesFfmpegCli) {
     final exe = await _resolveFfmpegOrThrow();
-    await _runFfmpegWindowsProcess(
+    await _runFfmpegCliProcess(
       exe: exe,
       args: [
         '-nostdin',
@@ -290,10 +305,10 @@ Future<String> _resolveFfmpegOrThrow() async {
   return exe;
 }
 
-/// Runs FFmpeg as a child [Process] (Windows) so we can [Process.kill] it on
-/// cancellation. The process itself runs off the Dart isolate, so this never
+/// Runs FFmpeg as a child [Process] (Windows / Linux) so we can
+/// [Process.kill] it on cancellation. The process itself runs off the Dart isolate, so this never
 /// blocks the UI thread.
-Future<void> _runFfmpegWindowsProcess({
+Future<void> _runFfmpegCliProcess({
   required String exe,
   required List<String> args,
   required EchoPcmCancelToken? token,
@@ -309,7 +324,7 @@ Future<void> _runFfmpegWindowsProcess({
   } catch (e) {
     throw EchoPcmExtractionException(
       EchoPcmFailureReason.ffmpegFailed,
-      'windows $failLabel spawn failed: $e',
+      'cli $failLabel spawn failed: $e',
     );
   }
   final stderrBuf = <List<int>>[];
@@ -344,12 +359,12 @@ Future<void> _runFfmpegWindowsProcess({
     _log.fine('echo ffmpeg $failLabel failed (exit $exitCode): $stderr');
     throw EchoPcmExtractionException(
       EchoPcmFailureReason.ffmpegFailed,
-      'windows $failLabel exit $exitCode',
+      'cli $failLabel exit $exitCode',
     );
   }
 }
 
-/// Runs FFmpeg via FFmpegKit (non-Windows). Uses [FFmpegKit.executeAsync] so a
+/// Runs FFmpeg via FFmpegKit (Android / iOS / macOS). Uses [FFmpegKit.executeAsync] so a
 /// session id is available for real cancellation via [FFmpegKit.cancel].
 Future<void> _runFfmpegKit({
   required String command,

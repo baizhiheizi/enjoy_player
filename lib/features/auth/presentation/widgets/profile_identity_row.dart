@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class ProfileIdentityRow extends StatelessWidget {
@@ -14,12 +15,22 @@ class ProfileIdentityRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.copyable = false,
+    this.displayValue,
+    this.mono = false,
     super.key,
   });
 
   final String label;
+
+  /// Copied verbatim; shown unless [displayValue] is set.
   final String value;
   final bool copyable;
+
+  /// Grouped / formatted form shown in place of [value].
+  final String? displayValue;
+
+  /// Geist Mono, for IDs.
+  final bool mono;
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +56,18 @@ class ProfileIdentityRow extends StatelessWidget {
                 ),
                 SizedBox(height: t.space4),
                 SelectableText(
-                  value,
-                  style: tt.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+                  displayValue ?? value,
+                  style: mono
+                      ? enjoyMonoStyle(
+                          context,
+                          size: 15,
+                          weight: FontWeight.w600,
+                          color: cs.onSurface,
+                        )
+                      : tt.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                 ),
               ],
             ),

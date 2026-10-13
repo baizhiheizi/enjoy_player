@@ -117,7 +117,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('EN'), findsWidgets);
+    expect(find.text('English'), findsWidgets);
     expect(find.text('—'), findsNothing);
   });
 

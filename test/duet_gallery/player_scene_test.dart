@@ -7,6 +7,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/dexie_target_type_provider.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
@@ -250,6 +251,9 @@ List<Override> _listenOverrides(
 }) => [
   ...baseOverrides(db, playerController: _SessionController.new),
   playerEngineTestDoubleProvider.overrideWithValue(engine),
+  dexieTargetTypeForMediaProvider(
+    _mediaId,
+  ).overrideWith((ref) async => 'Audio'),
   transcriptHasLinesForMediaProvider(
     _mediaId,
   ).overrideWith((ref) => Stream.value(true)),
@@ -383,21 +387,39 @@ void main() {
         ),
         frame: frame,
         db: db,
-        before: null,
+        before: board == 'DScored'
+            ? (tester) async => tester.tap(find.text('ferry').last)
+            : null,
       );
     });
   }
 }
 
 AzurePronunciationAssessmentResult _boardAssessment() {
-  const word = AzureWordAssessment(
+  AzurePhonemeAssessment phoneme(String p, double score) =>
+      AzurePhonemeAssessment(
+        phoneme: p,
+        offset: 0,
+        duration: 1000000,
+        pronunciationAssessment: AzurePhonemePronunciationAssessment(
+          accuracyScore: score,
+          nBestPhonemes: null,
+        ),
+      );
+  final word = AzureWordAssessment(
     word: 'ferry',
     offset: 0,
     duration: 4000000,
-    pronunciationAssessment: AzureWordPronunciationAssessment(
-      accuracyScore: 72,
+    pronunciationAssessment: const AzureWordPronunciationAssessment(
+      accuracyScore: 58,
       errorType: 'Mispronunciation',
     ),
+    phonemes: [
+      phoneme('f', 94),
+      phoneme('ɛ', 41),
+      phoneme('r', 63),
+      phoneme('i', 90),
+    ],
   );
   const good = AzureWordAssessment(
     word: 'slow',

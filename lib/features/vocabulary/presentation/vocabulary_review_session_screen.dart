@@ -85,20 +85,12 @@ class _VocabularyReviewSessionScreenState
 
   Future<void> _confirmOpenInPlayer() async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showEnjoyAlertDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
-      title: Text(l10n.vocabularyOpenInPlayer),
-      content: Text(l10n.vocabularyOpenInPlayerDescription),
-      actionsBuilder: (ctx) => [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(l10n.vocabularyCancel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text(l10n.vocabularyConfirmContinue),
-        ),
-      ],
+      title: l10n.vocabularyOpenInPlayer,
+      message: l10n.vocabularyOpenInPlayerDescription,
+      confirmLabel: l10n.vocabularyConfirmContinue,
+      cancelLabel: l10n.vocabularyCancel,
     );
     if (confirmed != true || !mounted) return;
 

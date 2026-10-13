@@ -45,7 +45,7 @@ class TranscriptLensMetrics {
     TranscriptLensSurface.video => 36,
     TranscriptLensSurface.phone => 8,
   };
-  double get gutterGap => isPhone ? 6 : 10;
+  double get gutterGap => isPhone ? 8 : 10;
 
   /// Phones show the active line's time above it instead of in the gutter.
   bool get timeInGutter => !isPhone;

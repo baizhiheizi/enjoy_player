@@ -9,20 +9,12 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 /// Returns true when the user confirms resetting every custom binding.
 Future<bool> confirmHotkeysResetAll(BuildContext context) async {
   final l10n = AppLocalizations.of(context)!;
-  final confirmed = await showEnjoyAlertDialog<bool>(
+  final confirmed = await showEnjoyConfirmDialog(
     context: context,
-    title: Text(l10n.hotkeysResetAllConfirmTitle),
-    content: Text(l10n.hotkeysResetAllConfirmMessage),
-    actionsBuilder: (ctx) => [
-      TextButton(
-        onPressed: () => Navigator.pop(ctx, false),
-        child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-      ),
-      TextButton(
-        onPressed: () => Navigator.pop(ctx, true),
-        child: Text(l10n.hotkeysResetAll),
-      ),
-    ],
+    title: l10n.hotkeysResetAllConfirmTitle,
+    message: l10n.hotkeysResetAllConfirmMessage,
+    confirmLabel: l10n.hotkeysResetAll,
+    destructive: true,
   );
   return confirmed == true;
 }

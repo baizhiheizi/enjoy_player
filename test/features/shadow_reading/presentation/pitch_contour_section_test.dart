@@ -186,7 +186,9 @@ void main() {
       expect(find.text('Your pitch'), findsOneWidget);
     });
 
-    testWidgets('tapping a chip toggles _vis flags', (tester) async {
+    testWidgets('tapping a legend entry toggles that chart layer', (
+      tester,
+    ) async {
       final pipeline = _FakePipeline();
       await tester.pumpWidget(
         _wrap(
@@ -202,16 +204,16 @@ void main() {
       await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
       await tester.pumpAndSettle();
 
-      FilterChip waveformChip() => tester
-          .widgetList<FilterChip>(find.byType(FilterChip))
-          .firstWhere(
-            (c) => c.label is Text && (c.label as Text).data == 'Waveform',
-          );
+      PitchContourVisibility visibility() => tester
+          .widget<PitchContourChart>(find.byType(PitchContourChart))
+          .visibility;
 
-      expect(waveformChip().selected, isTrue);
+      expect(find.byType(FilterChip), findsNothing);
+      expect(visibility().showWaveform, isTrue);
       await tester.tap(find.text('Waveform'));
       await tester.pumpAndSettle();
-      expect(waveformChip().selected, isFalse);
+      expect(visibility().showWaveform, isFalse);
+      expect(visibility().showReference, isTrue);
     });
 
     testWidgets('error in reference analysis surfaces pitchContourError', (

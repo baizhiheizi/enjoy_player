@@ -44,7 +44,10 @@ Two presentations share the panel (Duet, ADR-0093):
   (play circle, take number, mono duration, an uncolored score chip
   that re-opens the assessment, or a `Score` action that runs it), the
   "press R and say it back" hint when empty, and the Pitch pill that
-  toggles the contour. Record / cancel / stop live in the dock; while a
+  toggles the contour. Desktop keeps the chips on one horizontally
+  scrolling line; phones drop the overline and chip durations and wrap
+  the chips plus an icon-only Pitch button onto as many rows as needed,
+  so every take stays one tap away (the `PEcho` board). Record / cancel / stop live in the dock; while a
   take records, the panel renders nothing and the loop block shows the
   pulse label + countdown bar. The take **more menu (delete with
   confirm)** has no player-embed home — the vocabulary embed keeps it
@@ -110,20 +113,56 @@ Silent FFmpeg WAV normalize is auto-detected and the resample chain is retried (
 
 ## Presentation — the assessment (Duet, ADR-0093)
 
-The assessment dialog reads ink-on-raised: a Literata overall score with
-the level word and meter, uncolored ink bars for accuracy / fluency /
-completeness / prosody (the Excellent / Good / Fair / Poor thresholds
-stay in `score_level.dart`), and word chips whose per-error accents are
-reduced to the scheme's primary. No score colors anywhere.
+The assessment reads on raised paper: a level-colored ring around the
+Literata overall score with a level pill and a *Play my recording* button,
+colored bars for accuracy / completeness / fluency / prosody, then the
+word chips and the selected-word panel (see the color scale below).
 
 ## Presentation — the pitch duet and takes (Duet, ADR-0093)
 
 The pitch chart draws the **pitch duet**: the reference contour as a 9 px
 original-blue band at 0.35 opacity, your contour as a 3 px you-violet
-line. Score chips on takes are uncolored — an ink number on a paper pill
-(the player takes strip) — and the Excellent / Good / Fair / Poor
-thresholds stay in `score_level.dart` and feed the assessment meter
-(D3.8). In the player the takes render as the strip under the loop
+line. Chips on takes are an ink number on a paper pill. The assessment
+result itself reads in color (user decision 2026-10-13, overriding the
+board's uncolored scores): `score_level.dart` maps Excellent / Good (≥ 81)
+to `scoreGood` green, Fair (61–80) to `scoreWarn` amber and Poor (< 61)
+to `scoreBad` red, each with its tinted container. The overall ring, the
+level pill, the dimension bars, the word chips (tinted fill + mono score;
+wavy underline for mispronunciation, strike-through for insertion and
+omission, a legend above), and the selected-word panel's per-phoneme tiles
+all use that scale; IPA renders in bundled Noto Sans. On wide player
+windows the assessment opens in the 340 px side margin, which hosts the
+same `AssessmentResultBody` as the narrow sheet (overall score, dimension
+bars, replay, re-assess, per-word phoneme analysis); the margin route
+wraps the panel in a transparent `Material` so plain text never falls
+back to the debug error style.
+
+**Pitch chart.** Both contours sit on a semitone axis fitted to the voiced
+range (at least 8 semitones). A contour breaks at gaps over 250 ms, runs
+shorter than 60 ms are dropped, points more than 9 semitones from the
+median are folded back an octave (detector half/double-frequency errors),
+and each run is median-filtered over 5 points. There is no area fill: the
+reference is the 9 px translucent original-blue band, your take the 3 px
+you-violet line, over a quiet amplitude envelope. Legend toggles (Reference
+/ You / Waveform, each with its swatch) turn layers on and off. The Pitch
+button is enabled whenever Echo is on and the media is decodable, so the
+reference contour is available before the first take.
+
+**Pitch input.** The contour decodes the reference region with FFmpeg from
+`mediaAnalysisInputProvider`: the row's local file when it has one,
+otherwise its `http(s)` `mediaUrl`, so cloud-streamed library items get a
+contour too (FFmpeg seeks the remote file with `-ss` before `-i` and only
+fetches the segment). YouTube rows have no direct audio URL, so their Pitch
+button stays disabled. The input is read straight from the row, without
+opening a macOS security-scoped bookmark grant.
+
+**Linux.** Assessment runs the native Speech SDK through the
+`azure_speech` Linux plugin, the same path as the other platforms
+([ADR-0096](../decisions/0096-native-azure-speech-sdk-on-linux.md)). WAV
+normalization and the pitch-contour PCM extraction
+(`echo_segment_pcm_extractor.dart`) run the bundled or system `ffmpeg` CLI
+on Linux as on Windows — `FfmpegMediaProbe.usesFfmpegCli` picks the CLI
+wherever FFmpegKit ships no plugin (Windows, Linux). In the player the takes render as the strip under the loop
 (chips + Pitch pill); recording readouts (pulse label, countdown bar)
 render inside the loop block, and the dock carries Play/Pause + Record
 and Cancel + Stop.

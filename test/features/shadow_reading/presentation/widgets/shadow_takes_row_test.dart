@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -153,6 +154,7 @@ void main() {
     required List<RecordingRow> takes,
     String? selectedId,
     bool hasMediaPath = true,
+    VoidCallback? onTogglePitch,
   }) async {
     final l10n = await _loadL10n();
     await tester.pumpWidget(
@@ -167,7 +169,7 @@ void main() {
           hasMediaPath: hasMediaPath,
           onPlayOrPause: (_) {},
           onChooseTake: (_) {},
-          onTogglePitch: () {},
+          onTogglePitch: onTogglePitch ?? () {},
         ),
       ),
     );
@@ -175,7 +177,33 @@ void main() {
     return l10n;
   }
 
-  testWidgets('renders one chip per take, newest first, with durations', (
+  testWidgets(
+    'desktop renders one chip per take, newest first, with durations',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        final l10n = await pumpRow(
+          tester,
+          takes: [
+            _row(id: 't2', localPath: '/tmp/t2.wav', duration: 4600),
+            _row(id: 't1', localPath: '/tmp/t1.wav', duration: 3900),
+          ],
+          selectedId: 't2',
+        );
+
+        expect(find.text('${l10n.shadowRecordingTake} 2'), findsOneWidget);
+        expect(find.text('${l10n.shadowRecordingTake} 1'), findsOneWidget);
+        expect(find.text('4.6 s'), findsOneWidget);
+        expect(find.text('3.9 s'), findsOneWidget);
+        expect(find.text(l10n.shadowTakesLabel.toUpperCase()), findsOneWidget);
+        expect(find.text(l10n.pitchContourTitle), findsOneWidget);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
+
+  testWidgets('mobile wraps compact chips without overline or durations', (
     tester,
   ) async {
     final l10n = await pumpRow(
@@ -187,11 +215,13 @@ void main() {
       selectedId: 't2',
     );
 
+    expect(find.byType(Wrap), findsOneWidget);
+    expect(find.byType(SingleChildScrollView), findsNothing);
     expect(find.text('${l10n.shadowRecordingTake} 2'), findsOneWidget);
     expect(find.text('${l10n.shadowRecordingTake} 1'), findsOneWidget);
-    expect(find.text('4.6 s'), findsOneWidget);
-    expect(find.text('3.9 s'), findsOneWidget);
-    expect(find.text(l10n.shadowTakesLabel.toUpperCase()), findsOneWidget);
+    expect(find.text('4.6 s'), findsNothing);
+    expect(find.text(l10n.shadowTakesLabel.toUpperCase()), findsNothing);
+    expect(find.text(l10n.pitchContourTitle), findsNothing);
   });
 
   testWidgets('scored take shows its uncolored score chip', (tester) async {
@@ -217,23 +247,33 @@ void main() {
     expect(find.text(l10n.assessmentScoreAction), findsOneWidget);
   });
 
-  testWidgets('chips sit on one horizontally scrollable line', (tester) async {
-    await pumpRow(
-      tester,
-      takes: [
-        _row(id: 't3', localPath: '/tmp/t3.wav'),
-        _row(id: 't2', localPath: '/tmp/t2.wav'),
-        _row(id: 't1', localPath: '/tmp/t1.wav'),
-      ],
-      selectedId: 't3',
-    );
+  testWidgets('desktop chips sit on one horizontally scrollable line', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      await pumpRow(
+        tester,
+        takes: [
+          _row(id: 't3', localPath: '/tmp/t3.wav'),
+          _row(id: 't2', localPath: '/tmp/t2.wav'),
+          _row(id: 't1', localPath: '/tmp/t1.wav'),
+        ],
+        selectedId: 't3',
+      );
 
-    final scrolls = tester.widgetList<SingleChildScrollView>(
-      find.byType(SingleChildScrollView),
-    );
-    expect(scrolls, isNotEmpty);
-    expect(scrolls.every((s) => s.scrollDirection == Axis.horizontal), isTrue);
-    expect(tester.takeException(), isNull);
+      final scrolls = tester.widgetList<SingleChildScrollView>(
+        find.byType(SingleChildScrollView),
+      );
+      expect(scrolls, isNotEmpty);
+      expect(
+        scrolls.every((s) => s.scrollDirection == Axis.horizontal),
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('mouse wheel scrolls the chip line horizontally', (tester) async {
@@ -331,6 +371,27 @@ void main() {
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
+  });
+
+  testWidgets('Pitch works before the first take (reference contour)', (
+    tester,
+  ) async {
+    var toggles = 0;
+    await pumpRow(tester, takes: const [], onTogglePitch: () => toggles++);
+    await tester.tap(find.byIcon(EnjoyIcons.waveform));
+    expect(toggles, 1);
+  });
+
+  testWidgets('Pitch stays disabled without decodable media', (tester) async {
+    var toggles = 0;
+    await pumpRow(
+      tester,
+      takes: const [],
+      hasMediaPath: false,
+      onTogglePitch: () => toggles++,
+    );
+    await tester.tap(find.byIcon(EnjoyIcons.waveform), warnIfMissed: false);
+    expect(toggles, 0);
   });
 
   testWidgets('empty region shows the plain hint on mobile', (tester) async {

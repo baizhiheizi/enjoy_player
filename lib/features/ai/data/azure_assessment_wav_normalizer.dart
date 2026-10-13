@@ -25,7 +25,7 @@ final _log = logNamed('ai.azure_assessment_wav');
 /// pair we used to capture from `Process.run` plus the input scan, so the
 /// caller can log the same way.
 Future<({int exitCode, String stderr, WavPeakScan? inputScan})>
-_runFfmpegWindowsInIsolate(_WindowsFfmpegArgs args) async {
+_runFfmpegCliInIsolate(_FfmpegCliArgs args) async {
   final inputScan = await scanWavDataPeakFromFile(args.inputPath);
   final r = await Process.run(args.exe, <String>[
     '-nostdin',
@@ -108,9 +108,10 @@ void _logInputScan(WavPeakScan? scan) {
 /// Returns `true` when [outputWavPath] exists, has at least 100 bytes, and
 /// passes a non-silent peak/RMS check (guards against empty FFmpeg decode).
 ///
-/// The peak scans and the Windows ffmpeg invocation run in worker isolates
-/// (via [Isolate.run]) so the multi-MB reads and the re-encode never block
-/// the UI thread. The input peak scan shares the Windows ffmpeg isolate;
+/// The peak scans and the desktop (Windows / Linux) ffmpeg CLI invocation
+/// run in worker isolates (via [Isolate.run]) so the multi-MB reads and the
+/// re-encode never block the UI thread. The input peak scan shares the
+/// desktop ffmpeg isolate;
 /// FFmpegKit platforms cannot move the encode off the main isolate
 /// (platform channel), so their input scan keeps its own isolate, and the
 /// output scan always follows the encode. Assessments are user-initiated
@@ -127,16 +128,16 @@ Future<bool> normalizeWavForAzureAssessment({
 
   await _deleteIfExists(outputWavPath);
   final bool encoded;
-  if (Platform.isWindows) {
+  if (FfmpegMediaProbe.usesFfmpegCli) {
     final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
     if (exe == null) {
-      _log.fine('normalizeWav: no ffmpeg on Windows, skipping');
+      _log.fine('normalizeWav: no ffmpeg CLI found, skipping');
       return false;
     }
     try {
       final result = await Isolate.run(
-        () => _runFfmpegWindowsInIsolate(
-          _WindowsFfmpegArgs(
+        () => _runFfmpegCliInIsolate(
+          _FfmpegCliArgs(
             exe: exe,
             inputPath: inputPath,
             outputWavPath: outputWavPath,
@@ -226,8 +227,8 @@ Future<String?> tryCreateNormalizedAzureAssessmentWav(String inputPath) async {
   return File(out).absolute.path;
 }
 
-class _WindowsFfmpegArgs {
-  const _WindowsFfmpegArgs({
+class _FfmpegCliArgs {
+  const _FfmpegCliArgs({
     required this.exe,
     required this.inputPath,
     required this.outputWavPath,

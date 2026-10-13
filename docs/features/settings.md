@@ -28,6 +28,8 @@ Section content lives in one file per section under `lib/features/settings/prese
 
 ## Layout
 
+`SettingsRow` centers its trailing value and chevron on the whole row (not the title line); below `stackBelowWidth` (320 px by default, scaled by the text scaler) the value wraps under the title.
+
 `SettingsScreen` uses a `LayoutBuilder` keyed on `EnjoyThemeTokens.breakpointRail`:
 
 - **Below the breakpoint** → `SettingsLayoutHub`: the board's phone layout — an account card (logo-ring avatar, name, "tier · email", chevron → `/profile`), one grouped card of section rows (tinted icon tile, title, short trailing value, chevron) built from `visibleSettingsSections` so the platform/build gates still apply, and the centered mono version footer. Tapping a row pushes the section's page (`SettingsSectionPageScreen` under `/settings/<section>`; Cloud sync, AI, and Keyboard shortcuts keep their dedicated screens). With a search query active the hub swaps to `SettingsLayoutSingleColumn`, rendering every matching section inline — the search contract (matches visible in place, no-results state, clear affordance) is unchanged. Horizontal inset comes solely from `EnjoyPageMetrics` (`EnjoyPageKind.hub`) — the same hub gutter Profile uses.
@@ -40,7 +42,8 @@ Every settings row is a `SettingsRow` (icon, title, subtitle, value badge, optio
 ## Sections
 
 - **Cloud sync** (`sections/cloud_sync_section.dart`) — status pill (synced / queued / error) read from the sync queue snapshot; links to `/settings/sync`.
-- **Appearance & Language** (`sections/appearance_language_section.dart`) — display, learning, and native language pickers (`language_choice_sheet.dart`). Each pick updates its row's value badge immediately with no need to leave the hub. Native language is capability-gated to the choices that remain after excluding the current learning language.
+- **Account** (`sections/account_section.dart`) — renders its own card (the section opts out of `wrapInCard`): the identity row (logo-ring avatar, name, email, tier chip), then **Edit profile**, **Subscription** (tier value) and **Credits usage** (`{used} / {limit} today`) rows, with a neutral **Sign out** button below the card (confirm via `showEnjoyConfirmDialog`).
+- **Appearance & Language** (`sections/appearance_language_section.dart`) — an inline **System / Light / Dark** `EnjoySegmentedControl` on the Theme row (one tap, no sheet; the row stacks the control under its title below 460 px × text scale via `SettingsRow.stackBelowWidth`), then display, learning, and native language pickers (`language_choice_sheet.dart`). Each pick updates its row's value badge immediately with no need to leave the hub. Native language is capability-gated to the choices that remain after excluding the current learning language.
 - **AI providers** (`sections/ai_providers_section.dart`) — per-modality BYOK provider configuration entry point.
 - **Recording** (`sections/recording_section.dart`) — microphone picker dialog (auto + every input device returned by `AudioRecorder.listInputDevices()`; see [`echo-mode.md`](echo-mode.md) for the virtual-device skip list). An empty device list still renders an explanatory subtitle rather than a blank row.
 - **Keyboard shortcuts** (`sections/keyboard_shortcuts_section.dart`) — link to `/settings/hotkeys` (full editor); desktop-only.

@@ -358,6 +358,9 @@ void main() {
         frame: frame,
         db: db,
         before: switch (board) {
+          'SettingsDark' => (tester) async {
+            await tester.tap(find.text('Account').first);
+          },
           'LibraryAudio' => (tester) async {
             await tester.tap(find.text('Audio'));
             await tester.enterText(find.byType(TextField).last, 'ferry');

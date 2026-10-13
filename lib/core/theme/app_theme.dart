@@ -417,7 +417,13 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       backgroundColor: t.raised,
       surfaceTintColor: Colors.transparent,
       barrierColor: t.scrim,
-      titleTextStyle: tt.titleLarge,
+      titleTextStyle: tt.displaySmall?.copyWith(
+        fontSize: 22,
+        fontWeight: FontWeight.w500,
+        height: 1.25,
+        letterSpacing: -0.4,
+        color: cs.onSurface,
+      ),
       contentTextStyle: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
       insetPadding: EdgeInsets.symmetric(
         horizontal: t.space24,

@@ -8,6 +8,7 @@
 
 #include <app_links_linux/app_links_plugin_linux.h>
 #include <audioplayers_linux/audioplayers_linux_plugin.h>
+#include <azure_speech/azure_speech_plugin.h>
 #include <flutter_inappwebview_linux/flutter_inappwebview_linux_plugin.h>
 #include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
 #include <flutter_timezone/flutter_timezone_plugin.h>
@@ -25,6 +26,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) audioplayers_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "AudioplayersLinuxPlugin");
   audioplayers_linux_plugin_register_with_registrar(audioplayers_linux_registrar);
+  g_autoptr(FlPluginRegistrar) azure_speech_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "AzureSpeechPlugin");
+  azure_speech_plugin_register_with_registrar(azure_speech_registrar);
   g_autoptr(FlPluginRegistrar) flutter_inappwebview_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterInappwebviewLinuxPlugin");
   flutter_inappwebview_linux_plugin_register_with_registrar(flutter_inappwebview_linux_registrar);

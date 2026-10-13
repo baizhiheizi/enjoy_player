@@ -140,7 +140,7 @@ void main() {
 
     expect(find.text(l10n.playerDockHideText), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
-    expect(find.text('1x'), findsOneWidget);
+    expect(find.text('1.0×'), findsOneWidget);
     expect(find.text(l10n.playerDockRecord), findsNothing);
     expect(find.byType(TransportVolumeButton), findsOneWidget);
   });

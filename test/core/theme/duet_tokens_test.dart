@@ -341,12 +341,7 @@ void main() {
       expect(t.echoActive, t.you);
       expect(t.echoInk, t.youInk);
       expect(t.blurActive, t.ink);
-      expect(t.scoreGood, t.ink2);
-      expect(t.scoreWarn, t.ink2);
       expect(t.scoreBad, t.danger);
-      expect(t.scoreGoodContainer, t.sunk);
-      expect(t.scoreWarnContainer, t.sunk);
-      expect(t.scoreBadContainer, t.sunk);
       expect(t.glassTint, t.paper);
       expect(t.glassBorder, t.line);
       expect(t.gradientStart, t.ground);

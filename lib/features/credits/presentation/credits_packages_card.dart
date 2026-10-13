@@ -129,9 +129,10 @@ class CreditsPackagesCard extends ConsumerWidget {
                 ),
                 summaryAsync.maybeWhen(
                   data: (s) => Container(
-                    height: 30,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: ShapeDecoration(
                       color: t.brandSoft,
                       shape: const StadiumBorder(),
@@ -153,21 +154,38 @@ class CreditsPackagesCard extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             packagesAsync.when(
-              data: (packages) => Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  for (final pkg in packages)
-                    SizedBox(
-                      width: 220,
-                      child: _PackageTile(
+              data: (packages) => LayoutBuilder(
+                builder: (context, constraints) {
+                  final tiles = [
+                    for (final pkg in packages)
+                      _PackageTile(
                         credits: number.format(pkg.credits),
                         price: '${pkg.amount} USD',
                         busy: busy,
                         onBuy: () => _buy(context, ref, pkg),
                       ),
-                    ),
-                ],
+                  ];
+                  if (constraints.maxWidth < _kPackageRowMinWidth) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final (i, tile) in tiles.indexed) ...[
+                          if (i > 0) const SizedBox(height: 12),
+                          tile,
+                        ],
+                      ],
+                    );
+                  }
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final (i, tile) in tiles.indexed) ...[
+                        if (i > 0) const SizedBox(width: 12),
+                        Expanded(child: tile),
+                      ],
+                    ],
+                  );
+                },
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, _) => const SizedBox.shrink(),
@@ -178,6 +196,8 @@ class CreditsPackagesCard extends ConsumerWidget {
     );
   }
 }
+
+const double _kPackageRowMinWidth = 600;
 
 class _PackageTile extends StatelessWidget {
   const _PackageTile({
@@ -211,13 +231,19 @@ class _PackageTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  credits,
-                  style: enjoyDisplayStyle(
-                    context,
-                    size: 26,
-                    color: t.ink,
-                    height: 1.1,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    credits,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: enjoyDisplayStyle(
+                      context,
+                      size: 26,
+                      color: t.ink,
+                      height: 1.1,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 6),

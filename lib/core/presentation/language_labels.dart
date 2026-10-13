@@ -107,3 +107,21 @@ String languageCodeLabel(String tag) {
   final primary = tag.split(RegExp('[-_]')).first.trim();
   return primary.isEmpty ? tag.toUpperCase() : primary.toUpperCase();
 }
+
+/// Short endonym for [tag] (`en` → `English`, `zh-CN` → `中文`): the exact
+/// lookup row first, then the first lookup row sharing its primary subtag.
+/// `null` for invalid or unknown tags.
+String? languageEndonymLabel(String? tag) {
+  if (!isValidLanguageTag(tag)) return null;
+  final normalized = normalizeBcp47Tag(normalizeLanguageAlias(tag!.trim()));
+  final exact = kLookupLanguageLabels[normalized];
+  if (exact != null) return exact;
+  final primary = primaryLanguageSubtag(normalized);
+  for (final row in kLanguageDescriptorRows) {
+    final label = row.lookupLabel;
+    if (label != null && primaryLanguageSubtag(row.tag) == primary) {
+      return label;
+    }
+  }
+  return null;
+}

@@ -175,7 +175,7 @@ void main() {
   );
 
   testWidgets(
-    'theme row opens System / Light / Dark and applying Light updates the badge',
+    'theme row offers System / Light / Dark inline and Light applies in place',
     (tester) async {
       await tester.pumpWidget(_harness(db: db, learningLanguage: 'en-US'));
       await tester.pumpAndSettle();
@@ -185,13 +185,9 @@ void main() {
       );
 
       expect(find.text(l10n.settingsAppearanceTheme), findsOneWidget);
-      expect(find.text(l10n.settingsAppearanceThemeSystem), findsOneWidget);
+      expect(find.text(l10n.settingsThemeDarkLocked), findsOneWidget);
       expect(find.byIcon(EnjoyIcons.monitor), findsOneWidget);
-
-      await tester.tap(find.text(l10n.settingsAppearanceTheme));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(PaddedSheetDragHandle), findsOneWidget);
+      expect(find.text(l10n.settingsAppearanceThemeSystem), findsOneWidget);
       expect(find.text(l10n.settingsAppearanceThemeLight), findsOneWidget);
       expect(find.text(l10n.settingsAppearanceThemeDark), findsOneWidget);
 
@@ -199,7 +195,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(PaddedSheetDragHandle), findsNothing);
-      expect(find.text(l10n.settingsAppearanceThemeLight), findsOneWidget);
+      expect(find.text(l10n.settingsThemeDarkLocked), findsNothing);
       expect(find.byIcon(EnjoyIcons.sun), findsOneWidget);
       expect(tester.takeException(), isNull);
     },

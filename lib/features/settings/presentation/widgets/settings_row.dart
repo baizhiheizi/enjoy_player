@@ -33,6 +33,7 @@ class SettingsRow extends StatelessWidget {
     this.showChevron = true,
     this.onTap,
     this.responsive = true,
+    this.stackBelowWidth = kSettingsRowStackBelowWidth,
   });
 
   final String title;
@@ -46,17 +47,26 @@ class SettingsRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   /// When `true` (default), wraps the row in a [LayoutBuilder] that switches
-  /// to a stacked layout below 320 px.  Set to `false` when the row is
+  /// to a stacked layout below [stackBelowWidth].  Set to `false` when the row is
   /// placed inside an [IntrinsicHeight] ancestor — the [LayoutBuilder] would
   /// cause layout exceptions with intrinsic sizing.
   final bool responsive;
+
+  /// Row width (scaled by the text scaler) below which [valueBadge] and
+  /// [trailing] wrap under the title; raise it for wide trailing controls
+  /// such as a segmented control that cannot shrink.
+  final double stackBelowWidth;
 
   @override
   Widget build(BuildContext context) {
     if (responsive) {
       return LayoutBuilder(
-        builder: (ctx, constraints) =>
-            _buildRow(ctx, compact: constraints.maxWidth < 320),
+        builder: (ctx, constraints) {
+          final stackBelow = MediaQuery.textScalerOf(
+            ctx,
+          ).scale(stackBelowWidth);
+          return _buildRow(ctx, compact: constraints.maxWidth < stackBelow);
+        },
       );
     }
     return _buildRow(context, compact: false);
@@ -111,44 +121,19 @@ class SettingsRow extends StatelessWidget {
       color: interactive ? null : cs.onSurface.withValues(alpha: 0.72),
     );
 
+    final trailingChildren = trailingWidgets();
+
     Widget textColumn({required bool compact}) {
-      final trailingChildren = trailingWidgets();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!compact)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: titleStyle,
-                  ),
-                ),
-                if (trailingChildren.isNotEmpty)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (var i = 0; i < trailingChildren.length; i++) ...[
-                        if (i > 0) SizedBox(width: t.space8),
-                        trailingChildren[i],
-                      ],
-                    ],
-                  ),
-              ],
-            )
-          else
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: titleStyle,
-            ),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: titleStyle,
+          ),
           if (subtitle != null && subtitle!.isNotEmpty) ...[
             const SizedBox(height: 2),
             Text(
@@ -189,6 +174,13 @@ class SettingsRow extends StatelessWidget {
               const SizedBox(width: kSettingsRowLeadingGap),
             ],
             Expanded(child: textColumn(compact: compact)),
+            if (!compact && trailingChildren.isNotEmpty) ...[
+              SizedBox(width: t.space12),
+              for (var i = 0; i < trailingChildren.length; i++) ...[
+                if (i > 0) SizedBox(width: t.space8),
+                trailingChildren[i],
+              ],
+            ],
           ],
         ),
       ),
@@ -202,6 +194,9 @@ class SettingsRow extends StatelessWidget {
     );
   }
 }
+
+/// Row width below which the trailing value wraps under the title.
+const double kSettingsRowStackBelowWidth = 320;
 
 /// Leading glyph tile edge (icon tile / avatar slot).
 const double kSettingsRowLeadingSize = 30;

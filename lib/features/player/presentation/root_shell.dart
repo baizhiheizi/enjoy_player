@@ -44,6 +44,7 @@ class _RootShellState extends ConsumerState<RootShell> {
     '/settings',
     '/subscription',
     '/credits',
+    '/vocabulary',
   };
 
   int _navIndexForPath(String path) {

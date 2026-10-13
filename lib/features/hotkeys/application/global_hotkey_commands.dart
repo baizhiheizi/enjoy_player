@@ -5,14 +5,14 @@ library;
 
 import 'dart:async';
 
-import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:flutter/scheduler.dart';
+
+import 'package:enjoy_player/core/routing/library_source.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_cheatsheet_open.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
-import 'package:enjoy_player/l10n/app_localizations.dart';
-
-final _log = logNamed('AppHotkeys');
+import 'package:enjoy_player/features/library/application/library_search_focus.dart';
+import 'package:enjoy_player/features/library/application/library_search_focus_provider.dart';
 
 /// `global.help` (default `Shift+/`) — opens the cheatsheet, or closes it when
 /// already open.
@@ -75,7 +75,9 @@ class GlobalCraftHotkeyCommand extends HotkeyCommand {
   }
 }
 
-/// `global.search` — stub notice (search UX not built yet).
+/// `global.search` (default `Ctrl+K`, `⌘K` on macOS) — focuses library
+/// search, the same field `/` focuses; from the player it first returns to
+/// Library.
 class GlobalSearchHotkeyCommand extends HotkeyCommand {
   const GlobalSearchHotkeyCommand();
 
@@ -83,18 +85,22 @@ class GlobalSearchHotkeyCommand extends HotkeyCommand {
   String get actionId => 'global.search';
 
   @override
-  bool canExecute(HotkeyCtx ctx) => true;
+  bool canExecute(HotkeyCtx ctx) =>
+      librarySearchHotkeyEnabledForPath(ctx.path) ||
+      ctx.path.startsWith('/player/');
 
   @override
   void execute(HotkeyCtx ctx) {
-    final navCtx = ctx.routerNavigatorContext;
-    if (navCtx != null) {
-      final l10n = AppLocalizations.of(navCtx);
-      if (l10n != null) {
-        AppNotice.info(navCtx, l10n.hotkeysStubSearch);
-      }
+    if (ctx.path.startsWith('/player/')) {
+      ctx.router.go(libraryRouteForSource(LibrarySource.local));
+      SchedulerBinding.instance.scheduleFrameCallback((_) {
+        SchedulerBinding.instance.scheduleFrameCallback((_) {
+          ctx.read(librarySearchFocusRequestProvider.notifier).pulse();
+        });
+      });
+      return;
     }
-    _log.fine('global search hotkey (stub)');
+    requestLibrarySearchFocus(ctx.read);
   }
 }
 

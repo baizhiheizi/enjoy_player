@@ -624,7 +624,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String playbackRateTimes(String rate) {
-    return '${rate}x';
+    return '$rate×';
   }
 
   @override
@@ -1349,9 +1349,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Close overlay, exit fullscreen, or cancel recording';
 
   @override
-  String get hotkeysStubSearch => 'Search is not available yet.';
-
-  @override
   String get assessmentTitle => 'Pronunciation assessment';
 
   @override
@@ -1472,6 +1469,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authSignInSubtitle =>
       'Sign in to sync your library, track learning progress, and pick up where you left off.';
+
+  @override
+  String get authBrandHeadline => 'First the original voice. Then yours.';
+
+  @override
+  String get authBrandBody =>
+      'Listen line by line, echo every sentence, and hear how close you are.';
 
   @override
   String get authSignInCta => 'Continue';
@@ -2046,7 +2050,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSectionAppearanceLanguageHint =>
-      'Theme density, transcript font, and locale';
+      'Theme, and the languages you read, learn, and speak';
 
   @override
   String get hotkeysSectionKeyboardHint => 'Reference and customize shortcuts';
@@ -2478,10 +2482,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Only one native language is available for your learning language.';
 
   @override
-  String get settingsLanguageOptionEnUs => 'English (United States)';
+  String get settingsLanguageOptionEnUs => 'English (US)';
 
   @override
-  String get settingsLanguageOptionEnGb => 'English (United Kingdom)';
+  String get settingsLanguageOptionEnGb => 'English (UK)';
 
   @override
   String get settingsLanguageOptionJaJp => 'Japanese';
@@ -2502,7 +2506,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageOptionFrCa => 'French (Canada)';
 
   @override
-  String get settingsLanguageOptionZhCn => 'Chinese (Simplified, China)';
+  String get settingsLanguageOptionZhCn => 'Chinese (Simplified)';
 
   @override
   String get settingsLanguageOptionNbNo => 'Norwegian (Bokmål)';
@@ -3523,6 +3527,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get craftScreenTitle => 'Craft';
 
   @override
+  String get craftOverline => 'Practice audio from your own words';
+
+  @override
   String get craftTranslateTool => 'Translate';
 
   @override
@@ -4258,6 +4265,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionAccountHint => 'Your Enjoy identity and sign-out';
 
   @override
+  String settingsAccountCreditsTodayValue(String used, String limit) {
+    return '$used / $limit today';
+  }
+
+  @override
   String get discoverOverline => 'YouTube channels you follow';
 
   @override
@@ -4277,6 +4289,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String discoverDaysAgo(int count) {
     return '${count}d ago';
   }
+
+  @override
+  String discoverMinutesAgo(int count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String get discoverJustNow => 'just now';
 
   @override
   String get discoverAddToLibraryAction => 'Add to library';
@@ -4340,4 +4360,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assessmentMarginOverline => 'Pronunciation';
+
+  @override
+  String get assessmentLevelExcellent => 'Excellent';
+
+  @override
+  String get assessmentLevelGood => 'Good';
+
+  @override
+  String get assessmentLevelFair => 'Fair';
+
+  @override
+  String get assessmentLevelPoor => 'Needs work';
 }

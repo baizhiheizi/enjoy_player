@@ -24,7 +24,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 String formatRateCore(double rate) {
   final x = (rate * 100).round() / 100;
-  return x.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
+  return x.toStringAsFixed(2).replaceFirst(RegExp(r'(?<=\.\d)0$'), '');
 }
 
 /// Toggles the transcript blur (hide text) state.
@@ -64,7 +64,7 @@ class DockHideTextPill extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                active ? EnjoyIcons.eyeOff : EnjoyIcons.eye,
+                EnjoyIcons.eyeOff,
                 size: 18,
                 color: active ? t.paper : t.ink2,
               ),
@@ -400,7 +400,7 @@ class DockPlayPausePill extends StatelessWidget {
   }
 }
 
-/// Compact "1.00×" pill that opens the playback-rate sheet.
+/// Compact "1.0×" pill that opens the playback-rate sheet.
 class DockSpeedPill extends StatelessWidget {
   const DockSpeedPill({required this.rate, required this.onOpen, super.key});
 

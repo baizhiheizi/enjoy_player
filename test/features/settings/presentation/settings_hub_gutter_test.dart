@@ -17,7 +17,6 @@ import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_hub.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';

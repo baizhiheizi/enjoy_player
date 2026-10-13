@@ -96,6 +96,7 @@ Future<void> triggerRecordingAssessment({
           await showAssessmentMargin(
             context: context,
             assessment: parsed,
+            localeTag: pronounceLocale,
             recordingPath: row.localPath,
           );
           return;
@@ -126,6 +127,7 @@ Future<void> triggerRecordingAssessment({
         await showAssessmentMargin(
           context: context,
           assessment: detail,
+          localeTag: pronounceLocale,
           recordingPath: row.localPath,
         );
         return;

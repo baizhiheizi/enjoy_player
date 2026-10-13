@@ -1194,7 +1194,7 @@ abstract class AppLocalizations {
   /// No description provided for @playbackRateTimes.
   ///
   /// In en, this message translates to:
-  /// **'{rate}x'**
+  /// **'{rate}×'**
   String playbackRateTimes(String rate);
 
   /// No description provided for @speed.
@@ -2493,12 +2493,6 @@ abstract class AppLocalizations {
   /// **'Close overlay, exit fullscreen, or cancel recording'**
   String get hotkeysDescCloseModal;
 
-  /// No description provided for @hotkeysStubSearch.
-  ///
-  /// In en, this message translates to:
-  /// **'Search is not available yet.'**
-  String get hotkeysStubSearch;
-
   /// No description provided for @assessmentTitle.
   ///
   /// In en, this message translates to:
@@ -2720,6 +2714,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to sync your library, track learning progress, and pick up where you left off.'**
   String get authSignInSubtitle;
+
+  /// Sign-in brand panel headline (wide windows).
+  ///
+  /// In en, this message translates to:
+  /// **'First the original voice. Then yours.'**
+  String get authBrandHeadline;
+
+  /// Sign-in brand panel body (wide windows).
+  ///
+  /// In en, this message translates to:
+  /// **'Listen line by line, echo every sentence, and hear how close you are.'**
+  String get authBrandBody;
 
   /// No description provided for @authSignInCta.
   ///
@@ -3792,7 +3798,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSectionAppearanceLanguageHint.
   ///
   /// In en, this message translates to:
-  /// **'Theme density, transcript font, and locale'**
+  /// **'Theme, and the languages you read, learn, and speak'**
   String get settingsSectionAppearanceLanguageHint;
 
   /// No description provided for @hotkeysSectionKeyboardHint.
@@ -4578,13 +4584,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLanguageOptionEnUs.
   ///
   /// In en, this message translates to:
-  /// **'English (United States)'**
+  /// **'English (US)'**
   String get settingsLanguageOptionEnUs;
 
   /// No description provided for @settingsLanguageOptionEnGb.
   ///
   /// In en, this message translates to:
-  /// **'English (United Kingdom)'**
+  /// **'English (UK)'**
   String get settingsLanguageOptionEnGb;
 
   /// No description provided for @settingsLanguageOptionJaJp.
@@ -4626,7 +4632,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLanguageOptionZhCn.
   ///
   /// In en, this message translates to:
-  /// **'Chinese (Simplified, China)'**
+  /// **'Chinese (Simplified)'**
   String get settingsLanguageOptionZhCn;
 
   /// No description provided for @settingsLanguageOptionNbNo.
@@ -6483,6 +6489,12 @@ abstract class AppLocalizations {
   /// **'Craft'**
   String get craftScreenTitle;
 
+  /// Overline above the Craft page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice audio from your own words'**
+  String get craftOverline;
+
   /// No description provided for @craftTranslateTool.
   ///
   /// In en, this message translates to:
@@ -7722,6 +7734,12 @@ abstract class AppLocalizations {
   /// **'Your Enjoy identity and sign-out'**
   String get settingsSectionAccountHint;
 
+  /// Settings → Account: credits used today out of the daily limit, beside Credits usage.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} / {limit} today'**
+  String settingsAccountCreditsTodayValue(String used, String limit);
+
   /// Overline above the Discover title.
   ///
   /// In en, this message translates to:
@@ -7751,6 +7769,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count}d ago'**
   String discoverDaysAgo(int count);
+
+  /// Compact age of a feed entry or refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m ago'**
+  String discoverMinutesAgo(int count);
+
+  /// Age of a feed entry or refresh under a minute old.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get discoverJustNow;
 
   /// Discover feed tile action button.
   ///
@@ -7865,6 +7895,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pronunciation'**
   String get assessmentMarginOverline;
+
+  /// Assessment score level (91–100).
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get assessmentLevelExcellent;
+
+  /// Assessment score level (81–90).
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get assessmentLevelGood;
+
+  /// Assessment score level (61–80).
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get assessmentLevelFair;
+
+  /// Assessment score level (below 61).
+  ///
+  /// In en, this message translates to:
+  /// **'Needs work'**
+  String get assessmentLevelPoor;
 }
 
 class _AppLocalizationsDelegate

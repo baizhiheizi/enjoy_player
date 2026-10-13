@@ -1,6 +1,6 @@
 # azure_speech
 
-Flutter plugin wrapping the **Microsoft Azure Cognitive Services Speech SDK** on Android, iOS, macOS, and Windows.
+Flutter plugin wrapping the **Microsoft Azure Cognitive Services Speech SDK** on Android, iOS, macOS, Windows, and Linux.
 
 The Dart API starts with **pronunciation assessment** (one-shot WAV file, authorization-token auth); additional Speech scenarios can be added over time without renaming the package.
 
@@ -12,6 +12,7 @@ The Dart API starts with **pronunciation assessment** (one-shot WAV file, author
 | iOS | `MicrosoftCognitiveServicesSpeech-iOS` (CocoaPods) |
 | macOS | `MicrosoftCognitiveServicesSpeech-macOS` (CocoaPods) |
 | Windows | `Microsoft.CognitiveServices.Speech` (NuGet, fetched at CMake configure) |
+| Linux | `Microsoft.CognitiveServices.Speech` (same NuGet, `runtimes/linux-x64` or `linux-arm64`, fetched at CMake configure) |
 
 **Web** is not supported (`UnsupportedError`).
 
@@ -37,13 +38,12 @@ Audio should be **16 kHz, 16-bit, mono WAV** (same convention as the web `azure-
 
 ## Linux
 
-The plugin ships no native Speech SDK implementation for Linux. `synthesize`
-therefore goes over Azure's REST TTS endpoint (`cognitiveservices/v1`) in pure
-Dart there: same WAV output (16 kHz mono), same token / subscription-key auth,
-but no word boundaries (a native-SDK event stream). Synthesis on Linux
-requires an explicit `voice`; `assess` and `transcribe` throw
-`AzureSpeechException` with code `unsupported_platform` until the native SDK
-is vendored for Linux.
+The Linux plugin (`linux/`) uses the Speech SDK's C++ API with the same pinned
+NuGet package as Windows. CMake copies `libMicrosoft.CognitiveServices.Speech.core.so`
+and the OpenSSL platform shims (`libpal_azure_c_shared*.so`) next to the plugin
+and exports them as bundled libraries, so the app bundle loads them from
+`lib/` via `$ORIGIN`. Runtime requirement: the host's OpenSSL (3.x or 1.1).
+See [ADR-0096](../../docs/decisions/0096-native-azure-speech-sdk-on-linux.md).
 
 ## Errors
 

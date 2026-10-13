@@ -27,24 +27,13 @@ Future<void> confirmShadowDeleteTake({
 }) async {
   if (!context.mounted) return;
   final cancelLabel = MaterialLocalizations.of(context).cancelButtonLabel;
-  final confirmed = await showEnjoyAlertDialog<bool>(
+  final confirmed = await showEnjoyConfirmDialog(
     context: context,
-    title: Text(l10n.shadowRecordingDeleteConfirmTitle),
-    content: Text(l10n.shadowRecordingDeleteConfirmMessage(takeSummary)),
-    actionsBuilder: (ctx) => [
-      TextButton(
-        onPressed: () => Navigator.of(ctx).pop(false),
-        child: Text(cancelLabel),
-      ),
-      FilledButton(
-        style: FilledButton.styleFrom(
-          foregroundColor: scheme.onError,
-          backgroundColor: scheme.error,
-        ),
-        onPressed: () => Navigator.of(ctx).pop(true),
-        child: Text(l10n.shadowRecordingDelete),
-      ),
-    ],
+    title: l10n.shadowRecordingDeleteConfirmTitle,
+    message: l10n.shadowRecordingDeleteConfirmMessage(takeSummary),
+    confirmLabel: l10n.shadowRecordingDelete,
+    cancelLabel: cancelLabel,
+    destructive: true,
   );
   if (confirmed == true && context.mounted) {
     onConfirmed();

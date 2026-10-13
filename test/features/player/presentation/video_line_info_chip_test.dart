@@ -87,10 +87,10 @@ Future<ProviderContainer> _pumpChip(WidgetTester tester) async {
       child: Builder(
         builder: (context) {
           container = ProviderScope.containerOf(context);
-          return MaterialApp(
+          return const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(
+            home: Scaffold(
               body: Stack(
                 children: [
                   Positioned(left: 12, bottom: 12, child: VideoLineInfoChip()),

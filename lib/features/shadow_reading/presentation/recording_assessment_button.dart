@@ -7,6 +7,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
@@ -88,10 +90,16 @@ class RecordingAssessmentButton extends ConsumerWidget {
           );
 
     final Color? bg = score != null
-        ? assessmentScoreBackground(scheme, assessmentScoreLevel(score))
+        ? assessmentScoreBackground(
+            EnjoyThemeTokens.of(context),
+            assessmentScoreLevel(score),
+          )
         : null;
     final Color fg = score != null
-        ? assessmentScoreColor(scheme, assessmentScoreLevel(score))
+        ? assessmentScoreColor(
+            EnjoyThemeTokens.of(context),
+            assessmentScoreLevel(score),
+          )
         : scheme.onSurfaceVariant;
 
     void runAssess() {

@@ -17,6 +17,7 @@ import 'package:record/record.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -371,69 +372,49 @@ class _IdleView extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final scheme = theme.colorScheme;
     final buttonSize = isTablet ? 88.0 : 72.0;
-    final sourceLang = state.sourceLanguage?.toUpperCase() ?? '—';
-    final targetLang = state.targetLanguage.toUpperCase();
+    final sourceLang = state.sourceLanguage;
+    final sourceLabel = sourceLang == null
+        ? '—'
+        : languageEndonymLabel(sourceLang) ?? sourceLang.toUpperCase();
+    final targetLabel =
+        languageEndonymLabel(state.targetLanguage) ??
+        state.targetLanguage.toUpperCase();
+
+    Widget langChip(String label, {required bool target}) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: ShapeDecoration(
+        color: target ? t.originalSoft : t.sunk,
+        shape: const StadiumBorder(),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: target ? t.originalInk : t.ink2,
+        ),
+      ),
+    );
 
     return Center(
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: ShapeDecoration(
-                color: t.fill,
-                shape: RoundedSuperellipseBorder(
-                  borderRadius: BorderRadius.circular(t.radiusFull),
-                  side: BorderSide(color: t.line),
-                ),
-              ),
-              child: Text(
-                '$sourceLang  →  $targetLang',
-                style: enjoyMonoStyle(
-                  context,
-                  size: 13,
-                  weight: FontWeight.w600,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-            SizedBox(height: t.space24),
-            Text(
-              l10n.craftCaptureTitle,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.3,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: t.space8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: Text(
-                l10n.craftCaptureSubtitle,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            SizedBox(height: t.space48),
             SizedBox(
-              width: buttonSize * 2.2,
-              height: buttonSize * 2.2,
+              width: buttonSize * 1.8,
+              height: buttonSize * 1.8,
               child: Center(
                 child: DecoratedBox(
                   decoration: ShapeDecoration(
                     shape: const CircleBorder(),
                     gradient: RadialGradient(
                       colors: [
-                        scheme.primary.withValues(alpha: 0.28),
-                        scheme.primary.withValues(alpha: 0.12),
+                        t.you.withValues(alpha: 0.22),
+                        t.you.withValues(alpha: 0.08),
                         Colors.transparent,
                       ],
-                      stops: const [0.35, 0.7, 1],
+                      stops: const [0.45, 0.75, 1],
                     ),
                   ),
                   child: EnjoyPressable(
@@ -453,14 +434,49 @@ class _IdleView extends StatelessWidget {
                       child: Icon(
                         EnjoyIcons.micFill,
                         color: t.onYou,
-                        size: buttonSize * 0.46,
+                        size: buttonSize * 0.42,
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-            SizedBox(height: t.space24),
+            SizedBox(height: t.space16),
+            Text(
+              l10n.craftCaptureTitle,
+              style: enjoyDisplayStyle(
+                context,
+                size: isTablet ? 30 : 26,
+                color: scheme.onSurface,
+                height: 1.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: t.space8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 360),
+              child: Text(
+                l10n.craftCaptureSubtitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(height: t.space16),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                langChip(sourceLabel, target: false),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(EnjoyIcons.arrowRight, size: 14, color: t.ink3),
+                ),
+                langChip(targetLabel, target: true),
+              ],
+            ),
+            SizedBox(height: t.space16),
             EnjoyButton.ghost(
               onPressed: onTypeInstead,
               icon: EnjoyIcons.keyboard,
@@ -535,7 +551,7 @@ class _RecordingViewState extends State<_RecordingView>
               context,
               size: 34,
               weight: FontWeight.w600,
-              color: scheme.error,
+              color: t.youInk,
               letterSpacing: -0.5,
             ),
           ),
@@ -568,7 +584,7 @@ class _RecordingViewState extends State<_RecordingView>
                   child: DecoratedBox(
                     decoration: ShapeDecoration(
                       shape: const CircleBorder(),
-                      color: scheme.error.withValues(alpha: 0.12 + v * 0.08),
+                      color: t.you.withValues(alpha: 0.12 + v * 0.08),
                     ),
                     child: child,
                   ),
@@ -585,7 +601,7 @@ class _RecordingViewState extends State<_RecordingView>
                 width: 80,
                 height: 80,
                 decoration: ShapeDecoration(
-                  color: t.danger,
+                  color: t.you,
                   shape: const CircleBorder(),
                   shadows: t.shadowRecordButton,
                 ),

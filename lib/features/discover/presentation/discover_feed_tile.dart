@@ -5,12 +5,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
@@ -18,6 +18,7 @@ import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
+import 'package:enjoy_player/features/discover/presentation/discover_age_label.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -34,32 +35,6 @@ double discoverFeedTileGridAspectRatioForWidth(double tileWidth) {
   return mediaCardTileGridAspectRatioForWidth(
     tileWidth,
     metaHeight: discoverFeedTileMetaHeight,
-  );
-}
-
-/// Per-locale bundle of `DateFormat` instances used by [_formatPublishedLabel].
-///
-/// Each `DateFormat` constructor compiles ICU `DateSymbols` (~1 KB per call),
-/// so the per-locale bundle is allocated lazily on first use and reused for
-/// every subsequent tile in the feed.
-class _DiscoverFeedTileDateFormats {
-  _DiscoverFeedTileDateFormats(this.jm, this.mmmd, this.yMMMd);
-
-  final DateFormat jm;
-  final DateFormat mmmd;
-  final DateFormat yMMMd;
-}
-
-final Map<String, _DiscoverFeedTileDateFormats> _dateFormatCache = {};
-
-_DiscoverFeedTileDateFormats _discoverFeedTileDateFormats(String locale) {
-  return _dateFormatCache.putIfAbsent(
-    locale,
-    () => _DiscoverFeedTileDateFormats(
-      DateFormat.jm(locale),
-      DateFormat.MMMd(locale),
-      DateFormat.yMMMd(locale),
-    ),
   );
 }
 
@@ -154,7 +129,11 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     final channelName = widget.channelName;
     final channelAvatar = widget.channelAvatarUrl;
     final inLibrary = widget.inLibrary;
-    final publishedLabel = _formatPublishedLabel(context, entry.publishedAt);
+    final publishedLabel = discoverAgeLabel(
+      AppLocalizations.of(context)!,
+      Localizations.localeOf(context).toString(),
+      entry.publishedAt,
+    );
     final l10n = AppLocalizations.of(context)!;
     final durationLabel = _durationLabel(entry);
 
@@ -226,33 +205,20 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
                         height: 14,
                         child: LoadingIcon(size: 14),
                       )
-                    : Text(l10n.discoverAddToLibraryAction),
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(EnjoyIcons.add, size: 14),
+                          const SizedBox(width: 6),
+                          Text(l10n.discoverAddToLibraryAction),
+                        ],
+                      ),
               ),
             ],
           ],
         ),
       ),
     );
-  }
-
-  static String _formatPublishedLabel(BuildContext context, DateTime dt) {
-    final formats = _discoverFeedTileDateFormats(
-      Localizations.localeOf(context).toString(),
-    );
-    final local = dt.toLocal();
-    final now = DateTime.now();
-    final diff = now.difference(local);
-
-    if (diff.inDays == 0) {
-      return formats.jm.format(local);
-    }
-    if (diff.inDays < 7) {
-      return formats.mmmd.format(local);
-    }
-    if (local.year == now.year) {
-      return formats.mmmd.format(local);
-    }
-    return formats.yMMMd.format(local);
   }
 }
 

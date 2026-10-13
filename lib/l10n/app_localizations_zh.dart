@@ -1285,9 +1285,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeysDescCloseModal => '关闭浮层、退出全屏或取消录音';
 
   @override
-  String get hotkeysStubSearch => '搜索功能尚未提供。';
-
-  @override
   String get assessmentTitle => '发音评测';
 
   @override
@@ -1399,6 +1396,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get authSignInSubtitle => '登录后即可同步媒体库、记录学习进度，并在任意设备继续学习。';
+
+  @override
+  String get authBrandHeadline => '先听原声，再听你自己。';
+
+  @override
+  String get authBrandBody => '逐句聆听，跟读每一句，听听你离原声有多近。';
 
   @override
   String get authSignInCta => '继续';
@@ -1956,7 +1959,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsSectionSyncHint => '上传队列、离线状态与手动同步';
 
   @override
-  String get settingsSectionAppearanceLanguageHint => '主题密度、字幕稿字体与区域设置';
+  String get settingsSectionAppearanceLanguageHint => '主题，以及界面、学习与母语语言';
 
   @override
   String get hotkeysSectionKeyboardHint => '查看并自定义快捷键';
@@ -2395,7 +2398,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsLanguageOptionFrCa => '法语（加拿大）';
 
   @override
-  String get settingsLanguageOptionZhCn => '中文（简体，中国）';
+  String get settingsLanguageOptionZhCn => '中文（简体）';
 
   @override
   String get settingsLanguageOptionNbNo => '挪威语（书面语）';
@@ -3369,6 +3372,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get craftScreenTitle => 'Craft';
 
   @override
+  String get craftOverline => '用你自己的话生成练习音频';
+
+  @override
   String get craftTranslateTool => '翻译';
 
   @override
@@ -4058,6 +4064,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
 
   @override
+  String settingsAccountCreditsTodayValue(String used, String limit) {
+    return '今日 $used / $limit';
+  }
+
+  @override
   String get discoverOverline => '你订阅的 YouTube 频道';
 
   @override
@@ -4077,6 +4088,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String discoverDaysAgo(int count) {
     return '$count 天前';
   }
+
+  @override
+  String discoverMinutesAgo(int count) {
+    return '$count 分钟前';
+  }
+
+  @override
+  String get discoverJustNow => '刚刚';
 
   @override
   String get discoverAddToLibraryAction => '加入媒体库';
@@ -4140,6 +4159,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get assessmentMarginOverline => '发音评估';
+
+  @override
+  String get assessmentLevelExcellent => '优秀';
+
+  @override
+  String get assessmentLevelGood => '良好';
+
+  @override
+  String get assessmentLevelFair => '一般';
+
+  @override
+  String get assessmentLevelPoor => '待提高';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -5201,9 +5232,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get hotkeysDescCloseModal => '关闭浮层、退出全屏或取消录音';
 
   @override
-  String get hotkeysStubSearch => '搜索功能尚未提供。';
-
-  @override
   String get assessmentTitle => '发音评测';
 
   @override
@@ -5315,6 +5343,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get authSignInSubtitle => '登录后同步资料库与学习进度，在任意设备继续学习。';
+
+  @override
+  String get authBrandHeadline => '先听原声，再听你自己。';
+
+  @override
+  String get authBrandBody => '逐句聆听，跟读每一句，听听你离原声有多近。';
 
   @override
   String get authSignInCta => '继续';
@@ -5626,7 +5660,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get settingsSectionSyncHint => '上传队列、离线状态与手动同步';
 
   @override
-  String get settingsSectionAppearanceLanguageHint => '主题密度、字幕稿字体与区域设置';
+  String get settingsSectionAppearanceLanguageHint => '主题，以及界面、学习与母语语言';
 
   @override
   String get hotkeysSectionKeyboardHint => '查看并自定义快捷键';
@@ -6057,7 +6091,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get settingsLanguageOptionFrCa => '法语（加拿大）';
 
   @override
-  String get settingsLanguageOptionZhCn => '中文（简体，中国）';
+  String get settingsLanguageOptionZhCn => '中文（简体）';
 
   @override
   String get settingsLanguageOptionNbNo => '挪威语（书面语）';
@@ -7028,6 +7062,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get craftScreenTitle => 'Craft';
 
   @override
+  String get craftOverline => '用你自己的话生成练习音频';
+
+  @override
   String get craftTranslateTool => '翻译';
 
   @override
@@ -7521,6 +7558,11 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get settingsSectionAccountHint => '你的 Enjoy 身份与退出登录';
 
   @override
+  String settingsAccountCreditsTodayValue(String used, String limit) {
+    return '今日 $used / $limit';
+  }
+
+  @override
   String get discoverOverline => '你订阅的 YouTube 频道';
 
   @override
@@ -7540,6 +7582,14 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String discoverDaysAgo(int count) {
     return '$count 天前';
   }
+
+  @override
+  String discoverMinutesAgo(int count) {
+    return '$count 分钟前';
+  }
+
+  @override
+  String get discoverJustNow => '刚刚';
 
   @override
   String get discoverAddToLibraryAction => '加入媒体库';
@@ -7603,4 +7653,16 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get assessmentMarginOverline => '发音评估';
+
+  @override
+  String get assessmentLevelExcellent => '优秀';
+
+  @override
+  String get assessmentLevelGood => '良好';
+
+  @override
+  String get assessmentLevelFair => '一般';
+
+  @override
+  String get assessmentLevelPoor => '待提高';
 }
