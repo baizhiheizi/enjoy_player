@@ -137,6 +137,17 @@ bars, replay, re-assess, per-word phoneme analysis); the margin route
 wraps the panel in a transparent `Material` so plain text never falls
 back to the debug error style.
 
+**Pitch chart.** Both contours sit on a semitone axis fitted to the voiced
+range (at least 8 semitones). A contour breaks at gaps over 250 ms, runs
+shorter than 60 ms are dropped, points more than 9 semitones from the
+median are folded back an octave (detector half/double-frequency errors),
+and each run is median-filtered over 5 points. There is no area fill: the
+reference is the 9 px translucent original-blue band, your take the 3 px
+you-violet line, over a quiet amplitude envelope. Legend toggles (Reference
+/ You / Waveform, each with its swatch) turn layers on and off. The Pitch
+button is enabled whenever Echo is on and the media is decodable, so the
+reference contour is available before the first take.
+
 **Pitch input.** The contour decodes the reference region with FFmpeg from
 `mediaAnalysisInputProvider`: the row's local file when it has one,
 otherwise its `http(s)` `mediaUrl`, so cloud-streamed library items get a

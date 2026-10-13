@@ -1,4 +1,6 @@
-/// Pitch + amplitude chart for echo region (web `PitchContourChart` parity, simplified).
+/// Pitch + amplitude chart for an echo region: the reference as a translucent
+/// original-blue band, the take as a you-violet line, both on a semitone axis
+/// fitted to the voiced range, over a quiet amplitude envelope.
 library;
 
 import 'dart:math' as math;
@@ -7,6 +9,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../domain/echo_region_analysis.dart';
+
+/// Voiced points further apart than this start a new contour run; shorter
+/// detection dropouts inside a word are bridged.
+const double kPitchContourMaxGapSec = 0.25;
+
+/// Points further than this from the series' median pitch are octave errors
+/// (the detector locked onto a half or double frequency) and are folded back
+/// by 12 semitones.
+const double kPitchContourOctaveFoldSemitones = 9;
+
+/// Runs shorter than this are detection noise and are not drawn.
+const double kPitchContourMinRunSec = 0.06;
+
+/// Smallest vertical range of the chart, so a monotone line stays flat-ish
+/// instead of being stretched to full height.
+const double kPitchContourMinSpanSemitones = 8;
 
 class PitchContourVisibility {
   const PitchContourVisibility({
@@ -113,10 +131,76 @@ class _PitchContourPainter extends CustomPainter {
   final double? progress;
   final Color progressColor;
 
-  Offset _xy(Rect chart, double maxT, double t, double normY) {
-    final x = chart.left + (t / maxT) * chart.width;
-    final y = chart.bottom - normY.clamp(0.0, 1.0) * chart.height;
-    return Offset(x, y);
+  static double _semitones(double hz) => 12 * math.log(hz) / math.ln2;
+
+  static bool _voiced(double? hz) => hz != null && hz.isFinite && hz > 0;
+
+  /// Splits a series into voiced runs: a run ends at a time gap wider than
+  /// [kPitchContourMaxGapSec], so pauses never get bridged by a straight line.
+  /// Runs shorter than [kPitchContourMinRunSec] are dropped, octave errors
+  /// are folded toward the median pitch, and each run is median-filtered
+  /// (5 points) to remove single-frame spikes.
+  List<List<(double, double)>> _runs(
+    double? Function(EchoRegionSeriesPoint) hz,
+  ) {
+    final raw = <List<(double, double)>>[];
+    List<(double, double)>? current;
+    double? lastT;
+    for (final p in points) {
+      final v = hz(p);
+      if (!_voiced(v)) continue;
+      if (current == null ||
+          (lastT != null && p.t - lastT > kPitchContourMaxGapSec)) {
+        current = [];
+        raw.add(current);
+      }
+      current.add((p.t, _semitones(v!)));
+      lastT = p.t;
+    }
+    final kept = [
+      for (final run in raw)
+        if (run.last.$1 - run.first.$1 >= kPitchContourMinRunSec) run,
+    ];
+    final all = [
+      for (final run in kept)
+        for (final (_, st) in run) st,
+    ]..sort();
+    if (all.isEmpty) return const [];
+    final center = all[all.length ~/ 2];
+    double fold(double st) {
+      var v = st;
+      while (v - center > kPitchContourOctaveFoldSemitones) {
+        v -= 12;
+      }
+      while (center - v > kPitchContourOctaveFoldSemitones) {
+        v += 12;
+      }
+      return v;
+    }
+
+    return [
+      for (final run in kept)
+        _median([for (final (t, st) in run) (t, fold(st))]),
+    ];
+  }
+
+  static List<(double, double)> _median(List<(double, double)> run) {
+    if (run.length < 5) return run;
+    return [
+      for (var i = 0; i < run.length; i++)
+        (
+          run[i].$1,
+          (([
+            for (
+              var j = math.max(0, i - 2);
+              j <= math.min(run.length - 1, i + 2);
+              j++
+            )
+              run[j].$2,
+          ]..sort())[(math.min(run.length - 1, i + 2) - math.max(0, i - 2)) ~/
+              2]),
+        ),
+    ];
   }
 
   @override
@@ -124,116 +208,91 @@ class _PitchContourPainter extends CustomPainter {
     final maxT = points.last.t;
     if (maxT <= 0) return;
 
-    var maxPitch = 1.0;
-    for (final p in points) {
-      if (p.pitchRefHz != null && p.pitchRefHz!.isFinite && p.pitchRefHz! > 0) {
-        maxPitch = math.max(maxPitch, p.pitchRefHz!);
-      }
-      if (p.pitchUserHz != null &&
-          p.pitchUserHz!.isFinite &&
-          p.pitchUserHz! > 0) {
-        maxPitch = math.max(maxPitch, p.pitchUserHz!);
-      }
-    }
+    final refRuns = visibility.showReference
+        ? _runs((p) => p.pitchRefHz)
+        : const <List<(double, double)>>[];
+    final userRuns = visibility.showUser
+        ? _runs((p) => p.pitchUserHz)
+        : const <List<(double, double)>>[];
 
-    final chart = Rect.fromLTWH(0, 8, size.width, size.height - 16);
-
-    if (visibility.showWaveform && visibility.showReference) {
-      final ampPaint = Paint()
-        ..color = referenceColor.withValues(alpha: 0.18)
-        ..strokeWidth = 0.8
-        ..style = PaintingStyle.stroke;
-      for (var i = 1; i < points.length; i++) {
-        final a = points[i - 1];
-        final b = points[i];
-        final o1 = _xy(chart, maxT, a.t, a.ampRef * 0.28);
-        final o2 = _xy(chart, maxT, b.t, b.ampRef * 0.28);
-        canvas.drawLine(o1, o2, ampPaint);
+    var lo = double.infinity;
+    var hi = double.negativeInfinity;
+    for (final run in [...refRuns, ...userRuns]) {
+      for (final (_, st) in run) {
+        lo = math.min(lo, st);
+        hi = math.max(hi, st);
       }
     }
+    if (!lo.isFinite) {
+      lo = 0;
+      hi = 1;
+    }
+    final span = math.max(hi - lo, kPitchContourMinSpanSemitones);
+    final mid = (lo + hi) / 2;
+    lo = mid - span * 0.6;
+    hi = mid + span * 0.6;
 
-    if (visibility.showReference) {
-      final line = Path();
-      var first = true;
+    final chart = Rect.fromLTWH(0, 10, size.width, size.height - 20);
+    double x(double t) => chart.left + (t / maxT) * chart.width;
+    double y(double st) =>
+        chart.bottom - ((st - lo) / (hi - lo)).clamp(0.0, 1.0) * chart.height;
+
+    if (visibility.showWaveform) {
+      final envelope = Path()..moveTo(chart.left, chart.bottom);
       for (final p in points) {
-        if (p.pitchRefHz == null || p.pitchRefHz! <= 0) continue;
-        final ny = p.pitchRefHz! / maxPitch;
-        final o = _xy(chart, maxT, p.t, ny);
-        if (first) {
-          line.moveTo(o.dx, o.dy);
-          first = false;
-        } else {
-          line.lineTo(o.dx, o.dy);
-        }
+        final amp = math.max(
+          visibility.showReference ? p.ampRef : 0.0,
+          visibility.showUser ? p.ampUser : 0.0,
+        );
+        envelope.lineTo(x(p.t), chart.bottom - amp * chart.height * 0.22);
       }
-      if (!first) {
-        final fill = Path()..addPath(line, Offset.zero);
-        fill.lineTo(chart.right, chart.bottom);
-        fill.lineTo(chart.left, chart.bottom);
-        fill.close();
-        canvas.drawPath(
-          fill,
-          Paint()
-            ..color = referenceColor.withValues(alpha: 0.30)
-            ..style = PaintingStyle.fill,
-        );
-        canvas.drawPath(
-          line,
-          Paint()
-            ..color = referenceColor
-            ..strokeWidth = 9
-            ..style = PaintingStyle.stroke
-            ..strokeJoin = StrokeJoin.round,
-        );
+      envelope
+        ..lineTo(chart.right, chart.bottom)
+        ..close();
+      canvas.drawPath(
+        envelope,
+        Paint()..color = referenceColor.withValues(alpha: 0.12),
+      );
+    }
+
+    void stroke(List<List<(double, double)>> runs, Paint paint) {
+      for (final run in runs) {
+        final path = Path()..moveTo(x(run.first.$1), y(run.first.$2));
+        if (run.length == 1) {
+          path.lineTo(x(run.first.$1) + 0.5, y(run.first.$2));
+        }
+        for (final (t, st) in run.skip(1)) {
+          path.lineTo(x(t), y(st));
+        }
+        canvas.drawPath(path, paint);
       }
     }
 
-    if (visibility.showWaveform && visibility.showUser) {
-      final uAmp = Paint()
-        ..color = userColor.withValues(alpha: 0.15)
-        ..strokeWidth = 0.6
-        ..style = PaintingStyle.stroke;
-      for (var i = 1; i < points.length; i++) {
-        final a = points[i - 1];
-        final b = points[i];
-        if (a.ampUser <= 0 && b.ampUser <= 0) continue;
-        final o1 = _xy(chart, maxT, a.t, a.ampUser * 0.25);
-        final o2 = _xy(chart, maxT, b.t, b.ampUser * 0.25);
-        canvas.drawLine(o1, o2, uAmp);
-      }
-    }
-
-    if (visibility.showUser) {
-      final userLine = Path();
-      var uFirst = true;
-      for (final p in points) {
-        if (p.pitchUserHz == null || p.pitchUserHz! <= 0) continue;
-        final ny = p.pitchUserHz! / maxPitch;
-        final o = _xy(chart, maxT, p.t, ny);
-        if (uFirst) {
-          userLine.moveTo(o.dx, o.dy);
-          uFirst = false;
-        } else {
-          userLine.lineTo(o.dx, o.dy);
-        }
-      }
-      if (!uFirst) {
-        canvas.drawPath(
-          userLine,
-          Paint()
-            ..color = userColor.withValues(alpha: 0.85)
-            ..strokeWidth = 2
-            ..style = PaintingStyle.stroke,
-        );
-      }
-    }
+    stroke(
+      refRuns,
+      Paint()
+        ..color = referenceColor
+        ..strokeWidth = 9
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+    stroke(
+      userRuns,
+      Paint()
+        ..color = userColor
+        ..strokeWidth = 3
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
 
     final prog = progress;
     if (prog != null && prog >= 0 && prog <= 1) {
-      final x = chart.left + prog * chart.width;
+      final px = chart.left + prog * chart.width;
       canvas.drawLine(
-        Offset(x, chart.top),
-        Offset(x, chart.bottom),
+        Offset(px, chart.top),
+        Offset(px, chart.bottom),
         Paint()
           ..color = progressColor
           ..strokeWidth = 1.2,

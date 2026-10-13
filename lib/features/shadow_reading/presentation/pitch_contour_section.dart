@@ -285,28 +285,31 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
               ],
               const SizedBox(height: 8),
               Wrap(
-                spacing: 8,
-                runSpacing: 4,
+                spacing: 6,
+                runSpacing: 6,
                 children: [
-                  FilterChip(
-                    label: Text(l10n.pitchContourWaveform),
-                    selected: _vis.showWaveform,
-                    onSelected: (v) => setState(() {
-                      _vis = _vis.copyWith(showWaveform: v);
-                    }),
-                  ),
-                  FilterChip(
-                    label: Text(l10n.pitchContourReference),
+                  _LegendToggle(
+                    label: l10n.pitchContourReference,
+                    swatch: _LegendSwatch.band(tok.original),
                     selected: _vis.showReference,
-                    onSelected: (v) => setState(() {
-                      _vis = _vis.copyWith(showReference: v);
+                    onTap: () => setState(() {
+                      _vis = _vis.copyWith(showReference: !_vis.showReference);
                     }),
                   ),
-                  FilterChip(
-                    label: Text(l10n.pitchContourUser),
+                  _LegendToggle(
+                    label: l10n.pitchContourUser,
+                    swatch: _LegendSwatch.line(tok.you),
                     selected: _vis.showUser,
-                    onSelected: (v) => setState(() {
-                      _vis = _vis.copyWith(showUser: v);
+                    onTap: () => setState(() {
+                      _vis = _vis.copyWith(showUser: !_vis.showUser);
+                    }),
+                  ),
+                  _LegendToggle(
+                    label: l10n.pitchContourWaveform,
+                    swatch: _LegendSwatch.envelope(tok.original),
+                    selected: _vis.showWaveform,
+                    onTap: () => setState(() {
+                      _vis = _vis.copyWith(showWaveform: !_vis.showWaveform);
                     }),
                   ),
                 ],
@@ -347,6 +350,101 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
         ...body,
       ],
     );
+  }
+}
+
+/// Legend entry that toggles one chart layer on and off.
+class _LegendToggle extends StatelessWidget {
+  const _LegendToggle({
+    required this.label,
+    required this.swatch,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final _LegendSwatch swatch;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Semantics(
+      button: true,
+      toggled: selected,
+      child: EnjoyPressable(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(t.radiusFull),
+        child: AnimatedContainer(
+          duration: t.motionFast,
+          height: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: ShapeDecoration(
+            color: selected ? t.paper : Colors.transparent,
+            shape: StadiumBorder(
+              side: BorderSide(color: selected ? t.line : Colors.transparent),
+            ),
+          ),
+          child: Opacity(
+            opacity: selected ? 1 : 0.45,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                swatch,
+                const SizedBox(width: 7),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: selected ? t.ink2 : t.ink3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Miniature of a chart layer: the reference band, the take line, or the
+/// amplitude envelope.
+class _LegendSwatch extends StatelessWidget {
+  const _LegendSwatch.band(this.color) : kind = 0;
+  const _LegendSwatch.line(this.color) : kind = 1;
+  const _LegendSwatch.envelope(this.color) : kind = 2;
+
+  final Color color;
+  final int kind;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (kind) {
+      0 => Container(
+        width: 16,
+        height: 7,
+        decoration: ShapeDecoration(
+          color: color.withValues(alpha: 0.35),
+          shape: const StadiumBorder(),
+        ),
+      ),
+      1 => Container(
+        width: 16,
+        height: 3,
+        decoration: ShapeDecoration(color: color, shape: const StadiumBorder()),
+      ),
+      _ => Container(
+        width: 16,
+        height: 9,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.18),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+        ),
+      ),
+    };
   }
 }
 

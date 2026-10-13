@@ -126,8 +126,7 @@ class _ShadowTakesRowState extends ConsumerState<ShadowTakesRow> {
       'player.togglePitchContour',
       l10n.pitchContourTitle,
     );
-    final pitchEnabled =
-        widget.takes.isNotEmpty && widget.hasMediaPath && widget.echoActive;
+    final pitchEnabled = widget.hasMediaPath && widget.echoActive;
     final pitchPill = Tooltip(
       message: pitchTooltip,
       child: Opacity(

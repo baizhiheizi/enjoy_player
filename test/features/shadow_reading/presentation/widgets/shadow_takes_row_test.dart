@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -153,6 +154,7 @@ void main() {
     required List<RecordingRow> takes,
     String? selectedId,
     bool hasMediaPath = true,
+    VoidCallback? onTogglePitch,
   }) async {
     final l10n = await _loadL10n();
     await tester.pumpWidget(
@@ -167,7 +169,7 @@ void main() {
           hasMediaPath: hasMediaPath,
           onPlayOrPause: (_) {},
           onChooseTake: (_) {},
-          onTogglePitch: () {},
+          onTogglePitch: onTogglePitch ?? () {},
         ),
       ),
     );
@@ -369,6 +371,27 @@ void main() {
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
+  });
+
+  testWidgets('Pitch works before the first take (reference contour)', (
+    tester,
+  ) async {
+    var toggles = 0;
+    await pumpRow(tester, takes: const [], onTogglePitch: () => toggles++);
+    await tester.tap(find.byIcon(EnjoyIcons.waveform));
+    expect(toggles, 1);
+  });
+
+  testWidgets('Pitch stays disabled without decodable media', (tester) async {
+    var toggles = 0;
+    await pumpRow(
+      tester,
+      takes: const [],
+      hasMediaPath: false,
+      onTogglePitch: () => toggles++,
+    );
+    await tester.tap(find.byIcon(EnjoyIcons.waveform), warnIfMissed: false);
+    expect(toggles, 0);
   });
 
   testWidgets('empty region shows the plain hint on mobile', (tester) async {
