@@ -158,6 +158,7 @@ flutter test
   chmod +x appimagetool-x86_64.AppImage
   sudo mv appimagetool-x86_64.AppImage /usr/local/bin/appimagetool
   ```
+- The first build downloads the Azure Speech SDK NuGet package (network once, cached under `build/linux/…/plugins/azure_speech`); its Linux libraries land in `bundle/lib` and ship in the AppImage ([ADR-0096](decisions/0096-native-azure-speech-sdk-on-linux.md)).
 - No signing key required; AppImage auto-update is intentionally out of scope for v1 (see [ADR-0048](decisions/0048-linux-platform-support.md)).
 
 #### Bundled runtimes (YouTube playback, ADR-0091)

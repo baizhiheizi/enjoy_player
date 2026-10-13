@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:azure_speech/azure_speech.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -265,4 +266,54 @@ void main() {
     expect(r.offset, 0);
     expect(r.duration, 10000000);
   });
+
+  for (final platform in [TargetPlatform.linux, TargetPlatform.windows]) {
+    test(
+      '${platform.name} runs every call through the native channel',
+      () async {
+        debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final methods = <String>[];
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              methods.add(call.method);
+              return switch (call.method) {
+                'assess' => '{"RecognitionStatus":"Success","NBest":[]}',
+                'transcribe' => 'hello',
+                _ => base64Encode([1, 2, 3]),
+              };
+            });
+
+        await AzureSpeech.instance.assess(
+          const AzurePronunciationAssessmentParams(
+            audioPath: '/tmp/x.wav',
+            referenceText: 'hello',
+            language: 'en-US',
+            token: 'tok',
+            region: 'eastus',
+          ),
+        );
+        final text = await AzureSpeech.instance.transcribe(
+          const AzureSpeechTranscriptionParams(
+            audioPath: '/tmp/x.wav',
+            language: 'en-US',
+            subscriptionKey: 'key',
+            region: 'eastus',
+          ),
+        );
+        final speech = await AzureSpeech.instance.synthesize(
+          const AzureSpeechSynthesisParams(
+            text: 'hello',
+            language: 'en-US',
+            token: 'tok',
+            region: 'eastus',
+          ),
+        );
+
+        expect(methods, ['assess', 'transcribe', 'synthesize']);
+        expect(text.text, 'hello');
+        expect(speech.audioBytes, [1, 2, 3]);
+      },
+    );
+  }
 }

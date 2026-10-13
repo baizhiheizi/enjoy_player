@@ -137,12 +137,11 @@ bars, replay, re-assess, per-word phoneme analysis); the margin route
 wraps the panel in a transparent `Material` so plain text never falls
 back to the debug error style.
 
-**Linux.** The vendored `azure_speech` plugin has no native Speech SDK on
-Linux, so `AzureSpeech.assess` posts the WAV to the REST short-audio
-endpoint (`AzureSpeechHttpAssessor`, `Pronunciation-Assessment` header,
-≤ 30 s of audio) and re-nests the flat REST scores into the SDK JSON shape
-before parsing and storing. WAV normalization runs the bundled or system
-`ffmpeg` CLI on Linux as on Windows (FFmpegKit ships no Linux plugin). In the player the takes render as the strip under the loop
+**Linux.** Assessment runs the native Speech SDK through the
+`azure_speech` Linux plugin, the same path as the other platforms
+([ADR-0096](../decisions/0096-native-azure-speech-sdk-on-linux.md)). WAV
+normalization runs the bundled or system `ffmpeg` CLI on Linux as on
+Windows (FFmpegKit ships no Linux plugin). In the player the takes render as the strip under the loop
 (chips + Pitch pill); recording readouts (pulse label, countdown bar)
 render inside the loop block, and the dock carries Play/Pause + Record
 and Cancel + Stop.
