@@ -14,8 +14,6 @@ import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
-import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
@@ -27,71 +25,6 @@ String formatRateCore(double rate) {
   return x.toStringAsFixed(2).replaceFirst(RegExp(r'(?<=\.\d)0$'), '');
 }
 
-/// Toggles the transcript blur (hide text) state.
-class DockHideTextPill extends StatelessWidget {
-  const DockHideTextPill({
-    required this.active,
-    required this.onToggle,
-    this.iconOnly = false,
-    super.key,
-  });
-
-  final bool active;
-  final Future<void> Function() onToggle;
-
-  /// Phone widths render the glyph only; the label + keycap stay on desktop.
-  final bool iconOnly;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    return Tooltip(
-      message: l10n.transcriptBlurToggleTooltip,
-      child: EnjoyPressable(
-        onTap: onToggle,
-        borderRadius: BorderRadius.circular(t.radiusControl),
-        child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: ShapeDecoration(
-            color: active ? t.ink : Colors.transparent,
-            shape: RoundedSuperellipseBorder(
-              borderRadius: BorderRadius.circular(t.radiusControl),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                EnjoyIcons.eyeOff,
-                size: 18,
-                color: active ? t.paper : t.ink2,
-              ),
-              if (!iconOnly) ...[
-                const SizedBox(width: 8),
-                Text(
-                  l10n.playerDockHideText,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    color: active ? t.paper : t.ink2,
-                  ),
-                ),
-                if (isDesktop) ...[
-                  const SizedBox(width: 8),
-                  const EnjoyKeycap(label: 'H'),
-                ],
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// "3 / 12" loop / cue position chip.
 class DockLineCounter extends ConsumerWidget {
   const DockLineCounter({
     required this.mediaId,

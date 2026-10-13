@@ -4451,4 +4451,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transcriptEnrichRunningYoutube => 'Generating pronunciation';
+
+  @override
+  String get playerDictateShort => 'Dictate';
+
+  @override
+  String get playerDictateHintHover =>
+      'Dictate · listen, then hover a line to peek';
+
+  @override
+  String get playerDictateHintHold =>
+      'Dictate · listen, then press and hold a line to peek';
 }

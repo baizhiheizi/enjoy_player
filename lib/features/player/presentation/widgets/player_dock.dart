@@ -24,7 +24,6 @@ import 'package:enjoy_player/features/player/application/player_preferences_prov
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_cc_fullscreen.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_playback_rate.dart'
@@ -118,7 +117,6 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
     final t = EnjoyThemeTokens.of(context);
     final chrome = widget.chrome;
     final echo = ref.watch(echoModeProvider);
-    final blurEnabled = ref.watch(transcriptBlurModeProvider);
     final bus = ref.watch(shadowReadingHotkeyBusProvider);
     final recording = bus.isRecordingActive;
     final playing = ref.watch(playerIsPlayingProvider).value ?? false;
@@ -155,7 +153,6 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
           builder: (context, constraints) {
             final phone = constraints.maxWidth < t.breakpointCompact;
             final showLineMeta = constraints.maxWidth >= 980;
-            final hidePillIconOnly = constraints.maxWidth < 1100;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -185,13 +182,10 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             mediaId: chrome.mediaId,
                             phone: phone,
                             showLineMeta: showLineMeta,
-                            hidePillIconOnly: hidePillIconOnly,
-                            blurEnabled: blurEnabled,
                             playbackRate: playbackRate,
                             playing: playing,
                             loopStartLine: echo.startLineIndex,
                             loopEndLine: echo.endLineIndex,
-                            onToggleHideText: interactions.toggleBlur,
                             onPrev: interactions.prevLine,
                             onNext: interactions.nextLine,
                             onTogglePlay: () => ref
@@ -207,14 +201,11 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             mediaId: chrome.mediaId,
                             phone: phone,
                             showLineMeta: showLineMeta,
-                            hidePillIconOnly: hidePillIconOnly,
-                            blurEnabled: blurEnabled,
                             echoAvailable: hasLines || echo.active,
                             playing: playing,
                             buffering: buffering,
                             playbackRate: playbackRate,
                             showFullscreen: showFullscreen,
-                            onToggleHideText: interactions.toggleBlur,
                             onPrev: interactions.prevLine,
                             onNext: interactions.nextLine,
                             onReplay: interactions.replayLine,
@@ -240,14 +231,11 @@ class _ListenControls extends StatelessWidget {
     required this.mediaId,
     required this.phone,
     required this.showLineMeta,
-    required this.hidePillIconOnly,
-    required this.blurEnabled,
     required this.echoAvailable,
     required this.playing,
     required this.buffering,
     required this.playbackRate,
     required this.showFullscreen,
-    required this.onToggleHideText,
     required this.onPrev,
     required this.onNext,
     required this.onReplay,
@@ -258,14 +246,11 @@ class _ListenControls extends StatelessWidget {
   final String mediaId;
   final bool phone;
   final bool showLineMeta;
-  final bool hidePillIconOnly;
-  final bool blurEnabled;
   final bool echoAvailable;
   final bool playing;
   final bool buffering;
   final double playbackRate;
   final bool showFullscreen;
-  final Future<void> Function() onToggleHideText;
   final Future<void> Function() onPrev;
   final Future<void> Function() onNext;
   final Future<void> Function() onReplay;
@@ -277,15 +262,7 @@ class _ListenControls extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final left = Row(
       children: [
-        DockHideTextPill(
-          active: blurEnabled,
-          onToggle: onToggleHideText,
-          iconOnly: hidePillIconOnly,
-        ),
-        if (showLineMeta) ...[
-          const SizedBox(width: 12),
-          Flexible(child: DockLineCounter(mediaId: mediaId)),
-        ],
+        if (showLineMeta) Flexible(child: DockLineCounter(mediaId: mediaId)),
       ],
     );
     final center = Row(
@@ -339,10 +316,11 @@ class _ListenControls extends StatelessWidget {
     if (phone) {
       return Row(
         children: [
-          DockHideTextPill(
-            active: blurEnabled,
-            onToggle: onToggleHideText,
-            iconOnly: true,
+          DockIconButton(
+            icon: EnjoyIcons.replay,
+            tooltip: l10n.replayLine,
+            enabled: !buffering,
+            onTap: onReplay,
           ),
           const Spacer(),
           center,
@@ -371,13 +349,10 @@ class _EchoControls extends StatelessWidget {
     required this.mediaId,
     required this.phone,
     required this.showLineMeta,
-    required this.hidePillIconOnly,
-    required this.blurEnabled,
     required this.playbackRate,
     required this.playing,
     required this.loopStartLine,
     required this.loopEndLine,
-    required this.onToggleHideText,
     required this.onPrev,
     required this.onNext,
     required this.onTogglePlay,
@@ -388,13 +363,10 @@ class _EchoControls extends StatelessWidget {
   final String mediaId;
   final bool phone;
   final bool showLineMeta;
-  final bool hidePillIconOnly;
-  final bool blurEnabled;
   final double playbackRate;
   final bool playing;
   final int loopStartLine;
   final int loopEndLine;
-  final Future<void> Function() onToggleHideText;
   final Future<void> Function() onPrev;
   final Future<void> Function() onNext;
   final VoidCallback onTogglePlay;
@@ -407,13 +379,7 @@ class _EchoControls extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final left = Row(
       children: [
-        DockHideTextPill(
-          active: blurEnabled,
-          onToggle: onToggleHideText,
-          iconOnly: hidePillIconOnly,
-        ),
-        if (showLineMeta) ...[
-          const SizedBox(width: 12),
+        if (showLineMeta)
           Flexible(
             child: DockLineCounter(
               mediaId: mediaId,
@@ -421,7 +387,6 @@ class _EchoControls extends StatelessWidget {
               loopEndLine: loopEndLine,
             ),
           ),
-        ],
       ],
     );
     final playPause = DockPlayPausePill(

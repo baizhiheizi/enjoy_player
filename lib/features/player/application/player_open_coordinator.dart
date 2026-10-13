@@ -372,8 +372,12 @@ Future<void> runPlayerOpen(
     } else {
       deps.echoMode().deactivate();
     }
+    final echoRestored =
+        options.restoreEcho && persisted != null && persisted.echoActive;
     deps.blurMode().restoreFromSession(
-      options.restoreEcho ? (persisted?.blurActive ?? false) : false,
+      options.restoreEcho && !echoRestored
+          ? (persisted?.blurActive ?? false)
+          : false,
     );
 
     final now = DateTime.now();

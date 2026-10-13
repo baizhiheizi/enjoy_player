@@ -207,6 +207,45 @@ void main() {
     );
 
     test(
+      'a session saved with both Echo and hide text reopens in Echo only (R4)',
+      () async {
+        final now = DateTime.now();
+        await db.echoSessionDao.upsert(
+          EchoSessionRow(
+            id: 'es-both-1',
+            targetType: 'Audio',
+            targetId: 'hang-1',
+            language: 'en',
+            currentTimeMs: 0,
+            playbackRate: 1,
+            volume: 1,
+            recordingsCount: 0,
+            recordingsDurationMs: 0,
+            currentSegmentIndex: 0,
+            echoActive: true,
+            echoStartLine: 0,
+            echoEndLine: 0,
+            echoStartMs: 0,
+            echoEndMs: 2000,
+            blurActive: true,
+            createdAt: now,
+            updatedAt: now,
+            startedAt: now,
+            lastActiveAt: now,
+          ),
+        );
+
+        await runPlayerOpen(
+          container.read(playerControllerProvider.notifier),
+          'hang-1',
+        );
+
+        expect(container.read(echoModeProvider).active, isTrue);
+        expect(container.read(transcriptBlurModeProvider), isFalse);
+      },
+    );
+
+    test(
       'a wedged post-open command degrades instead of hanging the open',
       () async {
         final now = DateTime.now();

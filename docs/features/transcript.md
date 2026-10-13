@@ -168,8 +168,8 @@ Interface notes:
 
 ## Blur practice (listening-focus) mode
 
-A "Blur practice" toggle (`H`, and the dock's Hide text control until the
-Dictate lens replaces it) renders every transcript cue body text with a CSS-style
+The **Dictate** lens (`H`, or the third segment of the top bar's
+Listen · Echo · Dictate switch; canvas v30, ADR-0093 amendment R4) renders every transcript cue body text with a CSS-style
 `ImageFilter.blur` filter so the user can practice listening first and
 then peek at the text to check themselves. Like echo, blur is a
 **per-media player practice mode** (not a Settings preference). The
@@ -251,8 +251,7 @@ the panel holds only what you see and read:
   ends with a hint pointing there. The phone has no More button, so the
   sheet lists the same actions at its foot. Both read one list,
   `watchTranscriptActions` (`transcript_actions.dart`).
-- Hide text is no longer a switch here; `H` and the dock toggle it (the
-  Dictate lens, D6.1).
+- Hide text is no longer a switch here; it is the Dictate lens.
 
 ### Rendering
 

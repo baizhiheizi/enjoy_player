@@ -19,6 +19,8 @@ import 'package:enjoy_player/features/transcript/application/transcript_fetch_co
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
+import 'package:enjoy_player/features/transcript/presentation/dictate_hint_pill.dart';
 import 'package:enjoy_player/features/transcript/presentation/import_subtitle_file.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_empty_state.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_embedded_extract.dart';
@@ -172,8 +174,20 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
             showFetchYoutubeButton: isYoutube,
           );
         }
-        return TranscriptTypefaceScope(
+        final list = TranscriptTypefaceScope(
           child: TranscriptScrollableList(mediaId: mediaId, lines: lines),
+        );
+        if (!ref.watch(transcriptBlurModeProvider)) return list;
+        return Stack(
+          children: [
+            list,
+            const Positioned(
+              top: 14,
+              left: 16,
+              right: 16,
+              child: IgnorePointer(child: Center(child: DictateHintPill())),
+            ),
+          ],
         );
       },
       loading: () => const SkeletonTranscript(),

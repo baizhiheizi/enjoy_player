@@ -2229,5 +2229,11 @@
   "transcriptEnrichRunningOwned": "Generating word timings and pronunciation",
   "@transcriptEnrichRunningOwned": {"description": "Progress card title while word timings generate."},
   "transcriptEnrichRunningYoutube": "Generating pronunciation",
-  "@transcriptEnrichRunningYoutube": {"description": "Progress card title while pronunciation generates for a streamed item."}
+  "@transcriptEnrichRunningYoutube": {"description": "Progress card title while pronunciation generates for a streamed item."},
+  "playerDictateShort": "Dictate",
+  "@playerDictateShort": {"description": "Top-bar lens segment: listen with the transcript hidden (H)."},
+  "playerDictateHintHover": "Dictate · listen, then hover a line to peek",
+  "@playerDictateHintHover": {"description": "Hint pill over the transcript in the Dictate lens (pointer devices)."},
+  "playerDictateHintHold": "Dictate · listen, then press and hold a line to peek",
+  "@playerDictateHintHold": {"description": "Hint pill over the transcript in the Dictate lens (touch)."}
 }

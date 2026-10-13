@@ -4246,6 +4246,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transcriptEnrichRunningYoutube => '正在生成发音';
+
+  @override
+  String get playerDictateShort => '听写';
+
+  @override
+  String get playerDictateHintHover => '听写 · 先听，再把鼠标移到一行上偷看';
+
+  @override
+  String get playerDictateHintHold => '听写 · 先听，再长按一行偷看';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7815,4 +7824,13 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get transcriptEnrichRunningYoutube => '正在生成发音';
+
+  @override
+  String get playerDictateShort => '听写';
+
+  @override
+  String get playerDictateHintHover => '听写 · 先听，再把鼠标移到一行上偷看';
+
+  @override
+  String get playerDictateHintHold => '听写 · 先听，再长按一行偷看';
 }

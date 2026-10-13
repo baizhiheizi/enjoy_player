@@ -1705,5 +1705,8 @@
   "subtitlesNeedsWordTimingsBelow": "请先添加逐词时间与音标（见下方）。",
   "subtitlesManageFromMore": "在 ··· 更多 中添加或替换字幕。",
   "transcriptEnrichRunningOwned": "正在生成逐词时间与发音",
-  "transcriptEnrichRunningYoutube": "正在生成发音"
+  "transcriptEnrichRunningYoutube": "正在生成发音",
+  "playerDictateShort": "听写",
+  "playerDictateHintHover": "听写 · 先听，再把鼠标移到一行上偷看",
+  "playerDictateHintHold": "听写 · 先听，再长按一行偷看"
 }

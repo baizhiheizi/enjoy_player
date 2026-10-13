@@ -8069,6 +8069,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Generating pronunciation'**
   String get transcriptEnrichRunningYoutube;
+
+  /// Top-bar lens segment: listen with the transcript hidden (H).
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate'**
+  String get playerDictateShort;
+
+  /// Hint pill over the transcript in the Dictate lens (pointer devices).
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate · listen, then hover a line to peek'**
+  String get playerDictateHintHover;
+
+  /// Hint pill over the transcript in the Dictate lens (touch).
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate · listen, then press and hold a line to peek'**
+  String get playerDictateHintHold;
 }
 
 class _AppLocalizationsDelegate
