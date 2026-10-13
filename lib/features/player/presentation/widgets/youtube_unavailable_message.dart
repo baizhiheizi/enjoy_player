@@ -13,6 +13,8 @@ String youtubeUnavailableMessage(
     l10n.youtubeUnavailableRuntimeMissing,
   YouTubeUnavailableReason.runtimeInitFailed =>
     l10n.youtubeUnavailableRuntimeInitFailed,
+  YouTubeUnavailableReason.codecsMissing =>
+    l10n.youtubeUnavailableCodecsMissing,
   YouTubeUnavailableReason.disabledByBuild =>
     l10n.youtubeUnavailableDisabledByBuild,
   null => l10n.youtubeUnavailableOnDevice,

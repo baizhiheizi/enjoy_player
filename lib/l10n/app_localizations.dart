@@ -867,6 +867,12 @@ abstract class AppLocalizations {
   /// **'YouTube playback failed to start on this device.'**
   String get youtubeUnavailableRuntimeInitFailed;
 
+  /// No description provided for @youtubeUnavailableCodecsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube video codecs are missing on this device. Install the GStreamer plugins (gst-plugins-good, gst-plugins-bad, gst-libav) and restart the app.'**
+  String get youtubeUnavailableCodecsMissing;
+
   /// No description provided for @youtubeUnavailableDisabledByBuild.
   ///
   /// In en, this message translates to:

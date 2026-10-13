@@ -4,7 +4,7 @@
 
 Users **Import → From YouTube URL** and paste a watch URL, short URL, embed URL, or raw video id. The app stores a `videos` row with `provider: youtube` and `vid` set to the canonical id. A **content language** is collected at import time (YouTube does not expose original language via oEmbed) and can be edited later from Library. Playback uses **`flutter_inappwebview`** loading `https://m.youtube.com/watch?v=<vid>` and controlling the page HTML5 `<video>` (not the iframe embed API — see [ADR-0015](../decisions/0015-youtube-playback.md)).
 
-**Platforms**: Android, iOS, macOS, Windows, and Linux. On Linux the engine runs on the WPE WebKit backend and availability is decided at runtime — devices where the runtime cannot initialize show the localized unavailable notice with an **Open in browser** fallback instead of the player ([ADR-0091](../decisions/0091-youtube-linux-playback.md)). The YouTube sign-in screen is not offered on Linux for now.
+**Platforms**: Android, iOS, macOS, Windows, and Linux. On Linux the engine runs on the WPE WebKit backend and availability is decided at runtime — devices where the runtime cannot initialize, or whose GStreamer set cannot decode YouTube's MediaSource codecs, show the localized unavailable notice with an **Open in browser** fallback instead of the player ([ADR-0091](../decisions/0091-youtube-linux-playback.md)). The YouTube sign-in screen is not offered on Linux for now.
 
 ## Metadata
 

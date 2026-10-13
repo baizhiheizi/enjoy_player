@@ -169,6 +169,7 @@
   "youtubeUnavailableOnDevice": "YouTube is not available on this device.",
   "youtubeUnavailableRuntimeMissing": "The YouTube playback runtime is not installed on this device.",
   "youtubeUnavailableRuntimeInitFailed": "YouTube playback failed to start on this device.",
+  "youtubeUnavailableCodecsMissing": "YouTube video codecs are missing on this device. Install the GStreamer plugins (gst-plugins-good, gst-plugins-bad, gst-libav) and restart the app.",
   "youtubeUnavailableDisabledByBuild": "YouTube playback is disabled in this build.",
   "youtubeTapToPlayHint": "Tap the video to play",
   "@youtubeTapToPlayHint": {
