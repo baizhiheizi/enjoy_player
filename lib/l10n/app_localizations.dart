@@ -1566,7 +1566,7 @@ abstract class AppLocalizations {
   /// No description provided for @pitchContourReference.
   ///
   /// In en, this message translates to:
-  /// **'Reference pitch'**
+  /// **'Original pitch'**
   String get pitchContourReference;
 
   /// No description provided for @pitchContourUser.
@@ -2418,7 +2418,7 @@ abstract class AppLocalizations {
   /// No description provided for @hotkeysDescToggleBlurPractice.
   ///
   /// In en, this message translates to:
-  /// **'Toggle listening-focus (blur practice)'**
+  /// **'Dictate (hide text)'**
   String get hotkeysDescToggleBlurPractice;
 
   /// No description provided for @hotkeysDescToggleRecording.
@@ -2460,25 +2460,25 @@ abstract class AppLocalizations {
   /// No description provided for @hotkeysDescExpandEchoBackward.
   ///
   /// In en, this message translates to:
-  /// **'Expand Echo region backward'**
+  /// **'Add the line above to the loop'**
   String get hotkeysDescExpandEchoBackward;
 
   /// No description provided for @hotkeysDescExpandEchoForward.
   ///
   /// In en, this message translates to:
-  /// **'Expand Echo region forward'**
+  /// **'Add the line below to the loop'**
   String get hotkeysDescExpandEchoForward;
 
   /// No description provided for @hotkeysDescShrinkEchoBackward.
   ///
   /// In en, this message translates to:
-  /// **'Shrink Echo region backward'**
+  /// **'Drop the first line of the loop'**
   String get hotkeysDescShrinkEchoBackward;
 
   /// No description provided for @hotkeysDescShrinkEchoForward.
   ///
   /// In en, this message translates to:
-  /// **'Shrink Echo region forward'**
+  /// **'Drop the last line of the loop'**
   String get hotkeysDescShrinkEchoForward;
 
   /// No description provided for @hotkeysDescLibrarySearch.

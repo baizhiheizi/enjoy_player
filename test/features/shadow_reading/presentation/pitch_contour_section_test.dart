@@ -182,7 +182,7 @@ void main() {
 
       expect(find.text('Analyzing pitch…'), findsNothing);
       expect(find.text('Waveform'), findsOneWidget);
-      expect(find.text('Reference pitch'), findsOneWidget);
+      expect(find.text('Original pitch'), findsOneWidget);
       expect(find.text('Your pitch'), findsOneWidget);
     });
 

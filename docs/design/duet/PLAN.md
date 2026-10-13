@@ -117,7 +117,7 @@ New fields, all from `tokens.json`:
 - **Colors:** `ground`, `paper`, `raised`, `sunk`, `line`, `ink`, `ink2`, `ink3`, `original`, `originalInk`, `originalSoft`, `you`, `youInk`, `youSoft`, `youLine`, `onYou`, `brandInk`, `brandSoft`, `primary` / `onPrimary` (ink fill), `danger`, `shape`, `tick`, `scrim`, `video`, and `vocabStatus` (×4).
 - **Gradients:** `brand` and `logo`.
 - **Radii:** `radiusKeycap` 5, `radiusBadge` 7, `radiusControl` 12, `radiusTile` 14, `radiusCard` 20, `radiusCardLarge` 24, `radiusDialog` 24, `radiusSheet` 26.
-- **Sizes:** the `size` block (dock buttons, margin 340 — 380 before the D3.14 density pass, top bar 60, subpage header 64, tab bar 84 / 26, browse 1180 / craft 1080 widths, gutters 40 / 16).
+- **Sizes:** the `size` block (dock buttons, margin 360 — 340 from D3.14 to the v30 canvas, 380 before D3.14, top bar 60, subpage header 64, tab bar 84 / 26, browse 1180 / craft 1080 widths, gutters 40 / 16).
 - **Breakpoint:** `breakpointMarginDrawer` 1100.
 - **Motion:** `motionLens` 280 and `motionMargin` 220.
 - **Opacity:** `echoLensOpacity` `[1, .65, .35, .2]` and `referencePitchOpacity` .35.
@@ -191,6 +191,7 @@ Phase 3  D3.1 → { D3.2 → D3.3 } ; { D3.4 → D3.5 → D3.6 } ; D3.7 → D3.8
          D3.9 (needs D3.4) ; D3.10, D3.11 (need D3.1) ; D3.12 (needs D3.6) ; D3.13 last
 Phase 4  D4.1 … D4.11                             (after Phase 1 + Phase 2; parallel)
 Phase 5  D5.1 → D5.2 → { D5.3, D5.4, D5.5 } → D5.6
+Phase 6  D6.1 … D6.13 (canvas v30, issue #915)    (D6.3 → D6.12; D6.7 → D6.8; rest parallel)
 ```
 
 Phases 2, 3, and 4 can run in parallel once Phase 1 is done. Inside Phase 3, follow the arrows.
@@ -627,6 +628,141 @@ Record the results in `STATUS.md` Notes.
   - Release notes: "New look: Duet" and no behavior changes.
   - Archive this plan: set its status to done; keep it for history.
 
+### Phase 6 — One player with the web app and extension (canvas v30)
+
+Source: issue [#915](https://github.com/baizhiheizi/enjoy_player/issues/915). On 2026-10-13 the canvas took two rounds of changes (v28–v30) so that Enjoy Player, the web app and the browser extension share one player design: a 14-point player audit, decided item by item (the extension shipped the same decisions in baizhiheizi/enjoy#1512), and a desktop parity pass against the web desktop player (top bar, Subtitles panel, ⋯ More, transcript rail, margin, dock, video layout). The `System` board is now the same sheet as the Enjoy Redesign canvas; change both together.
+
+The rules above still apply. Rows marked **behavior** wait for their decision in [STATUS → Decisions](STATUS.md#decisions) before that part ships; build the rest of the task without it.
+
+**Token deltas.** `tokens.json` stays pinned to the shipped code by `duet_tokens_test.dart`, so each value below changes in `tokens.json`, `EnjoyThemeTokens` and the parity test inside the task that rebuilds the widget. Only `marginWidth` (340 → 360) moved with the v30 re-export.
+
+| Token | Today | v30 (`System` → "Sizes from the web app") | Task |
+|---|---|---|---|
+| `segmentHeight` | 38 | 34 desktop · 36 phone; labels 13.5 | D6.1 |
+| `playButton` / `playButtonPhone` | 60 / 68 | 60 / 64 | D6.5 |
+| `recordButton` / `recordButtonPhone` | 62 / 76 | 76 / 76 | D6.5 |
+| `iconButton` / `iconButtonPhone` | 40 / 44 | 40 / 44 (unchanged) | — |
+| `overline` letter spacing | 0.08 em | 0.09 em, 11 px | D6.4 |
+| Transcript line / current line | 21 / — (phone 20 / 16) | line 19 (phone 17) · current line 25 (phone 23) | D6.4 |
+| Loop line clamp | 22–28 / 20–24 / 19 | 20–28 | D6.2 |
+| `marginWidth` | 340 | **360** — done in the v30 re-export | D6.12 |
+
+#### D6.1 Three lenses: Listen · Echo · Dictate
+- **Boards:** `Main`, `DHide`, `PHide`, `Phone`.
+- **Change:**
+  - The top-bar segmented control gets a third segment, **Dictate** (`H` keycap). Listen is `original`; Echo and Dictate are `you`.
+  - Dictate is today's Hide text (blur practice) and nothing more: word shapes, hover / press-and-hold to peek. Hint: `Dictate · listen, then hover a line to peek` (desktop) / `hold a line to peek` (phone).
+  - The dock's Hide text toggle goes; its slot becomes Replay (D6.5).
+  - The Display "Hide text" switch in the Subtitles panel goes (the lens replaces it).
+  - Segment height 34 desktop / 36 phone, labels 13.5.
+- **Behavior (R4):** Dictate as a segment beside Echo, and losing the dock toggle. Today Hide text is orthogonal to Echo (both can be on). Decide whether Dictate is exclusive with Echo or the segment only reflects the flag.
+- **Keep:** `H`, the reveal rules, the semantics strings.
+- **Docs:** [transcript.md](../../features/transcript.md), [player.md](../../features/player.md).
+
+#### D6.2 Echo loop: brackets and “+ line” rows
+- **Boards:** `DEcho`, `PEcho`, `DRecording`, `DCompact`.
+- **Change:**
+  - Four violet corner brackets with no fill, so notes drawn on the loop's words stay readable.
+  - Above and below the loop, the neighbouring line is a dashed **“+ line”** row (tap = expand backward / forward, `[` `]`), with a **“−”** button beside it that drops the first / last loop line (`shrinkEchoBackward` / `shrinkEchoForward`, `{` `}`). They replace the Earlier / Later pills.
+  - No drag handles. Lines further out fade 0.65 / 0.35.
+- **Keep:** the controller methods and keys; `EchoEnforcer`.
+- **Docs:** [echo-mode.md](../../features/echo-mode.md).
+
+#### D6.3 Takes: one row and a list
+- **Boards:** `DScored`, `PScored`, `DEcho`, `PEcho`.
+- **Change:**
+  - Under the loop, one row: play the latest take · `Take 3` · its score or `Not scored yet · click to score` · `3 takes ›`.
+  - `3 takes ›` opens the full list with the Pitch toggle: the margin on desktop (D6.12), a bottom sheet on phones. Take delete / re-assess land in this list (decision R2).
+  - A new take lands **unscored**; Score (`V`) runs it and opens `Take 3 · Assessment`.
+  - No automatic A/B: Echo pauses at the loop end; Original (`S`) replays the line, `G` plays the take.
+- **Keep:** take ordering, assessment cost and credits, pitch computation. Check that nothing auto-scores or auto-plays today; if something does, that is behavior — flag it.
+- **Docs:** [shadow-reading.md](../../features/shadow-reading.md).
+
+#### D6.4 Current line card and gutter
+- **Boards:** `Main`, `Phone`, `DDark`, `PDark`.
+- **Change:**
+  - The current line sits on a paper card. Words are buttons (look up); IPA under each word when IPA is on; the spoken word underlined in `original`.
+  - Practiced lines get a violet dot in the left gutter.
+  - Phone shows a time only on the current line; desktop keeps times in a quiet gutter.
+  - Type: line 19 (phone 17), current line 25 (phone 23); small capitals 11 px at 0.09 em.
+  - Notes on the loop's words (wavy underline, pause mark) stay as built in D3.8; check them against `DScored`.
+- **Docs:** [transcript.md](../../features/transcript.md).
+
+#### D6.5 Dock
+- **Boards:** `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording`.
+- **Change:**
+  - Time and ruler on one row: `0:21 ─ ruler ─ 0:57`.
+  - **Replay** is the leftmost transport button (desktop and phone). Phone dock: Replay · Previous · Play · Next · speed.
+  - Desktop left readout:
+    - Listen: `Line 6 of 14` / `3 lines practised`;
+    - Echo: `Looping line 6` / `3.8s · + adds a line, − drops one`;
+    - Recording: `Recording · 2.4s of 4.2s`;
+    - Dictate: `Dictating line 6` / `Hover a line to peek`.
+  - Speed is a 54 px wide mono icon button (no pill). Right cluster: speed · volume · fullscreen (video only).
+  - **Repeat** in the Listen dock (R1, decided): exposes today's `RepeatMode`.
+  - Sizes: Play 60 desktop / 64 phone, Record 76, icon buttons 40 / 44.
+- **Keep:** every hotkey; nothing unreachable at 880 wide or on a 390 phone.
+- **Docs:** [player.md](../../features/player.md).
+
+#### D6.6 Top bar
+- **Boards:** `Main`, `DSubtitles`, `DVideo`, `DYoutubeDark`.
+- **Change:**
+  - White paper bar in three columns with the mode switch truly centred.
+  - Left: Minimize (tooltip `Minimize player · Ctrl+Shift+P`) and the title, with `line 6 of 14` under it.
+  - Right: the app's own actions (Share), then the **Subtitles** chip (36 px, rounded, outlined; blue while open), then **⋯ More** (D6.8).
+  - One "Subtitles & display" entry; no other CC button.
+- **Docs:** [player.md](../../features/player.md).
+
+#### D6.7 Subtitles & display panel
+- **Boards:** `DSubtitles`.
+- **Change:**
+  - Subtitles: Primary, Translation.
+  - Display: **Transcript type** (Book = Literata / Clean = Geist), Highlight the spoken word, IPA under words (`I`).
+  - The word-timings progress stays here.
+  - Import, extract, regenerate and refresh move to ⋯ More (D6.8). The panel ends with `Add, replace or download the transcript from ⋯ More`.
+- **Behavior (R5):** Transcript type is a new setting (today `useSerif` is always `true` with no switch, ADR-0093 decision 2).
+- **Docs:** [transcript.md](../../features/transcript.md).
+
+#### D6.8 ⋯ More menu
+- **Boards:** `Main` (menu open in the prototype), `DSubtitles`.
+- **Change:** the More button becomes a menu:
+  - Transcript: Edit transcript · Add a subtitle file… · Use embedded subtitles… · Transcribe again… · Add word timings & IPA · Refresh from cloud · Download transcript…
+  - Media: Export the loop as a clip… · Edit details
+  - Keyboard shortcuts `?`
+- **Existing actions** (build now): Add a subtitle file (`subtitlesImportFile`), Use embedded subtitles (`subtitlesExtractEmbedded`), Transcribe again (`subtitlesRegenerate`), Add word timings & IPA (enrichment), Refresh from cloud (`subtitlesRefreshCloud`), Keyboard shortcuts.
+- **Behavior (R6):** Edit transcript, Download transcript, Export the loop as a clip and Edit details have no feature today. Leave them out until R6 is decided.
+- **Docs:** [player.md](../../features/player.md), [transcript.md](../../features/transcript.md).
+
+#### D6.9 Word lookup
+- **Boards:** `DWord`, `PWord`.
+- **Change:** word + IPA + part of speech; Pronounce · Save · Copy; the language pair with a swap; `In this audio · 0:20` / `In this video · 0:20` context (the line, word in bold); Translation loads directly, Definition and Contextual translation load on expand (#870 §2.4).
+- **Keep:** the expand-to-load credits rule ([D3.7](#d37-side-margin--word-lookup)).
+- **Docs:** [dictionary-lookup.md](../../features/dictionary-lookup.md).
+
+#### D6.10 Dictate word shapes
+- **Boards:** `DHide`, `PHide`.
+- **Change:** one flat word-shape fill (`shape`) for every hidden word, as the web and extension draw it.
+- **Docs:** [transcript.md](../../features/transcript.md).
+
+#### D6.11 Desktop video layout
+- **Boards:** `DVideo`, `DYoutubeDark`.
+- **Change:** the picture on the left on a dark stage; the transcript on the right as a 300–380 px rail; a draggable divider between them (the existing splitter). The web app uses the same layout.
+- **Keep:** `PlayerSurfaceTarget` geometry reporting, splitter persistence, fullscreen, YouTube parking (rule 4).
+- **Docs:** [player.md](../../features/player.md).
+
+#### D6.12 Margin: 360 px, pushes content
+- **Boards:** `DWord`, `DScored`, `DCompact`, `DVideo`.
+- **Change:**
+  - 360 px (token done in the v30 re-export).
+  - ≥ 1100: docked; it **pushes** the content, video included (the picture gives way, the transcript rail is never covered). This was the D3.7 / D3.8 residual.
+  - < 1100: a 360 px drawer route (parks the surface); phones keep the sheet.
+- **Docs:** [player.md](../../features/player.md), [dictionary-lookup.md](../../features/dictionary-lookup.md).
+
+#### D6.13 Copy
+- **Boards:** all player boards, `Keyboard`, `KeyboardCheatsheet`.
+- **Change:** `Original`, never `Reference` (buttons, pitch legend); `Score` runs it, `Assessment` is the detail; `Take 3`, never `Recording 3`; the shortcuts list reads `Dictate (hide text)` for `H`, `Add the line above / below to the loop` for `[` `]`, `Drop the first / last line of the loop` for `{` `}`.
+- **Done in the v30 re-export:** the shortcut descriptions and the pitch legend (`Original pitch`). The rest rides the task that rebuilds each surface.
+
 ---
 
 ## Performance goals
@@ -679,7 +815,7 @@ Platform compile smoke tests run when a task touches platform-sensitive code (vi
 | [share-poster.md](../../features/share-poster.md) | D3.12 |
 | [testing.md](../../testing.md) | D0.2 |
 | Screen feature docs | D4.x, where they describe presentation |
-| [hotkeys.md](../../features/hotkeys.md) | never; hotkeys are frozen |
+| [hotkeys.md](../../features/hotkeys.md) | never for bindings (hotkeys are frozen); D6.13 renamed the `H` description to Dictate |
 | `docs/design/duet/` | when the design changes: re-render (`tool/render_design_boards.mjs`), then tokens and parity test |
 
 ---

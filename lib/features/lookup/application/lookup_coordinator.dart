@@ -51,7 +51,7 @@ class LookupCoordinator extends _$LookupCoordinator {
   }
 }
 
-/// The right-edge lookup margin drawer (ADR-0093): 380px raised panel over
+/// The right-edge lookup margin drawer (ADR-0093): `marginWidth` raised panel over
 /// the scrim, sliding from the right edge.
 class _LookupMarginRoute extends PopupRoute<void> {
   _LookupMarginRoute({required this.request});

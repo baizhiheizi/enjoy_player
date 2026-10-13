@@ -1,5 +1,5 @@
 /// D3.8 (ADR-0093): pronunciation assessment in the player's side margin —
-/// a 340px raised panel sliding from the right edge, replacing the centered
+/// a `marginWidth` raised panel sliding from the right edge, replacing the centered
 /// dialog on wide player windows. It hosts the same [AssessmentResultBody]
 /// as the narrow sheet, so replay, re-assess and per-word analysis stay
 /// available on every window size.

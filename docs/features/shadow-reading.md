@@ -131,7 +131,7 @@ level pill, the dimension bars, the word chips (tinted fill + mono score;
 wavy underline for mispronunciation, strike-through for insertion and
 omission, a legend above), and the selected-word panel's per-phoneme tiles
 all use that scale; IPA renders in bundled Noto Sans. On wide player
-windows the assessment opens in the 340 px side margin, which hosts the
+windows the assessment opens in the 360 px side margin, which hosts the
 same `AssessmentResultBody` as the narrow sheet (overall score, dimension
 bars, replay, re-assess, per-word phoneme analysis); the margin route
 wraps the panel in a transparent `Material` so plain text never falls

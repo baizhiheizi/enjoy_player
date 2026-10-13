@@ -797,7 +797,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pitchContourWaveform => '波形';
 
   @override
-  String get pitchContourReference => '参考音高';
+  String get pitchContourReference => '原声音高';
 
   @override
   String get pitchContourUser => '你的音高';
@@ -1246,7 +1246,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeysDescToggleEchoMode => '切换回声模式';
 
   @override
-  String get hotkeysDescToggleBlurPractice => '切换听力专注（模糊练习）';
+  String get hotkeysDescToggleBlurPractice => '听写（隐藏文本）';
 
   @override
   String get hotkeysDescToggleRecording => '开始/停止录音';
@@ -1267,16 +1267,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeysDescSpeedUp => '加快播放速度';
 
   @override
-  String get hotkeysDescExpandEchoBackward => '向后扩展回声区域';
+  String get hotkeysDescExpandEchoBackward => '把上一行加入循环';
 
   @override
-  String get hotkeysDescExpandEchoForward => '向前扩展回声区域';
+  String get hotkeysDescExpandEchoForward => '把下一行加入循环';
 
   @override
-  String get hotkeysDescShrinkEchoBackward => '向后收缩回声区域';
+  String get hotkeysDescShrinkEchoBackward => '去掉循环的第一行';
 
   @override
-  String get hotkeysDescShrinkEchoForward => '向前收缩回声区域';
+  String get hotkeysDescShrinkEchoForward => '去掉循环的最后一行';
 
   @override
   String get hotkeysDescLibrarySearch => '聚焦搜索框';
@@ -4927,7 +4927,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get pitchContourWaveform => '波形';
 
   @override
-  String get pitchContourReference => '参考音高';
+  String get pitchContourReference => '原声音高';
 
   @override
   String get pitchContourUser => '你的音高';
@@ -5193,7 +5193,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get hotkeysDescToggleEchoMode => '切换回声模式';
 
   @override
-  String get hotkeysDescToggleBlurPractice => '切换听力专注（模糊练习）';
+  String get hotkeysDescToggleBlurPractice => '听写（隐藏文本）';
 
   @override
   String get hotkeysDescToggleRecording => '开始/停止录音';
@@ -5214,16 +5214,16 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get hotkeysDescSpeedUp => '加快播放速度';
 
   @override
-  String get hotkeysDescExpandEchoBackward => '向后扩展回声区域';
+  String get hotkeysDescExpandEchoBackward => '把上一行加入循环';
 
   @override
-  String get hotkeysDescExpandEchoForward => '向前扩展回声区域';
+  String get hotkeysDescExpandEchoForward => '把下一行加入循环';
 
   @override
-  String get hotkeysDescShrinkEchoBackward => '向后收缩回声区域';
+  String get hotkeysDescShrinkEchoBackward => '去掉循环的第一行';
 
   @override
-  String get hotkeysDescShrinkEchoForward => '向前收缩回声区域';
+  String get hotkeysDescShrinkEchoForward => '去掉循环的最后一行';
 
   @override
   String get hotkeysDescLibrarySearch => '聚焦搜索框';

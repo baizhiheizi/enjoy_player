@@ -832,7 +832,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pitchContourWaveform => 'Waveform';
 
   @override
-  String get pitchContourReference => 'Reference pitch';
+  String get pitchContourReference => 'Original pitch';
 
   @override
   String get pitchContourUser => 'Your pitch';
@@ -1307,8 +1307,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hotkeysDescToggleEchoMode => 'Toggle Echo mode';
 
   @override
-  String get hotkeysDescToggleBlurPractice =>
-      'Toggle listening-focus (blur practice)';
+  String get hotkeysDescToggleBlurPractice => 'Dictate (hide text)';
 
   @override
   String get hotkeysDescToggleRecording => 'Start/Stop recording';
@@ -1330,16 +1329,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hotkeysDescSpeedUp => 'Speed up playback speed';
 
   @override
-  String get hotkeysDescExpandEchoBackward => 'Expand Echo region backward';
+  String get hotkeysDescExpandEchoBackward => 'Add the line above to the loop';
 
   @override
-  String get hotkeysDescExpandEchoForward => 'Expand Echo region forward';
+  String get hotkeysDescExpandEchoForward => 'Add the line below to the loop';
 
   @override
-  String get hotkeysDescShrinkEchoBackward => 'Shrink Echo region backward';
+  String get hotkeysDescShrinkEchoBackward => 'Drop the first line of the loop';
 
   @override
-  String get hotkeysDescShrinkEchoForward => 'Shrink Echo region forward';
+  String get hotkeysDescShrinkEchoForward => 'Drop the last line of the loop';
 
   @override
   String get hotkeysDescLibrarySearch => 'Focus search';

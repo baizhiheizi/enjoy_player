@@ -32,7 +32,7 @@ final class _SpaceTokens {
     pageGutterCompact: 16,
     pageGutter: 40,
     desktopGutter: 24,
-    marginWidth: 340,
+    marginWidth: 360,
     gutter: 40,
     gutterPhone: 16,
   );
