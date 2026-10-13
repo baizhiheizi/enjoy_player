@@ -639,8 +639,8 @@ The rules above still apply. Rows marked **behavior** wait for their decision in
 | Token | Today | v30 (`System` → "Sizes from the web app") | Task |
 |---|---|---|---|
 | `segmentHeight` | 38 | 34 desktop · 36 phone; labels 13.5 | D6.1 |
-| `playButton` / `playButtonPhone` | 60 / 68 | 60 / 64 | D6.5 |
-| `recordButton` / `recordButtonPhone` | 62 / 76 | 76 / 76 | D6.5 |
+| `playButton` / `playButtonPhone` | 60 / 68 | 60 / 64 — done in D6.5 | D6.5 |
+| `recordButton` / `recordButtonPhone` | 62 / 76 | 62 / 76 (unchanged: the `Main` board keeps the desktop Record at 62; the `System` sheet's "Record 76" is the phone size) | — |
 | `iconButton` / `iconButtonPhone` | 40 / 44 | 40 / 44 (unchanged) | — |
 | `overline` letter spacing | 0.08 em | 0.09 em, 11 px | D6.4 |
 | Transcript line / current line | 21 / — (phone 20 / 16) | line 19 (phone 17) · current line 25 (phone 23) | D6.4 |
@@ -691,7 +691,7 @@ The rules above still apply. Rows marked **behavior** wait for their decision in
 #### D6.5 Dock
 - **Boards:** `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording`.
 - **Change:**
-  - Time and ruler on one row: `0:21 ─ ruler ─ 0:57`.
+  - Time and ruler on one row: `0:21 ─ ruler ─ 0:57` (already true of `SentenceRuler`).
   - **Replay** is the leftmost transport button (desktop and phone). Phone dock: Replay · Previous · Play · Next · speed.
   - Desktop left readout:
     - Listen: `Line 6 of 14` / `3 lines practised`;
@@ -700,7 +700,7 @@ The rules above still apply. Rows marked **behavior** wait for their decision in
     - Dictate: `Dictating line 6` / `Hover a line to peek`.
   - Speed is a 54 px wide mono icon button (no pill). Right cluster: speed · volume · fullscreen (video only).
   - **Repeat** in the Listen dock (R1, decided): exposes today's `RepeatMode`.
-  - Sizes: Play 60 desktop / 64 phone, Record 76, icon buttons 40 / 44.
+  - Sizes: Play 60 desktop / 64 phone, Record 62 desktop / 76 phone, icon buttons 40 / 44.
 - **Keep:** every hotkey; nothing unreachable at 880 wide or on a 390 phone.
 - **Docs:** [player.md](../../features/player.md).
 

@@ -323,6 +323,10 @@ abstract final class EnjoyIcons {
   static const IconData moon = IconData(0xe330, fontFamily: 'PhosphorRegular');
   static const IconData moonFill = IconData(0xe330, fontFamily: 'PhosphorFill');
   static const IconData more = IconData(0xe1fe, fontFamily: 'PhosphorBold');
+  static const IconData repeat = IconData(
+    0xe3f6,
+    fontFamily: 'PhosphorRegular',
+  );
   static const IconData openExternal = IconData(
     0xe5de,
     fontFamily: 'PhosphorRegular',

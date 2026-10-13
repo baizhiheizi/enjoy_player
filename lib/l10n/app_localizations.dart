@@ -8087,6 +8087,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dictate · listen, then press and hold a line to peek'**
   String get playerDictateHintHold;
+
+  /// Dock readout under the line position in Listen.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No lines practised yet} =1{1 line practised} other{{count} lines practised}}'**
+  String playerDockPractisedLines(int count);
+
+  /// Dock readout in Echo with a one-line loop.
+  ///
+  /// In en, this message translates to:
+  /// **'Looping line {line}'**
+  String playerDockLoopingLine(int line);
+
+  /// Dock readout in Echo with a multi-line loop.
+  ///
+  /// In en, this message translates to:
+  /// **'Looping lines {start}–{end}'**
+  String playerDockLoopingLines(int start, int end);
+
+  /// Dock hint under the Echo readout; seconds is the loop length.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s · + adds a line, − drops one'**
+  String playerDockLoopHint(String seconds);
+
+  /// Dock hint while a take records.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording · {elapsed}s of {total}s'**
+  String playerDockRecordingProgress(String elapsed, String total);
+
+  /// Dock readout in the Dictate lens.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictating line {line}'**
+  String playerDockDictatingLine(int line);
+
+  /// Dock hint in the Dictate lens (pointer devices).
+  ///
+  /// In en, this message translates to:
+  /// **'Hover a line to peek'**
+  String get playerDockDictateHover;
+
+  /// Dock hint in the Dictate lens (touch).
+  ///
+  /// In en, this message translates to:
+  /// **'Hold a line to peek'**
+  String get playerDockDictateHold;
+
+  /// Repeat button tooltip when repeat is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat: off'**
+  String get playerRepeatOff;
+
+  /// Repeat button tooltip when the whole item repeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat this item'**
+  String get playerRepeatItem;
+
+  /// Repeat button tooltip when the echo segment repeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat the echo loop'**
+  String get playerRepeatLoop;
 }
 
 class _AppLocalizationsDelegate
