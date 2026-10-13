@@ -5,14 +5,16 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_item_conflict.dart';
-
 export 'package:enjoy_player/core/utils/remote_thumbnail_url.dart'
     show isRemoteThumbnailUrl, remoteThumbnailForCard;
+
+final _log = logNamed('sync.serializers');
 
 DateTime? parseIsoDate(dynamic value) {
   if (value == null) return null;
@@ -38,6 +40,20 @@ dynamic jsonValueFromText(String? text) {
   } on FormatException {
     return null;
   }
+}
+
+/// Upload-side [jsonValueFromText] that refuses to drop an explanation
+/// silently: undecodable local text logs the row so the omission is
+/// diagnosable from the sync log.
+dynamic _explanationValueForWire(String? text, String entity, String id) {
+  final value = jsonValueFromText(text);
+  if (value == null && text != null && text.isNotEmpty) {
+    _log.warning(
+      '$entity $id: explanation text is not decodable JSON; '
+      'omitted from upload payload',
+    );
+  }
+  return value;
 }
 
 int durationSecondsFromJson(Map<String, dynamic> json) {
@@ -266,7 +282,8 @@ Map<String, dynamic> prepareForSyncVocabularyItemMap(VocabularyItemRow row) {
     if (row.lastReviewedAt != null)
       'lastReviewedAt': row.lastReviewedAt!.toUtc().toIso8601String(),
     'contextsCount': row.contextsCount,
-    if (jsonValueFromText(row.explanation) case final explanationValue?)
+    if (_explanationValueForWire(row.explanation, 'vocabulary item', row.id)
+        case final explanationValue?)
       'explanation': explanationValue,
     'createdAt': row.createdAt.toUtc().toIso8601String(),
     'updatedAt': row.updatedAt.toUtc().toIso8601String(),
@@ -285,7 +302,8 @@ Map<String, dynamic> prepareForSyncVocabularyContextMap(
     'sourceType': row.sourceType,
     'sourceId': row.sourceId,
     'locator': jsonDecode(row.locatorJson),
-    if (jsonValueFromText(row.explanation) case final explanationValue?)
+    if (_explanationValueForWire(row.explanation, 'vocabulary context', row.id)
+        case final explanationValue?)
       'explanation': explanationValue,
     'createdAt': row.createdAt.toUtc().toIso8601String(),
     'updatedAt': row.updatedAt.toUtc().toIso8601String(),

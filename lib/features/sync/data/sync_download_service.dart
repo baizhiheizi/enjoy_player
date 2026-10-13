@@ -45,6 +45,7 @@ class SyncDownloadService {
   final RecordingApi _recordingApi;
   final VocabularyApi _vocabularyApi;
 
+  bool _vocabCursorRepairDone = false;
   static const _pageSize = 50;
 
   Future<SyncResult> downloadAudios() =>
@@ -74,19 +75,30 @@ class SyncDownloadService {
   /// cursor past the rows that never applied. Clears both vocabulary cursors
   /// exactly once so the next pull re-fetches the full server word book.
   Future<void> _repairVocabularyCursorsOnce() async {
-    final repaired = await _db.settingsDao.readSetting(
-      SettingsKeys.syncVocabularyCursorRepairV1,
-    );
-    if (repaired != null) return;
-    await _db.settingsDao.writeSetting(
-      SettingsKeys.syncVocabularyCursorRepairV1,
-      '1',
-    );
-    await _db.settingsDao.deleteSetting(SettingsKeys.syncCursorVocabularyItem);
-    await _db.settingsDao.deleteSetting(
-      SettingsKeys.syncCursorVocabularyContext,
-    );
-    _log.info('vocabulary cursor repair v1: cursors cleared for full re-pull');
+    if (_vocabCursorRepairDone) return;
+    final cleared = await _db.transaction(() async {
+      final repaired = await _db.settingsDao.readSetting(
+        SettingsKeys.syncVocabularyCursorRepairV1,
+      );
+      if (repaired != null) return false;
+      await _db.settingsDao.deleteSetting(
+        SettingsKeys.syncCursorVocabularyItem,
+      );
+      await _db.settingsDao.deleteSetting(
+        SettingsKeys.syncCursorVocabularyContext,
+      );
+      await _db.settingsDao.writeSetting(
+        SettingsKeys.syncVocabularyCursorRepairV1,
+        '1',
+      );
+      return true;
+    });
+    _vocabCursorRepairDone = true;
+    if (cleared) {
+      _log.info(
+        'vocabulary cursor repair v1: cursors cleared for full re-pull',
+      );
+    }
   }
 
   Future<SyncResult> _downloadAudiosInternal({required bool resetCursor}) {
@@ -260,18 +272,21 @@ class SyncDownloadService {
 
       var pageFailed = 0;
       if (pendingUpserts.isNotEmpty) {
-        final counts = await _mergeAndUpsertPage(
+        final merged = await mergePageRows<E>(
           pendingUpserts,
           getManyByIds: getManyByIds,
           getLocal: getLocal,
-          upsertRows: upsertRows,
-          insertRow: insertRow,
           merge: merge,
         );
+        final counts = await persistMergedRows<E>(
+          merged.rows,
+          upsertRows: upsertRows,
+          insertRow: insertRow,
+        );
+        pageFailed = merged.failed + counts.failed;
         synced += counts.synced;
-        pageFailed = counts.failed;
-        failed += counts.failed;
-        errors.addAll(counts.errors);
+        failed += pageFailed;
+        errors.addAll([...merged.errors, ...counts.errors]);
       }
 
       if (pageFailed == 0) {
@@ -293,34 +308,6 @@ class SyncDownloadService {
       errors: errors.isEmpty ? null : errors,
     );
   }
-
-  /// Merges one page of server rows against a single bulk pre-read and
-  /// persists the result in one transactional batch. If the bulk read or the
-  /// batch fails, falls back to the historical per-row `getLocal` / merge /
-  /// `insertRow` path so per-row failures stay isolated (one bad row must
-  /// not fail its page neighbors). Merge semantics are unchanged — the
-  /// per-entity `merge` callbacks are the same functions the per-row path
-  /// uses.
-  Future<({int synced, int failed, List<String> errors})>
-  _mergeAndUpsertPage<E>(
-    Map<String, Map<String, dynamic>> pendingUpserts, {
-    required Future<Map<String, E>> Function(List<String> ids) getManyByIds,
-    required Future<E?> Function(String id) getLocal,
-    required Future<void> Function(List<E> rows) upsertRows,
-    required Future<void> Function(E row) insertRow,
-    required E Function({
-      required E? local,
-      required Map<String, dynamic> server,
-    })
-    merge,
-  }) => mergeAndUpsertPage<E>(
-    pendingUpserts,
-    getManyByIds: getManyByIds,
-    getLocal: getLocal,
-    upsertRows: upsertRows,
-    insertRow: insertRow,
-    merge: merge,
-  );
 
   Future<SyncResult> downloadAllEntitiesFresh() async {
     final a = await _downloadAudiosInternal(resetCursor: true);

@@ -7,6 +7,7 @@ import 'package:enjoy_player/data/api/services/vocabulary_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/features/sync/data/sync_download_service.dart';
+import 'package:enjoy_player/features/sync/data/sync_page_upsert.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -570,7 +571,7 @@ void main() {
       'does not advance the cursor when a page row fails to merge',
       () async {
         final badRow = _vocabItemJson('vi-bad');
-        badRow['explanation'] = {1: 'unencodable'};
+        badRow['interval'] = 'soon';
         final api = _FakeVocabularyApi(
           itemPages: [
             [badRow, _vocabItemJson('vi-good')],
@@ -593,13 +594,11 @@ void main() {
     );
 
     test('stops paging when a full page had failures', () async {
-      final badRow = _vocabItemJson('vi-bad');
-      badRow['explanation'] = {1: 'unencodable'};
       final api = _FakeVocabularyApi(
         itemPages: [
           List.generate(50, (i) {
             final row = _vocabItemJson('vi-bad-$i');
-            row['explanation'] = {1: 'unencodable'};
+            row['interval'] = 'soon';
             return row;
           }),
           [_vocabItemJson('vi-next')],
@@ -664,6 +663,31 @@ void main() {
       await buildService(vocabularyApi: second).downloadVocabularyItems();
 
       expect(second.itemUpdatedAfterCalls.single, '2026-02-02T00:00:00.000Z');
+    });
+
+    test('runs once per service instance across items and contexts', () async {
+      final api = _FakeVocabularyApi(
+        itemPages: [
+          [_vocabItemJson('vi1')],
+        ],
+        contextPages: [
+          [_vocabContextJson('vc1')],
+        ],
+      );
+      final service = buildService(vocabularyApi: api);
+      await service.downloadVocabularyItems();
+
+      await db.settingsDao.writeSetting(
+        SettingsKeys.syncCursorVocabularyItem,
+        '2026-03-03T00:00:00.000Z',
+      );
+      await service.downloadVocabularyContexts();
+
+      expect(
+        await db.settingsDao.readSetting(SettingsKeys.syncCursorVocabularyItem),
+        '2026-03-03T00:00:00.000Z',
+      );
+      expect(api.contextUpdatedAfterCalls.single, isNull);
     });
   });
 
@@ -789,6 +813,56 @@ void main() {
 
       expect(merged.success, isTrue);
       expect(merged.synced, 3);
+    });
+  });
+
+  group('mergePageRows / persistMergedRows', () {
+    test(
+      'isolates a row whose merge throws and excludes it from the batch',
+      () async {
+        final outcome = await mergePageRows<String>(
+          {
+            'good': {'id': 'good'},
+            'bad': {'id': 'bad'},
+          },
+          getManyByIds: (ids) async => {},
+          getLocal: (_) async => null,
+          merge: ({required local, required server}) =>
+              server['id'] == 'bad' ? throw StateError('schema drift') : 'row',
+        );
+
+        expect(outcome.rows, ['row']);
+        expect(outcome.failed, 1);
+        expect(outcome.errors.single, contains('schema drift'));
+      },
+    );
+
+    test(
+      'falls back to per-row inserts when the batch upsert throws',
+      () async {
+        final counts = await persistMergedRows<String>(
+          ['a', 'bad', 'c'],
+          upsertRows: (_) async => throw StateError('batch constraint'),
+          insertRow: (row) async {
+            if (row == 'bad') throw StateError('row constraint');
+          },
+        );
+
+        expect(counts.synced, 2);
+        expect(counts.failed, 1);
+        expect(counts.errors.single, contains('row constraint'));
+      },
+    );
+
+    test('empty batch is a no-op', () async {
+      final counts = await persistMergedRows<String>(
+        [],
+        upsertRows: (_) => throw StateError('must not be called'),
+        insertRow: (_) => throw StateError('must not be called'),
+      );
+
+      expect(counts.synced, 0);
+      expect(counts.failed, 0);
     });
   });
 }
