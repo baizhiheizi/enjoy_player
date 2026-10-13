@@ -94,6 +94,31 @@ void main() {
       expect(m.containsKey('lastReviewedAt'), isFalse);
       expect(m.containsKey('explanation'), isFalse);
     });
+
+    test('sends explanation as a decoded JSON value, not a string', () {
+      final now = DateTime.utc(2026, 1, 1);
+      final row = _itemRow(
+        createdAt: now,
+        updatedAt: now,
+        explanation: '{"entries":[{"term":"hello"}]}',
+      );
+      final m = prepareForSyncVocabularyItemMap(row);
+
+      expect(m['explanation'], isA<Map<String, dynamic>>());
+      expect((m['explanation'] as Map)['entries'], isA<List>());
+    });
+
+    test('omits explanation when local text is not decodable JSON', () {
+      final now = DateTime.utc(2026, 1, 1);
+      final row = _itemRow(
+        createdAt: now,
+        updatedAt: now,
+        explanation: 'not json',
+      );
+      final m = prepareForSyncVocabularyItemMap(row);
+
+      expect(m.containsKey('explanation'), isFalse);
+    });
   });
 
   group('prepareForSyncVocabularyContextMap', () {
@@ -106,6 +131,19 @@ void main() {
       expect(m['locator'], isA<Map<String, dynamic>>());
       expect((m['locator'] as Map)['type'], 'media');
       expect(m.containsKey('contextText'), isFalse);
+    });
+
+    test('sends explanation as a decoded JSON value, not a string', () {
+      final now = DateTime.utc(2026, 1, 1);
+      final row = _contextRow(
+        createdAt: now,
+        updatedAt: now,
+        explanation: '{"translation":"你好"}',
+      );
+      final m = prepareForSyncVocabularyContextMap(row);
+
+      expect(m['explanation'], isA<Map<String, dynamic>>());
+      expect((m['explanation'] as Map)['translation'], '你好');
     });
   });
 
@@ -131,6 +169,56 @@ void main() {
       );
       expect(merged.id, 'item-1');
       expect(merged.word, 'hello');
+    });
+
+    test('parses server jsonb object explanation into JSON text', () {
+      final serverTime = DateTime.utc(2026, 1, 5);
+      final merged = mergeVocabularyItemConflict(
+        local: null,
+        server: {
+          'id': 'item-1',
+          'word': 'hello',
+          'language': 'en',
+          'targetLanguage': 'zh-CN',
+          'status': 'learning',
+          'easeFactor': 2.5,
+          'interval': 1,
+          'nextReviewAt': serverTime.toIso8601String(),
+          'reviewsCount': 1,
+          'contextsCount': 1,
+          'explanation': {},
+          'createdAt': serverTime.toIso8601String(),
+          'updatedAt': serverTime.toIso8601String(),
+        },
+      );
+      expect(merged.explanation, '{}');
+    });
+
+    test('parses populated server jsonb object explanation into JSON text', () {
+      final serverTime = DateTime.utc(2026, 1, 5);
+      final merged = mergeVocabularyItemConflict(
+        local: null,
+        server: {
+          'id': 'item-1',
+          'word': 'hello',
+          'language': 'en',
+          'targetLanguage': 'zh-CN',
+          'status': 'learning',
+          'easeFactor': 2.5,
+          'interval': 1,
+          'nextReviewAt': serverTime.toIso8601String(),
+          'reviewsCount': 1,
+          'contextsCount': 1,
+          'explanation': {
+            'entries': [
+              {'term': 'hello'},
+            ],
+          },
+          'createdAt': serverTime.toIso8601String(),
+          'updatedAt': serverTime.toIso8601String(),
+        },
+      );
+      expect(merged.explanation, contains('hello'));
     });
 
     test('local SRS newer keeps local SRS fields on merge', () {
@@ -502,13 +590,14 @@ void main() {
       final reviewed = DateTime.utc(2025, 12, 25);
       final row = _itemRow(
         lastReviewedAt: reviewed,
-        explanation: 'A greeting',
+        explanation: '{"note":"A greeting"}',
         createdAt: now,
         updatedAt: now,
       );
       final m = prepareForSyncVocabularyItemMap(row);
       expect(m['lastReviewedAt'], reviewed.toUtc().toIso8601String());
-      expect(m['explanation'], 'A greeting');
+      expect(m['explanation'], isA<Map<String, dynamic>>());
+      expect((m['explanation'] as Map)['note'], 'A greeting');
     });
   });
 
@@ -516,12 +605,13 @@ void main() {
     test('includes explanation when present', () {
       final now = DateTime.utc(2026, 1, 1);
       final row = _contextRow(
-        explanation: 'Used as a greeting',
+        explanation: '{"note":"Used as a greeting"}',
         createdAt: now,
         updatedAt: now,
       );
       final m = prepareForSyncVocabularyContextMap(row);
-      expect(m['explanation'], 'Used as a greeting');
+      expect(m['explanation'], isA<Map<String, dynamic>>());
+      expect((m['explanation'] as Map)['note'], 'Used as a greeting');
     });
 
     test('omits explanation when null', () {

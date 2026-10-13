@@ -5,14 +5,16 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_item_conflict.dart';
-
 export 'package:enjoy_player/core/utils/remote_thumbnail_url.dart'
     show isRemoteThumbnailUrl, remoteThumbnailForCard;
+
+final _log = logNamed('sync.serializers');
 
 DateTime? parseIsoDate(dynamic value) {
   if (value == null) return null;
@@ -22,6 +24,37 @@ DateTime? parseIsoDate(dynamic value) {
 
 DateTime requireIsoDate(dynamic value, DateTime fallback) =>
     parseIsoDate(value) ?? fallback;
+
+/// Server jsonb columns arrive as objects; rows store JSON text.
+String? jsonTextFromWire(dynamic value) {
+  if (value == null) return null;
+  if (value is String) return value;
+  return jsonEncode(value);
+}
+
+/// Decodes JSON text for a jsonb wire column; null when absent/undecodable.
+dynamic jsonValueFromText(String? text) {
+  if (text == null || text.isEmpty) return null;
+  try {
+    return jsonDecode(text);
+  } on FormatException {
+    return null;
+  }
+}
+
+/// Upload-side [jsonValueFromText] that refuses to drop an explanation
+/// silently: undecodable local text logs the row so the omission is
+/// diagnosable from the sync log.
+dynamic _explanationValueForWire(String? text, String entity, String id) {
+  final value = jsonValueFromText(text);
+  if (value == null && text != null && text.isNotEmpty) {
+    _log.warning(
+      '$entity $id: explanation text is not decodable JSON; '
+      'omitted from upload payload',
+    );
+  }
+  return value;
+}
 
 int durationSecondsFromJson(Map<String, dynamic> json) {
   final v = json['durationSeconds'] ?? json['duration'];
@@ -249,7 +282,9 @@ Map<String, dynamic> prepareForSyncVocabularyItemMap(VocabularyItemRow row) {
     if (row.lastReviewedAt != null)
       'lastReviewedAt': row.lastReviewedAt!.toUtc().toIso8601String(),
     'contextsCount': row.contextsCount,
-    if (row.explanation != null) 'explanation': row.explanation,
+    if (_explanationValueForWire(row.explanation, 'vocabulary item', row.id)
+        case final explanationValue?)
+      'explanation': explanationValue,
     'createdAt': row.createdAt.toUtc().toIso8601String(),
     'updatedAt': row.updatedAt.toUtc().toIso8601String(),
   };
@@ -267,7 +302,9 @@ Map<String, dynamic> prepareForSyncVocabularyContextMap(
     'sourceType': row.sourceType,
     'sourceId': row.sourceId,
     'locator': jsonDecode(row.locatorJson),
-    if (row.explanation != null) 'explanation': row.explanation,
+    if (_explanationValueForWire(row.explanation, 'vocabulary context', row.id)
+        case final explanationValue?)
+      'explanation': explanationValue,
     'createdAt': row.createdAt.toUtc().toIso8601String(),
     'updatedAt': row.updatedAt.toUtc().toIso8601String(),
   };
@@ -289,7 +326,7 @@ VocabularyItemRow vocabularyItemRowFromServerJson(Map<String, dynamic> json) {
     reviewsCount: (json['reviewsCount'] as num?)?.toInt() ?? 0,
     lastReviewedAt: parseIsoDate(json['lastReviewedAt']),
     contextsCount: (json['contextsCount'] as num?)?.toInt() ?? 0,
-    explanation: json['explanation'] as String?,
+    explanation: jsonTextFromWire(json['explanation']),
     syncStatus: json['syncStatus'] as String? ?? 'synced',
     serverUpdatedAt: parseIsoDate(json['serverUpdatedAt']),
     createdAt: createdAt,
@@ -303,18 +340,14 @@ VocabularyContextRow vocabularyContextRowFromServerJson(
   final now = DateTime.now();
   final updatedAt = requireIsoDate(json['updatedAt'], now);
   final createdAt = requireIsoDate(json['createdAt'], updatedAt);
-  final locator = json['locator'];
-  final locatorJson = locator == null
-      ? '{}'
-      : (locator is String ? locator : jsonEncode(locator));
   return VocabularyContextRow(
     id: json['id'] as String,
     vocabularyItemId: json['vocabularyItemId'] as String? ?? '',
     contextText: json['text'] as String? ?? '',
     sourceType: json['sourceType'] as String? ?? 'Video',
     sourceId: json['sourceId'] as String? ?? '',
-    locatorJson: locatorJson,
-    explanation: json['explanation'] as String?,
+    locatorJson: jsonTextFromWire(json['locator']) ?? '{}',
+    explanation: jsonTextFromWire(json['explanation']),
     syncStatus: json['syncStatus'] as String? ?? 'synced',
     serverUpdatedAt: parseIsoDate(json['serverUpdatedAt']),
     createdAt: createdAt,
