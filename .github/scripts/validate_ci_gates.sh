@@ -111,7 +111,10 @@ if [[ "$do_test" -eq 1 ]]; then
       base_ref="origin/main"
     fi
     mapfile -t test_targets < <(
-      git diff --name-only --diff-filter=ACMR "$base_ref" -- 'lib/*.dart' 'test/*.dart' 2>/dev/null || true \
+      # The braces are load-bearing: without them bash parses
+      # `git diff ... || true | awk` as `git diff || (true | awk)`, which drops
+      # awk/sort/filter from the pipeline and hands mapfile the raw lib/ paths.
+      { git diff --name-only --diff-filter=ACMR "$base_ref" -- 'lib/*.dart' 'test/*.dart' 2>/dev/null || true; } \
         | awk '
             /\.dart$/ {
               if ($0 ~ /^test\// && $0 ~ /_test\.dart$/) print

@@ -257,6 +257,66 @@ class DockLabeledControl extends StatelessWidget {
   }
 }
 
+/// Inner dot glyph drawn at the center of a [`DockRecordRing`].
+enum DockRecordDotShape {
+  /// Circular dot: the Echo record toggle.
+  circle,
+
+  /// Rounded-square dot: the recording-mode Stop button.
+  stopSquare,
+}
+
+/// Colored "you" disk with a centered [dotShape] glyph. The caller supplies
+/// the larger hit target that wraps this ring.
+class DockRecordRing extends StatelessWidget {
+  const DockRecordRing({
+    required this.diskSize,
+    required this.dotShape,
+    super.key,
+  });
+
+  static const double dotSize = 16;
+  static const double stopDotCornerRadius = 4;
+
+  /// Diameter of the colored disk, in logical pixels.
+  final double diskSize;
+
+  final DockRecordDotShape dotShape;
+
+  BoxDecoration _dotDecoration(Color color) => switch (dotShape) {
+    DockRecordDotShape.circle => BoxDecoration(
+      color: color,
+      shape: BoxShape.circle,
+    ),
+    DockRecordDotShape.stopSquare => BoxDecoration(
+      color: color,
+      borderRadius: const BorderRadius.all(
+        Radius.circular(stopDotCornerRadius),
+      ),
+    ),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Container(
+      width: diskSize,
+      height: diskSize,
+      alignment: Alignment.center,
+      decoration: ShapeDecoration(
+        color: t.you,
+        shape: const CircleBorder(),
+        shadows: t.shadowRecordButton,
+      ),
+      child: Container(
+        width: dotSize,
+        height: dotSize,
+        decoration: _dotDecoration(t.onYou),
+      ),
+    );
+  }
+}
+
 /// Round "you" record button (Echo mode).
 class DockRecordButton extends StatelessWidget {
   const DockRecordButton({
@@ -273,7 +333,6 @@ class DockRecordButton extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
     final size = phone ? t.recordButtonSizePhone : t.recordButtonSize;
-    final inner = size - 12;
     return OnboardingTarget(
       tipId: OnboardingTipId.playerRecord,
       onTargetAction: onToggle,
@@ -287,23 +346,9 @@ class DockRecordButton extends StatelessWidget {
             width: size,
             height: size,
             child: Center(
-              child: Container(
-                width: inner,
-                height: inner,
-                alignment: Alignment.center,
-                decoration: ShapeDecoration(
-                  color: t.you,
-                  shape: const CircleBorder(),
-                  shadows: t.shadowRecordButton,
-                ),
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: t.onYou,
-                    shape: BoxShape.circle,
-                  ),
-                ),
+              child: DockRecordRing(
+                diskSize: size - 12,
+                dotShape: DockRecordDotShape.circle,
               ),
             ),
           ),
