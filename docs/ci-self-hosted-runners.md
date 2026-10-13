@@ -1,6 +1,8 @@
 # Self-hosted CI runners
 
-All GitHub Actions workflows in this repo run on **self-hosted** runners. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions) or upload build outputs via `actions/upload-artifact` — both bill for storage. Dependencies stay on the runner's local disk between jobs; release binaries go to **dl.enjoy.bot** (S3/R2) when publish is enabled, or remain on the runner workspace until the job ends.
+All GitHub Actions workflows in this repo run on **self-hosted** runners. Dependency caches go through **`actions/cache`** — served by the LAN **`gh-sr-cache`** server rather than GitHub's storage, so restores cost no proxy bytes (see [ADR-0097](decisions/0097-ci-dependency-cache-and-cn-mirrors.md)). Build outputs are **not** uploaded as cache; release binaries go to **dl.enjoy.bot** (S3/R2) when publish is enabled, or remain on the runner workspace until the job ends.
+
+The earlier rule — *never* use `actions/cache`, because dependencies persist on the runner's disk between jobs — no longer holds. gh-sr resets each job's inner environment to a pristine state before it starts (only the image cache survives), so `~/.pub-cache` and `~/.gradle` do **not** persist; only installs that land in `RUNNER_TOOL_CACHE` / `~/.local/share/mise` do. That is the whole reason the Flutter SDK survives a job and the package cache does not.
 
 Runners are managed via **[`gh-sr`](https://github.com/an-lee/gh-sr)** (`~/.gh-sr/runners.yml` on the control machine), except where noted. See that repo's docs for `hosts` / `runners` / `container_runner_image` schema.
 
@@ -8,7 +10,7 @@ Shared workflow pieces:
 
 | Path | Purpose |
 |------|---------|
-| [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from the `flutter` entry in [`mise.toml`](../mise.toml). Installs into a persistent, version-keyed directory on the runner's local disk and **skips the download entirely** when that version is already present — no `subosito/flutter-action` cache, no GitHub cache API. Reinstalls if the cached tree is missing `bin/flutter` or a working `.git` (required by `flutter --version`). |
+| [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from the `flutter` entry in [`mise.toml`](../mise.toml). Installs into a persistent, version-keyed directory on the runner's local disk and **skips the download entirely** when that version is already present — no `subosito/flutter-action` cache, and no Actions cache for the SDK itself (it lands in `RUNNER_TOOL_CACHE`, which *does* survive the per-job environment reset). Reinstalls if the cached tree is missing `bin/flutter` or a working `.git` (required by `flutter --version`). Honors `FLUTTER_STORAGE_BASE_URL` when it does download. |
 | [mise](https://mise.jdx.dev) in [ci.yml](../.github/workflows/ci.yml) | Pilot: [ci.yml](../.github/workflows/ci.yml) installs the same mise.toml pin via `jdx/mise-action` instead of `setup-flutter`. Installs persist under `~/.local/share/mise` on the runner. If the pilot proves out, the remaining workflows migrate off `setup-flutter`. |
 | [`.github/actions/setup-android`](../.github/actions/setup-android) | Wrap `android-actions/setup-android` with retries: the upstream action fails the job when the flaky network cannot fetch dl.google.com package manifests; the wrapper tolerates that, retries the `sdkmanager` install with backoff, and skips the network entirely once the requested packages persist on the runner. |
 | [`.github/actions/setup-macos-runner-env`](../.github/actions/setup-macos-runner-env) | Homebrew PATH, UTF-8 locale, curl HTTP/1.1, `GIT_CONFIG_COUNT=0` (SwiftPM-safe) |
@@ -21,9 +23,30 @@ When you bump Flutter in `mise.toml`, the next workflow run downloads that versi
 
 ---
 
+## Dependency caching and mirrors
+
+The pool sits behind a per-GB proxy (~55 GB/day of WAN traffic measured). Two mechanisms keep dependency downloads off it — see [ADR-0097](decisions/0097-ci-dependency-cache-and-cn-mirrors.md) for the reasoning:
+
+1. **`actions/cache` for dependency stores.** Restore is served from the LAN `gh-sr-cache` server: zero proxy bytes. The six deterministic workflows cache `~/.pub-cache`; `android_apk_smoke` also caches `~/.gradle/wrapper/dists` + `~/.gradle/caches/modules-2`; `build_apple` also caches the CocoaPods stores per job.
+
+   Caching is split into `actions/cache/restore` + `actions/cache/save` with the save guarded on `cache-hit != 'true'`, so an exact hit never re-uploads ~1.3 GB. Adding a cache means adding **both** steps.
+
+   Two deliberate exclusions:
+
+   - **Not all of `~/.gradle`.** On this project that tree is ~6.1 GB, of which `caches/9.1.0` is ~3.8 GB of path-keyed, per-version script caches that are rebuilt every time and are unsafe to replay onto a different workspace path. Only the downloaded distribution and module artifacts are cached.
+   - **Not `~/.android/build-cache`.** `android/gradle.properties` does not enable `buildCache`, so there is nothing to restore. Revisit only if that flag is turned on.
+
+2. **China mirrors as the cache-miss fallback.** `PUB_HOSTED_URL` (`https://pub.flutter-io.cn`) and `FLUTTER_STORAGE_BASE_URL` (`https://storage.flutter-io.cn`) are set as workflow-level `env:` and are routed DIRECT by the local OpenClash rules, so a cold run does not fall back to paying the proxy for pub.dev or `storage.googleapis.com`. `.github/actions/setup-flutter` honors `FLUTTER_STORAGE_BASE_URL` when it has to install an SDK, defaulting to the upstream bucket when unset.
+
+   `pubspec.lock` pins every hosted package by `sha256`, so a mirror that served different bytes fails the hash check instead of installing something else — dependency integrity does not weaken by fetching through a mirror.
+
+**Not yet covered:** the agentic workflows ([`shared/runtime.md`](../.github/workflows/shared/runtime.md)) still resolve from pub.dev directly via their gh-aw firewall allow-lists. Moving them to the mirrors means editing the allow-lists and recompiling the `.lock.yml` files.
+
+---
+
 ## Baking dependencies into the runner instead of installing them per job
 
-Because runners are self-hosted, dependencies that don't change often should live on the runner rather than being fetched by every job:
+This applies to **toolchains and OS-level prerequisites**, which land in `RUNNER_TOOL_CACHE` or the container image and therefore survive the per-job environment reset. Package-level dependencies (`~/.pub-cache`, `~/.gradle`, CocoaPods) do **not** survive that reset and are handled by `actions/cache` instead — see *Dependency caching and mirrors* above.
 
 - **Linux (shared gh-sr agentic pool):** gh-sr builds a Docker image for `runner_mode: container` / `profile: agentic` runners. `runners.yml`'s `container_runner_image.extra_apt_packages` bakes the Flutter Linux build packages (`clang`, `cmake`, `ninja-build`, `xz-utils`, `zip`, `libgtk-3-dev`, `liblzma-dev`, `libsqlite3-dev`) into that image, on top of the packages already in gh-sr's own core manifest (`curl`, `git`, `jq`, `pkg-config`, `unzip`, …). This survives `gh sr rebuild` / `gh sr update` (which recreate the container and would otherwise wipe anything installed at runtime by `ensure_linux_tooling.sh`).
 - **macOS / Windows (native runners):** gh-sr has no generic dependency-baking mechanism for native runners — the runner's own filesystem just persists between jobs as long as it isn't reinstalled from scratch. Install Flutter's OS-level prerequisites once, manually, per the checklists below; the idempotent scripts (`fetch_ffmpeg.ps1`, `ensure_nuget_feed.ps1`, `ensure_inno_setup.ps1`, `ensure_ios_ci_toolchain.sh`) then skip re-installing on every run.
@@ -159,3 +182,5 @@ Windows workflows run `windows/scripts/fetch_ffmpeg.ps1`, `ensure_nuget_feed.ps1
 | [release_windows.yml](../.github/workflows/release_windows.yml) | self-hosted Windows (`enjoy-player-win`) | manual only (`workflow_dispatch`) | release build + Inno Setup installer |
 
 Each build/smoke workflow's `paths` filter lives inline in its own file — see the `on.pull_request.paths` block. Path filters only apply to `pull_request`/`push`; `workflow_dispatch` always runs regardless of what changed. Release workflows dropped their `push: tags: v*` trigger — publishing now always starts from **Actions → Run workflow**, with the release scripts' `--publish` behavior controlled entirely by the `publish` input.
+
+All six workflows above also set the China mirror `env:` and cache their dependency stores; release workflows deliberately do neither (low run frequency, and a release build should resolve against live upstream indexes rather than a warm cache).

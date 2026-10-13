@@ -55,6 +55,10 @@ runs:
         install_dir="$cache_root/flutter-$version-stable"
         flutter_root="$install_dir/flutter"
         flutter_bin="$flutter_root/bin/flutter"
+        # Honor the mirror so a cold SDK (new version, wiped tool cache) does
+        # not pull ~1 GB through the per-GB proxy. Defaults to the upstream
+        # bucket when the workflows do not set it.
+        storage_base="${FLUTTER_STORAGE_BASE_URL:-https://storage.googleapis.com}"
 
         flutter_sdk_ok() {
           [ -x "$flutter_bin" ] || return 1
@@ -68,7 +72,7 @@ runs:
 
           case "${{ runner.os }}" in
             Linux)
-              url="https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${version}-stable.tar.xz"
+              url="$storage_base/flutter_infra_release/releases/stable/linux/flutter_linux_${version}-stable.tar.xz"
               archive="${RUNNER_TEMP:-/tmp}/flutter_linux_${version}-stable.tar.xz"
               curl -fsSL ${CURL_HTTP_VERSION:+--http1.1} -o "$archive" "$url"
               tar -xJf "$archive" -C "$install_dir"
@@ -78,7 +82,7 @@ runs:
               if [ "${{ runner.arch }}" = "ARM64" ]; then
                 arch_suffix="_arm64"
               fi
-              url="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos${arch_suffix}_${version}-stable.zip"
+              url="$storage_base/flutter_infra_release/releases/stable/macos/flutter_macos${arch_suffix}_${version}-stable.zip"
               archive="${RUNNER_TEMP:-/tmp}/flutter_macos${arch_suffix}_${version}-stable.zip"
               curl -fsSL ${CURL_HTTP_VERSION:+--http1.1} -o "$archive" "$url"
               unzip -q "$archive" -d "$install_dir"
@@ -143,7 +147,11 @@ runs:
           New-Item -ItemType Directory -Path $installDir -Force | Out-Null
 
           $archive = Join-Path $env:RUNNER_TEMP "flutter_windows_$version-stable.zip"
-          $url = "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_$version-stable.zip"
+          # Honor the mirror so a cold SDK (new version, wiped tool cache) does
+          # not pull ~1 GB through the per-GB proxy. Defaults to the upstream
+          # bucket when the workflows do not set it.
+          $storageBase = if ($env:FLUTTER_STORAGE_BASE_URL) { $env:FLUTTER_STORAGE_BASE_URL } else { 'https://storage.googleapis.com' }
+          $url = "$storageBase/flutter_infra_release/releases/stable/windows/flutter_windows_$version-stable.zip"
           Invoke-WebRequest -Uri $url -OutFile $archive
           Expand-Archive -Path $archive -DestinationPath $installDir -Force
           Remove-Item -Path $archive -Force -ErrorAction SilentlyContinue

@@ -28,6 +28,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Cache misses must not reach pub.dev / storage.googleapis.com through the
+# per-GB proxy; these mirrors are routed DIRECT. pubspec.lock pins every
+# package by sha256, so a mirror serving different bytes fails the hash check.
+env:
+  PUB_HOSTED_URL: https://pub.flutter-io.cn
+  FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
+
 permissions:
   contents: read
 
@@ -37,6 +44,50 @@ jobs:
     runs-on: [self-hosted, macos]
     steps:
       - uses: actions/checkout@v6
+
+      # The job's environment is reset to a pristine state before each run, so
+      # ~/.pub-cache cannot persist on the runner between jobs. The cache
+      # backend is the LAN gh-sr-cache server: a hit costs zero proxy bytes,
+      # and only a miss re-uploads.
+      - name: Restore pub cache
+        id: pub-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Save pub cache
+        if: steps.pub-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
+
+      # `pod install` is the other per-run network cost on this runner (the
+      # spec repo plus every pod source archive). Keyed per job so the iOS and
+      # macOS locks cannot contend for one key, and on the lock file so a pod
+      # version bump re-resolves rather than serving a stale tree.
+      - name: Restore CocoaPods caches (iOS)
+        id: pods-cache-ios
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: pods-${{ runner.os }}-ios-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            pods-${{ runner.os }}-ios-
+
+      - name: Save CocoaPods caches (iOS)
+        if: steps.pods-cache-ios.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ steps.pods-cache-ios.outputs.cache-primary-key }}
 
       - uses: ./.github/actions/setup-macos-runner-env
 
@@ -74,6 +125,42 @@ jobs:
     runs-on: [self-hosted, macos]
     steps:
       - uses: actions/checkout@v6
+
+      - name: Restore pub cache
+        id: pub-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Save pub cache
+        if: steps.pub-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
+
+      - name: Restore CocoaPods caches (macOS)
+        id: pods-cache-macos
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: pods-${{ runner.os }}-macos-${{ hashFiles('macos/Podfile.lock') }}
+          restore-keys: |
+            pods-${{ runner.os }}-macos-
+
+      - name: Save CocoaPods caches (macOS)
+        if: steps.pods-cache-macos.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ steps.pods-cache-macos.outputs.cache-primary-key }}
 
       - uses: ./.github/actions/setup-macos-runner-env
 
