@@ -10,6 +10,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 
 **Audit 2026-10-12** (UI/UX polish pass, boards as reference, not law): re-ran every gallery compare and closed the gaps that hurt usability or consistency. Player — top-bar meta uses language endonyms (`English · 中文`), speed reads `1.0×` in the dock and the speed sheet, Hide text keeps the eye-slash glyph, phone transcript gets its full width (practiced dot hangs in the margin), phone takes wrap with an icon-only Pitch button, the wide assessment margin hosts the full assessment body (replay, re-assess, phoneme analysis — it had dropped them) inside a `Material`, scores lose their last hues. App — Craft rebuilt to its board (editorial header, Express/Advanced + History, Capture → Rewrite → Audio stepper, card, endonym chips, violet recording); desktop sign-in brand panel; Subscription shows the three plan columns at hub width with one-line prices; Credits packages never break a number; Settings Theme is an inline System / Light / Dark segmented control, row values center on the row, shorter language names; AI providers collapse to one row per modality until BYOK; Sync hero icon + locale time; keycaps without `+` joiners and a pencil edit action; Discover relative ages, `+ Add to library`, labeled `✓ In library`; Profile ghost Sign out, form Cancel + Save, mono grouped Enjoy ID; Vocabulary keeps the Profile tab selected on phones; desktop Import drops a menu under the button; every yes/no confirmation goes through `showEnjoyConfirmDialog` with Literata titles. Left as-is on purpose: Vocabulary row IPA (needs a per-row dictionary fetch), Discover "All languages" filter (no such feature), Review flashcard size (ratings appear on flip by design), NotFound outside the shell.
 
+**Canvas v30 2026-10-13** ([#915](https://github.com/baizhiheizi/enjoy_player/issues/915)): one player design for Enjoy Player, the web app and the browser extension — the 14-point player audit (canvas v28–v29, shipped in the extension as baizhiheizi/enjoy#1512) and the desktop parity pass with the web player (v30). Boards re-exported (`Main`, `Phone`, `System`, `Keyboard`, `canvas.json`; a stray `ji` paragraph dropped from `DYoutubeDark`) and the 26 player / System / Keyboard renders refreshed. The work is Phase 6 below ([PLAN.md → Phase 6](PLAN.md#phase-6--one-player-with-the-web-app-and-extension-canvas-v30)); R1 and R3 are decided, R4–R6 are new behavior questions. The `System` board is shared with the Enjoy Redesign canvas: change both together.
+
 ## Progress
 
 | Phase | Tasks | Done |
@@ -21,7 +23,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 4 · App screens | 11 | 10 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
 | A · Audit verification | 6 | 6 |
-| **Total** | **50** | **43 done/in review** |
+| 6 · One player with web + extension (v30) | 14 | 1 |
+| **Total** | **64** | **44 done/in review** |
 
 ## Decisions
 
@@ -29,11 +32,14 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Question | Recommendation | Status | Gates |
 |---|---|---|---|---|
-| R1 | The Listen dock on `Main` draws a **Repeat** button. Repeat mode exists (`RepeatMode` none / single / segment, `PlayerPreferences.setRepeatMode`) but has no UI today, so the button would expose a hidden setting. Ship it? | Leave it out (feature freeze); revisit after the merge. | open | D3.2 **2026-10-06 (D2)**: the dock is full-bleed (the RootShell 16/4/16/12 inset removed — the dock paints its own paper bar + top line + safe area); skip glyphs filled; speed is mono `1.0×` text (pill border removed); phone Listen dock is one row (Hide · prev · play · next · speed, no replay — R3 applied as drawn); phone Echo dock is one centered row (no Hide). Remaining: Repeat (R1), Hide eye-slash glyph check. The Echo context lines drop their translation (English only, as the board); the ruler's practiced dots were already implemented and now show with seeded takes |
-| R2 | The board's takes strip draws **no delete affordance**, so the player embed loses the take **more-menu** (delete with confirm / re-assess / choose). The vocabulary embed keeps it. Where does player-side take management land? | Park it in the D3.8 assessment margin take panel (re-assess lives on the score chip today). | open | D3.6, D3.8 |
+| R1 | The Listen dock on `Main` draws a **Repeat** button. Repeat mode exists (`RepeatMode` none / single / segment, `PlayerPreferences.setRepeatMode`) but has no UI today, so the button would expose a hidden setting. Ship it? | Ship it: canvas v30 keeps Repeat in the Listen dock and the web app added it (#915). | decided 2026-10-13 (canvas v30) — owner to confirm the feature-freeze exception when D6.5 lands | D6.5 (was D3.2) |
+| R2 | The board's takes strip draws **no delete affordance**, so the player embed loses the take **more-menu** (delete with confirm / re-assess / choose). The vocabulary embed keeps it. Where does player-side take management land? | v30 gives the takes a full list (`3 takes ›`: margin on desktop, sheet on phones); put delete / re-assess there. | open | D3.6, D3.8, D6.3 |
 | S1 | The desktop sidebar on `Sidebar` adds **Vocabulary** (due count) and **Craft** rows, a **Settings** row, and a **sync status** line. It drops `SidebarContinuePracticeCard`; Home keeps Continue practicing. These are navigation changes only, on existing routes and state. | Build as drawn. | decided — built as drawn in D2.1 per the standing "stick to the design" direction | D2.1 |
 | L1 | Violet replaces coral for "you"; scores lose their colors; Literata replaces Source Serif 4 and Instrument Serif; Hide text renders as word shapes. | Accepted in ADR-0093. | decided | — |
-| R3 | The **phone** Listen dock on `Phone` has no replay (↺) button; the desktop `Main` dock has one, and the app shows it on both. Drop it on phones? | Drop it on phones only (the board's one-row phone dock: Hide · prev · play · next · speed); keep the `S` hotkey. | open | D3.2 |
+| R3 | The **phone** Listen dock on `Phone` had no replay (↺) button; the desktop `Main` dock has one. Drop it on phones? | Keep it: canvas v30 puts Replay leftmost in every dock, phone included (Replay · Previous · Play · Next · speed); Hide moves into the mode switch as Dictate (R4). | decided 2026-10-13 (canvas v30) | D6.5 (was D3.2) |
+| R4 | v30 makes **Dictate** (= today's Hide text, `H`) a third segment beside Listen and Echo and removes the dock's Hide toggle. Today Hide text is a flag orthogonal to Echo (both can be on). Is Dictate exclusive with Echo, or does the segment just show the flag? | Segment reflects the flag; `H` keeps toggling it; Echo + Dictate stays possible from the keyboard until the web/extension behavior is confirmed. | open | D6.1 |
+| R5 | The Display section adds **Transcript type** (Book = Literata / Clean = Geist). Today `useSerif` is always `true` with no switch (ADR-0093 decision 2). Add the setting? | Add it as a display preference (default Book); needs an ADR-0093 amendment. | open | D6.7 |
+| R6 | ⋯ More lists **Edit transcript**, **Download transcript…**, **Export the loop as a clip…** and **Edit details**, which have no feature in the app today. Build them? | Leave them out of D6.8; each is its own feature issue. | open | D6.8 |
 
 ## Tasks
 
@@ -111,6 +117,25 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | A5 | One gallery scene per board | all | A2–A4 | done | | | Rolling: each Phase C / D task adds the state boards it rebuilds (tabs, dialogs, review steps, player states). 34 boards captured so far 44 boards captured (NotFound, Poster, Review added 2026-10-06; Review seeds `BoardReviewSession` from the board words). 44 compare images cover every board with a distinct surface (dialogs incl. LibraryDelete, SettingsAbout update, SubscriptionPlans, KeyboardCheatsheet; Review, NotFound, Poster, DScored). LibraryImporting (the blocking import spinner) has no stable capture hook — verified by inspection. |
 | A6 | Tracker reset | — | — | done | | | This change: tasks reopened, counts corrected, compare rule added |
 
+### Phase 6 · One player with the web app and extension (canvas v30, [#915](https://github.com/baizhiheizi/enjoy_player/issues/915))
+
+| ID | Task | Boards | Depends | Status | Owner | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| D6.0 | Re-export canvas v30 + re-plan | all player boards, `System`, `Keyboard` | — | review | | | Boards + `canvas.json` re-exported, 26 renders refreshed, README / PLAN / STATUS updated, R1 / R3 decided, R4–R6 opened. Shipped with it: margin token 340 → 360 (`tokens.json` + `tokens/spaces.dart`), shortcut copy (`H` = Dictate (hide text), `[ ]` add a line, `{ }` drop a line), pitch legend `Original pitch`. Baseline compares of every touched board attached to the PR — they show the Phase 6 gap, not a finished state |
+| D6.1 | Three lenses: Listen · Echo · Dictate | `Main`, `DHide`, `PHide`, `Phone` | — | todo | | | Behavior gated by R4 |
+| D6.2 | Echo loop brackets + “+ line” / “−” rows | `DEcho`, `PEcho`, `DRecording`, `DCompact` | — | todo | | | UI only (`shrinkEcho*` already exist) |
+| D6.3 | Takes row + takes list, scored on demand | `DScored`, `PScored`, `DEcho`, `PEcho` | D6.12 | todo | | | R2 lands here |
+| D6.4 | Current line card + gutter + type scale | `Main`, `Phone`, `DDark`, `PDark` | — | todo | | | |
+| D6.5 | Dock: Replay first, time + ruler row, readouts, speed button, Repeat | `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording` | — | todo | | | R1, R3 decided |
+| D6.6 | Top bar: three columns, Subtitles chip, ⋯ More | `Main`, `DSubtitles`, `DVideo`, `DYoutubeDark` | — | todo | | | |
+| D6.7 | Subtitles & display panel | `DSubtitles` | D6.8 | todo | | | Transcript type gated by R5 |
+| D6.8 | ⋯ More menu | `Main`, `DSubtitles` | D6.6 | todo | | | Four entries gated by R6 |
+| D6.9 | Word lookup structure | `DWord`, `PWord` | — | todo | | | Keep expand-to-load |
+| D6.10 | Dictate word shapes, one flat fill | `DHide`, `PHide` | — | todo | | | |
+| D6.11 | Desktop video: picture left, transcript rail right | `DVideo`, `DYoutubeDark` | — | todo | | | Rule 4 (surface parking) |
+| D6.12 | Margin 360, pushes content (video too), drawer < 1100 | `DWord`, `DScored`, `DCompact`, `DVideo` | — | todo | | | Token done in D6.0; layout was the D3.7 / D3.8 residual |
+| D6.13 | Copy: Original / Score / Assessment / Take n | all player boards, `Keyboard`, `KeyboardCheatsheet` | — | in progress | | | Shortcut descriptions + pitch legend done in D6.0 |
+
 ### Phase 5 · Cleanup, proof, merge
 
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
@@ -130,31 +155,31 @@ Every board has an owner task. A board drawn for more than one state appears und
 |---|---|---|---|---|
 | `Sidebar` | D2.1 | | `Home` | D4.1 (D1.7, D1.8, D2.1, D2.3) |
 | `TabBar` | D2.2 | | `HomeImport` | D4.1 |
-| `Main` | D3.1–D3.4 | | `HomeFirstRun` | D4.1 |
-| `DEcho` | D3.1, D3.2, D3.5, D3.6 | | `HomeDark` | D4.1, D2.1 |
-| `DRecording` | D3.2, D3.6 | | `Discover` | D4.2 (D1.7) |
-| `DScored` | D3.6, D3.8 | | `DiscoverChannel` | D4.2 |
-| `DWord` | D3.7 | | `DiscoverManage` | D4.2 |
-| `DHide` | D3.9 | | `Library` | D4.3 (D1.5, D1.7) |
-| `DSubtitles` | D3.10 | | `LibraryAudio` | D4.3 (D1.7) |
-| `DCompact` | D3.1, D3.5, D3.7, D3.13 | | `LibraryCloud` | D4.3 |
-| `DVideo` | D3.1, D3.2, D3.13 | | `LibraryDelete` | D4.3 (D1.4, D1.6) |
-| `DYoutubeDark` | D3.1, D3.13 | | `LibraryImporting` | D4.3 |
-| `DDark` | D3.4, D3.13 | | `Vocabulary` | D4.4 |
+| `Main` | D3.1–D3.4, D6.1, D6.4–D6.8 | | `HomeFirstRun` | D4.1 |
+| `DEcho` | D3.1, D3.2, D3.5, D3.6, D6.2, D6.3, D6.5 | | `HomeDark` | D4.1, D2.1 |
+| `DRecording` | D3.2, D3.6, D6.2, D6.5 | | `Discover` | D4.2 (D1.7) |
+| `DScored` | D3.6, D3.8, D6.3, D6.12 | | `DiscoverChannel` | D4.2 |
+| `DWord` | D3.7, D6.9, D6.12 | | `DiscoverManage` | D4.2 |
+| `DHide` | D3.9, D6.1, D6.10 | | `Library` | D4.3 (D1.5, D1.7) |
+| `DSubtitles` | D3.10, D6.6–D6.8 | | `LibraryAudio` | D4.3 (D1.7) |
+| `DCompact` | D3.1, D3.5, D3.7, D3.13, D6.2, D6.12 | | `LibraryCloud` | D4.3 |
+| `DVideo` | D3.1, D3.2, D3.13, D6.5, D6.6, D6.11, D6.12 | | `LibraryDelete` | D4.3 (D1.4, D1.6) |
+| `DYoutubeDark` | D3.1, D3.13, D6.6, D6.11 | | `LibraryImporting` | D4.3 |
+| `DDark` | D3.4, D3.13, D6.4 | | `Vocabulary` | D4.4 |
 | `DEmpty` | D3.11 | | `VocabularyReview` | D4.4 (D1.5) |
 | `DGenerating` | D3.11 | | `Review` | D4.5 |
 | `DLocate` | D3.11 (D1.4) | | `ReviewBack` | D4.5 |
 | `Poster` | D3.12 | | `ReviewDone` | D4.5 |
-| `Phone` | D3.1–D3.4 | | `Craft` | D4.6 (D2.3) |
-| `PEcho` | D3.2, D3.3, D3.5, D3.6 | | `CraftRewrite` | D4.6 |
-| `PRecording` | D3.2, D3.6 | | `CraftAudio` | D4.6 |
-| `PScored` | D3.6, D3.8 | | `CraftAdvanced` | D4.6 |
-| `PWord` | D3.7 | | `CraftHistory` | D4.6 (D1.7) |
-| `PHide` | D3.9 | | `SignIn` | D4.7 (D1.4) |
+| `Phone` | D3.1–D3.4, D6.1, D6.4, D6.5 | | `Craft` | D4.6 (D2.3) |
+| `PEcho` | D3.2, D3.3, D3.5, D3.6, D6.2, D6.3, D6.5 | | `CraftRewrite` | D4.6 |
+| `PRecording` | D3.2, D3.6, D6.5 | | `CraftAudio` | D4.6 |
+| `PScored` | D3.6, D3.8, D6.3 | | `CraftAdvanced` | D4.6 |
+| `PWord` | D3.7, D6.9 | | `CraftHistory` | D4.6 (D1.7) |
+| `PHide` | D3.9, D6.1, D6.10 | | `SignIn` | D4.7 (D1.4) |
 | `PVideo` | D3.1, D3.13 | | `SignInCode` | D4.7 |
 | `PVideoEcho` | D3.13 | | `Profile` | D4.8 (D2.3) |
-| `PDark` | D3.4, D3.13 | | `ProfileEdit` | D4.8 (D2.3) |
-| `System` | D1.1–D1.6, D4.11 | | `ProfilePrefs` | D4.8 |
+| `PDark` | D3.4, D3.13, D6.4 | | `ProfileEdit` | D4.8 (D2.3) |
+| `System` | D1.1–D1.6, D4.11, D6.0 | | `ProfilePrefs` | D4.8 |
 | `NotFound` | D2.3 (D1.6) | | `Subscription` | D4.9 |
 | `PhSignIn` | D4.7 | | `SubscriptionPlans` | D4.9 (D1.6) |
 | `PhHome` | D4.1 (D2.2) | | `Credits` | D4.9 |
@@ -162,7 +187,7 @@ Every board has an owner task. A board drawn for more than one state appears und
 | `PhDiscover` | D4.2 | | `SettingsAbout` | D4.10 |
 | `PhLibrary` | D4.3 (D2.2) | | `SettingsDark` | D4.10 |
 | `PhVocabulary` | D4.4 | | `Sync` | D4.10 |
-| `PhReview` | D4.5 | | `Keyboard` | D4.10 (D1.5) |
-| `PhCraft` | D4.6 | | `KeyboardCheatsheet` | D4.10 |
+| `PhReview` | D4.5 | | `Keyboard` | D4.10 (D1.5), D6.13 |
+| `PhCraft` | D4.6 | | `KeyboardCheatsheet` | D4.10, D6.13 |
 | `PhProfile` | D4.8 | | `AiProviders` | D4.10 |
 | `PhSettings` | D4.10 | | | |

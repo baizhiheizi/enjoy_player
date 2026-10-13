@@ -94,7 +94,7 @@
       "h": 900,
       "is_interactive": true,
       "page": "player",
-      "title": "Echo · the loop steps forward, the rest recedes",
+      "title": "Echo · the loop steps forward, “+ line” rows either side",
       "w": 1440,
       "x": 1520,
       "y": 0
@@ -122,7 +122,7 @@
       "h": 900,
       "is_interactive": true,
       "page": "player",
-      "title": "Listen · Hide text — word shapes, hover to peek",
+      "title": "Dictate · text hidden as word shapes, hover to peek",
       "w": 1440,
       "x": 1520,
       "y": 1320
@@ -340,7 +340,7 @@
       "h": 900,
       "is_interactive": true,
       "page": "player",
-      "title": "Listen · audio — interactive (play, click a word, switch to Echo, record)",
+      "title": "Listen · audio — interactive (play, click a word, switch to Echo or Dictate, record)",
       "w": 1440,
       "x": 0,
       "y": 0
@@ -376,7 +376,7 @@
       "h": 844,
       "is_interactive": true,
       "page": "phone",
-      "title": "Phone · Hide text, hold to peek",
+      "title": "Phone · Dictate · text hidden, hold to peek",
       "w": 390,
       "x": 2350,
       "y": 0
@@ -679,7 +679,7 @@
       "y": 2640
     },
     "System.dc.html": {
-      "h": 6360,
+      "h": 8200,
       "page": "system",
       "title": "Duet · design language",
       "w": 1440,
@@ -878,7 +878,7 @@
     },
     "stickyHide": {
       "page": "player",
-      "text": "Hide text = Blur practice (H), drawn as word shapes instead of a blur.\n\nSame rule as today: the playing line never reveals itself. Hover (desktop) or press-and-hold (touch) peeks one line. Translation and IPA stay hidden with it.\n\nWord shapes are flat fills — no per-line blur layer to paint.",
+      "text": "Dictate (H) = today's Hide text / Blur practice, drawn as word shapes. It is the third lens, as on the web and in the extension.\n\nSame rule as today: the playing line never reveals itself. Hover (desktop) or press-and-hold (touch) peeks one line. Translation and IPA stay hidden with it.\n\nTyping what you hear and checking it will come to this lens later.",
       "w": 380,
       "x": 5520,
       "y": 1320
@@ -892,7 +892,7 @@
     },
     "stickyParity": {
       "page": "player",
-      "text": "Nothing here is a new feature.\n\n• Listen = today's player. Echo = echo mode: the loop pauses and rewinds at its end — it never auto-loops.\n• Loop handles = [ ] { } (expand / shrink echo).\n• Original = replay (S). Record = R. A take plays from its chip (G plays the selected one). Score = assessment (V). Share = practice poster, top bar, in Echo once there are takes. Pitch = pitch contour (P).\n• Notes on words come from the stored Azure assessment (error type + per-word accuracy + phonemes).\n• The margin replaces the lookup dialog and the assessment dialog on wide windows.",
+      "text": "Nothing here is a new feature.\n\n• Listen = today's player. Echo = echo mode: the loop pauses and rewinds at its end — it never auto-loops, and nothing plays after a take on its own.\n• Dictate = Hide text (H).\n• Loop: the line either side is a “+” row ([ ]); “−” drops the first or last line ({ }).\n• Original = replay (S). Record = R. Your latest take sits in one row under the loop (G plays it); “3 takes” opens the list (margin on desktop, sheet on phones). Score = assessment (V). Share = practice poster, top bar, in Echo once there are takes. Pitch = pitch contour (P).\n• Notes on words come from the stored Azure assessment (error type + per-word accuracy + phonemes).\n• The margin replaces the lookup dialog and the assessment dialog on wide windows.",
       "w": 380,
       "x": 6080,
       "y": 0
@@ -903,6 +903,14 @@
       "w": 340,
       "x": 2820,
       "y": 0
+    },
+    "stickySync": {
+      "x": -520,
+      "y": 0,
+      "w": 440,
+      "page": "system",
+      "fill": "blue",
+      "text": "This sheet is the same in the Enjoy Redesign canvas. Change both together.\n\nPlayer decisions (Oct 2026): three lenses with H = Dictate; loop brackets with “+ line” rows and − to drop; takes in one row + a list, scored on demand; current line on a card; Replay in the dock; web sizes; Original, not Reference; no automatic A/B; one Subtitles & display entry.\n\nDesktop (Oct 2026): video beside the text on a dark stage with a 300–380 px rail; header in three columns with the mode switch centred; transcript actions in ⋯ More; the margin pushes at 360 px; Repeat in the dock."
     }
   },
   "order": [

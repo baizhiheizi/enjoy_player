@@ -18,17 +18,23 @@ import 'package:enjoy_player/features/player/application/transport_slider_positi
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/expanded_player_widgets.dart';
 import 'package:enjoy_player/features/player/presentation/root_shell.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_coordinator.dart';
+import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/settings/application/ipa_overlay_settings.dart';
 import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/features/share_poster/presentation/practice_poster_preview_sheet.dart';
+import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/assessment_margin.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_dialog.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_fetch_controller.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -41,14 +47,16 @@ import 'gallery_support.dart';
 const _mediaId = 'm1';
 const _activeLine = 5;
 
+var sceneIsVideo = false;
+
 class _SessionController extends PlayerController {
   @override
   PlaybackSession? build() {
     final now = DateTime(2026, 1, 1);
     return PlaybackSession(
       mediaId: _mediaId,
-      dexieTargetType: 'Audio',
-      mediaType: 'audio',
+      dexieTargetType: sceneIsVideo ? 'Video' : 'Audio',
+      mediaType: sceneIsVideo ? 'video' : 'audio',
       mediaTitle: 'The Ferry at Six',
       durationSeconds: 55,
       currentTimeSeconds: 22,
@@ -215,6 +223,17 @@ class _IpaOn extends IpaOverlaySettings {
   Future<bool> build() async => true;
 }
 
+class _HideTextOn extends TranscriptBlurMode {
+  @override
+  bool build() => true;
+}
+
+class _RecordingActive extends ShadowReadingHotkeyBus {
+  @override
+  ShadowReadingHotkeyTicks build() =>
+      ShadowReadingHotkeyTicks.initial.copyWith(isRecordingActive: true);
+}
+
 Future<void> _seedTakes(AppDatabase db) async {
   final start = _startMs(_activeLine);
   final now = DateTime(2026, 10, 1, 12);
@@ -253,7 +272,7 @@ List<Override> _listenOverrides(
   playerEngineTestDoubleProvider.overrideWithValue(engine),
   dexieTargetTypeForMediaProvider(
     _mediaId,
-  ).overrideWith((ref) async => 'Audio'),
+  ).overrideWith((ref) async => sceneIsVideo ? 'Video' : 'Audio'),
   transcriptHasLinesForMediaProvider(
     _mediaId,
   ).overrideWith((ref) => Stream.value(true)),
@@ -304,6 +323,8 @@ List<Override> _echoOverrides(
 
 var openPosterOnNextMount = false;
 var openAssessmentOnNextMount = false;
+var openAssessmentSheetOnNextMount = false;
+var openLookupOnNextMount = false;
 
 GoRouter _playerRouter() => GoRouter(
   initialLocation: '/player/$_mediaId',
@@ -332,6 +353,35 @@ GoRouter _playerRouter() => GoRouter(
                   );
                 });
               }
+              if (openLookupOnNextMount) {
+                openLookupOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!context.mounted) return;
+                  unawaited(
+                    ref
+                        .read(lookupCoordinatorProvider.notifier)
+                        .open(
+                          context,
+                          LookupRequest(
+                            selectedText: 'ferry',
+                            sourceLanguage: 'en',
+                            targetLanguage: 'zh',
+                            contextualContext: _board[_activeLine].$1,
+                          ),
+                        ),
+                  );
+                });
+              }
+              if (openAssessmentSheetOnNextMount) {
+                openAssessmentSheetOnNextMount = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  if (!context.mounted) return;
+                  await showAssessmentResultDialog(
+                    context: context,
+                    assessment: _boardAssessment(),
+                  );
+                });
+              }
               if (openPosterOnNextMount) {
                 openPosterOnNextMount = false;
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -354,42 +404,133 @@ GoRouter _playerRouter() => GoRouter(
   ],
 );
 
+enum _Lens { listen, echo, echoIpa }
+
+Future<void> _tapWord(WidgetTester tester) =>
+    tester.tap(find.text('ferry').last);
+
+Future<void> _tapSubtitles(WidgetTester tester) =>
+    tester.tap(find.text('Subtitles').first);
+
 void main() {
   setUpAll(setUpGallery);
 
-  for (final (board, frame, brightness, echo, ipa) in [
-    ('Main', GalleryFrame.desktop, Brightness.light, false, false),
-    ('DDark', GalleryFrame.desktop, Brightness.dark, false, false),
-    ('DEcho', GalleryFrame.desktop, Brightness.light, true, true),
-    ('DCompact', GalleryFrame.compact, Brightness.light, true, false),
-    ('Phone', GalleryFrame.phone, Brightness.light, false, false),
-    ('PEcho', GalleryFrame.phone, Brightness.light, true, false),
-    ('PDark', GalleryFrame.phone, Brightness.dark, true, false),
-    ('Poster', GalleryFrame.desktop, Brightness.light, true, false),
-    ('DScored', GalleryFrame.desktop, Brightness.light, true, false),
+  for (final (board, frame, brightness, lens, extra, before) in [
+    ('Main', GalleryFrame.desktop, Brightness.light, _Lens.listen, null, null),
+    ('DDark', GalleryFrame.desktop, Brightness.dark, _Lens.listen, null, null),
+    (
+      'DEcho',
+      GalleryFrame.desktop,
+      Brightness.light,
+      _Lens.echoIpa,
+      null,
+      null,
+    ),
+    (
+      'DCompact',
+      GalleryFrame.compact,
+      Brightness.light,
+      _Lens.echo,
+      null,
+      null,
+    ),
+    ('Phone', GalleryFrame.phone, Brightness.light, _Lens.listen, null, null),
+    ('PEcho', GalleryFrame.phone, Brightness.light, _Lens.echo, null, null),
+    ('PDark', GalleryFrame.phone, Brightness.dark, _Lens.echo, null, null),
+    ('Poster', GalleryFrame.desktop, Brightness.light, _Lens.echo, null, null),
+    (
+      'DScored',
+      GalleryFrame.desktop,
+      Brightness.light,
+      _Lens.echo,
+      null,
+      _tapWord,
+    ),
+    ('PScored', GalleryFrame.phone, Brightness.light, _Lens.echo, null, null),
+    (
+      'DRecording',
+      GalleryFrame.desktop,
+      Brightness.light,
+      _Lens.echo,
+      shadowReadingHotkeyBusProvider.overrideWith(_RecordingActive.new),
+      null,
+    ),
+    (
+      'DHide',
+      GalleryFrame.desktop,
+      Brightness.light,
+      _Lens.listen,
+      transcriptBlurModeProvider.overrideWith(_HideTextOn.new),
+      null,
+    ),
+    (
+      'PHide',
+      GalleryFrame.phone,
+      Brightness.light,
+      _Lens.listen,
+      transcriptBlurModeProvider.overrideWith(_HideTextOn.new),
+      null,
+    ),
+    (
+      'DSubtitles',
+      GalleryFrame.desktop,
+      Brightness.light,
+      _Lens.listen,
+      null,
+      _tapSubtitles,
+    ),
+    ('DWord', GalleryFrame.desktop, Brightness.light, _Lens.listen, null, null),
+    ('PWord', GalleryFrame.phone, Brightness.light, _Lens.listen, null, null),
+    (
+      'DVideo',
+      GalleryFrame.desktop,
+      Brightness.light,
+      _Lens.listen,
+      null,
+      null,
+    ),
   ]) {
     testWidgets(board, (tester) async {
       final db = memoryDb();
       final engine = FakePlayerEngine();
       addTearDown(engine.dispose);
       await tester.runAsync(() => _seedTakes(db));
+      sceneIsVideo = board == 'DVideo';
+      addTearDown(() => sceneIsVideo = false);
       openPosterOnNextMount = board == 'Poster';
       openAssessmentOnNextMount = board == 'DScored';
+      openAssessmentSheetOnNextMount = board == 'PScored';
+      openLookupOnNextMount = board == 'DWord' || board == 'PWord';
+      if (sceneIsVideo) {
+        const windowManager = MethodChannel('window_manager');
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        messenger.setMockMethodCallHandler(
+          windowManager,
+          (call) async => false,
+        );
+        addTearDown(
+          () => messenger.setMockMethodCallHandler(windowManager, null),
+        );
+      }
       await shootBoard(
         tester,
         board,
         sceneApp(
           router: _playerRouter(),
-          overrides: echo
-              ? _echoOverrides(db, engine, ipa: ipa)
-              : _listenOverrides(db, engine, playing: false),
+          overrides: [
+            ...switch (lens) {
+              _Lens.listen => _listenOverrides(db, engine, playing: false),
+              _Lens.echo => _echoOverrides(db, engine),
+              _Lens.echoIpa => _echoOverrides(db, engine, ipa: true),
+            },
+            ?extra,
+          ],
           brightness: brightness,
         ),
         frame: frame,
         db: db,
-        before: board == 'DScored'
-            ? (tester) async => tester.tap(find.text('ferry').last)
-            : null,
+        before: before,
       );
     });
   }

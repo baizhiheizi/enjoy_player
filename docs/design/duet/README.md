@@ -1,10 +1,10 @@
 # Duet — design reference
 
-**Status**: Being implemented on the `design-duet` branch. Decision: [ADR-0093](../../decisions/0093-duet-design-language.md), which replaces the unreleased Aurora look of [ADR-0089](../../decisions/0089-aurora-design-language.md).
+**Status**: Merged to `main` (PR #853). The canvas is at **v30** (2026-10-13): one player design shared with the Enjoy web app and browser extension ([#915](https://github.com/baizhiheizi/enjoy_player/issues/915)); that work is [PLAN.md → Phase 6](PLAN.md#phase-6--one-player-with-the-web-app-and-extension-canvas-v30). Decision: [ADR-0093](../../decisions/0093-duet-design-language.md), which replaces the unreleased Aurora look of [ADR-0089](../../decisions/0089-aurora-design-language.md).
 
 **Plan**: [PLAN.md](PLAN.md) has the phases, tasks, rules and verification. **Tracker**: [STATUS.md](STATUS.md) shows task status, open decisions, and which task owns each board.
 
-**This folder is self-contained.** Everything needed to build the design is here: a rendered image of every board, the board sources with exact values, and the tokens. The design was drawn on a private canvas (<https://claude.ai/artifact/WZWHs6XNPFoAYWeVR5Sqo1>); that is only needed to *change* the design, never to implement it.
+**This folder is self-contained.** Everything needed to build the design is here: a rendered image of every board, the board sources with exact values, and the tokens. The design was drawn on a private canvas (<https://claude.ai/artifact/WZWHs6XNPFoAYWeVR5Sqo1>); that is only needed to *change* the design, never to implement it. Its `System` board is the same sheet as the Enjoy Redesign canvas (web app + extension): change one, change both.
 
 **Rule for the refactor**: UI/UX only. No feature, behavior, or hotkey changes. The Echo loop keeps today's pause-and-rewind at the loop end; it never auto-repeats.
 
@@ -31,8 +31,10 @@
 
 - **Two voices.** Blue (the logo's start, `original`) is the original speaker: playback, the spoken word, reference pitch, Listen. Violet (the logo's end, `you`) is the learner: the Echo loop, Record, takes, your pitch, notes on a take. The brand gradient between them is Enjoy itself (logo, Play, primary buttons, goal ring, Pro). Everything else is ink.
 - **Never by hue alone.** Blue and violet are close in hue, so the original is always the translucent layer and you the solid one (pitch band vs line, soft vs filled buttons) and they keep a ~1.9:1 lightness gap in both themes.
-- **Modes are lenses.** Listen reads like a book; Echo grows the loop line in place and fades the rest through the logo's opacity steps (1 / 0.65 / 0.35 / 0.2). One transcript, no screen change.
-- **Controls below, context beside.** Every player control lives in the dock. The side margin (340 px) opens only for a word lookup or a take's assessment; under 1100 px it is a drawer, on phones a bottom sheet. It replaces today's lookup dialog and assessment dialog.
+- **Modes are lenses: Listen · Echo · Dictate.** Switched at the top of the player, truly centred. Listen (blue) reads like a book, the current line on a paper card; Echo (violet, `E`) holds the loop in four corner brackets with a dashed “+ line” row either side (`[` `]`) and a “−” to drop the first or last line (`{` `}`), and fades the rest through the logo's opacity steps (1 / 0.65 / 0.35 / 0.2); Dictate (violet, `H`) is today's Hide text — word shapes, hover or press-and-hold to peek; typing what you hear comes later. One transcript, no screen change.
+- **Controls below, context beside.** Every player control lives in the dock (Replay first; time and ruler on one row). The side margin (360 px) opens for a word lookup, the takes list or a take's assessment and pushes the content aside, video included; under 1100 px it is a 360 px drawer, on phones a bottom sheet. It replaces today's lookup dialog and assessment dialog.
+- **Takes on demand.** Under the loop one row shows the latest take and `3 takes ›`. A take lands unscored; Score (`V`) runs it and opens `Take 3 · Assessment`. Nothing plays on its own after a take — no automatic A/B.
+- **Words.** `Original`, never `Reference`; `Score` runs it, `Assessment` is the detail; `Take 3`, never `Recording 3`.
 - **Feedback on the words.** Mispronounced words get a wavy violet underline, a missing pause gets a violet pause mark, the recording countdown fills along the words. Scores on takes stay uncolored (a number plus a four-step meter); the assessment result itself uses the green / amber / red level scale (user decision 2026-10-13, see `docs/features/shadow-reading.md`).
 - **Danger is for failures, not for business states.** Red (`danger` / the Material `error` scheme) is reserved for real faults — a request that failed and needs a retry. Recoverable product states — credits exhausted, network flaking, sync pending — read as neutral content (sunk surface, ink text) with exactly **one** primary CTA into the fix (usually plans & packages, `/subscription`); never a red box, and never the same CTA repeated per section. A pre-failure threshold (today's credits ≥ 90% used) may tint the number `danger` to draw the eye (profile meter, lookup credits chip), but the surrounding surface stays calm.
 - **Scores**: Excellent ≥ 91 · Good ≥ 81 · Fair ≥ 61 · Poor below (same thresholds as `score_level.dart`).
@@ -52,15 +54,15 @@ Every screen board is one responsive file; the sidebar (≥ 900 px) becomes the 
 
 | Board | State |
 |-------|-------|
-| [`Main`](renders/Main.webp) | Listen, audio — interactive prototype (play, click a word, Echo, record, score) |
-| [`DEcho`](renders/DEcho.webp) | Echo idle, IPA on |
+| [`Main`](renders/Main.webp) | Listen, audio — interactive prototype (play, click a word, Echo or Dictate, record, score, ⋯ More) |
+| [`DEcho`](renders/DEcho.webp) | Echo idle, IPA on: corner brackets, “+ line” / “−” rows, takes row |
 | [`DRecording`](renders/DRecording.webp) | Recording a take (countdown on the words, Cancel / Stop in the dock) |
-| [`DScored`](renders/DScored.webp) | Scored take: notes on words, pitch duet, assessment margin |
-| [`DWord`](renders/DWord.webp) | Word lookup in the margin (replaces the `LookupCoordinator` dialog on wide windows) |
-| [`DHide`](renders/DHide.webp) | Hide text (Blur practice, `H`) drawn as word shapes; hover / press-and-hold peeks |
-| [`DSubtitles`](renders/DSubtitles.webp) | Subtitles & display popover (replaces the CC sheet on wide windows), word timings generating |
+| [`DScored`](renders/DScored.webp) | Scored take: notes on words, `Take 3 · Assessment` in the margin |
+| [`DWord`](renders/DWord.webp) | Word lookup in the margin (replaces the `LookupCoordinator` dialog on wide windows): Pronounce · Save · Copy, language swap, “In this audio · 0:20” |
+| [`DHide`](renders/DHide.webp) | Dictate (`H`, today's Hide text / blur practice) drawn as flat word shapes; hover / press-and-hold peeks |
+| [`DSubtitles`](renders/DSubtitles.webp) | Subtitles & display popover (replaces the CC sheet on wide windows): tracks, Transcript type, highlight, IPA, word timings generating; transcript actions live in ⋯ More |
 | [`DCompact`](renders/DCompact.webp) | 880 × 560 minimum window; margin as drawer |
-| [`DVideo`](renders/DVideo.webp), [`DYoutubeDark`](renders/DYoutubeDark.webp), [`DDark`](renders/DDark.webp) | Video side-by-side, YouTube chips, dark mode |
+| [`DVideo`](renders/DVideo.webp), [`DYoutubeDark`](renders/DYoutubeDark.webp), [`DDark`](renders/DDark.webp) | Video: picture left on a dark stage, transcript rail (300–380 px) right with a draggable divider; YouTube chips; dark mode |
 | [`DEmpty`](renders/DEmpty.webp), [`DGenerating`](renders/DGenerating.webp), [`DLocate`](renders/DLocate.webp) | No transcript, AI transcript in progress, Locate media file |
 | [`Phone`](renders/Phone.webp), [`PEcho`](renders/PEcho.webp), [`PRecording`](renders/PRecording.webp), [`PScored`](renders/PScored.webp), [`PWord`](renders/PWord.webp), [`PHide`](renders/PHide.webp), [`PVideo`](renders/PVideo.webp), [`PVideoEcho`](renders/PVideoEcho.webp), [`PDark`](renders/PDark.webp) | Phone player (portrait only, ADR-0059) |
 
@@ -132,9 +134,11 @@ Accepted in [ADR-0093](../../decisions/0093-duet-design-language.md):
 
 1. Violet replaces coral for "you"; scores lose their colors.
 2. Literata replaces Source Serif 4 (transcript) and Instrument Serif (display). The transcript stays serif; today's `useSerif: true` has no user-facing switch, and the design adds none.
-3. Hide text renders as word shapes instead of a Gaussian blur, with the same reveal rules; they are cheaper to paint.
+3. Hide text (Dictate from v30) renders as word shapes instead of a Gaussian blur, with the same reveal rules; they are cheaper to paint.
 
-Open, tracked in [STATUS.md → Decisions](STATUS.md#decisions): the Listen dock's Repeat button (R1), and the desktop sidebar's new Vocabulary, Craft and Settings rows plus the sync line (S1).
+Decided with canvas v30 (2026-10-13): the Listen dock shows Repeat (R1) and every dock, phone included, starts with Replay (R3).
+
+Open, tracked in [STATUS.md → Decisions](STATUS.md#decisions): where take management lives (R2), Dictate as a segment instead of the dock's Hide toggle (R4), the Book / Clean transcript type (R5), and the ⋯ More entries with no feature behind them yet (R6).
 
 ## Re-rendering
 
