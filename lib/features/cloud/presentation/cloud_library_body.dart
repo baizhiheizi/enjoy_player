@@ -150,6 +150,14 @@ String _coverSeed(RemoteLibraryItem item) {
   return item.id;
 }
 
+String? _thumbUrl(RemoteLibraryItem item) {
+  return remoteThumbnailForCard(
+    item.thumbnailUrl,
+    youtubeVideoId: item.provider == 'youtube' ? item.md5 : null,
+    mediaUrl: item.mediaUrl,
+  );
+}
+
 /// Cursor + loading state for one cloud catalog tab.
 class _CloudPagedList {
   final List<RemoteLibraryItem> items = [];
@@ -373,11 +381,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
           : languageCodeLabel(item.language),
       durationLabel: item.durationSeconds > 0 ? dur : null,
       thumbnailFile: null,
-      thumbnailNetworkUrl: remoteThumbnailForCard(
-        item.thumbnailUrl,
-        youtubeVideoId: item.provider == 'youtube' ? item.md5 : null,
-        mediaUrl: item.mediaUrl,
-      ),
+      thumbnailNetworkUrl: _thumbUrl(item),
       coverSeed: seed,
       isVideo: false,
       accentColor: accent,
@@ -572,11 +576,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile>
           subtitle: l10n.miniPlayerMediaVideo,
           durationLabel: item.durationSeconds > 0 ? dur : null,
           thumbnailFile: null,
-          thumbnailNetworkUrl: remoteThumbnailForCard(
-            item.thumbnailUrl,
-            youtubeVideoId: item.provider == 'youtube' ? item.md5 : null,
-            mediaUrl: item.mediaUrl,
-          ),
+          thumbnailNetworkUrl: _thumbUrl(item),
           coverSeed: seed,
           isVideo: true,
           accentColor: accent,
