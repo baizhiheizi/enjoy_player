@@ -10,10 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/player/application/player_margin_provider.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_margin.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_body.dart';
@@ -59,62 +56,35 @@ class AssessmentMarginPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final nBest = assessment.nBest.isEmpty ? null : assessment.nBest.first;
-    return _MarginFrame(
-      onClose: onClose,
-      child: nBest == null
-          ? Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(l10n.assessmentNoResultSummary),
-            )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-              children: [
-                AssessmentResultBody(
-                  nBest: nBest,
-                  localeTag: localeTag,
-                  recordingPath: recordingPath,
-                  layoutCompact: true,
-                ),
-              ],
-            ),
-    );
-  }
-}
-
-class _MarginFrame extends StatelessWidget {
-  const _MarginFrame({required this.child, this.onClose});
-
-  final Widget child;
-  final VoidCallback? onClose;
-
-  @override
-  Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final nBest = assessment.nBest.isEmpty ? null : assessment.nBest.first;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 8, 12),
-                child: EnjoyOverline(l10n.assessmentMarginOverline),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: EnjoyIconButton(
-                icon: EnjoyIcons.close,
-                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                onPressed: onClose,
-              ),
-            ),
-          ],
+        PlayerMarginHeader(
+          title: l10n.assessmentMarginOverline,
+          youVoice: true,
+          onClose: onClose ?? () {},
         ),
         Divider(height: 1, thickness: 1, color: t.line),
-        Expanded(child: child),
+        Expanded(
+          child: nBest == null
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(l10n.assessmentNoResultSummary),
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                  children: [
+                    AssessmentResultBody(
+                      nBest: nBest,
+                      localeTag: localeTag,
+                      recordingPath: recordingPath,
+                      layoutCompact: true,
+                    ),
+                  ],
+                ),
+        ),
       ],
     );
   }

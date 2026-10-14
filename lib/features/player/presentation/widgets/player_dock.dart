@@ -186,6 +186,7 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             key: ValueKey<bool>(echo.active),
                             mediaId: chrome.mediaId,
                             phone: phone,
+                            recording: recording,
                             showLineMeta: showLineMeta,
                             playbackRate: playbackRate,
                             playing: playing,
@@ -203,6 +204,7 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             key: ValueKey<bool>(echo.active),
                             mediaId: chrome.mediaId,
                             phone: phone,
+                            recording: recording,
                             showLineMeta: showLineMeta,
                             echoAvailable: hasLines || echo.active,
                             playing: playing,
@@ -233,6 +235,7 @@ class _ListenControls extends StatelessWidget {
     super.key,
     required this.mediaId,
     required this.phone,
+    required this.recording,
     required this.showLineMeta,
     required this.echoAvailable,
     required this.playing,
@@ -248,6 +251,7 @@ class _ListenControls extends StatelessWidget {
 
   final String mediaId;
   final bool phone;
+  final bool recording;
   final bool showLineMeta;
   final bool echoAvailable;
   final bool playing;
@@ -266,7 +270,11 @@ class _ListenControls extends StatelessWidget {
     final left = Row(
       children: [
         Flexible(
-          child: DockReadout(mediaId: mediaId, showHint: showLineMeta),
+          child: DockReadout(
+            mediaId: mediaId,
+            recording: recording,
+            showHint: showLineMeta,
+          ),
         ),
       ],
     );
@@ -354,6 +362,7 @@ class _EchoControls extends StatelessWidget {
     super.key,
     required this.mediaId,
     required this.phone,
+    required this.recording,
     required this.showLineMeta,
     required this.playbackRate,
     required this.playing,
@@ -366,6 +375,7 @@ class _EchoControls extends StatelessWidget {
 
   final String mediaId;
   final bool phone;
+  final bool recording;
   final bool showLineMeta;
   final double playbackRate;
   final bool playing;
@@ -382,7 +392,11 @@ class _EchoControls extends StatelessWidget {
     final left = Row(
       children: [
         Flexible(
-          child: DockReadout(mediaId: mediaId, showHint: showLineMeta),
+          child: DockReadout(
+            mediaId: mediaId,
+            recording: recording,
+            showHint: showLineMeta,
+          ),
         ),
       ],
     );
@@ -620,7 +634,11 @@ class _RecordingControls extends StatelessWidget {
             child: Row(
               children: [
                 Flexible(
-                  child: DockReadout(mediaId: mediaId, showHint: showLineMeta),
+                  child: DockReadout(
+                    mediaId: mediaId,
+                    recording: true,
+                    showHint: showLineMeta,
+                  ),
                 ),
               ],
             ),

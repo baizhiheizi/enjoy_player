@@ -53,13 +53,22 @@ Future<void> openPlayerMargin(
 
 /// Lays [child] out beside the docked margin when wide enough, and provides
 /// [PlayerMarginScope] either way.
-class PlayerMarginLayout extends ConsumerWidget {
+class PlayerMarginLayout extends ConsumerStatefulWidget {
   const PlayerMarginLayout({required this.child, super.key});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlayerMarginLayout> createState() => _PlayerMarginLayoutState();
+}
+
+class _PlayerMarginLayoutState extends ConsumerState<PlayerMarginLayout> {
+  /// The docked state the last frame was built in; the close below runs only
+  /// on the wide -> narrow flip, never on every resize rebuild.
+  bool? _lastDocked;
+
+  @override
+  Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     ref.listen(playerControllerProvider.select((s) => s?.mediaId), (
       prev,
@@ -77,13 +86,17 @@ class PlayerMarginLayout extends ConsumerWidget {
       builder: (context, constraints) {
         final docked = constraints.maxWidth >= t.breakpointMarginDrawer;
         final entry = ref.watch(playerMarginProvider);
-        if (!docked && entry != null) {
+        if (_lastDocked != null && _lastDocked != docked && !docked) {
+          // Crossing under the breakpoint while a panel is docked: close it
+          // after the frame (providers cannot be mutated during build).
+          // Idempotent (`close` no-ops when empty) and flip-guarded, so
+          // resize rebuilds never re-trigger it. Reopening as a drawer is a
+          // user action; shrinking alone does not pop a route.
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
-              ref.read(playerMarginProvider.notifier).close();
-            }
+            if (mounted) ref.read(playerMarginProvider.notifier).close();
           });
         }
+        _lastDocked = docked;
         final reduceMotion = MediaQuery.disableAnimationsOf(context);
         return PlayerMarginScope(
           docked: docked,
@@ -91,7 +104,7 @@ class PlayerMarginLayout extends ConsumerWidget {
               ? Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(child: child),
+                    Expanded(child: widget.child),
                     AnimatedContainer(
                       duration: reduceMotion ? Duration.zero : t.motionMargin,
                       curve: Curves.easeOutCubic,
@@ -109,7 +122,7 @@ class PlayerMarginLayout extends ConsumerWidget {
                     ),
                   ],
                 )
-              : child,
+              : widget.child,
         );
       },
     );
@@ -263,7 +276,7 @@ class PlayerMarginHeader extends StatelessWidget {
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                letterSpacing: 11 * 0.09,
+                letterSpacing: 11 * 0.08,
                 color: youVoice ? t.youInk : t.ink3,
               ),
             ),
