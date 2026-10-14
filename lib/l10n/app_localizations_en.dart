@@ -773,6 +773,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subtitlesRefreshDone => 'Transcripts updated from cloud.';
 
   @override
+  String get transcriptDownloadDialogTitle => 'Download transcript';
+
+  @override
+  String get transcriptDownloadFormatSrtLabel => 'SRT';
+
+  @override
+  String get transcriptDownloadFormatSrtHint => 'SubRip subtitle file (.srt)';
+
+  @override
+  String get transcriptDownloadFormatVttLabel => 'VTT';
+
+  @override
+  String get transcriptDownloadFormatVttHint => 'WebVTT subtitle file (.vtt)';
+
+  @override
+  String get transcriptDownloadEmpty => 'No transcript to download yet.';
+
+  @override
+  String get transcriptDownloadSuccess => 'Transcript downloaded.';
+
+  @override
+  String get transcriptDownloadError => 'Could not download the transcript.';
+
+  @override
   String get subtitlesNoPlayableUri =>
       'Could not resolve a playable file for this item.';
 
@@ -4439,6 +4463,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transcriptEditorFieldDuration => 'Duration (seconds)';
+
+  @override
+  String get playerMoreDownloadTranscript => 'Download transcript…';
 
   @override
   String get playerMoreKeyboardShortcuts => 'Keyboard shortcuts';

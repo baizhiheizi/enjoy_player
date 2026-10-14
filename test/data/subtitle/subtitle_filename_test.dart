@@ -114,4 +114,30 @@ void main() {
       });
     });
   });
+
+  group('transcriptExportBaseName', () {
+    test('keeps clean titles unchanged', () {
+      expect(transcriptExportBaseName('The Ferry at Six'), 'The Ferry at Six');
+    });
+
+    test('replaces filesystem-invalid characters with spaces', () {
+      expect(
+        transcriptExportBaseName(r'AC/DC: Back In Black (Live?)'),
+        'AC DC Back In Black (Live )',
+      );
+      expect(transcriptExportBaseName('a<b>c"d*e|f'), 'a b c d e f');
+      expect(transcriptExportBaseName(r'back\slash'), 'back slash');
+    });
+
+    test('collapses whitespace runs and trims', () {
+      expect(transcriptExportBaseName('  Spaced   out  '), 'Spaced out');
+      expect(transcriptExportBaseName('a \t b'), 'a b');
+    });
+
+    test('falls back to transcript for an empty result', () {
+      expect(transcriptExportBaseName(''), 'transcript');
+      expect(transcriptExportBaseName('///:*?"<>|'), 'transcript');
+      expect(transcriptExportBaseName('   '), 'transcript');
+    });
+  });
 }

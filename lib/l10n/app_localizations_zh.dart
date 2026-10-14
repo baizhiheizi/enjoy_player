@@ -740,6 +740,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subtitlesRefreshDone => '已从云端更新字幕稿。';
 
   @override
+  String get transcriptDownloadDialogTitle => '下载字幕稿';
+
+  @override
+  String get transcriptDownloadFormatSrtLabel => 'SRT';
+
+  @override
+  String get transcriptDownloadFormatSrtHint => 'SubRip 字幕文件（.srt）';
+
+  @override
+  String get transcriptDownloadFormatVttLabel => 'VTT';
+
+  @override
+  String get transcriptDownloadFormatVttHint => 'WebVTT 字幕文件（.vtt）';
+
+  @override
+  String get transcriptDownloadEmpty => '还没有可下载的字幕稿。';
+
+  @override
+  String get transcriptDownloadSuccess => '字幕稿已下载。';
+
+  @override
+  String get transcriptDownloadError => '无法下载字幕稿。';
+
+  @override
   String get subtitlesNoPlayableUri => '无法解析此项目的可播放文件。';
 
   @override
@@ -4238,6 +4262,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transcriptEditorFieldDuration => '时长（秒）';
 
   @override
+  String get playerMoreDownloadTranscript => '下载字幕稿…';
+
+  @override
   String get playerMoreKeyboardShortcuts => '键盘快捷键';
 
   @override
@@ -5091,6 +5118,30 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get subtitlesRefreshDone => '已从云端更新字幕稿。';
+
+  @override
+  String get transcriptDownloadDialogTitle => '下载字幕稿';
+
+  @override
+  String get transcriptDownloadFormatSrtLabel => 'SRT';
+
+  @override
+  String get transcriptDownloadFormatSrtHint => 'SubRip 字幕文件（.srt）';
+
+  @override
+  String get transcriptDownloadFormatVttLabel => 'VTT';
+
+  @override
+  String get transcriptDownloadFormatVttHint => 'WebVTT 字幕文件（.vtt）';
+
+  @override
+  String get transcriptDownloadEmpty => '还没有可下载的字幕稿。';
+
+  @override
+  String get transcriptDownloadSuccess => '字幕稿已下载。';
+
+  @override
+  String get transcriptDownloadError => '无法下载字幕稿。';
 
   @override
   String get subtitlesNoPlayableUri => '无法解析此项目的可播放文件。';
@@ -7953,6 +8004,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get transcriptEditorFieldDuration => '时长（秒）';
+
+  @override
+  String get playerMoreDownloadTranscript => '下载字幕稿…';
 
   @override
   String get playerMoreKeyboardShortcuts => '键盘快捷键';

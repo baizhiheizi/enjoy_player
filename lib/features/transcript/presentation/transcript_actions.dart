@@ -1,6 +1,6 @@
 /// The transcript actions (import, embedded subtitles, AI transcript, word
-/// timings, cloud refresh) shared by the player's ⋯ More menu on desktop and
-/// the phone Subtitles & display sheet.
+/// timings, cloud refresh, download) shared by the player's ⋯ More menu on
+/// desktop and the phone Subtitles & display sheet.
 library;
 
 import 'package:flutter/widgets.dart';
@@ -16,7 +16,9 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 import '../application/all_transcripts_provider.dart';
 import '../application/transcript_display_readiness_provider.dart';
 import '../application/transcript_enrichment_controller.dart';
+import '../application/transcript_lines_provider.dart';
 import '../application/video_row_for_media_provider.dart';
+import 'download_transcript.dart';
 import 'import_subtitle_file.dart';
 import 'subtitle_track_picker_sheet_action_handlers.dart';
 import 'transcript_embedded_extract.dart';
@@ -28,6 +30,7 @@ enum TranscriptActionKind {
   aiTranscript,
   wordTimings,
   refreshCloud,
+  downloadTranscript,
 }
 
 class TranscriptAction {
@@ -66,6 +69,9 @@ List<TranscriptAction> watchTranscriptActions(
       'Video';
   final tracks =
       ref.watch(allTranscriptsForMediaProvider(mediaId)).valueOrNull ??
+      const [];
+  final primaryLines =
+      ref.watch(transcriptLinesForMediaProvider(mediaId)).valueOrNull ??
       const [];
   final readiness = ref.watch(
     transcriptDisplayReadinessForMediaProvider(mediaId),
@@ -125,5 +131,12 @@ List<TranscriptAction> watchTranscriptActions(
       label: l10n.playerMoreRefreshFromCloud,
       run: (context) => refreshCloudTranscripts(context, ref, mediaId),
     ),
+    if (primaryLines.isNotEmpty)
+      TranscriptAction(
+        kind: TranscriptActionKind.downloadTranscript,
+        icon: EnjoyIcons.download,
+        label: l10n.playerMoreDownloadTranscript,
+        run: (context) => downloadActiveTranscript(context, ref, mediaId),
+      ),
   ];
 }
