@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_actions.dart';
@@ -129,7 +130,10 @@ class PlayerMoreMenuPanel extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                PlayerMenuOverline(l10n.playerMoreTranscriptSection),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                  child: EnjoyOverline(l10n.playerMoreTranscriptSection),
+                ),
                 for (final (i, action) in actions.indexed)
                   PlayerMenuRow(
                     key: action.key,
@@ -147,29 +151,6 @@ class PlayerMoreMenuPanel extends ConsumerWidget {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class PlayerMenuOverline extends StatelessWidget {
-  const PlayerMenuOverline(this.label, {super.key});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-      child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 11 * 0.08,
-          color: t.ink3,
         ),
       ),
     );

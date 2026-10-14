@@ -6,30 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 
-/// Uppercase section heading inside the Subtitles & display panel.
-class SubtitlePanelOverline extends StatelessWidget {
-  const SubtitlePanelOverline(this.label, {super.key});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-      child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 11 * 0.08,
-          color: t.ink3,
-        ),
-      ),
-    );
-  }
-}
-
 /// Hairline between the panel's sections.
 class SubtitlePanelDivider extends StatelessWidget {
   const SubtitlePanelDivider({super.key});
