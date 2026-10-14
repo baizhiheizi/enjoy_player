@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": null,
-    "investigation_after": 896
+    "investigation_after": 933
   },
   "issues": [
     {
@@ -32,8 +32,8 @@
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-12",
-      "note": "Monthly activity summary for October 2026 — updated each run by Task 11. Body refreshed 2026-10-12 with new DockRecordRing PR row + Run History entry covering both the #895 refactor and the validate_ci_gates --changed-only bash precedence fix."
+      "updated_at": "2026-10-14",
+      "note": "Monthly activity summary for October 2026. 2026-10-14 run: update_issue hit per-run limit (1/run); clean intended body posted as comment #aw_HSR8INzg after prepend left a duplicated ## Activity / ## Run History structure. Next run should replace body to absorb the duplication."
     },
     {
       "number": 850,
@@ -51,19 +51,121 @@
       "number": 891,
       "state": "resolution_recommended",
       "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Parent of #895 + #896. #896 closed by DockActionPill draft PR #897. #895 closed by this run's DockRecordRing draft PR. Recommend close once both PRs merge."
+      "note": "[duplicate-code] Parent of #895 + #896. #896 closed by DockActionPill draft PR #897. #895 closed by merged PR #904. Recommend close once both PRs merge (PR #897 still draft, #904 merged)."
     },
     {
       "number": 895,
       "state": "resolution_recommended",
       "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Record Ring Stack duplication between DockRecordButton and _RecordingControls — closed by this run's DockRecordRing primitive (innerShape param: circle / stopSquare). Behavior byte-identical; recommend close-on-PR-merge."
+      "note": "[duplicate-code] Record Ring Stack duplication between DockRecordButton and _RecordingControls — closed by merged PR #904 (DockRecordRing primitive + DockRecordDotShape enum). Behavior byte-identical; recommend close."
     },
     {
       "number": 896,
       "state": "resolution_recommended",
       "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Action Pill shell duplication — closed by draft PR #897. DockActionPill primitive + _DockPillIconSlot helper extracted. 3/3 new tests; 6436/6436 full suite pass. Recommend close-on-PR-merge."
+      "note": "[duplicate-code] Action Pill shell duplication — closed by draft PR #897 (DockActionPill primitive + _DockPillIconSlot helper). 3/3 new tests pass. Recommend close-on-PR-merge."
+    },
+    {
+      "number": 917,
+      "state": "commented",
+      "updated_at": "2026-10-14",
+      "note": "Repo Assist draft PR from 2026-10-13 19:54 UTC run. test(cloud): cover CloudAddToLibrary + share the cloud thumbnail URL. Still open; in Suggested Actions of #841."
+    },
+    {
+      "number": 919,
+      "state": "resolution_recommended",
+      "updated_at": "2026-10-14",
+      "note": "[large-file-simplifier] Refactor credits_usage_screen.dart (842 LOC) into 5 focused files — closed by this run's draft PR (branch repo-assist/refactor-credits-usage-screen-919). +696/-644; 53/53 credits tests pass. Recommend close-on-PR-merge."
+    },
+    {
+      "number": 930,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[duplicate-code] DAO Repository Sync-Enqueue Boilerplate (~250 lines, 4 files). Next Task 5 sweep candidate."
+    },
+    {
+      "number": 931,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[duplicate-code] Logger Initialization Boilerplate (25 files). Next Task 5 sweep candidate."
+    },
+    {
+      "number": 932,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[duplicate-code] ApiException catch blocks bypass RestRepository mixin (18 sites). Next Task 5 sweep candidate."
+    },
+    {
+      "number": 920,
+      "state": "deferred",
+      "updated_at": "2026-10-13",
+      "note": "[feature] Edit transcript from the player's ⋯ More menu — Duet feature backlog."
+    },
+    {
+      "number": 921,
+      "state": "deferred",
+      "updated_at": "2026-10-13",
+      "note": "[feature] Download transcript from the player's ⋯ More menu — Duet feature backlog."
+    },
+    {
+      "number": 922,
+      "state": "deferred",
+      "updated_at": "2026-10-13",
+      "note": "[feature] Export the loop as a clip from the player's ⋯ More menu — Duet feature backlog."
+    },
+    {
+      "number": 923,
+      "state": "deferred",
+      "updated_at": "2026-10-13",
+      "note": "[feature] Edit media details from the player's ⋯ More menu — Duet feature backlog."
+    },
+    {
+      "number": 933,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[feature] In-this-audio context, video layout tokens, Take-n heading (D6.9, D6.11, D6.13) — Duet v30 canvas wave; merged 2026-10-14."
+    },
+    {
+      "number": 929,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[feature] current line card + v30 type scale (D6.4) — Duet v30 canvas wave; merged 2026-10-14."
+    },
+    {
+      "number": 928,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[feature] docked side margin + takes row and list (D6.12, D6.3) — Duet v30 canvas wave; merged 2026-10-14."
+    },
+    {
+      "number": 918,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[repo-status] Daily Status — 2026-10-13 — auto-managed."
+    },
+    {
+      "number": 905,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[repo-map] documentation label — auto-managed snapshot."
+    },
+    {
+      "number": 889,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[aw] Perf Improver produced no safe outputs — auto-managed."
+    },
+    {
+      "number": 886,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[aw] Repo Assist could not verify daily AI credits — auto-managed."
+    },
+    {
+      "number": 864,
+      "state": "deferred",
+      "updated_at": "2026-10-14",
+      "note": "[perf-improver] Monthly Activity 2026-10 — auto-managed."
     }
   ],
   "fixes": [
@@ -85,11 +187,19 @@
     },
     {
       "issue": 895,
-      "pr": null,
+      "pr": 904,
       "branch": "repo-assist/improve-895-record-ring-primitive-2026-10-12",
+      "status": "merged",
+      "updated_at": "2026-10-13",
+      "note": "DockRecordRing primitive + DockRecordDotShape enum replaces the duplicated you record disk. 3/3 new tests; 7/7 player_dock_test.dart; 787/787 test/features/player/; analyze + format clean. Net diff: 4 files, 197+/36-. PR merged."
+    },
+    {
+      "issue": 919,
+      "pr": null,
+      "branch": "repo-assist/refactor-credits-usage-screen-919",
       "status": "open",
-      "updated_at": "2026-10-12",
-      "note": "DockRecordRing primitive + DockRecordDotShape enum replaces the duplicated you record disk in DockRecordButton and _RecordingControls Stop button. 3/3 new tests; 7/7 player_dock_test.dart; 787/787 test/features/player/; analyze + format clean. Net diff: 4 files, 197+/36-."
+      "updated_at": "2026-10-14",
+      "note": "credits_usage_screen.dart (842 LoC) split into 4 focused siblings + slim entry (filters, log_views, states, format); entry re-exports public helpers. Behavior byte-identical. 53/53 credits tests pass; analyze + format clean; validate_ci_gates --changed-only --test green. +696/-644. Closes #919."
     }
   ],
   "checks": [
@@ -97,13 +207,17 @@
       "area": "ci",
       "checked_at": "2026-10-12",
       "result": "validate_ci_gates.sh --changed-only was reporting wrong target list due to bash `|| true | awk` precedence trap. Grouped the fallback in { } so awk stays in the pipeline; verified on current branch, 10/10 tests run.",
-      "follow_up": "PR ready for review: branch repo-assist/improve-895-record-ring-primitive-2026-10-12 (combined with #895 refactor)."
+      "follow_up": "Closed by merged PR #904."
     }
   ],
   "completed_actions": [
     {
       "key": "#895 record-ring stack dedupe",
       "completed_at": "2026-10-12"
+    },
+    {
+      "key": "#919 credits_usage_screen split into 5 files",
+      "completed_at": "2026-10-14"
     }
   ],
   "priorities": []
