@@ -91,6 +91,69 @@ void main() {
     );
   });
 
+  testWidgets('the word is not bolded inside a longer word', (tester) async {
+    await _pump(
+      tester,
+      const LookupRequest(
+        selectedText: 'time',
+        sourceLanguage: 'en',
+        targetLanguage: 'zh',
+        sourceContext: LookupSourceContext(
+          isVideo: false,
+          startMs: 20000,
+          lineText: 'The timetable is on the wall.',
+        ),
+      ),
+    );
+
+    final richTexts = tester.widgetList<RichText>(
+      find.descendant(
+        of: find.byKey(const ValueKey('lookup-source-context')),
+        matching: find.byType(RichText),
+      ),
+    );
+    final spans = richTexts
+        .map((r) => r.text as TextSpan)
+        .expand((root) => root.children ?? const <InlineSpan>[])
+        .whereType<TextSpan>()
+        .toList();
+    expect(
+      spans.where((s) => s.style?.fontWeight == FontWeight.w700),
+      isEmpty,
+      reason: 'time inside timetable must not highlight',
+    );
+  });
+
+  testWidgets('a missing word renders the plain line, no bold', (tester) async {
+    await _pump(
+      tester,
+      const LookupRequest(
+        selectedText: 'harbour',
+        sourceLanguage: 'en',
+        targetLanguage: 'zh',
+        sourceContext: LookupSourceContext(
+          isVideo: false,
+          startMs: 20000,
+          lineText: "You don't take the ferry.",
+        ),
+      ),
+    );
+
+    final richTexts = tester.widgetList<RichText>(
+      find.descendant(
+        of: find.byKey(const ValueKey('lookup-source-context')),
+        matching: find.byType(RichText),
+      ),
+    );
+    final bodies = richTexts
+        .map((r) => (r.text as TextSpan))
+        .expand((root) => root.children ?? const <InlineSpan>[])
+        .whereType<TextSpan>()
+        .toList();
+    expect(bodies, hasLength(1));
+    expect(bodies.single.style?.fontWeight, isNull);
+  });
+
   testWidgets('no source context renders no block', (tester) async {
     await _pump(
       tester,

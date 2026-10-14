@@ -333,6 +333,19 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
   }
 }
 
+/// First occurrence of [word] in [line] as a whole word — not inside a
+/// longer run of letters (so `time` does not light up inside `timetable`).
+/// Unicode-aware: a CJK glyph counts as a boundary.
+int wholeWordIndexOf(String line, String word) {
+  if (word.isEmpty) return -1;
+  final pattern = RegExp(
+    '(?<!\\p{L})${RegExp.escape(word)}(?!\\p{L})',
+    caseSensitive: false,
+    unicode: true,
+  );
+  return line.indexOf(pattern);
+}
+
 /// The board's "In this audio · 0:20" block: the line the word came from,
 /// with the looked-up word bolded.
 class LookupSourceContextBlock extends StatelessWidget {
@@ -354,7 +367,7 @@ class LookupSourceContextBlock extends StatelessWidget {
         ? l10n.lookupInThisVideo(formatTranscriptTimestampMs(source.startMs))
         : l10n.lookupInThisAudio(formatTranscriptTimestampMs(source.startMs));
     final line = source.lineText;
-    final matchIndex = line.toLowerCase().indexOf(word.toLowerCase());
+    final matchIndex = wholeWordIndexOf(line, word);
 
     return Padding(
       key: const ValueKey('lookup-source-context'),
