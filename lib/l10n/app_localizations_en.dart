@@ -2551,6 +2551,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mediaLanguageUpdateFailed => 'Could not update language.';
 
   @override
+  String get mediaEditDetails => 'Edit details';
+
+  @override
+  String get mediaDetailsTitleLabel => 'Title';
+
+  @override
+  String get mediaDetailsSave => 'Save';
+
+  @override
+  String get mediaDetailsUpdated => 'Details updated.';
+
+  @override
+  String get mediaDetailsUpdateFailed => 'Could not update details.';
+
+  @override
+  String get mediaDetailsMissing => 'This item is no longer in your library.';
+
+  @override
   String get assessmentUnavailableLanguage =>
       'Pronunciation assessment is not available for this language.';
 
@@ -4485,6 +4503,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerMoreKeyboardShortcuts => 'Keyboard shortcuts';
+
+  @override
+  String get playerMoreMediaSection => 'Media';
+
+  @override
+  String get playerMoreEditDetails => 'Edit details';
 
   @override
   String get subtitlesPanelTitle => 'Subtitles & display';

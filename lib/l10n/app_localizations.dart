@@ -4719,6 +4719,42 @@ abstract class AppLocalizations {
   /// **'Could not update language.'**
   String get mediaLanguageUpdateFailed;
 
+  /// More menu Media entry and Edit details dialog title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get mediaEditDetails;
+
+  /// Edit details dialog: label of the title field.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get mediaDetailsTitleLabel;
+
+  /// Edit details dialog: save button.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get mediaDetailsSave;
+
+  /// Notice after saving media details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details updated.'**
+  String get mediaDetailsUpdated;
+
+  /// Notice when saving media details fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update details.'**
+  String get mediaDetailsUpdateFailed;
+
+  /// Notice when the media was deleted before Edit details opened.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is no longer in your library.'**
+  String get mediaDetailsMissing;
+
   /// No description provided for @assessmentUnavailableLanguage.
   ///
   /// In en, this message translates to:
@@ -8135,6 +8171,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keyboard shortcuts'**
   String get playerMoreKeyboardShortcuts;
+
+  /// Media section heading in the player's More menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get playerMoreMediaSection;
+
+  /// More menu Media: open the Edit details dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get playerMoreEditDetails;
 
   /// Title of the Subtitles & display panel.
   ///

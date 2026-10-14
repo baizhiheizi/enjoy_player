@@ -499,6 +499,25 @@ class MediaRegistry {
     return null;
   }
 
+  /// Writes the display title on whichever table holds [id] (video first),
+  /// bumping `updatedAt`.
+  ///
+  /// Like [updateLanguage], [title] is written verbatim — trimming and the
+  /// "already that title, skip the write + sync" guard are caller policy.
+  /// Returns the kind updated, or `null` when neither table holds [id].
+  Future<MediaKind?> updateTitle(String id, String title) async {
+    final hit = await _probe(id);
+    if (hit.video != null) {
+      await _db.videoDao.updateTitle(id: id, title: title);
+      return MediaKind.video;
+    }
+    if (hit.audio != null) {
+      await _db.audioDao.updateTitle(id: id, title: title);
+      return MediaKind.audio;
+    }
+    return null;
+  }
+
   /// Persists a (re)located local file — `localUri` plus its trust metadata
   /// ([bookmarkData], [size], [mtimeMs]) — onto the row holding [id] (video
   /// first), bumping `updatedAt`.

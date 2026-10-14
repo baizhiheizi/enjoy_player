@@ -1032,6 +1032,13 @@
   "mediaEditLanguage": "编辑语言",
   "mediaLanguageUpdated": "语言已更新。",
   "mediaLanguageUpdateFailed": "无法更新语言。",
+  "mediaEditDetails": "编辑详情",
+  "mediaDetailsTitleLabel": "标题",
+  "mediaDetailsSave": "保存",
+  "mediaDetailsUpdated": "详情已更新。",
+  "mediaDetailsUpdateFailed": "无法更新详情。",
+  "mediaDetailsMissing": "该项目已不在资料库中。",
+
   "assessmentUnavailableLanguage": "该语言暂不支持发音评估。",
   "discoverLanguageFilterAll": "全部语言",
   "discoverLanguageFilterLabel": "语言",
@@ -1717,6 +1724,9 @@
   "playerMoreExportLoopClipFailed": "无法导出循环片段",
   "playerMoreExportLoopClipFfmpegMissing": "此设备上没有可用的 FFmpeg",
   "playerMoreKeyboardShortcuts": "键盘快捷键",
+  "playerMoreMediaSection": "媒体",
+  "playerMoreEditDetails": "编辑详情",
+
   "subtitlesPanelTitle": "字幕与显示",
   "subtitlesSectionSubtitles": "字幕",
   "subtitlesSectionDisplay": "显示",

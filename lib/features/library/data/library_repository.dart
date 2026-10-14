@@ -212,6 +212,10 @@ class MediaLibraryRepository {
   }
 
   /// Re-fetches oEmbed when title/thumbnail are still import placeholders.
+  ///
+  /// A stored non-placeholder title is kept — the refresh never reverts a
+  /// user rename (issue #923); it fills the placeholder and backfills a
+  /// missing thumbnail.
   Future<YoutubeMetadataPatch?> refreshYoutubeMetadataIfNeeded(
     String mediaId,
   ) async {
@@ -222,8 +226,11 @@ class MediaLibraryRepository {
     final meta = await fetchYoutubeOembed(row.vid, client: _oembedClient);
     if (meta == null) return null;
 
-    final title = meta.title;
+    final needsTitle = isYoutubeImportPlaceholderTitle(row.title, row.vid);
+    final title = needsTitle ? meta.title : row.title;
     final thumb = meta.thumbnailUrl ?? row.thumbnailUrl;
+    if (!needsTitle && thumb == row.thumbnailUrl) return null;
+
     await _registry.updateYoutubeMetadata(
       id: mediaId,
       title: title,
@@ -356,6 +363,29 @@ class MediaLibraryRepository {
     if (kind == MediaKind.video) {
       await _db.transcriptFetchStateDao.clearForTarget('video', id);
     }
+    await _enqueueSync?.call(
+      MediaRegistry.syncEntityTypeOf(kind),
+      id,
+      SyncAction.update,
+    );
+  }
+
+  /// Renames an existing audio or video row. Title changes do not touch
+  /// transcript fetch state (unlike [updateMediaLanguage]) — only the sync
+  /// queue is notified so other devices pick the new title up.
+  Future<void> updateMediaTitle(String id, String title) async {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) {
+      throw const FileFailure('Title cannot be empty.');
+    }
+    final hit = await _registry.probeBoth(id);
+    final current = hit.video?.title ?? hit.audio?.title;
+    if (hit.video == null && hit.audio == null) {
+      throw const FileFailure('Media not found.');
+    }
+    if (current == trimmed) return;
+    final kind = await _registry.updateTitle(id, trimmed);
+    if (kind == null) throw const FileFailure('Media not found.');
     await _enqueueSync?.call(
       MediaRegistry.syncEntityTypeOf(kind),
       id,

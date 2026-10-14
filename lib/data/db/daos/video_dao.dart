@@ -72,6 +72,12 @@ class VideoDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  Future<void> updateTitle({required String id, required String title}) async {
+    await (update(videos)..where((t) => t.id.equals(id))).write(
+      VideosCompanion(title: Value(title), updatedAt: Value(DateTime.now())),
+    );
+  }
+
   /// Bumps [Videos.updatedAt] so Home "Recent media" can resurface the row.
   Future<void> touchUpdatedAt(String id) async {
     await (update(videos)..where((t) => t.id.equals(id))).write(
