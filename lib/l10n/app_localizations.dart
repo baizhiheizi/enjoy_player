@@ -8100,6 +8100,36 @@ abstract class AppLocalizations {
   /// **'Download transcript…'**
   String get playerMoreDownloadTranscript;
 
+  /// Section heading in the player's More menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get playerMoreMediaSection;
+
+  /// More menu: save the active Echo loop's audio/video range as a media file.
+  ///
+  /// In en, this message translates to:
+  /// **'Export the loop as a clip…'**
+  String get playerMoreExportLoopClip;
+
+  /// Notice after the Echo loop clip was saved or shared.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop clip exported'**
+  String get playerMoreExportLoopClipSuccess;
+
+  /// Notice when the Echo loop clip export failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t export the loop clip'**
+  String get playerMoreExportLoopClipFailed;
+
+  /// Notice when clip export cannot run because no FFmpeg runtime was found.
+  ///
+  /// In en, this message translates to:
+  /// **'FFmpeg isn\'t available on this device'**
+  String get playerMoreExportLoopClipFfmpegMissing;
+
   /// More menu: open the keyboard shortcuts cheatsheet.
   ///
   /// In en, this message translates to:

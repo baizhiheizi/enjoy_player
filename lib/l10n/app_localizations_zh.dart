@@ -4265,6 +4265,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerMoreDownloadTranscript => '下载字幕稿…';
 
   @override
+  String get playerMoreMediaSection => '媒体';
+
+  @override
+  String get playerMoreExportLoopClip => '将循环导出为片段…';
+
+  @override
+  String get playerMoreExportLoopClipSuccess => '循环片段已导出';
+
+  @override
+  String get playerMoreExportLoopClipFailed => '无法导出循环片段';
+
+  @override
+  String get playerMoreExportLoopClipFfmpegMissing => '此设备上没有可用的 FFmpeg';
+
+  @override
   String get playerMoreKeyboardShortcuts => '键盘快捷键';
 
   @override
@@ -8007,6 +8022,21 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get playerMoreDownloadTranscript => '下载字幕稿…';
+
+  @override
+  String get playerMoreMediaSection => '媒体';
+
+  @override
+  String get playerMoreExportLoopClip => '将循环导出为片段…';
+
+  @override
+  String get playerMoreExportLoopClipSuccess => '循环片段已导出';
+
+  @override
+  String get playerMoreExportLoopClipFailed => '无法导出循环片段';
+
+  @override
+  String get playerMoreExportLoopClipFfmpegMissing => '此设备上没有可用的 FFmpeg';
 
   @override
   String get playerMoreKeyboardShortcuts => '键盘快捷键';

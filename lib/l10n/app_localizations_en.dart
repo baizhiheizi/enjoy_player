@@ -4468,6 +4468,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerMoreDownloadTranscript => 'Download transcript…';
 
   @override
+  String get playerMoreMediaSection => 'Media';
+
+  @override
+  String get playerMoreExportLoopClip => 'Export the loop as a clip…';
+
+  @override
+  String get playerMoreExportLoopClipSuccess => 'Loop clip exported';
+
+  @override
+  String get playerMoreExportLoopClipFailed => 'Couldn\'t export the loop clip';
+
+  @override
+  String get playerMoreExportLoopClipFfmpegMissing =>
+      'FFmpeg isn\'t available on this device';
+
+  @override
   String get playerMoreKeyboardShortcuts => 'Keyboard shortcuts';
 
   @override
