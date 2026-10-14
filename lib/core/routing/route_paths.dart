@@ -4,3 +4,9 @@ library;
 
 const kCreditsRoutePath = '/credits';
 const kSubscriptionRoutePath = '/subscription';
+
+/// Push route for the transcript editor nested under the player route, so
+/// playback keeps running while the learner edits (leave-player teardown
+/// only fires when no `/player/` route remains).
+String playerEditTranscriptRoutePath(String mediaId) =>
+    '/player/$mediaId/edit-transcript';

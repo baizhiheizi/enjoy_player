@@ -4394,6 +4394,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerMoreRefreshFromCloud => 'Refresh from cloud';
 
   @override
+  String get playerMoreEditTranscript => 'Edit transcript';
+
+  @override
+  String get transcriptEditorTitle => 'Edit transcript';
+
+  @override
+  String get transcriptEditorSave => 'Save';
+
+  @override
+  String get transcriptEditorSaved => 'Transcript updated';
+
+  @override
+  String get transcriptEditorSaveFailed =>
+      'Couldn\'t save the transcript. Please try again.';
+
+  @override
+  String get transcriptEditorInvalidTiming =>
+      'Start and duration must be times in seconds, like 1.25.';
+
+  @override
+  String get transcriptEditorEmpty => 'This media has no transcript to edit.';
+
+  @override
+  String transcriptEditorLineLabel(int index) {
+    return 'Line $index';
+  }
+
+  @override
+  String get transcriptEditorFieldStart => 'Start (seconds)';
+
+  @override
+  String get transcriptEditorFieldDuration => 'Duration (seconds)';
+
+  @override
   String get playerMoreKeyboardShortcuts => 'Keyboard shortcuts';
 
   @override

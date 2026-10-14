@@ -5,8 +5,10 @@ library;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/asr/presentation/asr_generation_launcher.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
@@ -20,6 +22,7 @@ import 'subtitle_track_picker_sheet_action_handlers.dart';
 import 'transcript_embedded_extract.dart';
 
 enum TranscriptActionKind {
+  edit,
   importFile,
   embeddedSubtitles,
   aiTranscript,
@@ -71,6 +74,13 @@ List<TranscriptAction> watchTranscriptActions(
   final hasAiTrack = tracks.any((track) => track.source == 'ai');
 
   return [
+    if (tracks.isNotEmpty)
+      TranscriptAction(
+        kind: TranscriptActionKind.edit,
+        icon: EnjoyIcons.edit,
+        label: l10n.playerMoreEditTranscript,
+        run: (context) => context.push(playerEditTranscriptRoutePath(mediaId)),
+      ),
     if (!isYoutube)
       TranscriptAction(
         kind: TranscriptActionKind.importFile,

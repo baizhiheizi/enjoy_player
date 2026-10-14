@@ -412,6 +412,43 @@ fails; a missing lib on other packaged hosts still fail-closes. See
 [ADR-0071](../decisions/0071-on-device-alignment-engine.md)
 and [ADR-0072](../decisions/0072-spoken-alignment-reference.md).
 
+## Transcript editor (⋯ More → Edit transcript)
+
+The player's ⋯ More menu and the phone Subtitles & display sheet list
+**Edit transcript** as the first row of the Transcript section (v30 `Main`
+board) whenever at least one transcript track exists for the media
+(`allTranscriptsForMediaProvider`). The entry is `transcript-action-edit` in
+[`transcript_actions.dart`](../../lib/features/transcript/presentation/transcript_actions.dart);
+both surfaces render the same `watchTranscriptActions` list.
+
+Choosing it pushes `/player/:mediaId/edit-transcript`
+([`TranscriptEditorScreen`](../../lib/features/transcript/presentation/transcript_editor_screen.dart)),
+a child of the player route: the player stays mounted underneath, so playback
+keeps running (the transport stays in the dock) and the leave-player teardown
+does not fire. The editor loads the active primary transcript row (falling
+back to the first track when no session is active) and lays each cue out as a
+paper card with the line text plus **Start (seconds)** / **Duration
+(seconds)** fields.
+
+Save goes through `TranscriptRepository.replaceTimeline` (`transcriptDao.upsert`
+plus timeline-cache invalidation), so the same-second revision nudge and the
+`(updated_at, jsonLength)` decode-memo key keep working and the player's
+transcript watches re-emit the edited lines live. Rules:
+
+- Timing fields accept decimal seconds (`1.25` ⇒ 1250 ms); anything else
+  blocks the save with a notice and writes nothing.
+- A cue's nested word timings survive only while its text is unchanged; once
+  the text changes they no longer match and are dropped
+  (`editedTranscriptLine` in
+  [`transcript_line_editing.dart`](../../lib/features/transcript/domain/transcript_line_editing.dart)),
+  so karaoke / IPA falls back to line-level display instead of highlighting
+  stale words.
+- Saving marks the row `syncStatus: 'local'`, the normal sync upload path.
+
+Scope: the editor edits existing cues only — no add / delete / reorder of
+lines and no secondary (translation) track editing.
+
 ## Future
 
-- Multiple languages, editing timelines, export — parity with web `TranscriptDisplay`.
+- Multiple languages, cue add / delete / reorder, export — parity with web
+  `TranscriptDisplay`.
