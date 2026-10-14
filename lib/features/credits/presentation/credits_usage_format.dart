@@ -1,9 +1,9 @@
-/// Pure formatters shared by the credits usage filters, table, and card views.
+/// Credits usage formatters shared by the filters, table, and card views.
 library;
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
-import 'package:enjoy_player/features/auth/presentation/widgets/profile_hero_card.dart';
+import 'package:enjoy_player/features/auth/presentation/subscription_tier_label.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
