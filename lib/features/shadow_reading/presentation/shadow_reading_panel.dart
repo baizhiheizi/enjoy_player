@@ -2,7 +2,6 @@
 library;
 
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_takes_list_panel.dart';
-import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_take_bits.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_take_summary_row.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_takes_ui_state.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_margin.dart';
@@ -402,7 +401,6 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       l10n: l10n,
       row: sel,
       marginWhenWide: true,
-      takeNumber: takeNumberOf(list, sel),
     );
   }
 

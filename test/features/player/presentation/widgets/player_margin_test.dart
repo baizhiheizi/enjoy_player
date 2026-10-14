@@ -135,4 +135,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('panel body'), findsOneWidget);
   });
+
+  testWidgets('shrinking under the breakpoint closes the docked margin', (
+    tester,
+  ) async {
+    final container = await _pump(tester, 1280);
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('player-margin-docked')), findsOneWidget);
+
+    await tester.binding.setSurfaceSize(const Size(1000, 800));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('player-margin-docked')), findsNothing);
+    expect(container.read(playerMarginProvider), isNull);
+  });
 }

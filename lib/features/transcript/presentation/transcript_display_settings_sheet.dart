@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/transcript_display_readiness.dart';
 import 'package:enjoy_player/features/settings/application/ipa_overlay_settings.dart';
@@ -50,7 +51,10 @@ class TranscriptDisplaySettingsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SubtitlePanelOverline(l10n.subtitlesSectionDisplay),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          child: EnjoyOverline(l10n.subtitlesSectionDisplay),
+        ),
         const TranscriptTypefacePicker(),
         SubtitleToggleTile(
           key: const ValueKey('display-highlight-spoken-word'),
