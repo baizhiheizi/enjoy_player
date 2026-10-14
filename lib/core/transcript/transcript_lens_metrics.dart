@@ -50,35 +50,35 @@ class TranscriptLensMetrics {
   /// Phones show the active line's time above it instead of in the gutter.
   bool get timeInGutter => !isPhone;
   double get timeAboveLineGap => 5;
-  double get lineRadius => 10;
+  double get lineRadius => 16;
   double get timeFontSize => 11;
   double get practicedDotGap => 4;
 
   double lineFontSize({required bool active}) => switch (surface) {
-    TranscriptLensSurface.desktop => active ? 21 : 17,
-    TranscriptLensSurface.video => active ? 17 : 15,
-    TranscriptLensSurface.phone => active ? 20 : 16,
+    TranscriptLensSurface.desktop => active ? 25 : 19,
+    TranscriptLensSurface.video => active ? 20 : 16,
+    TranscriptLensSurface.phone => active ? 23 : 17,
   };
 
   double secondaryFontSize({required bool active}) => switch (surface) {
     TranscriptLensSurface.desktop => active ? 14.5 : 13.5,
     TranscriptLensSurface.video => active ? 13.5 : 12.5,
-    TranscriptLensSurface.phone => active ? 13.5 : 12.5,
+    TranscriptLensSurface.phone => active ? 15 : 13.5,
   };
 
   EdgeInsets linePadding({required bool active}) => switch (surface) {
     TranscriptLensSurface.video =>
       active
-          ? const EdgeInsets.fromLTRB(4, 8, 10, 9)
-          : const EdgeInsets.fromLTRB(4, 4, 10, 4),
+          ? const EdgeInsets.fromLTRB(4, 12, 12, 12)
+          : const EdgeInsets.fromLTRB(4, 6, 10, 6),
     TranscriptLensSurface.desktop =>
       active
-          ? const EdgeInsets.fromLTRB(6, 10, 14, 12)
-          : const EdgeInsets.fromLTRB(6, 5, 14, 5),
+          ? const EdgeInsets.fromLTRB(6, 16, 16, 16)
+          : const EdgeInsets.fromLTRB(6, 10, 16, 10),
     TranscriptLensSurface.phone =>
       active
-          ? const EdgeInsets.fromLTRB(0, 10, 8, 12)
-          : const EdgeInsets.fromLTRB(0, 5, 8, 5),
+          ? const EdgeInsets.fromLTRB(8, 16, 16, 16)
+          : const EdgeInsets.fromLTRB(8, 8, 16, 8),
   };
 
   double gutterTop({required bool active}) => switch (surface) {

@@ -263,7 +263,7 @@ class PlayerMarginHeader extends StatelessWidget {
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                letterSpacing: 11 * 0.08,
+                letterSpacing: 11 * 0.09,
                 color: youVoice ? t.youInk : t.ink3,
               ),
             ),

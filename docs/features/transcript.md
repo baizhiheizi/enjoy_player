@@ -65,7 +65,7 @@ Transcript list and echo-region chrome use [`transcriptDensityOf(context)`](../.
 | Echo divider thickness | 1.0 | 0.5 |
 | Echo control icon size | 20 | 16 |
 
-Per-line padding, gutter widths, and lens type sizes come from [`TranscriptLensMetrics`](../../lib/core/transcript/transcript_lens_metrics.dart) (the `Main` / `Phone` boards), not from this density table. The density is resolved from each affected widget's `BuildContext` so the choice follows the live `defaultTargetPlatform` (no static-initialized token).
+Per-line padding, gutter widths, and lens type sizes come from [`TranscriptLensMetrics`](../../lib/core/transcript/transcript_lens_metrics.dart) (canvas v30: line 19 / current 25 on desktop, 16/20 in the video column, 17/23 on phones; the current line sits on a paper card with a lift shadow) (the `Main` / `Phone` boards), not from this density table. The density is resolved from each affected widget's `BuildContext` so the choice follows the live `defaultTargetPlatform` (no static-initialized token).
 
 ## Code layout
 

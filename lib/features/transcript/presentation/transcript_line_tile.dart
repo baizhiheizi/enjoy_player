@@ -309,8 +309,12 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
       valueListenable: _hover,
       builder: (context, hover, _) {
         Color? bg;
-        if (widget.groupedInEcho) {
+        List<BoxShadow> cardShadow = const [];
+        if (widget.groupedInEcho || inLens) {
           bg = Colors.transparent;
+        } else if (widget.isActive) {
+          bg = tok.paper;
+          cardShadow = tok.shadowLift;
         } else if (hover) {
           bg = tok.sunk.withValues(alpha: 0.55);
         }
@@ -503,6 +507,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                     : DecoratedBox(
                         decoration: ShapeDecoration(
                           color: bg ?? Colors.transparent,
+                          shadows: cardShadow,
                           shape: RoundedSuperellipseBorder(
                             borderRadius: lineRadius,
                           ),
@@ -551,6 +556,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                 child: DecoratedBox(
                   decoration: ShapeDecoration(
                     color: bg ?? Colors.transparent,
+                    shadows: cardShadow,
                     shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
                   ),
                   child: ClipRSuperellipse(

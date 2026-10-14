@@ -10,14 +10,15 @@ const _phone = TranscriptLensMetrics.forSurface(TranscriptLensSurface.phone);
 
 void main() {
   test('Listen line sizes follow the Main and Phone boards', () {
-    expect(_desktop.lineFontSize(active: true), 21);
-    expect(_desktop.lineFontSize(active: false), 17);
-    expect(_video.lineFontSize(active: true), 17);
-    expect(_video.lineFontSize(active: false), 15);
-    expect(_phone.lineFontSize(active: true), 20);
-    expect(_phone.lineFontSize(active: false), 16);
+    expect(_desktop.lineFontSize(active: true), 25);
+    expect(_desktop.lineFontSize(active: false), 19);
+    expect(_video.lineFontSize(active: true), 20);
+    expect(_video.lineFontSize(active: false), 16);
+    expect(_phone.lineFontSize(active: true), 23);
+    expect(_phone.lineFontSize(active: false), 17);
     expect(_desktop.secondaryFontSize(active: true), 14.5);
-    expect(_phone.secondaryFontSize(active: false), 12.5);
+    expect(_phone.secondaryFontSize(active: true), 15);
+    expect(_phone.secondaryFontSize(active: false), 13.5);
   });
 
   test('gutter is 44 on desktop, 36 in the video column, a dot on phones', () {
