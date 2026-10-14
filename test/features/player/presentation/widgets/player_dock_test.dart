@@ -279,6 +279,13 @@ void main() {
     await tester.pump();
     expect(
       container.read(playerPreferencesCtrlProvider).repeatMode,
+      RepeatMode.segment,
+    );
+
+    await tester.tap(repeat);
+    await tester.pump();
+    expect(
+      container.read(playerPreferencesCtrlProvider).repeatMode,
       RepeatMode.none,
     );
   });
