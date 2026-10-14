@@ -755,12 +755,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shrinkEchoForward => '向前收缩回声';
 
   @override
-  String get echoLoopEarlierLine => '上一句';
-
-  @override
-  String get echoLoopLaterLine => '下一句';
-
-  @override
   String echoLoopCaptionLine(String range, String seconds) {
     return '循环 · 第 $range 句 · $seconds 秒';
   }
@@ -5018,12 +5012,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get shrinkEchoForward => '向前收缩回声';
-
-  @override
-  String get echoLoopEarlierLine => '上一句';
-
-  @override
-  String get echoLoopLaterLine => '下一句';
 
   @override
   String echoLoopCaptionLine(String range, String seconds) {

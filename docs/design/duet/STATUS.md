@@ -23,8 +23,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 4 · App screens | 11 | 10 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
 | A · Audit verification | 6 | 6 |
-| 6 · One player with web + extension (v30) | 14 | 7 |
-| **Total** | **64** | **50 done/in review** |
+| 6 · One player with web + extension (v30) | 14 | 8 |
+| **Total** | **64** | **51 done/in review** |
 
 ## Decisions
 
@@ -123,7 +123,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 |---|---|---|---|---|---|---|---|
 | D6.0 | Re-export canvas v30 + re-plan | all player boards, `System`, `Keyboard` | — | review | | [#916](https://github.com/baizhiheizi/enjoy_player/pull/916) | Boards + `canvas.json` re-exported, 26 renders refreshed, README / PLAN / STATUS updated, R1 / R3 decided, R4–R6 opened. Shipped with it: margin token 340 → 360 (`tokens.json` + `tokens/spaces.dart`), shortcut copy (`H` = Dictate (hide text), `[ ]` add a line, `{ }` drop a line), pitch legend `Original pitch`. Baseline compares of every touched board attached to the PR — they show the Phase 6 gap, not a finished state |
 | D6.1 | Three lenses: Listen · Echo · Dictate | `Main`, `DHide`, `PHide`, `Phone` | — | review | | | R4 built: exclusive lenses (`PlayerLens`, `playerLensProvider`, `PlayerInteractions.selectLens`; `toggleEcho` / `toggleBlur` leave the other lens; a session saved with both reopens in Echo). Top bar: three segments with `E` / `H` keycaps on desktop, label-only and scale-to-fit on phones. Dock Hide pill deleted (`DockHideTextPill`); phone Listen dock starts with Replay (R3). Dictate hint pill over the transcript (hover / press-and-hold copy). Compare: `DHide.png`, `PHide.png` |
-| D6.2 | Echo loop brackets + “+ line” / “−” rows | `DEcho`, `PEcho`, `DRecording`, `DCompact` | — | todo | | | UI only (`shrinkEcho*` already exist) |
+| D6.2 | Echo loop brackets + “+ line” / “−” rows | `DEcho`, `PEcho`, `DRecording`, `DCompact` | — | review | | | `EchoLoopEdgeRow`: the lines either side of the loop become dashed “+” rows (time gutter on desktop, `shape` dashed outline, you-soft + chip, Literata 16 ink3) with a 40px “−” (youLine border; disabled on a one-line loop) calling the existing `expandEcho*` / `shrinkEcho*` through `PlayerInteractions`. The row above keeps its list slot; the row below renders inside the loop card so the order is + above · loop · + below · takes. Hidden while recording. Earlier / Later pill handles deleted. Brackets were already unfilled. Compare: `DEcho.png`, `PEcho.png` |
 | D6.3 | Takes row + takes list, scored on demand | `DScored`, `PScored`, `DEcho`, `PEcho` | D6.12 | todo | | | R2 lands here |
 | D6.4 | Current line card + gutter + type scale | `Main`, `Phone`, `DDark`, `PDark` | — | todo | | | |
 | D6.5 | Dock: Replay first, time + ruler row, readouts, speed button, Repeat | `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording` | — | review | | | `DockReadout` replaces the one-line counter: Listen `Line 6 of 14` / `3 lines practised`, Echo `Looping line 6` / `3.8s · + adds a line, − drops one`, Dictate `Dictating line 6` / peek hint, Recording `Recording · 2.4s of 4.2s` (its own vsync ticker); the hint line hides under 980. Recording keeps the readout and speed + volume on desktop. Repeat (R1) after Next on desktop Listen: `none` ↔ `single` (`segment`, the Echo loop mode, clears on tap), new `EnjoyIcons.repeat` (Phosphor `e3f6`). Speed = `DockSpeedButton`, 54 px mono 600. `playButtonPhone` 68 → 64 (token + parity). Ruler already had time on its row. Echo center keeps the 2026-10-12 user delta (play/pause pill instead of Original) |

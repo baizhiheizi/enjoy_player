@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
+
 import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
@@ -25,6 +27,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_line_rec
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
 import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_echo_loop_edge_row.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_region_merged_card.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -424,6 +427,9 @@ class _TranscriptScrollableListState
           widget.lines.length,
         ) ??
         EchoState.inactive;
+    final recordingTake = ref.watch(
+      shadowReadingHotkeyBusProvider.select((b) => b.isRecordingActive),
+    );
     final activeForUi = ref.watch(
       transcriptPlaybackHighlightProvider(
         widget.mediaId,
@@ -589,6 +595,30 @@ class _TranscriptScrollableListState
                           autoTranslateCtrlProvider(widget.mediaId).notifier,
                         )
                         .requestTranslateLine(lineIndex),
+                  );
+                }
+
+                final loopEdge = !echo.active || recordingTake
+                    ? null
+                    : lineIndex == echo.startLineIndex - 1
+                    ? EchoLoopEdge.above
+                    : lineIndex == echo.endLineIndex + 1
+                    ? EchoLoopEdge.below
+                    : null;
+                if (loopEdge == EchoLoopEdge.below) {
+                  return SizedBox.shrink(
+                    key: ValueKey<String>('line-$lineIndex'),
+                  );
+                }
+                if (loopEdge != null) {
+                  return Padding(
+                    key: ValueKey<String>('line-$lineIndex'),
+                    padding: EdgeInsets.only(bottom: density.lineInterGap),
+                    child: EchoLoopEdgeRow(
+                      line: line,
+                      edge: loopEdge,
+                      canDrop: echo.endLineIndex > echo.startLineIndex,
+                    ),
                   );
                 }
 
