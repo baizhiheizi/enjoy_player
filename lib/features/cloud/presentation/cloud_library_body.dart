@@ -20,6 +20,7 @@ import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
+import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
@@ -148,6 +149,14 @@ String _coverSeed(RemoteLibraryItem item) {
   final m = item.md5?.trim();
   if (m != null && m.isNotEmpty) return m;
   return item.id;
+}
+
+String? _thumbUrl(RemoteLibraryItem item) {
+  return remoteThumbnailForCard(
+    item.thumbnailUrl,
+    youtubeVideoId: item.provider == kProviderYoutube ? item.md5 : null,
+    mediaUrl: item.mediaUrl,
+  );
 }
 
 /// Cursor + loading state for one cloud catalog tab.
@@ -373,11 +382,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
           : languageCodeLabel(item.language),
       durationLabel: item.durationSeconds > 0 ? dur : null,
       thumbnailFile: null,
-      thumbnailNetworkUrl: remoteThumbnailForCard(
-        item.thumbnailUrl,
-        youtubeVideoId: item.provider == 'youtube' ? item.md5 : null,
-        mediaUrl: item.mediaUrl,
-      ),
+      thumbnailNetworkUrl: _thumbUrl(item),
       coverSeed: seed,
       isVideo: false,
       accentColor: accent,
@@ -385,7 +390,9 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
           ? item.id
           : null,
       trailing: trailing,
-      providerBadge: item.provider == 'youtube' ? l10n.youtubeBadge : null,
+      providerBadge: item.provider == kProviderYoutube
+          ? l10n.youtubeBadge
+          : null,
       onTap: () {
         if (_inLibrary == true) {
           openPlayerRoute(context, item.id);
@@ -572,18 +579,16 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile>
           subtitle: l10n.miniPlayerMediaVideo,
           durationLabel: item.durationSeconds > 0 ? dur : null,
           thumbnailFile: null,
-          thumbnailNetworkUrl: remoteThumbnailForCard(
-            item.thumbnailUrl,
-            youtubeVideoId: item.provider == 'youtube' ? item.md5 : null,
-            mediaUrl: item.mediaUrl,
-          ),
+          thumbnailNetworkUrl: _thumbUrl(item),
           coverSeed: seed,
           isVideo: true,
           accentColor: accent,
           heroArtworkMediaId: _inLibrary == true && playingId != item.id
               ? item.id
               : null,
-          providerBadge: item.provider == 'youtube' ? l10n.youtubeBadge : null,
+          providerBadge: item.provider == kProviderYoutube
+              ? l10n.youtubeBadge
+              : null,
           onTap: () {
             if (_inLibrary == true) {
               openPlayerRoute(context, item.id);
