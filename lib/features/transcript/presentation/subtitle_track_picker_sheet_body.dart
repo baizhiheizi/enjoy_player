@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
@@ -83,7 +84,10 @@ List<Widget> buildTrackListBody({
   final blockedMessage = _autoTranslateBlockedMessage(l10n, autoTranslateState);
 
   return [
-    SubtitlePanelOverline(l10n.subtitlesSectionSubtitles),
+    Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      child: EnjoyOverline(l10n.subtitlesSectionSubtitles),
+    ),
     if (isFetching)
       Padding(
         padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),

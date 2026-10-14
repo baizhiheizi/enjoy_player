@@ -1,4 +1,11 @@
 /// Applies the Book / Clean transcript typeface preference to [child].
+///
+/// Scope boundary: only widgets **below** this scope see the swapped
+/// `TranscriptTypographyTokens`; anything that grabbed the tokens above it
+/// (the app bar, the dock) keeps Book by design — Clean is a transcript
+/// reading preference, not a chrome one. `Theme` is itself an
+/// `InheritedWidget`, so dependents rebuild only when the typeface flips,
+/// not on every frame.
 library;
 
 import 'package:flutter/material.dart';

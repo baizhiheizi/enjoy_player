@@ -36,7 +36,7 @@ final class TranscriptTypefaceSettingsProvider
 }
 
 String _$transcriptTypefaceSettingsHash() =>
-    r'a3920ac320c17f1a46458699289ebee0f9e4a44f';
+    r'0a497781e73cab01fca989507bd4ee74f8fd7498';
 
 abstract class _$TranscriptTypefaceSettings
     extends $AsyncNotifier<TranscriptTypeface> {

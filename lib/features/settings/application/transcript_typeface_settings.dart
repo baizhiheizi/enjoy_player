@@ -24,11 +24,13 @@ class TranscriptTypefaceSettings extends _$TranscriptTypefaceSettings {
   }
 
   Future<void> select(TranscriptTypeface typeface) async {
-    final db = ref.read(deviceGlobalAppDatabaseProvider);
-    await db.settingsDao.writeSetting(
-      SettingsKeys.transcriptCleanTypeface,
-      typeface == TranscriptTypeface.clean,
-    );
-    state = AsyncData(typeface);
+    state = await AsyncValue.guard(() async {
+      final db = ref.read(deviceGlobalAppDatabaseProvider);
+      await db.settingsDao.writeSetting(
+        SettingsKeys.transcriptCleanTypeface,
+        typeface == TranscriptTypeface.clean,
+      );
+      return typeface;
+    });
   }
 }
