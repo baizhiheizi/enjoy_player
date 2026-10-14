@@ -130,7 +130,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
   }
 
-  testWidgets('Listen dock shows hide text, speed, and the play ring', (
+  testWidgets('Listen dock shows speed and the play ring, no Hide pill', (
     tester,
   ) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
@@ -138,7 +138,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await pumpDock(tester);
 
-    expect(find.text(l10n.playerDockHideText), findsOneWidget);
+    expect(find.text(l10n.playerDockHideText), findsNothing);
     expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
     expect(find.text('1.0×'), findsOneWidget);
     expect(find.text(l10n.playerDockRecord), findsNothing);
@@ -150,6 +150,19 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await pumpDock(tester);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('phone Listen dock starts with Replay (R3)', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await pumpDock(tester);
+
+    final replay = find.byIcon(EnjoyIcons.replay);
+    expect(replay, findsOneWidget);
+    expect(
+      tester.getCenter(replay).dx,
+      lessThan(tester.getCenter(find.byIcon(EnjoyIcons.skipBack)).dx),
+    );
   });
 
   testWidgets('Echo dock swaps in Play/Pause and Record', (tester) async {

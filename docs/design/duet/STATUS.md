@@ -23,8 +23,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 4 · App screens | 11 | 10 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
 | A · Audit verification | 6 | 6 |
-| 6 · One player with web + extension (v30) | 14 | 4 |
-| **Total** | **64** | **47 done/in review** |
+| 6 · One player with web + extension (v30) | 14 | 6 |
+| **Total** | **64** | **49 done/in review** |
 
 ## Decisions
 
@@ -122,7 +122,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
 | D6.0 | Re-export canvas v30 + re-plan | all player boards, `System`, `Keyboard` | — | review | | [#916](https://github.com/baizhiheizi/enjoy_player/pull/916) | Boards + `canvas.json` re-exported, 26 renders refreshed, README / PLAN / STATUS updated, R1 / R3 decided, R4–R6 opened. Shipped with it: margin token 340 → 360 (`tokens.json` + `tokens/spaces.dart`), shortcut copy (`H` = Dictate (hide text), `[ ]` add a line, `{ }` drop a line), pitch legend `Original pitch`. Baseline compares of every touched board attached to the PR — they show the Phase 6 gap, not a finished state |
-| D6.1 | Three lenses: Listen · Echo · Dictate | `Main`, `DHide`, `PHide`, `Phone` | — | todo | | | R4 decided: exclusive lens |
+| D6.1 | Three lenses: Listen · Echo · Dictate | `Main`, `DHide`, `PHide`, `Phone` | — | review | | | R4 built: exclusive lenses (`PlayerLens`, `playerLensProvider`, `PlayerInteractions.selectLens`; `toggleEcho` / `toggleBlur` leave the other lens; a session saved with both reopens in Echo). Top bar: three segments with `E` / `H` keycaps on desktop, label-only and scale-to-fit on phones. Dock Hide pill deleted (`DockHideTextPill`); phone Listen dock starts with Replay (R3). Dictate hint pill over the transcript (hover / press-and-hold copy). Compare: `DHide.png`, `PHide.png` |
 | D6.2 | Echo loop brackets + “+ line” / “−” rows | `DEcho`, `PEcho`, `DRecording`, `DCompact` | — | todo | | | UI only (`shrinkEcho*` already exist) |
 | D6.3 | Takes row + takes list, scored on demand | `DScored`, `PScored`, `DEcho`, `PEcho` | D6.12 | todo | | | R2 lands here |
 | D6.4 | Current line card + gutter + type scale | `Main`, `Phone`, `DDark`, `PDark` | — | todo | | | |
@@ -131,7 +131,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D6.7 | Subtitles & display panel | `DSubtitles` | D6.8 | review | | | Content-sized 384px popover 10px under the bar; flat rows (Subtitles: Primary / Translation; Display: Book / Clean, highlight, IPA, enrichment progress / failure card); hint to ··· More. Hide text switch removed (H + dock until D6.1). Phone sheet keeps the transcript actions at its foot (no More on phones). No `I` keycap on the IPA row: there is no IPA hotkey and hotkeys are frozen. Compare: `DSubtitles.png` |
 | D6.8 | ⋯ More menu | `Main`, `DSubtitles` | D6.6 | review | | | `PopupRoute` menu (parks the surface): Transcript — add a subtitle file / use embedded subtitles / create or re-run the AI transcript / add word timings & IPA / refresh from cloud (one list, `watchTranscriptActions`, shared with the phone sheet) — then Keyboard shortcuts `?`. The board's Media group and Edit / Download transcript are R6 issues #920–#923 |
 | D6.9 | Word lookup structure | `DWord`, `PWord` | — | todo | | | Keep expand-to-load |
-| D6.10 | Dictate word shapes, one flat fill | `DHide`, `PHide` | — | todo | | | |
+| D6.10 | Dictate word shapes, one flat fill | `DHide`, `PHide` | — | review | | | Verified, no code change: `TranscriptBlurText` already paints every hidden word as one flat `shape` bar (0.62 em tall, 0.2 em radius) as the board does; no call site overrides the color |
 | D6.11 | Desktop video: picture left, transcript rail right | `DVideo`, `DYoutubeDark` | — | todo | | | Rule 4 (surface parking) |
 | D6.12 | Margin 360, pushes content (video too), drawer < 1100 | `DWord`, `DScored`, `DCompact`, `DVideo` | — | todo | | | Token done in D6.0; layout was the D3.7 / D3.8 residual |
 | D6.13 | Copy: Original / Score / Assessment / Take n | all player boards, `Keyboard`, `KeyboardCheatsheet` | — | in progress | | | Shortcut descriptions + pitch legend done in D6.0 |

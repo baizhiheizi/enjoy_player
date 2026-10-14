@@ -2,6 +2,7 @@
 
 ## MVP behavior
 
+- **Echo is one of three exclusive lenses** (Listen · Echo · Dictate, canvas v30): turning Echo on leaves Dictate (hide text) and turning Dictate on leaves Echo — `PlayerInteractions.toggleEcho` / `toggleBlur` / `selectLens`. A session persisted with both flags (before v30) reopens in Echo.
 - Echo region stores line indices + start/end times (seconds). The line indices are the source of truth; the cached seconds are re-derived from the current transcript at enforcement time (falling back to the cached value when no transcript is loaded), so a re-segmented transcript yields fresh boundaries.
 - `normalizeEchoWindow`, `clampSeekTimeToEchoWindow`, `decideEchoPlaybackTime` match web `echo-utils.ts` semantics (segment end **pauses** and rewinds to segment start for replay — not auto-loop).
 - `normalizeEchoWindow` also widens windows narrower than `endGuard + seekEpsilon`: such a window has no playable position — the end guard fires pause-and-rewind the instant the rewind-to-start seek lands, looping seek → pause → seek (issue #659; reachable via arbitrary start/end query params or a sub-40 ms cue). Media too short for even the minimum drops the window instead of churning enforcement.

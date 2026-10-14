@@ -9,6 +9,8 @@ import 'package:enjoy_player/features/player/application/echo_mode_provider.dart
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
+import 'package:enjoy_player/features/player/application/player_lens_provider.dart';
+import 'package:enjoy_player/features/player/domain/player_lens.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
@@ -427,6 +429,93 @@ void main() {
 
     final n = container.read(playerInteractionsProvider);
     await n.toggleBlur();
+    expect(container.read(transcriptBlurModeProvider), isFalse);
+  });
+
+  test('toggleBlur leaves Echo: the lenses are exclusive (R4)', () async {
+    await insertAudioRow(mediaId);
+    await seedTranscript();
+    setUpSession(currentTime: 4.5);
+    final n = container.read(playerInteractionsProvider);
+    await n.toggleEcho();
+    expect(container.read(echoModeProvider).active, isTrue);
+
+    await n.toggleBlur();
+    expect(container.read(transcriptBlurModeProvider), isTrue);
+    expect(container.read(echoModeProvider).active, isFalse);
+    expect(container.read(playerLensProvider), PlayerLens.dictate);
+  });
+
+  test(
+    'leaving a restored both-on session collapses to Listen (review)',
+    () async {
+      await insertAudioRow(mediaId);
+      await seedTranscript();
+      setUpSession(currentTime: 4.5);
+      container
+          .read(echoModeProvider.notifier)
+          .activate(
+            startLineIndex: 1,
+            endLineIndex: 1,
+            startTimeSeconds: 2,
+            endTimeSeconds: 4,
+          );
+      container.read(transcriptBlurModeProvider.notifier).activate();
+      final n = container.read(playerInteractionsProvider);
+
+      await n.toggleEcho();
+      expect(container.read(echoModeProvider).active, isFalse);
+      expect(container.read(transcriptBlurModeProvider), isFalse);
+      expect(container.read(playerLensProvider), PlayerLens.listen);
+
+      container
+          .read(echoModeProvider.notifier)
+          .activate(
+            startLineIndex: 1,
+            endLineIndex: 1,
+            startTimeSeconds: 2,
+            endTimeSeconds: 4,
+          );
+      container.read(transcriptBlurModeProvider.notifier).activate();
+      await n.toggleBlur();
+      expect(container.read(echoModeProvider).active, isFalse);
+      expect(container.read(transcriptBlurModeProvider), isFalse);
+      expect(container.read(playerLensProvider), PlayerLens.listen);
+    },
+  );
+
+  test('toggleEcho leaves Dictate: the lenses are exclusive (R4)', () async {
+    await insertAudioRow(mediaId);
+    await seedTranscript();
+    setUpSession(currentTime: 4.5);
+    final n = container.read(playerInteractionsProvider);
+    await n.toggleBlur();
+    expect(container.read(transcriptBlurModeProvider), isTrue);
+
+    await n.toggleEcho();
+    expect(container.read(echoModeProvider).active, isTrue);
+    expect(container.read(transcriptBlurModeProvider), isFalse);
+    expect(container.read(playerLensProvider), PlayerLens.echo);
+  });
+
+  test('selectLens moves between all three lenses', () async {
+    await insertAudioRow(mediaId);
+    await seedTranscript();
+    setUpSession(currentTime: 4.5);
+    final n = container.read(playerInteractionsProvider);
+    expect(container.read(playerLensProvider), PlayerLens.listen);
+
+    await n.selectLens(PlayerLens.dictate);
+    expect(container.read(playerLensProvider), PlayerLens.dictate);
+    await n.selectLens(PlayerLens.echo);
+    expect(container.read(playerLensProvider), PlayerLens.echo);
+    expect(container.read(transcriptBlurModeProvider), isFalse);
+    await n.selectLens(PlayerLens.listen);
+    expect(container.read(playerLensProvider), PlayerLens.listen);
+    await n.selectLens(PlayerLens.dictate);
+    await n.selectLens(PlayerLens.listen);
+    expect(container.read(playerLensProvider), PlayerLens.listen);
+    expect(container.read(echoModeProvider).active, isFalse);
     expect(container.read(transcriptBlurModeProvider), isFalse);
   });
 

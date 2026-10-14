@@ -4,7 +4,9 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/domain/player_lens.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_more_menu.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_top_bar.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
@@ -34,15 +36,32 @@ class _SessionPlayerController extends PlayerController {
   );
 }
 
+class _SpyInteractions extends PlayerInteractions {
+  _SpyInteractions(super.ref);
+
+  final selected = <PlayerLens>[];
+
+  @override
+  Future<void> selectLens(PlayerLens lens) async => selected.add(lens);
+}
+
+_SpyInteractions? _spy;
+
 List<Override> _overrides() {
   final db = AppDatabase(executor: NativeDatabase.memory());
   return [
     appDatabaseProvider.overrideWithValue(db),
     deviceGlobalAppDatabaseProvider.overrideWithValue(db),
     playerControllerProvider.overrideWith(_SessionPlayerController.new),
+    playerInteractionsProvider.overrideWith(
+      (ref) => _spy = _SpyInteractions(ref),
+    ),
     transcriptPlaybackHighlightProvider(
       _mediaId,
     ).overrideWith((ref) => (cueIndex: 2, wordIndex: null)),
+    transcriptHasLinesForMediaProvider(
+      _mediaId,
+    ).overrideWith((ref) => Stream.value(true)),
     transcriptLinesForMediaProvider(_mediaId).overrideWith(
       (ref) => Stream.value(
         List.generate(
@@ -143,5 +162,36 @@ void main() {
     await tester.tapAt(const Offset(40, 600));
     await tester.pumpAndSettle();
     expect(find.byType(PlayerMoreMenuPanel), findsNothing);
+  });
+
+  testWidgets('desktop mode switch has Listen, Echo and Dictate', (
+    tester,
+  ) async {
+    await _pumpBar(tester, width: 1200);
+
+    for (final lens in PlayerLens.values) {
+      expect(find.byKey(ValueKey('player-lens-${lens.name}')), findsOne);
+    }
+    expect(find.text('Dictate'), findsOneWidget);
+    expect(find.text('H'), echoModeShortcutVisible() ? findsOne : findsNothing);
+  });
+
+  testWidgets('tapping Dictate selects the Dictate lens', (tester) async {
+    await _pumpBar(tester, width: 1200);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('player-lens-dictate')));
+    await tester.pump();
+
+    expect(_spy!.selected, [PlayerLens.dictate]);
+  });
+
+  testWidgets('phone mode switch fits three lenses at 360 wide', (
+    tester,
+  ) async {
+    await _pumpBar(tester);
+
+    expect(find.byKey(const ValueKey('player-lens-dictate')), findsOne);
+    expect(tester.takeException(), isNull);
   });
 }

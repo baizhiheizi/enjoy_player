@@ -9,10 +9,13 @@ import '../../transcript/application/transcript_blur_mode_provider.dart';
 import '../../transcript/application/transcript_repository_provider.dart';
 import '../../transcript/application/word_practice_session.dart';
 import '../../transcript/data/transcript_timeline_codec.dart';
+import '../domain/playback_session.dart';
+import '../domain/player_lens.dart';
 import '../domain/transport_decisions.dart';
 import 'echo_mode_provider.dart';
 import 'playback_session_persister.dart';
 import 'player_controller.dart';
+import 'player_lens_provider.dart';
 
 part 'player_interactions.g.dart';
 
@@ -172,6 +175,7 @@ class PlayerInteractions {
     await ref.read(playerControllerProvider.notifier).play();
   }
 
+  /// Toggles the Echo lens; turning it on leaves Dictate.
   Future<void> toggleEcho() async {
     final lines = await _lines();
     final session = ref.read(playerControllerProvider);
@@ -179,11 +183,19 @@ class PlayerInteractions {
     final echo = ref.read(echoModeProvider);
     if (echo.active) {
       ref.read(echoModeProvider.notifier).deactivate();
+      if (ref.read(transcriptBlurModeProvider)) {
+        ref.read(transcriptBlurModeProvider.notifier).deactivate();
+      }
+      await _persistSession(session);
       return;
     }
     final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
     if (idx < 0) return;
     final line = lines[idx];
+    if (ref.read(transcriptBlurModeProvider)) {
+      ref.read(transcriptBlurModeProvider.notifier).deactivate();
+      await _persistSession(session);
+    }
     ref
         .read(echoModeProvider.notifier)
         .activate(
@@ -194,7 +206,8 @@ class PlayerInteractions {
         );
   }
 
-  /// Toggles listening-focus (transcript blur) practice for the open media.
+  /// Toggles the Dictate lens (hide text) for the open media; turning it on
+  /// leaves Echo.
   ///
   /// Allows turning blur off even when there are no transcript lines so the
   /// user can always exit the mode (same enable rule as the transport button).
@@ -204,19 +217,42 @@ class PlayerInteractions {
     final blur = ref.read(transcriptBlurModeProvider);
     if (blur) {
       ref.read(transcriptBlurModeProvider.notifier).deactivate();
+      if (ref.read(echoModeProvider).active) {
+        ref.read(echoModeProvider.notifier).deactivate();
+      }
     } else {
       final lines = await _lines();
       if (lines.isEmpty) return;
+      if (ref.read(echoModeProvider).active) {
+        ref.read(echoModeProvider.notifier).deactivate();
+      }
       ref.read(transcriptBlurModeProvider.notifier).activate();
     }
-    await ref
-        .read(playbackSessionPersisterProvider)
-        .writeNow(
-          mediaId: session.mediaId,
-          dexieTargetType: session.dexieTargetType,
-          session: session,
-        );
+    await _persistSession(session);
   }
+
+  /// Switches to [lens]; the lenses are exclusive (Dictate leaves Echo and
+  /// Echo leaves Dictate). A no-op when [lens] is already active.
+  Future<void> selectLens(PlayerLens lens) async {
+    final current = ref.read(playerLensProvider);
+    if (current == lens) return;
+    switch (lens) {
+      case PlayerLens.listen:
+        await (current == PlayerLens.echo ? toggleEcho() : toggleBlur());
+      case PlayerLens.echo:
+        await toggleEcho();
+      case PlayerLens.dictate:
+        await toggleBlur();
+    }
+  }
+
+  Future<void> _persistSession(PlaybackSession session) => ref
+      .read(playbackSessionPersisterProvider)
+      .writeNow(
+        mediaId: session.mediaId,
+        dexieTargetType: session.dexieTargetType,
+        session: session,
+      );
 
   Future<void> expandEchoBackward() async {
     final echo = ref.read(echoModeProvider);

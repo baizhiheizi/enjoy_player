@@ -22,6 +22,8 @@ import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
+import 'package:enjoy_player/features/player/application/player_lens_provider.dart';
+import 'package:enjoy_player/features/player/domain/player_lens.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
@@ -44,6 +46,7 @@ class PlayerTopBar extends ConsumerWidget {
     final tt = Theme.of(context).textTheme;
     final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
     final echo = ref.watch(echoModeProvider);
+    final lens = ref.watch(playerLensProvider);
     final hasLines =
         ref.watch(transcriptHasLinesForMediaProvider(mediaId)).value ?? false;
     final collapseTooltip = hotkeyTooltipLabel(
@@ -116,27 +119,7 @@ class PlayerTopBar extends ConsumerWidget {
                   ],
                 ),
               ),
-              _ModeSegmented(
-                echoActive: echo.active,
-                echoEnabled: hasLines,
-                onListen: () {
-                  if (!echo.active) return;
-                  unawaited(ref.read(playerInteractionsProvider).toggleEcho());
-                },
-                onEcho: () {
-                  if (echo.active) return;
-                  Haptics.selection(context);
-                  unawaited(ref.read(playerInteractionsProvider).toggleEcho());
-                },
-                echoTipAction: echo.active || hasLines
-                    ? () {
-                        Haptics.selection(context);
-                        unawaited(
-                          ref.read(playerInteractionsProvider).toggleEcho(),
-                        );
-                      }
-                    : null,
-              ),
+              _ModeSegmented(lens: lens, lensesEnabled: hasLines),
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -190,63 +173,77 @@ class PlayerTopBar extends ConsumerWidget {
 
 bool echoModeShortcutVisible() => isDesktop;
 
-class _ModeSegmented extends StatelessWidget {
+class _ModeSegmented extends ConsumerWidget {
   const _ModeSegmented({
-    required this.echoActive,
-    required this.echoEnabled,
-    required this.onListen,
-    required this.onEcho,
-    this.echoTipAction,
+    required this.lens,
+    required this.lensesEnabled,
+    this.compact = false,
   });
 
-  final bool echoActive;
-  final bool echoEnabled;
-  final VoidCallback onListen;
-  final VoidCallback onEcho;
+  final PlayerLens lens;
 
-  /// Onboarding anchor for the Echo tip (echo affordance lives here now).
-  final VoidCallback? echoTipAction;
+  /// Echo and Dictate need transcript lines; leaving them never does.
+  final bool lensesEnabled;
+
+  /// Phone: label-only segments, no keycaps.
+  final bool compact;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
     final tt = Theme.of(context).textTheme;
+    final keycaps = !compact && echoModeShortcutVisible();
+
+    void select(PlayerLens next) {
+      if (next == lens) return;
+      Haptics.selection(context);
+      unawaited(ref.read(playerInteractionsProvider).selectLens(next));
+    }
 
     Widget option({
+      required PlayerLens value,
       required String label,
       required IconData icon,
-      required bool selected,
-      required bool enabled,
       required Color selectedFg,
-      required VoidCallback onTap,
-      Widget? trailing,
+      String? keycap,
       String? tooltip,
     }) {
+      final selected = lens == value;
+      final enabled = value == PlayerLens.listen || lensesEnabled || selected;
       final fg = selected ? selectedFg : (enabled ? t.ink2 : t.ink3);
+      final radius = compact ? 11.0 : 10.0;
       return Tooltip(
         message: tooltip ?? label,
         child: EnjoyPressable(
-          onTap: enabled ? onTap : null,
-          borderRadius: BorderRadius.circular(10),
+          key: ValueKey('player-lens-${value.name}'),
+          onTap: enabled ? () => select(value) : null,
+          borderRadius: BorderRadius.circular(radius),
           pressedScale: 0.97,
+          selected: selected,
+          semanticsLabel: label,
           child: AnimatedContainer(
             duration: t.motionFast,
             curve: Curves.easeOutCubic,
-            height: 34,
-            padding: const EdgeInsets.only(left: 12, right: 12),
+            height: compact ? 36 : 34,
+            padding: EdgeInsets.only(
+              left: compact ? 13 : 12,
+              right: compact ? 13 : (keycap != null && keycaps ? 10 : 16),
+            ),
             decoration: ShapeDecoration(
               color: selected ? t.raised : Colors.transparent,
               shape: RoundedSuperellipseBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(radius),
               ),
               shadows: selected ? t.shadowLift : const [],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 17, color: fg),
-                const SizedBox(width: 8),
+                if (!compact) ...[
+                  Icon(icon, size: 17, color: fg),
+                  const SizedBox(width: 8),
+                ],
                 Text(
                   label,
                   style: tt.labelMedium?.copyWith(
@@ -255,7 +252,10 @@ class _ModeSegmented extends StatelessWidget {
                     color: fg,
                   ),
                 ),
-                if (trailing != null) ...[const SizedBox(width: 8), trailing],
+                if (keycap != null && keycaps) ...[
+                  const SizedBox(width: 8),
+                  EnjoyKeycap(label: keycap),
+                ],
               ],
             ),
           ),
@@ -268,36 +268,45 @@ class _ModeSegmented extends StatelessWidget {
       decoration: ShapeDecoration(
         color: t.sunk,
         shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(compact ? 14 : 13),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           option(
+            value: PlayerLens.listen,
             label: l10n.playerListenModeTitle,
             icon: EnjoyIcons.headphones,
-            selected: !echoActive,
-            enabled: true,
             selectedFg: t.originalInk,
-            onTap: onListen,
           ),
           const SizedBox(width: 2),
           OnboardingTarget(
             tipId: OnboardingTipId.playerEcho,
-            onTargetAction: echoTipAction,
+            onTargetAction: lens == PlayerLens.echo || lensesEnabled
+                ? () => select(
+                    lens == PlayerLens.echo
+                        ? PlayerLens.listen
+                        : PlayerLens.echo,
+                  )
+                : null,
             child: option(
+              value: PlayerLens.echo,
               label: l10n.playerEchoShort,
               icon: EnjoyIcons.mic,
-              selected: echoActive,
-              enabled: echoEnabled || echoActive,
               selectedFg: t.youInk,
-              onTap: onEcho,
+              keycap: 'E',
               tooltip: l10n.hotkeysDescToggleEchoMode,
-              trailing: echoModeShortcutVisible()
-                  ? const EnjoyKeycap(label: 'E')
-                  : null,
             ),
+          ),
+          const SizedBox(width: 2),
+          option(
+            value: PlayerLens.dictate,
+            label: l10n.playerDictateShort,
+            icon: EnjoyIcons.pencil,
+            selectedFg: t.youInk,
+            keycap: 'H',
+            tooltip: l10n.hotkeysDescToggleBlurPractice,
           ),
         ],
       ),
@@ -409,6 +418,7 @@ class _PhoneTopBar extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
+    final lens = ref.watch(playerLensProvider);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -421,29 +431,18 @@ class _PhoneTopBar extends ConsumerWidget {
               color: t.ink2,
               onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
             ),
-            const Spacer(),
-            _ModeSegmented(
-              echoActive: echoActive,
-              echoEnabled: echoEnabled,
-              onListen: () {
-                if (!echoActive) return;
-                unawaited(ref.read(playerInteractionsProvider).toggleEcho());
-              },
-              onEcho: () {
-                if (echoActive) return;
-                Haptics.selection(context);
-                unawaited(ref.read(playerInteractionsProvider).toggleEcho());
-              },
-              echoTipAction: echoActive || echoEnabled
-                  ? () {
-                      Haptics.selection(context);
-                      unawaited(
-                        ref.read(playerInteractionsProvider).toggleEcho(),
-                      );
-                    }
-                  : null,
+            Expanded(
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: _ModeSegmented(
+                    lens: lens,
+                    lensesEnabled: echoEnabled,
+                    compact: true,
+                  ),
+                ),
+              ),
             ),
-            const Spacer(),
             _ShareAction(mediaId: mediaId, echoActive: echoActive),
             _SubtitlesAction(mediaId: mediaId, showLabel: false),
           ],
