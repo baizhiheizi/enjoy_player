@@ -357,6 +357,11 @@ GoRouter _playerRouter() => GoRouter(
                             sourceLanguage: 'en',
                             targetLanguage: 'zh',
                             contextualContext: _board[_activeLine].$1,
+                            sourceContext: LookupSourceContext(
+                              isVideo: false,
+                              startMs: _startMs(_activeLine),
+                              lineText: _board[_activeLine].$1,
+                            ),
                           ),
                         ),
                   );
@@ -414,6 +419,11 @@ Future<void> _openLookupInside(WidgetTester tester) async {
             sourceLanguage: 'en',
             targetLanguage: 'zh',
             contextualContext: _board[_activeLine].$1,
+            sourceContext: LookupSourceContext(
+              isVideo: false,
+              startMs: _startMs(_activeLine),
+              lineText: _board[_activeLine].$1,
+            ),
           ),
         ),
   );

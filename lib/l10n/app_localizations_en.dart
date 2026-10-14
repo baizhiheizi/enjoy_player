@@ -4544,4 +4544,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get takesPitchOnLoop => 'Pitch contour on the loop';
+
+  @override
+  String lookupInThisAudio(String time) {
+    return 'In this audio · $time';
+  }
+
+  @override
+  String lookupInThisVideo(String time) {
+    return 'In this video · $time';
+  }
+
+  @override
+  String takeAssessmentTitle(int number) {
+    return 'Take $number · Assessment';
+  }
 }

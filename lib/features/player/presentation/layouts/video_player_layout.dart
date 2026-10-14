@@ -165,7 +165,7 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
                     width: tw,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: cs.surface,
+                        color: EnjoyThemeTokens.of(context).ground,
                         border: Border(
                           left: BorderSide(
                             color: cs.outlineVariant.withValues(alpha: 0.4),
@@ -198,7 +198,10 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
               ),
             ),
             Expanded(
-              child: ColoredBox(color: cs.surface, child: widget.transcript),
+              child: ColoredBox(
+                color: EnjoyThemeTokens.of(context).ground,
+                child: widget.transcript,
+              ),
             ),
           ],
         );
@@ -219,7 +222,7 @@ class _VideoColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: Colors.black,
+      color: EnjoyThemeTokens.of(context).video,
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomInset),
         child: _VideoStageWithChrome(engine: engine),

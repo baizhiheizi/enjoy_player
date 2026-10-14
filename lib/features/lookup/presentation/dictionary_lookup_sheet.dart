@@ -21,6 +21,7 @@ import 'package:enjoy_player/features/lookup/application/lookup_credits_exhauste
 import 'package:enjoy_player/features/lookup/application/lookup_sheet_result_cache.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_target_languages.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/contextual_translation_lookup_section.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/dictionary_lookup_section.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/translation_lookup_section.dart';
@@ -269,6 +270,11 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                   t.space24,
                 ),
                 children: [
+                  if (widget.request.sourceContext != null)
+                    LookupSourceContextBlock(
+                      source: widget.request.sourceContext!,
+                      word: widget.request.selectedText,
+                    ),
                   Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
@@ -323,6 +329,73 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
       maxChildSize: 0.92,
       expand: false,
       builder: (ctx, scrollCtrl) => _mainColumn(scrollCtrl),
+    );
+  }
+}
+
+/// The board's "In this audio · 0:20" block: the line the word came from,
+/// with the looked-up word bolded.
+class LookupSourceContextBlock extends StatelessWidget {
+  const LookupSourceContextBlock({
+    required this.source,
+    required this.word,
+    super.key,
+  });
+
+  final LookupSourceContext source;
+  final String word;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final tt = Theme.of(context).textTheme;
+    final heading = source.isVideo
+        ? l10n.lookupInThisVideo(formatTranscriptTimestampMs(source.startMs))
+        : l10n.lookupInThisAudio(formatTranscriptTimestampMs(source.startMs));
+    final line = source.lineText;
+    final matchIndex = line.toLowerCase().indexOf(word.toLowerCase());
+
+    return Padding(
+      key: const ValueKey('lookup-source-context'),
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            heading.toUpperCase(),
+            style: tt.labelSmall?.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 11 * 0.09,
+              color: t.ink3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text.rich(
+            TextSpan(
+              children: matchIndex < 0
+                  ? [TextSpan(text: line)]
+                  : [
+                      TextSpan(text: line.substring(0, matchIndex)),
+                      TextSpan(
+                        text: line.substring(
+                          matchIndex,
+                          matchIndex + word.length,
+                        ),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      TextSpan(text: line.substring(matchIndex + word.length)),
+                    ],
+            ),
+            style: tt.bodyMedium?.copyWith(
+              fontSize: 14.5,
+              height: 1.45,
+              color: t.ink2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

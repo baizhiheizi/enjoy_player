@@ -25,17 +25,23 @@ Future<void> showAssessmentMargin({
   required AzurePronunciationAssessmentResult assessment,
   String? localeTag,
   String? recordingPath,
+  int? takeNumber,
 }) {
+  final l10n = AppLocalizations.of(context)!;
+  final heading = takeNumber == null
+      ? l10n.assessmentTitle
+      : l10n.takeAssessmentTitle(takeNumber);
   return openPlayerMargin(
     context,
     PlayerMarginEntry(
       id: 'assessment:${recordingPath ?? assessment.hashCode}',
-      label: AppLocalizations.of(context)!.assessmentTitle,
+      label: heading,
       echoOnly: true,
       builder: (context, close) => AssessmentMarginPanel(
         assessment: assessment,
         localeTag: localeTag ?? kDefaultLearningLanguageTag,
         recordingPath: recordingPath,
+        takeNumber: takeNumber,
         onClose: close,
       ),
     ),
@@ -48,19 +54,27 @@ class AssessmentMarginPanel extends ConsumerWidget {
     required this.assessment,
     required this.localeTag,
     this.recordingPath,
+    this.takeNumber,
     this.onClose,
   });
 
   final AzurePronunciationAssessmentResult assessment;
   final String localeTag;
   final String? recordingPath;
+
+  /// Shows the board's `Take 3 · Assessment` heading when known.
+  final int? takeNumber;
   final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final nBest = assessment.nBest.isEmpty ? null : assessment.nBest.first;
+    final number = takeNumber;
     return _MarginFrame(
+      title: number == null
+          ? l10n.assessmentMarginOverline
+          : l10n.takeAssessmentTitle(number),
       onClose: onClose,
       child: nBest == null
           ? Padding(
@@ -83,15 +97,15 @@ class AssessmentMarginPanel extends ConsumerWidget {
 }
 
 class _MarginFrame extends StatelessWidget {
-  const _MarginFrame({required this.child, this.onClose});
+  const _MarginFrame({required this.child, required this.title, this.onClose});
 
   final Widget child;
+  final String title;
   final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -100,7 +114,7 @@ class _MarginFrame extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 18, 8, 12),
-                child: EnjoyOverline(l10n.assessmentMarginOverline),
+                child: EnjoyOverline(title),
               ),
             ),
             Padding(

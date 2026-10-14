@@ -1725,5 +1725,8 @@
   "takeNotScoredTap": "还没有评分 · 轻点评分",
   "takesMarginTitleClick": "你的录音 · 点击播放",
   "takesMarginTitleTap": "你的录音 · 轻点播放",
-  "takesPitchOnLoop": "在循环上显示音高曲线"
+  "takesPitchOnLoop": "在循环上显示音高曲线",
+  "lookupInThisAudio": "本音频 · {time}",
+  "lookupInThisVideo": "本视频 · {time}",
+  "takeAssessmentTitle": "第 {number} 遍 · 评估"
 }

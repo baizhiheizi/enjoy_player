@@ -10,6 +10,7 @@ final class LookupRequest {
     required this.targetLanguage,
     this.contextualContext,
     this.mediaVocabularyContext,
+    this.sourceContext,
   });
 
   final String selectedText;
@@ -21,6 +22,10 @@ final class LookupRequest {
 
   /// Persistable media context for add-to-vocabulary (null when unavailable).
   final MediaVocabularyContext? mediaVocabularyContext;
+
+  /// The line the word came from, for the sheet's "In this audio" block
+  /// (null for non-transcript callers).
+  final LookupSourceContext? sourceContext;
 
   LookupRequest copyWith({
     String? selectedText,
@@ -38,4 +43,17 @@ final class LookupRequest {
           mediaVocabularyContext ?? this.mediaVocabularyContext,
     );
   }
+}
+
+/// Display-only context for the lookup sheet's "In this audio" block.
+final class LookupSourceContext {
+  const LookupSourceContext({
+    required this.isVideo,
+    required this.startMs,
+    required this.lineText,
+  });
+
+  final bool isVideo;
+  final int startMs;
+  final String lineText;
 }

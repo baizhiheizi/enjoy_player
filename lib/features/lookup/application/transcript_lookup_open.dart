@@ -90,6 +90,13 @@ void openTranscriptLookup({
     ),
     contextualContext: ctx,
     mediaVocabularyContext: mediaCtx,
+    sourceContext: chrome == null
+        ? null
+        : LookupSourceContext(
+            isVideo: chrome.mediaType == 'video',
+            startMs: lines[lineIndex].startMs,
+            lineText: plainCueText(lines[lineIndex].text),
+          ),
   );
   unawaited(
     ref.read(lookupCoordinatorProvider.notifier).open(context, request),
