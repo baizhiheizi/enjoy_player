@@ -329,8 +329,11 @@ class _SubtitlesActionState extends ConsumerState<_SubtitlesAction> {
 
   Future<void> _toggle() async {
     setState(() => _open = true);
-    await showSubtitleTrackPicker(context, ref, widget.mediaId);
-    if (mounted) setState(() => _open = false);
+    try {
+      await showSubtitleTrackPicker(context, ref, widget.mediaId);
+    } finally {
+      if (mounted) setState(() => _open = false);
+    }
   }
 
   @override

@@ -186,7 +186,7 @@ class EnjoyOverline extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        letterSpacing: 0.88,
+        letterSpacing: 11 * 0.09,
         fontSize: 11,
         fontWeight: FontWeight.w600,
         color: color ?? t.ink3,

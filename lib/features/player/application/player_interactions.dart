@@ -183,6 +183,10 @@ class PlayerInteractions {
     final echo = ref.read(echoModeProvider);
     if (echo.active) {
       ref.read(echoModeProvider.notifier).deactivate();
+      if (ref.read(transcriptBlurModeProvider)) {
+        ref.read(transcriptBlurModeProvider.notifier).deactivate();
+      }
+      await _persistSession(session);
       return;
     }
     final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
@@ -213,6 +217,9 @@ class PlayerInteractions {
     final blur = ref.read(transcriptBlurModeProvider);
     if (blur) {
       ref.read(transcriptBlurModeProvider.notifier).deactivate();
+      if (ref.read(echoModeProvider).active) {
+        ref.read(echoModeProvider.notifier).deactivate();
+      }
     } else {
       final lines = await _lines();
       if (lines.isEmpty) return;

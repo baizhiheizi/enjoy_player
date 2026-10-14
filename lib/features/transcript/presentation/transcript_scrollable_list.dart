@@ -606,6 +606,11 @@ class _TranscriptScrollableListState
                     ? EchoLoopEdge.below
                     : null;
                 if (loopEdge == EchoLoopEdge.below) {
+                  // Deliberate handshake with `EchoRegionMergedCard`: the
+                  // board's order is “+” row below · loop · takes, and the
+                  // takes panel lives inside the loop card — so the card
+                  // draws this line and this list slot collapses to keep the
+                  // index space stable for auto-scroll and recordings.
                   return SizedBox.shrink(
                     key: ValueKey<String>('line-$lineIndex'),
                   );
