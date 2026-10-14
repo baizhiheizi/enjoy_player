@@ -446,6 +446,44 @@ void main() {
     expect(container.read(playerLensProvider), PlayerLens.dictate);
   });
 
+  test(
+    'leaving a restored both-on session collapses to Listen (review)',
+    () async {
+      await insertAudioRow(mediaId);
+      await seedTranscript();
+      setUpSession(currentTime: 4.5);
+      container
+          .read(echoModeProvider.notifier)
+          .activate(
+            startLineIndex: 1,
+            endLineIndex: 1,
+            startTimeSeconds: 2,
+            endTimeSeconds: 4,
+          );
+      container.read(transcriptBlurModeProvider.notifier).activate();
+      final n = container.read(playerInteractionsProvider);
+
+      await n.toggleEcho();
+      expect(container.read(echoModeProvider).active, isFalse);
+      expect(container.read(transcriptBlurModeProvider), isFalse);
+      expect(container.read(playerLensProvider), PlayerLens.listen);
+
+      container
+          .read(echoModeProvider.notifier)
+          .activate(
+            startLineIndex: 1,
+            endLineIndex: 1,
+            startTimeSeconds: 2,
+            endTimeSeconds: 4,
+          );
+      container.read(transcriptBlurModeProvider.notifier).activate();
+      await n.toggleBlur();
+      expect(container.read(echoModeProvider).active, isFalse);
+      expect(container.read(transcriptBlurModeProvider), isFalse);
+      expect(container.read(playerLensProvider), PlayerLens.listen);
+    },
+  );
+
   test('toggleEcho leaves Dictate: the lenses are exclusive (R4)', () async {
     await insertAudioRow(mediaId);
     await seedTranscript();
