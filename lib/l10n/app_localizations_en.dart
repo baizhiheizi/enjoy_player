@@ -4462,4 +4462,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get playerDictateHintHold =>
       'Dictate · listen, then press and hold a line to peek';
+
+  @override
+  String playerDockPractisedLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lines practised',
+      one: '1 line practised',
+      zero: 'No lines practised yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playerDockLoopingLine(int line) {
+    return 'Looping line $line';
+  }
+
+  @override
+  String playerDockLoopingLines(int start, int end) {
+    return 'Looping lines $start–$end';
+  }
+
+  @override
+  String playerDockLoopHint(String seconds) {
+    return '${seconds}s · + adds a line, − drops one';
+  }
+
+  @override
+  String playerDockRecordingProgress(String elapsed, String total) {
+    return 'Recording · ${elapsed}s of ${total}s';
+  }
+
+  @override
+  String playerDockDictatingLine(int line) {
+    return 'Dictating line $line';
+  }
+
+  @override
+  String get playerDockDictateHover => 'Hover a line to peek';
+
+  @override
+  String get playerDockDictateHold => 'Hold a line to peek';
+
+  @override
+  String get playerRepeatOff => 'Repeat: off';
+
+  @override
+  String get playerRepeatItem => 'Repeat this item';
+
+  @override
+  String get playerRepeatLoop => 'Repeat the echo loop';
 }

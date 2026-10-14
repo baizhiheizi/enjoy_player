@@ -169,6 +169,11 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                     child: recording
                         ? _RecordingControls(
                             key: ValueKey<bool>(recording),
+                            mediaId: chrome.mediaId,
+                            phone: phone,
+                            showLineMeta: showLineMeta,
+                            playbackRate: playbackRate,
+                            onSpeed: _openPlaybackRateSheet,
                             onCancel: () => ref
                                 .read(shadowReadingHotkeyBusProvider.notifier)
                                 .pulseRecordingCancel(),
@@ -181,11 +186,10 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             key: ValueKey<bool>(echo.active),
                             mediaId: chrome.mediaId,
                             phone: phone,
+                            recording: recording,
                             showLineMeta: showLineMeta,
                             playbackRate: playbackRate,
                             playing: playing,
-                            loopStartLine: echo.startLineIndex,
-                            loopEndLine: echo.endLineIndex,
                             onPrev: interactions.prevLine,
                             onNext: interactions.nextLine,
                             onTogglePlay: () => ref
@@ -200,6 +204,7 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             key: ValueKey<bool>(echo.active),
                             mediaId: chrome.mediaId,
                             phone: phone,
+                            recording: recording,
                             showLineMeta: showLineMeta,
                             echoAvailable: hasLines || echo.active,
                             playing: playing,
@@ -230,6 +235,7 @@ class _ListenControls extends StatelessWidget {
     super.key,
     required this.mediaId,
     required this.phone,
+    required this.recording,
     required this.showLineMeta,
     required this.echoAvailable,
     required this.playing,
@@ -245,6 +251,7 @@ class _ListenControls extends StatelessWidget {
 
   final String mediaId;
   final bool phone;
+  final bool recording;
   final bool showLineMeta;
   final bool echoAvailable;
   final bool playing;
@@ -262,7 +269,13 @@ class _ListenControls extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final left = Row(
       children: [
-        if (showLineMeta) Flexible(child: DockLineCounter(mediaId: mediaId)),
+        Flexible(
+          child: DockReadout(
+            mediaId: mediaId,
+            recording: recording,
+            showHint: showLineMeta,
+          ),
+        ),
       ],
     );
     final center = Row(
@@ -296,12 +309,13 @@ class _ListenControls extends StatelessWidget {
           enabled: !buffering,
           onTap: onNext,
         ),
+        if (!phone) const DockRepeatButton(),
       ],
     );
     final right = Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        DockSpeedPill(rate: playbackRate, onOpen: onSpeed),
+        DockSpeedButton(rate: playbackRate, onOpen: onSpeed),
         if (!phone) ...[
           const SizedBox(width: 6),
           const TransportVolumeButton(),
@@ -325,7 +339,7 @@ class _ListenControls extends StatelessWidget {
           const Spacer(),
           center,
           const Spacer(),
-          DockSpeedPill(rate: playbackRate, onOpen: onSpeed),
+          DockSpeedButton(rate: playbackRate, onOpen: onSpeed),
         ],
       );
     }
@@ -348,11 +362,10 @@ class _EchoControls extends StatelessWidget {
     super.key,
     required this.mediaId,
     required this.phone,
+    required this.recording,
     required this.showLineMeta,
     required this.playbackRate,
     required this.playing,
-    required this.loopStartLine,
-    required this.loopEndLine,
     required this.onPrev,
     required this.onNext,
     required this.onTogglePlay,
@@ -362,11 +375,10 @@ class _EchoControls extends StatelessWidget {
 
   final String mediaId;
   final bool phone;
+  final bool recording;
   final bool showLineMeta;
   final double playbackRate;
   final bool playing;
-  final int loopStartLine;
-  final int loopEndLine;
   final Future<void> Function() onPrev;
   final Future<void> Function() onNext;
   final VoidCallback onTogglePlay;
@@ -379,14 +391,13 @@ class _EchoControls extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final left = Row(
       children: [
-        if (showLineMeta)
-          Flexible(
-            child: DockLineCounter(
-              mediaId: mediaId,
-              loopStartLine: loopStartLine,
-              loopEndLine: loopEndLine,
-            ),
+        Flexible(
+          child: DockReadout(
+            mediaId: mediaId,
+            recording: recording,
+            showHint: showLineMeta,
           ),
+        ),
       ],
     );
     final playPause = DockPlayPausePill(
@@ -462,7 +473,7 @@ class _EchoControls extends StatelessWidget {
         ? Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              DockSpeedPill(rate: playbackRate, onOpen: onSpeed),
+              DockSpeedButton(rate: playbackRate, onOpen: onSpeed),
               const SizedBox(width: 6),
               const TransportVolumeButton(),
             ],
@@ -495,10 +506,20 @@ class _EchoControls extends StatelessWidget {
 class _RecordingControls extends StatelessWidget {
   const _RecordingControls({
     super.key,
+    required this.mediaId,
+    required this.phone,
+    required this.showLineMeta,
+    required this.playbackRate,
+    required this.onSpeed,
     required this.onCancel,
     required this.onStop,
   });
 
+  final String mediaId;
+  final bool phone;
+  final bool showLineMeta;
+  final double playbackRate;
+  final VoidCallback onSpeed;
   final VoidCallback onCancel;
   final VoidCallback onStop;
 
@@ -506,102 +527,133 @@ class _RecordingControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
-    return SizedBox(
-      height: 76,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(width: 40),
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: ShapeDecoration(
-              color: t.sunk,
-              shape: const StadiumBorder(),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Tooltip(
-                  message: l10n.asrLongMediaConfirmCancel,
-                  child: EnjoyPressable(
-                    onTap: onCancel,
-                    borderRadius: BorderRadius.circular(t.radiusFull),
-                    pressedScale: 0.96,
-                    child: Container(
-                      width: isDesktop ? 150 : null,
-                      height: 52,
-                      padding: const EdgeInsets.only(left: 8, right: 12),
-                      decoration: ShapeDecoration(
-                        color: t.paper,
-                        shape: const StadiumBorder(),
-                        shadows: t.shadowLift,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: t.sunk,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              EnjoyIcons.close,
-                              size: 14,
-                              color: t.ink2,
-                            ),
+    final group = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(width: 40),
+        Container(
+          padding: const EdgeInsets.all(5),
+          decoration: ShapeDecoration(
+            color: t.sunk,
+            shape: const StadiumBorder(),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Tooltip(
+                message: l10n.asrLongMediaConfirmCancel,
+                child: EnjoyPressable(
+                  onTap: onCancel,
+                  borderRadius: BorderRadius.circular(t.radiusFull),
+                  pressedScale: 0.96,
+                  child: Container(
+                    width: isDesktop ? 150 : null,
+                    height: 52,
+                    padding: const EdgeInsets.only(left: 8, right: 12),
+                    decoration: ShapeDecoration(
+                      color: t.paper,
+                      shape: const StadiumBorder(),
+                      shadows: t.shadowLift,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: t.sunk,
+                            shape: BoxShape.circle,
                           ),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: Text(
-                              l10n.asrLongMediaConfirmCancel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: t.ink2,
-                                  ),
-                            ),
+                          child: Icon(
+                            EnjoyIcons.close,
+                            size: 14,
+                            color: t.ink2,
                           ),
-                          if (isDesktop) ...[
-                            const SizedBox(width: 6),
-                            const EnjoyKeycap(label: 'Esc'),
-                          ],
+                        ),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            l10n.asrLongMediaConfirmCancel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: t.ink2,
+                                ),
+                          ),
+                        ),
+                        if (isDesktop) ...[
+                          const SizedBox(width: 6),
+                          const EnjoyKeycap(label: 'Esc'),
                         ],
-                      ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                Tooltip(
-                  message: l10n.shadowRecordingStop,
-                  child: Semantics(
-                    label: l10n.shadowRecordingStop,
-                    button: true,
-                    child: EnjoyPressable(
-                      onTap: onStop,
-                      borderRadius: BorderRadius.circular(31),
-                      pressedScale: 0.94,
-                      child: const SizedBox(
-                        width: 62,
-                        height: 62,
-                        child: Center(
-                          child: DockRecordRing(
-                            diskSize: 50,
-                            dotShape: DockRecordDotShape.stopSquare,
-                          ),
+              ),
+              const SizedBox(width: 6),
+              Tooltip(
+                message: l10n.shadowRecordingStop,
+                child: Semantics(
+                  label: l10n.shadowRecordingStop,
+                  button: true,
+                  child: EnjoyPressable(
+                    onTap: onStop,
+                    borderRadius: BorderRadius.circular(31),
+                    pressedScale: 0.94,
+                    child: const SizedBox(
+                      width: 62,
+                      height: 62,
+                      child: Center(
+                        child: DockRecordRing(
+                          diskSize: 50,
+                          dotShape: DockRecordDotShape.stopSquare,
                         ),
                       ),
                     ),
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 40),
+      ],
+    );
+    if (phone) {
+      return SizedBox(height: 76, child: Center(child: group));
+    }
+    return SizedBox(
+      height: 76,
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: DockReadout(
+                    mediaId: mediaId,
+                    recording: true,
+                    showHint: showLineMeta,
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(width: 40),
+          group,
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                DockSpeedButton(rate: playbackRate, onOpen: onSpeed),
+                const SizedBox(width: 6),
+                const TransportVolumeButton(),
+              ],
+            ),
+          ),
         ],
       ),
     );

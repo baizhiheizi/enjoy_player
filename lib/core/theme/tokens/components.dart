@@ -35,7 +35,7 @@ final class _ComponentTokens {
     chipHeight: 34,
     takeChipHeight: 36,
     playButtonSize: 60,
-    playButtonSizePhone: 68,
+    playButtonSizePhone: 64,
     recordButtonSize: 62,
     recordButtonSizePhone: 76,
     originalPillWidth: 150,

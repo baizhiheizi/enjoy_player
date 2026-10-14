@@ -23,8 +23,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 4 · App screens | 11 | 10 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
 | A · Audit verification | 6 | 6 |
-| 6 · One player with web + extension (v30) | 14 | 6 |
-| **Total** | **64** | **49 done/in review** |
+| 6 · One player with web + extension (v30) | 14 | 7 |
+| **Total** | **64** | **50 done/in review** |
 
 ## Decisions
 
@@ -126,7 +126,7 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D6.2 | Echo loop brackets + “+ line” / “−” rows | `DEcho`, `PEcho`, `DRecording`, `DCompact` | — | todo | | | UI only (`shrinkEcho*` already exist) |
 | D6.3 | Takes row + takes list, scored on demand | `DScored`, `PScored`, `DEcho`, `PEcho` | D6.12 | todo | | | R2 lands here |
 | D6.4 | Current line card + gutter + type scale | `Main`, `Phone`, `DDark`, `PDark` | — | todo | | | |
-| D6.5 | Dock: Replay first, time + ruler row, readouts, speed button, Repeat | `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording` | — | todo | | | R1, R3 decided |
+| D6.5 | Dock: Replay first, time + ruler row, readouts, speed button, Repeat | `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording` | — | review | | | `DockReadout` replaces the one-line counter: Listen `Line 6 of 14` / `3 lines practised`, Echo `Looping line 6` / `3.8s · + adds a line, − drops one`, Dictate `Dictating line 6` / peek hint, Recording `Recording · 2.4s of 4.2s` (its own vsync ticker); the hint line hides under 980. Recording keeps the readout and speed + volume on desktop. Repeat (R1) after Next on desktop Listen: `none` ↔ `single` (`segment`, the Echo loop mode, clears on tap), new `EnjoyIcons.repeat` (Phosphor `e3f6`). Speed = `DockSpeedButton`, 54 px mono 600. `playButtonPhone` 68 → 64 (token + parity). Ruler already had time on its row. Echo center keeps the 2026-10-12 user delta (play/pause pill instead of Original) |
 | D6.6 | Top bar: three columns, Subtitles chip, ⋯ More | `Main`, `DSubtitles`, `DVideo`, `DYoutubeDark` | — | review | | | Share + Subtitles are `PlayerTopBarChip` (36px outlined pill; Subtitles tints `originalSoft` / new `originalLine` token while its popover is open); ⋯ More (40px) on desktop only — the phone board has none. The title meta stays `Audio · 0:55 · English · 中文` as the v30 `Main` board draws it. The Dictate segment rides D6.1 |
 | D6.7 | Subtitles & display panel | `DSubtitles` | D6.8 | review | | | Content-sized 384px popover 10px under the bar; flat rows (Subtitles: Primary / Translation; Display: Book / Clean, highlight, IPA, enrichment progress / failure card); hint to ··· More. Hide text switch removed (H + dock until D6.1). Phone sheet keeps the transcript actions at its foot (no More on phones). No `I` keycap on the IPA row: there is no IPA hotkey and hotkeys are frozen. Compare: `DSubtitles.png` |
 | D6.8 | ⋯ More menu | `Main`, `DSubtitles` | D6.6 | review | | | `PopupRoute` menu (parks the surface): Transcript — add a subtitle file / use embedded subtitles / create or re-run the AI transcript / add word timings & IPA / refresh from cloud (one list, `watchTranscriptActions`, shared with the phone sheet) — then Keyboard shortcuts `?`. The board's Media group and Edit / Download transcript are R6 issues #920–#923 |

@@ -1479,5 +1479,16 @@
   "transcriptEnrichRunningYoutube": "正在生成发音",
   "playerDictateShort": "听写",
   "playerDictateHintHover": "听写 · 先听，再把鼠标移到一行上偷看",
-  "playerDictateHintHold": "听写 · 先听，再长按一行偷看"
+  "playerDictateHintHold": "听写 · 先听，再长按一行偷看",
+  "playerDockPractisedLines": "{count, plural, =0{还没有练习过的句子} other{已练习 {count} 句}}",
+  "playerDockLoopingLine": "正在循环第 {line} 句",
+  "playerDockLoopingLines": "正在循环第 {start}–{end} 句",
+  "playerDockLoopHint": "{seconds} 秒 · + 加一句，− 去一句",
+  "playerDockRecordingProgress": "录音中 · {elapsed} 秒 / {total} 秒",
+  "playerDockDictatingLine": "正在听写第 {line} 句",
+  "playerDockDictateHover": "把鼠标移到一行上偷看",
+  "playerDockDictateHold": "长按一行偷看",
+  "playerRepeatOff": "重复：关",
+  "playerRepeatItem": "重复播放整个内容",
+  "playerRepeatLoop": "重复播放回声片段"
 }

@@ -4255,6 +4255,57 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playerDictateHintHold => '听写 · 先听，再长按一行偷看';
+
+  @override
+  String playerDockPractisedLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已练习 $count 句',
+      zero: '还没有练习过的句子',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playerDockLoopingLine(int line) {
+    return '正在循环第 $line 句';
+  }
+
+  @override
+  String playerDockLoopingLines(int start, int end) {
+    return '正在循环第 $start–$end 句';
+  }
+
+  @override
+  String playerDockLoopHint(String seconds) {
+    return '$seconds 秒 · + 加一句，− 去一句';
+  }
+
+  @override
+  String playerDockRecordingProgress(String elapsed, String total) {
+    return '录音中 · $elapsed 秒 / $total 秒';
+  }
+
+  @override
+  String playerDockDictatingLine(int line) {
+    return '正在听写第 $line 句';
+  }
+
+  @override
+  String get playerDockDictateHover => '把鼠标移到一行上偷看';
+
+  @override
+  String get playerDockDictateHold => '长按一行偷看';
+
+  @override
+  String get playerRepeatOff => '重复：关';
+
+  @override
+  String get playerRepeatItem => '重复播放整个内容';
+
+  @override
+  String get playerRepeatLoop => '重复播放回声片段';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7833,4 +7884,55 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get playerDictateHintHold => '听写 · 先听，再长按一行偷看';
+
+  @override
+  String playerDockPractisedLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已练习 $count 句',
+      zero: '还没有练习过的句子',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playerDockLoopingLine(int line) {
+    return '正在循环第 $line 句';
+  }
+
+  @override
+  String playerDockLoopingLines(int start, int end) {
+    return '正在循环第 $start–$end 句';
+  }
+
+  @override
+  String playerDockLoopHint(String seconds) {
+    return '$seconds 秒 · + 加一句，− 去一句';
+  }
+
+  @override
+  String playerDockRecordingProgress(String elapsed, String total) {
+    return '录音中 · $elapsed 秒 / $total 秒';
+  }
+
+  @override
+  String playerDockDictatingLine(int line) {
+    return '正在听写第 $line 句';
+  }
+
+  @override
+  String get playerDockDictateHover => '把鼠标移到一行上偷看';
+
+  @override
+  String get playerDockDictateHold => '长按一行偷看';
+
+  @override
+  String get playerRepeatOff => '重复：关';
+
+  @override
+  String get playerRepeatItem => '重复播放整个内容';
+
+  @override
+  String get playerRepeatLoop => '重复播放回声片段';
 }
