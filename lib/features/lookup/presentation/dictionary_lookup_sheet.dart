@@ -40,11 +40,15 @@ class DictionaryLookupSheet extends ConsumerStatefulWidget {
   const DictionaryLookupSheet({
     required this.request,
     this.presentation = DictionaryLookupPresentation.bottomSheet,
+    this.onClose,
     super.key,
   });
 
   final LookupRequest request;
   final DictionaryLookupPresentation presentation;
+
+  /// Closes the docked player margin; when null, Close pops this route.
+  final VoidCallback? onClose;
 
   @override
   ConsumerState<DictionaryLookupSheet> createState() =>
@@ -217,7 +221,7 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                         foregroundColor: scheme.onSurfaceVariant,
                       ),
                       tooltip: l10n.lookupClose,
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: widget.onClose ?? () => Navigator.pop(context),
                       icon: const Icon(EnjoyIcons.close, size: 20),
                     ),
                   ],

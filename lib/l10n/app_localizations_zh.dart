@@ -4300,6 +4300,41 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playerRepeatLoop => '重复播放回声片段';
+
+  @override
+  String playerMarginCloseTooltip(String close) {
+    return '$close · Esc';
+  }
+
+  @override
+  String takeNumbered(int number) {
+    return '第 $number 遍';
+  }
+
+  @override
+  String takesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 遍',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get takeNotScoredClick => '还没有评分 · 点击评分';
+
+  @override
+  String get takeNotScoredTap => '还没有评分 · 轻点评分';
+
+  @override
+  String get takesMarginTitleClick => '你的录音 · 点击播放';
+
+  @override
+  String get takesMarginTitleTap => '你的录音 · 轻点播放';
+
+  @override
+  String get takesPitchOnLoop => '在循环上显示音高曲线';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7923,4 +7958,39 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get playerRepeatLoop => '重复播放回声片段';
+
+  @override
+  String playerMarginCloseTooltip(String close) {
+    return '$close · Esc';
+  }
+
+  @override
+  String takeNumbered(int number) {
+    return '第 $number 遍';
+  }
+
+  @override
+  String takesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 遍',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get takeNotScoredClick => '还没有评分 · 点击评分';
+
+  @override
+  String get takeNotScoredTap => '还没有评分 · 轻点评分';
+
+  @override
+  String get takesMarginTitleClick => '你的录音 · 点击播放';
+
+  @override
+  String get takesMarginTitleTap => '你的录音 · 轻点播放';
+
+  @override
+  String get takesPitchOnLoop => '在循环上显示音高曲线';
 }

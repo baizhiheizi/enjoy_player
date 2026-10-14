@@ -27,6 +27,7 @@ import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/application/youtube_open_preview_provider.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_loading_stage.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_margin.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_top_bar.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_loading_video_stage.dart';
 
@@ -289,7 +290,7 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlayerTopBar(mediaId: mediaId),
-          Expanded(child: mediaBody),
+          Expanded(child: PlayerMarginLayout(child: mediaBody)),
         ],
       ),
     );

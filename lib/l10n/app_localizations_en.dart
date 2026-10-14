@@ -4508,4 +4508,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerRepeatLoop => 'Repeat the echo loop';
+
+  @override
+  String playerMarginCloseTooltip(String close) {
+    return '$close · Esc';
+  }
+
+  @override
+  String takeNumbered(int number) {
+    return 'Take $number';
+  }
+
+  @override
+  String takesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count takes',
+      one: '1 take',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get takeNotScoredClick => 'Not scored yet · click to score';
+
+  @override
+  String get takeNotScoredTap => 'Not scored yet · tap to score';
+
+  @override
+  String get takesMarginTitleClick => 'Your takes · click to play';
+
+  @override
+  String get takesMarginTitleTap => 'Your takes · tap to play';
+
+  @override
+  String get takesPitchOnLoop => 'Pitch contour on the loop';
 }

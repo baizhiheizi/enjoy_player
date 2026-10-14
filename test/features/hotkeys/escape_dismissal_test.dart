@@ -18,6 +18,22 @@ void main() {
       isDesktop: true,
     );
 
+    test('an open docked player margin closes before the player no-op', () {
+      expect(
+        resolveEscapeDismissal(base.copyWith(playerMarginOpen: true)),
+        EscapeDismissalAction.closePlayerMargin,
+      );
+    });
+
+    test('a popup above the docked margin closes first', () {
+      expect(
+        resolveEscapeDismissal(
+          base.copyWith(playerMarginOpen: true, rootHasPopupRoute: true),
+        ),
+        EscapeDismissalAction.popRootPopup,
+      );
+    });
+
     test('cheatsheet open closes cheatsheet first', () {
       expect(
         resolveEscapeDismissal(base.copyWith(cheatsheetOpen: true)),
@@ -182,6 +198,7 @@ extension on EscapeDismissalContext {
     bool? goRouterCanPop,
     String? path,
     bool? isDesktop,
+    bool? playerMarginOpen,
   }) {
     return EscapeDismissalContext(
       cheatsheetOpen: cheatsheetOpen ?? this.cheatsheetOpen,
@@ -194,6 +211,7 @@ extension on EscapeDismissalContext {
       goRouterCanPop: goRouterCanPop ?? this.goRouterCanPop,
       path: path ?? this.path,
       isDesktop: isDesktop ?? this.isDesktop,
+      playerMarginOpen: playerMarginOpen ?? this.playerMarginOpen,
     );
   }
 }

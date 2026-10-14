@@ -1717,5 +1717,13 @@
   "playerDockDictateHold": "长按一行偷看",
   "playerRepeatOff": "重复：关",
   "playerRepeatItem": "重复播放整个内容",
-  "playerRepeatLoop": "重复播放回声片段"
+  "playerRepeatLoop": "重复播放回声片段",
+  "playerMarginCloseTooltip": "{close} · Esc",
+  "takeNumbered": "第 {number} 遍",
+  "takesCount": "{count, plural, other{{count} 遍}}",
+  "takeNotScoredClick": "还没有评分 · 点击评分",
+  "takeNotScoredTap": "还没有评分 · 轻点评分",
+  "takesMarginTitleClick": "你的录音 · 点击播放",
+  "takesMarginTitleTap": "你的录音 · 轻点播放",
+  "takesPitchOnLoop": "在循环上显示音高曲线"
 }

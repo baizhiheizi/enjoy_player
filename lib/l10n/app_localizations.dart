@@ -8141,6 +8141,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Repeat the echo loop'**
   String get playerRepeatLoop;
+
+  /// Tooltip on the player margin's close button.
+  ///
+  /// In en, this message translates to:
+  /// **'{close} · Esc'**
+  String playerMarginCloseTooltip(String close);
+
+  /// A take's name in the takes row and list.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {number}'**
+  String takeNumbered(int number);
+
+  /// Opens the list of takes for the loop.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 take} other{{count} takes}}'**
+  String takesCount(int count);
+
+  /// Under an unscored take (pointer devices).
+  ///
+  /// In en, this message translates to:
+  /// **'Not scored yet · click to score'**
+  String get takeNotScoredClick;
+
+  /// Under an unscored take (touch).
+  ///
+  /// In en, this message translates to:
+  /// **'Not scored yet · tap to score'**
+  String get takeNotScoredTap;
+
+  /// Heading of the takes list (pointer devices).
+  ///
+  /// In en, this message translates to:
+  /// **'Your takes · click to play'**
+  String get takesMarginTitleClick;
+
+  /// Heading of the takes list (touch).
+  ///
+  /// In en, this message translates to:
+  /// **'Your takes · tap to play'**
+  String get takesMarginTitleTap;
+
+  /// Takes list toggle for the pitch contour (P).
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch contour on the loop'**
+  String get takesPitchOnLoop;
 }
 
 class _AppLocalizationsDelegate

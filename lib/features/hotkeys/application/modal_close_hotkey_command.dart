@@ -10,6 +10,7 @@ import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/hotkeys/application/escape_dismissal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_cheatsheet_open.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
+import 'package:enjoy_player/features/player/application/player_margin_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 
@@ -54,6 +55,8 @@ class ModalCloseHotkeyCommand extends HotkeyCommand {
       case EscapeDismissalAction.popRootPopup:
         final rootNav = ctx.rootNavigatorState;
         if (rootNav != null) unawaited(rootNav.maybePop());
+      case EscapeDismissalAction.closePlayerMargin:
+        ctx.read(playerMarginProvider.notifier).close();
       case EscapeDismissalAction.clearVocabularyPractice:
         unawaited(
           ctx.read(vocabularyReviewSessionProvider.notifier).clearPractice(),
@@ -81,6 +84,7 @@ class ModalCloseHotkeyCommand extends HotkeyCommand {
         goRouterCanPop: ctx.router.canPop(),
         path: ctx.path,
         isDesktop: isDesktop,
+        playerMarginOpen: ctx.read(playerMarginProvider) != null,
       ),
     );
   }
