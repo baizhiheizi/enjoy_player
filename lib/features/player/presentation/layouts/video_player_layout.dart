@@ -107,7 +107,6 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final transportInset = MediaQuery.paddingOf(context).bottom;
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -165,10 +164,10 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
                     width: tw,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: cs.surface,
+                        color: EnjoyThemeTokens.of(context).ground,
                         border: Border(
                           left: BorderSide(
-                            color: cs.outlineVariant.withValues(alpha: 0.4),
+                            color: EnjoyThemeTokens.of(context).line,
                             width: 1,
                           ),
                         ),
@@ -198,7 +197,10 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
               ),
             ),
             Expanded(
-              child: ColoredBox(color: cs.surface, child: widget.transcript),
+              child: ColoredBox(
+                color: EnjoyThemeTokens.of(context).ground,
+                child: widget.transcript,
+              ),
             ),
           ],
         );
@@ -219,7 +221,7 @@ class _VideoColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: Colors.black,
+      color: EnjoyThemeTokens.of(context).video,
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomInset),
         child: _VideoStageWithChrome(engine: engine),
@@ -399,7 +401,6 @@ class _ResizeSplitter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return MouseRegion(
       onEnter: (_) => onHover(true),
       onExit: (_) => onHover(false),
@@ -421,9 +422,9 @@ class _ResizeSplitter extends StatelessWidget {
                 width: hovered ? 4 : 3,
                 height: 88,
                 decoration: BoxDecoration(
-                  color: hovered
-                      ? cs.outline.withValues(alpha: 0.65)
-                      : cs.outline.withValues(alpha: 0.25),
+                  color: EnjoyThemeTokens.of(
+                    context,
+                  ).ink3.withValues(alpha: hovered ? 0.65 : 0.25),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

@@ -23,8 +23,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 4 · App screens | 11 | 10 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
 | A · Audit verification | 6 | 6 |
-| 6 · One player with web + extension (v30) | 14 | 11 |
-| **Total** | **64** | **54 done/in review** |
+| 6 · One player with web + extension (v30) | 14 | 13 |
+| **Total** | **64** | **56 done/in review** |
 
 ## Decisions
 
@@ -130,11 +130,11 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | D6.6 | Top bar: three columns, Subtitles chip, ⋯ More | `Main`, `DSubtitles`, `DVideo`, `DYoutubeDark` | — | review | | | Share + Subtitles are `PlayerTopBarChip` (36px outlined pill; Subtitles tints `originalSoft` / new `originalLine` token while its popover is open); ⋯ More (40px) on desktop only — the phone board has none. The title meta stays `Audio · 0:55 · English · 中文` as the v30 `Main` board draws it. The Dictate segment rides D6.1 |
 | D6.7 | Subtitles & display panel | `DSubtitles` | D6.8 | review | | | Content-sized 384px popover 10px under the bar; flat rows (Subtitles: Primary / Translation; Display: Book / Clean, highlight, IPA, enrichment progress / failure card); hint to ··· More. Hide text switch removed (H + dock until D6.1). Phone sheet keeps the transcript actions at its foot (no More on phones). No `I` keycap on the IPA row: there is no IPA hotkey and hotkeys are frozen. Compare: `DSubtitles.png` |
 | D6.8 | ⋯ More menu | `Main`, `DSubtitles` | D6.6 | review | | | `PopupRoute` menu (parks the surface): Transcript — add a subtitle file / use embedded subtitles / create or re-run the AI transcript / add word timings & IPA / refresh from cloud (one list, `watchTranscriptActions`, shared with the phone sheet) — then Keyboard shortcuts `?`. The board's Media group and Edit / Download transcript are R6 issues #920–#923 |
-| D6.9 | Word lookup structure | `DWord`, `PWord` | — | todo | | | Keep expand-to-load |
+| D6.9 | Word lookup structure | `DWord`, `PWord` | — | review | | | Pronounce · Save · Copy, language swap, expand-to-load already built (#870 §2.4). Added the board's `In this audio · 0:20` block: `LookupSourceContext` (additive field on the request DTO) filled by `openTranscriptLookup`, rendered above the sections with the word bolded. Compare: `DWord.png` |
 | D6.10 | Dictate word shapes, one flat fill | `DHide`, `PHide` | — | review | | | Verified, no code change: `TranscriptBlurText` already paints every hidden word as one flat `shape` bar (0.62 em tall, 0.2 em radius) as the board does; no call site overrides the color |
-| D6.11 | Desktop video: picture left, transcript rail right | `DVideo`, `DYoutubeDark` | — | todo | | | Rule 4 (surface parking) |
+| D6.11 | Desktop video: picture left, transcript rail right | `DVideo`, `DYoutubeDark` | — | review | | | Verified + two token fixes: the split (300–380 clamp, splitter, persisted width) already matched; the stage now paints `t.video` (was Colors.black) and the transcript rail sits on `ground` (was surface), both surfaces. Compare: `DVideo.png` |
 | D6.12 | Margin 360, pushes content (video too), drawer < 1100 | `DWord`, `DScored`, `DCompact`, `DVideo` | — | review | | | `PlayerMarginLayout` docks the margin (paper, left line) beside the body at ≥ 1100 so the transcript and the video reflow — a layout sibling, rule 4; `playerMarginProvider` holds the open panel (presentation state); Esc closes it via a new `closePlayerMargin` arm in the `modal.close` ladder. Below 1100, and outside the player, one shared `PlayerMarginRoute` drawer replaces the duplicated lookup / assessment routes. Echo-only panels (takes, assessment) close when Echo turns off; the margin closes on media change. Compare: `DWord.png`, `DScored.png` |
-| D6.13 | Copy: Original / Score / Assessment / Take n | all player boards, `Keyboard`, `KeyboardCheatsheet` | — | in progress | | | Shortcut descriptions + pitch legend done in D6.0 |
+| D6.13 | Copy: Original / Score / Assessment / Take n | all player boards, `Keyboard`, `KeyboardCheatsheet` | — | review | | | Shortcut descriptions + `Original pitch` shipped in #916. Score / Assessment / Take n strings were already right; the assessment margin heading now reads `Take 3 · Assessment` (takeNumber threaded through `triggerRecordingAssessment` from the row, summary, list and hotkey callers; generic callers keep `Pronunciation`). `Original` as the Echo button label remains the 2026-10-12 user delta (play/pause pill) |
 
 ### Phase 5 · Cleanup, proof, merge
 

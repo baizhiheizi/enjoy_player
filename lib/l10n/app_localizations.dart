@@ -8189,6 +8189,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pitch contour on the loop'**
   String get takesPitchOnLoop;
+
+  /// Context block in the lookup sheet: the line the word came from (audio).
+  ///
+  /// In en, this message translates to:
+  /// **'In this audio · {time}'**
+  String lookupInThisAudio(String time);
+
+  /// Context block in the lookup sheet: the line the word came from (video).
+  ///
+  /// In en, this message translates to:
+  /// **'In this video · {time}'**
+  String lookupInThisVideo(String time);
+
+  /// Assessment margin heading for a numbered take.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {number} · Assessment'**
+  String takeAssessmentTitle(int number);
 }
 
 class _AppLocalizationsDelegate

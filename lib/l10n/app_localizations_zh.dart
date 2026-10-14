@@ -4335,6 +4335,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get takesPitchOnLoop => '在循环上显示音高曲线';
+
+  @override
+  String lookupInThisAudio(String time) {
+    return '本音频 · $time';
+  }
+
+  @override
+  String lookupInThisVideo(String time) {
+    return '本视频 · $time';
+  }
+
+  @override
+  String takeAssessmentTitle(int number) {
+    return '第 $number 遍 · 评估';
+  }
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -7993,4 +8008,19 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get takesPitchOnLoop => '在循环上显示音高曲线';
+
+  @override
+  String lookupInThisAudio(String time) {
+    return '本音频 · $time';
+  }
+
+  @override
+  String lookupInThisVideo(String time) {
+    return '本视频 · $time';
+  }
+
+  @override
+  String takeAssessmentTitle(int number) {
+    return '第 $number 遍 · 评估';
+  }
 }

@@ -77,6 +77,7 @@ Future<void> triggerRecordingAssessment({
   required RecordingRow row,
   bool forceRun = false,
   bool marginWhenWide = false,
+  int? takeNumber,
 }) async {
   _log.info(
     'trigger assessment recording=${row.id} forceRun=$forceRun '
@@ -98,6 +99,7 @@ Future<void> triggerRecordingAssessment({
             assessment: parsed,
             localeTag: pronounceLocale,
             recordingPath: row.localPath,
+            takeNumber: takeNumber,
           );
           return;
         }
@@ -129,6 +131,7 @@ Future<void> triggerRecordingAssessment({
           assessment: detail,
           localeTag: pronounceLocale,
           recordingPath: row.localPath,
+          takeNumber: takeNumber,
         );
         return;
       }

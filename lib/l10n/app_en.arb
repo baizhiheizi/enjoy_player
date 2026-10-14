@@ -2271,5 +2271,11 @@
   "takesMarginTitleTap": "Your takes · tap to play",
   "@takesMarginTitleTap": {"description": "Heading of the takes list (touch)."},
   "takesPitchOnLoop": "Pitch contour on the loop",
-  "@takesPitchOnLoop": {"description": "Takes list toggle for the pitch contour (P)."}
+  "@takesPitchOnLoop": {"description": "Takes list toggle for the pitch contour (P)."},
+  "lookupInThisAudio": "In this audio · {time}",
+  "@lookupInThisAudio": {"description": "Context block in the lookup sheet: the line the word came from (audio).", "placeholders": {"time": {"type": "String"}}},
+  "lookupInThisVideo": "In this video · {time}",
+  "@lookupInThisVideo": {"description": "Context block in the lookup sheet: the line the word came from (video).", "placeholders": {"time": {"type": "String"}}},
+  "takeAssessmentTitle": "Take {number} · Assessment",
+  "@takeAssessmentTitle": {"description": "Assessment margin heading for a numbered take.", "placeholders": {"number": {"type": "int"}}}
 }
