@@ -183,6 +183,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   Color get youInk => _accents.youInk;
   Color get youSoft => _accents.youSoft;
   Color get youLine => _accents.youLine;
+  Color get originalLine => _accents.originalLine;
   Color get onYou => _accents.onYou;
   Color get brandInk => _accents.brandInk;
   Color get brandSoft => _accents.brandSoft;
@@ -380,6 +381,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     Color? youInk,
     Color? youSoft,
     Color? youLine,
+    Color? originalLine,
     Color? onYou,
     Color? brandInk,
     Color? brandSoft,
@@ -604,6 +606,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
         youInk: youInk,
         youSoft: youSoft,
         youLine: youLine,
+        originalLine: originalLine,
         onYou: onYou,
         brandInk: brandInk,
         brandSoft: brandSoft,

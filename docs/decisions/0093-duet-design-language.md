@@ -78,3 +78,12 @@ Adopt **Duet**: *first the original voice, then yours*. Only the UI and UX chang
 - **Tests.** Behavior tests (application / domain / data) must not change. Widget tests that find glass, aurora, or score colors are rewritten. `aurora_design_language_test.dart` becomes `duet_design_language_test.dart` and keeps its scans.
 - **Docs.** `docs/features/app-ui.md` is rewritten for Duet. Feature docs change only where presentation is described.
 - **Risk.** A long-lived branch drifts from `main`. Merge `main` into `design-duet` at least weekly. Behavior fixes land on `main` first.
+
+## Amendment — canvas v30 (2026-10-14)
+
+Canvas v30 aligns the player with the Enjoy web app and browser extension ([#915](https://github.com/baizhiheizi/enjoy_player/issues/915)). The owner decided the four behavior questions it raised ([STATUS.md → Decisions](../design/duet/STATUS.md#decisions)):
+
+- **R1 — Repeat.** The Listen dock shows a Repeat button that cycles today's `RepeatMode`. It was a hidden setting; the button exposes it. No new playback logic.
+- **R4 — Dictate is an exclusive lens.** Decision 3 grows to three lenses: Listen · Echo · Dictate. Dictate is today's Hide text (decision 6, word shapes, `H`), now exclusive with Echo as on the web; the dock's Hide toggle goes.
+- **R5 — Transcript type.** Decision 2 said the transcript stays serif with no switch. It now has one: **Book** (Literata, default) or **Clean** (Geist), in Subtitles & display. Stored as the device flag `transcript.cleanTypeface`; only the transcript body family changes, sizes come from `TranscriptLensMetrics` either way.
+- **R6 — ⋯ More lists only existing actions.** Edit transcript, Download transcript, Export the loop as a clip and Edit details are features, filed as #920–#923.

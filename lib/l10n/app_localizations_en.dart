@@ -4371,4 +4371,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assessmentLevelPoor => 'Needs work';
+
+  @override
+  String get playerMore => 'More';
+
+  @override
+  String get playerMoreTranscriptSection => 'Transcript';
+
+  @override
+  String get playerMoreAddSubtitleFile => 'Add a subtitle file…';
+
+  @override
+  String get playerMoreUseEmbeddedSubtitles => 'Use embedded subtitles…';
+
+  @override
+  String get playerMoreCreateAiTranscript => 'Create an AI transcript…';
+
+  @override
+  String get playerMoreTranscribeAgain => 'Transcribe again…';
+
+  @override
+  String get playerMoreAddWordTimings => 'Add word timings & IPA';
+
+  @override
+  String get playerMoreAddIpa => 'Add pronunciation (IPA)';
+
+  @override
+  String get playerMoreRefreshFromCloud => 'Refresh from cloud';
+
+  @override
+  String get playerMoreKeyboardShortcuts => 'Keyboard shortcuts';
+
+  @override
+  String get subtitlesPanelTitle => 'Subtitles & display';
+
+  @override
+  String get subtitlesSectionSubtitles => 'Subtitles';
+
+  @override
+  String get subtitlesSectionDisplay => 'Display';
+
+  @override
+  String get transcriptTypefaceLabel => 'Transcript type';
+
+  @override
+  String get transcriptTypefaceBook => 'Book';
+
+  @override
+  String get transcriptTypefaceClean => 'Clean';
+
+  @override
+  String get subtitlesHighlightSpokenWord => 'Highlight the spoken word';
+
+  @override
+  String get subtitlesHighlightSpokenWordHint =>
+      'Underline each word as it is said.';
+
+  @override
+  String get subtitlesIpaUnderWords => 'IPA under words';
+
+  @override
+  String get subtitlesIpaUnderWordsHint => 'Tap a word to hear it.';
+
+  @override
+  String get subtitlesNeedsWordTimingsMore =>
+      'Add word timings & IPA first (··· More).';
+
+  @override
+  String get subtitlesNeedsWordTimingsBelow =>
+      'Add word timings & IPA first (below).';
+
+  @override
+  String get subtitlesManageFromMore =>
+      'Add or replace the transcript from ··· More.';
+
+  @override
+  String get transcriptEnrichRunningOwned =>
+      'Generating word timings and pronunciation';
+
+  @override
+  String get transcriptEnrichRunningYoutube => 'Generating pronunciation';
 }

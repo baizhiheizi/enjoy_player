@@ -12,6 +12,8 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'subtitle_track_picker_helpers.dart';
 import 'subtitle_track_picker_primitives.dart';
 
+/// A track row (label over the selected track, chevron at the end) that
+/// opens its option list in place.
 class CollapsibleTrackSection extends StatelessWidget {
   const CollapsibleTrackSection({
     super.key,
@@ -35,138 +37,72 @@ class CollapsibleTrackSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final horizontal = sheetHorizontalPadding(t);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: horizontal),
-      child: DecoratedBox(
-        decoration: subtitlePickerCardDecoration(
-          context,
-          emphasized: isExpanded,
-          withShadow: true,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(t.radiusLg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ColoredBox(
-                color: isExpanded
-                    ? cs.primaryContainer.withValues(alpha: 0.12)
-                    : Colors.transparent,
-                child: EnjoyPressable(
-                  borderRadius: BorderRadius.circular(t.radiusLg),
-                  onTap: onToggle,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      t.space16,
-                      t.space12,
-                      t.space12,
-                      isExpanded ? t.space12 : t.space16,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: subtitlePickerSectionTitleStyle(context),
-                              ),
-                              if (!isExpanded) ...[
-                                SizedBox(height: t.space8),
-                                SelectionSummary(
-                                  label: selectionLabel,
-                                  track: selectedTrack,
-                                  compact: true,
-                                ),
-                              ] else ...[
-                                SizedBox(height: t.space4),
-                                Text(
-                                  selectionLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: tt.bodySmall?.copyWith(
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        EnjoyPressable(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(12),
+          pressedScale: 1,
+          washColor: t.sunk,
+          selected: isExpanded,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: tt.bodySmall?.copyWith(
+                          fontSize: 12.5,
+                          color: t.ink3,
                         ),
-                        SizedBox(width: t.space8),
-                        AnimatedContainer(
-                          duration: t.motionFast,
-                          curve: Curves.easeOut,
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: cs.surfaceContainerHighest.withValues(
-                              alpha: 0.75,
-                            ),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: cs.outlineVariant.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: AnimatedRotation(
-                            turns: isExpanded ? 0.5 : 0,
-                            duration: t.motionFast,
-                            curve: Curves.easeOut,
-                            child: Icon(
-                              EnjoyIcons.chevronDown,
-                              size: 20,
-                              color: cs.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 3),
+                      SelectionSummary(
+                        label: selectionLabel,
+                        track: selectedTrack,
+                        compact: true,
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              AnimatedSize(
-                duration: t.motionStandard,
-                curve: Curves.easeOutCubic,
-                alignment: Alignment.topCenter,
-                clipBehavior: Clip.hardEdge,
-                child: isExpanded
-                    ? DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: cs.surfaceContainerLowest.withValues(
-                            alpha: 0.55,
-                          ),
-                          border: Border(
-                            top: BorderSide(
-                              color: cs.outlineVariant.withValues(alpha: 0.14),
-                            ),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: t.space4,
-                            bottom: t.space8,
-                          ),
-                          child: inlineExpandedList
-                              ? child
-                              : ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxHeight: kExpandedTrackListMaxHeight,
-                                  ),
-                                  child: SingleChildScrollView(child: child),
-                                ),
-                        ),
-                      )
-                    : const SizedBox(width: double.infinity),
-              ),
-            ],
+                const SizedBox(width: 12),
+                AnimatedRotation(
+                  turns: isExpanded ? 0.25 : 0,
+                  duration: t.motionFast,
+                  curve: Curves.easeOut,
+                  child: Icon(EnjoyIcons.chevronRight, size: 16, color: t.ink3),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
+        AnimatedSize(
+          duration: t.motionStandard,
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.hardEdge,
+          child: isExpanded
+              ? Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: inlineExpandedList
+                      ? child
+                      : ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxHeight: kExpandedTrackListMaxHeight,
+                          ),
+                          child: SingleChildScrollView(child: child),
+                        ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+      ],
     );
   }
 }
@@ -198,14 +134,15 @@ class SelectionSummary extends StatelessWidget {
     if (compact && selected != null && badgeColors != null) {
       return Row(
         children: [
-          Expanded(
+          Flexible(
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: tt.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.1,
+              style: tt.bodyMedium?.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: t.ink,
               ),
             ),
           ),
@@ -234,9 +171,10 @@ class SelectionSummary extends StatelessWidget {
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: (compact ? tt.titleSmall : tt.bodyMedium)?.copyWith(
-            color: muted ? cs.onSurfaceVariant : cs.onSurface,
-            fontWeight: muted ? FontWeight.w400 : FontWeight.w600,
+          style: tt.bodyMedium?.copyWith(
+            fontSize: 14,
+            color: muted ? t.ink2 : t.ink,
+            fontWeight: FontWeight.w500,
           ),
         ),
         if (selected != null && badgeColors != null) ...[

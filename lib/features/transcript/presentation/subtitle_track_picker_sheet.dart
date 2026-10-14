@@ -1,4 +1,5 @@
-/// Bottom sheet for selecting primary + secondary subtitle tracks.
+/// The Subtitles & display panel: a popover under the top bar's Subtitles
+/// chip on wide windows, a bottom sheet on narrow ones.
 library;
 
 import 'dart:async';
@@ -13,14 +14,12 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import '../../player/application/player_controller.dart';
 import '../application/active_transcript_provider.dart';
 import '../application/all_transcripts_provider.dart';
 import '../application/auto_translate_controller.dart';
 import '../application/transcript_display_readiness_provider.dart';
 import '../application/transcript_fetch_controller.dart';
 import '../application/transcript_repository_provider.dart';
-import '../application/video_row_for_media_provider.dart';
 import '../domain/transcript_fetch_status.dart';
 import 'subtitle_track_picker_helpers.dart';
 import 'subtitle_track_picker_popover_route.dart';
@@ -134,15 +133,6 @@ class _SubtitleTrackPickerSheetState
 
     final primaryId = primaryIdAsync.value;
     final secondaryId = secondaryIdAsync.value;
-    final dexieTargetType = ref.watch(
-      playerControllerProvider.select((s) => s?.dexieTargetType),
-    );
-    final videoRowAsync = ref.watch(videoRowForMediaProvider(widget.mediaId));
-    final isYoutube = videoRowAsync.maybeWhen(
-      data: (row) => row?.provider == 'youtube',
-      orElse: () => false,
-    );
-    final showExtractEmbedded = dexieTargetType == 'Video' && !isYoutube;
     final fetchState = ref.watch(transcriptFetchStatusProvider(widget.mediaId));
     final isFetching = fetchState.status == TranscriptFetchStatus.loading;
     final autoTranslateState = ref.watch(
@@ -166,12 +156,7 @@ class _SubtitleTrackPickerSheetState
     Widget columnBody(ScrollController sc) {
       final isDialog =
           widget.presentation == SubtitleTrackPickerPresentation.dialog;
-      final divider = Divider(
-        height: 1,
-        color: Theme.of(
-          context,
-        ).colorScheme.outlineVariant.withValues(alpha: 0.18),
-      );
+      final divider = Divider(height: 1, color: t.line);
       final tracksContent = buildTracksContent(
         context: context,
         ref: ref,
@@ -181,8 +166,6 @@ class _SubtitleTrackPickerSheetState
         l10n: l10n,
         tracksAsync: tracksAsync,
         isDialog: isDialog,
-        showExtractEmbedded: showExtractEmbedded,
-        showImportFile: !isYoutube,
         isFetching: isFetching,
         primaryId: primaryId,
         secondaryId: secondaryId,
@@ -206,17 +189,8 @@ class _SubtitleTrackPickerSheetState
             constraints: BoxConstraints(maxHeight: maxHeight),
             child: SingleChildScrollView(
               controller: sc,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: t.space20),
-                  buildSheetHeader(context, t),
-                  divider,
-                  tracksContent,
-                  SizedBox(height: t.space20),
-                ],
-              ),
+              padding: const EdgeInsets.all(8),
+              child: tracksContent,
             ),
           ),
         );
@@ -227,7 +201,12 @@ class _SubtitleTrackPickerSheetState
           const PaddedSheetDragHandle(),
           buildSheetHeader(context, t),
           divider,
-          Expanded(child: tracksContent),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: tracksContent,
+            ),
+          ),
         ],
       );
     }

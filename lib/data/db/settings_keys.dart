@@ -60,6 +60,14 @@ abstract final class SettingsKeys {
     whenMissing: false,
   );
 
+  /// When `true`, transcript lines use the Clean (sans) typeface instead of
+  /// Book (serif). Missing value ≡ Book.
+  static final transcriptCleanTypeface = SettingKey.flag(
+    name: 'transcript.cleanTypeface',
+    scope: SettingsScope.device,
+    whenMissing: false,
+  );
+
   /// ISO-8601 UTC timestamp of the last successful update feed check.
   static const updateLastCheckAt = SettingKey<DateTime?>(
     name: 'update.last_check_at',
@@ -301,6 +309,7 @@ abstract final class SettingsKeys {
     analyticsCaptureEnabled,
     transcriptKaraokeHighlight,
     transcriptIpaOverlay,
+    transcriptCleanTypeface,
     updateLastCheckAt,
     updateSnoozeUntil,
     updateSnoozeVersion,

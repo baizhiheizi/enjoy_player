@@ -36,10 +36,11 @@ class SubtitlesPopoverRoute extends PopupRoute<void> {
     Animation<double> secondaryAnimation,
   ) {
     final t = EnjoyThemeTokens.of(context);
+    final top = t.playerTopBarHeight + 10;
     return Align(
       alignment: Alignment.topRight,
       child: Padding(
-        padding: const EdgeInsets.only(top: 66, right: 14),
+        padding: EdgeInsets.only(top: top, right: 14),
         child: DecoratedBox(
           decoration: ShapeDecoration(
             color: t.raised,
@@ -51,9 +52,10 @@ class SubtitlesPopoverRoute extends PopupRoute<void> {
           ),
           child: ClipRSuperellipse(
             borderRadius: BorderRadius.circular(18),
-            child: SizedBox(
-              width: 384,
-              height: double.infinity,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints.tightFor(width: 384).copyWith(
+                maxHeight: MediaQuery.sizeOf(context).height - top - 10,
+              ),
               child: SubtitleTrackPickerSheet(
                 mediaId: mediaId,
                 presentation: SubtitleTrackPickerPresentation.dialog,

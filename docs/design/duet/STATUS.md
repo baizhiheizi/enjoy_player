@@ -23,8 +23,8 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 4 · App screens | 11 | 10 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
 | A · Audit verification | 6 | 6 |
-| 6 · One player with web + extension (v30) | 14 | 1 |
-| **Total** | **64** | **44 done/in review** |
+| 6 · One player with web + extension (v30) | 14 | 4 |
+| **Total** | **64** | **47 done/in review** |
 
 ## Decisions
 
@@ -32,14 +32,14 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 
 | ID | Question | Recommendation | Status | Gates |
 |---|---|---|---|---|
-| R1 | The Listen dock on `Main` draws a **Repeat** button. Repeat mode exists (`RepeatMode` none / single / segment, `PlayerPreferences.setRepeatMode`) but has no UI today, so the button would expose a hidden setting. Ship it? | Ship it: canvas v30 keeps Repeat in the Listen dock and the web app added it (#915). | decided 2026-10-13 (canvas v30) — owner to confirm the feature-freeze exception when D6.5 lands | D6.5 (was D3.2) |
+| R1 | The Listen dock on `Main` draws a **Repeat** button. Repeat mode exists (`RepeatMode` none / single / segment, `PlayerPreferences.setRepeatMode`) but has no UI today, so the button would expose a hidden setting. Ship it? | Ship it: canvas v30 keeps Repeat in the Listen dock and the web app added it (#915). | decided 2026-10-14 — owner confirmed the feature-freeze exception (ADR-0093 amendment) | D6.5 (was D3.2) |
 | R2 | The board's takes strip draws **no delete affordance**, so the player embed loses the take **more-menu** (delete with confirm / re-assess / choose). The vocabulary embed keeps it. Where does player-side take management land? | v30 gives the takes a full list (`3 takes ›`: margin on desktop, sheet on phones); put delete / re-assess there. | open | D3.6, D3.8, D6.3 |
 | S1 | The desktop sidebar on `Sidebar` adds **Vocabulary** (due count) and **Craft** rows, a **Settings** row, and a **sync status** line. It drops `SidebarContinuePracticeCard`; Home keeps Continue practicing. These are navigation changes only, on existing routes and state. | Build as drawn. | decided — built as drawn in D2.1 per the standing "stick to the design" direction | D2.1 |
 | L1 | Violet replaces coral for "you"; scores lose their colors; Literata replaces Source Serif 4 and Instrument Serif; Hide text renders as word shapes. | Accepted in ADR-0093. | decided | — |
 | R3 | The **phone** Listen dock on `Phone` had no replay (↺) button; the desktop `Main` dock has one. Drop it on phones? | Keep it: canvas v30 puts Replay leftmost in every dock, phone included (Replay · Previous · Play · Next · speed); Hide moves into the mode switch as Dictate (R4). | decided 2026-10-13 (canvas v30) | D6.5 (was D3.2) |
-| R4 | v30 makes **Dictate** (= today's Hide text, `H`) a third segment beside Listen and Echo and removes the dock's Hide toggle. Today Hide text is a flag orthogonal to Echo (both can be on). Is Dictate exclusive with Echo, or does the segment just show the flag? | Segment reflects the flag; `H` keeps toggling it; Echo + Dictate stays possible from the keyboard until the web/extension behavior is confirmed. | open | D6.1 |
-| R5 | The Display section adds **Transcript type** (Book = Literata / Clean = Geist). Today `useSerif` is always `true` with no switch (ADR-0093 decision 2). Add the setting? | Add it as a display preference (default Book); needs an ADR-0093 amendment. | open | D6.7 |
-| R6 | ⋯ More lists **Edit transcript**, **Download transcript…**, **Export the loop as a clip…** and **Edit details**, which have no feature in the app today. Build them? | Leave them out of D6.8; each is its own feature issue. | open | D6.8 |
+| R4 | v30 makes **Dictate** (= today's Hide text, `H`) a third segment beside Listen and Echo and removes the dock's Hide toggle. Today Hide text is a flag orthogonal to Echo (both can be on). Is Dictate exclusive with Echo, or does the segment just show the flag? | Exclusive lens, as on the web and extension. | decided 2026-10-14 — exclusive lens (ADR-0093 amendment) | D6.1 |
+| R5 | The Display section adds **Transcript type** (Book = Literata / Clean = Geist). Today `useSerif` is always `true` with no switch (ADR-0093 decision 2). Add the setting? | Add it as a display preference (default Book). | decided 2026-10-14 — built in D6.7 (`transcript.cleanTypeface`, ADR-0093 amendment) | D6.7 |
+| R6 | ⋯ More lists **Edit transcript**, **Download transcript…**, **Export the loop as a clip…** and **Edit details**, which have no feature in the app today. Build them? | Existing actions only; one issue per missing feature. | decided 2026-10-14 — filed as #920, #921, #922, #923 | D6.8 |
 
 ## Tasks
 
@@ -122,14 +122,14 @@ Questions a board raises that the rules can't settle. A task gated by an open de
 | ID | Task | Boards | Depends | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|---|---|
 | D6.0 | Re-export canvas v30 + re-plan | all player boards, `System`, `Keyboard` | — | review | | [#916](https://github.com/baizhiheizi/enjoy_player/pull/916) | Boards + `canvas.json` re-exported, 26 renders refreshed, README / PLAN / STATUS updated, R1 / R3 decided, R4–R6 opened. Shipped with it: margin token 340 → 360 (`tokens.json` + `tokens/spaces.dart`), shortcut copy (`H` = Dictate (hide text), `[ ]` add a line, `{ }` drop a line), pitch legend `Original pitch`. Baseline compares of every touched board attached to the PR — they show the Phase 6 gap, not a finished state |
-| D6.1 | Three lenses: Listen · Echo · Dictate | `Main`, `DHide`, `PHide`, `Phone` | — | todo | | | Behavior gated by R4 |
+| D6.1 | Three lenses: Listen · Echo · Dictate | `Main`, `DHide`, `PHide`, `Phone` | — | todo | | | R4 decided: exclusive lens |
 | D6.2 | Echo loop brackets + “+ line” / “−” rows | `DEcho`, `PEcho`, `DRecording`, `DCompact` | — | todo | | | UI only (`shrinkEcho*` already exist) |
 | D6.3 | Takes row + takes list, scored on demand | `DScored`, `PScored`, `DEcho`, `PEcho` | D6.12 | todo | | | R2 lands here |
 | D6.4 | Current line card + gutter + type scale | `Main`, `Phone`, `DDark`, `PDark` | — | todo | | | |
 | D6.5 | Dock: Replay first, time + ruler row, readouts, speed button, Repeat | `Main`, `DEcho`, `DRecording`, `DVideo`, `Phone`, `PEcho`, `PRecording` | — | todo | | | R1, R3 decided |
-| D6.6 | Top bar: three columns, Subtitles chip, ⋯ More | `Main`, `DSubtitles`, `DVideo`, `DYoutubeDark` | — | todo | | | |
-| D6.7 | Subtitles & display panel | `DSubtitles` | D6.8 | todo | | | Transcript type gated by R5 |
-| D6.8 | ⋯ More menu | `Main`, `DSubtitles` | D6.6 | todo | | | Four entries gated by R6 |
+| D6.6 | Top bar: three columns, Subtitles chip, ⋯ More | `Main`, `DSubtitles`, `DVideo`, `DYoutubeDark` | — | review | | | Share + Subtitles are `PlayerTopBarChip` (36px outlined pill; Subtitles tints `originalSoft` / new `originalLine` token while its popover is open); ⋯ More (40px) on desktop only — the phone board has none. The title meta stays `Audio · 0:55 · English · 中文` as the v30 `Main` board draws it. The Dictate segment rides D6.1 |
+| D6.7 | Subtitles & display panel | `DSubtitles` | D6.8 | review | | | Content-sized 384px popover 10px under the bar; flat rows (Subtitles: Primary / Translation; Display: Book / Clean, highlight, IPA, enrichment progress / failure card); hint to ··· More. Hide text switch removed (H + dock until D6.1). Phone sheet keeps the transcript actions at its foot (no More on phones). No `I` keycap on the IPA row: there is no IPA hotkey and hotkeys are frozen. Compare: `DSubtitles.png` |
+| D6.8 | ⋯ More menu | `Main`, `DSubtitles` | D6.6 | review | | | `PopupRoute` menu (parks the surface): Transcript — add a subtitle file / use embedded subtitles / create or re-run the AI transcript / add word timings & IPA / refresh from cloud (one list, `watchTranscriptActions`, shared with the phone sheet) — then Keyboard shortcuts `?`. The board's Media group and Edit / Download transcript are R6 issues #920–#923 |
 | D6.9 | Word lookup structure | `DWord`, `PWord` | — | todo | | | Keep expand-to-load |
 | D6.10 | Dictate word shapes, one flat fill | `DHide`, `PHide` | — | todo | | | |
 | D6.11 | Desktop video: picture left, transcript rail right | `DVideo`, `DYoutubeDark` | — | todo | | | Rule 4 (surface parking) |

@@ -79,16 +79,18 @@ be exported from [`subtitle_track_picker_sheet.dart`](../../lib/features/transcr
 
 | File | Responsibility |
 |------|----------------|
-| [`subtitle_track_picker_helpers.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_helpers.dart) | Pure helpers (`sheetHorizontalPadding`, `trackOptionPadding`, `trackPickerRadioTheme`, `subtitlePickerCardDecoration`, `subtitlePickerSectionTitleStyle`, `trackLabel`, `findTrack`, `providerLabel`, `providerBadgeColors`), the `kExpandedTrackListMaxHeight` const, and the `PickerSection` enum. No widgets. |
-| [`subtitle_track_picker_primitives.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_primitives.dart) | `MetaChip`, `SubtitlePickerCard` (shared rounded card chrome), and `SubtitleToggleTile` (compact switch rows for karaoke / IPA). |
+| [`subtitle_track_picker_helpers.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_helpers.dart) | Pure helpers (`sheetHorizontalPadding`, `trackOptionPadding`, `trackPickerRadioTheme`, `trackLabel`, `findTrack`, `providerLabel`, `providerBadgeColors` — one neutral badge for every source), the `kExpandedTrackListMaxHeight` const, and the `PickerSection` enum. No widgets. |
+| [`subtitle_track_picker_primitives.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_primitives.dart) | `SubtitlePanelOverline`, `SubtitlePanelDivider`, `SubtitleToggleTile` (title over hint, switch at the end), and `MetaChip`. |
 | [`subtitle_track_picker_tiles.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_tiles.dart) | `TrackOptionTile<T>` (per-track radio row with provider + language chips and delete action) and `NoneOptionTile` (the explicit "none" row in the translation list). |
-| [`subtitle_track_picker_sections.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sections.dart) | `CollapsibleTrackSection` (the expandable card used for both primary and translation lists) and `SelectionSummary` (collapsed-state label + chip summary). |
-| [`subtitle_track_picker_actions.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_actions.dart) | `SubtitleActionsSection` — Extract / Refresh / Import (and Generate) list inside `SubtitlePickerCard`. |
+| [`subtitle_track_picker_sections.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sections.dart) | `CollapsibleTrackSection` (a flat track row — label over the selected track, chevron — that opens its list in place) and `SelectionSummary`. |
+| [`subtitle_track_picker_actions.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_actions.dart) | `TranscriptActionsList` — the phone sheet's Transcript actions (busy-guarded `TranscriptBusyListTile` rows). |
+| [`transcript_actions.dart`](../../lib/features/transcript/presentation/transcript_actions.dart) | `TranscriptAction` + `watchTranscriptActions` — the one list of transcript actions shared by the player's ⋯ More menu and the phone sheet (which actions apply to local / YouTube / audio / video, and their labels). |
 | [`subtitle_track_picker_sheet_action_handlers.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_action_handlers.dart) | Free functions owned by the action list: `refreshCloudTranscripts`, `confirmAndDeleteTranscriptTrack`. Import / extract / generate live in their own modules so the transcript empty state shares one entrypoint per action. |
 | [`import_subtitle_file.dart`](../../lib/features/transcript/presentation/import_subtitle_file.dart) | `pickAndImportSubtitleFile` — the **single** local-file import flow (file pick → language dialog → repository import → success notice), plus `kSubtitleImportExtensions` and the `SubtitleFilePick` seam. Shared by the picker sheet and the transcript empty state; always emits the `transcriptGeneration*` funnel with `source: local_file`. |
 | [`subtitle_track_picker_sheet_body.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_body.dart) | Top-level builders: `buildSheetHeader`, `buildTracksContent` (async data / loading / error wiring), `buildTrackListBody` (primary + translation radio groups, blocked-message callouts, translation track list), `buildDialogSkeletonLoading`. |
-| [`subtitle_track_picker_popover_route.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_popover_route.dart) | `SubtitlesPopoverRoute` — the 384px raised-card `PopupRoute` anchored under the top bar's Subtitles button (ADR-0093 / ADR-0066). |
-| [`transcript_display_settings_sheet.dart`](../../lib/features/transcript/presentation/transcript_display_settings_sheet.dart) | `TranscriptDisplaySettingsSection` — gated karaoke + IPA toggles and the on-demand enrich tile. |
+| [`subtitle_track_picker_popover_route.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_popover_route.dart) | `SubtitlesPopoverRoute` — the content-sized 384px raised-card `PopupRoute` anchored 10px under the top bar (ADR-0093 / ADR-0066). |
+| [`transcript_display_settings_sheet.dart`](../../lib/features/transcript/presentation/transcript_display_settings_sheet.dart) | `TranscriptDisplaySettingsSection` — the Display section: `TranscriptTypefacePicker` (Book / Clean), gated highlight + IPA switches, and `TranscriptEnrichmentCard` (progress with Cancel, or failure with retry). |
+| [`transcript_typeface_scope.dart`](../../lib/features/transcript/presentation/transcript_typeface_scope.dart) | `TranscriptTypefaceScope` — swaps `TranscriptTypographyTokens` for `.clean()` when the typeface preference is Clean. |
 | [`subtitle_track_picker_sheet.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart) | Slimmed sheet: `SubtitleTrackPickerPresentation` enum, `showSubtitleTrackPicker` launcher, and `SubtitleTrackPickerSheet` + its state class. Owns the `PickerSection` expand/collapse state, secondary-selection routing, provider watches, and the sheet vs. dialog layout decision. |
 
 Smoke coverage lives in
@@ -166,8 +168,8 @@ Interface notes:
 
 ## Blur practice (listening-focus) mode
 
-A "Blur practice" toggle in the CC subtitle sheet (and on the wide
-transport bar next to Echo) renders every transcript cue body text with a CSS-style
+A "Blur practice" toggle (`H`, and the dock's Hide text control until the
+Dictate lens replaces it) renders every transcript cue body text with a CSS-style
 `ImageFilter.blur` filter so the user can practice listening first and
 then peek at the text to check themselves. Like echo, blur is a
 **per-media player practice mode** (not a Settings preference). The
@@ -231,8 +233,26 @@ server profile):
 
 Wide windows open the picker as the Duet **Subtitles & display
 popover**: a 384px raised card anchored under the top bar's Subtitles
-button (a PopupRoute, so the player surface parks per ADR-0066).
-Narrower windows keep the bottom sheet.
+chip (a PopupRoute, so the player surface parks per ADR-0066), sized to
+its content. Narrower windows keep the bottom sheet. Since canvas v30
+the panel holds only what you see and read:
+
+- **Subtitles** — Primary and Translation rows; each opens its track list
+  in place.
+- **Display** — **Transcript type** (Book = Literata, the default; Clean =
+  Geist; device flag `transcript.cleanTypeface`, applied by
+  `TranscriptTypefaceScope` around the transcript list), **Highlight the
+  spoken word** and **IPA under words** (gated as above; a disabled switch
+  says what to add first), and a progress card while word timings
+  generate (with Cancel) or after they fail (with retry).
+- The transcript **actions** — add a subtitle file, use embedded subtitles,
+  create / re-run the AI transcript, add word timings & IPA, refresh from
+  cloud — live in the player's **⋯ More** menu on desktop; the wide panel
+  ends with a hint pointing there. The phone has no More button, so the
+  sheet lists the same actions at its foot. Both read one list,
+  `watchTranscriptActions` (`transcript_actions.dart`).
+- Hide text is no longer a switch here; `H` and the dock toggle it (the
+  Dictate lens, D6.1).
 
 ### Rendering
 

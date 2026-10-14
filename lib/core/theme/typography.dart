@@ -429,6 +429,16 @@ class TranscriptTypographyTokens
     );
   }
 
+  /// The Clean transcript typeface: the same sizes on Geist instead of
+  /// Literata.
+  TranscriptTypographyTokens clean() => copyWith(
+    useSerif: false,
+    bodyStyle: _withCjkFallbacks(
+      bodyStyle.copyWith(fontFamily: kGeistFamily),
+      serif: false,
+    ),
+  );
+
   @override
   TranscriptTypographyTokens copyWith({
     bool? useSerif,

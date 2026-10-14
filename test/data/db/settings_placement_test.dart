@@ -24,6 +24,7 @@ void main() {
       'analytics.capture_enabled': SettingsScope.device,
       'transcript.karaokeHighlight': SettingsScope.device,
       'transcript.ipaOverlay': SettingsScope.device,
+      'transcript.cleanTypeface': SettingsScope.device,
       'update.last_check_at': SettingsScope.device,
       'update.snooze_until': SettingsScope.device,
       'update.snooze_version': SettingsScope.device,

@@ -5,6 +5,7 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_more_menu.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_top_bar.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
@@ -57,18 +58,26 @@ List<Override> _overrides() {
   ];
 }
 
-Future<void> _pumpBar(WidgetTester tester) async {
-  tester.view.physicalSize = const Size(1080, 2400);
-  tester.view.devicePixelRatio = 3.0;
+Future<void> _pumpBar(WidgetTester tester, {double width = 360}) async {
+  tester.view.physicalSize = width > 600
+      ? const Size(1440, 900)
+      : const Size(1080, 2400);
+  tester.view.devicePixelRatio = width > 600 ? 1.0 : 3.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
       overrides: _overrides(),
-      child: const MaterialApp(
+      child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: SizedBox(width: 360, child: PlayerTopBar(mediaId: _mediaId)),
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: width,
+              child: const PlayerTopBar(mediaId: _mediaId),
+            ),
+          ),
         ),
       ),
     ),
@@ -88,5 +97,51 @@ void main() {
 
     expect(find.text('Bar media'), findsOneWidget);
     expect(find.textContaining('Line 3 of 5'), findsNothing);
+  });
+
+  testWidgets('phone header has no ⋯ More (actions live in the sheet)', (
+    tester,
+  ) async {
+    await _pumpBar(tester);
+
+    expect(find.byKey(const ValueKey('player-top-bar-more')), findsNothing);
+  });
+
+  testWidgets('desktop bar ends with the Subtitles chip and ⋯ More', (
+    tester,
+  ) async {
+    await _pumpBar(tester, width: 1200);
+
+    expect(find.byKey(const ValueKey('player-top-bar-subtitles')), findsOne);
+    expect(find.byKey(const ValueKey('player-top-bar-more')), findsOne);
+    expect(
+      tester.getCenter(find.byKey(const ValueKey('player-top-bar-more'))).dx,
+      greaterThan(
+        tester
+            .getCenter(find.byKey(const ValueKey('player-top-bar-subtitles')))
+            .dx,
+      ),
+    );
+  });
+
+  testWidgets('⋯ More opens the transcript menu and closes on outside tap', (
+    tester,
+  ) async {
+    await _pumpBar(tester, width: 1200);
+
+    await tester.tap(find.byKey(const ValueKey('player-top-bar-more')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PlayerMoreMenuPanel), findsOneWidget);
+    expect(find.text('TRANSCRIPT'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('transcript-action-refreshCloud')),
+      findsOneWidget,
+    );
+    expect(find.text('Keyboard shortcuts'), findsOneWidget);
+
+    await tester.tapAt(const Offset(40, 600));
+    await tester.pumpAndSettle();
+    expect(find.byType(PlayerMoreMenuPanel), findsNothing);
   });
 }
