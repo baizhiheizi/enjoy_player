@@ -12,6 +12,7 @@ import 'package:enjoy_player/features/credits/application/credits_summary_provid
 import 'package:enjoy_player/features/credits/domain/credits_usage_log.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_page.dart';
 import 'package:enjoy_player/features/credits/domain/credits_summary.dart';
+import 'package:enjoy_player/features/credits/presentation/credits_usage_log_views.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_screen.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -70,6 +71,19 @@ UserProfile _stubProfile() => const UserProfile(
   email: 'user@example.com',
   name: 'Test User',
   subscriptionTier: SubscriptionTier.pro,
+);
+
+CreditsUsageLog _logFixture() => CreditsUsageLog(
+  id: 'l1',
+  userId: 'u1',
+  date: '2024-01-15',
+  timestampMs: DateTime.utc(2024, 1, 15).millisecondsSinceEpoch,
+  serviceType: 'llm',
+  tier: 'pro',
+  creditsRequired: 10,
+  usedBefore: 100,
+  usedAfter: 110,
+  allowed: true,
 );
 
 /// Authoring override state for the auth controller.
@@ -172,6 +186,88 @@ void main() {
     expect(find.text('110'), findsOneWidget);
     expect(find.text('LLM'), findsOneWidget);
     expect(find.text('Allowed'), findsOneWidget);
+  });
+
+  testWidgets('a wide viewport renders the usage table, not the cards', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1100, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final stub = _StubCreditsApi(_fakeApiClient())
+      ..nextPage = CreditsUsagePage(logs: [_logFixture()], hasMore: false);
+    await tester.pumpWidget(
+      _wrap(
+        stub: stub,
+        auth: AuthSignedIn(profile: _stubProfile()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(UsageTable), findsOneWidget);
+    expect(find.byType(UsageLogCard), findsNothing);
+  });
+
+  testWidgets('a narrow viewport renders the usage cards, not the table', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final stub = _StubCreditsApi(_fakeApiClient())
+      ..nextPage = CreditsUsagePage(logs: [_logFixture()], hasMore: false);
+    await tester.pumpWidget(
+      _wrap(
+        stub: stub,
+        auth: AuthSignedIn(profile: _stubProfile()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(UsageLogCard), findsOneWidget);
+    expect(find.byType(UsageTable), findsNothing);
+  });
+
+  testWidgets('the last page appends the total-record count to the page info', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final stub = _StubCreditsApi(_fakeApiClient())
+      ..nextPage = CreditsUsagePage(logs: [_logFixture()], hasMore: false);
+    await tester.pumpWidget(
+      _wrap(
+        stub: stub,
+        auth: AuthSignedIn(profile: _stubProfile()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Page 1 · 1 shown'), findsOneWidget);
+  });
+
+  testWidgets('a page with more results omits the total-record count', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final stub = _StubCreditsApi(_fakeApiClient())
+      ..nextPage = CreditsUsagePage(logs: [_logFixture()], hasMore: true);
+    await tester.pumpWidget(
+      _wrap(
+        stub: stub,
+        auth: AuthSignedIn(profile: _stubProfile()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Page 1'), findsOneWidget);
   });
 
   testWidgets('the usage table drops the Used-before column (board)', (

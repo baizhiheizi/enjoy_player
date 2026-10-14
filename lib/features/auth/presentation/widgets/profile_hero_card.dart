@@ -21,6 +21,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/auth/presentation/subscription_tier_label.dart';
 import 'package:enjoy_player/features/credits/domain/credits_thresholds.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
@@ -40,13 +41,6 @@ String formatEnjoyId(String id) {
   }
   return groups.join(' ');
 }
-
-String subscriptionTierLabel(AppLocalizations l10n, SubscriptionTier? tier) =>
-    switch (tier) {
-      SubscriptionTier.pro => l10n.profileSubscriptionPro,
-      SubscriptionTier.lite => l10n.subscriptionTierLiteName,
-      SubscriptionTier.free || null => l10n.profileSubscriptionFree,
-    };
 
 class ProfileHeroCard extends ConsumerWidget {
   const ProfileHeroCard({required this.profile, super.key});
