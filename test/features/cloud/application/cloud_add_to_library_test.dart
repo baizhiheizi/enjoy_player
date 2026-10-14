@@ -1,8 +1,11 @@
-/// Covers the [CloudAddToLibrary] add/in-library seam against an in-memory
-/// Drift database. The application layer is the only entry point for
-/// `libraryMediaProvider` invalidation from the cloud list/grid tiles, so
-/// the read + write pair is pinned here to keep the kind-dispatch contract
-/// aligned with [MediaRegistry]'s video-first precedence.
+/// Covers the [CloudAddToLibrary] add / in-library seam against an in-memory
+/// Drift database.
+///
+/// [CloudAddToLibrary] dispatches on [RemoteLibraryItem.isVideo] into the
+/// `videos` and `audios` tables, which are independent — no row shadows
+/// another, and a shared id resolves per kind. This suite pins that
+/// dispatch, the server-field mapping on both kinds, and the
+/// insert-or-replace write.
 library;
 
 import 'package:drift/native.dart';
@@ -14,20 +17,35 @@ import 'package:flutter_test/flutter_test.dart';
 
 final DateTime _base = DateTime(2026, 7, 1);
 
-Map<String, dynamic> _audioServerJson(
+enum _Kind {
+  audio(isVideo: false, defaultDuration: 120),
+  video(isVideo: true, defaultDuration: 360);
+
+  const _Kind({required this.isVideo, required this.defaultDuration});
+
+  final bool isVideo;
+  final int defaultDuration;
+
+  String get provider => isVideo ? 'youtube' : 'local';
+  String get nativeIdKey => isVideo ? 'vid' : 'aid';
+  String get nativeIdPrefix => isVideo ? 'vid_' : 'aid_';
+}
+
+Map<String, dynamic> _serverJson(
+  _Kind kind,
   String id, {
-  String title = 'Audio',
-  int duration = 120,
+  String? title,
+  int? duration,
   String? mediaUrl,
   String? md5,
   int? size,
 }) {
   return <String, dynamic>{
     'id': id,
-    'aid': 'aid_$id',
-    'provider': 'local',
-    'title': title,
-    'duration': duration,
+    kind.nativeIdKey: '${kind.nativeIdPrefix}$id',
+    'provider': kind.provider,
+    'title': title ?? '${kind.name} $id',
+    'duration': duration ?? kind.defaultDuration,
     'language': 'und',
     'mediaUrl': mediaUrl,
     'md5': md5,
@@ -37,58 +55,23 @@ Map<String, dynamic> _audioServerJson(
   };
 }
 
-Map<String, dynamic> _videoServerJson(
+RemoteLibraryItem _item(
+  _Kind kind,
   String id, {
-  String title = 'Video',
-  int duration = 360,
-  String? mediaUrl,
-  String? md5,
-  int? size,
+  Map<String, dynamic>? rawJson,
 }) {
-  return <String, dynamic>{
-    'id': id,
-    'vid': 'vid_$id',
-    'provider': 'youtube',
-    'title': title,
-    'duration': duration,
-    'language': 'und',
-    'mediaUrl': mediaUrl,
-    'md5': md5,
-    'size': size,
-    'updatedAt': _base.toUtc().toIso8601String(),
-    'createdAt': _base.toUtc().toIso8601String(),
-  };
-}
-
-RemoteLibraryItem _audioItem(String id, {Map<String, dynamic>? rawJson}) {
   return RemoteLibraryItem(
     id: id,
-    isVideo: false,
-    title: 'Audio $id',
+    isVideo: kind.isVideo,
+    title: '${kind.name} $id',
     thumbnailUrl: null,
-    durationSeconds: 120,
+    durationSeconds: kind.defaultDuration,
     language: 'und',
     mediaUrl: null,
     md5: null,
     size: null,
-    provider: 'local',
-    rawJson: rawJson ?? _audioServerJson(id),
-  );
-}
-
-RemoteLibraryItem _videoItem(String id, {Map<String, dynamic>? rawJson}) {
-  return RemoteLibraryItem(
-    id: id,
-    isVideo: true,
-    title: 'Video $id',
-    thumbnailUrl: null,
-    durationSeconds: 360,
-    language: 'und',
-    mediaUrl: null,
-    md5: null,
-    size: null,
-    provider: 'youtube',
-    rawJson: rawJson ?? _videoServerJson(id),
+    provider: kind.provider,
+    rawJson: rawJson ?? _serverJson(kind, id),
   );
 }
 
@@ -96,10 +79,12 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late AppDatabase db;
   late CloudAddToLibrary addToLibrary;
+  late MediaRegistry registry;
 
   setUp(() {
     db = AppDatabase(executor: NativeDatabase.memory());
     addToLibrary = CloudAddToLibrary(db);
+    registry = MediaRegistry(db);
   });
 
   tearDown(() async {
@@ -108,32 +93,61 @@ void main() {
 
   group('isInLibrary', () {
     test('returns false for an unknown audio id', () async {
-      expect(await addToLibrary.isInLibrary(_audioItem('a1')), isFalse);
+      expect(await addToLibrary.isInLibrary(_item(_Kind.audio, 'a1')), isFalse);
     });
 
     test('returns false for an unknown video id', () async {
-      expect(await addToLibrary.isInLibrary(_videoItem('v1')), isFalse);
+      expect(await addToLibrary.isInLibrary(_item(_Kind.video, 'v1')), isFalse);
     });
 
     test('returns true after the same audio id is added', () async {
-      await addToLibrary.add(_audioItem('a1'));
-      expect(await addToLibrary.isInLibrary(_audioItem('a1')), isTrue);
+      await addToLibrary.add(_item(_Kind.audio, 'a1'));
+      expect(await addToLibrary.isInLibrary(_item(_Kind.audio, 'a1')), isTrue);
     });
 
     test('returns true after the same video id is added', () async {
-      await addToLibrary.add(_videoItem('v1'));
-      expect(await addToLibrary.isInLibrary(_videoItem('v1')), isTrue);
+      await addToLibrary.add(_item(_Kind.video, 'v1'));
+      expect(await addToLibrary.isInLibrary(_item(_Kind.video, 'v1')), isTrue);
     });
 
-    test('audio probe does not match a video row with the same id', () async {
-      await addToLibrary.add(_videoItem('shared'));
-      expect(await addToLibrary.isInLibrary(_audioItem('shared')), isFalse);
+    test('an audio probe does not read a video row with the same id', () async {
+      await addToLibrary.add(_item(_Kind.video, 'shared'));
+      expect(
+        await addToLibrary.isInLibrary(_item(_Kind.audio, 'shared')),
+        isFalse,
+      );
     });
+
+    test('a video probe does not read an audio row with the same id', () async {
+      await addToLibrary.add(_item(_Kind.audio, 'shared'));
+      expect(
+        await addToLibrary.isInLibrary(_item(_Kind.video, 'shared')),
+        isFalse,
+      );
+    });
+
+    test(
+      'both kinds stay in library when one id lands in both tables',
+      () async {
+        await addToLibrary.add(_item(_Kind.audio, 'shared'));
+        await addToLibrary.add(_item(_Kind.video, 'shared'));
+
+        expect(
+          await addToLibrary.isInLibrary(_item(_Kind.audio, 'shared')),
+          isTrue,
+        );
+        expect(
+          await addToLibrary.isInLibrary(_item(_Kind.video, 'shared')),
+          isTrue,
+        );
+      },
+    );
   });
 
   group('add', () {
     test('inserts an audio row with the server fields preserved', () async {
-      final raw = _audioServerJson(
+      final raw = _serverJson(
+        _Kind.audio,
         'a1',
         title: 'Track',
         duration: 240,
@@ -141,19 +155,24 @@ void main() {
         md5: 'deadbeef',
         size: 4096,
       );
-      await addToLibrary.add(_audioItem('a1', rawJson: raw));
+      await addToLibrary.add(_item(_Kind.audio, 'a1', rawJson: raw));
 
-      final row = await MediaRegistry(db).getAudioById('a1');
+      final row = await registry.getAudioById('a1');
       expect(row, isNotNull);
-      expect(row!.title, 'Track');
+      expect(row!.id, 'a1');
+      expect(row.aid, 'aid_a1');
+      expect(row.provider, 'local');
+      expect(row.title, 'Track');
       expect(row.durationSeconds, 240);
+      expect(row.language, 'und');
       expect(row.mediaUrl, 'https://cdn.example/a1.mp3');
       expect(row.md5, 'deadbeef');
       expect(row.size, 4096);
     });
 
     test('inserts a video row with the server fields preserved', () async {
-      final raw = _videoServerJson(
+      final raw = _serverJson(
+        _Kind.video,
         'v1',
         title: 'Clip',
         duration: 720,
@@ -161,39 +180,60 @@ void main() {
         md5: 'f00dface',
         size: 8192,
       );
-      await addToLibrary.add(_videoItem('v1', rawJson: raw));
+      await addToLibrary.add(_item(_Kind.video, 'v1', rawJson: raw));
 
-      final row = await MediaRegistry(db).getVideoById('v1');
+      final row = await registry.getVideoById('v1');
       expect(row, isNotNull);
-      expect(row!.title, 'Clip');
+      expect(row!.id, 'v1');
+      expect(row.vid, 'vid_v1');
+      expect(row.provider, 'youtube');
+      expect(row.title, 'Clip');
       expect(row.durationSeconds, 720);
+      expect(row.language, 'und');
       expect(row.mediaUrl, 'https://cdn.example/v1.mp4');
       expect(row.md5, 'f00dface');
       expect(row.size, 8192);
     });
 
     test('inserting an audio does not land a video row', () async {
-      await addToLibrary.add(_audioItem('a1'));
-      expect(await MediaRegistry(db).getVideoById('a1'), isNull);
+      await addToLibrary.add(_item(_Kind.audio, 'a1'));
+      expect(await registry.getVideoById('a1'), isNull);
     });
 
     test('inserting a video does not land an audio row', () async {
-      await addToLibrary.add(_videoItem('v1'));
-      expect(await MediaRegistry(db).getAudioById('v1'), isNull);
+      await addToLibrary.add(_item(_Kind.video, 'v1'));
+      expect(await registry.getAudioById('v1'), isNull);
     });
 
-    test(
-      're-adding an existing audio replaces the row (insertOrReplace)',
-      () async {
-        final rawA = _audioServerJson('a1', title: 'First');
-        final rawB = _audioServerJson('a1', title: 'Second');
-        await addToLibrary.add(_audioItem('a1', rawJson: rawA));
-        await addToLibrary.add(_audioItem('a1', rawJson: rawB));
+    test('re-adding an existing audio replaces every row field', () async {
+      final first = _serverJson(
+        _Kind.audio,
+        'a1',
+        title: 'First',
+        mediaUrl: 'https://cdn.example/first.mp3',
+        md5: 'aaaa',
+        size: 11,
+      );
+      final second = _serverJson(
+        _Kind.audio,
+        'a1',
+        title: 'Second',
+        mediaUrl: 'https://cdn.example/second.mp3',
+        md5: 'bbbb',
+        size: 22,
+      );
+      await addToLibrary.add(_item(_Kind.audio, 'a1', rawJson: first));
+      await addToLibrary.add(_item(_Kind.audio, 'a1', rawJson: second));
 
-        final row = await MediaRegistry(db).getAudioById('a1');
-        expect(row, isNotNull);
-        expect(row!.title, 'Second');
-      },
-    );
+      final row = await registry.getAudioById('a1');
+      expect(row, isNotNull);
+      expect(row!.id, 'a1');
+      expect(row.aid, 'aid_a1');
+      expect(row.provider, 'local');
+      expect(row.title, 'Second');
+      expect(row.mediaUrl, 'https://cdn.example/second.mp3');
+      expect(row.md5, 'bbbb');
+      expect(row.size, 22);
+    });
   });
 }

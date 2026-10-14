@@ -4,6 +4,9 @@
 /// depend on `features/library`.
 library;
 
+/// Canonical `provider` value for YouTube rows.
+const String kProviderYoutube = 'youtube';
+
 /// Matches a bare 11-character YouTube video id (whole-string anchored).
 ///
 /// Shared across the codebase so the canonical id shape lives in one place:
