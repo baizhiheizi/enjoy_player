@@ -309,8 +309,12 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
       valueListenable: _hover,
       builder: (context, hover, _) {
         Color? bg;
-        if (widget.groupedInEcho) {
+        List<BoxShadow>? cardShadow;
+        if (widget.groupedInEcho || inLens) {
           bg = Colors.transparent;
+        } else if (widget.isActive) {
+          bg = tok.paper;
+          cardShadow = tok.shadowLift;
         } else if (hover) {
           bg = tok.sunk.withValues(alpha: 0.55);
         }
@@ -485,6 +489,15 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
         final content = textBody;
 
         final lineRadius = BorderRadius.circular(metrics.lineRadius);
+        Widget decorate(Widget child) => DecoratedBox(
+          decoration: ShapeDecoration(
+            color: bg ?? Colors.transparent,
+            shadows: cardShadow,
+            shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
+          ),
+          child: ClipRSuperellipse(borderRadius: lineRadius, child: child),
+        );
+
         if (widget.selectable) {
           return _lensFade(
             hover,
@@ -500,18 +513,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                         color: bg ?? Colors.transparent,
                         child: content,
                       )
-                    : DecoratedBox(
-                        decoration: ShapeDecoration(
-                          color: bg ?? Colors.transparent,
-                          shape: RoundedSuperellipseBorder(
-                            borderRadius: lineRadius,
-                          ),
-                        ),
-                        child: ClipRSuperellipse(
-                          borderRadius: lineRadius,
-                          child: content,
-                        ),
-                      ),
+                    : decorate(content),
               ),
             ),
           );
@@ -548,16 +550,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
               child: EnjoyPressable(
                 shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
                 onTap: () => _handleTap(context),
-                child: DecoratedBox(
-                  decoration: ShapeDecoration(
-                    color: bg ?? Colors.transparent,
-                    shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
-                  ),
-                  child: ClipRSuperellipse(
-                    borderRadius: lineRadius,
-                    child: content,
-                  ),
-                ),
+                child: decorate(content),
               ),
             ),
           ),

@@ -222,7 +222,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
     final labelStyle = tt.labelSmall?.copyWith(
       fontSize: 11,
       fontWeight: FontWeight.w600,
-      letterSpacing: 0.08,
+      letterSpacing: 11 * 0.09,
       color: tok.youInk,
     );
     final textIndent = metrics.showLoopGutter
