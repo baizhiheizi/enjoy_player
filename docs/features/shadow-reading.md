@@ -39,21 +39,22 @@ Craft's `CaptureStage` still owns its own capture loop (it needs the amplitude s
 
 Two presentations share the panel (Duet, ADR-0093):
 
-- **Player embed** (`takesRowInLoop`): the strip below the loop is the
-  board's **takes row** — a `TAKES` overline, one stadium chip per take
-  (play circle, take number, mono duration, an uncolored score chip
-  that re-opens the assessment, or a `Score` action that runs it), the
-  "press R and say it back" hint when empty, and the Pitch pill that
-  toggles the contour. Desktop keeps the chips on one horizontally
-  scrolling line; phones drop the overline and chip durations and wrap
-  the chips plus an icon-only Pitch button onto as many rows as needed,
-  so every take stays one tap away (the `PEcho` board). Record / cancel / stop live in the dock; while a
-  take records, the panel renders nothing and the loop block shows the
-  pulse label + countdown bar. The take **more menu (delete with
-  confirm)** has no player-embed home — the vocabulary embed keeps it
-  until take management moves into the assessment margin
-  ([`docs/design/duet/STATUS.md`](../design/duet/STATUS.md) decision
-  tracker).
+- **Player embed** (`takesRowInLoop`, canvas v30): under the loop sits
+  **one takes row** (`ShadowTakeSummaryRow`) — play the selected take
+  (`G`), `Take 3 · 84` with its level word or `Not scored yet · click to
+  score` (tap runs the assessment, `V`; a scored take re-opens it), and
+  `3 takes ›`, which opens the **takes list** (`ShadowTakesListPanel`):
+  the player margin on desktop, a bottom sheet on phones. The list shows
+  every take newest first (play selects it; an uncolored mono score chip
+  re-opens the assessment, `Score` runs it), a **delete** per take with
+  confirm (decision R2), and **Pitch contour on the loop** (`P`). The
+  selected take and the pitch toggle are presentation state
+  (`selectedTakeProvider`, `loopPitchVisibleProvider`) so the row, the
+  list and the hotkeys agree. A new take lands unscored; nothing plays
+  after it on its own. With no takes the row reads "No recordings for
+  this segment yet. Press R and say it back." Record / cancel / stop live
+  in the dock; while a take records, the panel renders nothing and the
+  loop block shows the pulse label + countdown bar.
 - **Vocabulary embed**: the original **idle toolbar** with the **pitch
   icon**, a centered **FAB** (start recording), **play**, and
   **pronunciation assess**. Delete moves into a **more** menu gated by a
@@ -131,11 +132,13 @@ level pill, the dimension bars, the word chips (tinted fill + mono score;
 wavy underline for mispronunciation, strike-through for insertion and
 omission, a legend above), and the selected-word panel's per-phoneme tiles
 all use that scale; IPA renders in bundled Noto Sans. On wide player
-windows the assessment opens in the 360 px side margin, which hosts the
-same `AssessmentResultBody` as the narrow sheet (overall score, dimension
-bars, replay, re-assess, per-word phoneme analysis); the margin route
-wraps the panel in a transparent `Material` so plain text never falls
-back to the debug error style.
+windows the assessment opens in the 360 px side margin — docked beside
+the content at ≥ 1100 px, a drawer route below — which hosts the same
+`AssessmentResultBody` as the narrow sheet (overall score, dimension
+bars, replay, re-assess, per-word phoneme analysis). Both margin forms
+wrap the panel in a transparent `Material` so plain text never falls
+back to the debug error style. An assessment or takes panel closes when
+the player leaves Echo; a word lookup stays.
 
 **Pitch chart.** Both contours sit on a semitone axis fitted to the voiced
 range (at least 8 semitones). A contour breaks at gaps over 250 ms, runs

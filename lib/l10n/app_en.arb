@@ -2255,5 +2255,21 @@
   "playerRepeatItem": "Repeat this item",
   "@playerRepeatItem": {"description": "Repeat button tooltip when the whole item repeats."},
   "playerRepeatLoop": "Repeat the echo loop",
-  "@playerRepeatLoop": {"description": "Repeat button tooltip when the echo segment repeats."}
+  "@playerRepeatLoop": {"description": "Repeat button tooltip when the echo segment repeats."},
+  "playerMarginCloseTooltip": "{close} · Esc",
+  "@playerMarginCloseTooltip": {"description": "Tooltip on the player margin's close button.", "placeholders": {"close": {"type": "String"}}},
+  "takeNumbered": "Take {number}",
+  "@takeNumbered": {"description": "A take's name in the takes row and list.", "placeholders": {"number": {"type": "int"}}},
+  "takesCount": "{count, plural, =1{1 take} other{{count} takes}}",
+  "@takesCount": {"description": "Opens the list of takes for the loop.", "placeholders": {"count": {"type": "int"}}},
+  "takeNotScoredClick": "Not scored yet · click to score",
+  "@takeNotScoredClick": {"description": "Under an unscored take (pointer devices)."},
+  "takeNotScoredTap": "Not scored yet · tap to score",
+  "@takeNotScoredTap": {"description": "Under an unscored take (touch)."},
+  "takesMarginTitleClick": "Your takes · click to play",
+  "@takesMarginTitleClick": {"description": "Heading of the takes list (pointer devices)."},
+  "takesMarginTitleTap": "Your takes · tap to play",
+  "@takesMarginTitleTap": {"description": "Heading of the takes list (touch)."},
+  "takesPitchOnLoop": "Pitch contour on the loop",
+  "@takesPitchOnLoop": {"description": "Takes list toggle for the pitch contour (P)."}
 }

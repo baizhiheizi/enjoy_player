@@ -1,6 +1,12 @@
 /// Shadow-reading stack below echo segment — mirrors web `ShadowReadingPanel`.
 library;
 
+import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_takes_list_panel.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_take_summary_row.dart';
+import 'package:enjoy_player/features/shadow_reading/application/shadow_takes_ui_state.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_margin.dart';
+import 'package:enjoy_player/features/player/application/player_margin_provider.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -32,7 +38,6 @@ import 'pitch_contour_section.dart';
 import 'widgets/shadow_record_fab.dart';
 import 'widgets/shadow_recording_live.dart';
 import 'widgets/shadow_reading_toolbar_row.dart';
-import 'widgets/shadow_takes_row.dart';
 import 'widgets/shadow_takes_toolbar_actions.dart';
 
 final _log = logNamed('ShadowReadingPanel');
@@ -139,9 +144,12 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
 
   bool _recording = false;
   bool _recordingPending = false;
-  String? _selectedRecordingId;
+  String? get _selectedRecordingId => ref.read(selectedTakeProvider);
 
-  bool _pitchExpanded = false;
+  void _selectTake(String? id) =>
+      ref.read(selectedTakeProvider.notifier).select(id);
+
+  void _togglePitch() => ref.read(loopPitchVisibleProvider.notifier).toggle();
 
   @override
   void didUpdateWidget(covariant ShadowReadingPanel oldWidget) {
@@ -151,7 +159,9 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
         oldWidget.endSec != widget.endSec ||
         oldWidget.language != widget.language ||
         oldWidget.targetType != widget.targetType) {
-      _selectedRecordingId = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _selectTake(null);
+      });
     }
   }
 
@@ -218,7 +228,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       if (outcome.looksSilent) {
         AppNotice.warning(context, l10n.shadowRecordingSilentWarning);
       }
-      setState(() => _selectedRecordingId = outcome.row.id);
+      _selectTake(outcome.row.id);
       ref
           .read(analyticsProvider)
           .capture(
@@ -269,7 +279,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
     );
     _recording = true;
     _recordingPending = false;
-    _pitchExpanded = false;
+    ref.read(loopPitchVisibleProvider.notifier).hide();
     setState(() {});
     ref
         .read(analyticsProvider)
@@ -313,9 +323,42 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       } catch (_) {}
     }
     await _takeStore.deleteTake(r);
-    if (mounted) {
-      setState(() => _selectedRecordingId = null);
+    if (mounted) _selectTake(null);
+  }
+
+  Future<void> _openTakesList() async {
+    final l10n = AppLocalizations.of(context)!;
+    Widget panel(VoidCallback close) => ShadowTakesListPanel(
+      query: _regionQuery,
+      onClose: close,
+      onPlayOrPause: (row) {
+        final path = row.localPath;
+        if (path != null && path.isNotEmpty) {
+          unawaited(_playOrPauseTake(path));
+        }
+      },
+      onDelete: _deleteRecording,
+    );
+    final t = EnjoyThemeTokens.of(context);
+    if (MediaQuery.sizeOf(context).width < t.breakpointCompact) {
+      await showEnjoySheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (sheetContext) =>
+            panel(() => Navigator.of(sheetContext).pop()),
+      );
+      return;
     }
+    await openPlayerMargin(
+      context,
+      PlayerMarginEntry(
+        id: 'takes',
+        label: l10n.takesMarginTitleClick,
+        echoOnly: true,
+        builder: (context, close) => panel(close),
+      ),
+    );
   }
 
   Future<void> _onHotkeyRecordingPulse(AppLocalizations l10n) async {
@@ -414,6 +457,8 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       double.infinity,
     );
 
+    final selectedId = ref.watch(selectedTakeProvider);
+    final pitchExpanded = ref.watch(loopPitchVisibleProvider);
     final mediaPath = ref
         .watch(mediaAnalysisInputProvider(widget.mediaId))
         .valueOrNull;
@@ -423,7 +468,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       stream: recordings,
       builder: (context, recSnap) {
         final list = recSnap.data ?? [];
-        final sel = _resolvedSelectedRow(list, _selectedRecordingId);
+        final sel = _resolvedSelectedRow(list, selectedId);
 
         if (_recording && widget.takesRowInLoop) {
           return const SizedBox.shrink();
@@ -436,26 +481,19 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
             children: [
               Padding(
                 padding: EdgeInsets.only(left: takesInset),
-                child: ShadowTakesRow(
-                  takes: list,
-                  selectedId: sel?.id,
-                  echoActive: widget.echoActive,
-                  pitchExpanded: _pitchExpanded,
-                  hasMediaPath: mediaPath != null && mediaPath.isNotEmpty,
-                  onPlayOrPause: (row) {
-                    final path = row.localPath;
-                    if (path != null && path.isNotEmpty) {
-                      unawaited(_playOrPauseTake(path));
-                    }
-                  },
-                  onChooseTake: (row) {
-                    unawaited(ref.read(recordingPreviewPlayerProvider).stop());
-                    if (mounted) {
-                      setState(() => _selectedRecordingId = row.id);
-                    }
-                  },
-                  onTogglePitch: () =>
-                      setState(() => _pitchExpanded = !_pitchExpanded),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: ShadowTakeSummaryRow(
+                    takes: list,
+                    selected: sel,
+                    onPlayOrPause: (row) {
+                      final path = row.localPath;
+                      if (path != null && path.isNotEmpty) {
+                        unawaited(_playOrPauseTake(path));
+                      }
+                    },
+                    onOpenList: () => unawaited(_openTakesList()),
+                  ),
                 ),
               ),
               Consumer(
@@ -464,7 +502,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                     return const SizedBox.shrink();
                   }
                   double? relativeSec;
-                  if (widget.showLiveProgress && _pitchExpanded) {
+                  if (widget.showLiveProgress && pitchExpanded) {
                     final posSec =
                         (ref.watch(displayPositionProvider).valueOrNull ??
                                 Duration.zero)
@@ -484,9 +522,8 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                       currentTimeRelativeSec: relativeSec,
                       selectedRecordingPath: sel?.localPath,
                       selectedRecordingDurationMs: sel?.duration,
-                      expanded: _pitchExpanded,
-                      onToggleExpanded: () =>
-                          setState(() => _pitchExpanded = !_pitchExpanded),
+                      expanded: pitchExpanded,
+                      onToggleExpanded: _togglePitch,
                       showHeader: false,
                     ),
                   );
@@ -515,11 +552,10 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
             ShadowReadingToolbarRow(
               tok: tok,
               scheme: scheme,
-              pitchExpanded: _pitchExpanded,
+              pitchExpanded: pitchExpanded,
               pitchTooltip: pitchContourTooltip,
               hasMediaPath: mediaPath != null && mediaPath.isNotEmpty,
-              onPitchTap: () =>
-                  setState(() => _pitchExpanded = !_pitchExpanded),
+              onPitchTap: _togglePitch,
               leadingShare: SharePracticePosterButton(
                 mediaId: widget.mediaId,
                 iconColor: scheme.onSurface,
@@ -541,9 +577,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                       onDeleteCurrent: () => unawaited(_deleteRecording(sel)),
                       onChooseTake: (id) async {
                         await ref.read(recordingPreviewPlayerProvider).stop();
-                        if (mounted) {
-                          setState(() => _selectedRecordingId = id);
-                        }
+                        if (mounted) _selectTake(id);
                       },
                     )
                   : null,
@@ -563,11 +597,11 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
               ),
             ),
             if (mediaPath != null && mediaPath.isNotEmpty) ...[
-              if (_pitchExpanded) SizedBox(height: tok.space8),
+              if (pitchExpanded) SizedBox(height: tok.space8),
               Consumer(
                 builder: (context, ref, _) {
                   double? relativeSec;
-                  if (widget.showLiveProgress && _pitchExpanded) {
+                  if (widget.showLiveProgress && pitchExpanded) {
                     final posSec =
                         (ref.watch(displayPositionProvider).valueOrNull ??
                                 Duration.zero)
@@ -585,9 +619,8 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                     currentTimeRelativeSec: relativeSec,
                     selectedRecordingPath: sel?.localPath,
                     selectedRecordingDurationMs: sel?.duration,
-                    expanded: _pitchExpanded,
-                    onToggleExpanded: () =>
-                        setState(() => _pitchExpanded = !_pitchExpanded),
+                    expanded: pitchExpanded,
+                    onToggleExpanded: _togglePitch,
                     showHeader: false,
                   );
                 },

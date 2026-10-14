@@ -11,6 +11,9 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/dictionary_lookup_sheet.dart';
+import 'package:enjoy_player/features/player/application/player_margin_provider.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_margin.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
 
 part 'lookup_coordinator.g.dart';
 
@@ -27,12 +30,18 @@ class LookupCoordinator extends _$LookupCoordinator {
     final w = MediaQuery.sizeOf(context).width;
     final compact = EnjoyThemeTokens.of(context).breakpointCompact;
     if (w >= compact) {
-      // Duet side margin (ADR-0093): a right-edge drawer route — the surface
-      // parks (ADR-0066), Esc closes, and it slides in over motionMargin.
-      await Navigator.of(
+      await openPlayerMargin(
         context,
-        rootNavigator: true,
-      ).push(_LookupMarginRoute(request: request));
+        PlayerMarginEntry(
+          id: 'lookup:${request.selectedText}',
+          label: AppLocalizations.of(context)!.lookupSheetTitle,
+          builder: (context, close) => DictionaryLookupSheet(
+            presentation: DictionaryLookupPresentation.dialog,
+            request: request,
+            onClose: close,
+          ),
+        ),
+      );
       releasePrimaryFocusForGlobalHotkeys();
       return;
     }
@@ -48,89 +57,5 @@ class LookupCoordinator extends _$LookupCoordinator {
       ),
     );
     releasePrimaryFocusForGlobalHotkeys();
-  }
-}
-
-/// The right-edge lookup margin drawer (ADR-0093): `marginWidth` raised panel over
-/// the scrim, sliding from the right edge.
-class _LookupMarginRoute extends PopupRoute<void> {
-  _LookupMarginRoute({required this.request});
-
-  final LookupRequest request;
-
-  @override
-  bool get barrierDismissible => true;
-
-  @override
-  Color? get barrierColor => null;
-
-  @override
-  String? get barrierLabel => 'Word lookup';
-
-  @override
-  Duration get transitionDuration => const Duration(milliseconds: 220);
-
-  @override
-  Duration get reverseTransitionDuration => const Duration(milliseconds: 180);
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    final t = EnjoyThemeTokens.of(context);
-    return Align(
-      alignment: Alignment.centerRight,
-      child: SizedBox(
-        width: t.marginWidth,
-        child: DecoratedBox(
-          decoration: ShapeDecoration(
-            color: t.raised,
-            shape: const RoundedSuperellipseBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-              ),
-            ),
-            shadows: t.shadowFloat,
-          ),
-          child: ClipRSuperellipse(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(18),
-              bottomLeft: Radius.circular(18),
-            ),
-            child: MediaQuery.removePadding(
-              context: context,
-              removeLeft: true,
-              child: DictionaryLookupSheet(
-                presentation: DictionaryLookupPresentation.dialog,
-                request: request,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    final slide = Tween<Offset>(
-      begin: const Offset(1, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-    return SlideTransition(
-      position: slide,
-      child: FadeTransition(
-        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-        child: child,
-      ),
-    );
   }
 }

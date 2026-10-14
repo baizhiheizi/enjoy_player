@@ -31,6 +31,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_fetch_co
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_panel.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:flutter/material.dart';
@@ -322,7 +323,6 @@ List<Override> _echoOverrides(
 ];
 
 var openPosterOnNextMount = false;
-var openAssessmentOnNextMount = false;
 var openAssessmentSheetOnNextMount = false;
 var openLookupOnNextMount = false;
 
@@ -343,16 +343,6 @@ GoRouter _playerRouter() => GoRouter(
               final body = chrome == null
                   ? const SizedBox.shrink()
                   : ExpandedPlayerChromeBody(mediaId: _mediaId, chrome: chrome);
-              if (openAssessmentOnNextMount) {
-                openAssessmentOnNextMount = false;
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  if (!context.mounted) return;
-                  await showAssessmentMargin(
-                    context: context,
-                    assessment: _boardAssessment(),
-                  );
-                });
-              }
               if (openLookupOnNextMount) {
                 openLookupOnNextMount = false;
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -409,6 +399,37 @@ enum _Lens { listen, echo, echoIpa }
 Future<void> _tapWord(WidgetTester tester) =>
     tester.tap(find.text('ferry').last);
 
+BuildContext _insideTranscript(WidgetTester tester) =>
+    tester.element(find.byType(TranscriptPanel));
+
+Future<void> _openLookupInside(WidgetTester tester) async {
+  final context = _insideTranscript(tester);
+  unawaited(
+    ProviderScope.containerOf(context)
+        .read(lookupCoordinatorProvider.notifier)
+        .open(
+          context,
+          LookupRequest(
+            selectedText: 'ferry',
+            sourceLanguage: 'en',
+            targetLanguage: 'zh',
+            contextualContext: _board[_activeLine].$1,
+          ),
+        ),
+  );
+}
+
+Future<void> _openAssessmentInside(WidgetTester tester) async {
+  unawaited(
+    showAssessmentMargin(
+      context: _insideTranscript(tester),
+      assessment: _boardAssessment(),
+    ),
+  );
+  await tester.pump();
+  await _tapWord(tester);
+}
+
 Future<void> _tapSubtitles(WidgetTester tester) =>
     tester.tap(find.text('Subtitles').first);
 
@@ -444,7 +465,7 @@ void main() {
       Brightness.light,
       _Lens.echo,
       null,
-      _tapWord,
+      _openAssessmentInside,
     ),
     ('PScored', GalleryFrame.phone, Brightness.light, _Lens.echo, null, null),
     (
@@ -479,7 +500,14 @@ void main() {
       null,
       _tapSubtitles,
     ),
-    ('DWord', GalleryFrame.desktop, Brightness.light, _Lens.listen, null, null),
+    (
+      'DWord',
+      GalleryFrame.desktop,
+      Brightness.light,
+      _Lens.listen,
+      null,
+      _openLookupInside,
+    ),
     ('PWord', GalleryFrame.phone, Brightness.light, _Lens.listen, null, null),
     (
       'DVideo',
@@ -498,9 +526,8 @@ void main() {
       sceneIsVideo = board == 'DVideo';
       addTearDown(() => sceneIsVideo = false);
       openPosterOnNextMount = board == 'Poster';
-      openAssessmentOnNextMount = board == 'DScored';
       openAssessmentSheetOnNextMount = board == 'PScored';
-      openLookupOnNextMount = board == 'DWord' || board == 'PWord';
+      openLookupOnNextMount = board == 'PWord';
       if (sceneIsVideo) {
         const windowManager = MethodChannel('window_manager');
         final messenger =

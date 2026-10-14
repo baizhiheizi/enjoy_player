@@ -41,6 +41,7 @@ void _dispatchEscape({
     case EscapeDismissalAction.closeCheatsheet:
     case EscapeDismissalAction.exitFullscreen:
     case EscapeDismissalAction.cancelRecording:
+    case EscapeDismissalAction.closePlayerMargin:
     case EscapeDismissalAction.clearVocabularyPractice:
     case EscapeDismissalAction.noopOnPlayer:
     case null:

@@ -29,6 +29,7 @@ class EscapeDismissalContext {
     required this.goRouterCanPop,
     required this.path,
     required this.isDesktop,
+    this.playerMarginOpen = false,
   });
 
   final bool cheatsheetOpen;
@@ -47,6 +48,9 @@ class EscapeDismissalContext {
   final String path;
   final bool isDesktop;
 
+  /// The player's docked side margin is open (not a route).
+  final bool playerMarginOpen;
+
   bool get onPlayerRoute => path.startsWith('/player/');
 }
 
@@ -56,6 +60,7 @@ enum EscapeDismissalAction {
   cancelRecording,
   popShellPopup,
   popRootPopup,
+  closePlayerMargin,
   clearVocabularyPractice,
   popGoRouter,
   noopOnPlayer,
@@ -69,6 +74,9 @@ EscapeDismissalAction? resolveEscapeDismissal(EscapeDismissalContext ctx) {
   if (ctx.isRecordingActive) return EscapeDismissalAction.cancelRecording;
   if (ctx.shellHasPopupRoute) return EscapeDismissalAction.popShellPopup;
   if (ctx.rootHasPopupRoute) return EscapeDismissalAction.popRootPopup;
+  if (ctx.onPlayerRoute && ctx.playerMarginOpen) {
+    return EscapeDismissalAction.closePlayerMargin;
+  }
   if (ctx.vocabularyPracticeOpen) {
     return EscapeDismissalAction.clearVocabularyPractice;
   }
