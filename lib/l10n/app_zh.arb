@@ -250,8 +250,6 @@
   "expandEchoForward": "向前扩展回声",
   "shrinkEchoBackward": "向后收缩回声",
   "shrinkEchoForward": "向前收缩回声",
-  "echoLoopEarlierLine": "上一句",
-  "echoLoopLaterLine": "下一句",
   "echoLoopCaptionLine": "循环 · 第 {range} 句 · {seconds} 秒",
   "echoLoopCaptionLines": "循环 · 第 {range} 句 · {seconds} 秒",
   "echoLoopCaptionRecording": "录音 · 第 {count} 遍",

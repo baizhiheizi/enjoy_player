@@ -306,8 +306,6 @@
   "expandEchoForward": "Expand echo forward",
   "shrinkEchoBackward": "Shrink echo backward",
   "shrinkEchoForward": "Shrink echo forward",
-  "echoLoopEarlierLine": "Earlier line",
-  "echoLoopLaterLine": "Later line",
   "echoLoopCaptionLine": "LOOP · LINE {range} · {seconds} S",
   "@echoLoopCaptionLine": {"description": "Echo loop caption for a single line.", "placeholders": {"range": {"type": "String"}, "seconds": {"type": "String"}}},
   "echoLoopCaptionLines": "LOOP · LINES {range} · {seconds} S",

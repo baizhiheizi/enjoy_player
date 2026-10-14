@@ -1491,18 +1491,6 @@ abstract class AppLocalizations {
   /// **'Shrink echo forward'**
   String get shrinkEchoForward;
 
-  /// No description provided for @echoLoopEarlierLine.
-  ///
-  /// In en, this message translates to:
-  /// **'Earlier line'**
-  String get echoLoopEarlierLine;
-
-  /// No description provided for @echoLoopLaterLine.
-  ///
-  /// In en, this message translates to:
-  /// **'Later line'**
-  String get echoLoopLaterLine;
-
   /// Echo loop caption for a single line.
   ///
   /// In en, this message translates to:

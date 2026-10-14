@@ -129,7 +129,7 @@ void main() {
     );
   });
 
-  testWidgets('loop block frames with corner brackets and handle pills', (
+  testWidgets('loop block frames with corner brackets, no pills inside', (
     tester,
   ) async {
     const lines = [
@@ -184,8 +184,8 @@ void main() {
       findsOneWidget,
       reason: 'the loop is framed by the you corner brackets',
     );
-    expect(find.text('Earlier line'), findsOneWidget);
-    expect(find.text('Later line'), findsOneWidget);
+    expect(find.text('Earlier line'), findsNothing);
+    expect(find.text('Later line'), findsNothing);
     expect(find.text('LOOP · LINE 2 · 0.0 S'), findsOneWidget);
   });
 

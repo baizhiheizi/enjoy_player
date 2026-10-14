@@ -31,10 +31,15 @@ one line clamps 22–28px with viewport width, two lines 20–24, three or
 more 19; the video column uses 20/18 and phones 23/20. The video column
 and phones drop the loop's time gutter, and the takes strip aligns with
 the loop text (66px inset on desktop). The
-Earlier / Later line pill handles (paper pill on youLine, docked over
-the top and bottom bracket edges, hidden while recording) drive the
-same `expandEchoBackward` / `shrinkEchoForward` controller calls as
-before. Neighbour lines fade by distance through `echoLensOpacity`
+line just above the loop and the line just below it are **“+ line”
+rows** (canvas v30, `EchoLoopEdgeRow`): a dashed `shape` outline with a
+violet “+” chip and the line's text, which adds that line to the loop
+(`[` / `]`, `expandEchoBackward` / `expandEchoForward`), and a “−” button
+beside it that drops the loop's first / last line (`{` / `}`,
+`shrinkEchoBackward` / `shrinkEchoForward`; disabled on a one-line
+loop). Order is: + row above, loop, + row below, takes. The rows hide
+while a take records. They replaced the Earlier / Later pill handles on
+the bracket edges. Neighbour lines fade by distance through `echoLensOpacity`
 (0.65 / 0.35 / 0.2) at the board's lens sizes (16 / 15 / 14
 desktop, 14.5 / 13.5 in the video column and on phones) and restore to full ink on hover. While a take is recording,
 the label swaps to a pulsing dot plus `RECORDING TAKE n`, and a 4px

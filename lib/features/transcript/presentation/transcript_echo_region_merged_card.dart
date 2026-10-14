@@ -1,20 +1,20 @@
 /// Echo loop lens: the loop block grows in place inside `you` corner
-/// brackets, with Earlier / Later line handles and the live recording readout.
+/// brackets, the live recording readout, and the “+ line” row below the loop
+/// (the row above is the list's own slot for that line).
 library;
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:enjoy_player/features/transcript/presentation/transcript_echo_loop_edge_row.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
 
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
-import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
@@ -295,87 +295,34 @@ class EchoRegionMergedCard extends ConsumerWidget {
       children: [
         Padding(
           padding: EdgeInsets.only(
-            top: metrics.loopTopMargin - _kLoopHandleHalfHeight,
-            bottom: 21,
+            top: metrics.loopTopRowGap,
+            bottom: 4,
             left: metrics.loopSideMargin,
             right: metrics.loopSideMargin,
           ),
           child: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: _kLoopHandleHalfHeight,
-                ),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: CustomPaint(
-                          painter: EchoLoopBrackets(
-                            color: tok.you,
-                            arm: metrics.bracketArm,
-                            radius: metrics.bracketRadius,
-                          ),
-                        ),
-                      ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: EchoLoopBrackets(
+                      color: tok.you,
+                      arm: metrics.bracketArm,
+                      radius: metrics.bracketRadius,
                     ),
-                    section,
-                  ],
+                  ),
                 ),
               ),
-              if (!recording)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: _EchoLoopHandle(
-                      position: _EchoLoopHandlePosition.top,
-                      expandDisabled: echo.startLineIndex <= 0,
-                      shrinkDisabled: echo.startLineIndex >= echo.endLineIndex,
-                      onExpand: () => _deferEchoResize(
-                        ref,
-                        () => ref
-                            .read(echoModeProvider.notifier)
-                            .expandEchoBackward(lines),
-                      ),
-                      onShrink: () => _deferEchoResize(
-                        ref,
-                        () => ref
-                            .read(echoModeProvider.notifier)
-                            .shrinkEchoBackward(lines),
-                      ),
-                    ),
-                  ),
-                ),
-              if (!recording)
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: _EchoLoopHandle(
-                      position: _EchoLoopHandlePosition.bottom,
-                      expandDisabled: echo.endLineIndex >= lines.length - 1,
-                      shrinkDisabled: echo.endLineIndex <= echo.startLineIndex,
-                      onExpand: () => _deferEchoResize(
-                        ref,
-                        () => ref
-                            .read(echoModeProvider.notifier)
-                            .expandEchoForward(lines),
-                      ),
-                      onShrink: () => _deferEchoResize(
-                        ref,
-                        () => ref
-                            .read(echoModeProvider.notifier)
-                            .shrinkEchoForward(lines),
-                      ),
-                    ),
-                  ),
-                ),
+              section,
             ],
           ),
         ),
+        if (!recording && echo.endLineIndex + 1 < lines.length)
+          EchoLoopEdgeRow(
+            line: lines[echo.endLineIndex + 1],
+            edge: EchoLoopEdge.below,
+            canDrop: echo.endLineIndex > echo.startLineIndex,
+          ),
         if (showShadow) ...[
           SizedBox(height: density.echoBottomPanelGap),
           ShadowReadingPanel(
@@ -391,141 +338,6 @@ class EchoRegionMergedCard extends ConsumerWidget {
           ),
         ],
       ],
-    );
-  }
-}
-
-const double _kLoopHandleHalfHeight = 12;
-
-enum _EchoLoopHandlePosition { top, bottom }
-
-class _EchoLoopHandle extends ConsumerWidget {
-  const _EchoLoopHandle({
-    required this.position,
-    required this.expandDisabled,
-    required this.shrinkDisabled,
-    required this.onExpand,
-    required this.onShrink,
-  });
-
-  final _EchoLoopHandlePosition position;
-  final bool expandDisabled;
-  final bool shrinkDisabled;
-  final VoidCallback onExpand;
-  final VoidCallback onShrink;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-    final tt = Theme.of(context).textTheme;
-    final top = position == _EchoLoopHandlePosition.top;
-
-    final expandId = top
-        ? 'player.expandEchoBackward'
-        : 'player.expandEchoForward';
-    final shrinkId = top
-        ? 'player.shrinkEchoBackward'
-        : 'player.shrinkEchoForward';
-    final expandTip = hotkeyTooltipLabel(
-      ref,
-      expandId,
-      top ? l10n.expandEchoBackward : l10n.expandEchoForward,
-    );
-    final shrinkTip = hotkeyTooltipLabel(
-      ref,
-      shrinkId,
-      top ? l10n.shrinkEchoBackward : l10n.shrinkEchoForward,
-    );
-    final pillLabel = top ? l10n.echoLoopEarlierLine : l10n.echoLoopLaterLine;
-
-    Widget action({
-      required String tip,
-      required VoidCallback? onTap,
-      required Widget child,
-    }) {
-      final disabled = onTap == null;
-      return Tooltip(
-        message: tip,
-        child: Opacity(
-          opacity: disabled ? 0.38 : 1,
-          child: IgnorePointer(
-            ignoring: disabled,
-            child: EnjoyPressable(
-              onTap: onTap,
-              pressedScale: 0.94,
-              borderRadius: BorderRadius.circular(t.radiusFull),
-              child: child,
-            ),
-          ),
-        ),
-      );
-    }
-
-    final expandButton = action(
-      tip: expandTip,
-      onTap: expandDisabled ? null : onExpand,
-      child: Container(
-        height: 22,
-        padding: top
-            ? const EdgeInsets.only(left: 7, right: 9)
-            : const EdgeInsets.only(left: 9, right: 7),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (top) ...[
-              Icon(EnjoyIcons.add, size: 11, color: t.youInk),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              pillLabel,
-              style: tt.labelSmall?.copyWith(
-                fontSize: 11,
-                height: 1,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.1,
-                color: t.youInk,
-              ),
-            ),
-            if (!top) ...[
-              const SizedBox(width: 4),
-              Icon(EnjoyIcons.add, size: 11, color: t.youInk),
-            ],
-          ],
-        ),
-      ),
-    );
-
-    final shrinkButton = action(
-      tip: shrinkTip,
-      onTap: shrinkDisabled ? null : onShrink,
-      child: SizedBox(
-        width: 22,
-        height: 22,
-        child: Center(child: Icon(EnjoyIcons.minus, size: 11, color: t.youInk)),
-      ),
-    );
-
-    final divider = Container(
-      width: 1,
-      height: 10,
-      color: t.youLine.withValues(alpha: 0.6),
-    );
-
-    return Container(
-      padding: const EdgeInsets.all(1),
-      decoration: ShapeDecoration(
-        color: Color.alphaBlend(t.youSoft, t.paper),
-        shape: StadiumBorder(
-          side: BorderSide(color: t.youLine.withValues(alpha: 0.55)),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: top
-            ? [expandButton, divider, shrinkButton]
-            : [shrinkButton, divider, expandButton],
-      ),
     );
   }
 }
@@ -655,13 +467,6 @@ class _LoopBarPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LoopBarPainter oldDelegate) => false;
-}
-
-void _deferEchoResize(WidgetRef ref, VoidCallback apply) {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!ref.context.mounted) return;
-    apply();
-  });
 }
 
 EchoRegionRecordingsQuery _regionQueryFor(String mediaId, EchoState echo) =>

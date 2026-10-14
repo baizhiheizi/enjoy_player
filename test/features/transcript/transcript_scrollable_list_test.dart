@@ -12,6 +12,8 @@ import 'package:enjoy_player/features/transcript/application/transcript_line_rec
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
+import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_echo_loop_edge_row.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -167,6 +169,23 @@ class _EchoLineAdvanceHarnessState
       child: TranscriptScrollableList(mediaId: _mediaId, lines: widget.lines),
     );
   }
+}
+
+class _EchoOnLine2 extends EchoMode {
+  @override
+  EchoState build() => const EchoState(
+    active: true,
+    startLineIndex: 2,
+    endLineIndex: 2,
+    startTimeSeconds: 2,
+    endTimeSeconds: 3,
+  );
+}
+
+class _RecordingBus extends ShadowReadingHotkeyBus {
+  @override
+  ShadowReadingHotkeyTicks build() =>
+      ShadowReadingHotkeyTicks.initial.copyWith(isRecordingActive: true);
 }
 
 void main() {
@@ -484,6 +503,57 @@ void main() {
       final y = tester.getCenter(find.byWidget(element.widget)).dy;
       expect(y, inInclusiveRange(echoTop, echoBottom));
     }
+    await _disposeHarness(tester);
+  });
+
+  testWidgets('the lines either side of the loop are “+ line” rows', (
+    tester,
+  ) async {
+    final lines = _sampleLines(6);
+    await tester.pumpWidget(
+      _harness(
+        overrides: [
+          ..._scrollTestOverrides(lines: lines, highlightIndex: 2),
+          echoModeProvider.overrideWith(_EchoOnLine2.new),
+        ],
+        child: SizedBox(
+          height: 800,
+          child: TranscriptScrollableList(mediaId: _mediaId, lines: lines),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final rows = tester
+        .widgetList<EchoLoopEdgeRow>(find.byType(EchoLoopEdgeRow))
+        .toList();
+    expect(rows.map((r) => (r.edge, r.line.text)), [
+      (EchoLoopEdge.above, 'Transcript line 1'),
+      (EchoLoopEdge.below, 'Transcript line 3'),
+    ]);
+    expect(rows.every((r) => !r.canDrop), isTrue);
+    await _disposeHarness(tester);
+  });
+
+  testWidgets('no “+ line” rows while a take is recording', (tester) async {
+    final lines = _sampleLines(6);
+    await tester.pumpWidget(
+      _harness(
+        overrides: [
+          ..._scrollTestOverrides(lines: lines, highlightIndex: 2),
+          echoModeProvider.overrideWith(_EchoOnLine2.new),
+          shadowReadingHotkeyBusProvider.overrideWith(_RecordingBus.new),
+        ],
+        child: SizedBox(
+          height: 800,
+          child: TranscriptScrollableList(mediaId: _mediaId, lines: lines),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(EchoLoopEdgeRow), findsNothing);
+    expect(find.text('Transcript line 1'), findsOneWidget);
     await _disposeHarness(tester);
   });
 }
