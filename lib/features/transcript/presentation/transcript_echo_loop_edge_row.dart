@@ -124,8 +124,8 @@ class EchoLoopEdgeRow extends ConsumerWidget {
           washColor: t.youSoft,
           semanticsLabel: dropLabel,
           child: Container(
-            width: 40,
-            height: 40,
+            width: metrics.isPhone ? 32 : 40,
+            height: metrics.isPhone ? 32 : 40,
             decoration: ShapeDecoration(
               shape: RoundedSuperellipseBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -177,23 +177,43 @@ class _DashedRRectPainter extends CustomPainter {
   static const double _dash = 4;
   static const double _gap = 3;
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  /// Dash segments flattened once per (size, radius); `computeMetrics` walks
+  /// the whole outline, so doing it every frame defeats the RepaintBoundary
+  /// around the row.
+  Path? _dashedPath;
+  Size? _dashedSize;
+
+  Path _dashedSegments(Size size) {
+    final cachedSize = _dashedSize;
+    final cached = _dashedPath;
+    if (cached != null && cachedSize == size) return cached;
     final rrect = RRect.fromRectAndRadius(
       (Offset.zero & size).deflate(0.5),
       Radius.circular(radius),
     );
+    final path = Path();
+    for (final metric in (Path()..addRRect(rrect)).computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        path.addPath(
+          metric.extractPath(distance, distance + _dash),
+          Offset.zero,
+        );
+        distance += _dash + _gap;
+      }
+    }
+    _dashedPath = path;
+    _dashedSize = size;
+    return path;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
-    for (final metric in (Path()..addRRect(rrect)).computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        canvas.drawPath(metric.extractPath(distance, distance + _dash), paint);
-        distance += _dash + _gap;
-      }
-    }
+    canvas.drawPath(_dashedSegments(size), paint);
   }
 
   @override

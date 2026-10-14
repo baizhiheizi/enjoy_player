@@ -295,7 +295,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
       children: [
         Padding(
           padding: EdgeInsets.only(
-            top: metrics.loopTopMargin / 2,
+            top: metrics.loopTopRowGap,
             bottom: 4,
             left: metrics.loopSideMargin,
             right: metrics.loopSideMargin,

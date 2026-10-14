@@ -147,6 +147,10 @@ class TranscriptLensMetrics {
   };
 
   double get loopTopMargin => isPhone ? 26 : 24;
+
+  /// Gap between the “+” row above and the loop's top bracket (half the
+  /// loop's own top margin, per the `DEcho` board).
+  double get loopTopRowGap => loopTopMargin / 2;
   double get loopSideMargin => isPhone ? 4 : 0;
   double get bracketArm => isPhone ? 22 : 20;
   double get bracketRadius => isPhone ? 9 : 10;
