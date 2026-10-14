@@ -21,7 +21,6 @@ import 'package:enjoy_player/features/player/application/player_lens_provider.da
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/domain/player_lens.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
-import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
@@ -37,9 +36,18 @@ String formatRateCore(double rate) {
 /// The dock's left readout: where you are (line, loop, dictation) over a
 /// one-line hint (practised lines, loop length, recording progress, peek).
 class DockReadout extends ConsumerWidget {
-  const DockReadout({required this.mediaId, this.showHint = true, super.key});
+  const DockReadout({
+    required this.mediaId,
+    required this.recording,
+    this.showHint = true,
+    super.key,
+  });
 
   final String mediaId;
+
+  /// Watched once by the dock and passed down, so the controls row and this
+  /// readout can never disagree about whether a take is being recorded.
+  final bool recording;
   final bool showHint;
 
   @override
@@ -53,11 +61,8 @@ class DockReadout extends ConsumerWidget {
         ?.length;
     final lens = ref.watch(playerLensProvider);
     final hasLines = total != null && total > 0;
-    if (lens != PlayerLens.echo && !hasLines) return const SizedBox.shrink();
+    if (!hasLines) return const SizedBox.shrink();
     final echo = ref.watch(echoModeProvider);
-    final recording = ref
-        .watch(shadowReadingHotkeyBusProvider)
-        .isRecordingActive;
     final cue = ref
         .watch(transcriptPlaybackHighlightProvider(mediaId))
         .cueIndex;
@@ -78,7 +83,7 @@ class DockReadout extends ConsumerWidget {
               )
             : l10n.playerDockLoopingLine(echo.startLineIndex + 1);
         hint = recording
-            ? DockRecordingProgress(loopSeconds: loopSeconds)
+            ? const DockRecordingProgress()
             : Text(l10n.playerDockLoopHint(loopSeconds.toStringAsFixed(1)));
       case PlayerLens.dictate:
         meta = l10n.playerDockDictatingLine(line);
@@ -86,7 +91,7 @@ class DockReadout extends ConsumerWidget {
           isDesktop ? l10n.playerDockDictateHover : l10n.playerDockDictateHold,
         );
       case PlayerLens.listen:
-        meta = l10n.playerDockLinePosition(line, total!);
+        meta = l10n.playerDockLinePosition(line, total);
         final practised =
             (ref.watch(transcriptLineRecordingCountsProvider(mediaId)) ??
                     const <int, int>{})
@@ -126,16 +131,15 @@ class DockReadout extends ConsumerWidget {
 }
 
 /// `Recording · 2.4s of 4.2s`, counted from when the take started.
-class DockRecordingProgress extends StatefulWidget {
-  const DockRecordingProgress({required this.loopSeconds, super.key});
-
-  final double loopSeconds;
+class DockRecordingProgress extends ConsumerStatefulWidget {
+  const DockRecordingProgress({super.key});
 
   @override
-  State<DockRecordingProgress> createState() => _DockRecordingProgressState();
+  ConsumerState<DockRecordingProgress> createState() =>
+      _DockRecordingProgressState();
 }
 
-class _DockRecordingProgressState extends State<DockRecordingProgress>
+class _DockRecordingProgressState extends ConsumerState<DockRecordingProgress>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
   int _tenths = 0;
@@ -158,17 +162,25 @@ class _DockRecordingProgressState extends State<DockRecordingProgress>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final elapsed = (_tenths / 10).clamp(0.0, widget.loopSeconds);
+    final echo = ref.watch(echoModeProvider);
+    final target = (echo.endTimeSeconds - echo.startTimeSeconds).clamp(
+      0.0,
+      double.infinity,
+    );
+    if (target <= 0) {
+      return Text((_tenths / 10).toStringAsFixed(1));
+    }
+    final elapsed = (_tenths / 10).clamp(0.0, target);
     return Text(
       l10n.playerDockRecordingProgress(
         elapsed.toStringAsFixed(1),
-        widget.loopSeconds.toStringAsFixed(1),
+        target.toStringAsFixed(1),
       ),
     );
   }
 }
 
-/// Cycles today's repeat setting: off ↔ repeat this item (Listen, R1).
+/// Cycles the repeat setting: off → this item → the echo loop → off (R1).
 class DockRepeatButton extends ConsumerWidget {
   const DockRepeatButton({super.key});
 
@@ -191,9 +203,11 @@ class DockRepeatButton extends ConsumerWidget {
         key: const ValueKey('dock-repeat'),
         onTap: () => ref
             .read(playerPreferencesCtrlProvider.notifier)
-            .setRepeatMode(
-              mode == RepeatMode.none ? RepeatMode.single : RepeatMode.none,
-            ),
+            .setRepeatMode(switch (mode) {
+              RepeatMode.none => RepeatMode.single,
+              RepeatMode.single => RepeatMode.segment,
+              RepeatMode.segment => RepeatMode.none,
+            }),
         borderRadius: BorderRadius.circular(t.radiusControl),
         washColor: t.sunk,
         selected: on,
