@@ -118,7 +118,7 @@ Future<List<TranscriptAction>> _actions(
 }
 
 void main() {
-  testWidgets('local video offers every transcript action in menu order', (
+  testWidgets('local video with a track offers edit first, in menu order', (
     tester,
   ) async {
     final actions = await _actions(
@@ -128,14 +128,28 @@ void main() {
     );
 
     expect(actions.map((a) => a.kind), [
+      TranscriptActionKind.edit,
       TranscriptActionKind.importFile,
       TranscriptActionKind.embeddedSubtitles,
       TranscriptActionKind.aiTranscript,
       TranscriptActionKind.wordTimings,
       TranscriptActionKind.refreshCloud,
     ]);
-    expect(actions[2].label, 'Transcribe again…');
-    expect(actions[3].label, 'Add word timings & IPA');
+    expect(actions.first.label, 'Edit transcript');
+    expect(actions[3].label, 'Transcribe again…');
+    expect(actions[4].label, 'Add word timings & IPA');
+  });
+
+  testWidgets('no transcript track means no edit entry', (tester) async {
+    final actions = await _actions(
+      tester,
+      readiness: _readiness(showEnrich: true),
+    );
+
+    expect(
+      actions.map((a) => a.kind),
+      isNot(contains(TranscriptActionKind.edit)),
+    );
   });
 
   testWidgets('audio has no embedded subtitles; first AI run says Create', (
@@ -146,6 +160,10 @@ void main() {
     expect(
       actions.map((a) => a.kind),
       isNot(contains(TranscriptActionKind.embeddedSubtitles)),
+    );
+    expect(
+      actions.map((a) => a.kind),
+      isNot(contains(TranscriptActionKind.edit)),
     );
     expect(
       actions

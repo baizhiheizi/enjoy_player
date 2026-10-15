@@ -4194,6 +4194,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerMoreRefreshFromCloud => '从云端刷新';
 
   @override
+  String get playerMoreEditTranscript => '编辑字幕';
+
+  @override
+  String get transcriptEditorTitle => '编辑字幕';
+
+  @override
+  String get transcriptEditorSave => '保存';
+
+  @override
+  String get transcriptEditorSaved => '字幕已更新';
+
+  @override
+  String get transcriptEditorSaveFailed => '字幕保存失败，请重试。';
+
+  @override
+  String get transcriptEditorInvalidTiming => '开始时间和时长必须是秒数，例如 1.25。';
+
+  @override
+  String get transcriptEditorEmpty => '这条媒体没有可编辑的字幕。';
+
+  @override
+  String get transcriptEditorNoCues => '这条字幕没有可编辑的台词。';
+
+  @override
+  String get transcriptEditorDiscardTitle => '放弃未保存的修改？';
+
+  @override
+  String get transcriptEditorDiscardMessage => '你对这条字幕的修改尚未保存。';
+
+  @override
+  String get transcriptEditorDiscardConfirm => '放弃';
+
+  @override
+  String transcriptEditorLineLabel(int index) {
+    return '第 $index 行';
+  }
+
+  @override
+  String get transcriptEditorFieldStart => '开始（秒）';
+
+  @override
+  String get transcriptEditorFieldDuration => '时长（秒）';
+
+  @override
   String get playerMoreKeyboardShortcuts => '键盘快捷键';
 
   @override
@@ -7865,6 +7909,50 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get playerMoreRefreshFromCloud => '从云端刷新';
+
+  @override
+  String get playerMoreEditTranscript => '编辑字幕';
+
+  @override
+  String get transcriptEditorTitle => '编辑字幕';
+
+  @override
+  String get transcriptEditorSave => '保存';
+
+  @override
+  String get transcriptEditorSaved => '字幕已更新';
+
+  @override
+  String get transcriptEditorSaveFailed => '字幕保存失败，请重试。';
+
+  @override
+  String get transcriptEditorInvalidTiming => '开始时间和时长必须是秒数，例如 1.25。';
+
+  @override
+  String get transcriptEditorEmpty => '这条媒体没有可编辑的字幕。';
+
+  @override
+  String get transcriptEditorNoCues => '这条字幕没有可编辑的台词。';
+
+  @override
+  String get transcriptEditorDiscardTitle => '放弃未保存的修改？';
+
+  @override
+  String get transcriptEditorDiscardMessage => '你对这条字幕的修改尚未保存。';
+
+  @override
+  String get transcriptEditorDiscardConfirm => '放弃';
+
+  @override
+  String transcriptEditorLineLabel(int index) {
+    return '第 $index 行';
+  }
+
+  @override
+  String get transcriptEditorFieldStart => '开始（秒）';
+
+  @override
+  String get transcriptEditorFieldDuration => '时长（秒）';
 
   @override
   String get playerMoreKeyboardShortcuts => '键盘快捷键';

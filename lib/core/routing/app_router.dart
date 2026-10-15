@@ -46,6 +46,7 @@ import 'package:enjoy_player/features/settings/presentation/settings_screen.dart
 import 'package:enjoy_player/features/settings/presentation/settings_section_page.dart';
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
 import 'package:enjoy_player/features/subscription/presentation/subscription_screen.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_editor_screen.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_session_screen.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
@@ -217,6 +218,15 @@ GoRouter appRouter(Ref ref) {
                 reverseTransitionDuration: const Duration(milliseconds: 180),
               );
             },
+            routes: [
+              GoRoute(
+                name: 'player-edit-transcript',
+                path: 'edit-transcript',
+                builder: (context, state) => TranscriptEditorScreen(
+                  mediaId: state.pathParameters['mediaId']!,
+                ),
+              ),
+            ],
           ),
           GoRoute(
             name: 'youtube-login',

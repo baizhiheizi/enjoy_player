@@ -9,8 +9,10 @@ import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/domain/player_lens.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_more_menu.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_top_bar.dart';
+import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
+import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +21,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 const _mediaId = 'bar-media';
 final _epoch = DateTime.fromMillisecondsSinceEpoch(0);
+
+const _menuTrack = TranscriptTrack(
+  id: 'bar-transcript',
+  targetType: 'Video',
+  targetId: _mediaId,
+  language: 'en',
+  source: 'user',
+  label: 'EN',
+  trackIndex: null,
+);
 
 class _SessionPlayerController extends PlayerController {
   @override
@@ -77,7 +89,11 @@ List<Override> _overrides() {
   ];
 }
 
-Future<void> _pumpBar(WidgetTester tester, {double width = 360}) async {
+Future<void> _pumpBar(
+  WidgetTester tester, {
+  double width = 360,
+  List<Override> overrides = const [],
+}) async {
   tester.view.physicalSize = width > 600
       ? const Size(1440, 900)
       : const Size(1080, 2400);
@@ -85,7 +101,7 @@ Future<void> _pumpBar(WidgetTester tester, {double width = 360}) async {
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: _overrides(),
+      overrides: [..._overrides(), ...overrides],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -157,11 +173,47 @@ void main() {
       find.byKey(const ValueKey('transcript-action-refreshCloud')),
       findsOneWidget,
     );
+    expect(find.byKey(const ValueKey('transcript-action-edit')), findsNothing);
     expect(find.text('Keyboard shortcuts'), findsOneWidget);
 
     await tester.tapAt(const Offset(40, 600));
     await tester.pumpAndSettle();
     expect(find.byType(PlayerMoreMenuPanel), findsNothing);
+  });
+
+  testWidgets('⋯ More lists Edit transcript first when a track exists', (
+    tester,
+  ) async {
+    await _pumpBar(
+      tester,
+      width: 1200,
+      overrides: [
+        allTranscriptsForMediaProvider(
+          _mediaId,
+        ).overrideWith((ref) => Stream.value(const [_menuTrack])),
+      ],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('player-top-bar-more')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('transcript-action-edit')),
+      findsOneWidget,
+    );
+    expect(find.text('Edit transcript'), findsOneWidget);
+    expect(
+      tester
+          .getTopLeft(find.byKey(const ValueKey('transcript-action-edit')))
+          .dy,
+      lessThan(
+        tester
+            .getTopLeft(
+              find.byKey(const ValueKey('transcript-action-importFile')),
+            )
+            .dy,
+      ),
+    );
   });
 
   testWidgets('desktop mode switch has Listen, Echo and Dictate', (

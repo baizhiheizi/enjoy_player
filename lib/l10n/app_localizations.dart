@@ -7962,6 +7962,90 @@ abstract class AppLocalizations {
   /// **'Refresh from cloud'**
   String get playerMoreRefreshFromCloud;
 
+  /// More menu: open the transcript editor for the active transcript.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit transcript'**
+  String get playerMoreEditTranscript;
+
+  /// Title of the transcript editor page.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit transcript'**
+  String get transcriptEditorTitle;
+
+  /// Transcript editor: save the edited lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get transcriptEditorSave;
+
+  /// Notice after the transcript editor saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript updated'**
+  String get transcriptEditorSaved;
+
+  /// Notice when the transcript editor could not save.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the transcript. Please try again.'**
+  String get transcriptEditorSaveFailed;
+
+  /// Transcript editor: a timing field is not a valid seconds value.
+  ///
+  /// In en, this message translates to:
+  /// **'Start and duration must be times in seconds, like 1.25.'**
+  String get transcriptEditorInvalidTiming;
+
+  /// Transcript editor: shown when the media has no transcript row.
+  ///
+  /// In en, this message translates to:
+  /// **'This media has no transcript to edit.'**
+  String get transcriptEditorEmpty;
+
+  /// Transcript editor: shown when the transcript row exists but has no cue lines.
+  ///
+  /// In en, this message translates to:
+  /// **'This transcript has no lines to edit.'**
+  String get transcriptEditorNoCues;
+
+  /// Transcript editor: title of the confirm dialog when leaving with unsaved edits.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard unsaved edits?'**
+  String get transcriptEditorDiscardTitle;
+
+  /// Transcript editor: body of the confirm dialog when leaving with unsaved edits.
+  ///
+  /// In en, this message translates to:
+  /// **'Your edits to this transcript have not been saved.'**
+  String get transcriptEditorDiscardMessage;
+
+  /// Transcript editor: confirm button of the discard dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get transcriptEditorDiscardConfirm;
+
+  /// Transcript editor: per-line heading with the cue number.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {index}'**
+  String transcriptEditorLineLabel(int index);
+
+  /// Transcript editor: line start time field.
+  ///
+  /// In en, this message translates to:
+  /// **'Start (seconds)'**
+  String get transcriptEditorFieldStart;
+
+  /// Transcript editor: line duration field.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration (seconds)'**
+  String get transcriptEditorFieldDuration;
+
   /// More menu: open the keyboard shortcuts cheatsheet.
   ///
   /// In en, this message translates to:
