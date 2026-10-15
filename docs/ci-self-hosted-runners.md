@@ -171,16 +171,18 @@ Windows workflows run `windows/scripts/fetch_ffmpeg.ps1`, `ensure_nuget_feed.ps1
 
 | Workflow | Runner | Trigger | Notes |
 |----------|--------|---------|-------|
-| [ci.yml](../.github/workflows/ci.yml) | Linux | PR/push touching `lib/`, `test/`, `packages/`, pubspec, or CI setup + manual | analyze, format, test |
-| [codegen_drift.yml](../.github/workflows/codegen_drift.yml) | Linux | PR/push touching `lib/`, `packages/`, pubspec + manual | build_runner drift check |
-| [android_apk_smoke.yml](../.github/workflows/android_apk_smoke.yml) | Linux | PR/push touching `lib/`, `packages/`, `android/`, pubspec + manual | APK + AAB compile smoke |
-| [build_linux.yml](../.github/workflows/build_linux.yml) | Linux | PR/push touching `lib/`, `packages/`, `linux/`, pubspec, or CI setup + manual | Linux desktop build smoke (debug + release) |
-| [build_windows.yml](../.github/workflows/build_windows.yml) | self-hosted Windows | PR/push touching `lib/`, `packages/`, `windows/`, pubspec + manual | debug + release smoke |
-| [build_apple.yml](../.github/workflows/build_apple.yml) | macOS | PR/push touching `lib/`, `packages/`, `ios/`, `macos/`, pubspec + manual | iOS + macOS compile smoke |
+| [ci.yml](../.github/workflows/ci.yml) | Linux | PR (approval-gated)/push touching `lib/`, `test/`, `packages/`, pubspec, or CI setup + manual | analyze, format, test |
+| [codegen_drift.yml](../.github/workflows/codegen_drift.yml) | Linux | PR (approval-gated)/push touching `lib/`, `packages/`, pubspec + manual | build_runner drift check |
+| [android_apk_smoke.yml](../.github/workflows/android_apk_smoke.yml) | Linux | PR (approval-gated)/push touching `lib/`, `packages/`, `android/`, pubspec + manual | APK + AAB compile smoke |
+| [build_linux.yml](../.github/workflows/build_linux.yml) | Linux | PR (approval-gated)/push touching `lib/`, `packages/`, `linux/`, pubspec, or CI setup + manual | Linux desktop build smoke (debug + release) |
+| [build_windows.yml](../.github/workflows/build_windows.yml) | self-hosted Windows | PR (approval-gated)/push touching `lib/`, `packages/`, `windows/`, pubspec + manual | debug + release smoke |
+| [build_apple.yml](../.github/workflows/build_apple.yml) | macOS | PR (approval-gated)/push touching `lib/`, `packages/`, `ios/`, `macos/`, pubspec + manual | iOS + macOS compile smoke |
 | [release_apple.yml](../.github/workflows/release_apple.yml) | macOS | manual only (`workflow_dispatch`) | signed IPA, TestFlight, notarized macOS |
 | [release_android.yml](../.github/workflows/release_android.yml) | Linux | manual only (`workflow_dispatch`) | signed AAB/APK for Play / sideload |
 | [release_windows.yml](../.github/workflows/release_windows.yml) | self-hosted Windows (`enjoy-player-win`) | manual only (`workflow_dispatch`) | release build + Inno Setup installer |
 
 Each build/smoke workflow's `paths` filter lives inline in its own file — see the `on.pull_request.paths` block. Path filters only apply to `pull_request`/`push`; `workflow_dispatch` always runs regardless of what changed. Release workflows dropped their `push: tags: v*` trigger — publishing now always starts from **Actions → Run workflow**, with the release scripts' `--publish` behavior controlled entirely by the `publish` input.
+
+PR-triggered runs on those six workflows need manual approval: every job resolves its `environment` to the protected [`ci-approval`](https://github.com/baizhiheizi/enjoy_player/settings/environments) on `pull_request` events, so each run sits in **Waiting** until the required reviewer approves it from the PR's Checks tab or the run page (**Approve and run**); every new push files a fresh approval request. On `push`/`workflow_dispatch` the expression resolves to the unprotected `ci-direct`, so post-merge and manual runs never pause. Reviewers for `ci-approval` are managed under **Settings → Environments → ci-approval** (`prevent_self_review` stays off, since the same person opens PRs and approves runs).
 
 All six workflows above also set the China mirror `env:` and cache their dependency stores; release workflows deliberately do neither (low run frequency, and a release build should resolve against live upstream indexes rather than a warm cache).

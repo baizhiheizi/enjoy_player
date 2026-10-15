@@ -39,6 +39,10 @@ permissions:
 
 jobs:
   analyze-test:
+    # PR runs pause in ci-approval until a required reviewer approves; push and
+    # workflow_dispatch resolve to the unprotected ci-direct and run freely.
+    environment:
+      name: ${{ github.event_name == 'pull_request' && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux, ci]
     # Format/analyze run in minutes; the covered app suite plus path-package
     # suites land well under half an hour. 60 min only bites when a hung

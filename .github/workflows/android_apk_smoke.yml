@@ -38,6 +38,10 @@ permissions:
 
 jobs:
   apk:
+    # PR runs pause in ci-approval until a required reviewer approves; push and
+    # workflow_dispatch resolve to the unprotected ci-direct and run freely.
+    environment:
+      name: ${{ github.event_name == 'pull_request' && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux]
     # Successful runs land in 11–23 min; 45 min absorbs the setup-android
     # retry backoff without letting a hung dl.google.com fetch hold the
