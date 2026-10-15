@@ -6,12 +6,6 @@
   },
   "issues": [
     {
-      "number": 786,
-      "state": "resolution_recommended",
-      "updated_at": "2026-10-08",
-      "note": "Bokmål catalog shipped (#788); YouTube caption-code gap closed by merged PR #848. kAzureVoices Craft-voice graceful-degrade note remains open. Recommend close once maintainer confirms."
-    },
-    {
       "number": 793,
       "state": "deferred",
       "updated_at": "2026-10-07",
@@ -32,8 +26,8 @@
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-14",
-      "note": "Monthly activity summary for October 2026. 2026-10-14 run: update_issue hit per-run limit (1/run); clean intended body posted as comment #aw_HSR8INzg after prepend left a duplicated ## Activity / ## Run History structure. Next run should replace body to absorb the duplication."
+      "updated_at": "2026-10-15",
+      "note": "Monthly activity summary for October 2026. 2026-10-15 run: body replaced (Suggested Actions no longer lists #786 because the submitter had already closed it on 2026-10-05). 2026-10-14 duplication fully resolved."
     },
     {
       "number": 850,
@@ -48,76 +42,46 @@
       "note": "[aw] detection runs — auto-managed."
     },
     {
-      "number": 891,
-      "state": "resolution_recommended",
-      "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Parent of #895 + #896. #896 closed by DockActionPill draft PR #897. #895 closed by merged PR #904. Recommend close once both PRs merge (PR #897 still draft, #904 merged)."
-    },
-    {
-      "number": 895,
-      "state": "resolution_recommended",
-      "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Record Ring Stack duplication between DockRecordButton and _RecordingControls — closed by merged PR #904 (DockRecordRing primitive + DockRecordDotShape enum). Behavior byte-identical; recommend close."
-    },
-    {
-      "number": 896,
-      "state": "resolution_recommended",
-      "updated_at": "2026-10-12",
-      "note": "[duplicate-code] Action Pill shell duplication — closed by draft PR #897 (DockActionPill primitive + _DockPillIconSlot helper). 3/3 new tests pass. Recommend close-on-PR-merge."
-    },
-    {
-      "number": 917,
-      "state": "commented",
-      "updated_at": "2026-10-14",
-      "note": "Repo Assist draft PR from 2026-10-13 19:54 UTC run. test(cloud): cover CloudAddToLibrary + share the cloud thumbnail URL. Still open; in Suggested Actions of #841."
-    },
-    {
-      "number": 919,
-      "state": "resolution_recommended",
-      "updated_at": "2026-10-14",
-      "note": "[large-file-simplifier] Refactor credits_usage_screen.dart (842 LOC) into 5 focused files — closed by this run's draft PR (branch repo-assist/refactor-credits-usage-screen-919). +696/-644; 53/53 credits tests pass. Recommend close-on-PR-merge."
-    },
-    {
       "number": 930,
       "state": "deferred",
       "updated_at": "2026-10-14",
-      "note": "[duplicate-code] DAO Repository Sync-Enqueue Boilerplate (~250 lines, 4 files). Next Task 5 sweep candidate."
+      "note": "[duplicate-code] DAO Repository Sync-Enqueue Boilerplate (~250 lines, 4 files). Closed-as-not-planned by maintainer on 2026-10-14. Paused — do not re-propose."
     },
     {
       "number": 931,
       "state": "deferred",
       "updated_at": "2026-10-14",
-      "note": "[duplicate-code] Logger Initialization Boilerplate (25 files). Next Task 5 sweep candidate."
+      "note": "[duplicate-code] Logger Initialization Boilerplate (25 files). Closed-as-not-planned by maintainer on 2026-10-14. Paused — do not re-propose."
     },
     {
       "number": 932,
       "state": "deferred",
       "updated_at": "2026-10-14",
-      "note": "[duplicate-code] ApiException catch blocks bypass RestRepository mixin (18 sites). Next Task 5 sweep candidate."
+      "note": "[duplicate-code] ApiException catch blocks bypass RestRepository mixin (18 sites). Closed-as-not-planned by maintainer on 2026-10-14. Paused — do not re-propose."
     },
     {
       "number": 920,
       "state": "deferred",
       "updated_at": "2026-10-13",
-      "note": "[feature] Edit transcript from the player's ⋯ More menu — Duet feature backlog."
+      "note": "[feature] Edit transcript from the player's ⋯ More menu — Duet feature backlog. PR #938 merged 2026-10-14."
     },
     {
       "number": 921,
       "state": "deferred",
       "updated_at": "2026-10-13",
-      "note": "[feature] Download transcript from the player's ⋯ More menu — Duet feature backlog."
+      "note": "[feature] Download transcript from the player's ⋯ More menu — Duet feature backlog. PR #936 merged 2026-10-14."
     },
     {
       "number": 922,
       "state": "deferred",
       "updated_at": "2026-10-13",
-      "note": "[feature] Export the loop as a clip from the player's ⋯ More menu — Duet feature backlog."
+      "note": "[feature] Export the loop as a clip from the player's ⋯ More menu — Duet feature backlog. PR #935 merged 2026-10-14."
     },
     {
       "number": 923,
       "state": "deferred",
       "updated_at": "2026-10-13",
-      "note": "[feature] Edit media details from the player's ⋯ More menu — Duet feature backlog."
+      "note": "[feature] Edit media details from the player's ⋯ More menu — Duet feature backlog. PR #937 merged 2026-10-14."
     },
     {
       "number": 933,
@@ -168,46 +132,13 @@
       "note": "[perf-improver] Monthly Activity 2026-10 — auto-managed."
     }
   ],
-  "fixes": [
-    {
-      "issue": 786,
-      "pr": 848,
-      "branch": "repo-assist/fix-786-youtube-caption-alias-matching-628499ea392178eb",
-      "status": "merged",
-      "updated_at": "2026-10-09",
-      "note": "YouTube caption matcher uses primary-subtag aliasing. 25/25 youtube_caption_fetcher_test, 476/476 test/features/transcript/. Format + analyze clean."
-    },
-    {
-      "issue": 896,
-      "pr": 897,
-      "branch": "repo-assist/improve-dock-action-pill-primitive-2026-10-12",
-      "status": "open",
-      "updated_at": "2026-10-12",
-      "note": "DockActionPill primitive + _DockPillIconSlot helper. Cancel button + DockOriginalPill desktop branch refactored; phone branch uses helper. 3/3 new tests; 6/6 player_dock tests; 6436/6436 full suite; analyze + format clean. Net diff: 3 files, 263+/117-."
-    },
-    {
-      "issue": 895,
-      "pr": 904,
-      "branch": "repo-assist/improve-895-record-ring-primitive-2026-10-12",
-      "status": "merged",
-      "updated_at": "2026-10-13",
-      "note": "DockRecordRing primitive + DockRecordDotShape enum replaces the duplicated you record disk. 3/3 new tests; 7/7 player_dock_test.dart; 787/787 test/features/player/; analyze + format clean. Net diff: 4 files, 197+/36-. PR merged."
-    },
-    {
-      "issue": 919,
-      "pr": null,
-      "branch": "repo-assist/refactor-credits-usage-screen-919",
-      "status": "open",
-      "updated_at": "2026-10-14",
-      "note": "credits_usage_screen.dart (842 LoC) split into 4 focused siblings + slim entry (filters, log_views, states, format); entry re-exports public helpers. Behavior byte-identical. 53/53 credits tests pass; analyze + format clean; validate_ci_gates --changed-only --test green. +696/-644. Closes #919."
-    }
-  ],
+  "fixes": [],
   "checks": [
     {
       "area": "ci",
-      "checked_at": "2026-10-12",
-      "result": "validate_ci_gates.sh --changed-only was reporting wrong target list due to bash `|| true | awk` precedence trap. Grouped the fallback in { } so awk stays in the pipeline; verified on current branch, 10/10 tests run.",
-      "follow_up": "Closed by merged PR #904."
+      "checked_at": "2026-10-15",
+      "result": "validate_ci_gates.sh --changed-only bash ||-then-awk precedence trap; grouped the fallback in braces so awk stays in the pipeline. Verified on current branch, 10/10 tests run. PR #904 closed the bash fix.",
+      "follow_up": "Closed by merged PR #904. Same sandbox network blocker (firewalled pub.dev / api.github.com, missing package:hooks types in pub cache) still prevents code-changing PRs from this runner — see #864 for the same wall on perf-improver."
     }
   ],
   "completed_actions": [
@@ -218,6 +149,14 @@
     {
       "key": "#919 credits_usage_screen split into 5 files",
       "completed_at": "2026-10-14"
+    },
+    {
+      "key": "#841 body refresh 2026-10-15",
+      "completed_at": "2026-10-15"
+    },
+    {
+      "key": "memory refresh 2026-10-15: #786 #891 #895 #896 #919 closed by maintainer",
+      "completed_at": "2026-10-15"
     }
   ],
   "priorities": []
