@@ -129,6 +129,14 @@ extension _TranscriptRepositoryTracks on TranscriptRepository {
   Future<TranscriptRow?> _transcriptRowById(String transcriptId) =>
       _db.transcriptDao.getById(transcriptId);
 
+  Future<List<TranscriptRow>> _transcriptRowsForMedia(String mediaId) async {
+    final targetType = await dexieTargetTypeForId(_db, mediaId);
+    if (targetType == null) return const [];
+    final rows = await _db.transcriptDao.listForTarget(targetType, mediaId);
+    _sortTranscriptRows(rows);
+    return rows;
+  }
+
   Future<bool> _replaceTimeline({
     required String transcriptId,
     required List<TranscriptLine> lines,

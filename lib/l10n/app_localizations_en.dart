@@ -4417,6 +4417,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transcriptEditorEmpty => 'This media has no transcript to edit.';
 
   @override
+  String get transcriptEditorNoCues => 'This transcript has no lines to edit.';
+
+  @override
+  String get transcriptEditorDiscardTitle => 'Discard unsaved edits?';
+
+  @override
+  String get transcriptEditorDiscardMessage =>
+      'Your edits to this transcript have not been saved.';
+
+  @override
+  String get transcriptEditorDiscardConfirm => 'Discard';
+
+  @override
   String transcriptEditorLineLabel(int index) {
     return 'Line $index';
   }

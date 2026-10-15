@@ -13,6 +13,7 @@ import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
@@ -21,6 +22,15 @@ import 'package:enjoy_player/features/transcript/domain/transcript_line_editing.
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 final _log = logNamed('TranscriptEditor');
+
+final _timingSecondsPattern = RegExp(r'^\d*\.?\d*$');
+
+final _timingInputFormatters = [
+  TextInputFormatter.withFunction(
+    (oldValue, newValue) =>
+        _timingSecondsPattern.hasMatch(newValue.text) ? newValue : oldValue,
+  ),
+];
 
 class TranscriptEditorScreen extends ConsumerStatefulWidget {
   const TranscriptEditorScreen({required this.mediaId, super.key});
@@ -56,7 +66,9 @@ class _TranscriptEditorScreenState
     extends ConsumerState<TranscriptEditorScreen> {
   String? _transcriptId;
   List<_LineEdits>? _edits;
+  bool _rowMissing = false;
   bool _failed = false;
+  bool _dirty = false;
   bool _saving = false;
 
   @override
@@ -73,13 +85,18 @@ class _TranscriptEditorScreenState
     super.dispose();
   }
 
+  void _markDirty() => _dirty = true;
+
   Future<void> _load() async {
     try {
       final repo = ref.read(transcriptRepositoryProvider);
       final row = await _resolveRow(repo);
       if (!mounted) return;
       if (row == null) {
-        setState(() => _edits = const []);
+        setState(() {
+          _edits = const [];
+          _rowMissing = true;
+        });
         return;
       }
       final lines = await repo.linesForRowPreloaded(row);
@@ -99,6 +116,11 @@ class _TranscriptEditorScreenState
               ),
             ),
         ];
+        for (final edit in _edits!) {
+          edit.text.addListener(_markDirty);
+          edit.start.addListener(_markDirty);
+          edit.duration.addListener(_markDirty);
+        }
       });
     } on Object catch (error) {
       _log.warning('transcript editor load failed: $error');
@@ -113,12 +135,26 @@ class _TranscriptEditorScreenState
   Future<TranscriptRow?> _resolveRow(TranscriptRepository repo) async {
     final primary = await repo.primaryTranscriptRowForMedia(widget.mediaId);
     if (primary != null) return primary;
-    final tracks = await repo.watchTracks(widget.mediaId).first;
-    for (final track in tracks) {
-      final row = await repo.transcriptRowById(track.id);
-      if (row != null) return row;
+    final rows = await repo.transcriptRowsForMedia(widget.mediaId);
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  Future<void> _leave() async {
+    if (!_dirty) {
+      Navigator.of(context).pop();
+      return;
     }
-    return null;
+    final l10n = AppLocalizations.of(context)!;
+    final discard = await showEnjoyConfirmDialog(
+      context: context,
+      title: l10n.transcriptEditorDiscardTitle,
+      message: l10n.transcriptEditorDiscardMessage,
+      confirmLabel: l10n.transcriptEditorDiscardConfirm,
+      destructive: true,
+    );
+    if (discard == true && mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   Future<void> _save() async {
@@ -159,6 +195,7 @@ class _TranscriptEditorScreenState
       AppNotice.error(context, l10n.transcriptEditorSaveFailed);
       return;
     }
+    _dirty = false;
     AppNotice.success(context, l10n.transcriptEditorSaved);
     await Navigator.of(context).maybePop();
   }
@@ -169,44 +206,57 @@ class _TranscriptEditorScreenState
     final t = EnjoyThemeTokens.of(context);
     final edits = _edits;
 
-    return EnjoyPage(
-      kind: EnjoyPageKind.form,
-      title: l10n.transcriptEditorTitle,
-      showBack: true,
-      actions: [
-        TextButton(
-          key: const ValueKey('transcript-editor-save'),
-          onPressed: _saving || edits == null || edits.isEmpty ? null : _save,
-          child: Text(l10n.transcriptEditorSave),
-        ),
-      ],
-      body: (context, metrics) {
-        if (edits == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (edits.isEmpty || _failed) {
-          return Center(
-            child: Padding(
-              padding: metrics.padding(),
-              child: Text(
-                _failed
-                    ? l10n.errorGenericLoadFailed
-                    : l10n.transcriptEditorEmpty,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: t.ink2),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        unawaited(_leave());
+      },
+      child: EnjoyPage(
+        kind: EnjoyPageKind.form,
+        title: l10n.transcriptEditorTitle,
+        showBack: true,
+        onBack: () => unawaited(_leave()),
+        actions: [
+          TextButton(
+            key: const ValueKey('transcript-editor-save'),
+            onPressed: _saving || edits == null || edits.isEmpty ? null : _save,
+            child: Text(l10n.transcriptEditorSave),
+          ),
+        ],
+        body: (context, metrics) {
+          if (edits == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (edits.isEmpty || _failed) {
+            return Center(
+              child: Padding(
+                padding: metrics.padding(),
+                child: Text(
+                  _failed
+                      ? l10n.errorGenericLoadFailed
+                      : (_rowMissing
+                            ? l10n.transcriptEditorEmpty
+                            : l10n.transcriptEditorNoCues),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: t.ink2),
+                ),
               ),
+            );
+          }
+          return ListView.builder(
+            padding: metrics.padding(top: t.space16, bottom: t.space32),
+            itemCount: edits.length,
+            itemBuilder: (context, index) => _LineCard(
+              edits: edits[index],
+              index: index + 1,
+              saving: _saving,
             ),
           );
-        }
-        return ListView.builder(
-          padding: metrics.padding(top: t.space16, bottom: t.space32),
-          itemCount: edits.length,
-          itemBuilder: (context, index) =>
-              _LineCard(edits: edits[index], index: index + 1, saving: _saving),
-        );
-      },
+        },
+      ),
     );
   }
 }
@@ -270,9 +320,7 @@ class _LineCard extends StatelessWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]+')),
-                  ],
+                  inputFormatters: _timingInputFormatters,
                 ),
               ),
               SizedBox(width: t.space12),
@@ -287,9 +335,7 @@ class _LineCard extends StatelessWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]+')),
-                  ],
+                  inputFormatters: _timingInputFormatters,
                 ),
               ),
             ],

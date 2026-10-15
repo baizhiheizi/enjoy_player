@@ -4215,6 +4215,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transcriptEditorEmpty => '这条媒体没有可编辑的字幕。';
 
   @override
+  String get transcriptEditorNoCues => '这条字幕没有可编辑的台词。';
+
+  @override
+  String get transcriptEditorDiscardTitle => '放弃未保存的修改？';
+
+  @override
+  String get transcriptEditorDiscardMessage => '你对这条字幕的修改尚未保存。';
+
+  @override
+  String get transcriptEditorDiscardConfirm => '放弃';
+
+  @override
   String transcriptEditorLineLabel(int index) {
     return '第 $index 行';
   }
@@ -7918,6 +7930,18 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get transcriptEditorEmpty => '这条媒体没有可编辑的字幕。';
+
+  @override
+  String get transcriptEditorNoCues => '这条字幕没有可编辑的台词。';
+
+  @override
+  String get transcriptEditorDiscardTitle => '放弃未保存的修改？';
+
+  @override
+  String get transcriptEditorDiscardMessage => '你对这条字幕的修改尚未保存。';
+
+  @override
+  String get transcriptEditorDiscardConfirm => '放弃';
 
   @override
   String transcriptEditorLineLabel(int index) {

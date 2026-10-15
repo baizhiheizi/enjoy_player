@@ -8004,6 +8004,30 @@ abstract class AppLocalizations {
   /// **'This media has no transcript to edit.'**
   String get transcriptEditorEmpty;
 
+  /// Transcript editor: shown when the transcript row exists but has no cue lines.
+  ///
+  /// In en, this message translates to:
+  /// **'This transcript has no lines to edit.'**
+  String get transcriptEditorNoCues;
+
+  /// Transcript editor: title of the confirm dialog when leaving with unsaved edits.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard unsaved edits?'**
+  String get transcriptEditorDiscardTitle;
+
+  /// Transcript editor: body of the confirm dialog when leaving with unsaved edits.
+  ///
+  /// In en, this message translates to:
+  /// **'Your edits to this transcript have not been saved.'**
+  String get transcriptEditorDiscardMessage;
+
+  /// Transcript editor: confirm button of the discard dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get transcriptEditorDiscardConfirm;
+
   /// Transcript editor: per-line heading with the cue number.
   ///
   /// In en, this message translates to:

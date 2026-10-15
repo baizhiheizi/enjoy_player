@@ -435,8 +435,13 @@ plus timeline-cache invalidation), so the same-second revision nudge and the
 `(updated_at, jsonLength)` decode-memo key keep working and the player's
 transcript watches re-emit the edited lines live. Rules:
 
-- Timing fields accept decimal seconds (`1.25` ⇒ 1250 ms); anything else
-  blocks the save with a notice and writes nothing.
+- Timing fields accept decimal seconds (`1.25` ⇒ 1250 ms); malformed input
+  never reaches the field (the formatter rejects the edit as typed) and a
+  blank / unparseable value still blocks the save with a notice, writing
+  nothing.
+- Leaving the editor with unsaved edits (back button or system back) asks
+  for confirmation before discarding; a successful save pops without the
+  prompt.
 - A cue's nested word timings survive only while its text is unchanged; once
   the text changes they no longer match and are dropped
   (`editedTranscriptLine` in

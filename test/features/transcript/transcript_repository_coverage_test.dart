@@ -516,6 +516,46 @@ void main() {
     });
   });
 
+  group('transcriptRowsForMedia', () {
+    late AppDatabase db;
+    late TranscriptRepository repo;
+
+    setUp(() {
+      db = AppDatabase(executor: NativeDatabase.memory());
+      repo = TranscriptRepository(db);
+    });
+
+    tearDown(() => db.close());
+
+    test('returns empty list for unknown media id', () async {
+      final rows = await repo.transcriptRowsForMedia('nope');
+      expect(rows, isEmpty);
+    });
+
+    test('returns rows sorted by source priority', () async {
+      await _insertAudio(db, 'r1');
+      await _insertTranscriptRow(
+        db,
+        id: 'tr-user',
+        targetId: 'r1',
+        source: 'user',
+        createdAt: DateTime.utc(2026, 1, 1),
+      );
+      await _insertTranscriptRow(
+        db,
+        id: 'tr-official',
+        targetId: 'r1',
+        source: 'official',
+        createdAt: DateTime.utc(2026, 1, 2),
+      );
+
+      final rows = await repo.transcriptRowsForMedia('r1');
+      expect(rows, hasLength(2));
+      expect(rows[0].id, 'tr-official');
+      expect(rows[1].id, 'tr-user');
+    });
+  });
+
   group('watchTracks', () {
     late AppDatabase db;
     late TranscriptRepository repo;

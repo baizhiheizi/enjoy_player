@@ -12,6 +12,13 @@ void main() {
       expect(formatTranscriptTimingMs(12340), '12.34');
       expect(formatTranscriptTimingMs(12345), '12.345');
     });
+
+    test('keeps the integer part on whole-minute and multi-hour cues', () {
+      expect(formatTranscriptTimingMs(59999), '59.999');
+      expect(formatTranscriptTimingMs(60000), '60');
+      expect(formatTranscriptTimingMs(7254300), '7254.3');
+      expect(formatTranscriptTimingMs(7254000), '7254');
+    });
   });
 
   group('parseTranscriptTimingMs', () {

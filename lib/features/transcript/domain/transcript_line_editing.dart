@@ -4,16 +4,8 @@ library;
 import '../../../data/subtitle/transcript_line.dart';
 
 /// Formats [ms] as decimal seconds without trailing zeros (`0`, `1.25`, `12.345`).
-String formatTranscriptTimingMs(int ms) {
-  var text = (ms / 1000.0).toStringAsFixed(3);
-  while (text.endsWith('0')) {
-    text = text.substring(0, text.length - 1);
-  }
-  if (text.endsWith('.')) {
-    text = text.substring(0, text.length - 1);
-  }
-  return text;
-}
+String formatTranscriptTimingMs(int ms) =>
+    (ms / 1000.0).toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
 
 /// Parses decimal seconds into whole milliseconds; null when [input] is
 /// blank, not a number, or negative.

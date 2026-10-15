@@ -116,6 +116,12 @@ class TranscriptRepository {
   Stream<List<TranscriptTrack>> watchTracks(String mediaId) =>
       _watchTracks(mediaId);
 
+  /// All transcript rows for [mediaId] in the pick-first order (official >
+  /// auto > ai > user, then earliest createdAt), or an empty list when the
+  /// media id cannot be resolved.
+  Future<List<TranscriptRow>> transcriptRowsForMedia(String mediaId) =>
+      _transcriptRowsForMedia(mediaId);
+
   /// Orchestrates transcript resolution when media is opened.
   ///
   /// 1. Ensures a primary transcript when tracks exist.
