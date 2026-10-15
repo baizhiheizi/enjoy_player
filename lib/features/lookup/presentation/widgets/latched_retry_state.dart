@@ -20,9 +20,7 @@ mixin LatchedRetryState<T extends StatefulWidget> on State<T> {
   @override
   void didUpdateWidget(covariant T oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (parentRetryBusy) {
-      if (_tapLatched) setState(() => _tapLatched = false);
-    } else if (wasParentRetryBusy(oldWidget)) {
+    if (parentRetryBusy || wasParentRetryBusy(oldWidget)) {
       if (_tapLatched) setState(() => _tapLatched = false);
     }
   }

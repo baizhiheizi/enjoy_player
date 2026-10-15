@@ -24,6 +24,19 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pump();
 }
 
+Finder _idleRetryButton() =>
+    find.widgetWithIcon(TextButton, EnjoyIcons.refresh);
+
+Finder _busyRetryButton() => find.descendant(
+  of: find.byType(TextButton),
+  matching: find.byType(LoadingIcon),
+);
+
+String _localizedRetryLabel(WidgetTester tester) {
+  final context = tester.element(find.byType(LookupCreditsNotice));
+  return AppLocalizations.of(context)!.lookupErrorRetry;
+}
+
 void _noop() {}
 
 void main() {
@@ -34,9 +47,10 @@ void main() {
     );
 
     expect(find.text('out of credits'), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text(_localizedRetryLabel(tester)), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.wallet), findsOneWidget);
     expect(find.byType(TextButton), findsOneWidget);
+    expect(_idleRetryButton(), findsOneWidget);
     expect(find.byType(LoadingIcon), findsNothing);
   });
 
@@ -49,10 +63,10 @@ void main() {
       LookupCreditsNotice(message: 'out of credits', onRetry: () => taps++),
     );
 
-    await tester.tap(find.text('Retry'));
+    await tester.tap(_idleRetryButton());
     await tester.pump();
     expect(taps, 1);
-    expect(find.byType(LoadingIcon), findsOneWidget);
+    expect(_busyRetryButton(), findsOneWidget);
     final button = tester.widget<TextButton>(find.byType(TextButton));
     expect(button.onPressed, isNull);
   });
@@ -68,7 +82,10 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('Retry'), warnIfMissed: false);
+    expect(_busyRetryButton(), findsOneWidget);
+    final button = tester.widget<TextButton>(find.byType(TextButton));
+    expect(button.onPressed, isNull);
+    await tester.tap(find.byType(TextButton), warnIfMissed: false);
     await tester.pump();
     expect(taps, 0);
     expect(find.byType(LoadingIcon), findsOneWidget);
@@ -87,7 +104,7 @@ void main() {
 
       await tester.pumpWidget(_wrap(build()));
       await tester.pump();
-      await tester.tap(find.text('Retry'));
+      await tester.tap(_idleRetryButton());
       await tester.pump();
       expect(find.byType(LoadingIcon), findsOneWidget);
 
@@ -103,7 +120,7 @@ void main() {
       final button = tester.widget<TextButton>(find.byType(TextButton));
       expect(button.onPressed, isNotNull);
 
-      await tester.tap(find.text('Retry'));
+      await tester.tap(_idleRetryButton());
       await tester.pump();
       expect(taps, 2);
     },
