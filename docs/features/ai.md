@@ -118,7 +118,7 @@ The screen follows the Duet design language ([ADR-0093](../decisions/0093-duet-d
   - Screen: `ai_providers_screen.dart` (privacy callout + stacked modality cards)
   - Shared modality card: `widgets/modality_provider_card.dart` (segmented provider, modality pill, inset BYOK panel, calmer footer)
   - Per-modality forms: `widgets/llm_byok_form.dart`, `widgets/speech_byok_form.dart`, `widgets/byok_api_key_field.dart`
-- Playground UI: `lib/features/ai/presentation/ai_playground_screen.dart` (hub page, grouped provider card, per-modality sections, mono output console)
+- Playground UI: `ai_playground_screen.dart` (hub page, grouped provider card, per-modality sections, mono output console), with the extracted siblings `ai_playground_section.dart`, `ai_playground_provider_card.dart`, and `ai_playground_console_panel.dart`. Two console-related constants are deliberately in different files: `_maxConsoleEntries` (the 200-entry cap) stays in the screen state because that is what truncates, while `_consoleViewportHeight` lives in the panel because that is what renders. Do not "fix" the asymmetry by moving the cap into the panel — it would break the truncation.
 - HTTP clients (Enjoy paths only): `lib/data/api/services/ai/`
 
 ## Consumers

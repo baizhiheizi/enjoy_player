@@ -16,6 +16,8 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 const double _rowLeadingSize = 30;
 const double _rowLeadingGap = 12;
 const double _rowHorizontalPadding = 12;
+const double _rowLeadingOffset =
+    _rowHorizontalPadding + _rowLeadingSize + _rowLeadingGap;
 
 class AiPlaygroundProvidersCard extends StatelessWidget {
   const AiPlaygroundProvidersCard({
@@ -157,7 +159,7 @@ class PlaygroundRowDivider extends StatelessWidget {
     return Divider(
       height: 1,
       thickness: 1,
-      indent: _rowHorizontalPadding + _rowLeadingSize + _rowLeadingGap,
+      indent: _rowLeadingOffset,
       endIndent: _rowHorizontalPadding,
       color: EnjoyThemeTokens.of(context).hairline,
     );
