@@ -117,10 +117,14 @@ jobs:
 
       - name: Flutter build windows (debug)
         working-directory: ${{ env.GITHUB_WORKSPACE }}
+        env:
+          AZURE_SPEECH_SDK_CACHE: ${{ runner.tool_cache }}\azure-speech-sdk
         run: flutter build windows --debug
 
       - name: Flutter build windows (release)
         working-directory: ${{ env.GITHUB_WORKSPACE }}
+        env:
+          AZURE_SPEECH_SDK_CACHE: ${{ runner.tool_cache }}\azure-speech-sdk
         run: flutter build windows --release
 
       - name: Remove short workspace stage
