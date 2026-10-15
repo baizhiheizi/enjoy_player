@@ -4286,6 +4286,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerMoreMediaSection => '媒体';
 
   @override
+  String get playerMoreEditDetails => '编辑详情';
+
+  @override
   String get playerMoreExportLoopClip => '将循环导出为片段…';
 
   @override
@@ -4299,12 +4302,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playerMoreKeyboardShortcuts => '键盘快捷键';
-
-  @override
-  String get playerMoreMediaSection => '媒体';
-
-  @override
-  String get playerMoreEditDetails => '编辑详情';
 
   @override
   String get subtitlesPanelTitle => '字幕与显示';
@@ -8069,6 +8066,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get playerMoreMediaSection => '媒体';
 
   @override
+  String get playerMoreEditDetails => '编辑详情';
+
+  @override
   String get playerMoreExportLoopClip => '将循环导出为片段…';
 
   @override
@@ -8082,12 +8082,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get playerMoreKeyboardShortcuts => '键盘快捷键';
-
-  @override
-  String get playerMoreMediaSection => '媒体';
-
-  @override
-  String get playerMoreEditDetails => '编辑详情';
 
   @override
   String get subtitlesPanelTitle => '字幕与显示';

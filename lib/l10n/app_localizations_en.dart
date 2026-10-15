@@ -4489,6 +4489,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerMoreMediaSection => 'Media';
 
   @override
+  String get playerMoreEditDetails => 'Edit details';
+
+  @override
   String get playerMoreExportLoopClip => 'Export the loop as a clip…';
 
   @override
@@ -4503,12 +4506,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerMoreKeyboardShortcuts => 'Keyboard shortcuts';
-
-  @override
-  String get playerMoreMediaSection => 'Media';
-
-  @override
-  String get playerMoreEditDetails => 'Edit details';
 
   @override
   String get subtitlesPanelTitle => 'Subtitles & display';

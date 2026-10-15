@@ -36,12 +36,11 @@ Future<void> editMediaDetailsForId(
   final l10n = AppLocalizations.of(context)!;
   final media = await ref.read(mediaRegistryProvider).getById(mediaId);
   if (!context.mounted) return;
-  final resolved = media;
-  if (resolved == null) {
+  if (media == null) {
     AppNotice.error(context, l10n.mediaDetailsMissing);
     return;
   }
-  await editMediaDetails(context, ref, resolved);
+  await editMediaDetails(context, ref, media);
 }
 
 /// Shows the Edit details dialog for [media]; saves through the repository
@@ -115,7 +114,7 @@ Future<MediaDetails?> _showEditDetailsDialog(
             selectedValue: language,
             title: l10n.mediaLanguagePickerTitle,
           );
-          if (picked == null) return;
+          if (!dialogContext.mounted || picked == null) return;
           setState(() => language = picked);
         }
 

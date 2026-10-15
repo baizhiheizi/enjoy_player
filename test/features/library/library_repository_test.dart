@@ -649,6 +649,58 @@ void main() {
       expect(row.thumbnailUrl, 'https://i.ytimg.com/vi/$vid/hqdefault.jpg');
     });
 
+    test(
+      'refreshYoutubeMetadataIfNeeded skips the write when oEmbed matches the stored row',
+      () async {
+        const vid = 'dQw4w9WgXcQ';
+        final mediaId = enjoyVideoId(provider: 'youtube', vid: vid);
+        final seededAt = DateTime.utc(2026, 1, 1);
+
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: mediaId,
+            vid: vid,
+            provider: 'youtube',
+            title: youtubeImportPlaceholderTitle(vid),
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 0,
+            language: 'und',
+            source: 'youtube',
+            localUri: null,
+            md5: null,
+            size: null,
+            mediaUrl: 'https://www.youtube.com/watch?v=$vid',
+            syncStatus: 'synced',
+            serverUpdatedAt: null,
+            createdAt: seededAt,
+            updatedAt: seededAt,
+          ),
+        );
+
+        final oembedClient = MockClient((request) async {
+          return http.Response(
+            '{"title":"${youtubeImportPlaceholderTitle(vid)}","thumbnail_url":null}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        });
+
+        final ytRepo = MediaLibraryRepository(
+          db,
+          FileStorage(),
+          oembedClient: oembedClient,
+        );
+
+        final patch = await ytRepo.refreshYoutubeMetadataIfNeeded(mediaId);
+        expect(patch, isNull);
+
+        final row = await db.videoDao.getById(mediaId);
+        expect(row!.updatedAt.isAtSameMomentAs(seededAt), isTrue);
+        expect(row.title, youtubeImportPlaceholderTitle(vid));
+      },
+    );
+
     test('watchAll deduplicates identical emissions', () async {
       final now = DateTime.now();
       const id = 'dup-1';

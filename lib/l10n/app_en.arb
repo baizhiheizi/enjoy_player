@@ -2256,7 +2256,9 @@
   "playerMoreDownloadTranscript": "Download transcript…",
   "@playerMoreDownloadTranscript": {"description": "More menu: save the active transcript as an SRT or VTT subtitle file."},
   "playerMoreMediaSection": "Media",
-  "@playerMoreMediaSection": {"description": "Section heading in the player's More menu."},
+  "@playerMoreMediaSection": {"description": "Media section heading in the player's More menu."},
+  "playerMoreEditDetails": "Edit details",
+  "@playerMoreEditDetails": {"description": "More menu Media: open the Edit details dialog."},
   "playerMoreExportLoopClip": "Export the loop as a clip…",
   "@playerMoreExportLoopClip": {"description": "More menu: save the active Echo loop's audio/video range as a media file."},
   "playerMoreExportLoopClipSuccess": "Loop clip exported",
@@ -2267,11 +2269,7 @@
   "@playerMoreExportLoopClipFfmpegMissing": {"description": "Notice when clip export cannot run because no FFmpeg runtime was found."},
   "playerMoreKeyboardShortcuts": "Keyboard shortcuts",
   "@playerMoreKeyboardShortcuts": {"description": "More menu: open the keyboard shortcuts cheatsheet."},
-  "playerMoreMediaSection": "Media",
-  "@playerMoreMediaSection": {"description": "Media section heading in the player's More menu."},
-  "playerMoreEditDetails": "Edit details",
-  "@playerMoreEditDetails": {"description": "More menu Media: open the Edit details dialog."},
-
+  
   "subtitlesPanelTitle": "Subtitles & display",
   "@subtitlesPanelTitle": {"description": "Title of the Subtitles & display panel."},
   "subtitlesSectionSubtitles": "Subtitles",

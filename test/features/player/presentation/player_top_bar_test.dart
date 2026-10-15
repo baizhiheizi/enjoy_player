@@ -103,7 +103,10 @@ Future<void> _pumpBar(
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [..._overrides(db: db), ...overrides],
+      overrides: [
+        ..._overrides(db: db),
+        ...overrides,
+      ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,

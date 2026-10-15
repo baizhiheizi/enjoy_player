@@ -1490,14 +1490,13 @@
   "transcriptEditorFieldDuration": "时长（秒）",
   "playerMoreDownloadTranscript": "下载字幕稿…",
   "playerMoreMediaSection": "媒体",
+  "playerMoreEditDetails": "编辑详情",
   "playerMoreExportLoopClip": "将循环导出为片段…",
   "playerMoreExportLoopClipSuccess": "循环片段已导出",
   "playerMoreExportLoopClipFailed": "无法导出循环片段",
   "playerMoreExportLoopClipFfmpegMissing": "此设备上没有可用的 FFmpeg",
   "playerMoreKeyboardShortcuts": "键盘快捷键",
-  "playerMoreMediaSection": "媒体",
-  "playerMoreEditDetails": "编辑详情",
-
+  
   "subtitlesPanelTitle": "字幕与显示",
   "subtitlesSectionSubtitles": "字幕",
   "subtitlesSectionDisplay": "显示",

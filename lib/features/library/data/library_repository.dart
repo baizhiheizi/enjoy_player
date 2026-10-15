@@ -229,7 +229,7 @@ class MediaLibraryRepository {
     final needsTitle = isYoutubeImportPlaceholderTitle(row.title, row.vid);
     final title = needsTitle ? meta.title : row.title;
     final thumb = meta.thumbnailUrl ?? row.thumbnailUrl;
-    if (!needsTitle && thumb == row.thumbnailUrl) return null;
+    if (title == row.title && thumb == row.thumbnailUrl) return null;
 
     await _registry.updateYoutubeMetadata(
       id: mediaId,
@@ -358,7 +358,7 @@ class MediaLibraryRepository {
       throw const FileFailure('Media not found.');
     }
     if (tagsEqual(current!, canonical)) return;
-    final kind = await _registry.updateLanguage(id, canonical);
+    final kind = await _registry.updateLanguage(id, canonical, probed: hit);
     if (kind == null) throw const FileFailure('Media not found.');
     if (kind == MediaKind.video) {
       await _db.transcriptFetchStateDao.clearForTarget('video', id);
@@ -370,9 +370,13 @@ class MediaLibraryRepository {
     );
   }
 
-  /// Renames an existing audio or video row. Title changes do not touch
-  /// transcript fetch state (unlike [updateMediaLanguage]) — only the sync
-  /// queue is notified so other devices pick the new title up.
+  /// Renames an existing audio or video row.
+  ///
+  /// This method owns the input contract: [title] is trimmed, a blank title
+  /// throws [FileFailure], a row that already holds the trimmed title is a
+  /// no-op, and a missing row throws [FileFailure]. Title changes do not
+  /// touch transcript fetch state (unlike [updateMediaLanguage]) — only the
+  /// sync queue is notified so other devices pick the new title up.
   Future<void> updateMediaTitle(String id, String title) async {
     final trimmed = title.trim();
     if (trimmed.isEmpty) {
@@ -384,7 +388,7 @@ class MediaLibraryRepository {
       throw const FileFailure('Media not found.');
     }
     if (current == trimmed) return;
-    final kind = await _registry.updateTitle(id, trimmed);
+    final kind = await _registry.updateTitle(id, trimmed, probed: hit);
     if (kind == null) throw const FileFailure('Media not found.');
     await _enqueueSync?.call(
       MediaRegistry.syncEntityTypeOf(kind),

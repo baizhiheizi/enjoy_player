@@ -8136,11 +8136,17 @@ abstract class AppLocalizations {
   /// **'Download transcript…'**
   String get playerMoreDownloadTranscript;
 
-  /// Section heading in the player's More menu.
+  /// Media section heading in the player's More menu.
   ///
   /// In en, this message translates to:
   /// **'Media'**
   String get playerMoreMediaSection;
+
+  /// More menu Media: open the Edit details dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get playerMoreEditDetails;
 
   /// More menu: save the active Echo loop's audio/video range as a media file.
   ///
@@ -8171,18 +8177,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keyboard shortcuts'**
   String get playerMoreKeyboardShortcuts;
-
-  /// Media section heading in the player's More menu.
-  ///
-  /// In en, this message translates to:
-  /// **'Media'**
-  String get playerMoreMediaSection;
-
-  /// More menu Media: open the Edit details dialog.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit details'**
-  String get playerMoreEditDetails;
 
   /// Title of the Subtitles & display panel.
   ///
