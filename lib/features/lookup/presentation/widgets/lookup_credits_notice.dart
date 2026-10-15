@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/latched_retry_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class LookupCreditsNotice extends StatefulWidget {
@@ -23,21 +24,16 @@ class LookupCreditsNotice extends StatefulWidget {
   State<LookupCreditsNotice> createState() => _LookupCreditsNoticeState();
 }
 
-class _LookupCreditsNoticeState extends State<LookupCreditsNotice> {
-  bool _tapLatched = false;
+class _LookupCreditsNoticeState extends State<LookupCreditsNotice>
+    with LatchedRetryState<LookupCreditsNotice> {
+  @override
+  bool get parentRetryBusy => widget.isRetrying;
 
   @override
-  void didUpdateWidget(covariant LookupCreditsNotice oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (_tapLatched && oldWidget.isRetrying != widget.isRetrying) {
-      setState(() => _tapLatched = false);
-    }
-  }
+  bool wasParentRetryBusy(covariant LookupCreditsNotice oldWidget) =>
+      oldWidget.isRetrying;
 
-  void _handleRetry() {
-    setState(() => _tapLatched = true);
-    widget.onRetry();
-  }
+  void _handleRetry() => retry(widget.onRetry);
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +41,7 @@ class _LookupCreditsNoticeState extends State<LookupCreditsNotice> {
     final scheme = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final t = EnjoyThemeTokens.of(context);
-    final busy = widget.isRetrying || _tapLatched;
+    final busy = retryBusy;
 
     return Row(
       children: [
