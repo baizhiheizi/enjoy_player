@@ -16,9 +16,7 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
 import 'package:enjoy_player/features/credits/domain/credits_thresholds.dart';
-import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
-import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
-import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
+import 'package:enjoy_player/features/subscription/application/daily_credits_limit_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Signed-in-only stadium chip showing today's remaining worker credits so
@@ -41,12 +39,10 @@ class LookupCreditsChip extends ConsumerWidget {
 
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final status = ref.watch(subscriptionStatusProvider).valueOrNull;
-    final tier = ref.watch(currentTierProvider);
-    final limit = status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier);
+    final limit = ref.watch(dailyCreditsLimitProvider);
 
     final remaining = summary.dailyRemaining.clamp(0, limit);
-    final isLow = 1 - remaining / limit >= kLowCreditsUsedFraction;
+    final isLow = creditsLow(used: limit - remaining, limit: limit);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final count = NumberFormat.decimalPattern(locale).format(remaining);
     final label = isLow

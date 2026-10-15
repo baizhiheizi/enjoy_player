@@ -23,6 +23,10 @@ Signed-in users open **Subscription** from any of:
 
 All tier indicators (sidebar chip, profile hero card, subscription screen, membership card) read the single synchronous `currentTierProvider`, which prefers live `subscriptionStatusProvider` and falls back to the cached `UserProfile.subscriptionTier` while the live status is loading on cold start. Never read `UserProfile.subscriptionTier` directly in UI — it is a cache, not the source of truth. The rich membership card (`SubscriptionStatusCard`) renders for any paid tier (Lite or Pro) — title and Pro / Lite badge are tier-aware, and the `isPaid` predicate is `status.isPaidTier` (true for either Lite or Pro).
 
+The daily pool size has its own single source of truth, `dailyCreditsLimitProvider`, which applies the same precedence to the limit (`live status.dailyCreditsLimit ?? dailyCreditsLimitForTier(currentTierProvider)`). Credits surfaces — the lookup sheet chip, the profile credits card, the settings account section — read that provider rather than re-deriving the fallback.
+
+Lifetime: both source-of-truth providers are declared `keepAlive: true`, as are `subscriptionStatusProvider` and `tierReconcileProvider`. This is a consistency policy, not a caching requirement — every one of them is a cheap synchronous derivation whose upstreams are themselves kept alive, so dropping the flag would free no resources and cost nothing but recomputation. Keeping them alive means the derived limit always resolves against the same tier snapshot the tier indicators render, even across a route transition where no consumer is mounted.
+
 ### Feature gating (paid-tier semantics)
 
 The legacy `isPro` / `SubscriptionTier.pro` checks were unified into `isPaidTier` / `tier != free` so Lite members unlock the same features as Pro. Feature gating is gone from the client; the daily credit pool is the only thing that differs by tier. Notable call sites:

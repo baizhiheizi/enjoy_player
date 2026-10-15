@@ -29,8 +29,7 @@ import 'package:enjoy_player/features/credits/application/todays_credits_provide
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
-import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
-import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
+import 'package:enjoy_player/features/subscription/application/daily_credits_limit_provider.dart';
 import 'package:enjoy_player/features/update/application/update_controller.dart';
 import 'package:enjoy_player/features/update/presentation/update_notification_dot.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
@@ -96,9 +95,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
         final p = state.profile;
 
         final tier = ref.watch(currentTierProvider);
-        final status = ref.watch(subscriptionStatusProvider).valueOrNull;
-        final dailyLimit =
-            status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier);
+        final dailyLimit = ref.watch(dailyCreditsLimitProvider);
 
         final creditsUsedAsync = ref.watch(todaysCreditsUsedProvider);
         final creditsUsed = creditsUsedAsync.valueOrNull;
