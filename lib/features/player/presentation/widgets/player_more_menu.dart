@@ -1,5 +1,6 @@
-/// The player's ⋯ More menu (Duet v30): the transcript actions and the
-/// keyboard shortcuts cheatsheet, anchored under the top bar's More button.
+/// The player's ⋯ More menu (Duet v30): the transcript actions, the Media
+/// group (loop clip export), and the keyboard shortcuts cheatsheet, anchored
+/// under the top bar's More button.
 library;
 
 import 'dart:async';
@@ -8,10 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
+import 'package:enjoy_player/features/player/application/loop_clip_export_availability.dart';
+import 'package:enjoy_player/features/player/presentation/loop_clip_export_flow.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -107,7 +111,9 @@ class PlayerMoreMenuPanel extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
     final actions = watchTranscriptActions(ref, l10n, mediaId);
-
+    final exportAvailable =
+        ref.watch(loopClipExportAvailableProvider(mediaId)).valueOrNull ??
+        false;
     return Semantics(
       container: true,
       explicitChildNodes: true,
@@ -142,6 +148,19 @@ class PlayerMoreMenuPanel extends ConsumerWidget {
                     onTap: () => onChoose(action.run),
                   ),
                 const _MenuDivider(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                  child: EnjoyOverline(l10n.playerMoreMediaSection),
+                ),
+                PlayerMenuRow(
+                  key: const ValueKey('player-more-export-loop-clip'),
+                  label: l10n.playerMoreExportLoopClip,
+                  enabled: exportAvailable,
+                  onTap: () => onChoose(
+                    (context) => exportLoopAsClip(context, ref, mediaId),
+                  ),
+                ),
+                const _MenuDivider(),
                 PlayerMenuRow(
                   key: const ValueKey('player-more-shortcuts'),
                   label: l10n.playerMoreKeyboardShortcuts,
@@ -163,6 +182,7 @@ class PlayerMenuRow extends StatelessWidget {
     required this.onTap,
     this.trailing,
     this.autofocus = false,
+    this.enabled = true,
     super.key,
   });
 
@@ -171,11 +191,16 @@ class PlayerMenuRow extends StatelessWidget {
   final Widget? trailing;
   final bool autofocus;
 
+  /// Disabled rows render dimmed and cannot be pressed or focused — the
+  /// "Export the loop as a clip…" entry while no exportable Echo loop is
+  /// active.
+  final bool enabled;
+
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     return EnjoyPressable(
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
       autofocus: autofocus,
       borderRadius: BorderRadius.circular(10),
       pressedScale: 1,
@@ -185,20 +210,24 @@ class PlayerMenuRow extends StatelessWidget {
         height: 40,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontSize: 14, color: t.ink),
+          child: Opacity(
+            opacity: enabled ? 1 : 0.45,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: 14,
+                      color: t.ink,
+                    ),
+                  ),
                 ),
-              ),
-              ?trailing,
-            ],
+                ?trailing,
+              ],
+            ),
           ),
         ),
       ),
