@@ -31,19 +31,18 @@ concurrency:
 # Cache misses must not reach pub.dev / storage.googleapis.com through the
 # per-GB proxy; these mirrors are routed DIRECT. pubspec.lock pins every
 # package by sha256, so a mirror serving different bytes fails the hash check.
-env:
-  PUB_HOSTED_URL: https://pub.flutter-io.cn
-  FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
-
-permissions:
-  contents: read
-
+#
 # This host's route to github.com drops HTTP/2 connections mid-transfer
 # (LibreSSL SSL_ERROR_SYSCALL), which killed checkouts during network
 # brownouts. git 2.31+ honors GIT_CONFIG_* env vars, so pin HTTP/1.1 for
 # every step including checkout; apple_spm_hygiene.sh sets the same override
 # for the build steps.
+#
+# One `env:` block only: a second top-level `env:` key is a duplicate YAML
+# key, which GitHub rejects as an invalid workflow file (no jobs ever run).
 env:
+  PUB_HOSTED_URL: https://pub.flutter-io.cn
+  FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
   GIT_CONFIG_COUNT: "1"
   GIT_CONFIG_KEY_0: http.version
   GIT_CONFIG_VALUE_0: HTTP/1.1

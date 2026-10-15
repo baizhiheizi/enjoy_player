@@ -76,7 +76,7 @@ jobs:
           key: ${{ steps.pub-cache.outputs.cache-primary-key }}
 
       - name: Ensure Linux tooling
-        run: bash .github/scripts/ensure_linux_tooling.sh
+        run: bash .github/scripts/ensure_linux_tooling.sh --skip-wpe
 
       # mise pilot: install the Flutter pinned in the repo-root mise.toml
       # (single source of truth for local dev and CI). Installs persist in

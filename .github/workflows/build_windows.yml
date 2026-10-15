@@ -85,10 +85,20 @@ jobs:
         working-directory: ${{ env.GITHUB_WORKSPACE }}
         run: flutter pub get
 
+      # The staged workspace is recreated (and windows\ffmpeg excluded) every
+      # run, so fetching straight into it re-downloaded ~100 MB from gyan.dev
+      # each time (~8 min, and the step that flaked). RUNNER_TOOL_CACHE
+      # survives between jobs on this native runner, same as the Flutter SDK:
+      # fetch there once (the script is a no-op when the binary already runs)
+      # and copy into the build tree.
       - name: Ensure Windows FFmpeg
         shell: pwsh
         working-directory: ${{ env.GITHUB_WORKSPACE }}
-        run: windows/scripts/fetch_ffmpeg.ps1
+        run: |
+          $cached = Join-Path $env:RUNNER_TOOL_CACHE 'ffmpeg-release-essentials\ffmpeg.exe'
+          windows/scripts/fetch_ffmpeg.ps1 -OutputPath $cached
+          New-Item -ItemType Directory -Force -Path windows/ffmpeg | Out-Null
+          Copy-Item -Path $cached -Destination windows/ffmpeg/ffmpeg.exe -Force
 
       - name: Flutter build windows (debug)
         working-directory: ${{ env.GITHUB_WORKSPACE }}

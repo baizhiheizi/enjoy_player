@@ -86,6 +86,8 @@ git config core.hooksPath .githooks
 ```
 
 - [`.githooks/pre-commit`](.githooks/pre-commit) — secret scanner
-- [`.githooks/pre-push`](.githooks/pre-push) — `check_dart_format` + `check_codegen_drift` when Dart sources are in the push range
+- [`.githooks/pre-push`](.githooks/pre-push) — `check_dart_format` + `check_codegen_drift` + `flutter analyze` when Dart sources are in the push range (diffed from the merge-base with `origin/main` on a branch's first push); ~15s warm
+
+If `build_runner` ever stalls (0% CPU, no output), the incremental cache in `.dart_tool/build` is poisoned: `check_codegen_drift.sh` now bounds each run (`CODEGEN_TIMEOUT`, default 240s), kills that checkout's build daemon, drops the cache, and retries once cold (~40s).
 
 Release packaging (Android signing, AAB/APK, Windows installer, FFmpeg, **iOS TestFlight**, **macOS notarization**): [docs/packaging.md](docs/packaging.md) and [ADR-0020](docs/decisions/0020-android-windows-release-identity.md).

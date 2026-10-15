@@ -6,7 +6,21 @@
 # in runners.yml, so this should normally be a fast no-op there. Kept as a
 # safety net for any Linux runner (agentic image rebuild pending, or a plain
 # native host) where a package isn't baked in yet.
+#
+# Usage: bash .github/scripts/ensure_linux_tooling.sh [--skip-wpe]
+#   --skip-wpe  skip the WPE WebKit prefix + gold linker posture. Only the
+#               Linux desktop build compiles the WPE-backed plugin; analyze,
+#               flutter test and Android builds never need it, and the
+#               deb.debian.org fetch is the step that flakes on this network.
 set -euo pipefail
+
+skip_wpe=0
+for arg in "$@"; do
+  case "$arg" in
+    --skip-wpe) skip_wpe=1 ;;
+    *) echo "ensure_linux_tooling: unknown option $arg" >&2; exit 2 ;;
+  esac
+done
 
 packages=(
   clang
@@ -35,65 +49,77 @@ packages=(
   libglvnd-dev
 )
 
-# WPE WebKit has no Ubuntu packages (noble), so the plugin compiles against a
-# pinned Debian bookworm build extracted into a runner-local prefix. Compile-
-# time only: the shipped artifact resolves WPE from the host (ADR-0092).
-WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-2.54b}"
-if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
-  if [ ! -e "$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig/wpe-webkit-2.0.pc" ]; then
-    echo "WPE WebKit not installed — extracting pinned Debian build into $WPE_ROOT"
-    mkdir -p "$WPE_ROOT"
-    for deb in \
-      https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-dev_2.54.0-2_amd64.deb \
-      https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-1_2.54.0-2_amd64.deb \
-      https://deb.debian.org/debian/pool/main/libw/libwpe/libwpe-1.0-1_1.16.3-2_amd64.deb \
-      https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-1_1.16.1-1+b1_amd64.deb \
-      https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-dev_1.16.1-1+b1_amd64.deb \
-      https://deb.debian.org/debian/pool/main/libw/libwpe/libwpe-1.0-dev_1.16.3-2_amd64.deb \
-    ; do
-      curl -fsSL -o "$WPE_ROOT/pkg.deb" "$deb"
-      dpkg-deb -x "$WPE_ROOT/pkg.deb" "$WPE_ROOT"
-      rm -f "$WPE_ROOT/pkg.deb"
-    done
+ensure_wpe() {
+  # WPE WebKit has no Ubuntu packages (noble), so the plugin compiles against a
+  # pinned Debian bookworm build extracted into a runner-local prefix. Compile-
+  # time only: the shipped artifact resolves WPE from the host (ADR-0092).
+  WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-2.54b}"
+  if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
+    if [ ! -e "$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig/wpe-webkit-2.0.pc" ]; then
+      echo "WPE WebKit not installed — extracting pinned Debian build into $WPE_ROOT"
+      # Extract into a staging dir and rename at the end: the .pc file this
+      # branch keys on comes from the first .deb, so extracting in place left
+      # a half-populated prefix that every later run mistook for complete.
+      staging="$WPE_ROOT.partial"
+      rm -rf "$staging" "$WPE_ROOT"
+      mkdir -p "$staging"
+      for deb in \
+        https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-dev_2.54.0-2_amd64.deb \
+        https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-1_2.54.0-2_amd64.deb \
+        https://deb.debian.org/debian/pool/main/libw/libwpe/libwpe-1.0-1_1.16.3-2_amd64.deb \
+        https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-1_1.16.1-1+b1_amd64.deb \
+        https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-dev_1.16.1-1+b1_amd64.deb \
+        https://deb.debian.org/debian/pool/main/libw/libwpe/libwpe-1.0-dev_1.16.3-2_amd64.deb \
+      ; do
+        curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 -o "$staging/pkg.deb" "$deb"
+        dpkg-deb -x "$staging/pkg.deb" "$staging"
+        rm -f "$staging/pkg.deb"
+      done
+      mv "$staging" "$WPE_ROOT"
+    fi
+    # Debian pc files bake prefix=/usr and multiarch libdirs; repoint every /usr
+    # reference at the extraction root so Cflags/Libs stay inside the prefix.
+    find "$WPE_ROOT/usr" -name '*.pc' -print0 2>/dev/null |
+      xargs -0 -r sed -i "s|=/usr|=$WPE_ROOT/usr|g"
+    export PKG_CONFIG_PATH="$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig:$WPE_ROOT/usr/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+    if [ -n "${GITHUB_ENV:-}" ]; then
+      echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
+    fi
   fi
-  # Debian pc files bake prefix=/usr and multiarch libdirs; repoint every /usr
-  # reference at the extraction root so Cflags/Libs stay inside the prefix.
-  find "$WPE_ROOT/usr" -name '*.pc' -print0 2>/dev/null |
-    xargs -0 -r sed -i "s|=/usr|=$WPE_ROOT/usr|g"
-  export PKG_CONFIG_PATH="$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig:$WPE_ROOT/usr/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+
+  # Compat: the plugin (0.1.0-beta.1) uses WPE_SETTING_DISABLE_ANIMATIONS, which
+  # Debian's 2.54 headers predate; the runtime tolerates unregistered keys, so a
+  # header-only define is sufficient (animations simply stay enabled).
+  settings_h="$WPE_ROOT/usr/include/wpe-webkit-2.0/wpe-platform/wpe/WPESettings.h"
+  if [ -e "$settings_h" ] && ! grep -q WPE_SETTING_DISABLE_ANIMATIONS "$settings_h"; then
+    printf '\n#ifndef WPE_SETTING_DISABLE_ANIMATIONS\n#define WPE_SETTING_DISABLE_ANIMATIONS "/wpe-platform/disable-animations"\n#endif\n' >> "$settings_h"
+  fi
+
+  # Linker posture for the WPE-backed plugin (ADR-0092), set unconditionally on
+  # Linux: gold tolerates the versioned shlib references that GNU ld hard-fails
+  # on, and the system WPE copy (installed below or via distro packages) may
+  # reference icu/jpeg/gst versions newer than the runner's. The shipped
+  # artifact resolves everything from the host (ADR-0092).
   if [ -n "${GITHUB_ENV:-}" ]; then
-    echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
+    echo "LDFLAGS=${LDFLAGS:-} -fuse-ld=gold -Wl,--allow-shlib-undefined" >> "$GITHUB_ENV"
   fi
-fi
+  export LDFLAGS="${LDFLAGS:-} -fuse-ld=gold -Wl,--allow-shlib-undefined"
+  # CMake caches linker flags at first configure; the runner's build dir
+  # persists between runs, so a stale cache would silently ignore the env.
+  rm -f /runner-state/_work/enjoy_player/enjoy_player/build/linux/x64/*/CMakeCache.txt 2>/dev/null || true
+  rm -rf /runner-state/_work/enjoy_player/enjoy_player/build/linux/x64/*/CMakeFiles 2>/dev/null || true
 
-# Compat: the plugin (0.1.0-beta.1) uses WPE_SETTING_DISABLE_ANIMATIONS, which
-# Debian's 2.54 headers predate; the runtime tolerates unregistered keys, so a
-# header-only define is sufficient (animations simply stay enabled).
-settings_h="$WPE_ROOT/usr/include/wpe-webkit-2.0/wpe-platform/wpe/WPESettings.h"
-if [ -e "$settings_h" ] && ! grep -q WPE_SETTING_DISABLE_ANIMATIONS "$settings_h"; then
-  printf '\n#ifndef WPE_SETTING_DISABLE_ANIMATIONS\n#define WPE_SETTING_DISABLE_ANIMATIONS "/wpe-platform/disable-animations"\n#endif\n' >> "$settings_h"
-fi
+  # Bare -lwpe-1.0 / -lWPEBackend-fdo-1.0 leak through the pkg-config Requires
+  # chain without an -L, so the runtime libraries must sit in the default
+  # linker path. Same effect as apt-installing them; the runner is self-hosted.
+  if ! ldconfig -p 2>/dev/null | grep -q "libwpe-1.0.so"; then
+    sudo cp -a "${WPE_ROOT:-/nonexistent}/usr/lib/x86_64-linux-gnu/." /usr/lib/x86_64-linux-gnu/
+    sudo ldconfig
+  fi
+}
 
-# Linker posture for the WPE-backed plugin (ADR-0092), set unconditionally on
-# Linux: gold tolerates the versioned shlib references that GNU ld hard-fails
-# on, and the system WPE copy (installed below or via distro packages) may
-# reference icu/jpeg/gst versions newer than the runner's. The shipped
-# artifact resolves everything from the host (ADR-0092).
-if [ -n "${GITHUB_ENV:-}" ]; then
-  echo "LDFLAGS=${LDFLAGS:-} -fuse-ld=gold -Wl,--allow-shlib-undefined" >> "$GITHUB_ENV"
-fi
-export LDFLAGS="${LDFLAGS:-} -fuse-ld=gold -Wl,--allow-shlib-undefined"
-# CMake caches linker flags at first configure; the runner's build dir
-# persists between runs, so a stale cache would silently ignore the env.
-rm -f /runner-state/_work/enjoy_player/enjoy_player/build/linux/x64/*/CMakeCache.txt 2>/dev/null || true
-rm -rf /runner-state/_work/enjoy_player/enjoy_player/build/linux/x64/*/CMakeFiles 2>/dev/null || true
-
-# Bare -lwpe-1.0 / -lWPEBackend-fdo-1.0 leak through the pkg-config Requires
-# chain without an -L, so the runtime libraries must sit in the default
-# linker path. Same effect as apt-installing them; the runner is self-hosted.
-if ! ldconfig -p 2>/dev/null | grep -q "libwpe-1.0.so"; then
-  sudo cp -a "${WPE_ROOT:-/nonexistent}/usr/lib/x86_64-linux-gnu/." /usr/lib/x86_64-linux-gnu/
-  sudo ldconfig
+if [[ "$skip_wpe" -eq 0 ]]; then
+  ensure_wpe
 fi
 
 missing=()

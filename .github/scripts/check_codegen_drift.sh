@@ -24,14 +24,48 @@ generated_pathspecs=(
   '**/*.freezed.dart'
 )
 
+# A poisoned incremental cache in .dart_tool/build can make build_runner stall
+# forever at 0% CPU (a warm run normally takes ~2s, a cold one ~40s). Bound
+# each attempt; on a stall or failure, kill this checkout's build daemon (it
+# detaches, so `timeout` alone leaves it holding the build lock), drop the
+# cache, and retry once from cold. CODEGEN_TIMEOUT overrides the bound.
+codegen_timeout="${CODEGEN_TIMEOUT:-240}"
+
+kill_build_daemons() {
+  local dir="$1"
+  command -v pkill >/dev/null 2>&1 || return 0
+  pkill -f "${dir}/.dart_tool/build/entrypoint/" 2>/dev/null || true
+}
+
+run_build_runner_once() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout --kill-after=10 "$codegen_timeout" dart run build_runner build </dev/null
+  else
+    dart run build_runner build </dev/null
+  fi
+}
+
+build_runner_with_recovery() {
+  local dir
+  dir="$(pwd -P)"
+  if run_build_runner_once; then
+    return 0
+  fi
+  echo "check_codegen_drift: build_runner failed or stalled in ${dir};" \
+    "discarding .dart_tool/build and retrying once from cold..." >&2
+  kill_build_daemons "$dir"
+  rm -rf .dart_tool/build
+  run_build_runner_once
+}
+
 echo "check_codegen_drift: build_runner (root)..."
-dart run build_runner build
+build_runner_with_recovery
 
 for pkg in packages/*/; do
   [ -f "${pkg}pubspec.yaml" ] || continue
   if grep -qE '^[[:space:]]*build_runner:' "${pkg}pubspec.yaml"; then
     echo "check_codegen_drift: build_runner (${pkg})..."
-    (cd "$pkg" && flutter pub get && dart run build_runner build)
+    (cd "$pkg" && flutter pub get && build_runner_with_recovery)
   fi
 done
 

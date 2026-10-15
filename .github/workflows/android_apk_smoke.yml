@@ -100,7 +100,7 @@ jobs:
           key: ${{ steps.gradle-cache.outputs.cache-primary-key }}
 
       - name: Ensure Linux tooling
-        run: bash .github/scripts/ensure_linux_tooling.sh
+        run: bash .github/scripts/ensure_linux_tooling.sh --skip-wpe
 
       - uses: ./.github/actions/setup-java
 
