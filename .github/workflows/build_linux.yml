@@ -84,6 +84,33 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
+      # flutter_inappwebview_linux FetchContent-downloads nlohmann/json from
+      # github.com on every configure (debug and release each), and that host
+      # drops TLS connections here. Fetch it once per version, with retries,
+      # into the tool cache (persists across jobs); linux/CMakeLists.txt
+      # points FetchContent at it via NLOHMANN_JSON_SOURCE_DIR.
+      - name: Prefetch nlohmann/json
+        run: |
+          set -euo pipefail
+          plugin_cmake=linux/flutter/ephemeral/.plugin_symlinks/flutter_inappwebview_linux/linux/CMakeLists.txt
+          version="$(sed -nE 's/^set\(NLOHMANN_JSON_VERSION "([0-9.]+)"\)/\1/p' "$plugin_cmake" | head -n1)"
+          if [ -z "$version" ]; then
+            echo "::warning::Could not read NLOHMANN_JSON_VERSION; the build will fetch it itself."
+            exit 0
+          fi
+          dest="${RUNNER_TOOL_CACHE}/nlohmann-json-${version}"
+          if [ ! -f "$dest/CMakeLists.txt" ]; then
+            staging="$dest.partial"
+            rm -rf "$staging" && mkdir -p "$staging"
+            curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 \
+              -o "$staging/json.tar.xz" \
+              "https://github.com/nlohmann/json/releases/download/v${version}/json.tar.xz"
+            tar -xJf "$staging/json.tar.xz" -C "$staging" --strip-components=1
+            rm -f "$staging/json.tar.xz"
+            rm -rf "$dest" && mv "$staging" "$dest"
+          fi
+          echo "NLOHMANN_JSON_SOURCE_DIR=$dest" >> "$GITHUB_ENV"
+
       - name: Flutter build linux (debug)
         run: flutter build linux --debug
 
