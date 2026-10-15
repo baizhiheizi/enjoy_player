@@ -11,20 +11,15 @@ import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
-import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
-import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/features/ai/application/ai_byok_error_mapping.dart';
 import 'package:enjoy_player/features/ai/application/ai_modality_config_controller.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
@@ -33,15 +28,14 @@ import 'package:enjoy_player/features/ai/domain/chat_message.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/assessment_request.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_azure_error.dart';
+import 'package:enjoy_player/features/ai/presentation/ai_playground_console_panel.dart';
+import 'package:enjoy_player/features/ai/presentation/ai_playground_provider_card.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_provider_label.dart';
+import 'package:enjoy_player/features/ai/presentation/ai_playground_section.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 final Logger _log = logNamed('ai.playground');
 
-const double _rowLeadingSize = 30;
-const double _rowLeadingGap = 12;
-const double _rowHorizontalPadding = 12;
-const double _consoleViewportHeight = 320;
 const int _maxConsoleEntries = 200;
 
 enum _PlaygroundAction { pick, asr, chat, translate, dictionary, assessment }
@@ -67,7 +61,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
   final _assessRefCtrl = TextEditingController(text: 'Hello world.');
   final _assessLangCtrl = TextEditingController(text: 'en');
 
-  final List<_ConsoleEntry> _entries = [];
+  final List<PlaygroundConsoleEntry> _entries = [];
 
   Uint8List? _pickedAudio;
   String _pickedName = 'audio.wav';
@@ -90,7 +84,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
 
   void _append(String line, {bool isError = false}) {
     setState(() {
-      _entries.add(_ConsoleEntry(line, isError: isError));
+      _entries.add(PlaygroundConsoleEntry(line, isError: isError));
       if (_entries.length > _maxConsoleEntries) _entries.removeAt(0);
     });
   }
@@ -343,51 +337,22 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
             ),
           ),
           SizedBox(height: t.space24),
-          EnjoySectionHeader(title: l10n.aiPlaygroundActiveProviders),
-          SizedBox(height: t.space12),
-          EnjoyCard(
-            padding: EdgeInsets.symmetric(vertical: t.space4),
-            child: Column(
-              children: [
-                _GroupRow(
-                  icon: EnjoyIcons.robot,
-                  label: l10n.settingsAiProvidersModalityLlm,
-                  value: llmLabel,
-                ),
-                const _RowDivider(),
-                _GroupRow(
-                  icon: EnjoyIcons.mic,
-                  label: l10n.settingsAiProvidersModalityAsr,
-                  value: asrLabel,
-                ),
-                const _RowDivider(),
-                _GroupRow(
-                  icon: EnjoyIcons.speak,
-                  label: l10n.settingsAiProvidersModalityTts,
-                  value: ttsLabel,
-                ),
-                const _RowDivider(),
-                _GroupRow(
-                  icon: EnjoyIcons.insights,
-                  label: l10n.settingsAiProvidersModalityAssessment,
-                  value: assessmentLabel,
-                ),
-                const _RowDivider(),
-                _GroupRow(
-                  icon: EnjoyIcons.tune,
-                  label: l10n.settingsAiProvidersTileTitle,
-                  onTap: () => context.push(aiProvidersSettingsPath),
-                ),
-              ],
-            ),
+          AiPlaygroundProvidersCard(
+            llmLabel: llmLabel,
+            asrLabel: asrLabel,
+            ttsLabel: ttsLabel,
+            assessmentLabel: assessmentLabel,
           ),
           SizedBox(height: t.space24),
-          _PlaygroundSection(
+          PlaygroundSection(
             title: l10n.aiPlaygroundSectionAsr,
             providerLabel: asrLabel,
             children: [
               if (pickedBytes != null) ...[
-                _PickedFileChip(name: _pickedName, byteCount: pickedBytes),
+                PlaygroundPickedFileChip(
+                  name: _pickedName,
+                  byteCount: pickedBytes,
+                ),
                 SizedBox(height: t.space12),
               ],
               Wrap(
@@ -401,7 +366,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                   ),
                   EnjoyButton.brand(
                     onPressed: busy == null ? _runAsr : null,
-                    child: _RunLabel(
+                    child: PlaygroundRunLabel(
                       busy: busy == _PlaygroundAction.asr,
                       label: l10n.aiPlaygroundTranscribe,
                     ),
@@ -410,7 +375,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
               ),
             ],
           ),
-          _PlaygroundSection(
+          PlaygroundSection(
             title: l10n.aiPlaygroundSectionChat,
             providerLabel: llmLabel,
             children: [
@@ -433,7 +398,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                 alignment: Alignment.centerLeft,
                 child: EnjoyButton.brand(
                   onPressed: busy == null ? _runChat : null,
-                  child: _RunLabel(
+                  child: PlaygroundRunLabel(
                     busy: busy == _PlaygroundAction.chat,
                     label: l10n.aiPlaygroundSendChat,
                   ),
@@ -441,7 +406,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
               ),
             ],
           ),
-          _PlaygroundSection(
+          PlaygroundSection(
             title: l10n.aiPlaygroundSectionTranslation,
             providerLabel: llmLabel,
             children: [
@@ -479,7 +444,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                 alignment: Alignment.centerLeft,
                 child: EnjoyButton.brand(
                   onPressed: busy == null ? _runTranslate : null,
-                  child: _RunLabel(
+                  child: PlaygroundRunLabel(
                     busy: busy == _PlaygroundAction.translate,
                     label: l10n.aiPlaygroundTranslate,
                   ),
@@ -487,7 +452,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
               ),
             ],
           ),
-          _PlaygroundSection(
+          PlaygroundSection(
             title: l10n.aiPlaygroundSectionDictionary,
             providerLabel: llmLabel,
             children: [
@@ -524,7 +489,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                 alignment: Alignment.centerLeft,
                 child: EnjoyButton.brand(
                   onPressed: busy == null ? _runDictionary : null,
-                  child: _RunLabel(
+                  child: PlaygroundRunLabel(
                     busy: busy == _PlaygroundAction.dictionary,
                     label: l10n.aiPlaygroundDictLookup,
                   ),
@@ -532,7 +497,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
               ),
             ],
           ),
-          _PlaygroundSection(
+          PlaygroundSection(
             title: l10n.aiPlaygroundSectionTtsAssessment,
             providerLabel: assessmentLabel,
             children: [
@@ -563,7 +528,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                 alignment: Alignment.centerLeft,
                 child: EnjoyButton.brand(
                   onPressed: busy == null ? _runAssessment : null,
-                  child: _RunLabel(
+                  child: PlaygroundRunLabel(
                     busy: busy == _PlaygroundAction.assessment,
                     label: l10n.aiPlaygroundAssess,
                   ),
@@ -583,252 +548,9 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
           SizedBox(height: t.space12),
           EnjoyCard(
             padding: EdgeInsets.all(t.space16),
-            child: _ConsolePanel(entries: _entries),
+            child: PlaygroundConsolePanel(entries: _entries),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ConsoleEntry {
-  const _ConsoleEntry(this.text, {required this.isError});
-
-  final String text;
-  final bool isError;
-}
-
-class _PlaygroundSection extends StatelessWidget {
-  const _PlaygroundSection({
-    required this.title,
-    required this.providerLabel,
-    required this.children,
-  });
-
-  final String title;
-  final String providerLabel;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    return Padding(
-      padding: EdgeInsets.only(bottom: t.space24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          EnjoySectionHeader(title: title, caption: providerLabel),
-          SizedBox(height: t.space12),
-          EnjoyCard(
-            padding: EdgeInsets.all(t.space16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: children,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RunLabel extends StatelessWidget {
-  const _RunLabel({required this.busy, required this.label});
-
-  final bool busy;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!busy) return Text(label);
-    return LoadingIcon(
-      size: 18,
-      color: Theme.of(context).colorScheme.onPrimary,
-    );
-  }
-}
-
-class _GroupRow extends StatelessWidget {
-  const _GroupRow({
-    required this.icon,
-    required this.label,
-    this.value,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final String? value;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    final value = this.value;
-
-    final body = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 52),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: _rowHorizontalPadding,
-          vertical: t.space8,
-        ),
-        child: Row(
-          children: [
-            EnjoyIconTile(icon: icon, size: _rowLeadingSize),
-            const SizedBox(width: _rowLeadingGap),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: tt.bodyMedium,
-              ),
-            ),
-            if (value != null) ...[
-              SizedBox(width: t.space8),
-              Flexible(
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                ),
-              ),
-            ] else
-              Icon(EnjoyIcons.chevronRight, size: 15, color: t.ink3),
-          ],
-        ),
-      ),
-    );
-
-    if (onTap == null) return body;
-    return EnjoyPressable(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(t.radiusMd),
-      pressedScale: 0.995,
-      child: body,
-    );
-  }
-}
-
-class _RowDivider extends StatelessWidget {
-  const _RowDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      indent: _rowHorizontalPadding + _rowLeadingSize + _rowLeadingGap,
-      endIndent: _rowHorizontalPadding,
-      color: EnjoyThemeTokens.of(context).hairline,
-    );
-  }
-}
-
-class _PickedFileChip extends StatelessWidget {
-  const _PickedFileChip({required this.name, required this.byteCount});
-
-  final String name;
-  final int byteCount;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: t.fill,
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(t.radiusSm),
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: t.space12,
-          vertical: t.space8,
-        ),
-        child: Row(
-          children: [
-            Icon(EnjoyIcons.waveform, size: 16, color: cs.onSurfaceVariant),
-            SizedBox(width: t.space8),
-            Expanded(
-              child: Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: enjoyMonoStyle(context, size: 12.5),
-              ),
-            ),
-            SizedBox(width: t.space8),
-            Text(
-              '$byteCount B',
-              style: enjoyMonoStyle(
-                context,
-                size: 12,
-                color: cs.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ConsolePanel extends StatelessWidget {
-  const _ConsolePanel({required this.entries});
-
-  final List<_ConsoleEntry> entries;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-
-    if (entries.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: t.space16),
-        child: Column(
-          children: [
-            const EnjoyIconOrb(icon: EnjoyIcons.code, size: 56),
-            SizedBox(height: t.space16),
-            Text(
-              AppLocalizations.of(context)!.aiPlaygroundOutput,
-              textAlign: TextAlign.center,
-              style: enjoyDisplayStyle(context, size: 20, color: cs.onSurface),
-            ),
-            SizedBox(height: t.space8),
-            Text('—', style: enjoyMonoStyle(context, size: 13, color: t.ink3)),
-          ],
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: _consoleViewportHeight,
-      child: ListView.builder(
-        padding: EdgeInsets.zero,
-        itemCount: entries.length,
-        itemBuilder: (context, index) {
-          final entry = entries[entries.length - 1 - index];
-          return Padding(
-            padding: EdgeInsets.only(top: index == 0 ? 0 : t.space16),
-            child: SelectableText(
-              entry.text,
-              style: enjoyMonoStyle(
-                context,
-                size: 12.5,
-                color: entry.isError ? cs.error : cs.onSurface,
-              ),
-            ),
-          );
-        },
       ),
     );
   }
