@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/subtitle/transcript_display_readiness.dart';
-import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
@@ -67,7 +66,7 @@ Future<List<TranscriptAction>> _actions(
   String targetType = 'Video',
   String? provider = 'local',
   List<TranscriptTrack> tracks = const [],
-  List<TranscriptLine> lines = const [],
+  bool hasTranscript = false,
   TranscriptDisplayReadiness? readiness,
   TranscriptEnrichmentState enrich = const TranscriptEnrichmentState.idle(),
 }) async {
@@ -93,9 +92,9 @@ Future<List<TranscriptAction>> _actions(
         allTranscriptsForMediaProvider(
           _mediaId,
         ).overrideWith((ref) => Stream.value(tracks)),
-        transcriptLinesForMediaProvider(
+        transcriptHasLinesForMediaProvider(
           _mediaId,
-        ).overrideWith((ref) => Stream.value(lines)),
+        ).overrideWith((ref) => Stream.value(hasTranscript)),
         transcriptDisplayReadinessForMediaProvider(
           _mediaId,
         ).overrideWithValue(readiness ?? _readiness(showEnrich: false)),
@@ -130,7 +129,7 @@ void main() {
     final actions = await _actions(
       tester,
       tracks: const [_aiTrack],
-      lines: const [TranscriptLine(text: 'Hi', startMs: 0, durationMs: 500)],
+      hasTranscript: true,
       readiness: _readiness(showEnrich: true),
     );
 
@@ -172,11 +171,13 @@ void main() {
     );
   });
 
-  testWidgets('download survives on YouTube when lines exist', (tester) async {
+  testWidgets('download survives on YouTube when a transcript exists', (
+    tester,
+  ) async {
     final actions = await _actions(
       tester,
       provider: 'youtube',
-      lines: const [TranscriptLine(text: 'Hi', startMs: 0, durationMs: 500)],
+      hasTranscript: true,
     );
 
     expect(

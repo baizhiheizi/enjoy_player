@@ -4,8 +4,11 @@ library;
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
+
+final _log = logNamed('TranscriptExportIo');
 
 enum TranscriptExportIoOutcome { shared, saved, cancelled, failed }
 
@@ -33,7 +36,8 @@ Future<TranscriptExportIoOutcome> saveOrShareTranscriptFile({
     );
     if (savedPath == null) return TranscriptExportIoOutcome.cancelled;
     return TranscriptExportIoOutcome.saved;
-  } on Object {
+  } on Object catch (error, stackTrace) {
+    _log.warning('transcript export failed: $fileName', error, stackTrace);
     return TranscriptExportIoOutcome.failed;
   }
 }

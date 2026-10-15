@@ -70,9 +70,9 @@ List<TranscriptAction> watchTranscriptActions(
   final tracks =
       ref.watch(allTranscriptsForMediaProvider(mediaId)).valueOrNull ??
       const [];
-  final primaryLines =
-      ref.watch(transcriptLinesForMediaProvider(mediaId)).valueOrNull ??
-      const [];
+  final hasTranscript =
+      ref.watch(transcriptHasLinesForMediaProvider(mediaId)).valueOrNull ??
+      false;
   final readiness = ref.watch(
     transcriptDisplayReadinessForMediaProvider(mediaId),
   );
@@ -131,7 +131,7 @@ List<TranscriptAction> watchTranscriptActions(
       label: l10n.playerMoreRefreshFromCloud,
       run: (context) => refreshCloudTranscripts(context, ref, mediaId),
     ),
-    if (primaryLines.isNotEmpty)
+    if (hasTranscript)
       TranscriptAction(
         kind: TranscriptActionKind.downloadTranscript,
         icon: EnjoyIcons.download,

@@ -64,12 +64,12 @@ Future<void> downloadActiveTranscript(
   }
 
   final pick = pickFormat ?? showTranscriptExportFormatDialog;
+  final title = ref.read(playerControllerProvider)?.mediaTitle ?? '';
   final format = await pick(context);
   if (format == null || !context.mounted) return;
 
-  final title = ref.read(playerControllerProvider)?.mediaTitle ?? '';
   final fileName = '${transcriptExportBaseName(title)}.${format.fileExtension}';
-  final bytes = Uint8List.fromList(utf8.encode(format.serialize(lines)));
+  final bytes = utf8.encode(format.serialize(lines));
 
   final save = saveFile ?? saveOrShareTranscriptFile;
   final outcome = await save(

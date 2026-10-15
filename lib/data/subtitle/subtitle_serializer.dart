@@ -25,7 +25,8 @@ extension SubtitleExportFormatX on SubtitleExportFormat {
 
 /// SRT (SubRip): 1-based cue index, `HH:MM:SS,mmm` timestamps, blank-line
 /// separated. Cues round-trip through `SrtParser` when their text has no
-/// blank interior lines.
+/// blank interior lines. Both serializers emit the per-format minimum for
+/// empty input (`''` here, the `WEBVTT` header for [serializeVtt]).
 String serializeSrt(List<TranscriptLine> lines) {
   final buffer = StringBuffer();
   var index = 0;

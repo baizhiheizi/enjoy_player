@@ -111,10 +111,12 @@ persisted track). The split is also recorded as
 **⋯ More → Download transcript…** (canvas v30, issue #921) saves the active
 primary transcript as a subtitle file. The entry appears in both the desktop
 More menu and the phone Subtitles & display sheet through the shared
-`watchTranscriptActions` list, and only when the active primary transcript has
-lines (`transcriptLinesForMediaProvider`). The flow
+`watchTranscriptActions` list, and only when a transcript row exists for the
+media (the cheap boolean `transcriptHasLinesForMediaProvider`, so line-level
+rewrites never reshuffle the menu; an empty primary still surfaces the
+empty notice on tap). The flow
 ([`download_transcript.dart`](../../lib/features/transcript/presentation/download_transcript.dart))
-reads the primary lines, asks for the format
+reads the primary lines and the media title, asks for the format
 ([`showTranscriptExportFormatDialog`](../../lib/features/transcript/presentation/download_transcript_format_dialog.dart)),
 serializes, and hands the bytes to the platform save dialog (desktop,
 `FilePicker.saveFile`) or share sheet (iOS / Android, `share_plus`) — the same
