@@ -3,6 +3,7 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/features/lookup/presentation/widgets/latched_retry_state.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -30,28 +31,20 @@ class LookupRefreshIconButton extends StatefulWidget {
       _LookupRefreshIconButtonState();
 }
 
-class _LookupRefreshIconButtonState extends State<LookupRefreshIconButton> {
-  /// True until [widget.isRefreshing] observes the in-flight refresh.
-  bool _tapLatched = false;
+class _LookupRefreshIconButtonState extends State<LookupRefreshIconButton>
+    with LatchedRetryState<LookupRefreshIconButton> {
+  @override
+  bool get parentRetryBusy => widget.isRefreshing;
 
   @override
-  void didUpdateWidget(covariant LookupRefreshIconButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isRefreshing) {
-      if (_tapLatched) setState(() => _tapLatched = false);
-    } else if (oldWidget.isRefreshing && !widget.isRefreshing) {
-      if (_tapLatched) setState(() => _tapLatched = false);
-    }
-  }
+  bool wasParentRetryBusy(covariant LookupRefreshIconButton oldWidget) =>
+      oldWidget.isRefreshing;
 
-  void _handlePressed() {
-    setState(() => _tapLatched = true);
-    widget.onPressed();
-  }
+  void _handlePressed() => retry(widget.onPressed);
 
   @override
   Widget build(BuildContext context) {
-    final busy = widget.isRefreshing || _tapLatched;
+    final busy = retryBusy;
     final scheme = Theme.of(context).colorScheme;
 
     return IconButton(

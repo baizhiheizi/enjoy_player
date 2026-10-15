@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/latched_retry_state.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -43,23 +44,16 @@ class LookupErrorRow extends StatefulWidget {
   State<LookupErrorRow> createState() => _LookupErrorRowState();
 }
 
-class _LookupErrorRowState extends State<LookupErrorRow> {
-  bool _tapLatched = false;
+class _LookupErrorRowState extends State<LookupErrorRow>
+    with LatchedRetryState<LookupErrorRow> {
+  @override
+  bool get parentRetryBusy => widget.isRetrying;
 
   @override
-  void didUpdateWidget(covariant LookupErrorRow oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isRetrying) {
-      if (_tapLatched) setState(() => _tapLatched = false);
-    } else if (oldWidget.isRetrying && !widget.isRetrying) {
-      if (_tapLatched) setState(() => _tapLatched = false);
-    }
-  }
+  bool wasParentRetryBusy(covariant LookupErrorRow oldWidget) =>
+      oldWidget.isRetrying;
 
-  void _handleRetry() {
-    setState(() => _tapLatched = true);
-    widget.onRetry();
-  }
+  void _handleRetry() => retry(widget.onRetry);
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +61,7 @@ class _LookupErrorRowState extends State<LookupErrorRow> {
     final scheme = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final t = EnjoyThemeTokens.of(context);
-    final busy = widget.isRetrying || _tapLatched;
+    final busy = retryBusy;
 
     return DecoratedBox(
       decoration: BoxDecoration(
