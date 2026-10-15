@@ -8,6 +8,7 @@ library;
 
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
 
 /// One export job: trim `[startSeconds, startSeconds + durationSeconds)`
@@ -50,20 +51,17 @@ class LoopClipExportRequest {
 /// window is normalized (clamped to the media duration, widened to the
 /// minimum playable length, dropped when inverted). Returns `null` when
 /// nothing is exportable.
-EchoWindow? resolveLoopClipRange({
-  required bool echoActive,
-  required double startTimeSeconds,
-  required double endTimeSeconds,
-  int startLineIndex = -1,
-  int endLineIndex = -1,
+EchoWindow? resolveLoopClipRange(
+  EchoState echo, {
   List<TranscriptLine>? lines,
   double? durationSeconds,
 }) {
   final startSeconds =
-      _lineStartSeconds(lines, startLineIndex) ?? startTimeSeconds;
-  final endSeconds = _lineEndSeconds(lines, endLineIndex) ?? endTimeSeconds;
+      _lineStartSeconds(lines, echo.startLineIndex) ?? echo.startTimeSeconds;
+  final endSeconds =
+      _lineEndSeconds(lines, echo.endLineIndex) ?? echo.endTimeSeconds;
   return normalizeEchoWindow((
-    active: echoActive,
+    active: echo.active,
     startTimeSeconds: startSeconds,
     endTimeSeconds: endSeconds,
     durationSeconds: durationSeconds != null && durationSeconds > 0

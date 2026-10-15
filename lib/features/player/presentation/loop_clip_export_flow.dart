@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -26,6 +27,8 @@ import 'package:enjoy_player/features/player/application/loop_clip_export_runner
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+
+final _log = logNamed('LoopClipExportFlow');
 
 bool get _isMobileSharePlatform => Platform.isIOS || Platform.isAndroid;
 
@@ -55,11 +58,7 @@ Future<void> exportLoopAsClip(
     }
 
     final window = resolveLoopClipRange(
-      echoActive: echo.active,
-      startTimeSeconds: echo.startTimeSeconds,
-      endTimeSeconds: echo.endTimeSeconds,
-      startLineIndex: echo.startLineIndex,
-      endLineIndex: echo.endLineIndex,
+      echo,
       lines: lines,
       durationSeconds: durationSeconds,
     );
@@ -88,29 +87,37 @@ Future<void> exportLoopAsClip(
     );
     if (!context.mounted) return;
 
-    if (_isMobileSharePlatform) {
-      final result = await SharePlus.instance.share(
-        ShareParams(files: [XFile(written)]),
+    try {
+      if (_isMobileSharePlatform) {
+        final result = await SharePlus.instance.share(
+          ShareParams(files: [XFile(written)]),
+        );
+        if (!context.mounted) return;
+        if (result.status == ShareResultStatus.dismissed) return;
+        AppNotice.success(context, l10n.playerMoreExportLoopClipSuccess);
+        return;
+      }
+
+      final bytes = await File(written).readAsBytes();
+      if (!context.mounted) return;
+      final saved = await FilePicker.saveFile(
+        dialogTitle: l10n.playerMoreExportLoopClip,
+        fileName: fileName,
+        bytes: bytes,
+        mimeType: video ? 'video/mp4' : 'audio/mp4',
       );
       if (!context.mounted) return;
-      if (result.status == ShareResultStatus.dismissed) return;
+      if (saved == null) return;
       AppNotice.success(context, l10n.playerMoreExportLoopClipSuccess);
-      return;
+    } finally {
+      try {
+        await File(written).delete();
+      } on Object catch (e) {
+        _log.fine('loop clip temp cleanup failed: $e');
+      }
     }
-
-    final bytes = await File(written).readAsBytes();
-    if (!context.mounted) return;
-    final saved = await FilePicker.saveFile(
-      dialogTitle: l10n.playerMoreExportLoopClip,
-      fileName: fileName,
-      bytes: bytes,
-      mimeType: video ? 'video/mp4' : 'audio/mp4',
-    );
-    await File(written).delete();
-    if (!context.mounted) return;
-    if (saved == null) return;
-    AppNotice.success(context, l10n.playerMoreExportLoopClipSuccess);
-  } on LoopClipExportException catch (e) {
+  } on LoopClipExportException catch (e, st) {
+    _log.warning('loop clip export failed: $e', e, st);
     if (!context.mounted) return;
     AppNotice.error(
       context,
@@ -118,7 +125,8 @@ Future<void> exportLoopAsClip(
           ? l10n.playerMoreExportLoopClipFfmpegMissing
           : l10n.playerMoreExportLoopClipFailed,
     );
-  } on Object {
+  } on Object catch (e, st) {
+    _log.warning('loop clip export failed', e, st);
     if (!context.mounted) return;
     AppNotice.error(context, l10n.playerMoreExportLoopClipFailed);
   }

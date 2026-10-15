@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/loop_clip_export_plan.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
 
@@ -18,28 +19,28 @@ LoopClipExportRequest _request({
   video: video,
 );
 
+EchoState _echo({
+  bool active = true,
+  int startLine = -1,
+  int endLine = -1,
+  double start = 10,
+  double end = 14,
+}) => EchoState(
+  active: active,
+  startLineIndex: startLine,
+  endLineIndex: endLine,
+  startTimeSeconds: start,
+  endTimeSeconds: end,
+);
+
 void main() {
   group('resolveLoopClipRange', () {
     test('inactive echo → null', () {
-      expect(
-        resolveLoopClipRange(
-          echoActive: false,
-          startTimeSeconds: 10,
-          endTimeSeconds: 14,
-        ),
-        isNull,
-      );
+      expect(resolveLoopClipRange(_echo(active: false)), isNull);
     });
 
     test('cached seconds win when no transcript is loaded', () {
-      expect(
-        resolveLoopClipRange(
-          echoActive: true,
-          startTimeSeconds: 10,
-          endTimeSeconds: 14,
-        ),
-        (start: 10, end: 14),
-      );
+      expect(resolveLoopClipRange(_echo()), (start: 10, end: 14));
     });
 
     test('line bounds win over cached seconds', () {
@@ -49,14 +50,7 @@ void main() {
         TranscriptLine(text: 'c', startMs: 5000, durationMs: 2500),
       ];
       expect(
-        resolveLoopClipRange(
-          echoActive: true,
-          startTimeSeconds: 10,
-          endTimeSeconds: 14,
-          startLineIndex: 0,
-          endLineIndex: 1,
-          lines: lines,
-        ),
+        resolveLoopClipRange(_echo(startLine: 0, endLine: 1), lines: lines),
         (start: 0, end: 5),
       );
     });
@@ -64,50 +58,27 @@ void main() {
     test('stale line indices fall back to cached seconds per index', () {
       const lines = [TranscriptLine(text: 'a', startMs: 0, durationMs: 100)];
       expect(
-        resolveLoopClipRange(
-          echoActive: true,
-          startTimeSeconds: 10,
-          endTimeSeconds: 14,
-          startLineIndex: 0,
-          endLineIndex: 9,
-          lines: lines,
-        ),
+        resolveLoopClipRange(_echo(startLine: 0, endLine: 9), lines: lines),
         (start: 0, end: 14),
       );
     });
 
     test('window is clamped to the media duration', () {
-      expect(
-        resolveLoopClipRange(
-          echoActive: true,
-          startTimeSeconds: 10,
-          endTimeSeconds: 30,
-          durationSeconds: 20,
-        ),
-        (start: 10, end: 20),
-      );
+      expect(resolveLoopClipRange(_echo(end: 30), durationSeconds: 20), (
+        start: 10,
+        end: 20,
+      ));
     });
 
     test('inverted window → null', () {
-      expect(
-        resolveLoopClipRange(
-          echoActive: true,
-          startTimeSeconds: 14,
-          endTimeSeconds: 10,
-        ),
-        isNull,
-      );
+      expect(resolveLoopClipRange(_echo(start: 14, end: 10)), isNull);
     });
 
     test('sub-minimum window is widened to the playable floor', () {
-      expect(
-        resolveLoopClipRange(
-          echoActive: true,
-          startTimeSeconds: 10,
-          endTimeSeconds: 10.01,
-        ),
-        (start: 10, end: 10 + defaultEchoEndGuardSeconds + 0.02),
-      );
+      expect(resolveLoopClipRange(_echo(end: 10.01)), (
+        start: 10,
+        end: 10 + defaultEchoEndGuardSeconds + 0.02,
+      ));
     });
   });
 

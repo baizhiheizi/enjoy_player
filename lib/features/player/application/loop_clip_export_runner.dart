@@ -6,6 +6,7 @@ library;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
@@ -110,10 +111,15 @@ Future<void> _runCli(String exe, List<String> args) async {
       'cli spawn failed: $e',
     );
   }
-  final stderrBuf = <List<int>>[];
+  final stderrBuf = BytesBuilder(copy: false);
+  final stderrDone = Completer<void>();
   proc.stderr.listen(
     stderrBuf.add,
-    onError: (Object e) => _log.fine('loop clip ffmpeg stderr read error: $e'),
+    onDone: stderrDone.complete,
+    onError: (Object e) {
+      _log.fine('loop clip ffmpeg stderr read error: $e');
+      if (!stderrDone.isCompleted) stderrDone.complete();
+    },
   );
   unawaited(proc.stdout.drain<void>());
 
@@ -121,13 +127,16 @@ Future<void> _runCli(String exe, List<String> args) async {
     kLoopClipExportTimeout,
     onTimeout: () {
       try {
-        proc.kill(ProcessSignal.sigkill);
-      } on Object catch (_) {}
+        proc.kill();
+      } on Object catch (e) {
+        _log.fine('loop clip ffmpeg kill failed: $e');
+      }
       throw const LoopClipExportException(LoopClipExportFailureReason.timeout);
     },
   );
+  await stderrDone.future;
   if (exitCode != 0) {
-    final stderr = systemEncoding.decode(stderrBuf.expand((l) => l).toList());
+    final stderr = systemEncoding.decode(stderrBuf.takeBytes());
     _log.fine('loop clip ffmpeg failed (exit $exitCode): $stderr');
     throw LoopClipExportException(
       LoopClipExportFailureReason.ffmpegFailed,
