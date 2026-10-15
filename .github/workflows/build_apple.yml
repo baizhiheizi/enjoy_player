@@ -1,8 +1,29 @@
 name: Build Apple (iOS + macOS)
 
 on:
+  # PRs build only when native, dependency or build-tooling inputs change;
+  # Dart-only changes are covered by CI (analyze + tests) on the PR and by
+  # this build on the push to main. Run it on a PR branch on demand with:
+  #   gh workflow run build_apple.yml --ref <branch>
   pull_request:
-    paths: &build_apple_paths
+    paths:
+      - "packages/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "ios/**"
+      - "macos/**"
+      - "mise.toml"
+      - ".github/actions/setup-flutter/**"
+      - ".github/actions/setup-macos-runner-env/**"
+      - ".github/scripts/ensure_ios_ci_toolchain.sh"
+      - ".github/scripts/apple_spm_hygiene.sh"
+      - ".github/scripts/build_ios_ci.sh"
+      - ".github/scripts/build_macos_ci.sh"
+      - ".github/scripts/check_bundled_espeak_data.sh"
+      - ".github/workflows/build_apple.yml"
+  push:
+    branches: main
+    paths:
       - "lib/**"
       - "packages/**"
       - "pubspec.yaml"
@@ -19,9 +40,6 @@ on:
       - ".github/scripts/build_macos_ci.sh"
       - ".github/scripts/check_bundled_espeak_data.sh"
       - ".github/workflows/build_apple.yml"
-  push:
-    branches: main
-    paths: *build_apple_paths
   workflow_dispatch:
 
 concurrency:
@@ -50,10 +68,11 @@ env:
 jobs:
   ios:
     name: iOS smoke
-    # PR runs pause in ci-approval until a required reviewer approves; push and
+    # PRs from outside the org (bots, Copilot, contributors) pause in
+    # ci-approval until a required reviewer approves; org-member PRs, push and
     # workflow_dispatch resolve to the unprotected ci-direct and run freely.
     environment:
-      name: ${{ github.event_name == 'pull_request' && 'ci-approval' || 'ci-direct' }}
+      name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, macos]
     steps:
       - uses: actions/checkout@v6
@@ -135,10 +154,11 @@ jobs:
 
   macos:
     name: macOS smoke
-    # PR runs pause in ci-approval until a required reviewer approves; push and
+    # PRs from outside the org (bots, Copilot, contributors) pause in
+    # ci-approval until a required reviewer approves; org-member PRs, push and
     # workflow_dispatch resolve to the unprotected ci-direct and run freely.
     environment:
-      name: ${{ github.event_name == 'pull_request' && 'ci-approval' || 'ci-direct' }}
+      name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, macos]
     steps:
       - uses: actions/checkout@v6

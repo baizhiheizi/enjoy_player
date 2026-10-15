@@ -21,10 +21,11 @@ permissions:
 
 jobs:
   check:
-    # PR runs pause in ci-approval until a required reviewer approves; push and
+    # PRs from outside the org (bots, Copilot, contributors) pause in
+    # ci-approval until a required reviewer approves; org-member PRs, push and
     # workflow_dispatch resolve to the unprotected ci-direct and run freely.
     environment:
-      name: ${{ github.event_name == 'pull_request' && 'ci-approval' || 'ci-direct' }}
+      name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6

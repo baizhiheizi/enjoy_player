@@ -1,8 +1,23 @@
 name: Build Linux
 
 on:
+  # PRs build only when native, dependency or build-tooling inputs change;
+  # Dart-only changes are covered by CI (analyze + tests) on the PR and by
+  # this build on the push to main. Run it on a PR branch on demand with:
+  #   gh workflow run build_linux.yml --ref <branch>
   pull_request:
-    paths: &build_linux_paths
+    paths:
+      - "packages/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "linux/**"
+      - "mise.toml"
+      - ".github/actions/setup-flutter/**"
+      - ".github/scripts/ensure_linux_tooling.sh"
+      - ".github/workflows/build_linux.yml"
+  push:
+    branches: [main, master]
+    paths:
       - "lib/**"
       - "packages/**"
       - "pubspec.yaml"
@@ -13,9 +28,6 @@ on:
       - ".github/actions/setup-flutter/**"
       - ".github/scripts/ensure_linux_tooling.sh"
       - ".github/workflows/build_linux.yml"
-  push:
-    branches: [main, master]
-    paths: *build_linux_paths
   workflow_dispatch:
 
 concurrency:
@@ -34,10 +46,11 @@ permissions:
 
 jobs:
   build-linux:
-    # PR runs pause in ci-approval until a required reviewer approves; push and
+    # PRs from outside the org (bots, Copilot, contributors) pause in
+    # ci-approval until a required reviewer approves; org-member PRs, push and
     # workflow_dispatch resolve to the unprotected ci-direct and run freely.
     environment:
-      name: ${{ github.event_name == 'pull_request' && 'ci-approval' || 'ci-direct' }}
+      name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux, ci]
     steps:
       - uses: actions/checkout@v6
