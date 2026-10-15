@@ -1,8 +1,25 @@
 name: Build Windows
 
 on:
+  # PRs build only when native, dependency or build-tooling inputs change;
+  # Dart-only changes are covered by CI (analyze + tests) on the PR and by
+  # this build on the push to main. Run it on a PR branch on demand with:
+  #   gh workflow run build_windows.yml --ref <branch>
   pull_request:
-    paths: &build_windows_paths
+    paths:
+      - "packages/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "windows/**"
+      - "mise.toml"
+      - ".github/actions/setup-flutter/**"
+      - ".github/scripts/use_short_windows_workdir.ps1"
+      - ".github/scripts/ensure_vs_cpp_atl.ps1"
+      - ".github/scripts/ensure_nuget_feed.ps1"
+      - ".github/workflows/build_windows.yml"
+  push:
+    branches: [main, master]
+    paths:
       - "lib/**"
       - "packages/**"
       - "pubspec.yaml"
@@ -15,9 +32,6 @@ on:
       - ".github/scripts/ensure_vs_cpp_atl.ps1"
       - ".github/scripts/ensure_nuget_feed.ps1"
       - ".github/workflows/build_windows.yml"
-  push:
-    branches: [main, master]
-    paths: *build_windows_paths
   workflow_dispatch:
 
 concurrency:
@@ -36,10 +50,11 @@ permissions:
 
 jobs:
   build-windows:
-    # PR runs pause in ci-approval until a required reviewer approves; push and
+    # PRs from outside the org (bots, Copilot, contributors) pause in
+    # ci-approval until a required reviewer approves; org-member PRs, push and
     # workflow_dispatch resolve to the unprotected ci-direct and run freely.
     environment:
-      name: ${{ github.event_name == 'pull_request' && 'ci-approval' || 'ci-direct' }}
+      name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, windows, flutter]
     steps:
       - uses: actions/checkout@v6
@@ -85,17 +100,31 @@ jobs:
         working-directory: ${{ env.GITHUB_WORKSPACE }}
         run: flutter pub get
 
+      # The staged workspace is recreated (and windows\ffmpeg excluded) every
+      # run, so fetching straight into it re-downloaded ~100 MB from gyan.dev
+      # each time (~8 min, and the step that flaked). RUNNER_TOOL_CACHE
+      # survives between jobs on this native runner, same as the Flutter SDK:
+      # fetch there once (the script is a no-op when the binary already runs)
+      # and copy into the build tree.
       - name: Ensure Windows FFmpeg
         shell: pwsh
         working-directory: ${{ env.GITHUB_WORKSPACE }}
-        run: windows/scripts/fetch_ffmpeg.ps1
+        run: |
+          $cached = Join-Path $env:RUNNER_TOOL_CACHE 'ffmpeg-release-essentials\ffmpeg.exe'
+          windows/scripts/fetch_ffmpeg.ps1 -OutputPath $cached
+          New-Item -ItemType Directory -Force -Path windows/ffmpeg | Out-Null
+          Copy-Item -Path $cached -Destination windows/ffmpeg/ffmpeg.exe -Force
 
       - name: Flutter build windows (debug)
         working-directory: ${{ env.GITHUB_WORKSPACE }}
+        env:
+          AZURE_SPEECH_SDK_CACHE: ${{ runner.tool_cache }}\azure-speech-sdk
         run: flutter build windows --debug
 
       - name: Flutter build windows (release)
         working-directory: ${{ env.GITHUB_WORKSPACE }}
+        env:
+          AZURE_SPEECH_SDK_CACHE: ${{ runner.tool_cache }}\azure-speech-sdk
         run: flutter build windows --release
 
       - name: Remove short workspace stage

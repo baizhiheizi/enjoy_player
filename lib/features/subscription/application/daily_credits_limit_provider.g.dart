@@ -13,6 +13,13 @@ part of 'daily_credits_limit_provider.dart';
 ///
 /// Every meter / chip / usage surface reads this provider rather than
 /// re-deriving `status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier)`.
+///
+/// Kept alive to share one cache lifetime with [currentTierProvider], which
+/// it derives from, so the limit cannot resolve from a different tier
+/// snapshot than the tier indicators beside it. Both upstreams are themselves
+/// kept alive, so this holds no subscription of its own; recomputing the two
+/// reads on remount would be free, but would leave this provider as the only
+/// source-of-truth in this directory that disposes between routes.
 
 @ProviderFor(dailyCreditsLimit)
 final dailyCreditsLimitProvider = DailyCreditsLimitProvider._();
@@ -22,6 +29,13 @@ final dailyCreditsLimitProvider = DailyCreditsLimitProvider._();
 ///
 /// Every meter / chip / usage surface reads this provider rather than
 /// re-deriving `status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier)`.
+///
+/// Kept alive to share one cache lifetime with [currentTierProvider], which
+/// it derives from, so the limit cannot resolve from a different tier
+/// snapshot than the tier indicators beside it. Both upstreams are themselves
+/// kept alive, so this holds no subscription of its own; recomputing the two
+/// reads on remount would be free, but would leave this provider as the only
+/// source-of-truth in this directory that disposes between routes.
 
 final class DailyCreditsLimitProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
@@ -30,6 +44,13 @@ final class DailyCreditsLimitProvider extends $FunctionalProvider<int, int, int>
   ///
   /// Every meter / chip / usage surface reads this provider rather than
   /// re-deriving `status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier)`.
+  ///
+  /// Kept alive to share one cache lifetime with [currentTierProvider], which
+  /// it derives from, so the limit cannot resolve from a different tier
+  /// snapshot than the tier indicators beside it. Both upstreams are themselves
+  /// kept alive, so this holds no subscription of its own; recomputing the two
+  /// reads on remount would be free, but would leave this provider as the only
+  /// source-of-truth in this directory that disposes between routes.
   DailyCreditsLimitProvider._()
     : super(
         from: null,

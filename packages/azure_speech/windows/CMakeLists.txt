@@ -6,21 +6,49 @@ project(${PLUGIN_NAME} LANGUAGES CXX)
 
 cmake_policy(VERSION 3.18...3.25)
 
-set(AZURE_SDK_DIR "${CMAKE_CURRENT_BINARY_DIR}/azure_speech_nuget")
-set(AZURE_NUPKG_ZIP "${AZURE_SDK_DIR}/Microsoft.CognitiveServices.Speech.1.49.0.zip")
+# Set AZURE_SPEECH_SDK_CACHE to a persistent directory (CI uses the runner
+# tool cache) to reuse the extracted SDK across clean builds.
+set(AZURE_SPEECH_SDK_VERSION "1.49.0")
+if(DEFINED ENV{AZURE_SPEECH_SDK_CACHE} AND NOT "$ENV{AZURE_SPEECH_SDK_CACHE}" STREQUAL "")
+  file(TO_CMAKE_PATH "$ENV{AZURE_SPEECH_SDK_CACHE}/${AZURE_SPEECH_SDK_VERSION}" AZURE_SDK_DIR)
+else()
+  set(AZURE_SDK_DIR "${CMAKE_CURRENT_BINARY_DIR}/azure_speech_nuget")
+endif()
+set(AZURE_NUPKG_ZIP "${AZURE_SDK_DIR}/Microsoft.CognitiveServices.Speech.${AZURE_SPEECH_SDK_VERSION}.zip")
 
-if(NOT EXISTS "${AZURE_SDK_DIR}/.extracted")
+# The .extracted marker is written only after the headers are present, so a
+# failed or truncated download is retried instead of poisoning the build dir.
+file(GLOB_RECURSE _SPEECH_CXX_HEADER "${AZURE_SDK_DIR}/extract/**/speechapi_cxx.h")
+if(NOT EXISTS "${AZURE_SDK_DIR}/.extracted" OR NOT _SPEECH_CXX_HEADER)
+  file(REMOVE_RECURSE "${AZURE_SDK_DIR}/extract" "${AZURE_SDK_DIR}/.extracted")
   file(MAKE_DIRECTORY "${AZURE_SDK_DIR}/extract")
-  file(DOWNLOAD
-    "https://www.nuget.org/api/v2/package/Microsoft.CognitiveServices.Speech/1.49.0"
-    "${AZURE_NUPKG_ZIP}"
-    TLS_VERIFY ON
-  )
+  set(_azure_dl_code 1)
+  foreach(_azure_attempt RANGE 1 4)
+    file(DOWNLOAD
+      "https://www.nuget.org/api/v2/package/Microsoft.CognitiveServices.Speech/${AZURE_SPEECH_SDK_VERSION}"
+      "${AZURE_NUPKG_ZIP}"
+      TLS_VERIFY ON
+      STATUS _azure_dl_status
+    )
+    list(GET _azure_dl_status 0 _azure_dl_code)
+    if(_azure_dl_code EQUAL 0)
+      break()
+    endif()
+    message(WARNING "Speech SDK download attempt ${_azure_attempt}/4 failed: ${_azure_dl_status}")
+    file(REMOVE "${AZURE_NUPKG_ZIP}")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 5)
+  endforeach()
+  if(NOT _azure_dl_code EQUAL 0)
+    message(FATAL_ERROR "Could not download the Speech SDK NuGet package: ${_azure_dl_status}")
+  endif()
   file(ARCHIVE_EXTRACT INPUT "${AZURE_NUPKG_ZIP}" DESTINATION "${AZURE_SDK_DIR}/extract")
-  file(WRITE "${AZURE_SDK_DIR}/.extracted" "ok")
+  file(REMOVE "${AZURE_NUPKG_ZIP}")
+  file(GLOB_RECURSE _SPEECH_CXX_HEADER "${AZURE_SDK_DIR}/extract/**/speechapi_cxx.h")
+  if(_SPEECH_CXX_HEADER)
+    file(WRITE "${AZURE_SDK_DIR}/.extracted" "ok")
+  endif()
 endif()
 
-file(GLOB_RECURSE _SPEECH_CXX_HEADER "${AZURE_SDK_DIR}/extract/**/speechapi_cxx.h")
 if(NOT _SPEECH_CXX_HEADER)
   message(FATAL_ERROR "speechapi_cxx.h not found under ${AZURE_SDK_DIR}/extract")
 endif()

@@ -25,6 +25,20 @@ function Test-FfmpegExecutable {
   }
 }
 
+function Invoke-DownloadWithRetry {
+  param([string]$Uri, [string]$OutFile, [int]$Attempts = 5)
+  for ($i = 1; $i -le $Attempts; $i++) {
+    try {
+      Invoke-WebRequest -Uri $Uri -UseBasicParsing -OutFile $OutFile
+      return
+    } catch {
+      if ($i -eq $Attempts) { throw }
+      Write-Host "Download of $Uri failed (attempt $i/$Attempts): $($_.Exception.Message); retrying..."
+      Start-Sleep -Seconds (3 * $i)
+    }
+  }
+}
+
 if (-not $Force -and (Test-FfmpegExecutable $Dest)) {
   Write-Host "Windows FFmpeg already present: $Dest"
   exit 0
@@ -40,10 +54,10 @@ $ExtractDir = Join-Path $TempRoot "extract"
 try {
   New-Item -ItemType Directory -Force -Path $TempRoot, $DestDir | Out-Null
 
-  Invoke-WebRequest -Uri $ShaUrl -UseBasicParsing -OutFile (Join-Path $TempRoot "expected.sha256")
+  Invoke-DownloadWithRetry -Uri $ShaUrl -OutFile (Join-Path $TempRoot "expected.sha256")
   $ExpectedHash = ((Get-Content (Join-Path $TempRoot "expected.sha256") -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
 
-  Invoke-WebRequest -Uri $ZipUrl -UseBasicParsing -OutFile $ZipPath
+  Invoke-DownloadWithRetry -Uri $ZipUrl -OutFile $ZipPath
 
   $ActualHash = (Get-FileHash -Path $ZipPath -Algorithm SHA256).Hash.ToLowerInvariant()
   if ($ActualHash -ne $ExpectedHash) {

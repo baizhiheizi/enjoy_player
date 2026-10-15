@@ -2,7 +2,9 @@ name: Codegen drift
 
 on:
   pull_request:
-    paths: &codegen_drift_paths
+  push:
+    branches: [main]
+    paths:
       - "lib/**"
       - "packages/**"
       - "pubspec.yaml"
@@ -12,9 +14,6 @@ on:
       - ".github/scripts/check_codegen_drift.sh"
       - ".github/scripts/validate_ci_gates.sh"
       - ".github/workflows/codegen_drift.yml"
-  push:
-    branches: [main]
-    paths: *codegen_drift_paths
   workflow_dispatch:
 
 concurrency:
@@ -32,11 +31,46 @@ permissions:
   contents: read
 
 jobs:
+  # Required status checks must always report, so this workflow triggers on
+  # every PR and this job decides whether the real job has work to do. A
+  # skipped job counts as passing; an API error counts as relevant (fail-safe:
+  # never skip silently). Push events keep their trigger-level path filter.
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-slim
+    permissions:
+      pull-requests: read
+    outputs:
+      relevant: ${{ steps.diff.outputs.relevant }}
+    steps:
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          PATTERN: '^(lib/|packages/|pubspec\.(yaml|lock)$|mise\.toml$|\.github/actions/setup-flutter/|\.github/scripts/(check_codegen_drift|validate_ci_gates)\.sh$|\.github/workflows/codegen_drift\.yml$)'
+        run: |
+          if ! files="$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')"; then
+            echo "::warning::Could not list PR files; running the checks."
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if grep -Eq "$PATTERN" <<<"$files"; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No matching paths changed; the check will be skipped."
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+          fi
+
   check:
-    # PR runs pause in ci-approval until a required reviewer approves; push and
+    name: Codegen drift
+    needs: changes
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.relevant == 'true') }}
+    # PRs from outside the org (bots, Copilot, contributors) pause in
+    # ci-approval until a required reviewer approves; org-member PRs, push and
     # workflow_dispatch resolve to the unprotected ci-direct and run freely.
     environment:
-      name: ${{ github.event_name == 'pull_request' && 'ci-approval' || 'ci-direct' }}
+      name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux, ci]
     steps:
       - uses: actions/checkout@v6

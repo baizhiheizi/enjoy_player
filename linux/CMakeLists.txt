@@ -13,6 +13,17 @@ set(APPLICATION_ID "ai.enjoy.player.enjoy_player")
 # versions of CMake.
 cmake_policy(SET CMP0063 NEW)
 
+# flutter_inappwebview_linux pulls nlohmann/json via FetchContent from
+# github.com on every clean configure. When NLOHMANN_JSON_SOURCE_DIR points at
+# an already-extracted copy (CI prefetches one into the runner tool cache),
+# use it instead of downloading.
+if(DEFINED ENV{NLOHMANN_JSON_SOURCE_DIR} AND EXISTS "$ENV{NLOHMANN_JSON_SOURCE_DIR}/CMakeLists.txt")
+  set(FETCHCONTENT_SOURCE_DIR_NLOHMANN_JSON "$ENV{NLOHMANN_JSON_SOURCE_DIR}"
+    CACHE PATH "Pre-fetched nlohmann/json source" FORCE)
+else()
+  unset(FETCHCONTENT_SOURCE_DIR_NLOHMANN_JSON CACHE)
+endif()
+
 # Load bundled libraries from the lib/ directory relative to the binary.
 set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
 
