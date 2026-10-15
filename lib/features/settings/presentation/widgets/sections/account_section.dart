@@ -21,9 +21,8 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/subscription_tier_label.dart';
 import 'package:enjoy_player/features/credits/application/todays_credits_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
-import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
-import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
+import 'package:enjoy_player/features/subscription/application/daily_credits_limit_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Logo-ring avatar shared by the account surfaces (settings pane, hub card).
@@ -75,9 +74,7 @@ class AccountSection extends ConsumerWidget {
     final tier = ref.watch(currentTierProvider);
     final tierLabel = subscriptionTierLabel(l10n, tier);
     final creditsUsed = ref.watch(todaysCreditsUsedProvider).valueOrNull;
-    final dailyLimit =
-        ref.watch(subscriptionStatusProvider).valueOrNull?.dailyCreditsLimit ??
-        dailyCreditsLimitForTier(tier);
+    final dailyLimit = ref.watch(dailyCreditsLimitProvider);
     final number = NumberFormat.decimalPattern(
       Localizations.localeOf(context).toString(),
     );

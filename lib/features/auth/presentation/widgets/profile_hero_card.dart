@@ -378,11 +378,8 @@ class ProfileCreditsCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final number = NumberFormat.decimalPattern(locale);
-    final fraction = used == null || limit <= 0
-        ? 0.0
-        : (used! / limit).clamp(0.0, 1.0);
-    final isLow =
-        used != null && limit > 0 && fraction >= kLowCreditsUsedFraction;
+    final fraction = creditsUsedFraction(used: used, limit: limit);
+    final isLow = creditsLow(used: used, limit: limit);
     final upgradeVisible = isLow && tier == SubscriptionTier.free;
     final extra = permanent;
     return EnjoyCard(
