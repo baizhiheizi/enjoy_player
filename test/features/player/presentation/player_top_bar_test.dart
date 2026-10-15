@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -59,11 +60,11 @@ class _SpyInteractions extends PlayerInteractions {
 
 _SpyInteractions? _spy;
 
-List<Override> _overrides() {
-  final db = AppDatabase(executor: NativeDatabase.memory());
+List<Override> _overrides({AppDatabase? db}) {
+  final database = db ?? AppDatabase(executor: NativeDatabase.memory());
   return [
-    appDatabaseProvider.overrideWithValue(db),
-    deviceGlobalAppDatabaseProvider.overrideWithValue(db),
+    appDatabaseProvider.overrideWithValue(database),
+    deviceGlobalAppDatabaseProvider.overrideWithValue(database),
     playerControllerProvider.overrideWith(_SessionPlayerController.new),
     playerInteractionsProvider.overrideWith(
       (ref) => _spy = _SpyInteractions(ref),
@@ -93,6 +94,7 @@ Future<void> _pumpBar(
   WidgetTester tester, {
   double width = 360,
   List<Override> overrides = const [],
+  AppDatabase? db,
 }) async {
   tester.view.physicalSize = width > 600
       ? const Size(1440, 900)
@@ -101,10 +103,14 @@ Future<void> _pumpBar(
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [..._overrides(), ...overrides],
+      overrides: [
+        ..._overrides(db: db),
+        ...overrides,
+      ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        scaffoldMessengerKey: appScaffoldMessengerKey,
         home: Scaffold(
           body: Align(
             alignment: Alignment.topCenter,
@@ -174,6 +180,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('transcript-action-edit')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('player-more-edit-details')),
+      findsOneWidget,
+    );
     expect(find.text('Keyboard shortcuts'), findsOneWidget);
 
     await tester.tapAt(const Offset(40, 600));
@@ -214,6 +224,80 @@ void main() {
             .dy,
       ),
     );
+  });
+
+  testWidgets('⋯ More groups Media under its own heading after Transcript', (
+    tester,
+  ) async {
+    await _pumpBar(tester, width: 1200);
+
+    await tester.tap(find.byKey(const ValueKey('player-top-bar-more')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('MEDIA'), findsOneWidget);
+    final transcriptDy = tester.getTopLeft(find.text('TRANSCRIPT')).dy;
+    final mediaDy = tester.getTopLeft(find.text('MEDIA')).dy;
+    final shortcutsDy = tester.getTopLeft(find.text('Keyboard shortcuts')).dy;
+    expect(transcriptDy, lessThan(mediaDy));
+    expect(mediaDy, lessThan(shortcutsDy));
+  });
+
+  testWidgets('Edit details opens prefilled for the open media', (
+    tester,
+  ) async {
+    final db = AppDatabase(executor: NativeDatabase.memory());
+    addTearDown(db.close);
+    final now = DateTime.now();
+    await db.videoDao.insertRow(
+      VideoRow(
+        id: _mediaId,
+        vid: 'vid-bar',
+        provider: 'user',
+        title: 'Bar media',
+        description: null,
+        thumbnailUrl: null,
+        durationSeconds: 120,
+        language: 'en-US',
+        source: null,
+        localUri: null,
+        md5: null,
+        size: null,
+        mediaUrl: null,
+        syncStatus: null,
+        serverUpdatedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await _pumpBar(tester, width: 1200, db: db);
+
+    await tester.tap(find.byKey(const ValueKey('player-top-bar-more')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('player-more-edit-details')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit details'), findsOneWidget);
+    expect(find.text('English (US)'), findsOneWidget);
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, 'Bar media');
+  });
+
+  testWidgets('Edit details for a missing row surfaces the missing notice', (
+    tester,
+  ) async {
+    await _pumpBar(tester, width: 1200);
+
+    await tester.tap(find.byKey(const ValueKey('player-top-bar-more')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('player-more-edit-details')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.text('This item is no longer in your library.'),
+      findsOneWidget,
+    );
+    expect(find.byType(TextField), findsNothing);
   });
 
   testWidgets('desktop mode switch has Listen, Echo and Dictate', (

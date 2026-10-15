@@ -181,6 +181,58 @@ void main() {
       await registry.updateLanguage('shared', 'EN-US');
       expect((await db.audioDao.getById('shared'))!.language, 'EN-US');
     });
+
+    test('accepts a pre-probed hit', () async {
+      await seed(Fixture.videoOnly);
+      final probed = await registry.probeBoth('shared');
+      final kind = await registry.updateLanguage(
+        'shared',
+        'de',
+        probed: probed,
+      );
+      expect(kind, MediaKind.video);
+      expect((await db.videoDao.getById('shared'))!.language, 'de');
+    });
+  });
+
+  group('updateTitle', () {
+    for (final f in Fixture.values) {
+      test('writes the title for ${_fixtureLabels[f]}', () async {
+        final expected = await seed(f);
+        final kind = await registry.updateTitle('shared', 'Renamed');
+        expect(kind, expected);
+        if (expected == MediaKind.video) {
+          expect((await db.videoDao.getById('shared'))!.title, 'Renamed');
+        }
+        if (expected == MediaKind.audio) {
+          expect((await db.audioDao.getById('shared'))!.title, 'Renamed');
+        }
+      });
+    }
+
+    test('both tables: only the video row is renamed', () async {
+      await seed(Fixture.both);
+      await registry.updateTitle('shared', 'Renamed');
+      expect((await db.videoDao.getById('shared'))!.title, 'Renamed');
+      expect((await db.audioDao.getById('shared'))!.title, 'Audio shared');
+    });
+
+    test('accepts a pre-probed hit', () async {
+      await seed(Fixture.audioOnly);
+      final probed = await registry.probeBoth('shared');
+      final kind = await registry.updateTitle(
+        'shared',
+        'Renamed',
+        probed: probed,
+      );
+      expect(kind, MediaKind.audio);
+      expect((await db.audioDao.getById('shared'))!.title, 'Renamed');
+    });
+
+    test('unknown id returns null', () async {
+      final kind = await registry.updateTitle('missing', 'Renamed');
+      expect(kind, isNull);
+    });
   });
 
   group('updateLocalFile', () {

@@ -486,14 +486,41 @@ class MediaRegistry {
   /// fetch-state clearing deliberately stays outside the registry: it touches
   /// the `transcript_fetch_states` table, and the registry spans only
   /// `videos` / `audios`.
-  Future<MediaKind?> updateLanguage(String id, String language) async {
-    final hit = await _probe(id);
+  Future<MediaKind?> updateLanguage(
+    String id,
+    String language, {
+    ({VideoRow? video, AudioRow? audio})? probed,
+  }) async {
+    final hit = probed ?? await _probe(id);
     if (hit.video != null) {
       await _db.videoDao.updateLanguage(id: id, language: language);
       return MediaKind.video;
     }
     if (hit.audio != null) {
       await _db.audioDao.updateLanguage(id: id, language: language);
+      return MediaKind.audio;
+    }
+    return null;
+  }
+
+  /// Writes the display title on whichever table holds [id] (video first),
+  /// bumping `updatedAt`.
+  ///
+  /// Like [updateLanguage], [title] is written verbatim — trimming and the
+  /// "already that title, skip the write + sync" guard are caller policy.
+  /// Returns the kind updated, or `null` when neither table holds [id].
+  Future<MediaKind?> updateTitle(
+    String id,
+    String title, {
+    ({VideoRow? video, AudioRow? audio})? probed,
+  }) async {
+    final hit = probed ?? await _probe(id);
+    if (hit.video != null) {
+      await _db.videoDao.updateTitle(id: id, title: title);
+      return MediaKind.video;
+    }
+    if (hit.audio != null) {
+      await _db.audioDao.updateTitle(id: id, title: title);
       return MediaKind.audio;
     }
     return null;

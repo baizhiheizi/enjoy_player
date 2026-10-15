@@ -42,6 +42,12 @@ class AudioDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  Future<void> updateTitle({required String id, required String title}) async {
+    await (update(audios)..where((t) => t.id.equals(id))).write(
+      AudiosCompanion(title: Value(title), updatedAt: Value(DateTime.now())),
+    );
+  }
+
   /// Bumps [Audios.updatedAt] so Home "Recent media" can resurface the row.
   Future<void> touchUpdatedAt(String id) async {
     await (update(audios)..where((t) => t.id.equals(id))).write(

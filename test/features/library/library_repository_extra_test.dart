@@ -692,6 +692,179 @@ void main() {
       });
     });
 
+    group('updateMediaTitle', () {
+      test('updates video row title and enqueues sync', () async {
+        final syncLog = <(SyncEntityType, String, SyncAction)>[];
+        final syncRepo = MediaLibraryRepository(
+          db,
+          FileStorage(),
+          enqueueSync: (type, id, action) async {
+            syncLog.add((type, id, action));
+          },
+        );
+
+        final now = DateTime.now();
+        const id = 'vid-title';
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: id,
+            vid: 'v-title',
+            provider: 'user',
+            title: 'Old title',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 0,
+            language: 'en-US',
+            source: null,
+            localUri: null,
+            md5: null,
+            size: null,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        await syncRepo.updateMediaTitle(id, 'New title');
+        final row = await db.videoDao.getById(id);
+        expect(row!.title, 'New title');
+        expect(
+          syncLog,
+          contains((SyncEntityType.video, id, SyncAction.update)),
+        );
+      });
+
+      test('updates audio row title and enqueues sync', () async {
+        final syncLog = <(SyncEntityType, String, SyncAction)>[];
+        final syncRepo = MediaLibraryRepository(
+          db,
+          FileStorage(),
+          enqueueSync: (type, id, action) async {
+            syncLog.add((type, id, action));
+          },
+        );
+
+        final now = DateTime.now();
+        const id = 'aud-title';
+        await db.audioDao.insertRow(
+          AudioRow(
+            id: id,
+            aid: 'a-title',
+            provider: 'user',
+            title: 'Old title',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 0,
+            language: 'und',
+            translationKey: null,
+            sourceText: null,
+            voice: null,
+            source: null,
+            localUri: null,
+            md5: null,
+            size: null,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        await syncRepo.updateMediaTitle(id, 'Renamed audio');
+        final row = await db.audioDao.getById(id);
+        expect(row!.title, 'Renamed audio');
+        expect(
+          syncLog,
+          contains((SyncEntityType.audio, id, SyncAction.update)),
+        );
+      });
+
+      test('trims the title before writing', () async {
+        final now = DateTime.now();
+        const id = 'vid-trim';
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: id,
+            vid: 'v-trim',
+            provider: 'user',
+            title: 'Padded ',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 0,
+            language: 'en-US',
+            source: null,
+            localUri: null,
+            md5: null,
+            size: null,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        await repo.updateMediaTitle(id, '  Padded');
+        final row = await db.videoDao.getById(id);
+        expect(row!.title, 'Padded');
+      });
+
+      test('skips update when the title is unchanged', () async {
+        var syncCalls = 0;
+        final syncRepo = MediaLibraryRepository(
+          db,
+          FileStorage(),
+          enqueueSync: (_, _, _) async {
+            syncCalls++;
+          },
+        );
+
+        final now = DateTime.now();
+        const id = 'vid-same-title';
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: id,
+            vid: 'v-same-title',
+            provider: 'user',
+            title: 'Same title',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 0,
+            language: 'en-US',
+            source: null,
+            localUri: null,
+            md5: null,
+            size: null,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        await syncRepo.updateMediaTitle(id, 'Same title');
+        expect(syncCalls, 0);
+      });
+
+      test('throws FileFailure for a blank title', () async {
+        await expectLater(
+          repo.updateMediaTitle('any-id', '   '),
+          throwsA(isA<FileFailure>()),
+        );
+      });
+
+      test('throws FileFailure for non-existent media', () async {
+        await expectLater(
+          repo.updateMediaTitle('missing-id', 'New title'),
+          throwsA(isA<FileFailure>()),
+        );
+      });
+    });
+
     group('relocateLocalFile', () {
       test('relocates audio file when hash matches', () async {
         final bytes = utf8.encode('audio-relocate-body');

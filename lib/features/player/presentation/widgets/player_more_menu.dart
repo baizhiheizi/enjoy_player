@@ -1,5 +1,6 @@
 /// The player's ⋯ More menu (Duet v30): the transcript actions, the Media
-/// group (loop clip export), and the keyboard shortcuts cheatsheet, anchored
+/// group (Edit details, loop clip export), and the keyboard shortcuts
+/// cheatsheet, anchored
 /// under the top bar's More button.
 library;
 
@@ -14,6 +15,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
+import 'package:enjoy_player/features/library/presentation/edit_media_details.dart';
 import 'package:enjoy_player/features/player/application/loop_clip_export_availability.dart';
 import 'package:enjoy_player/features/player/presentation/loop_clip_export_flow.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_actions.dart';
@@ -151,6 +153,13 @@ class PlayerMoreMenuPanel extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
                   child: EnjoyOverline(l10n.playerMoreMediaSection),
+                ),
+                PlayerMenuRow(
+                  key: const ValueKey('player-more-edit-details'),
+                  label: l10n.playerMoreEditDetails,
+                  onTap: () => onChoose(
+                    (context) => editMediaDetailsForId(context, ref, mediaId),
+                  ),
                 ),
                 PlayerMenuRow(
                   key: const ValueKey('player-more-export-loop-clip'),

@@ -2443,6 +2443,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mediaLanguageUpdateFailed => '无法更新语言。';
 
   @override
+  String get mediaEditDetails => '编辑详情';
+
+  @override
+  String get mediaDetailsTitleLabel => '标题';
+
+  @override
+  String get mediaDetailsSave => '保存';
+
+  @override
+  String get mediaDetailsUpdated => '详情已更新。';
+
+  @override
+  String get mediaDetailsUpdateFailed => '无法更新详情。';
+
+  @override
+  String get mediaDetailsMissing => '该项目已不在资料库中。';
+
+  @override
   String get assessmentUnavailableLanguage => '该语言暂不支持发音评估。';
 
   @override
@@ -4266,6 +4284,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playerMoreMediaSection => '媒体';
+
+  @override
+  String get playerMoreEditDetails => '编辑详情';
 
   @override
   String get playerMoreExportLoopClip => '将循环导出为片段…';
@@ -6401,6 +6422,24 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get mediaLanguageUpdateFailed => '无法更新语言。';
 
   @override
+  String get mediaEditDetails => '编辑详情';
+
+  @override
+  String get mediaDetailsTitleLabel => '标题';
+
+  @override
+  String get mediaDetailsSave => '保存';
+
+  @override
+  String get mediaDetailsUpdated => '详情已更新。';
+
+  @override
+  String get mediaDetailsUpdateFailed => '无法更新详情。';
+
+  @override
+  String get mediaDetailsMissing => '该项目已不在资料库中。';
+
+  @override
   String get assessmentUnavailableLanguage => '该语言暂不支持发音评估。';
 
   @override
@@ -8025,6 +8064,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get playerMoreMediaSection => '媒体';
+
+  @override
+  String get playerMoreEditDetails => '编辑详情';
 
   @override
   String get playerMoreExportLoopClip => '将循环导出为片段…';
