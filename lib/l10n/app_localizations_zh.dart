@@ -794,9 +794,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get playerDockRecord => '录音';
-
-  @override
   String get shadowReadingTitle => '跟读';
 
   @override
@@ -5208,9 +5205,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String echoLoopCaptionRecording(int count) {
     return '录音 · 第 $count 遍';
   }
-
-  @override
-  String get playerDockRecord => '录音';
 
   @override
   String get shadowReadingTitle => '跟读';

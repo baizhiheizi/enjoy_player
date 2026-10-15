@@ -828,9 +828,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get playerDockRecord => 'Record';
-
-  @override
   String get shadowReadingTitle => 'Shadow reading';
 
   @override

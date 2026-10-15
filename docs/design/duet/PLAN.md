@@ -639,8 +639,8 @@ The rules above still apply. Rows marked **behavior** wait for their decision in
 | Token | Today | v30 (`System` → "Sizes from the web app") | Task |
 |---|---|---|---|
 | `segmentHeight` | 38 | 34 desktop · 36 phone; labels 13.5 | D6.1 |
-| `playButton` / `playButtonPhone` | 60 / 68 | 60 / 64 — done in D6.5 | D6.5 |
-| `recordButton` / `recordButtonPhone` | 62 / 76 | 62 / 76 (unchanged: the `Main` board keeps the desktop Record at 62; the `System` sheet's "Record 76" is the phone size) | — |
+| `playButton` / `playButtonPhone` | 60 / 68 | 60 / 64 — done in D6.5; phone 56 in the compact phone dock (2026-10-15) | D6.5 |
+| `recordButton` / `recordButtonPhone` | 62 / 76 | 62 / 56 — the phone Echo dock is one 56dp row (2026-10-15, user review: the 76dp captioned zone took transcript room); `originalButtonPhone` 56 → 48 | D3.2 |
 | `iconButton` / `iconButtonPhone` | 40 / 44 | 40 / 44 (unchanged) | — |
 | `overline` letter spacing | 0.08 em | 0.09 em, 11 px | D6.4 |
 | Transcript line / current line | 21 / — (phone 20 / 16) | line 19 (phone 17) · current line 25 (phone 23) | D6.4 |

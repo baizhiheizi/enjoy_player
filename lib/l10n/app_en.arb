@@ -328,8 +328,6 @@
   "@echoLoopCaptionLines": {"description": "Echo loop caption for a line span.", "placeholders": {"range": {"type": "String"}, "seconds": {"type": "String"}}},
   "echoLoopCaptionRecording": "RECORDING TAKE {count}",
   "@echoLoopCaptionRecording": {"description": "Echo loop caption while recording a take.", "placeholders": {"count": {"type": "int"}}},
-  "playerDockRecord": "Record",
-  "@playerDockRecord": {"description": "Caption under the phone Echo record button."},
   "shadowReadingTitle": "Shadow reading",
   "shadowReadingHint": "Practice speaking along this segment. Record your voice and compare pitch with the reference.",
   "shadowReadingReferenceSnippet": "Reference",
