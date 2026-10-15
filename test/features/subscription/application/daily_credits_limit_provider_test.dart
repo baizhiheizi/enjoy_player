@@ -36,7 +36,7 @@ const _proStatus = SubscriptionStatus(
 
 ProviderContainer _container({
   UserProfile? signedInProfile,
-  Future<SubscriptionStatus> Function()? status,
+  required Future<SubscriptionStatus> Function() status,
 }) {
   final overrides = <Override>[
     signedInProfile == null
@@ -44,7 +44,7 @@ ProviderContainer _container({
         : authCtrlProvider.overrideWith(
             () => _SignedInAuthCtrl(signedInProfile),
           ),
-    subscriptionStatusProvider.overrideWith((ref) => status!()),
+    subscriptionStatusProvider.overrideWith((ref) => status()),
   ];
   return ProviderContainer(overrides: overrides);
 }
@@ -60,7 +60,10 @@ void main() {
     addTearDown(container.dispose);
     await container.read(authCtrlProvider.future);
     await container.read(subscriptionStatusProvider.future);
-    expect(container.read(dailyCreditsLimitProvider), 60000);
+    expect(
+      container.read(dailyCreditsLimitProvider),
+      dailyCreditsLimitForTier(SubscriptionTier.pro),
+    );
   });
 
   test(
@@ -72,7 +75,10 @@ void main() {
       );
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
-      expect(container.read(dailyCreditsLimitProvider), 1000);
+      expect(
+        container.read(dailyCreditsLimitProvider),
+        dailyCreditsLimitForTier(SubscriptionTier.free),
+      );
     },
   );
 
@@ -84,7 +90,10 @@ void main() {
       );
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
-      expect(container.read(dailyCreditsLimitProvider), 1000);
+      expect(
+        container.read(dailyCreditsLimitProvider),
+        dailyCreditsLimitForTier(SubscriptionTier.free),
+      );
     },
   );
 
@@ -97,7 +106,10 @@ void main() {
       );
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
-      expect(container.read(dailyCreditsLimitProvider), 1000);
+      expect(
+        container.read(dailyCreditsLimitProvider),
+        dailyCreditsLimitForTier(SubscriptionTier.free),
+      );
     },
   );
 }

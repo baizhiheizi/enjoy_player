@@ -15,6 +15,13 @@ part 'daily_credits_limit_provider.g.dart';
 ///
 /// Every meter / chip / usage surface reads this provider rather than
 /// re-deriving `status?.dailyCreditsLimit ?? dailyCreditsLimitForTier(tier)`.
+///
+/// Kept alive to share one cache lifetime with [currentTierProvider], which
+/// it derives from, so the limit cannot resolve from a different tier
+/// snapshot than the tier indicators beside it. Both upstreams are themselves
+/// kept alive, so this holds no subscription of its own; recomputing the two
+/// reads on remount would be free, but would leave this provider as the only
+/// source-of-truth in this directory that disposes between routes.
 @Riverpod(keepAlive: true)
 int dailyCreditsLimit(Ref ref) {
   final status = ref.watch(subscriptionStatusProvider).valueOrNull;

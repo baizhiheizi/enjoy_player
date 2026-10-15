@@ -8,7 +8,7 @@ const double kLowCreditsUsedFraction = 0.9;
 /// Fraction of the daily pool consumed, clamped to [0, 1]; 0 when the
 /// usage is unknown or the pool is empty.
 double creditsUsedFraction({required int? used, required int limit}) {
-  if (used == null || limit <= 0) return 0;
+  if (used == null || limit <= 0) return 0.0;
   return (used / limit).clamp(0.0, 1.0);
 }
 
