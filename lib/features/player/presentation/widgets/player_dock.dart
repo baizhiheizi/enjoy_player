@@ -161,7 +161,9 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                   child: RepaintBoundary(child: SentenceRuler(chrome: chrome)),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                  padding: phone
+                      ? const EdgeInsets.fromLTRB(12, 4, 12, 8)
+                      : const EdgeInsets.fromLTRB(20, 4, 20, 12),
                   child: AnimatedSwitcher(
                     duration: MediaQuery.disableAnimationsOf(context)
                         ? Duration.zero
@@ -192,6 +194,7 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             playing: playing,
                             onPrev: interactions.prevLine,
                             onNext: interactions.nextLine,
+                            onReplay: interactions.replayLine,
                             onTogglePlay: () => ref
                                 .read(playerControllerProvider.notifier)
                                 .togglePlay(),
@@ -368,6 +371,7 @@ class _EchoControls extends StatelessWidget {
     required this.playing,
     required this.onPrev,
     required this.onNext,
+    required this.onReplay,
     required this.onTogglePlay,
     required this.onRecord,
     required this.onSpeed,
@@ -381,6 +385,7 @@ class _EchoControls extends StatelessWidget {
   final bool playing;
   final Future<void> Function() onPrev;
   final Future<void> Function() onNext;
+  final Future<void> Function() onReplay;
   final VoidCallback onTogglePlay;
   final VoidCallback onRecord;
   final VoidCallback onSpeed;
@@ -416,79 +421,56 @@ class _EchoControls extends StatelessWidget {
       tooltip: l10n.nextLine,
       onTap: onNext,
     );
-    final Widget center;
     if (phone) {
-      final zone = t.recordButtonSizePhone;
-      Widget zoneBox(Widget child) => SizedBox(
-        height: zone,
-        child: Center(child: child),
-      );
-      center = Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      return Row(
         children: [
-          zoneBox(skipBack),
-          const SizedBox(width: 10),
-          DockLabeledControl(
-            zoneHeight: zone,
-            label: playing ? l10n.pause : l10n.play,
-            color: t.originalInk,
-            child: playPause,
+          DockIconButton(
+            icon: EnjoyIcons.replay,
+            tooltip: l10n.replayLine,
+            onTap: onReplay,
           ),
-          const SizedBox(width: 16),
-          DockLabeledControl(
-            zoneHeight: zone,
-            label: l10n.playerDockRecord,
-            color: t.youInk,
-            child: record,
-          ),
+          const Spacer(),
+          skipBack,
+          const SizedBox(width: 4),
+          playPause,
           const SizedBox(width: 10),
-          zoneBox(skipForward),
+          record,
+          const SizedBox(width: 4),
+          skipForward,
+          const Spacer(),
+          DockSpeedButton(rate: playbackRate, onOpen: onSpeed),
         ],
       );
-    } else {
-      center = Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          skipBack,
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Container(
-              padding: const EdgeInsets.all(5),
-              decoration: ShapeDecoration(
-                color: t.sunk,
-                shape: const StadiumBorder(),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [playPause, const SizedBox(width: 6), record],
-              ),
+    }
+    final center = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        skipBack,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Container(
+            padding: const EdgeInsets.all(5),
+            decoration: ShapeDecoration(
+              color: t.sunk,
+              shape: const StadiumBorder(),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [playPause, const SizedBox(width: 6), record],
             ),
           ),
-          skipForward,
-        ],
-      );
-    }
-    final right = !phone
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              DockSpeedButton(rate: playbackRate, onOpen: onSpeed),
-              const SizedBox(width: 6),
-              const TransportVolumeButton(),
-            ],
-          )
-        : const SizedBox.shrink();
-
-    if (phone) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [center],
         ),
-      );
-    }
+        skipForward,
+      ],
+    );
+    final right = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        DockSpeedButton(rate: playbackRate, onOpen: onSpeed),
+        const SizedBox(width: 6),
+        const TransportVolumeButton(),
+      ],
+    );
 
     return SizedBox(
       height: 76,
@@ -527,12 +509,13 @@ class _RecordingControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final stopSize = phone ? 48.0 : 62.0;
     final group = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(width: 40),
         Container(
-          padding: const EdgeInsets.all(5),
+          padding: EdgeInsets.all(phone ? 4 : 5),
           decoration: ShapeDecoration(
             color: t.sunk,
             shape: const StadiumBorder(),
@@ -548,7 +531,7 @@ class _RecordingControls extends StatelessWidget {
                   pressedScale: 0.96,
                   child: Container(
                     width: isDesktop ? 150 : null,
-                    height: 52,
+                    height: phone ? 48 : 52,
                     padding: const EdgeInsets.only(left: 8, right: 12),
                     decoration: ShapeDecoration(
                       color: t.paper,
@@ -602,14 +585,14 @@ class _RecordingControls extends StatelessWidget {
                   button: true,
                   child: EnjoyPressable(
                     onTap: onStop,
-                    borderRadius: BorderRadius.circular(31),
+                    borderRadius: BorderRadius.circular(stopSize / 2),
                     pressedScale: 0.94,
-                    child: const SizedBox(
-                      width: 62,
-                      height: 62,
+                    child: SizedBox(
+                      width: stopSize,
+                      height: stopSize,
                       child: Center(
                         child: DockRecordRing(
-                          diskSize: 50,
+                          diskSize: stopSize - (phone ? 4 : 12),
                           dotShape: DockRecordDotShape.stopSquare,
                         ),
                       ),
@@ -624,7 +607,7 @@ class _RecordingControls extends StatelessWidget {
       ],
     );
     if (phone) {
-      return SizedBox(height: 76, child: Center(child: group));
+      return Center(child: group);
     }
     return SizedBox(
       height: 76,

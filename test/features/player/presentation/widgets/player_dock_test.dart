@@ -8,6 +8,7 @@ import 'package:enjoy_player/features/player/application/player_controller.dart'
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_dock.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_dock_primitives.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/sentence_ruler.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_volume_button.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
@@ -158,7 +159,6 @@ void main() {
     expect(find.text(l10n.playerDockHideText), findsNothing);
     expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
     expect(find.text('1.0×'), findsOneWidget);
-    expect(find.text(l10n.playerDockRecord), findsNothing);
     expect(find.byType(TransportVolumeButton), findsOneWidget);
   });
 
@@ -208,16 +208,46 @@ void main() {
     expect(find.text(l10n.pause), findsNothing);
   });
 
-  testWidgets('Echo dock labels Play and Record on phone', (tester) async {
+  testWidgets('phone Echo dock is one compact row without captions', (
+    tester,
+  ) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     await tester.binding.setSurfaceSize(const Size(400, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await pumpDock(tester, echoActive: true);
 
-    expect(find.text(l10n.play), findsOneWidget);
-    expect(find.text(l10n.playerDockRecord), findsOneWidget);
+    expect(find.text(l10n.play), findsNothing);
+    final replay = tester.getCenter(find.byIcon(EnjoyIcons.replay));
+    final skipBack = tester.getCenter(find.byIcon(EnjoyIcons.skipBack));
+    final play = tester.getCenter(find.byIcon(EnjoyIcons.play));
+    final record = tester.getCenter(find.byType(DockRecordButton));
+    final skipForward = tester.getCenter(find.byIcon(EnjoyIcons.skipForward));
+    final speed = tester.getCenter(find.text('1.0×'));
+    final xs = [
+      replay,
+      skipBack,
+      play,
+      record,
+      skipForward,
+      speed,
+    ].map((o) => o.dx).toList();
+    expect(xs, orderedEquals([...xs]..sort()));
+    expect((record.dy - replay.dy).abs(), lessThan(1));
+    expect(tester.getSize(find.byType(DockRecordButton)).height, 56);
     expect(tester.takeException(), isNull);
   });
+
+  for (final (name, echo, rec) in [
+    ('Echo', true, false),
+    ('Recording', false, true),
+  ]) {
+    testWidgets('phone $name dock fits at 360 width', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(360, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await pumpDock(tester, echoActive: echo, recording: rec);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('Recording dock shows Cancel and Stop', (tester) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
@@ -227,7 +257,6 @@ void main() {
 
     expect(find.text(l10n.asrLongMediaConfirmCancel), findsOneWidget);
     expect(find.bySemanticsLabel(l10n.shadowRecordingStop), findsOneWidget);
-    expect(find.text(l10n.playerDockRecord), findsNothing);
   });
 
   testWidgets('dock sits on paper with the progress strip mounted', (

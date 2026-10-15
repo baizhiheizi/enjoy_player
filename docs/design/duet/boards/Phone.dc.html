@@ -271,18 +271,18 @@ body{margin:0}
     </div>
 
     <sc-if value="{{ listenControls }}" hint-placeholder-val="{{ true }}">
-      <div style="display: flex; align-items: center; justify-content: space-between; height: 78px; padding: 0 2px">
+      <div style="display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 0 2px">
         <button class="ph-ib" onClick="{{ replay }}" aria-label="Replay line (S)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
         </button>
-        <button class="ph-ib" onClick="{{ prev }}" aria-label="Previous line" style="width: 52px; height: 52px">
+        <button class="ph-ib" onClick="{{ prev }}" aria-label="Previous line">
           <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M19 19.5 9 12l10-7.5v15Z"></path><path d="M5 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
         </button>
-        <button onClick="{{ togglePlay }}" aria-label="{{ playLabel }}" style="width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--brand); color: #FFFFFF; box-shadow: 0 6px 18px rgba(79,70,229,.26)">
+        <button onClick="{{ togglePlay }}" aria-label="{{ playLabel }}" style="width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--brand); color: #FFFFFF; box-shadow: 0 6px 18px rgba(79,70,229,.26)">
           <sc-if value="{{ showPlayIcon }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px; margin-left: 3px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></sc-if>
           <sc-if value="{{ showPauseIcon }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px"><rect x="6" y="4.5" width="4.2" height="15" rx="1.3"></rect><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.3"></rect></svg></sc-if>
         </button>
-        <button class="ph-ib" onClick="{{ next }}" aria-label="Next line" style="width: 52px; height: 52px">
+        <button class="ph-ib" onClick="{{ next }}" aria-label="Next line">
           <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 4.5 15 12 5 19.5v-15Z"></path><path d="M19 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
         </button>
         <button onClick="{{ cycleSpeed }}" aria-label="{{ speedAria }}" style="width: 44px; height: 44px; border-radius: 14px; font: 500 13px/1 var(--mono); color: var(--ink2)">{{ speedLabel }}</button>
@@ -290,54 +290,44 @@ body{margin:0}
     </sc-if>
 
     <sc-if value="{{ echoControls }}" hint-placeholder-val="{{ false }}">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between; height: 92px; padding: 6px 4px 0">
-        <button class="ph-ib" onClick="{{ prev }}" aria-label="Previous line" style="margin-top: 16px">
-          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M19 19.5 9 12l10-7.5v15Z"></path><path d="M5 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
+      <div style="display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 0 2px">
+        <button class="ph-ib" onClick="{{ replay }}" aria-label="Replay line (S)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
         </button>
-        <span style="display: flex; align-items: flex-start; gap: 18px">
-        <button onClick="{{ replay }}" aria-label="Hear the original" style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 72px">
-          <span style="width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--blue-soft); color: var(--blue-ink); margin-top: 10px">
+        <span style="display: flex; align-items: center; gap: 4px">
+          <button class="ph-ib" onClick="{{ prev }}" aria-label="Previous line">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M19 19.5 9 12l10-7.5v15Z"></path><path d="M5 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
+          </button>
+          <button onClick="{{ togglePlay }}" aria-label="{{ playLabel }}" style="width: 48px; height: 48px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--blue-soft); color: var(--blue-ink)">
             <sc-if value="{{ showPlayIcon }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px; margin-left: 2px"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"></path></svg></sc-if>
             <sc-if value="{{ showPauseIcon }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px"><rect x="6" y="4.5" width="4" height="15" rx="1.2"></rect><rect x="14" y="4.5" width="4" height="15" rx="1.2"></rect></svg></sc-if>
-          </span>
-          <span style="font-size: 11.5px; font-weight: 600; color: var(--blue-ink)">Original</span>
-        </button>
-        <button onClick="{{ toggleRec }}" aria-label="Record a take" style="display: flex; flex-direction: column; align-items: center; gap: 0; width: 84px">
-          <span style="width: 76px; height: 76px; border-radius: 50%; position: relative; display: inline-flex; align-items: center; justify-content: center">
-            <svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true" style="position: absolute; inset: 0"><circle cx="38" cy="38" r="35" fill="none" stroke-width="2.5" style="stroke: var(--you-line)"></circle></svg>
-            <span style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--you); color: var(--on-you); box-shadow: 0 8px 22px rgba(124,58,237,.3)"><span style="width: 20px; height: 20px; border-radius: 50%; background: currentColor"></span></span>
-          </span>
-          <span style="font-size: 11.5px; font-weight: 600; color: var(--you-ink)">Record</span>
-        </button>
+          </button>
+          <button onClick="{{ toggleRec }}" aria-label="Record a take (R)" style="width: 56px; height: 56px; margin-left: 6px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center">
+            <span style="width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--you); color: var(--on-you); box-shadow: 0 6px 18px rgba(124,58,237,.3)"><span style="width: 16px; height: 16px; border-radius: 50%; background: currentColor"></span></span>
+          </button>
+          <button class="ph-ib" onClick="{{ next }}" aria-label="Next line">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 4.5 15 12 5 19.5v-15Z"></path><path d="M19 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
+          </button>
         </span>
-        <button class="ph-ib" onClick="{{ next }}" aria-label="Next line" style="margin-top: 16px">
-          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 4.5 15 12 5 19.5v-15Z"></path><path d="M19 5v14" fill="none" stroke-linecap="round" stroke-width="2"></path></svg>
-        </button>
+        <button onClick="{{ cycleSpeed }}" aria-label="{{ speedAria }}" style="width: 44px; height: 44px; border-radius: 14px; font: 500 13px/1 var(--mono); color: var(--ink2)">{{ speedLabel }}</button>
       </div>
     </sc-if>
 
     <sc-if value="{{ recControls }}" hint-placeholder-val="{{ false }}">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between; height: 92px; padding: 6px 4px 0">
-        <span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0"></span>
-        <span style="display: flex; align-items: flex-start; gap: 18px">
-          <button onClick="{{ cancelRec }}" aria-label="Cancel and discard this take" style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 72px">
-            <span style="width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--sunk); color: var(--ink2); margin-top: 10px">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 20px; height: 20px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-            </span>
-            <span style="font-size: 11.5px; font-weight: 600; color: var(--ink2)">Cancel</span>
+      <div style="display: flex; align-items: center; justify-content: center; height: 60px">
+        <span style="display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 999px; background: var(--sunk)">
+          <button onClick="{{ cancelRec }}" aria-label="Cancel and discard this take" style="height: 48px; padding: 0 14px 0 6px; border-radius: 999px; display: inline-flex; align-items: center; gap: 10px; background: var(--paper); color: var(--ink2); font-size: 14px; font-weight: 600; box-shadow: 0 1px 2px rgba(18,20,26,.08)">
+            <span style="width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--sunk)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width: 14px; height: 14px"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></span>
+            Cancel
           </button>
-          <button onClick="{{ toggleRec }}" aria-label="Stop recording" style="display: flex; flex-direction: column; align-items: center; gap: 0; width: 84px">
-            <span style="width: 76px; height: 76px; border-radius: 50%; position: relative; display: inline-flex; align-items: center; justify-content: center">
-              <svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true" style="position: absolute; inset: 0; transform: rotate(-90deg)">
-                <circle cx="38" cy="38" r="35" fill="none" stroke-width="3" style="stroke: var(--you-line)"></circle>
-                <circle cx="38" cy="38" r="35" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="{{ ringOffset }}" style="stroke: var(--you)"></circle>
-              </svg>
-              <span style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--you); color: var(--on-you)"><span style="width: 20px; height: 20px; border-radius: 5px; background: currentColor"></span></span>
-            </span>
-            <span style="font-size: 11.5px; font-weight: 600; color: var(--you-ink)">Stop</span>
+          <button onClick="{{ toggleRec }}" aria-label="Stop recording" style="width: 48px; height: 48px; border-radius: 50%; position: relative; display: inline-flex; align-items: center; justify-content: center">
+            <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" style="position: absolute; inset: 0; transform: rotate(-90deg)">
+              <circle cx="24" cy="24" r="22.5" fill="none" stroke-width="2.5" style="stroke: var(--you-line)"></circle>
+              <circle cx="24" cy="24" r="22.5" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="141.4" stroke-dashoffset="{{ ringOffset }}" style="stroke: var(--you)"></circle>
+            </svg>
+            <span style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--you); color: var(--on-you)"><span style="width: 14px; height: 14px; border-radius: 4px; background: currentColor"></span></span>
           </button>
         </span>
-        <span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0"></span>
       </div>
     </sc-if>
   </footer>
@@ -518,7 +508,7 @@ function dContour(L, flat, stretch, withGap) {
   }
   return d;
 }
-var P_RING = 219.9;
+var P_RING = 141.4;
 
 class Component extends DCLogic {
   defaults() {

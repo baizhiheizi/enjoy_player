@@ -1557,12 +1557,6 @@ abstract class AppLocalizations {
   /// **'RECORDING TAKE {count}'**
   String echoLoopCaptionRecording(int count);
 
-  /// Caption under the phone Echo record button.
-  ///
-  /// In en, this message translates to:
-  /// **'Record'**
-  String get playerDockRecord;
-
   /// No description provided for @shadowReadingTitle.
   ///
   /// In en, this message translates to:

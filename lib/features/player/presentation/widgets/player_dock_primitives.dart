@@ -301,46 +301,6 @@ class DockPlayButton extends StatelessWidget {
   }
 }
 
-/// Column that centers a control in a shared button zone with a caption
-/// beneath it (Echo dock phone row).
-class DockLabeledControl extends StatelessWidget {
-  const DockLabeledControl({
-    required this.zoneHeight,
-    required this.label,
-    required this.color,
-    required this.child,
-    super.key,
-  });
-
-  final double zoneHeight;
-  final String label;
-  final Color color;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: zoneHeight,
-          child: Center(child: child),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: color,
-            height: 1.3,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 /// Inner dot glyph drawn at the center of a [`DockRecordRing`].
 enum DockRecordDotShape {
   /// Circular dot: the Echo record toggle.
@@ -431,7 +391,7 @@ class DockRecordButton extends StatelessWidget {
             height: size,
             child: Center(
               child: DockRecordRing(
-                diskSize: size - 12,
+                diskSize: size - (phone ? 4 : 12),
                 dotShape: DockRecordDotShape.circle,
               ),
             ),

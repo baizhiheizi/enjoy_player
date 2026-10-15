@@ -35,12 +35,12 @@ final class _ComponentTokens {
     chipHeight: 34,
     takeChipHeight: 36,
     playButtonSize: 60,
-    playButtonSizePhone: 64,
+    playButtonSizePhone: 56,
     recordButtonSize: 62,
-    recordButtonSizePhone: 76,
+    recordButtonSizePhone: 56,
     originalPillWidth: 150,
     originalPillHeight: 52,
-    originalButtonPhoneSize: 56,
+    originalButtonPhoneSize: 48,
   );
 
   /// Backdrop-filter blur for the transport glass bar.
