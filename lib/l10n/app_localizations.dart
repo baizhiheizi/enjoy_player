@@ -1461,6 +1461,54 @@ abstract class AppLocalizations {
   /// **'Transcripts updated from cloud.'**
   String get subtitlesRefreshDone;
 
+  /// Title of the dialog that picks the subtitle format for a transcript download.
+  ///
+  /// In en, this message translates to:
+  /// **'Download transcript'**
+  String get transcriptDownloadDialogTitle;
+
+  /// SubRip format choice in the transcript download dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'SRT'**
+  String get transcriptDownloadFormatSrtLabel;
+
+  /// Hint under the SRT choice in the transcript download dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'SubRip subtitle file (.srt)'**
+  String get transcriptDownloadFormatSrtHint;
+
+  /// WebVTT format choice in the transcript download dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'VTT'**
+  String get transcriptDownloadFormatVttLabel;
+
+  /// Hint under the VTT choice in the transcript download dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'WebVTT subtitle file (.vtt)'**
+  String get transcriptDownloadFormatVttHint;
+
+  /// Notice when the download is triggered with no active transcript.
+  ///
+  /// In en, this message translates to:
+  /// **'No transcript to download yet.'**
+  String get transcriptDownloadEmpty;
+
+  /// Notice after the transcript file was saved or shared.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript downloaded.'**
+  String get transcriptDownloadSuccess;
+
+  /// Notice when saving or sharing the transcript file failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not download the transcript.'**
+  String get transcriptDownloadError;
+
   /// No description provided for @subtitlesNoPlayableUri.
   ///
   /// In en, this message translates to:
@@ -8045,6 +8093,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duration (seconds)'**
   String get transcriptEditorFieldDuration;
+
+  /// More menu: save the active transcript as an SRT or VTT subtitle file.
+  ///
+  /// In en, this message translates to:
+  /// **'Download transcript…'**
+  String get playerMoreDownloadTranscript;
 
   /// More menu: open the keyboard shortcuts cheatsheet.
   ///

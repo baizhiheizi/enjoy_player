@@ -9,6 +9,7 @@ import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_display_readiness_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_enrichment_controller.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_actions.dart';
@@ -65,6 +66,7 @@ Future<List<TranscriptAction>> _actions(
   String targetType = 'Video',
   String? provider = 'local',
   List<TranscriptTrack> tracks = const [],
+  bool hasTranscript = false,
   TranscriptDisplayReadiness? readiness,
   TranscriptEnrichmentState enrich = const TranscriptEnrichmentState.idle(),
 }) async {
@@ -90,6 +92,9 @@ Future<List<TranscriptAction>> _actions(
         allTranscriptsForMediaProvider(
           _mediaId,
         ).overrideWith((ref) => Stream.value(tracks)),
+        transcriptHasLinesForMediaProvider(
+          _mediaId,
+        ).overrideWith((ref) => Stream.value(hasTranscript)),
         transcriptDisplayReadinessForMediaProvider(
           _mediaId,
         ).overrideWithValue(readiness ?? _readiness(showEnrich: false)),
@@ -124,6 +129,7 @@ void main() {
     final actions = await _actions(
       tester,
       tracks: const [_aiTrack],
+      hasTranscript: true,
       readiness: _readiness(showEnrich: true),
     );
 
@@ -134,10 +140,12 @@ void main() {
       TranscriptActionKind.aiTranscript,
       TranscriptActionKind.wordTimings,
       TranscriptActionKind.refreshCloud,
+      TranscriptActionKind.downloadTranscript,
     ]);
     expect(actions.first.label, 'Edit transcript');
     expect(actions[3].label, 'Transcribe again…');
     expect(actions[4].label, 'Add word timings & IPA');
+    expect(actions.last.label, 'Download transcript…');
   });
 
   testWidgets('no transcript track means no edit entry', (tester) async {
@@ -149,6 +157,32 @@ void main() {
     expect(
       actions.map((a) => a.kind),
       isNot(contains(TranscriptActionKind.edit)),
+    );
+  });
+
+  testWidgets('download drops out when no primary transcript is active', (
+    tester,
+  ) async {
+    final actions = await _actions(tester, tracks: const [_aiTrack]);
+
+    expect(
+      actions.map((a) => a.kind),
+      isNot(contains(TranscriptActionKind.downloadTranscript)),
+    );
+  });
+
+  testWidgets('download survives on YouTube when a transcript exists', (
+    tester,
+  ) async {
+    final actions = await _actions(
+      tester,
+      provider: 'youtube',
+      hasTranscript: true,
+    );
+
+    expect(
+      actions.map((a) => a.kind),
+      contains(TranscriptActionKind.downloadTranscript),
     );
   });
 

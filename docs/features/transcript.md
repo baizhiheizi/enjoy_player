@@ -87,6 +87,8 @@ be exported from [`subtitle_track_picker_sheet.dart`](../../lib/features/transcr
 | [`transcript_actions.dart`](../../lib/features/transcript/presentation/transcript_actions.dart) | `TranscriptAction` + `watchTranscriptActions` — the one list of transcript actions shared by the player's ⋯ More menu and the phone sheet (which actions apply to local / YouTube / audio / video, and their labels). |
 | [`subtitle_track_picker_sheet_action_handlers.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_action_handlers.dart) | Free functions owned by the action list: `refreshCloudTranscripts`, `confirmAndDeleteTranscriptTrack`. Import / extract / generate live in their own modules so the transcript empty state shares one entrypoint per action. |
 | [`import_subtitle_file.dart`](../../lib/features/transcript/presentation/import_subtitle_file.dart) | `pickAndImportSubtitleFile` — the **single** local-file import flow (file pick → language dialog → repository import → success notice), plus `kSubtitleImportExtensions` and the `SubtitleFilePick` seam. Shared by the picker sheet and the transcript empty state; always emits the `transcriptGeneration*` funnel with `source: local_file`. |
+| [`download_transcript.dart`](../../lib/features/transcript/presentation/download_transcript.dart) | `downloadActiveTranscript` — the **single** transcript download flow (read active primary lines → format dialog → serialize → save/share → notice), with `TranscriptLinesLoad` / `TranscriptFormatPick` / `TranscriptExportSave` seams. Shared by the ⋯ More menu and the phone sheet. |
+| [`download_transcript_format_dialog.dart`](../../lib/features/transcript/presentation/download_transcript_format_dialog.dart) | `showTranscriptExportFormatDialog` — the SRT / VTT choice (`EnjoyPressable` rows over `showEnjoyAlertDialog`, ADR-0018 / ADR-0093); tapping a row resolves the format, dismissing resolves null. |
 | [`subtitle_track_picker_sheet_body.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_body.dart) | Top-level builders: `buildSheetHeader`, `buildTracksContent` (async data / loading / error wiring), `buildTrackListBody` (primary + translation radio groups, blocked-message callouts, translation track list), `buildDialogSkeletonLoading`. |
 | [`subtitle_track_picker_popover_route.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_popover_route.dart) | `SubtitlesPopoverRoute` — the content-sized 384px raised-card `PopupRoute` anchored 10px under the top bar (ADR-0093 / ADR-0066). |
 | [`transcript_display_settings_sheet.dart`](../../lib/features/transcript/presentation/transcript_display_settings_sheet.dart) | `TranscriptDisplaySettingsSection` — the Display section: `TranscriptTypefacePicker` (Book / Clean), gated highlight + IPA switches, and `TranscriptEnrichmentCard` (progress with Cancel, or failure with retry). |
@@ -103,6 +105,44 @@ track). The shared import flow is covered end to end by
 the `transcriptGeneration*` funnel, and a repository-wiring case asserting the
 persisted track). The split is also recorded as
 [`2026-07-07-subtitle-track-picker-split-design.md`](../superpowers/specs/2026-07-07-subtitle-track-picker-split-design.md).
+
+### Download transcript (SRT / VTT export)
+
+**⋯ More → Download transcript…** (canvas v30, issue #921) saves the active
+primary transcript as a subtitle file. The entry appears in both the desktop
+More menu and the phone Subtitles & display sheet through the shared
+`watchTranscriptActions` list, and only when a transcript row exists for the
+media (the cheap boolean `transcriptHasLinesForMediaProvider`, so line-level
+rewrites never reshuffle the menu; an empty primary still surfaces the
+empty notice on tap). The flow
+([`download_transcript.dart`](../../lib/features/transcript/presentation/download_transcript.dart))
+reads the primary lines and the media title, asks for the format
+([`showTranscriptExportFormatDialog`](../../lib/features/transcript/presentation/download_transcript_format_dialog.dart)),
+serializes, and hands the bytes to the platform save dialog (desktop,
+`FilePicker.saveFile`) or share sheet (iOS / Android, `share_plus`) — the same
+IO shape as the diagnostics, Anki, and practice-poster exports
+([`transcript_export_io.dart`](../../lib/features/transcript/application/transcript_export_io.dart)).
+The file is named after the media title
+(`transcriptExportBaseName` in
+[`subtitle_filename.dart`](../../lib/data/subtitle/subtitle_filename.dart):
+filesystem-invalid characters become spaces, whitespace collapses, empty falls
+back to `transcript`).
+
+The serializers
+([`subtitle_serializer.dart`](../../lib/data/subtitle/subtitle_serializer.dart))
+are the write-side inverse of the subtitle parsers
+([`subtitle_parser.dart`](../../lib/data/subtitle/subtitle_parser.dart)):
+SRT writes 1-based indexed cues with `HH:MM:SS,mmm` timestamps, VTT writes a
+`WEBVTT` header with `HH:MM:SS.mmm`. Cues with blank text or non-positive
+duration are skipped, and cue text is trimmed with blank interior lines
+dropped — the outputs round-trip through `SrtParser` / `VttParser` exactly for
+that input. VTT cue text carrying inline `<…>` markup is written verbatim and
+the VTT parser strips tags on read, so such cues are the one non-bit-exact
+case. Pinned by
+[`subtitle_serializer_test.dart`](../../test/data/subtitle/subtitle_serializer_test.dart)
+(round trips), `download_transcript_format_dialog_test.dart`,
+`download_transcript_test.dart`, and the `transcript_actions_test.dart`
+entry-gating cases.
 
 ### Transcript repository shape
 
