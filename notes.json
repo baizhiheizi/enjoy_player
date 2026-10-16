@@ -27,7 +27,7 @@
       "number": 841,
       "state": "commented",
       "updated_at": "2026-10-16",
-      "note": "Monthly activity summary for October 2026. 2026-10-16 run: body replaced (prepended run 38852832649); new sandbox blocker signature (Flutter SDK Matrix4 missing in framework sources; linux_webview_environment.dart WebViewEnvironment undefined). Suggested Actions still none."
+      "note": "Monthly activity summary for October 2026. 2026-10-16 17:47 UTC run (38935308350): body refreshed; sandbox recovered — pub get ✓, analyze clean, test/widget_test.dart 2/2 pass. Prior Matrix4/WebViewEnvironment blocker no longer reproduces. Suggested Actions still none."
     },
     {
       "number": 850,
@@ -142,9 +142,9 @@
   "checks": [
     {
       "area": "ci",
-      "checked_at": "2026-10-15",
-      "result": "validate_ci_gates.sh --changed-only bash ||-then-awk precedence trap; grouped the fallback in braces so awk stays in the pipeline. Verified on current branch, 10/10 tests run. PR #904 closed the bash fix.",
-      "follow_up": "Closed by merged PR #904. 2026-10-16: sandbox test runner cannot validate code changes — Flutter SDK Matrix4 missing in framework sources, linux_webview_environment.dart WebViewEnvironment undefined. Network open, pub get succeeds, analyze clean. Healthy SDK install needed."
+      "checked_at": "2026-10-16",
+      "result": "sandbox gate green: pub get succeeds, flutter analyze 'No issues found! (ran in 18.3s)', flutter test test/widget_test.dart 2/2 pass. Matrix4 / vector_math_64 / WebViewEnvironment blocker from 2026-10-16 05:24 UTC no longer reproduces.",
+      "follow_up": "Sandbox recovered. Still no actionable code-changing work — proactive-refactor lane paused, no user-facing issue open. Future runs now have a viable local gate."
     }
   ],
   "completed_actions": [
@@ -166,6 +166,10 @@
     },
     {
       "key": "#841 body refresh 2026-10-16",
+      "completed_at": "2026-10-16"
+    },
+    {
+      "key": "#841 body refresh 2026-10-16 17:47 UTC",
       "completed_at": "2026-10-16"
     }
   ],
