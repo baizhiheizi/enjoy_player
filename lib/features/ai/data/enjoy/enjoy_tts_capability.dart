@@ -3,6 +3,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/services/ai/azure_token_cache.dart';
 import 'package:enjoy_player/features/ai/data/azure_language_mapper.dart';
+import 'package:enjoy_player/features/ai/data/azure_tts_result_mapper.dart';
 import 'package:enjoy_player/features/ai/domain/capabilities/tts_capability.dart';
 import 'package:enjoy_player/features/ai/domain/models/tts_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/tts_result.dart';
@@ -71,19 +72,7 @@ final class EnjoyTtsCapability implements TtsCapability {
         'format=${outcome.format}, ${outcome.wordBoundaries.length} word boundaries',
       );
 
-      return TtsResult(
-        audioBytes: outcome.audioBytes,
-        format: outcome.format,
-        wordBoundaries: outcome.wordBoundaries
-            .map(
-              (w) => TtsWordBoundary(
-                text: w.text,
-                audioOffsetMs: w.audioOffsetMs,
-                durationMs: w.durationMs,
-              ),
-            )
-            .toList(),
-      );
+      return ttsResultFromAzureOutcome(outcome);
     } on AzureSpeechException catch (e) {
       log.warning(
         'Azure Speech synthesis failed: ${e.message} (code=${e.code})',

@@ -105,7 +105,6 @@ The screen follows the Duet design language ([ADR-0093](../decisions/0093-duet-d
 
 ## Not wired yet
 
-- **Enjoy TTS** still throws `UnimplementedError` ([`EnjoyTtsCapability`](../../lib/features/ai/data/enjoy/enjoy_tts_capability.dart)).
 - **`AIProvider.local`** (on-device models) remains a typed placeholder.
 
 ## Code layout
