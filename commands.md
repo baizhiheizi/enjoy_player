@@ -2,13 +2,14 @@
 
 ## Toolchain quirk (IMPORTANT, cost me time — reuse this)
 - The CI-installed Flutter at `/home/runner/.toolcache/flutter-3.47.6-stable` (as of 2026-10-09; previously `flutter-3.44.0-stable`) is on a **READ-ONLY filesystem**. Any `flutter`/`dart` command run from there fails: `update_engine_version.sh` cannot write `engine.stamp`/`engine.realm`, and the tools snapshot cannot write `bin/cache/lockfile`. Do NOT waste time trying env vars.
+- SDK structure changed 2026-10-16: the bin/ tree now nests under `/home/runner/.toolcache/flutter-3.47.6-stable/flutter/` (a `flutter/` subdir). The writable-copy recipe below still works; just adjust the final path.
 - Workaround that works: copy the SDK to writable temp and invoke by ABSOLUTE path.
   ```bash
   cp -a /home/runner/.toolcache/flutter-3.47.6-stable /tmp/gh-aw/agent/flutter-3.47.6
   # (cp -a into an existing dir nests it -> real SDK root is /tmp/gh-aw/agent/flutter-3.47.6/flutter)
   /tmp/gh-aw/agent/flutter-3.47.6/flutter/bin/flutter --version
   ```
-- Verified (2026-10-09): Flutter 3.47.6 stable, Dart 3.13.5 — matches `mise.toml` pin exactly.
+- Verified (2026-10-16): Flutter 3.47.6 stable, Dart 3.13.5 — matches `mise.toml` pin exactly.
 - Shell profile re-prepends the read-only toolcache to PATH, so `export PATH=...` does NOT take effect. Always use the absolute path to the copied SDK.
 - Old workaround targeting the 3.44.0 SDK is OBSOLETE; use the 3.47.6 copy above.
 
