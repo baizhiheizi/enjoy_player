@@ -1,5 +1,5 @@
 /// Cross-launch persistence for the Linux webview software-GL recovery
-/// ([ADR-0096]).
+/// ([ADR-0098]).
 ///
 /// `LIBGL_ALWAYS_SOFTWARE` is consulted by Mesa only at GL context creation,
 /// so arming it inside a running app cannot repair the WPE hardware frame

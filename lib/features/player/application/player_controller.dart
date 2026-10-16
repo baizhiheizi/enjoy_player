@@ -10,7 +10,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
-import 'package:enjoy_player/core/platform/webview_software_gl.dart';
 import 'package:enjoy_player/core/platform/webview_software_gl_marker.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
@@ -417,22 +416,23 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
   }
 
   /// Records the Linux webview hardware frame-export stall verdict
-  /// (specs/047 T047): arms software GL for the next launch ([ADR-0096]).
-  /// Once per controller; repeats are logged and dropped.
-  Future<void> markSoftwareGlStallVerdict() async {
-    if (defaultTargetPlatform != TargetPlatform.linux) return;
-    if (_disposed) return;
+  /// (specs/047 T047): arms software GL for the next launch ([ADR-0098]).
+  /// Once per controller; repeats are logged and dropped. Returns true when
+  /// this call armed the recovery, so the caller can tell the user to relaunch.
+  Future<bool> markSoftwareGlStallVerdict() async {
+    if (defaultTargetPlatform != TargetPlatform.linux) return false;
+    if (_disposed) return false;
     if (_softwareGlVerdictRecorded) {
       _log.warning('frame stall verdict repeated; software GL already armed');
-      return;
+      return false;
     }
     _softwareGlVerdictRecorded = true;
-    enableSoftwareGlForNewContexts();
     final persisted = await markSoftwareGlForNextLaunch();
     _log.info(
       'frame stall detected — software GL armed for next launch '
       '(persisted=$persisted)',
     );
+    return persisted;
   }
 
   bool _softwareGlVerdictRecorded = false;

@@ -440,6 +440,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get youtubeTapToPlayHint => '點一下影片即可播放';
 
   @override
+  String get youtubeVideoStallRelaunch =>
+      '此 GPU 無法渲染 YouTube 影片。重新啟動應用程式即可使用軟體渲染恢復畫面。';
+
+  @override
   String get searchHint => '搜索';
 
   @override
@@ -4851,6 +4855,10 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get youtubeTapToPlayHint => '点一下视频即可播放';
+
+  @override
+  String get youtubeVideoStallRelaunch =>
+      '此 GPU 无法渲染 YouTube 视频。重启应用即可使用软件渲染恢复画面。';
 
   @override
   String get searchHint => '搜索';

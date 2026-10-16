@@ -4,6 +4,7 @@ library;
 import 'dart:math' as math;
 import 'dart:ui' show ImageByteFormat;
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -54,9 +55,7 @@ class YoutubeVideoStage extends ConsumerWidget {
             if (engine.availability.canPlay && session.shouldMountWebView)
               _FrameWatchdogLayer(
                 engine: engine,
-                onStalled: () => ref
-                    .read(playerControllerProvider.notifier)
-                    .markSoftwareGlStallVerdict(),
+                onStalled: () => _handleStall(context, ref),
                 child: _webViewHost(),
               ),
             _StageBufferingLeaf(engine: engine),
@@ -73,12 +72,26 @@ class YoutubeVideoStage extends ConsumerWidget {
       currentVideoId: () => engine.session.videoId,
     );
   }
+
+  Future<void> _handleStall(BuildContext context, WidgetRef ref) async {
+    final armed = await ref
+        .read(playerControllerProvider.notifier)
+        .markSoftwareGlStallVerdict();
+    if (!armed || !context.mounted) return;
+    AppNotice.warning(
+      context,
+      AppLocalizations.of(context)?.youtubeVideoStallRelaunch ??
+          'This GPU cannot render YouTube video. Relaunch the app to restore '
+              'video with software rendering.',
+    );
+  }
 }
 
 /// Samples the webview texture through a [RepaintBoundary] and hands the
 /// luminance pairs to the [YoutubeFrameWatchdog] (specs/047 T047): a playing
 /// video whose texture stays near-black and static is the hardware
-/// frame-export stall, and the verdict arms software GL for the next launch.
+/// frame-export stall, and the verdict arms software GL for the next launch
+/// ([ADR-0098]).
 class _FrameWatchdogLayer extends StatefulWidget {
   const _FrameWatchdogLayer({
     required this.engine,
@@ -87,7 +100,7 @@ class _FrameWatchdogLayer extends StatefulWidget {
   });
 
   final YoutubePlayerEngine engine;
-  final VoidCallback onStalled;
+  final Future<void> Function() onStalled;
   final Widget child;
 
   @override

@@ -459,6 +459,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get youtubeTapToPlayHint => 'Tap the video to play';
 
   @override
+  String get youtubeVideoStallRelaunch =>
+      'This GPU cannot render YouTube video. Relaunch the app to restore video with software rendering.';
+
+  @override
   String get searchHint => 'Search';
 
   @override

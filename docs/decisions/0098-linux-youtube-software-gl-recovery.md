@@ -40,11 +40,20 @@ whatever is rebuilt afterwards.
    sets `LIBGL_ALWAYS_SOFTWARE=1` for the whole process tree — the same
    configuration as the manual workaround. A user-set value of the variable
    always wins.
-2. **No in-session rebuild.** The verdict no longer tears down and reopens
-   the engine: that path cannot clear the stall and only interrupted audio.
-   The stalled session keeps playing audio; the user relaunches to restore
-   video. The runner logs the armed state; repeat verdicts log once.
-3. **Reset is manual and documented.** Deleting the marker returns the app to
+2. **No in-session rebuild, and no in-session flag.** The verdict no longer
+   tears down and reopens the engine: that path cannot clear the stall and only
+   interrupted audio. It also no longer `setenv`s the flag in the running
+   process — the Context section above is the evidence that this cannot work —
+   so `lib/core/platform/webview_software_gl.dart` and its FFI `setenv` path are
+   deleted. The stalled session keeps playing audio; the user relaunches to
+   restore video. The runner logs the armed state; repeat verdicts log once.
+3. **The user is told.** Recovery now requires the user to quit and relaunch,
+   which is invisible without a signal — a black stage and audio looks exactly
+   like an app that is simply broken. The first armed verdict raises an
+   `AppNotice.warning` in the video stage telling the user to relaunch for
+   software-rendered video. It fires only when the marker actually persisted,
+   so a failed write never promises a recovery that will not happen.
+4. **Reset is manual and documented.** Deleting the marker returns the app to
    hardware probing — the escape hatch if a driver/compositor fix lands.
    Re-evaluating the default belongs to ADR-0091/0092's per-release posture.
 
@@ -72,4 +81,5 @@ whatever is rebuilt afterwards.
   [`webview_software_gl_marker.dart`](../../lib/core/platform/webview_software_gl_marker.dart)
   and the `APPLICATION_ID` in `linux/CMakeLists.txt`.
 - `restartWithSoftwareGl` (clear + reopen) is gone; the watchdog verdict API
-  is now `PlayerController.markSoftwareGlStallVerdict`.
+  is now `PlayerController.markSoftwareGlStallVerdict`, returning whether this
+  call armed the marker so the stage can raise the relaunch notice.

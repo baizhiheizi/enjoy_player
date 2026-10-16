@@ -885,6 +885,12 @@ abstract class AppLocalizations {
   /// **'Tap the video to play'**
   String get youtubeTapToPlayHint;
 
+  /// Notice shown when the frame watchdog arms software rendering for the next launch
+  ///
+  /// In en, this message translates to:
+  /// **'This GPU cannot render YouTube video. Relaunch the app to restore video with software rendering.'**
+  String get youtubeVideoStallRelaunch;
+
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:

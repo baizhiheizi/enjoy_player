@@ -118,8 +118,8 @@ near-black and static — it arms software GL for the **next launch**: the
 verdict persists a marker file, and the Linux runner sets
 `LIBGL_ALWAYS_SOFTWARE=1` before the engine creates any GL context, the only
 point where the flag is effective ([ADR-0098](../decisions/0098-linux-youtube-software-gl-recovery.md)).
-The stalled session keeps playing audio; quit and relaunch to restore the
-video.
+The stalled session keeps playing audio; the stage raises a notice asking you
+to relaunch, and the next launch renders the video.
 
 To reset after a driver or compositor fix, delete
 `~/.local/share/ai.enjoy.player.enjoy_player/webview_software_gl`. Launching
