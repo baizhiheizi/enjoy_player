@@ -22,7 +22,10 @@ fi
 # Extract `path:` values under dependencies: / dev_dependencies: blocks.
 # Grep is intentionally narrow (matches only `  <key>:` followed by
 # `    path: <value>` on the next line) to avoid false positives.
-mapfile -t found < <(
+found=()
+while IFS= read -r line; do
+  found+=("$line")
+done < <(
   awk '
     /^(dev_)?dependencies:/ { in_block = 1; next }
     in_block && /^[^ ]/ { in_block = 0 }

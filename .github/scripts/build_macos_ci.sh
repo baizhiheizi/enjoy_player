@@ -31,6 +31,17 @@ config_flag="$(echo "${configuration}" | tr '[:upper:]' '[:lower:]')"
 # CI run starts from a clean slate.
 apple_clear_spm_caches "${root}"
 
+# package:sqlite3 3.x downloads libsqlite3.dylib for the target arch from
+# github.com via the dart_build hook (Dart HttpClient, no retries). Restricted
+# networks and the self-hosted runners drop that TLS handshake, which fails the
+# Flutter Assemble phase with "Building native assets failed". Prefetch both
+# macOS arches (x64 + arm64 for the universal app) into the dart_build shared
+# cache with curl (which retries) so the hook reuses them. Best-effort: if the
+# fetch cannot run, fall back to letting the hook download on its own.
+echo ">>> Prefetch sqlite3 macOS native libs"
+bash "${root}/tool/prefetch_sqlite3_libs.sh" macos \
+  || echo "prefetch_sqlite3_libs: skipped; the dart_build hook will fetch on its own" >&2
+
 build_with_retry() {
   # "$@" inside apple_with_spm_host_lock runs this function with errexit
   # exempted, so every step must forward its own failure explicitly.

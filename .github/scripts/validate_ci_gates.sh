@@ -110,10 +110,21 @@ if [[ "$do_test" -eq 1 ]]; then
     if [[ -z "$base_ref" ]]; then
       base_ref="origin/main"
     fi
-    mapfile -t test_targets < <(
+    test_targets=()
+    while IFS= read -r candidate; do
+      # `flutter test <missing path>` is a hard load error, not a skip, so
+      # only real files may reach the test runner. Generated sources have
+      # no test twin; their behavior is covered by the test beside them.
+      if [[ "$candidate" == *.g.dart ]]; then
+        continue
+      fi
+      if [[ -f "$candidate" ]]; then
+        test_targets+=("$candidate")
+      fi
+    done < <(
       # The braces are load-bearing: without them bash parses
       # `git diff ... || true | awk` as `git diff || (true | awk)`, which drops
-      # awk/sort/filter from the pipeline and hands mapfile the raw lib/ paths.
+      # awk/sort/filter from the pipeline and hands the reader the raw lib/ paths.
       { git diff --name-only --diff-filter=ACMR "$base_ref" -- 'lib/*.dart' 'test/*.dart' 2>/dev/null || true; } \
         | awk '
             /\.dart$/ {
@@ -126,18 +137,7 @@ if [[ "$do_test" -eq 1 ]]; then
               }
             }
           ' \
-        | sort -u \
-        | while IFS= read -r candidate; do
-            # `flutter test <missing path>` is a hard load error, not a skip, so
-            # only real files may reach the test runner. Generated sources have
-            # no test twin; their behavior is covered by the test beside them.
-            if [[ "$candidate" == *.g.dart ]]; then
-              continue
-            fi
-            if [[ -f "$candidate" ]]; then
-              printf '%s\n' "$candidate"
-            fi
-          done
+        | sort -u
     )
     if [[ "${#test_targets[@]}" -eq 0 ]]; then
       echo "validate_ci_gates: --changed-only found no existing test targets" \

@@ -29,6 +29,16 @@ esac
 
 config_flag="$(echo "${configuration}" | tr '[:upper:]' '[:lower:]')"
 
+# package:sqlite3 3.x downloads libsqlite3.arm64.ios.dylib from github.com via
+# the dart_build hook (Dart HttpClient, no retries). Restricted networks and
+# the self-hosted runners drop that TLS handshake, which fails the Flutter
+# Assemble phase with "Building native assets failed". Prefetch the device
+# slice into the dart_build shared cache with curl (which retries) so the hook
+# reuses it. Best-effort: on failure the hook falls back to downloading.
+echo ">>> Prefetch sqlite3 iOS native libs"
+bash "${root}/tool/prefetch_sqlite3_libs.sh" ios \
+  || echo "prefetch_sqlite3_libs: skipped; the dart_build hook will fetch on its own" >&2
+
 build_with_retry() {
   # "$@" inside apple_with_spm_host_lock runs this function with errexit
   # exempted, so every step must forward its own failure explicitly.

@@ -564,6 +564,11 @@ git-ignored.
 ### Apple
 
 - **macOS DYLD / missing Homebrew dylib**: run `brew bundle install --file=macos/Brewfile` and rebuild; the release bundle must contain the dependency under `Contents/Frameworks/` with an `@rpath` load path.
+- **`Building native assets failed` on `package:sqlite3`** (`Connection terminated during handshake` fetching `libsqlite3.<arch>.macos.dylib`): the `package:sqlite3` build hook downloads its prebuilt library from `github.com` with Dart `HttpClient` (no retries), so a network that drops the TLS handshake fails the whole `flutter build` / `flutter test`. Pre-populate the hook cache with curl (which retries + verifies SHA256), then rebuild:
+  ```bash
+  bash tool/prefetch_sqlite3_libs.sh macos   # linux / windows / ios / android also accepted
+  ```
+  `build_macos_ci.sh` and `release_android.sh` already run this automatically (macOS / Android respectively); `build_ios_ci.sh` does the same for iOS.
 - **Keychain / signing on new Mac**: open `macos/Runner.xcworkspace`, enable automatic signing, team `46X685R747`, build once in Xcode.
 - **Notarization fails**: check `NOTARY_PROFILE` (default `enjoy-notary`) and stored credentials; unlock the login keychain if `notarytool` reports `keychainLocked` or `errSecInternalComponent`:
   ```bash
