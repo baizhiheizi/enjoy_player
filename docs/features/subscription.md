@@ -40,6 +40,21 @@ The legacy `isPro` / `SubscriptionTier.pro` checks were unified into `isPaidTier
 
 Legacy `purchase_sheet.dart` remains in the codebase but is no longer the entry point — new flows should call the catalog-driven unified sheet.
 
+The unified modal is split by responsibility under `presentation/widgets/`, and only the two `show*` functions are imported by call sites (`subscription_screen.dart`, `subscription_status_card.dart`):
+
+| File | Contents |
+| --- | --- |
+| `auto_renew_plan_sheet.dart` | Entry point — `showUnifiedPurchaseSheet`, the backwards-compatible `showAutoRenewPlanSheet`, and the mobile guard. |
+| `unified_purchase_sheet_body.dart` | `UnifiedPurchaseSheetBody` — owns the selected `PaymentPath`, prepaid duration and processor, and dispatches both flows (auto-renew, prepaid) with their error mapping. |
+| `payment_path_selector.dart` | `PaymentPath`, `PaymentPathSelector`, `PaymentOptionCard` — the adaptive auto-renew / pay-once choice. |
+| `purchase_panels.dart` | `AutoRenewPanel`, `PrepaidPanel` — the per-path call-to-action blocks. |
+| `purchase_sheet_helpers.dart` | `ActiveAutoRenewWarning`, `PlansLoadingPlaceholder`, `UnavailablePlansView` — the plans-fetch states. |
+| `purchase_amount_format.dart` | `formatUsdAmount` — the single locale-aware two-decimal amount formatter for every price on the sheet. |
+
+The auto-renew card labels its price from the plan's own interval: a yearly plan renders `subscriptionAutoRenewPriceYear` (`… USD/year`), a monthly one `subscriptionAutoRenewPriceMonth`. `launchPayUrl` throws `StateError` with the stable messages `'missing_pay_url'`, `'invalid_pay_url'`, and `'launch_failed'`, and both purchase dispatches match them via `StateError(:final message)` rather than substring-matching a `toString()`.
+
+Only one non-terminal auto-renew subscription is allowed per account, so a second attempt surfaces the server's `SubscriptionConflictFailure` as an error notice instead of being swallowed; the modal shows `ActiveAutoRenewWarning` and disables the auto-renew CTA whenever `hasActiveAutoRenewPlan` is set.
+
 ### Reconciliation & celebration
 
 - `TierReconcileHost` (mounted in `RootShell`) is a global `WidgetsBindingObserver`. On `AppLifecycleState.resumed` and on (re)sign-in it runs `TierReconcileCtrl.reconcile()`, which refreshes **both** the live status and the cached profile.
