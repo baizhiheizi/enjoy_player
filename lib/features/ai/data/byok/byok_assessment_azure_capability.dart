@@ -15,11 +15,14 @@ final class ByokAssessmentAzureCapability extends ByokAzureSpeechCapability
   });
 
   @override
+  ModalityKind get kind => ModalityKind.assessment;
+
+  @override
+  String get capabilityLabel => 'assessment';
+
+  @override
   Future<AssessmentResult> assess(AssessmentRequest request) async {
-    final (:region, apiKey: subscriptionKey) = await resolveCredentials(
-      kind: ModalityKind.assessment,
-      capabilityLabel: 'assessment',
-    );
+    final (:region, apiKey: subscriptionKey) = await resolveCredentials();
 
     return runAzurePronunciationAssessment(
       request: request,

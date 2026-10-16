@@ -10,27 +10,28 @@ import 'package:meta/meta.dart';
 /// [resolveCredentials].
 abstract base class ByokAzureSpeechCapability {
   ByokAzureSpeechCapability({
-    required this._config,
-    required this._secrets,
+    required this.config,
+    required this.secrets,
     AzureSpeech? sdk,
   }) : sdk = sdk ?? AzureSpeech.instance;
 
-  final SpeechByokConfig _config;
-  final ByokSecretStoreBase _secrets;
+  @protected
+  final SpeechByokConfig config;
 
   @protected
-  SpeechByokConfig get config => _config;
+  final ByokSecretStoreBase secrets;
 
   @protected
   final AzureSpeech sdk;
 
-  Future<AzureSpeechCredentials> resolveCredentials({
-    required ModalityKind kind,
-    required String capabilityLabel,
-  }) {
+  ModalityKind get kind;
+
+  String get capabilityLabel;
+
+  Future<AzureSpeechCredentials> resolveCredentials() {
     return guardAzureSpeechConfig(
-      config: _config,
-      secrets: _secrets,
+      config: config,
+      secrets: secrets,
       kind: kind,
       capabilityLabel: capabilityLabel,
     );

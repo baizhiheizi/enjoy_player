@@ -24,11 +24,14 @@ final class ByokAsrAzureCapability extends ByokAzureSpeechCapability
   });
 
   @override
+  ModalityKind get kind => ModalityKind.asr;
+
+  @override
+  String get capabilityLabel => 'ASR';
+
+  @override
   Future<AsrResult> transcribe(AsrRequest request) async {
-    final (:region, apiKey: subscriptionKey) = await resolveCredentials(
-      kind: ModalityKind.asr,
-      capabilityLabel: 'ASR',
-    );
+    final (:region, apiKey: subscriptionKey) = await resolveCredentials();
 
     final azureLanguage = mapTranscriptLanguageToAzure(request.language);
     if (azureLanguage == null) {

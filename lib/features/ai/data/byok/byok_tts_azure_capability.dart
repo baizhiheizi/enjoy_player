@@ -18,11 +18,14 @@ final class ByokTtsAzureCapability extends ByokAzureSpeechCapability
   });
 
   @override
+  ModalityKind get kind => ModalityKind.tts;
+
+  @override
+  String get capabilityLabel => 'TTS';
+
+  @override
   Future<TtsResult> synthesize(TtsRequest request) async {
-    final (:region, apiKey: subscriptionKey) = await resolveCredentials(
-      kind: ModalityKind.tts,
-      capabilityLabel: 'TTS',
-    );
+    final (:region, apiKey: subscriptionKey) = await resolveCredentials();
 
     final text = request.text.trim();
     if (text.isEmpty) {
