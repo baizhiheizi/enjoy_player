@@ -48,6 +48,17 @@ GoRouter _router({required String initial}) {
             path: '/youtube/login',
             builder: (_, _) => const Scaffold(body: Text('youtube-login-page')),
           ),
+          GoRoute(
+            path: '/player/:mediaId',
+            builder: (_, _) => const Scaffold(body: Text('player-page')),
+            routes: [
+              GoRoute(
+                path: 'edit-transcript',
+                builder: (_, _) =>
+                    const Scaffold(body: Text('transcript-editor-page')),
+              ),
+            ],
+          ),
         ],
       ),
     ],
@@ -180,6 +191,26 @@ void main() {
       db: db,
     );
     addTearDown(loginContainer.dispose);
+    expect(
+      tester
+          .widget<PlayerSurfaceHost>(find.byType(PlayerSurfaceHost))
+          .forcePark,
+      isTrue,
+    );
+  });
+
+  testWidgets('player sub-route parks the surface; player page does not', (
+    tester,
+  ) async {
+    await _pump(tester, initial: '/player/m1', db: db);
+    expect(
+      tester
+          .widget<PlayerSurfaceHost>(find.byType(PlayerSurfaceHost))
+          .forcePark,
+      isFalse,
+    );
+
+    await _pump(tester, initial: '/player/m1/edit-transcript', db: db);
     expect(
       tester
           .widget<PlayerSurfaceHost>(find.byType(PlayerSurfaceHost))
