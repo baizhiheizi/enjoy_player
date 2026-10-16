@@ -233,12 +233,15 @@ class _RootShellState extends ConsumerState<RootShell> {
                       child: AppBackground(child: mobileShellScaffold()),
                     );
 
-              final parkForYoutubeLogin = path.startsWith('/youtube/login');
+              final parkSurface =
+                  path.startsWith('/youtube/login') ||
+                  (onPlayer &&
+                      GoRouterState.of(context).uri.pathSegments.length > 2);
               return Stack(
                 fit: StackFit.expand,
                 children: [
                   shell,
-                  PlayerSurfaceHost(forcePark: parkForYoutubeLogin),
+                  PlayerSurfaceHost(forcePark: parkSurface),
                 ],
               );
             },
