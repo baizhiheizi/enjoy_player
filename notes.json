@@ -26,8 +26,8 @@
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-15",
-      "note": "Monthly activity summary for October 2026. 2026-10-15 run: body replaced (Suggested Actions no longer lists #786 because the submitter had already closed it on 2026-10-05). 2026-10-14 duplication fully resolved."
+      "updated_at": "2026-10-16",
+      "note": "Monthly activity summary for October 2026. 2026-10-16 run: body replaced (prepended run 38852832649); new sandbox blocker signature (Flutter SDK Matrix4 missing in framework sources; linux_webview_environment.dart WebViewEnvironment undefined). Suggested Actions still none."
     },
     {
       "number": 850,
@@ -129,7 +129,13 @@
       "number": 864,
       "state": "deferred",
       "updated_at": "2026-10-14",
-      "note": "[perf-improver] Monthly Activity 2026-10 — auto-managed."
+      "note": "[perf-improver] Monthly Activity 2026-10 — auto-managed. P1-P5 backlog unchanged on 2026-10-14. Sandbox test runner cannot validate code changes."
+    },
+    {
+      "number": 950,
+      "state": "deferred",
+      "updated_at": "2026-10-15",
+      "note": "[repo-status] Daily Status — 2026-10-15 — auto-managed."
     }
   ],
   "fixes": [],
@@ -138,7 +144,7 @@
       "area": "ci",
       "checked_at": "2026-10-15",
       "result": "validate_ci_gates.sh --changed-only bash ||-then-awk precedence trap; grouped the fallback in braces so awk stays in the pipeline. Verified on current branch, 10/10 tests run. PR #904 closed the bash fix.",
-      "follow_up": "Closed by merged PR #904. Same sandbox network blocker (firewalled pub.dev / api.github.com, missing package:hooks types in pub cache) still prevents code-changing PRs from this runner — see #864 for the same wall on perf-improver."
+      "follow_up": "Closed by merged PR #904. 2026-10-16: sandbox test runner cannot validate code changes — Flutter SDK Matrix4 missing in framework sources, linux_webview_environment.dart WebViewEnvironment undefined. Network open, pub get succeeds, analyze clean. Healthy SDK install needed."
     }
   ],
   "completed_actions": [
@@ -157,6 +163,10 @@
     {
       "key": "memory refresh 2026-10-15: #786 #891 #895 #896 #919 closed by maintainer",
       "completed_at": "2026-10-15"
+    },
+    {
+      "key": "#841 body refresh 2026-10-16",
+      "completed_at": "2026-10-16"
     }
   ],
   "priorities": []
