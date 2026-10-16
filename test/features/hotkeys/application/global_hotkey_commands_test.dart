@@ -29,6 +29,14 @@ Future<({GoRouter router, ProviderContainer container})> _mountHarness(
         builder: (_, _) => const Scaffold(body: Text('craft-history')),
       ),
       GoRoute(
+        path: '/youtube/login',
+        builder: (_, _) => const Scaffold(body: Text('youtube-login')),
+      ),
+      GoRoute(
+        path: '/player/video',
+        builder: (_, _) => const Scaffold(body: Text('player')),
+      ),
+      GoRoute(
         path: '/settings',
         builder: (_, _) => const Scaffold(body: Text('settings')),
       ),
@@ -129,6 +137,28 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(h.router.state.uri.path, '/craft/history');
+    });
+
+    testWidgets('blocked on the player route so bare c reaches text entry', (
+      tester,
+    ) async {
+      final h = await _mountHarness(tester, initialLocation: '/player/video');
+      final ctx = HotkeyCtx(read: h.container.read, listenerContext: null);
+      expect(const GlobalCraftHotkeyCommand().canExecute(ctx), isFalse);
+      const GlobalCraftHotkeyCommand().execute(ctx);
+      await tester.pumpAndSettle();
+      expect(h.router.state.uri.path, '/player/video');
+    });
+
+    testWidgets('blocked on the youtube login route (webview text entry)', (
+      tester,
+    ) async {
+      final h = await _mountHarness(tester, initialLocation: '/youtube/login');
+      final ctx = HotkeyCtx(read: h.container.read, listenerContext: null);
+      expect(const GlobalCraftHotkeyCommand().canExecute(ctx), isFalse);
+      const GlobalCraftHotkeyCommand().execute(ctx);
+      await tester.pumpAndSettle();
+      expect(h.router.state.uri.path, '/youtube/login');
     });
   });
 
