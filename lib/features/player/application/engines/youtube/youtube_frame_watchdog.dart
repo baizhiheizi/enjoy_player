@@ -4,7 +4,7 @@
 /// A playing video produces a continuously changing texture. Pairs of
 /// luminance samples that are both near-black and identical while playback is
 /// reported live indicate the hardware frame-export stall; the verdict fires
-/// once and the recovery path re-creates the WebView with software GL.
+/// once and the recovery path arms software GL for the next launch.
 library;
 
 import 'dart:async';

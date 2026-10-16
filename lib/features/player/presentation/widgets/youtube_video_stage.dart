@@ -56,7 +56,7 @@ class YoutubeVideoStage extends ConsumerWidget {
                 engine: engine,
                 onStalled: () => ref
                     .read(playerControllerProvider.notifier)
-                    .restartWithSoftwareGl(),
+                    .markSoftwareGlStallVerdict(),
                 child: _webViewHost(),
               ),
             _StageBufferingLeaf(engine: engine),
@@ -78,7 +78,7 @@ class YoutubeVideoStage extends ConsumerWidget {
 /// Samples the webview texture through a [RepaintBoundary] and hands the
 /// luminance pairs to the [YoutubeFrameWatchdog] (specs/047 T047): a playing
 /// video whose texture stays near-black and static is the hardware
-/// frame-export stall, and the verdict triggers the software-GL rebuild.
+/// frame-export stall, and the verdict arms software GL for the next launch.
 class _FrameWatchdogLayer extends StatefulWidget {
   const _FrameWatchdogLayer({
     required this.engine,
