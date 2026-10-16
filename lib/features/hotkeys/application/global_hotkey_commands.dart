@@ -55,21 +55,25 @@ class GlobalSettingsHotkeyCommand extends HotkeyCommand {
   }
 }
 
-/// `global.craft` — navigate to `/craft` (consumed even when already there,
-/// matching the old chain: returning early would let the same chord fall
-/// through to lower-priority commands).
+/// `global.craft` — navigate to `/craft`. Disabled on routes owned by webviews
+/// (player, YouTube login): bare `c` must reach in-webview text entry, which
+/// never becomes Flutter's primary focus.
 class GlobalCraftHotkeyCommand extends HotkeyCommand {
   const GlobalCraftHotkeyCommand();
 
   @override
   String get actionId => 'global.craft';
 
+  static bool _onWebViewRoute(String path) =>
+      path.startsWith('/player/') || path.startsWith('/youtube/');
+
   @override
-  bool canExecute(HotkeyCtx ctx) => true;
+  bool canExecute(HotkeyCtx ctx) => !_onWebViewRoute(ctx.path);
 
   @override
   void execute(HotkeyCtx ctx) {
     final path = ctx.path;
+    if (_onWebViewRoute(path)) return;
     if (path == '/craft' || path.startsWith('/craft/')) return;
     ctx.router.go('/craft');
   }

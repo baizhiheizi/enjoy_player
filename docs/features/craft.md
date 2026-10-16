@@ -38,7 +38,7 @@ Dialog action rows keep the repo-wide `TextButton` idiom inside `showEnjoyAlertD
 Craft is a first-class entry point (see [ADR-0061](../decisions/0061-craft-first-class-history.md)), reachable from three places:
 
 - **Home header** — an `OutlinedButton.icon` labelled `homeCraftAction` sits before the `Import` button in both `EditorialHeader` trailing sites on Home (loaded and loading/skeleton states share a `_HomeHeaderActions` widget) → `/craft`.
-- **Global hotkey** — `c` (`global.craft` in `hotkey_definitions.dart`, scope `global`, customizable) opens Craft from anywhere in the app. No-op when already on `/craft` or a `/craft/*` route.
+- **Global hotkey** — `c` (`global.craft` in `hotkey_definitions.dart`, scope `global`, customizable) opens Craft from anywhere except webview-owned routes — `/player/*` and `/youtube/*` (`GlobalCraftHotkeyCommand` gates there so bare `c` reaches in-webview text entry such as the YouTube login form, which never becomes Flutter's primary focus). No-op when already on `/craft` or a `/craft/*` route.
 - **Import chooser** → **Craft from text…** → `/craft` (original entry point, retained).
 
 Flows as a full-screen route; back returns to wherever the user came from.
