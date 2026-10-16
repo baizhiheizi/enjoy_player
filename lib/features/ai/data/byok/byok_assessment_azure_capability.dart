@@ -18,7 +18,7 @@ final class ByokAssessmentAzureCapability extends ByokAzureSpeechCapability
   ModalityKind get kind => ModalityKind.assessment;
 
   @override
-  String get capabilityLabel => 'assessment';
+  String get capabilityLabel => 'Assessment';
 
   @override
   Future<AssessmentResult> assess(AssessmentRequest request) async {

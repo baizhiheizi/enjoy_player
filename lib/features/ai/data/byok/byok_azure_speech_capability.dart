@@ -24,8 +24,12 @@ abstract base class ByokAzureSpeechCapability {
   @protected
   final AzureSpeech sdk;
 
+  /// Speech modality whose secret lookup and config [resolveCredentials]
+  /// validates.
   ModalityKind get kind;
 
+  /// Short capitalized label used in configuration-failure messages, e.g.
+  /// `ASR`, `TTS`, `Assessment`.
   String get capabilityLabel;
 
   Future<AzureSpeechCredentials> resolveCredentials() {

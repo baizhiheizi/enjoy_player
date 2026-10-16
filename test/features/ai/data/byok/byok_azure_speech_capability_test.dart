@@ -9,16 +9,24 @@ import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
 import 'package:enjoy_player/features/ai/domain/speech_byok_kind.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-final class _TtsLikeCapability extends ByokAzureSpeechCapability {
-  _TtsLikeCapability({required super.config, required super.secrets});
+final class _FakeAzureCapability extends ByokAzureSpeechCapability {
+  _FakeAzureCapability({
+    required super.config,
+    required super.secrets,
+    required this.stubbedKind,
+    required this.stubbedLabel,
+  });
+
+  final ModalityKind stubbedKind;
+  final String stubbedLabel;
 
   AzureSpeech get exposedSdk => sdk;
 
   @override
-  ModalityKind get kind => ModalityKind.tts;
+  ModalityKind get kind => stubbedKind;
 
   @override
-  String get capabilityLabel => 'TTS';
+  String get capabilityLabel => stubbedLabel;
 }
 
 final class _RecordingSecretStore implements ByokSecretStoreBase {
@@ -50,13 +58,24 @@ void main() {
     region: 'eastus',
   );
 
+  _FakeAzureCapability cap(
+    SpeechByokConfig config,
+    _RecordingSecretStore secrets,
+  ) => _FakeAzureCapability(
+    config: config,
+    secrets: secrets,
+    stubbedKind: ModalityKind.tts,
+    stubbedLabel: 'TTS',
+  );
+
   test(
     'resolveCredentials trims region and key, reads the subclass kind',
     () async {
       final secrets = _RecordingSecretStore('  azure-sub-key  ');
-      final cap = _TtsLikeCapability(config: azureConfig, secrets: secrets);
+      final subject = cap(azureConfig, secrets);
 
-      final (:region, apiKey: subscriptionKey) = await cap.resolveCredentials();
+      final (:region, apiKey: subscriptionKey) = await subject
+          .resolveCredentials();
 
       expect(region, 'eastus');
       expect(subscriptionKey, 'azure-sub-key');
@@ -65,17 +84,17 @@ void main() {
   );
 
   test('resolveCredentials rejects a config of another speech kind', () async {
-    final cap = _TtsLikeCapability(
-      config: const SpeechByokConfig(
+    final subject = cap(
+      const SpeechByokConfig(
         kind: SpeechByokKind.openAiCompatible,
         baseUrl: 'https://example.invalid/v1',
         model: 'tts-1',
       ),
-      secrets: _RecordingSecretStore('key'),
+      _RecordingSecretStore('key'),
     );
 
     await expectLater(
-      cap.resolveCredentials(),
+      subject.resolveCredentials(),
       throwsA(
         isA<ByokMisconfiguredFailure>().having(
           (e) => e.capabilityLabel,
@@ -87,25 +106,22 @@ void main() {
   });
 
   test('resolveCredentials requires a configured api key', () async {
-    final cap = _TtsLikeCapability(
-      config: azureConfig,
-      secrets: _RecordingSecretStore(null),
-    );
+    final subject = cap(azureConfig, _RecordingSecretStore(null));
 
     await expectLater(
-      cap.resolveCredentials(),
+      subject.resolveCredentials(),
       throwsA(isA<ByokNotConfiguredFailure>()),
     );
   });
 
   test('resolveCredentials requires a region', () async {
-    final cap = _TtsLikeCapability(
-      config: const SpeechByokConfig(kind: SpeechByokKind.azureSpeech),
-      secrets: _RecordingSecretStore('key'),
+    final subject = cap(
+      const SpeechByokConfig(kind: SpeechByokKind.azureSpeech),
+      _RecordingSecretStore('key'),
     );
 
     await expectLater(
-      cap.resolveCredentials(),
+      subject.resolveCredentials(),
       throwsA(
         isA<ApiException>().having((e) => e.statusCode, 'statusCode', 400),
       ),
@@ -113,11 +129,8 @@ void main() {
   });
 
   test('sdk falls back to the shared AzureSpeech instance', () {
-    final cap = _TtsLikeCapability(
-      config: azureConfig,
-      secrets: _RecordingSecretStore('key'),
-    );
+    final subject = cap(azureConfig, _RecordingSecretStore('key'));
 
-    expect(cap.exposedSdk, same(AzureSpeech.instance));
+    expect(subject.exposedSdk, same(AzureSpeech.instance));
   });
 }
