@@ -3,28 +3,26 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/purchase_amount_format.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Payment path chosen inside the unified modal.
 enum PaymentPath { autoRenew, prepaid }
 
 /// Side-by-side (wide) or stacked (compact) choice between the two payment
-/// paths. Renders a loading skeleton for the emphasized auto-renew price while
-/// [plansLoading] is set.
+/// paths.
 class PaymentPathSelector extends StatelessWidget {
   const PaymentPathSelector({
     required this.selected,
     required this.intervalLabel,
     required this.plan,
     required this.unitPrice,
-    required this.plansLoading,
     required this.onChanged,
     super.key,
   });
@@ -33,7 +31,6 @@ class PaymentPathSelector extends StatelessWidget {
   final String intervalLabel;
   final SubscriptionPlan? plan;
   final double? unitPrice;
-  final bool plansLoading;
   final ValueChanged<PaymentPath>? onChanged;
 
   @override
@@ -54,7 +51,6 @@ class PaymentPathSelector extends StatelessWidget {
           leadingIcon: EnjoyIcons.sync,
           emphasis: true,
           price: _autoRenewPriceLabel(l10n, plan),
-          plansLoading: plansLoading,
           intervalLabel: intervalLabel,
         );
         final prepaidCard = PaymentOptionCard(
@@ -68,10 +64,9 @@ class PaymentPathSelector extends StatelessWidget {
           leadingIcon: EnjoyIcons.eventAvailable,
           price: prepaidUnitPrice != null
               ? l10n.subscriptionAutoRenewPriceMonth(
-                  prepaidUnitPrice.toStringAsFixed(2),
+                  formatUsdAmount(prepaidUnitPrice),
                 )
               : '—',
-          plansLoading: false,
           intervalLabel: null,
         );
 
@@ -95,11 +90,11 @@ class PaymentPathSelector extends StatelessWidget {
   }
 
   String _autoRenewPriceLabel(AppLocalizations l10n, SubscriptionPlan? plan) {
-    if (plan != null) {
-      final formatted = NumberFormat('0.00').format(plan.amount);
-      return l10n.subscriptionAutoRenewPriceMonth(formatted);
-    }
-    return '—';
+    if (plan == null) return '—';
+    final formatted = formatUsdAmount(plan.amount);
+    return plan.isYearly
+        ? l10n.subscriptionAutoRenewPriceYear(formatted)
+        : l10n.subscriptionAutoRenewPriceMonth(formatted);
   }
 }
 
@@ -113,7 +108,6 @@ class PaymentOptionCard extends StatelessWidget {
     required this.footnote,
     required this.leadingIcon,
     required this.price,
-    required this.plansLoading,
     required this.intervalLabel,
     required this.onTap,
     this.emphasis = false,
@@ -126,7 +120,6 @@ class PaymentOptionCard extends StatelessWidget {
   final String footnote;
   final IconData leadingIcon;
   final String price;
-  final bool plansLoading;
   final String? intervalLabel;
   final bool emphasis;
   final VoidCallback? onTap;
@@ -176,24 +169,15 @@ class PaymentOptionCard extends StatelessWidget {
           SizedBox(height: t.space12),
           Padding(
             padding: EdgeInsets.only(left: t.space32),
-            child: plansLoading && emphasis
-                ? Container(
-                    width: 96,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: cs.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(t.radiusSm),
-                    ),
-                  )
-                : Text(
-                    emphasis
-                        ? '$price${intervalLabel != null ? ' · $intervalLabel' : ''}'
-                        : price,
-                    style: tt.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: emphasis ? cs.primary : null,
-                    ),
-                  ),
+            child: Text(
+              emphasis
+                  ? '$price${intervalLabel != null ? ' · $intervalLabel' : ''}'
+                  : price,
+              style: tt.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: emphasis ? cs.primary : null,
+              ),
+            ),
           ),
           SizedBox(height: t.space8),
           Padding(

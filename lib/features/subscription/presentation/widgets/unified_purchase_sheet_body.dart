@@ -98,13 +98,13 @@ class UnifiedPurchaseSheetBodyState
       AppNotice.error(context, msg);
     } catch (e) {
       if (!mounted) return;
-      final msg = switch (e.toString()) {
-        final s
-            when s.contains('missing_pay_url') ||
-                s.contains('invalid_pay_url') =>
+      final msg = switch (e) {
+        StateError(:final message) when message == 'missing_pay_url' =>
           l10n.subscriptionPaymentUrlMissing,
-        final s when s.contains('launch_failed') =>
+        StateError(:final message) when message == 'launch_failed' =>
           l10n.subscriptionPaymentLaunchFailed,
+        StateError(:final message) when message == 'invalid_pay_url' =>
+          l10n.subscriptionPaymentUrlMissing,
         _ => l10n.subscriptionPurchaseFailed,
       };
       AppNotice.error(context, msg);
@@ -234,7 +234,6 @@ class UnifiedPurchaseSheetBodyState
                       intervalLabel: intervalLabel,
                       plan: selectedPlan,
                       unitPrice: unitPrice,
-                      plansLoading: false,
                       onChanged: busy
                           ? null
                           : (path) => setState(() => _path = path),

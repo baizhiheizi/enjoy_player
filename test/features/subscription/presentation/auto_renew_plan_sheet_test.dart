@@ -65,7 +65,6 @@ Widget _harness({
 /// A scaffold with a button that opens the unified purchase sheet at the
 /// chosen [interval] (defaults to monthly).
 class _SheetLauncher extends StatelessWidget {
-  // ignore: unused_element_parameter
   const _SheetLauncher({this.interval = CatalogInterval.month});
 
   final CatalogInterval interval;
@@ -170,6 +169,49 @@ void main() {
       );
 
       expect(find.text(l10n.subscriptionPurchaseDuration), findsNothing);
+
+      expect(tester.takeException(), isNull);
+      _resetPlatform();
+    });
+
+    testWidgets('yearly auto-renew card prices per year, not per month', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(
+          overrides: [
+            subscriptionPlansProvider.overrideWith((ref) async => _testPlans),
+            subscriptionStatusProvider.overrideWith(
+              (ref) async => const SubscriptionStatus(
+                subscriptionActive: false,
+                subscriptionTier: SubscriptionTier.free,
+              ),
+            ),
+          ],
+          child: const _SheetLauncher(interval: CatalogInterval.year),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open Sheet'));
+      await tester.pumpAndSettle();
+
+      final l10n = lookupAppLocalizations(const Locale('en'));
+
+      expect(
+        find.text(
+          '${l10n.subscriptionAutoRenewPriceYear('79.99')}'
+          ' · ${l10n.subscriptionAutoRenewYearly}',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          '${l10n.subscriptionAutoRenewPriceMonth('79.99')}'
+          ' · ${l10n.subscriptionAutoRenewYearly}',
+        ),
+        findsNothing,
+      );
 
       expect(tester.takeException(), isNull);
       _resetPlatform();

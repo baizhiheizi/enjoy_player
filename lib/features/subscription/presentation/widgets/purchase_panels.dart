@@ -8,6 +8,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/subscription/domain/payment_processor.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/payment_processor_option.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/purchase_amount_format.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/subscription_duration_selector.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -105,6 +106,7 @@ class PrepaidPanel extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final total = totalPrice;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -143,7 +145,7 @@ class PrepaidPanel extends StatelessWidget {
                 Text(l10n.subscriptionTotalPriceLabel),
                 Text(
                   l10n.subscriptionTotalPrice(
-                    totalPrice?.toStringAsFixed(2) ?? '—',
+                    total != null ? formatUsdAmount(total) : '—',
                   ),
                   style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
