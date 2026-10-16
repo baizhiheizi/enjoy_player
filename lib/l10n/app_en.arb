@@ -175,6 +175,10 @@
   "@youtubeTapToPlayHint": {
     "description": "Overlay when YouTube autoplay needs a user gesture or playback stopped immediately after play"
   },
+  "youtubeVideoStallRelaunch": "This GPU cannot render YouTube video. Relaunch the app to restore video with software rendering.",
+  "@youtubeVideoStallRelaunch": {
+    "description": "Notice shown when the frame watchdog arms software rendering for the next launch"
+  },
   "searchHint": "Search",
   "transportRepeat": "Repeat",
   "transportFullscreen": "Fullscreen",

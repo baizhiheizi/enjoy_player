@@ -162,6 +162,7 @@
   "youtubeUnavailableCodecsMissing": "此设备缺少 YouTube 视频解码器。请安装 GStreamer 插件（gst-plugins-good、gst-plugins-bad、gst-libav）后重启应用。",
   "youtubeUnavailableDisabledByBuild": "此构建已停用 YouTube 播放。",
   "youtubeTapToPlayHint": "点一下视频即可播放",
+  "youtubeVideoStallRelaunch": "此 GPU 无法渲染 YouTube 视频。重启应用即可使用软件渲染恢复画面。",
   "searchHint": "搜索",
   "transportRepeat": "循环",
   "transportFullscreen": "全屏",

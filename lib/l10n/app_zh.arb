@@ -128,6 +128,7 @@
   "youtubeUnavailableCodecsMissing": "此裝置缺少 YouTube 影片解碼器。請安裝 GStreamer 外掛（gst-plugins-good、gst-plugins-bad、gst-libav）後重新啟動應用程式。",
   "youtubeUnavailableDisabledByBuild": "此組建已停用 YouTube 播放。",
   "youtubeTapToPlayHint": "點一下影片即可播放",
+  "youtubeVideoStallRelaunch": "此 GPU 無法渲染 YouTube 影片。重新啟動應用程式即可使用軟體渲染恢復畫面。",
   "searchHint": "搜索",
   "transportRepeat": "循环",
   "transportFullscreen": "全屏",

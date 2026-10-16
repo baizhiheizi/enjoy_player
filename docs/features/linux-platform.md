@@ -112,15 +112,25 @@ YouTube availability is decided at runtime ([ADR-0091](../decisions/0091-youtube
 ### YouTube plays audio but the video area is black
 
 Some GPU driver + compositor combinations hit a WPE WebKit hardware frame
-export stall (verified on AMD + Hyprland with wpewebkit 2.48–2.52). Launch the
-app with software GL for the embedded browser:
+export stall (verified on AMD + Hyprland with wpewebkit 2.48–2.52). When the
+built-in frame watchdog detects the stall — playing video whose texture stays
+near-black and static — it arms software GL for the **next launch**: the
+verdict persists a marker file, and the Linux runner sets
+`LIBGL_ALWAYS_SOFTWARE=1` before the engine creates any GL context, the only
+point where the flag is effective ([ADR-0098](../decisions/0098-linux-youtube-software-gl-recovery.md)).
+The stalled session keeps playing audio; the stage raises a notice asking you
+to relaunch, and the next launch renders the video.
+
+To reset after a driver or compositor fix, delete
+`~/.local/share/ai.enjoy.player.enjoy_player/webview_software_gl`. Launching
+with the flag preset also works — an explicitly set `LIBGL_ALWAYS_SOFTWARE`
+always wins:
 
 ```bash
 LIBGL_ALWAYS_SOFTWARE=1 ./enjoy-player-*.AppImage
 ```
 
-An automatic detection-and-relaunch fallback is planned (specs/047 T047). If
-YouTube shows the unavailable notice instead, install the runtime: `wpewebkit`
+If YouTube shows the unavailable notice instead, install the runtime: `wpewebkit`
 plus `gst-plugins-good gst-plugins-bad gst-libav` ([ADR-0092](../decisions/0092-linux-youtube-host-runtime.md)).
 
 The availability probe also asks the WebView's `MediaSource` whether it can
