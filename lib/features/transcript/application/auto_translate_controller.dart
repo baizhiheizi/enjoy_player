@@ -266,9 +266,9 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     if (state.status != AutoTranslateStatus.active) return;
 
     final repo = _repo();
-    final primaryRow = await repo.transcriptRowById(primaryId);
-    if (primaryRow == null) return;
-    final primaryLines = repo.linesForRow(primaryRow);
+    final primary = await repo.contentById(primaryId);
+    if (primary == null) return;
+    final primaryLines = primary.lines;
     if (lineIndex >= primaryLines.length) return;
 
     await repo.updateAutoTranslateLineText(
@@ -355,15 +355,17 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
         if (secondaryNow != null && secondaryNow != aiId) return;
 
         final repo = _repo();
-        final primaryRow = await repo.transcriptRowById(primaryId);
-        final aiRow = await repo.transcriptRowById(aiId);
-        if (primaryRow == null || aiRow == null) return;
-        if (lineIndex >= repo.linesForRow(primaryRow).length) return;
+        final primary = await repo.contentById(primaryId);
+        final ai = await repo.contentById(aiId);
+        if (primary == null || ai == null) return;
+        final primaryLines = primary.lines;
+        if (lineIndex >= primaryLines.length) return;
 
         if (repo.isAutoTranslateTrackStale(
-          aiRow: aiRow,
+          aiReferenceId: ai.referenceId,
           primaryId: primaryId,
-          primaryLines: repo.linesForRow(primaryRow),
+          primaryLines: primaryLines,
+          aiLines: ai.lines,
         )) {
           if (!ref.mounted) return;
           state = state.copyWith(
@@ -373,9 +375,8 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
           return;
         }
 
-        final primaryLines = repo.linesForRow(primaryRow);
-        final aiLines = repo.linesForRow(aiRow);
-        final sourceLang = primaryRow.language;
+        final aiLines = ai.lines;
+        final sourceLang = primary.language;
         final primaryLine = primaryLines[lineIndex];
         final plain = plainTextFromSubtitleMarkup(primaryLine.text).trim();
         if (plain.isEmpty) {
