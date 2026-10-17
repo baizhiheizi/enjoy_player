@@ -84,6 +84,30 @@ class EchoSessionDao extends DatabaseAccessor<AppDatabase>
           .watch()
           .map((rows) => rows.isEmpty ? null : rows.first);
 
+  /// Watches only the active transcript ids for one target, so a playback
+  /// clock write does not hand the full session row to transcript consumers.
+  Stream<({String? transcriptId, String? secondaryTranscriptId})?>
+  watchActiveTranscriptIds(String targetType, String targetId) {
+    final query = selectOnly(echoSessions)
+      ..addColumns([
+        echoSessions.transcriptId,
+        echoSessions.secondaryTranscriptId,
+      ])
+      ..where(
+        echoSessions.targetType.equals(targetType) &
+            echoSessions.targetId.equals(targetId),
+      )
+      ..orderBy([OrderingTerm.desc(echoSessions.lastActiveAt)])
+      ..limit(1);
+    return query.watchSingleOrNull().map((row) {
+      if (row == null) return null;
+      return (
+        transcriptId: row.read(echoSessions.transcriptId),
+        secondaryTranscriptId: row.read(echoSessions.secondaryTranscriptId),
+      );
+    });
+  }
+
   Future<void> upsert(EchoSessionRow row) =>
       into(echoSessions).insert(row, mode: InsertMode.insertOrReplace);
 

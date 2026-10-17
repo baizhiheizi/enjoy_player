@@ -184,8 +184,8 @@ Interface notes:
   watch streams are released once no widget watches the media, while the
   repository — and its `TranscriptTimelineCache` decode memo — survives for
   warm re-entry. That memo is an `L1Store` LRU bounded to 8 rows (issue
-  #810 C1): a `(updatedAt, timelineJson length)` revision mismatch on the
-  same row id and explicit removal on row mutation are the only
+  #810 C1): a `(updatedAt, timelineJson character count)` revision mismatch on
+  the same row id and explicit removal on row mutation are the only
   invalidations, and the least-recently-used decode is dropped on overflow.
   `allTranscriptsForMediaProvider` (the per-media track list behind the
   transport CC button and the subtitle picker) joined them as an
@@ -196,6 +196,11 @@ Interface notes:
   consecutive write one second forward, so the pair changes on every
   content change (issue #810 D5; replaces the previous SHA-1-over-JSON
   identity, which hashed the full 1–10 MB timeline on every watch tick).
+  The length half is a Unicode scalar count (`timelineJsonCharacterCount`),
+  not `String.length`, so that it matches SQLite `length()`: the revision
+  projections (`TranscriptDao.watchRevisionById` / `metaById`) compute it in
+  SQL, and a UTF-16 code-unit count would miss the memo for every non-BMP
+  timeline (emoji, astral CJK).
 - Transcript watches are light: `TranscriptDao.watchSummariesForTarget`
   projects only track metadata + change-tick columns (`selectOnly`, no
   `timeline_json`), and the lines/tracks watchers refetch payloads

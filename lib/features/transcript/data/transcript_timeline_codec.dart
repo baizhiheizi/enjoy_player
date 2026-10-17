@@ -117,7 +117,17 @@ int estimatedTimelineJsonBytes(List<TranscriptLine> lines) {
 /// `updated_at` at whole-second granularity and
 /// `TranscriptDao.upsert`/`upsertAll` nudge a same-second consecutive write
 /// one second forward (issue #810 D5).
+///
+/// [jsonLength] counts Unicode scalar values, matching SQLite `length()` on
+/// `timeline_json`. The DAO revision projections
+/// (`TranscriptDao.watchRevisionById` / `metaById`) compute it in SQL, so the
+/// Dart and SQL sides must agree or every non-BMP row (emoji, astral CJK)
+/// misses the memo and re-reads the blob.
 typedef TranscriptTimelineRevision = ({DateTime updatedAt, int jsonLength});
+
+/// Character count of [json] as SQLite `length()` would report it: Unicode
+/// scalar values, not UTF-16 code units.
+int timelineJsonCharacterCount(String json) => json.runes.length;
 
 /// Maximum number of decoded timelines kept memoized; the least-recently
 /// used decode is dropped on overflow (issue #810, item C1).

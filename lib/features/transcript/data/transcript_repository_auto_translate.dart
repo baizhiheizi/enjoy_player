@@ -25,9 +25,10 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
     final existing = await _db.transcriptDao.getById(id);
     if (existing != null &&
         !isAutoTranslateTrackStale(
-          aiRow: existing,
+          aiReferenceId: existing.referenceId,
           primaryId: primaryTranscriptId,
           primaryLines: primaryLines,
+          aiLines: linesForRow(existing),
         )) {
       return id;
     }
@@ -167,16 +168,14 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
   );
 
   bool _isAutoTranslateTrackStale({
-    required TranscriptRow aiRow,
+    required String? aiReferenceId,
     required String primaryId,
     required List<TranscriptLine> primaryLines,
-  }) {
-    final aiLines = linesForRow(aiRow);
-    return isAutoTranslateTimelineStale(
-      referencePrimaryId: aiRow.referenceId,
-      primaryId: primaryId,
-      primaryLines: primaryLines,
-      aiLines: aiLines,
-    );
-  }
+    required List<TranscriptLine> aiLines,
+  }) => isAutoTranslateTimelineStale(
+    referencePrimaryId: aiReferenceId,
+    primaryId: primaryId,
+    primaryLines: primaryLines,
+    aiLines: aiLines,
+  );
 }
