@@ -28,12 +28,12 @@ import 'package:enjoy_player/features/transcript/application/auto_translate_cont
 import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_line_request_policy.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
+import 'package:enjoy_player/features/transcript/application/take_assessment_notes_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
 import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
-import 'package:enjoy_player/features/transcript/presentation/word_note_indexes.dart';
 
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -102,11 +102,15 @@ class EchoRegionMergedCard extends ConsumerWidget {
         .firstOrNull;
     final wavyByLine = scoredTake == null
         ? null
-        : mispronouncedWordIndexes(
-            lines: lines,
-            echo: echo,
-            assessmentJson: scoredTake.assessmentJson,
-          );
+        : ref
+              .watch(
+                takeAssessmentNotesProvider((
+                  mediaId: mediaId,
+                  recordingId: scoredTake.id,
+                  assessmentJson: scoredTake.assessmentJson!,
+                )),
+              )
+              ?.byLine;
 
     final lineWidgets = <Widget>[];
     var maxTakeNumber = 0;
