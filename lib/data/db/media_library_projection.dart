@@ -54,6 +54,68 @@ mixin MediaLibraryProjection<DB extends GeneratedDatabase>
         .watch();
   }
 
+  /// Rows for [ids], newest `updated_at` first.
+  Stream<List<MediaLibraryRow>> watchByIds(Set<String> ids) {
+    if (ids.isEmpty) return Stream.value(const <MediaLibraryRow>[]);
+    return (selectOnly(mediaLibraryTable)
+          ..addColumns(_projected.all)
+          ..where(_projected.id.isIn(ids))
+          ..orderBy([
+            OrderingTerm.desc(_projected.updatedAt),
+            OrderingTerm.desc(_projected.createdAt),
+          ]))
+        .map(_libraryRow)
+        .watch();
+  }
+
+  /// Whole-table watch ordered by `updated_at` on the per-table index.
+  Stream<List<MediaLibraryRow>> watchByUpdatedAt() {
+    return (selectOnly(mediaLibraryTable)
+          ..addColumns(_projected.all)
+          ..orderBy([
+            OrderingTerm.desc(_projected.updatedAt),
+            OrderingTerm.desc(_projected.createdAt),
+          ]))
+        .map(_libraryRow)
+        .watch();
+  }
+
+  /// Rows for one [provider] value, newest `updated_at` first.
+  Stream<List<MediaLibraryRow>> watchByProvider(String provider) {
+    return (selectOnly(mediaLibraryTable)
+          ..addColumns(_projected.all)
+          ..where(_projected.provider.equals(provider))
+          ..orderBy([
+            OrderingTerm.desc(_projected.updatedAt),
+            OrderingTerm.desc(_projected.createdAt),
+          ]))
+        .map(_libraryRow)
+        .watch();
+  }
+
+  /// Row count without materializing rows.
+  Stream<int> watchCount() {
+    final count = countAll();
+    return (selectOnly(
+      mediaLibraryTable,
+    )..addColumns([count])).watchSingle().map((row) => row.read(count)!);
+  }
+
+  /// Content hashes for one [provider] value, without materializing rows.
+  Stream<Set<String>> watchContentIdsByProvider(String provider) {
+    final query = selectOnly(mediaLibraryTable)
+      ..addColumns([_projected.contentHash])
+      ..where(_projected.provider.equals(provider));
+    return query.watch().map((rows) {
+      final ids = <String>{};
+      for (final row in rows) {
+        final id = row.read(_projected.contentHash);
+        if (id != null && id.isNotEmpty) ids.add(id);
+      }
+      return ids;
+    });
+  }
+
   MediaLibraryRow _libraryRow(TypedResult r) => MediaLibraryRow(
     id: r.read(_projected.id)!,
     title: r.read(_projected.title)!,

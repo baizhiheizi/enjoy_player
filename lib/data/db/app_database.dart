@@ -118,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -327,6 +327,11 @@ class AppDatabase extends _$AppDatabase {
           'ON ai_cache (source_language, target_language)',
         );
         await _backfillAiCacheLanguagePairs(m.database);
+      } else if (next == 21) {
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_audios_provider '
+          'ON audios (provider)',
+        );
       }
       current = next;
     }

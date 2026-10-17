@@ -11712,6 +11712,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_audios_updated_at',
     'CREATE INDEX idx_audios_updated_at ON audios (updated_at)',
   );
+  late final Index idxAudiosProvider = Index(
+    'idx_audios_provider',
+    'CREATE INDEX idx_audios_provider ON audios (provider)',
+  );
   late final Index idxTranscriptsTarget = Index(
     'idx_transcripts_target',
     'CREATE INDEX idx_transcripts_target ON transcripts (target_type, target_id)',
@@ -11833,6 +11837,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxAudiosLocalUri,
     idxAudiosMd5,
     idxAudiosUpdatedAt,
+    idxAudiosProvider,
     idxTranscriptsTarget,
     idxTranscriptFetchStatesTarget,
     idxEchoSessionsTargetActive,
