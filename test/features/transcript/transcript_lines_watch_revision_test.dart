@@ -245,4 +245,19 @@ void main() {
     expect(third!.lines.single.text, 'again');
     expect(repo.rowReads, 2);
   });
+
+  test('a non-BMP timeline still matches the SQL revision key', () async {
+    const emoji = 'hi \u{1F600}';
+    await db.transcriptDao.upsert(
+      _transcript(text: emoji, updatedAt: DateTime.utc(2026, 10, 17, 12)),
+    );
+
+    final first = await repo.contentById(_transcriptId);
+    expect(first!.lines.single.text, emoji);
+    expect(repo.rowReads, 1);
+
+    final second = await repo.contentById(_transcriptId);
+    expect(second!.lines.single.text, emoji);
+    expect(repo.rowReads, 1, reason: 'SQL length() counts characters');
+  });
 }

@@ -113,6 +113,9 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
   /// materializing the blob. `TranscriptDao.upsert` guarantees consecutive
   /// stored writes never share an `updated_at` second, so a changed record is
   /// a changed revision.
+  ///
+  /// SQLite `length()` counts characters, not UTF-16 code units; the Dart
+  /// side of the memo key must use `timelineJsonCharacterCount` to match.
   Stream<({DateTime updatedAt, int jsonLength})?> watchRevisionById(String id) {
     final jsonLength = transcripts.timelineJson.length;
     final query = selectOnly(transcripts)

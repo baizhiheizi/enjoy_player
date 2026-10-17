@@ -50,8 +50,10 @@ void _sortTranscriptSummaries(List<TranscriptTrackSummary> summaries) {
   });
 }
 
-TranscriptTimelineRevision _revisionOf(TranscriptRow row) =>
-    (updatedAt: row.updatedAt, jsonLength: row.timelineJson.length);
+TranscriptTimelineRevision _revisionOf(TranscriptRow row) => (
+  updatedAt: row.updatedAt,
+  jsonLength: timelineJsonCharacterCount(row.timelineJson),
+);
 
 String _normalizeSource(String raw) {
   switch (raw) {
