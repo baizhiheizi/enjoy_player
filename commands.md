@@ -1,39 +1,76 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
 ## Toolchain quirk (IMPORTANT, cost me time — reuse this)
-- The CI-installed Flutter at `/home/runner/.toolcache/flutter-3.47.6-stable` (as of 2026-10-09; previously `flutter-3.44.0-stable`) is on a **READ-ONLY filesystem**. Any `flutter`/`dart` command run from there fails: `update_engine_version.sh` cannot write `engine.stamp`/`engine.realm`, and the tools snapshot cannot write `bin/cache/lockfile`. Do NOT waste time trying env vars.
-- SDK structure changed 2026-10-16: the bin/ tree now nests under `/home/runner/.toolcache/flutter-3.47.6-stable/flutter/` (a `flutter/` subdir). The writable-copy recipe below still works; just adjust the final path.
-- Workaround that works: copy the SDK to writable temp and invoke by ABSOLUTE path.
+- The CI-installed Flutter at `/home/runner/.toolcache/flutter-3.47.6-stable`
+  is on a **READ-ONLY filesystem**. Any `flutter`/`dart` command run from
+  there fails: `update_engine_version.sh` cannot write `engine.stamp`/`engine.realm`,
+  and the tools snapshot cannot write `bin/cache/lockfile`. Do NOT waste time
+  trying env vars.
+- SDK structure (verified 2026-10-17, still in place): the bin/ tree nests
+  under `/home/runner/.toolcache/flutter-3.47.6-stable/flutter/` (a
+  `flutter/` subdir). The writable-copy recipe below still works; just
+  adjust the final path.
+- Workaround that works: copy the SDK to writable temp and invoke by
+  ABSOLUTE path.
   ```bash
   cp -a /home/runner/.toolcache/flutter-3.47.6-stable /tmp/gh-aw/agent/flutter-3.47.6
   # (cp -a into an existing dir nests it -> real SDK root is /tmp/gh-aw/agent/flutter-3.47.6/flutter)
   /tmp/gh-aw/agent/flutter-3.47.6/flutter/bin/flutter --version
   ```
-- Verified (2026-10-16): Flutter 3.47.6 stable, Dart 3.13.5 — matches `mise.toml` pin exactly.
-- Shell profile re-prepends the read-only toolcache to PATH, so `export PATH=...` does NOT take effect. Always use the absolute path to the copied SDK.
-- Old workaround targeting the 3.44.0 SDK is OBSOLETE; use the 3.47.6 copy above.
+- Verified (2026-10-17): Flutter 3.47.6 stable, Dart 3.13.5 — matches
+  `mise.toml` pin exactly.
+- **WARN: the writable Flutter copy is EPHEMERAL.** `/tmp/gh-aw/agent/` is
+  wiped between workflow runs. The 2026-10-17 run found the copy missing
+  from the 2026-10-16 run. Each run must re-create it; the recipe is
+  idempotent (cp -a is safe to re-run).
+- Shell profile re-prepends the read-only toolcache to PATH, so
+  `export PATH=...` does NOT take effect. Always use the absolute path to
+  the copied SDK.
+- Old workaround targeting the 3.44.0 SDK is OBSOLETE; use the 3.47.6 copy
+  above.
 
-## HARD BLOCKER in this sandbox: cannot resolve deps offline (validated 2026-10-08)
-- There is NO network access and `.dart_tool/package_config.json` does NOT exist in the checkout.
-- `flutter pub get --offline` FAILS: "enjoy_player depends on flutter_launcher_icons any which doesn't exist (could not find package flutter_launcher_icons in cache)". Pub cache has ~179 packages but is missing required ones.
-- Consequence: `flutter analyze` and `flutter test` CANNOT run here (they need a resolved package_config). `flutter analyze --no-pub` still tries to "update packages" and times out (~5 min).
-- => On this runner I cannot satisfy the AGENTS.md "every edit must be green" gate, so I must NOT open a code-changing PR from this environment. Do discovery + measurement-infra planning here; do code changes on a runner with network, or via a maintainer.
-- To re-validate the toolchain on a networked runner: `bash .github/scripts/validate_ci_gates.sh --analyze`.
+## HARD BLOCKER in this sandbox: cannot resolve deps offline (validated 2026-10-08, re-verified 2026-10-17)
+- There is NO network access and `.dart_tool/package_config.json` does NOT
+  exist in the checkout.
+- `flutter pub get --offline` FAILS: "enjoy_player depends on
+  flutter_launcher_icons any which doesn't exist (could not find package
+  flutter_launcher_icons in cache)". Pub cache has ~179 packages but is
+  missing required ones.
+- Consequence: `flutter analyze` and `flutter test` CANNOT run here (they
+  need a resolved package_config). `flutter analyze --no-pub` still tries
+  to "update packages" and times out (~5 min).
+- => On this runner I cannot satisfy the AGENTS.md "every edit must be
+  green" gate, so I must NOT open a code-changing PR from this environment.
+  Do discovery + measurement-infra planning here; do code changes on a
+  runner with network, or via a maintainer.
+- To re-validate the toolchain on a networked runner:
+  `bash .github/scripts/validate_ci_gates.sh --analyze`.
 
 ## Canonical gates (from AGENTS.md + .github/scripts/validate_ci_gates.sh)
-- Fast local mirror (format + codegen drift + path-deps gate): `bash .github/scripts/validate_ci_gates.sh`
+- Fast local mirror (format + codegen drift + path-deps gate):
+  `bash .github/scripts/validate_ci_gates.sh`
 - Add analyze: `bash .github/scripts/validate_ci_gates.sh --analyze`
 - Add tests: `bash .github/scripts/validate_ci_gates.sh --test`
 - Full (slow): `bash .github/scripts/validate_ci_gates.sh --all`
-- Individual: `flutter analyze`, `flutter test`, `bash .github/scripts/check_dart_format.sh [--fix]`
-- Codegen after annotation changes: `dart run build_runner build` or `bash .github/scripts/check_codegen_drift.sh --fix` (run in MAIN checkout, not agent worktree).
-- Path packages live under `packages/*/` (azure_speech, forced_alignment, ffmpeg_kit_flutter_new, flutter_secure_storage_linux); `--packages` runs their suites.
+- Individual: `flutter analyze`, `flutter test`,
+  `bash .github/scripts/check_dart_format.sh [--fix]`
+- Codegen after annotation changes: `dart run build_runner build` or
+  `bash .github/scripts/check_codegen_drift.sh --fix` (run in MAIN checkout,
+  not agent worktree).
+- Path packages live under `packages/*/` (azure_speech, forced_alignment,
+  ffmpeg_kit_flutter_new, flutter_secure_storage_linux); `--packages` runs
+  their suites.
 
 ## Project facts
-- Flutter/Dart monorepo. Root app `enjoy_player` + path packages under `packages/`.
+- Flutter/Dart monorepo. Root app `enjoy_player` + path packages under
+  `packages/`.
 - Scale: ~934 lib dart files, ~668 test files. Big mature codebase.
-- 24 features under lib/features/ (player, transcript, asr, sync, vocabulary, library, discover, lookup, ai, craft, shadow_reading, etc.).
+- 24 features under lib/features/ (player, transcript, asr, sync, vocabulary,
+  library, discover, lookup, ai, craft, shadow_reading, etc.).
 - Tests use Drift (sqlite) + Riverpod; heavy use of Freezed/codegen.
+- Test count as of 2026-10-17: 6730–6744 across the maintainer's 5 perf
+  PRs (#969–#973). Each `flutter test` run is several minutes on a
+  networked runner.
 
 ## Performance testing philosophy (docs/perf-measurement.md)
 - Prefers STRUCTURAL deterministic tests over wall-clock benchmarks:
@@ -41,12 +78,21 @@
   - Pattern 2: count stream emissions (Drift watch dedupe).
   - Pattern 3: Completer-barrier single-flight test doubles.
   - Pattern 4: 10k-item widget list + fling + takeException()==isNull.
-  - Microbenchmark template exists for parse throughput (local only, loose ceilings).
-- Known gap per doc: dedicated test/perf/ dir + benchmark smoke job are DEFERRED future work.
-- Main-isolate perf focus (docs/architecture.md#main-isolate-performance-windows): no heavy per-item image analysis (palette_generator) in large grids/lists on UI isolate; keep playback/startup/scroll/transcript/sync/import work off UI thread. Profile with DevTools CPU profiler locally.
-- Sliver perf: long-lived lists use stable ValueKey + findChildIndexCallback (lib/core/utils/sliver_key_index.dart) to reuse Elements.
+  - Microbenchmark template exists for parse throughput (local only, loose
+    ceilings).
+- Known gap per doc: dedicated test/perf/ dir + benchmark smoke job are
+  DEFERRED future work.
+- Main-isolate perf focus (docs/architecture.md#main-isolate-performance-windows):
+  no heavy per-item image analysis (palette_generator) in large grids/lists
+  on UI isolate; keep playback/startup/scroll/transcript/sync/import work
+  off UI thread. Profile with DevTools CPU profiler locally.
+- Sliver perf: long-lived lists use stable ValueKey + findChildIndexCallback
+  (lib/core/utils/sliver_key_index.dart) to reuse Elements.
 
 ## Conventions that gate PRs (AGENTS.md)
-- No `print()` — use logNamed. No `//` comments in lib/test except analyzer directives (zero-comment policy).
-- Every edit must be green: flutter analyze + flutter test both pass. Do not create a PR otherwise.
-- All SQLite via Drift DAOs. Single media_kit Player (PlayerController). No Flutter web / kIsWeb.
+- No `print()` — use logNamed. No `//` comments in lib/test except analyzer
+  directives (zero-comment policy).
+- Every edit must be green: flutter analyze + flutter test both pass. Do not
+  create a PR otherwise.
+- All SQLite via Drift DAOs. Single media_kit Player (PlayerController).
+  No Flutter web / kIsWeb.
