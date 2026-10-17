@@ -31,8 +31,8 @@ Future<List<Media>> _firstValue(
   }
 }
 
-/// Stand-in for the `AppDatabase` the fake never touches: `watchAll` is the
-/// only override, so no Drift machinery is booted (issue #768 review).
+/// Stand-in for the `AppDatabase` the fake never touches: `watchByProvider` is
+/// the only override, so no Drift machinery is booted (issue #768 review).
 class _UnusedDb implements AppDatabase {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -45,7 +45,11 @@ class _FakeMediaRegistry extends MediaRegistry {
   final List<Media> _items;
 
   @override
-  Stream<List<Media>> watchAll() => Stream.value(_items);
+  Stream<List<Media>> watchByProvider(String provider) {
+    final items = _items.where((item) => item.provider == provider).toList()
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return Stream.value(items);
+  }
 }
 
 Media _media({
