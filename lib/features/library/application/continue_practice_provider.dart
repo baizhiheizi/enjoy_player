@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/features/library/application/library_media_provider.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/library/domain/practice_resume.dart';
 
@@ -41,12 +41,21 @@ PracticeResume? resolvePracticeResume({
   return null;
 }
 
+final continuePracticeMediaProvider = StreamProvider<Map<String, Media>>((ref) {
+  final sessions = ref.watch(echoRecentSessionsProvider).valueOrNull;
+  if (sessions == null || sessions.isEmpty) return Stream.value(const {});
+  final ids = {for (final session in sessions) session.targetId};
+  return ref
+      .watch(mediaRegistryProvider)
+      .watchByIds(ids)
+      .map((items) => {for (final media in items) media.id: media});
+});
+
 /// Last practiced item to resume, or `null` when there is nothing to resume.
 final continuePracticeResumeProvider = Provider<PracticeResume?>((ref) {
   final sessions = ref.watch(echoRecentSessionsProvider).valueOrNull;
-  final media = ref.watch(libraryMediaProvider).valueOrNull;
-  if (sessions == null || media == null) return null;
-  final byId = {for (final m in media) m.id: m};
+  final byId = ref.watch(continuePracticeMediaProvider).valueOrNull;
+  if (sessions == null || byId == null) return null;
   return resolvePracticeResume(
     sessions: sessions,
     lookupMedia: (id) => byId[id],

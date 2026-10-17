@@ -40,7 +40,7 @@
 
 **Reorder rebuild cost:** Separately, the Home recents grid re-emits its full list on every Drift tick (new import, delete, thumbnail update). The grid's `SliverChildBuilderDelegate` uses a stable `ValueKey<String>('home-media-${media.id}')` per tile plus `findChildIndexCallback` (via [`findSliverIndexByPrefixedId`](../../lib/core/utils/sliver_key_index.dart)) so an insert/reorder reuses existing tile `Element`s instead of rebuilding every visible child — see [conventions.md § Sliver performance](../conventions.md#sliver-performance-long-live-lists).
 
-**Tab header counts** (issue #818): the per-kind totals in the tab headers come from `libraryKindCountsProvider` → `MediaRegistry.watchKindCounts()`, which counts the two DAO halves inside the merge seam and reports `List.length`. The tab view therefore no longer watches a second `watchAll()` pipeline to walk the whole merged `List<Media>` on every library table write. The counts are the **unfiltered** totals, so a search query still reports "N of M" against the full library.
+**Tab header counts and narrow views** (issue #818, #968 C2): the per-kind totals in the tab headers come from `libraryKindCountsProvider` → `MediaRegistry.watchKindCounts()`, which now issues a `COUNT(*)` per table without materializing rows. Library tabs read per-kind `watchByKind` views ordered on the `updated_at` index instead of one merged whole-catalog `watchAll`; Home's Continue card resolves only the recent sessions' target ids (`watchByIds`); Craft history uses `watchByProvider('craft')` on the new `idx_audios_provider`. `watchAll` remains for export and tests. The counts are the **unfiltered** totals, so a search query still reports "N of M" against the full library.
 
 ## Future
 

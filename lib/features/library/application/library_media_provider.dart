@@ -4,17 +4,12 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter/foundation.dart';
+import 'package:enjoy_player/core/utils/stream_combine_latest.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 
 import 'library_search_provider.dart';
-
-/// Shared "newest activity first" ordering for library / Craft history
-/// listings. Extracted so every provider surfaces the same list ordering
-/// without re-deriving the comparator inline.
-int mediaByUpdatedAtDesc(Media a, Media b) =>
-    b.updatedAt.compareTo(a.updatedAt);
 
 final libraryMediaProvider = StreamProvider<List<Media>>((ref) {
   return ref.watch(mediaRegistryProvider).watchAll();
@@ -67,22 +62,17 @@ final libraryFilteredListsProvider =
     StreamProvider<({List<Media> audio, List<Media> video})>((ref) {
       final registry = ref.watch(mediaRegistryProvider);
       final query = ref.watch(librarySearchProvider);
-      return registry
-          .watchAll()
-          .map((items) {
-            final filtered = _filterMediaByQuery(items, query);
-            final audioItems =
-                filtered.where((m) => m.kind == MediaKind.audio).toList()
-                  ..sort(mediaByUpdatedAtDesc);
-            final videoItems =
-                filtered.where((m) => m.kind == MediaKind.video).toList()
-                  ..sort(mediaByUpdatedAtDesc);
-            return (audio: audioItems, video: videoItems);
-          })
-          .distinctBy((prev, next) {
-            return listEquals(prev.audio, next.audio) &&
-                listEquals(prev.video, next.video);
-          });
+      return combineLatest2(
+        registry.watchByKind(MediaKind.audio),
+        registry.watchByKind(MediaKind.video),
+        (List<Media> audio, List<Media> video) => (
+          audio: _filterMediaByQuery(audio, query),
+          video: _filterMediaByQuery(video, query),
+        ),
+      ).distinctBy((prev, next) {
+        return listEquals(prev.audio, next.audio) &&
+            listEquals(prev.video, next.video);
+      });
     });
 
 List<Media> _filterMediaByQuery(List<Media> items, String query) {

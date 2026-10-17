@@ -12,6 +12,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:enjoy_player/core/utils/stream_combine_latest.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
@@ -248,13 +249,7 @@ class MediaRegistry {
   /// comparator is custom because `Set<String>` lacks value `==`.
   Stream<Set<String>> watchYoutubeVideoIds() {
     return _db.videoDao
-        .watchAll()
-        .map<Set<String>>(
-          (rows) => <String>{
-            for (final row in rows)
-              if (row.contentHash.isNotEmpty) row.contentHash,
-          },
-        )
+        .watchContentIdsByProvider('youtube')
         .distinctBy(_setEquals);
   }
 
@@ -274,19 +269,47 @@ class MediaRegistry {
     );
   }
 
-  /// Per-kind row counts across both library tables.
-  ///
-  /// Computed inside the merge seam from the raw DAO halves, so the library
-  /// tab headers read `List.length` instead of walking the whole merged
-  /// `List<Media>` on every table write (issue #818). Counting the halves
-  /// pre-mapping is exact: every `videos` row becomes a
-  /// `MediaKind.video` and every `audios` row a `MediaKind.audio`.
+  /// Per-kind row counts across both library tables, without materializing
+  /// rows. Every `videos` row is one `MediaKind.video`, every `audios` row one
+  /// `MediaKind.audio`, so the tab headers' contract is unchanged.
   Stream<({int audio, int video})> watchKindCounts() {
+    return combineLatest2(
+      _db.videoDao.watchCount(),
+      _db.audioDao.watchCount(),
+      (int video, int audio) => (video: video, audio: audio),
+    ).distinctBy((previous, current) => previous == current);
+  }
+
+  /// One kind's media, newest `updated_at` first, from its own table only.
+  Stream<List<Media>> watchByKind(MediaKind kind) {
+    final dao = kind == MediaKind.video ? _db.videoDao : _db.audioDao;
+    return dao
+        .watchByUpdatedAt()
+        .map(
+          (rows) => [
+            for (final row in rows) mediaFromLibraryProjection(row, kind: kind),
+          ],
+        )
+        .distinctBy(_listEquals);
+  }
+
+  /// Media rows for one `provider` value across both tables, newest first.
+  Stream<List<Media>> watchByProvider(String provider) {
     return _mergeLibraryRows(
-      videosStream: _db.videoDao.watchAll(),
-      audiosStream: _db.audioDao.watchAll(),
-      merge: (videos, audios) => (video: videos.length, audio: audios.length),
-      areEqual: (previous, current) => previous == current,
+      videosStream: _db.videoDao.watchByProvider(provider),
+      audiosStream: _db.audioDao.watchByProvider(provider),
+      merge: _mergeRowsByUpdatedAtDesc,
+      areEqual: _listEquals,
+    );
+  }
+
+  /// Media rows for [ids] across both tables, newest first.
+  Stream<List<Media>> watchByIds(Set<String> ids) {
+    return _mergeLibraryRows(
+      videosStream: _db.videoDao.watchByIds(ids),
+      audiosStream: _db.audioDao.watchByIds(ids),
+      merge: _mergeRowsByUpdatedAtDesc,
+      areEqual: _listEquals,
     );
   }
 
