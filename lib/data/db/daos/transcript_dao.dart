@@ -28,6 +28,28 @@ final class TranscriptTrackSummary {
   final DateTime updatedAt;
 }
 
+/// Projected transcript metadata for callers that need identity, language and
+/// change detection but never `timeline_json`.
+final class TranscriptMeta {
+  const TranscriptMeta({
+    required this.id,
+    required this.targetType,
+    required this.targetId,
+    required this.language,
+    required this.source,
+    required this.referenceId,
+    required this.revision,
+  });
+
+  final String id;
+  final String targetType;
+  final String targetId;
+  final String language;
+  final String source;
+  final String? referenceId;
+  final ({DateTime updatedAt, int jsonLength}) revision;
+}
+
 @DriftAccessor(tables: [Transcripts])
 class TranscriptDao extends DatabaseAccessor<AppDatabase>
     with _$TranscriptDaoMixin {
@@ -85,6 +107,57 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
       ],
       readsFrom: {transcripts},
     ).watch().map((rows) => rows.first.read<int>('e') != 0);
+  }
+
+  /// Change tick for one row: `(updated_at, length(timeline_json))` without
+  /// materializing the blob. `TranscriptDao.upsert` guarantees consecutive
+  /// stored writes never share an `updated_at` second, so a changed record is
+  /// a changed revision.
+  ///
+  /// SQLite `length()` counts characters, not UTF-16 code units; the Dart
+  /// side of the memo key must use `timelineJsonCharacterCount` to match.
+  Stream<({DateTime updatedAt, int jsonLength})?> watchRevisionById(String id) {
+    final jsonLength = transcripts.timelineJson.length;
+    final query = selectOnly(transcripts)
+      ..addColumns([transcripts.updatedAt, jsonLength])
+      ..where(transcripts.id.equals(id));
+    return query.watchSingleOrNull().map((row) {
+      if (row == null) return null;
+      final updatedAt = row.read(transcripts.updatedAt);
+      final length = row.read(jsonLength);
+      if (updatedAt == null || length == null) return null;
+      return (updatedAt: updatedAt, jsonLength: length);
+    });
+  }
+
+  Future<TranscriptMeta?> metaById(String id) async {
+    final jsonLength = transcripts.timelineJson.length;
+    final query = selectOnly(transcripts)
+      ..addColumns([
+        transcripts.id,
+        transcripts.targetType,
+        transcripts.targetId,
+        transcripts.language,
+        transcripts.source,
+        transcripts.referenceId,
+        transcripts.updatedAt,
+        jsonLength,
+      ])
+      ..where(transcripts.id.equals(id));
+    final row = await query.getSingleOrNull();
+    if (row == null) return null;
+    return TranscriptMeta(
+      id: row.read(transcripts.id)!,
+      targetType: row.read(transcripts.targetType)!,
+      targetId: row.read(transcripts.targetId)!,
+      language: row.read(transcripts.language)!,
+      source: row.read(transcripts.source)!,
+      referenceId: row.read(transcripts.referenceId),
+      revision: (
+        updatedAt: row.read(transcripts.updatedAt)!,
+        jsonLength: row.read(jsonLength)!,
+      ),
+    );
   }
 
   Future<TranscriptRow?> getById(String id) =>

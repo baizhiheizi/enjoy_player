@@ -14,7 +14,6 @@ library;
 
 import 'dart:async';
 
-import 'package:async/async.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart';
@@ -37,6 +36,7 @@ import '../../../data/subtitle/subtitle_parser.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../../../data/subtitle/subtitle_filename.dart';
 import '../domain/auto_translate.dart';
+import '../domain/transcript_content.dart';
 import '../domain/transcript_fetch_status.dart';
 import '../domain/transcript_track.dart';
 import '../../sync/domain/sync_queue_job.dart';
@@ -212,6 +212,11 @@ class TranscriptRepository {
   Future<TranscriptRow?> transcriptRowById(String transcriptId) =>
       _transcriptRowById(transcriptId);
 
+  /// Metadata plus decoded lines for [transcriptId], reading `timeline_json`
+  /// only when the revision-keyed memo misses.
+  Future<TranscriptContent?> contentById(String transcriptId) =>
+      _contentById(transcriptId);
+
   /// Replaces [timelineJson] on an existing primary row in place.
   ///
   /// Preserves id, source, language, label, and target. Returns false when
@@ -292,12 +297,14 @@ class TranscriptRepository {
 
   /// Whether the AI track is out of sync with the current primary transcript.
   bool isAutoTranslateTrackStale({
-    required TranscriptRow aiRow,
+    required String? aiReferenceId,
     required String primaryId,
     required List<TranscriptLine> primaryLines,
+    required List<TranscriptLine> aiLines,
   }) => _isAutoTranslateTrackStale(
-    aiRow: aiRow,
+    aiReferenceId: aiReferenceId,
     primaryId: primaryId,
     primaryLines: primaryLines,
+    aiLines: aiLines,
   );
 }
