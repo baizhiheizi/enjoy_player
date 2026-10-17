@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/transport_slider_position_provider.dart';
@@ -103,5 +102,31 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('layers paint in progress, tick, thumb order', (tester) async {
+    final positions = StreamController<Duration>.broadcast();
+    addTearDown(positions.close);
+    await _pumpRuler(tester, positions.stream);
+
+    positions.add(const Duration(seconds: 300));
+    await tester.pump();
+    await tester.pump();
+
+    final painters = tester
+        .widgetList<CustomPaint>(
+          find.descendant(
+            of: find.byType(SentenceRuler),
+            matching: find.byType(CustomPaint),
+          ),
+        )
+        .map((w) => w.painter.runtimeType.toString())
+        .toList();
+
+    expect(painters, [
+      '_RulerProgressPainter',
+      '_RulerTickPainter',
+      '_RulerThumbPainter',
+    ]);
   });
 }

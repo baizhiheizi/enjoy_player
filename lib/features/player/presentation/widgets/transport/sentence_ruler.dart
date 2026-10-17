@@ -225,16 +225,22 @@ class _SentenceRulerState extends ConsumerState<SentenceRuler> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
+                        CustomPaint(
+                          painter: _RulerProgressPainter(
+                            tokens: t,
+                            fraction: _fraction,
+                          ),
+                        ),
                         RepaintBoundary(
                           child: CustomPaint(
-                            painter: _RulerTrackPainter(
+                            painter: _RulerTickPainter(
                               tokens: t,
                               geometry: geometry,
                             ),
                           ),
                         ),
                         CustomPaint(
-                          painter: _RulerPlayheadPainter(
+                          painter: _RulerThumbPainter(
                             tokens: t,
                             fraction: _fraction,
                             hovered: _hovered,
@@ -301,8 +307,46 @@ class _SentenceRulerState extends ConsumerState<SentenceRuler> {
   }
 }
 
-class _RulerTrackPainter extends CustomPainter {
-  _RulerTrackPainter({required this.tokens, required this.geometry});
+/// The sunk track and the played fill that rides it; repaints on every
+/// playhead step, so it draws nothing that depends on the transcript.
+class _RulerProgressPainter extends CustomPainter {
+  _RulerProgressPainter({required this.tokens, required this.fraction})
+    : super(repaint: fraction);
+
+  final EnjoyThemeTokens tokens;
+  final ValueListenable<double> fraction;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final t = tokens;
+    final trackTop = size.height / 2 - t.strokeRulerTrack / 2;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, trackTop, size.width, t.strokeRulerTrack),
+        const Radius.circular(2),
+      ),
+      Paint()..color = t.sunk,
+    );
+
+    final playedWidth = size.width * fraction.value.clamp(0.0, 1.0);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, trackTop, playedWidth, t.strokeRulerTrack),
+        const Radius.circular(2),
+      ),
+      Paint()..color = t.original,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RulerProgressPainter old) => old.tokens != tokens;
+}
+
+/// Ticks, the Echo loop bracket and the practiced dots. Painted above the
+/// progress fill so they stay visible across the played span, and isolated in
+/// a [RepaintBoundary] so a playhead step never repaints them.
+class _RulerTickPainter extends CustomPainter {
+  _RulerTickPainter({required this.tokens, required this.geometry});
 
   final EnjoyThemeTokens tokens;
   final RulerGeometry geometry;
@@ -311,11 +355,6 @@ class _RulerTrackPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final t = tokens;
     final trackTop = size.height / 2 - t.strokeRulerTrack / 2;
-    final trackRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, trackTop, size.width, t.strokeRulerTrack),
-      const Radius.circular(2),
-    );
-    canvas.drawRRect(trackRect, Paint()..color = t.sunk);
 
     final tickPaint = Paint()
       ..color = t.tick
@@ -364,12 +403,14 @@ class _RulerTrackPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RulerTrackPainter old) =>
+  bool shouldRepaint(_RulerTickPainter old) =>
       old.tokens != tokens || old.geometry != geometry;
 }
 
-class _RulerPlayheadPainter extends CustomPainter {
-  _RulerPlayheadPainter({
+/// The original thumb ring, drawn above the ticks so a tick crossing the
+/// playhead never cuts through it.
+class _RulerThumbPainter extends CustomPainter {
+  _RulerThumbPainter({
     required this.tokens,
     required this.fraction,
     required this.hovered,
@@ -382,16 +423,7 @@ class _RulerPlayheadPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final t = tokens;
-    final trackTop = size.height / 2 - t.strokeRulerTrack / 2;
     final playedWidth = size.width * fraction.value.clamp(0.0, 1.0);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, trackTop, playedWidth, t.strokeRulerTrack),
-        const Radius.circular(2),
-      ),
-      Paint()..color = t.original,
-    );
-
     final thumbRadius = hovered.value ? 8.0 : 6.0;
     final thumbCenter = Offset(playedWidth, size.height / 2);
     canvas.drawCircle(thumbCenter, thumbRadius, Paint()..color = t.paper);
@@ -406,5 +438,5 @@ class _RulerPlayheadPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RulerPlayheadPainter old) => old.tokens != tokens;
+  bool shouldRepaint(_RulerThumbPainter old) => old.tokens != tokens;
 }
