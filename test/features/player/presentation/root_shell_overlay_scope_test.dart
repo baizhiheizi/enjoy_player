@@ -175,7 +175,7 @@ void main() {
     );
   });
 
-  testWidgets('shell keeps only the /youtube/login path flag', (tester) async {
+  testWidgets('shell parks the surface for /youtube/login', (tester) async {
     final container = await _pump(tester, initial: '/', db: db);
     expect(
       tester

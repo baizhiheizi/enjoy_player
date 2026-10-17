@@ -28,7 +28,9 @@ regressed whenever a new Enjoy modal opened from the player without the flag.
    `showModalBottomSheet` on player paths so the default applies.
 4. Keep distinct patterns for non-modal chrome:
    - In-stage controls → `PlayerSurfaceTarget.overlayBuilder`
-   - Competing WebView route → `PlayerSurfaceHost(forcePark: …)`
+   - Route stacked over a mounted player page → `PlayerSurfaceHost(forcePark: …)`
+     (competing WebView routes like `/youtube/login`, and player sub-routes like
+     the transcript editor that the surface would otherwise cover)
 5. On platforms where native surfaces punch through Flutter overlays (notably
    Windows WebView2), [ADR-0066](0066-park-player-surface-for-overlays.md)
    additionally parks the host for the lifetime of popup routes and

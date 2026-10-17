@@ -22,9 +22,11 @@ import 'package:enjoy_player/features/player/presentation/widgets/player_stage_r
 /// Watching it from the shell used to rebuild RootShell — nav, sidebar and both
 /// scaffolds — on every token change (issue #663).
 ///
-/// Set [forcePark] only when a shell route that owns its own platform view
-/// (e.g. `/youtube/login`) is on top of a still-mounted player page; otherwise
-/// this host stays above the shell [Stack] and covers that UI.
+/// Set [forcePark] when a shell route sits on top of a still-mounted player page
+/// and must not be covered by this host, which stays above the shell [Stack] —
+/// either because that route owns a competing platform view (`/youtube/login`)
+/// or because the surface would otherwise overlay its Flutter UI (a
+/// `/player/` sub-route such as the transcript editor).
 class PlayerSurfaceHost extends ConsumerWidget {
   const PlayerSurfaceHost({
     super.key,
