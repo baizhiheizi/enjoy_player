@@ -16,8 +16,9 @@ overlay stack. SnackBars, modal bottom sheets, and dialogs can therefore still
 appear **under** the video surface even when they use the root navigator.
 
 Competing WebView routes already use `PlayerSurfaceHost(forcePark: …)` (e.g.
-`/youtube/login`). The same park mechanism is the reliable cross-platform fix
-for all transient overlays.
+`/youtube/login`), as does any route stacked over a mounted player page that
+the host would otherwise cover. The same park mechanism is the reliable
+cross-platform fix for all transient overlays.
 
 ## Decision
 
@@ -26,8 +27,10 @@ for all transient overlays.
    parks off-screen. (Amended by issue #663: the token set is watched inside
    `PlayerSurfaceHost` rather than `RootShell` — the original shell-level watch
    rebuilt the whole shell, nav and sidebar included, on every dialog / sheet /
-   notice token change. `forcePark` remains the explicit shell-route flag, e.g.
-   `/youtube/login`.)
+   notice token change. `forcePark` remains the explicit shell-route flag, set
+   whenever a shell route sits over a mounted player page the host would cover —
+   a competing WebView route (`/youtube/login`) or a `/player/` sub-route (the
+   transcript editor, #960).)
 2. Attach [`PlayerSurfaceOverlayNavigatorObserver`](../../lib/core/player/player_surface_overlay_navigator_observer.dart)
    to **both** the root and shell navigators so every `PopupRoute` (dialog,
    modal bottom sheet, menu) acquires/releases a token automatically — including
