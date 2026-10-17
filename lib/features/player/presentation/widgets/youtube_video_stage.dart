@@ -6,6 +6,7 @@ import 'dart:ui' show ImageByteFormat;
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,7 +53,9 @@ class YoutubeVideoStage extends ConsumerWidget {
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Colors.black),
-            if (engine.availability.canPlay && session.shouldMountWebView)
+            if (engine.availability.canPlay &&
+                session.shouldMountWebView &&
+                YoutubeFrameWatchdog.supportedOn(defaultTargetPlatform))
               _FrameWatchdogLayer(
                 engine: engine,
                 onStalled: () => _handleStall(context, ref),

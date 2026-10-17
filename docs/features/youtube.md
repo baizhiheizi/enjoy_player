@@ -141,6 +141,10 @@ adds `Referer: https://m.youtube.com/` plus `Accept-Language` so the
 
 [`YoutubePlaybackStallWatchdog`](../../lib/features/player/application/engines/youtube/youtube_playback_stall_watchdog.dart) detects YouTube videos that load but never reach their first frame. After the WebView fires `onLoadStop`, a **12-second** timer starts; if no `playing` event arrives within that window, `onStall(videoId)` fires, logs `youtube playback stalled after load_stop`, and triggers **at most one** full watch-page reload (`recoverStalledPlayback`). Further stalls nudge `play()` only. Explicit user/app play cancels the watchdog and skips the reload path so an in-flight play is not aborted. The timer resets on each new `onLoadStop` (navigating to a new video).
 
+### Linux frame-export stall (ADR-0098)
+
+[`YoutubeFrameWatchdog`](../../lib/features/player/application/engines/youtube/youtube_frame_watchdog.dart) samples the WebView texture through the stage's `RepaintBoundary` and detects the Linux hardware frame-export stall (near-black, static luminance while playback reports live). It is **Linux-only**: the stage mounts it via `YoutubeFrameWatchdog.supportedOn(defaultTargetPlatform)`, because the verdict writes the Linux runner's software-GL marker and every other target short-circuits YouTube availability to playable. After three consecutive healthy pairs the probe backs off from a 900 ms pair cadence to one pair every 15 s, so a long healthy session still catches a late stall without continuous GPU readbacks; a stalled pair resets the healthy counter and returns to the fast cadence.
+
 ## Platform notes
 
 | Platform | WebView | Profile / cookies | Navigation policy (ADR-0025) | Process crash recovery |
