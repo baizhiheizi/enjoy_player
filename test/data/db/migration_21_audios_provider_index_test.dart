@@ -39,6 +39,7 @@ void main() {
       });
 
       final seed = AppDatabase(executor: NativeDatabase(file));
+      await seed.customStatement('DROP INDEX idx_audios_provider');
       await seed.customStatement('PRAGMA user_version = 20');
       await seed.audioDao.insertRow(
         AudioRow(
