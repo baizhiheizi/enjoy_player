@@ -77,49 +77,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # The job's environment is reset to a pristine state before each run, so
-      # ~/.pub-cache cannot persist on the runner between jobs. The cache
-      # backend is the LAN gh-sr-cache server: a hit costs zero proxy bytes,
-      # and only a miss re-uploads.
-      - name: Restore pub cache
-        id: pub-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-
-      - name: Save pub cache
-        if: steps.pub-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.pub-cache
-          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
-
-      # `pod install` is the other per-run network cost on this runner (the
-      # spec repo plus every pod source archive). Keyed per job so the iOS and
-      # macOS locks cannot contend for one key, and on the lock file so a pod
-      # version bump re-resolves rather than serving a stale tree.
-      - name: Restore CocoaPods caches (iOS)
-        id: pods-cache-ios
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: pods-${{ runner.os }}-ios-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            pods-${{ runner.os }}-ios-
-
-      - name: Save CocoaPods caches (iOS)
-        if: steps.pods-cache-ios.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: ${{ steps.pods-cache-ios.outputs.cache-primary-key }}
+      # No actions/cache for pub or CocoaPods here: this job runs on a native
+      # (non-container) self-hosted runner whose $HOME persists across jobs —
+      # ~/.pub-cache, ~/.cocoapods and ~/Library/Caches/CocoaPods survive runs
+      # on local disk, and the LAN cache server only exists for gh-sr container
+      # runners. Restoring from GitHub's cache service downloaded ~1 GB of pub
+      # cache per job through the WAN proxy (~8 min each) for data that was
+      # already on disk, and the save step re-uploaded it. The container-pool
+      # workflows (ci.yml, android_apk_smoke.yml) keep their restore/save
+      # pairs — there the cache backend is the LAN cache server and a hit
+      # costs zero WAN bytes.
+      #
+      # `pod install` still hits the network for new pod versions only
+      # (spec-repo + source archives land in the persistent dirs above).
 
       - uses: ./.github/actions/setup-macos-runner-env
 
@@ -163,41 +133,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Restore pub cache
-        id: pub-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-
-      - name: Save pub cache
-        if: steps.pub-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.pub-cache
-          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
-
-      - name: Restore CocoaPods caches (macOS)
-        id: pods-cache-macos
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: pods-${{ runner.os }}-macos-${{ hashFiles('macos/Podfile.lock') }}
-          restore-keys: |
-            pods-${{ runner.os }}-macos-
-
-      - name: Save CocoaPods caches (macOS)
-        if: steps.pods-cache-macos.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: ${{ steps.pods-cache-macos.outputs.cache-primary-key }}
+      # No actions/cache for pub or CocoaPods here either — same reasoning as
+      # the iOS job above: native runner, persistent $HOME, no LAN cache
+      # server for native runners; the GitHub-cache round-trips were pure
+      # WAN-proxy traffic (and ~8 min per restore) for already-local data.
 
       - uses: ./.github/actions/setup-macos-runner-env
 
