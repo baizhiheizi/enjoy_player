@@ -281,7 +281,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
         }
       }
       buf.writeln('Display: ${r.detail.displayText}');
-      final words = r.detail.nBest.isEmpty ? null : r.detail.nBest.first.words;
+      final words = r.detail.primaryNBest?.words;
       if (words != null && words.isNotEmpty) {
         buf
           ..writeln()

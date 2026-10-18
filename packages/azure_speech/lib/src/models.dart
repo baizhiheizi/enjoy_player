@@ -159,6 +159,9 @@ final class AzurePronunciationAssessmentResult {
   /// Convenience: first hypothesis scores (null if [nBest] empty).
   AzurePronunciationAssessmentScores? get primaryScores =>
       nBest.isEmpty ? null : nBest.first.pronunciationAssessment;
+
+  /// Convenience: first hypothesis (null if [nBest] empty).
+  AzureNBestResult? get primaryNBest => nBest.isEmpty ? null : nBest.first;
 }
 
 @JsonSerializable(createToJson: false)

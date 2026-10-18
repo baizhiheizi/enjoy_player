@@ -69,7 +69,7 @@ class AssessmentMarginPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final nBest = assessment.nBest.isEmpty ? null : assessment.nBest.first;
+    final nBest = assessment.primaryNBest;
     final number = takeNumber;
     return _MarginFrame(
       title: number == null
