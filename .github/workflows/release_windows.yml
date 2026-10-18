@@ -26,11 +26,17 @@ concurrency:
 permissions:
   contents: write
 
-# Mirror env matching build_windows.yml, so a cold Flutter SDK (version bump,
-# wiped tool cache) pulls from the CN mirror instead of storage.googleapis.com
-# through the WAN proxy, and pub resolves against the CN pub mirror.
+# FLUTTER_STORAGE_BASE_URL matches build_windows.yml, so a cold Flutter SDK
+# (version bump, wiped tool cache) pulls from the CN mirror instead of
+# storage.googleapis.com through the WAN proxy.
+#
+# PUB_HOSTED_URL is deliberately NOT set here (unlike the build workflow): it
+# makes pub treat the committed pub.dev lock as a different hosted source and
+# re-resolve, rewriting pubspec.lock to mirror URLs and moving versions within
+# constraints. A tagged release must build the exact versions pinned in the
+# tag's pubspec.lock, so releases resolve against the upstream default source
+# instead.
 env:
-  PUB_HOSTED_URL: https://pub.flutter-io.cn
   FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
 
 jobs:

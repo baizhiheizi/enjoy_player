@@ -38,9 +38,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Cache misses must not reach pub.dev / storage.googleapis.com through the
-# per-GB proxy; these mirrors are routed DIRECT. pubspec.lock pins every
+# Dependency downloads must not reach pub.dev / storage.googleapis.com through
+# the per-GB proxy; these mirrors are routed DIRECT. pubspec.lock pins every
 # package by sha256, so a mirror serving different bytes fails the hash check.
+# PUB_HOSTED_URL changes the default hosted source, so pub re-resolves the lock
+# against the mirror in this build job (versions can move within constraints);
+# the release workflow omits PUB_HOSTED_URL so a tag ships the exact versions in
+# its committed pubspec.lock.
 env:
   PUB_HOSTED_URL: https://pub.flutter-io.cn
   FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn

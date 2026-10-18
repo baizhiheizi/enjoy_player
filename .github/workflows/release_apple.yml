@@ -32,14 +32,21 @@ permissions:
 
 # Same HTTP/2-drop hardening as build_apple.yml: pin git to HTTP/1.1 for
 # checkout and every step; apple_spm_hygiene.sh sets the same override for
-# the build steps. Mirror env matches build_apple.yml too, so a cold Flutter
-# SDK (version bump, wiped tool cache) pulls from the CN mirror instead of
-# storage.googleapis.com through the WAN proxy.
+# the build steps. FLUTTER_STORAGE_BASE_URL matches build_apple.yml so a cold
+# Flutter SDK (version bump, wiped tool cache) pulls from the CN mirror instead
+# of storage.googleapis.com through the WAN proxy.
+#
+# PUB_HOSTED_URL is deliberately NOT set here (unlike the build workflows):
+# it makes pub treat the committed pub.dev lock as a different hosted source
+# and re-resolve, rewriting pubspec.lock to mirror URLs and moving versions
+# within constraints. A tagged release must build the exact versions pinned in
+# the tag's pubspec.lock, so releases resolve against the upstream default
+# source instead — releases are rare enough that the extra proxy bytes on a
+# cold pub cache are acceptable.
 env:
   GIT_CONFIG_COUNT: "1"
   GIT_CONFIG_KEY_0: http.version
   GIT_CONFIG_VALUE_0: HTTP/1.1
-  PUB_HOSTED_URL: https://pub.flutter-io.cn
   FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
 
 jobs:

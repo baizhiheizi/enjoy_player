@@ -46,9 +46,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Cache misses must not reach pub.dev / storage.googleapis.com through the
-# per-GB proxy; these mirrors are routed DIRECT. pubspec.lock pins every
+# Dependency downloads must not reach pub.dev / storage.googleapis.com through
+# the per-GB proxy; these mirrors are routed DIRECT. pubspec.lock pins every
 # package by sha256, so a mirror serving different bytes fails the hash check.
+# PUB_HOSTED_URL changes the default hosted source, so pub re-resolves the lock
+# against the mirror in these build jobs (versions can move within constraints);
+# the release workflows omit PUB_HOSTED_URL so a tag ships the exact versions in
+# its committed pubspec.lock.
 #
 # This host's route to github.com drops HTTP/2 connections mid-transfer
 # (LibreSSL SSL_ERROR_SYSCALL), which killed checkouts during network
@@ -83,10 +87,10 @@ jobs:
       # on local disk, and the LAN cache server only exists for gh-sr container
       # runners. Restoring from GitHub's cache service downloaded ~1 GB of pub
       # cache per job through the WAN proxy (~8 min each) for data that was
-      # already on disk, and the save step re-uploaded it. The container-pool
-      # workflows (ci.yml, android_apk_smoke.yml) keep their restore/save
-      # pairs — there the cache backend is the LAN cache server and a hit
-      # costs zero WAN bytes.
+      # already on disk, and a cache miss re-uploaded it. The container-pool
+      # workflows (ci.yml, codegen_drift.yml, build_linux.yml,
+      # android_apk_smoke.yml) keep their restore/save pairs — there the cache
+      # backend is the LAN cache server and a hit costs zero WAN bytes.
       #
       # `pod install` still hits the network for new pod versions only
       # (spec-repo + source archives land in the persistent dirs above).
