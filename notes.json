@@ -26,8 +26,14 @@
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-16",
-      "note": "Monthly activity summary for October 2026. 2026-10-16 17:47 UTC run (38935308350): body refreshed; sandbox recovered — pub get ✓, analyze clean, test/widget_test.dart 2/2 pass. Prior Matrix4/WebViewEnvironment blocker no longer reproduces. Suggested Actions still none."
+      "updated_at": "2026-10-18",
+      "note": "Monthly activity summary for October 2026. 2026-10-18 04:50 UTC run (39099034539): body refreshed; #968 verified complete on main (C1-C5 merged), close-recommendation comment posted. format gate OK, codegen transient. Suggested Actions lists one close recommendation."
+    },
+    {
+      "number": 968,
+      "state": "commented",
+      "updated_at": "2026-10-18",
+      "note": "Architecture review pass 4 tracking issue — all five Strong candidates (C1-C5) shipped to main via e4fb98bb, fdc7c02a (#970), 6d640a31 (#973), 437742cc (#971), 0f7e5470 (#972). 2026-10-18 run posted close-recommendation comment. Awaiting maintainer to close."
     },
     {
       "number": 850,
@@ -142,9 +148,9 @@
   "checks": [
     {
       "area": "ci",
-      "checked_at": "2026-10-16",
-      "result": "sandbox gate green: pub get succeeds, flutter analyze 'No issues found! (ran in 18.3s)', flutter test test/widget_test.dart 2/2 pass. Matrix4 / vector_math_64 / WebViewEnvironment blocker from 2026-10-16 05:24 UTC no longer reproduces.",
-      "follow_up": "Sandbox recovered. Still no actionable code-changing work — proactive-refactor lane paused, no user-facing issue open. Future runs now have a viable local gate."
+      "checked_at": "2026-10-18",
+      "result": "format gate OK (1838 files). check_codegen_drift hit transient build_runner error (Could not find bin/build_runner.dart) — AGENTS.md intermittent failure mode; sandbox .dart_tool stale.",
+      "follow_up": "format is the authoritative pre-push guard and stays green. Future runs: clear .dart_tool/build and retry once before opening a code-changing PR."
     }
   ],
   "completed_actions": [
@@ -171,6 +177,14 @@
     {
       "key": "#841 body refresh 2026-10-16 17:47 UTC",
       "completed_at": "2026-10-16"
+    },
+    {
+      "key": "#841 body refresh 2026-10-18 04:50 UTC",
+      "completed_at": "2026-10-18"
+    },
+    {
+      "key": "#968 close-recommendation comment 2026-10-18",
+      "completed_at": "2026-10-18"
     }
   ],
   "priorities": []
