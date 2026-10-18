@@ -68,8 +68,11 @@ runs:
     # (unzip's CRCs are the integrity check) — unpacked to the versioned dir,
     # matching setup-android's layout. Runs BEFORE android-actions so a proxy
     # that un-blocks dl.google.com cannot make the Google path win by default.
-    # Failures are tolerated (output bootstrapped=false) and fall through to
-    # the android-actions step below.
+    # Every failure is tolerated: partial extractions are removed so the
+    # probe's cmdline-tools/*/bin/sdkmanager glob cannot pass a half-unpacked
+    # dir off as a warm SDK on a later run, and a rename that lost a race
+    # with a concurrent bootstrap on the shared per-host SDK volume reuses
+    # that install instead of falling back to dl.google.com.
     - name: Bootstrap cmdline-tools (mirror zip)
       id: mirror-bootstrap
       if: steps.probe.outputs.found != 'true'
@@ -84,6 +87,8 @@ runs:
         base="${SDK_TEST_BASE_URL%/}"
         zip_url="${base}/commandlinetools-linux-${version}_latest.zip"
         archive="${RUNNER_TEMP:-/tmp}/commandlinetools-linux-${version}_latest.zip"
+        wrapper_dir="$sdk/cmdline-tools/cmdline-tools"
+        versioned_dir="$sdk/cmdline-tools/$version"
         echo "setup-android: no sdkmanager found — bootstrapping cmdline-tools $version from $zip_url"
         if ! curl -fsSL --http1.1 --retry 5 --retry-delay 10 --connect-timeout 20 \
             -o "$archive" "$zip_url"; then
@@ -91,16 +96,26 @@ runs:
           echo "bootstrapped=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
+        # The zip ships a top-level cmdline-tools/ wrapper dir. A stale one
+        # from an aborted attempt would make unzip merge into it and mv nest
+        # instead of rename, so it is cleared alongside the versioned dir
+        # before unpacking.
         if ! mkdir -p "$sdk/cmdline-tools" \
-           || ! rm -rf "$sdk/cmdline-tools/$version" \
-           || ! unzip -q "$archive" -d "$sdk/cmdline-tools"; then
+           || ! rm -rf "$versioned_dir" "$wrapper_dir" \
+           || ! unzip -q "$archive" -d "$sdk/cmdline-tools" \
+           || ! mv -T "$wrapper_dir" "$versioned_dir"; then
+          if [ -x "$versioned_dir/bin/sdkmanager" ]; then
+            echo "::warning::mirror cmdline-tools: concurrent bootstrap already installed $versioned_dir — reusing it"
+            rm -f "$archive" || true
+            echo "bootstrapped=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          rm -rf "$versioned_dir" "$wrapper_dir" || true
           echo "::warning::mirror cmdline-tools unpack failed — falling back to android-actions/setup-android (dl.google.com)"
           echo "bootstrapped=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        # The zip ships a top-level cmdline-tools/ wrapper dir.
-        mv "$sdk/cmdline-tools/cmdline-tools" "$sdk/cmdline-tools/$version"
-        rm -f "$archive"
+        rm -f "$archive" || true
         echo "bootstrapped=true" >> "$GITHUB_OUTPUT"
 
     # Last resort only: runs when the mirror bootstrap above failed, for
