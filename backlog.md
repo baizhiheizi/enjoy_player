@@ -1,48 +1,23 @@
 # Performance backlog — Enjoy Player
 
-**MAJOR UPDATE 2026-10-17:** Maintainer an-lee has shipped an authoritative
-performance-first architecture review that **supersedes most of the prior P1–P5
-backlog**. Issue #968 ("Architecture review (pass 4): performance deepening
-candidates") names five targets — TranscriptContent (C1), LibraryViews (C2),
-TakeAssessmentNotes (C3), RulerGeometry (C4), SurfaceStallProbe (C5) — and
-the maintainer has opened 5 implementation PRs:
+**MAJOR UPDATE 2026-10-18:** All 5 maintainer PRs from #968 are now MERGED on
+`main`. The architecture review pass-4 (transcript content, library views, ruler,
+frame probe, assessment notes) is fully shipped. Repo Assist (run 39099034539)
+recommended closing #968 at 2026-10-18 05:09 UTC since "the architecture review
+pass-4 work is done." The "Also verified, smaller" candidates (P6 startup prefs,
+P7 auto-translate fan-out, P8 position tracker) were explicitly out of scope.
 
-- **#969** C1 TranscriptContent — CI green, MERGEABLE
-- **#970** C2 LibraryViews — CI green, MERGEABLE
-- **#971** C4 RulerGeometry — locally 6733 passed (CI pending)
-- **#972** C5 SurfaceStallProbe — locally 6730 passed (CI pending)
-- **#973** C3 TakeAssessmentNotes — locally 6733 passed (CI pending)
+**Open items below are Perf Improver candidates for a future NETWORKED runner run.**
 
-All branches target `main` at `e6d067f` and were authored by the maintainer
-(not Perf Improver). P1, P2, P5 in this file are largely **addressed** by
-#969, #970, #971, #972, #973 — drop them from the next batch and reorient on
-the items the maintainer named but did NOT PR: the three "Also verified,
-smaller" candidates at the bottom of #968. See new P6–P8 below.
-
-Crosswalk (old backlog → maintainer's plan):
-
-| Old | Mapped to | Status |
-|---|---|---|
-| P1 (transcript count O(n×m)) | C1 (#969) | addressed |
-| P2 (TranscriptStreamGroup double-resolve) | C1 (#969) | addressed |
-| P3 (vocabulary_item_dao.listDue) | (not in #968) | keep, lower priority |
-| P4 (transcript_dao.listForTarget) | C1 (#969) | addressed |
-| P5 (SentenceRuler 50 ms realloc) | C4 (#971) | addressed |
-| Considered: karaoke 50 ms rebuild | (not in #968) | keep, tuning territory |
-| Considered: subtitle `_parseCache` FIFO | (not in #968) | LOW cosmetic |
-| Considered: position-tracker enforceTick | overlaps P8 below | keep as P8 |
-
-Prioritized by impact × feasibility × measurability. Source: Explore subagent
-sweep (2026-10-08) over transcript rendering, subtitle parsing, search,
-position ticks, DB queries, memory; refreshed against #968 on 2026-10-17.
-
-## ~~P1~~ Transcript recording-count O(n×m)  → #969 (ADDRESSED)
-- File: `lib/features/transcript/domain/transcript_recording_counts.dart:22-38`
-- Replaced by the maintainer's C1 revision-keyed seam. Drop from backlog.
-
-## ~~P2~~ TranscriptStreamGroup double-resolve → #969 (ADDRESSED)
-- File: `lib/features/transcript/data/transcript_repository_lines.dart:48-60`
-- Replaced by the maintainer's C1 fix. Drop from backlog.
+## ~~P1~~ Transcript recording-count O(n×m)  → #969 MERGED
+## ~~P2~~ TranscriptStreamGroup double-resolve → #969 MERGED
+## ~~P4~~ transcript_dao.listForTarget materializes full timelineJson → #969 MERGED
+## ~~P5~~ SentenceRuler reallocates List<double> every 50 ms tick → #971 MERGED
+## C2 LibraryViews (#970) MERGED
+## C3 TakeAssessmentNotes (#973) MERGED
+## C5 SurfaceStallProbe (#972) MERGED
+## C1 TranscriptContent (#969) MERGED
+**All 5 maintainer candidates from #968 shipped. P1, P2, P4, P5 absorbed.**
 
 ## P3 — vocabulary_item_dao.listDue over-fetches (NOT in #968)
 - File: `lib/data/db/daos/vocabulary_item_dao.dart:45-56` — broad
@@ -51,16 +26,7 @@ position ticks, DB queries, memory; refreshed against #968 on 2026-10-17.
 - Measure: structural — rows considered vs rows returned on a seeded table.
 - Impact: MED, Confidence: HIGH. Keep as Perf Improver candidate.
 
-## ~~P4~~ transcript_dao.listForTarget materializes full timelineJson → #969 (ADDRESSED)
-- Addressed by the maintainer's C1 revision-keyed projection (`selectOnly` /
-  LIMIT 1 for revision miss). Drop from backlog.
-
-## ~~P5~~ SentenceRuler reallocates List<double> every 50 ms tick → #971 (ADDRESSED)
-- `lib/features/player/presentation/widgets/transport/sentence_ruler.dart:97-101`
-- Replaced by the maintainer's C4 RulerGeometry memoization + pixel-quantized
-  playhead paint-only path. Drop from backlog.
-
-## P6 — Startup preferences: 4 sequential readSetting gates skeleton  [NEW, top candidate]
+## P6 — Startup preferences: 4 sequential readSetting gates skeleton
 - Files: `lib/core/application/app_preferences_provider.dart:113-159`,
   `lib/app.dart:297-299`.
 - Problem (from #968 "Also verified, smaller"): four sequential `readSetting`
@@ -71,8 +37,10 @@ position ticks, DB queries, memory; refreshed against #968 on 2026-10-17.
   path; today = 4 sequential awaits, target = 1.
 - Risk: LOW (single seam). Impact: cold-start latency on first paint.
 - Confidence: HIGH (single-file, well-bounded).
+- **Status:** offered to an-lee via #968 comment on 2026-10-17. No human
+  response yet. Awaiting maintainer green-light or networked-runner pick-up.
 
-## P7 — Auto-translate fan-out: 40–80 tile rebuilds per flush  [NEW]
+## P7 — Auto-translate fan-out: 40–80 tile rebuilds per flush
 - Files: `transcript_scrollable_list.dart:439-443, 553-566`,
   `auto_translate_resolved_text.dart:26-34`,
   `transcript_repository_auto_translate.dart:115-143`.
@@ -86,8 +54,10 @@ position ticks, DB queries, memory; refreshed against #968 on 2026-10-17.
 - Measure: structural — count tile rebuilds (and `Resolver` lookups) during
   one synthetic translate flush over a 1k-line transcript with ~50% untranslated.
 - Risk: MED (UI correctness around translate race). Confidence: HIGH.
+- **Status:** offered to an-lee via #968 comment on 2026-10-17. No human
+  response yet. Conditional on maintainer green-light.
 
-## P8 — Position tracker seek misclassification (overlaps "Playback tick" smaller)  [NEW]
+## P8 — Position tracker seek misclassification
 - Files: `raw_engine_position_stream_provider.dart:11-14`,
   `display_position_provider.dart:12-16`,
   `transport_slider_position_provider.dart:10-10`,
@@ -105,6 +75,8 @@ position ticks, DB queries, memory; refreshed against #968 on 2026-10-17.
   session emissions (today can exceed 20 if a bucket crosses the 0.35 s line);
   assert the bucket rule returns false for sub-threshold delta.
 - Risk: MED (player cadence contract). Confidence: MED (test coverage gap).
+- **Status:** offered to an-lee via #968 comment on 2026-10-17. No human
+  response yet. Conditional on maintainer green-light.
 
 ## Measurement-infrastructure gaps (docs/perf-measurement.md confirms deferred)
 - No subtitle-parser throughput test. Add a deterministic 5k-line SRT parse
@@ -124,16 +96,17 @@ position ticks, DB queries, memory; refreshed against #968 on 2026-10-17.
 - ~~Position-tracker double enforceTick (player_position_tracker.dart)~~ —
   subsumed by P8.
 
-## Repo-wide context (from repo-assist 2026-10-10 run #841)
+## Repo-wide context
 - The #827 perf audit (#828–#832) absorbed the active perf queue and all merged.
 - Repo Assist shipped the eight Oct 1–8 drafts (#848 YouTube caption alias,
   #849 CHANGELOG, #851 shared timeline threshold, #852 language descriptor
   tests, #859 haptics tests, #860 `--changed-only` CI flag, lookup equality
   tightening, ai_kind_policies tests).
-- Polish phase: #872/#873/#874/#875/#876 (lookup banner / library cloud / shell
-  nav / player echo) + #884 (EnjoyThemeTokens split) + #885 (lookup credits chip).
-- The #870 follow-up #793 (macOS integrated title bar) still needs hardware.
+- Polish phase: #872/#873/#874/#875/#876 + #884 + #885.
 - **2026-10-17 update:** maintainer an-lee shipped the perf deepening pass
-  (#968 → #969–#973). My P1/P2/P4/P5 in this file map to those PRs.
-- Remaining open issues (#771, #797, #840, #841, #850, #864, #886, #968) are
-  automation / auto-managed. #968 is the active perf roadmap.
+  (#968 → #969–#973). All five PRs MERGED on 2026-10-17.
+- **2026-10-18 update:** Repo Assist recommended closing #968; #968 still
+  `OPEN`. Perf Improver's P6/P7/P8 remain offered but conditional.
+- Remaining open issues with `performance` label: #864 (my monthly summary),
+  #968 (maintainer roadmap, recommended closure). All others were either
+  auto-managed or absorbed.
