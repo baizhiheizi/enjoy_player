@@ -38,9 +38,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Cache misses must not reach pub.dev / storage.googleapis.com through the
-# per-GB proxy; these mirrors are routed DIRECT. pubspec.lock pins every
+# Dependency downloads must not reach pub.dev / storage.googleapis.com through
+# the per-GB proxy; these mirrors are routed DIRECT. pubspec.lock pins every
 # package by sha256, so a mirror serving different bytes fails the hash check.
+# PUB_HOSTED_URL changes the default hosted source, so pub re-resolves the lock
+# against the mirror in this build job (versions can move within constraints);
+# the release workflow omits PUB_HOSTED_URL so a tag ships the exact versions in
+# its committed pubspec.lock.
 env:
   PUB_HOSTED_URL: https://pub.flutter-io.cn
   FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
@@ -59,25 +63,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # The job's environment is reset to a pristine state before each run, so
-      # ~/.pub-cache cannot persist on the runner between jobs. The cache
-      # backend is the LAN gh-sr-cache server: a hit costs zero proxy bytes,
-      # and only a miss re-uploads. `~` expands to %USERPROFILE% here.
-      - name: Restore pub cache
-        id: pub-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-
-      - name: Save pub cache
-        if: steps.pub-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.pub-cache
-          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
+      # No actions/cache for the pub cache: on Windows the Dart/Flutter pub
+      # cache lives at %LOCALAPPDATA%\Pub\Cache — NOT ~/.pub-cache, so the
+      # previous restore/save pair referenced a path that never exists here
+      # (every save failed with "Path Validation Error … no cache is being
+      # saved"; nothing was ever cached or restored). The real cache persists
+      # natively on this self-hosted runner between jobs, and the LAN cache
+      # server only exists for gh-sr container runners anyway.
 
       - name: Short workspace path (Windows MAX_PATH)
         shell: pwsh
