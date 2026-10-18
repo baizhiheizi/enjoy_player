@@ -32,11 +32,15 @@ permissions:
 
 # Same HTTP/2-drop hardening as build_apple.yml: pin git to HTTP/1.1 for
 # checkout and every step; apple_spm_hygiene.sh sets the same override for
-# the build steps.
+# the build steps. Mirror env matches build_apple.yml too, so a cold Flutter
+# SDK (version bump, wiped tool cache) pulls from the CN mirror instead of
+# storage.googleapis.com through the WAN proxy.
 env:
   GIT_CONFIG_COUNT: "1"
   GIT_CONFIG_KEY_0: http.version
   GIT_CONFIG_VALUE_0: HTTP/1.1
+  PUB_HOSTED_URL: https://pub.flutter-io.cn
+  FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
 
 jobs:
   release:
