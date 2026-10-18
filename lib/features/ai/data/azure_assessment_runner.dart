@@ -198,7 +198,7 @@ Future<(String, bool)> materializeAssessmentWav(
 }
 
 bool looksLikeEmptyAzureAssessment(AzureSpeechAssessmentOutcome outcome) {
-  final nb = outcome.detail.nBest.isEmpty ? null : outcome.detail.nBest.first;
+  final nb = outcome.detail.primaryNBest;
   final sc = nb?.pronunciationAssessment;
   if (sc == null) return true;
   final words = nb?.words ?? const <AzureWordAssessment>[];
@@ -224,7 +224,7 @@ void _logAzureAssessmentOutcome({
   required String attempt,
 }) {
   final d = outcome.detail;
-  final nb = d.nBest.isEmpty ? null : d.nBest.first;
+  final nb = d.primaryNBest;
   final sc = nb?.pronunciationAssessment;
   final words = nb?.words ?? const <AzureWordAssessment>[];
   var omissions = 0;

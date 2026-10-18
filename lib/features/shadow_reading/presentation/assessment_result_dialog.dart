@@ -24,6 +24,25 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'assessment_result_body.dart';
 import 'assessment_result_sheet.dart';
 
+class _NoResultAlertDialog extends StatelessWidget {
+  const _NoResultAlertDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.assessmentTitle),
+      content: Text(l10n.assessmentNoResultSummary),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).okButtonLabel),
+        ),
+      ],
+    );
+  }
+}
+
 /// Shows pronunciation assessment: [Dialog] when wide, modal bottom sheet when narrow.
 ///
 /// Uses Enjoy modals (root navigator by default) so the result clears the
@@ -37,19 +56,11 @@ Future<void> showAssessmentResultDialog({
   String? localeTag,
   String? recordingPath,
 }) {
-  final l10n = AppLocalizations.of(context)!;
-  final nBest = assessment.nBest.isEmpty ? null : assessment.nBest.first;
+  final nBest = assessment.primaryNBest;
   if (nBest == null) {
-    return showEnjoyAlertDialog<void>(
+    return showEnjoyDialog<void>(
       context: context,
-      title: Text(l10n.assessmentTitle),
-      content: Text(l10n.assessmentNoResultSummary),
-      actionsBuilder: (ctx) => [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(),
-          child: Text(MaterialLocalizations.of(ctx).okButtonLabel),
-        ),
-      ],
+      builder: (_) => const _NoResultAlertDialog(),
     );
   }
 
@@ -103,20 +114,9 @@ class _AssessmentResultDialogState
     final scheme = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    final nBest = widget.assessment.nBest.isEmpty
-        ? null
-        : widget.assessment.nBest.first;
+    final nBest = widget.assessment.primaryNBest;
     if (nBest == null) {
-      return AlertDialog(
-        title: Text(l10n.assessmentTitle),
-        content: Text(l10n.assessmentNoResultSummary),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(MaterialLocalizations.of(context).okButtonLabel),
-          ),
-        ],
-      );
+      return const _NoResultAlertDialog();
     }
 
     return Dialog(

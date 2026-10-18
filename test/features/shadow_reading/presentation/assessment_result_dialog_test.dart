@@ -208,6 +208,61 @@ void main() {
   );
 
   testWidgets(
+    'showAssessmentResultDialog with empty nBest shows dismissible fallback',
+    (tester) async {
+      final navKey = GlobalKey<NavigatorState>();
+      final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            navigatorKey: navKey,
+            theme: ThemeData(
+              colorScheme: scheme,
+              extensions: [EnjoyThemeTokens.build(scheme)],
+            ),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (ctx) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () => showAssessmentResultDialog(
+                      context: ctx,
+                      assessment: _parse(_kEmptyJson),
+                    ),
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.assessmentTitle), findsOneWidget);
+      expect(find.text(l10n.assessmentNoResultSummary), findsOneWidget);
+
+      await tester.tap(
+        find.text(
+          MaterialLocalizations.of(navKey.currentContext!).okButtonLabel,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.assessmentNoResultSummary), findsNothing);
+    },
+  );
+
+  testWidgets(
     'AssessmentResultDialog close button dismisses via Navigator.pop',
     (tester) async {
       final navKey = GlobalKey<NavigatorState>();
