@@ -367,6 +367,15 @@ lib/features/vocabulary/
   presentation/  # page, list, flashcard, dialogs
 ```
 
+The review session controller is a single `part`-library rooted at
+[`lib/features/vocabulary/application/vocabulary_review_session.dart`](../../lib/features/vocabulary/application/vocabulary_review_session.dart):
+run-scoped state (`_ratings`, `_practiceOpenedAt`) and the completion analytics
+live in `VocabularyReviewSessionBase`, and one mixin per concern (lifecycle,
+navigation, context paging, async fetches, practice overlay) composes onto it.
+The `with` order is Base → Lifecycle → Navigation → Context → Fetches →
+Practice: Lifecycle precedes Context / Practice because both call
+`clearPractice()`.
+
 Persist JSON blobs (`explanation`, `locator`) as text columns with typed encode/decode — same pattern as other Drift JSON fields in the app.
 
 ### REST API
