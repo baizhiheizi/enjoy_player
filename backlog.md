@@ -107,6 +107,11 @@ P7 auto-translate fan-out, P8 position tracker) were explicitly out of scope.
   (#968 → #969–#973). All five PRs MERGED on 2026-10-17.
 - **2026-10-18 update:** Repo Assist recommended closing #968; #968 still
   `OPEN`. Perf Improver's P6/P7/P8 remain offered but conditional.
+- **2026-10-19 update:** HEAD on main at `8d283ae` (PR #989 tier_catalog
+  split). Maintainer an-lee shipped two adjacent refactors (#988 ASR
+  cancellation guard, #989 tier_catalog) earlier today. Repo Assist opened
+  #991 as a follow-up test for #989. No new human engagement on #968;
+  P6/P7/P8 still conditional on maintainer green-light or networked runner.
 - Remaining open issues with `performance` label: #864 (my monthly summary),
   #968 (maintainer roadmap, recommended closure). All others were either
   auto-managed or absorbed.
