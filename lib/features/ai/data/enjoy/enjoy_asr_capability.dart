@@ -76,13 +76,7 @@ final class EnjoyAsrCapability implements AsrCapability {
         ? request.idempotencyKey!.trim()
         : _uuid.v4();
 
-    if (request.shouldCancel?.call() ?? false) {
-      throw const AsrLongFormJobException(
-        category: 'cancelled',
-        retryable: false,
-        message: 'Cancelled',
-      );
-    }
+    _throwIfCancelled(request);
 
     AsrLongFormJob job;
     final resumeJobId = request.existingJobId?.trim();
@@ -118,13 +112,7 @@ final class EnjoyAsrCapability implements AsrCapability {
         request.onLongFormUploaded?.call(mediaReference);
       }
 
-      if (request.shouldCancel?.call() ?? false) {
-        throw const AsrLongFormJobException(
-          category: 'cancelled',
-          retryable: false,
-          message: 'Cancelled',
-        );
-      }
+      _throwIfCancelled(request);
 
       request.onLongFormPhase?.call(AsrLongFormClientPhase.polling);
       job = await _api.submitLongForm(
@@ -141,21 +129,9 @@ final class EnjoyAsrCapability implements AsrCapability {
 
     var delay = _pollInitialDelay;
     while (!job.status.isTerminal) {
-      if (request.shouldCancel?.call() ?? false) {
-        throw const AsrLongFormJobException(
-          category: 'cancelled',
-          retryable: false,
-          message: 'Cancelled',
-        );
-      }
+      _throwIfCancelled(request);
       await Future<void>.delayed(delay);
-      if (request.shouldCancel?.call() ?? false) {
-        throw const AsrLongFormJobException(
-          category: 'cancelled',
-          retryable: false,
-          message: 'Cancelled',
-        );
-      }
+      _throwIfCancelled(request);
       job = await _api.getTranscriptionJob(job.jobId);
       if (delay < _pollMaxDelay) {
         final nextMs = (delay.inMilliseconds * 2).clamp(
@@ -189,5 +165,15 @@ final class EnjoyAsrCapability implements AsrCapability {
       'credits=${job.usage?.creditsCharged}',
     );
     return mapLongFormTranscriptToAsrResult(transcript);
+  }
+
+  void _throwIfCancelled(AsrRequest request) {
+    if (request.shouldCancel?.call() ?? false) {
+      throw const AsrLongFormJobException(
+        category: 'cancelled',
+        retryable: false,
+        message: 'Cancelled',
+      );
+    }
   }
 }
