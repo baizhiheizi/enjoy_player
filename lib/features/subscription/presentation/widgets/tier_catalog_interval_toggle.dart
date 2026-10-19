@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
-import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval.dart';
 
 /// Billing-interval selector; stacks the [TierSavingsBadge] below the toggle
 /// in compact layouts and beside it otherwise.

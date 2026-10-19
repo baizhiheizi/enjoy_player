@@ -23,18 +23,13 @@ import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_error.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_free_card.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval_toggle.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_paid_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-/// Billing interval for the catalog's price toggle.
-enum CatalogInterval { month, year }
-
-CatalogInterval _intervalFromString(String s) =>
-    s == 'year' ? CatalogInterval.year : CatalogInterval.month;
-
-String _intervalToString(CatalogInterval interval) =>
-    interval == CatalogInterval.year ? 'year' : 'month';
+export 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval.dart'
+    show CatalogInterval, catalogIntervalFromString, catalogIntervalWire;
 
 /// Approximate savings percentage when paying yearly vs monthly for a tier.
 ///
@@ -220,13 +215,3 @@ class _TierCatalogState extends ConsumerState<TierCatalog> {
     properties.add(DiagnosticsProperty<CatalogInterval>('interval', _interval));
   }
 }
-
-/// Public helper so callers (e.g. the unified purchase modal) can translate
-/// the catalog's [CatalogInterval] into the wire-format string the backend
-/// expects (`month` / `year`).
-String catalogIntervalWire(CatalogInterval interval) =>
-    _intervalToString(interval);
-
-/// Translates a plan's `interval` string into a [CatalogInterval].
-CatalogInterval catalogIntervalFromString(String? interval) =>
-    _intervalFromString(interval ?? 'month');

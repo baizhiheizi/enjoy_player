@@ -12,8 +12,8 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart';
-import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_features.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_scaffold.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
