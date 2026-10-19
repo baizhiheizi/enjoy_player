@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": null,
-    "investigation_after": 933
+    "investigation_after": 968
   },
   "issues": [
     {
@@ -26,14 +26,14 @@
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-18",
-      "note": "Monthly activity summary for October 2026. 2026-10-18 04:50 UTC run (39099034539): body refreshed; #968 verified complete on main (C1-C5 merged), close-recommendation comment posted. format gate OK, codegen transient. Suggested Actions lists one close recommendation."
+      "updated_at": "2026-10-19",
+      "note": "Monthly activity 2026-10. 2026-10-19 05:13 UTC run (39203024339): body refreshed. #968 still awaiting close; new refactors #988 (closes #987) and #989 (closes #982) since last run. One close recommendation in Suggested Actions."
     },
     {
       "number": 968,
       "state": "commented",
       "updated_at": "2026-10-18",
-      "note": "Architecture review pass 4 tracking issue — all five Strong candidates (C1-C5) shipped to main via e4fb98bb, fdc7c02a (#970), 6d640a31 (#973), 437742cc (#971), 0f7e5470 (#972). 2026-10-18 run posted close-recommendation comment. Awaiting maintainer to close."
+      "note": "Architecture review pass 4 tracking issue — all five Strong candidates (C1-C5) shipped to main via e4fb98bb, fdc7c02a (#970), 6d640a31 (#973), 437742cc (#971), 0f7e5470 (#972). 2026-10-18 run posted close-recommendation comment. Awaiting maintainer to close. cursor advanced past this on 2026-10-19."
     },
     {
       "number": 850,
@@ -142,6 +142,18 @@
       "state": "deferred",
       "updated_at": "2026-10-15",
       "note": "[repo-status] Daily Status — 2026-10-15 — auto-managed."
+    },
+    {
+      "number": 983,
+      "state": "deferred",
+      "updated_at": "2026-10-18",
+      "note": "[repo-status] Daily Status — 2026-10-18 🌟 — auto-managed. Body recommends closing #968."
+    },
+    {
+      "number": 974,
+      "state": "deferred",
+      "updated_at": "2026-10-17",
+      "note": "[repo-status] Daily Status — 2026-10-17 — auto-managed."
     }
   ],
   "fixes": [],
@@ -189,6 +201,10 @@
     {
       "key": "#841 body refresh 2026-10-18 16:05 UTC",
       "completed_at": "2026-10-18"
+    },
+    {
+      "key": "#841 body refresh 2026-10-19 05:13 UTC",
+      "completed_at": "2026-10-19"
     }
   ],
   "priorities": []
