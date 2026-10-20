@@ -81,10 +81,10 @@
 | Platform | What's native |
 | ---------- | --------------- |
 | **Windows** | Windows 10 / 11 · x64 · FFmpeg embedded for subtitles and pitch analysis |
-| **macOS** | macOS 10.15+ · Universal binary · Hardened runtime · Notarized |
+| **macOS** | macOS 12.0+ · Universal binary · Hardened runtime · Notarized |
 | **Linux** | Ubuntu 22.04 LTS · x86_64 · AppImage |
 | **Android** | Android 8.0+ · Phone & tablet · Play Store and direct APK sideload |
-| **iOS** | iOS 14.0+ · iPhone & iPad · TestFlight public beta |
+| **iOS** | iOS 15.0+ · iPhone & iPad · TestFlight public beta |
 
 Flutter web is intentionally not supported.
 

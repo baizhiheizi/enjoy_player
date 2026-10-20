@@ -40,7 +40,7 @@
 </table>
 
 <p align="center">
-  <img src="assets/store/macos_screenshot_1.png" alt="macOS 上的 Enjoy Player —— 全窗口播放器与字幕栏" width="900">
+  <img src="assets/store/macos_player_screenshot.png" alt="macOS 上的 Enjoy Player —— 全窗口播放器与字幕栏" width="900">
 </p>
 
 <p align="center"><sub><b>一个体验，所有设备。</b>Windows、macOS、Linux、Android、iOS 全平台原生适配 —— 手机、平板、桌面端一致。</sub></p>
@@ -81,10 +81,10 @@
 | 平台 | 原生体验 |
 |------|----------|
 | **Windows** | Windows 10 / 11 · x64 · 内置 FFmpeg，负责字幕与音高分析 |
-| **macOS** | macOS 10.15+ · Universal 二进制 · 强化运行时 · 已公证 |
+| **macOS** | macOS 12.0+ · Universal 二进制 · 强化运行时 · 已公证 |
 | **Linux** | Ubuntu 22.04 LTS · x86_64 · AppImage |
 | **Android** | Android 8.0+ · 手机与平板 · Play 商店与 APK 直装 |
-| **iOS** | iOS 14.0+ · iPhone 与 iPad · TestFlight 公测 |
+| **iOS** | iOS 15.0+ · iPhone 与 iPad · TestFlight 公测 |
 
 刻意不提供 Flutter Web 版本。
 
@@ -126,7 +126,7 @@ dart run build_runner build   # 修改 Drift / Riverpod 注解后需要执行
 flutter run
 ```
 
-平台工具链要点：macOS 需要 Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`；Windows 需要把 NuGet 加入 `PATH`（`flutter_inappwebview` 依赖）；Linux 需要 `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg`。完整发布前置条件见 [docs/packaging.md](docs/packaging.md)；CI 校验与代理规则见 [AGENTS.md](AGENTS.md)。
+平台工具链要点：macOS 需要 Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`；Windows 需要把 NuGet 加入 `PATH`（`flutter_inappwebview` 依赖）；Linux 需要 `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg`，以及 YouTube 播放插件所需的 WPE WebKit 开发包（Ubuntu 上为 `libwpewebkit-2.0-dev libwpe-1.0-1 libwpebackend-fdo-1.0-dev`，Arch 上为 `wpewebkit libwpe wpebackend-fdo` —— 见 [docs/features/linux-platform.md](docs/features/linux-platform.md)）。完整发布前置条件见 [docs/packaging.md](docs/packaging.md)；CI 校验与代理规则见 [AGENTS.md](AGENTS.md)。
 
 ---
 

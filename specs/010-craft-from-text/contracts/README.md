@@ -1,6 +1,6 @@
 # Contracts: Craft from Text (AI-generated audio materials)
 
-**Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md)
+**Feature**: [spec.md](../spec.md) · **Plan**: [plan.md](../plan.md)
 
 > Craft introduces **one** new public contract (the repository import method) and reuses every existing cross-feature contract (translation, TTS, Azure token cache, file storage, sync, library queries). The contracts documented here are the **integration points** between the new Craft feature module and the rest of the player, expressed as Dart method signatures with their semantic invariants. No new HTTP endpoints, no new SQL tables, no new platform channels are introduced in this change.
 

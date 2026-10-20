@@ -1,7 +1,7 @@
 # Contract: Continue practicing card (Home)
 
 **Date**: 2026-08-23  
-**Feature**: [spec.md](./spec.md) | [data-model.md](../data-model.md)
+**Feature**: [spec.md](../spec.md) | [data-model.md](../data-model.md)
 
 UI contract for the Home hero that replaces the global mini player as the resume surface.
 
