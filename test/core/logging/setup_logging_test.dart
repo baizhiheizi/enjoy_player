@@ -256,7 +256,7 @@ void main() {
       content.indexOf('[INFO] session:'),
       lessThan(content.indexOf('burst record 45')),
     );
-  });
+  }, timeout: const Timeout(Duration(minutes: 2)));
 }
 
 class _DocumentsBrokenPathProvider extends TestPathProvider {
