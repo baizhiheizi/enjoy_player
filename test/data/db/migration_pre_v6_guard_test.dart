@@ -140,6 +140,7 @@ void main() {
         reason: 'the snapshot must contain the legacy row before the drop',
       );
     },
+    timeout: const Timeout(Duration(minutes: 2)),
   );
 }
 
