@@ -6,8 +6,43 @@ import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart'
     show tagStripRegExp;
 import 'transcript_line.dart';
 
-/// Matches an SRT cue index line (digits only).
-final RegExp _kSrtCueIndex = RegExp(r'^\d+$');
+/// Splits [content] into lines, normalizing CRLF and lone CR separators.
+List<String> _splitLines(String content) {
+  if (!content.contains('\r')) return content.split('\n');
+  final lines = content.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    final line = lines[i];
+    final carriageReturn = line.indexOf('\r');
+    if (carriageReturn < 0) continue;
+    if (carriageReturn != line.length - 1) return _splitLegacyLines(content);
+    final stripped = line.substring(0, carriageReturn);
+    if (stripped.contains('\r')) return _splitLegacyLines(content);
+    lines[i] = stripped;
+  }
+  return lines;
+}
+
+List<String> _splitLegacyLines(String content) =>
+    content.replaceAll('\r\n', '\n').replaceAll('\r', '\n').split('\n');
+
+/// True when [line] is non-empty and holds only ASCII digits.
+bool _isAllDigits(String line) {
+  if (line.isEmpty) return false;
+  for (var i = 0; i < line.length; i++) {
+    final unit = line.codeUnitAt(i);
+    if (unit < 48 || unit > 57) return false;
+  }
+  return true;
+}
+
+/// Reads the digits of `source[start, end)` as a decimal integer.
+int _digitsToInt(String source, int start, int end) {
+  var value = 0;
+  for (var i = start; i < end; i++) {
+    value = value * 10 + (source.codeUnitAt(i) - 48);
+  }
+  return value;
+}
 
 /// Matches an SRT timestamp arrow line (HH:MM:SS,mmm --> HH:MM:SS,mmm).
 final RegExp _kSrtArrow = RegExp(
@@ -48,10 +83,7 @@ class SrtParser {
   const SrtParser();
 
   List<TranscriptLine> parse(String content) {
-    final lines = content
-        .replaceAll('\r\n', '\n')
-        .replaceAll('\r', '\n')
-        .split('\n');
+    final lines = _splitLines(content);
     final cues = <TranscriptLine>[];
     var i = 0;
     while (i < lines.length) {
@@ -60,7 +92,7 @@ class SrtParser {
       }
       if (i >= lines.length) break;
 
-      if (_kSrtCueIndex.hasMatch(lines[i].trim())) {
+      if (_isAllDigits(lines[i].trim())) {
         i++;
       }
       if (i >= lines.length) break;
@@ -91,8 +123,16 @@ class SrtParser {
     return cues;
   }
 
-  static int _parseTs(String raw) =>
-      tryParseHmsDuration(raw)?.inMilliseconds ?? 0;
+  static int _parseTs(String raw) {
+    final firstColon = raw.indexOf(':');
+    final secondColon = raw.indexOf(':', firstColon + 1);
+    final hours = _digitsToInt(raw, 0, firstColon);
+    final minutes = _digitsToInt(raw, firstColon + 1, secondColon);
+    final seconds = _digitsToInt(raw, secondColon + 1, secondColon + 3);
+    final millis = _digitsToInt(raw, secondColon + 4, raw.length);
+    if (minutes > 59 || seconds > 59) return 0;
+    return hours * 3600000 + minutes * 60000 + seconds * 1000 + millis;
+  }
 }
 
 /// Minimal WebVTT cue parser (skips headers and NOTE regions).
