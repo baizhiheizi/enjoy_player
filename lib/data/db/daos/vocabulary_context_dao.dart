@@ -19,6 +19,42 @@ class VocabularyContextDao extends DatabaseAccessor<AppDatabase>
         vocabularyContexts,
       )..where((t) => t.vocabularyItemId.equals(vocabularyItemId))).get();
 
+  /// Earliest context sentence per item id — one narrow query per ≤900 ids.
+  ///
+  /// Reads only the item id, the sentence and the creation timestamp, and
+  /// keeps the earliest context per item, so a list of words can show a
+  /// context for every row without a query per row.
+  Future<Map<String, String>> firstContextTextsByItemIds(
+    Iterable<String> itemIds,
+  ) async {
+    final ids = itemIds.toList();
+    if (ids.isEmpty) return const {};
+    final columns = <GeneratedColumn<Object>>[
+      vocabularyContexts.vocabularyItemId,
+      vocabularyContexts.contextText,
+      vocabularyContexts.createdAt,
+    ];
+    final earliest = <String, (DateTime, String)>{};
+    for (var i = 0; i < ids.length; i += _kMaxIdsPerQuery) {
+      final chunk = ids.skip(i).take(_kMaxIdsPerQuery).toList();
+      final query = selectOnly(vocabularyContexts)
+        ..addColumns(columns)
+        ..where(vocabularyContexts.vocabularyItemId.isIn(chunk));
+      for (final row in await query.get()) {
+        final itemId = row.read(vocabularyContexts.vocabularyItemId)!;
+        final createdAt = row.read(vocabularyContexts.createdAt)!;
+        final current = earliest[itemId];
+        if (current == null || createdAt.isBefore(current.$1)) {
+          earliest[itemId] = (
+            createdAt,
+            row.read(vocabularyContexts.contextText)!,
+          );
+        }
+      }
+    }
+    return {for (final entry in earliest.entries) entry.key: entry.value.$2};
+  }
+
   /// Max ids per `IN (…)` query — SQLite's default host variable limit is
   /// 999, so long id lists are chunked below it (issue #827 B1).
   static const _kMaxIdsPerQuery = 900;

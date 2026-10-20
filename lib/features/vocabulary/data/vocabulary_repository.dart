@@ -335,6 +335,13 @@ class VocabularyRepository {
     return rows.map(_contextFromRow).toList();
   }
 
+  /// Earliest context sentence per item id, in one bulk read.
+  ///
+  /// Items with no context are absent from the result map.
+  Future<Map<String, String>> firstContextTextsForItems(
+    Iterable<String> itemIds,
+  ) => _db.vocabularyContextDao.firstContextTextsByItemIds(itemIds);
+
   /// Contexts for many items in one bulk read (issue #827 B1/B2 — replaces
   /// per-item [getContextsForItem] loops in Anki export and review-session
   /// start). Each list is ordered by `createdAt` ascending — this method is
