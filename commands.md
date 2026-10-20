@@ -29,22 +29,87 @@
 - Old workaround targeting the 3.44.0 SDK is OBSOLETE; use the 3.47.6 copy
   above.
 
-## HARD BLOCKER in this sandbox: cannot resolve deps offline (validated 2026-10-08, re-verified 2026-10-17)
-- There is NO network access and `.dart_tool/package_config.json` does NOT
-  exist in the checkout.
+## OFFLINE HARNESS (validated 2026-10-20 — supersedes the "cannot change code" blocker below)
+The pub.dev block is real, but it does NOT prevent measuring or changing code.
+Use the Dart VM directly with a hand-written package config.
+
+- Dart binary (read-only SDK is fine for `dart`; only `flutter` needs a
+  writable copy):
+  `/home/runner/.toolcache/flutter-3.47.6-stable/flutter/bin/cache/dart-sdk/bin/dart`
+  (Dart 3.13.5).
+- No pub cache exists (`~/.pub-cache` absent) and the repo has no
+  `.dart_tool/package_config.json`. Write one by hand at
+  `<repo>/.dart_tool/package_config.json` (gitignored — DELETE IT at the end
+  of the run so a later `pub get` is not confused):
+  ```json
+  {
+    "configVersion": 2,
+    "packages": [
+      {"name": "enjoy_player", "rootUri": "../", "packageUri": "lib/",
+       "languageVersion": "3.12"},
+      {"name": "flutter", "rootUri": "file:///tmp/gh-aw/agent/bench/stubs/flutter/",
+       "packageUri": "lib/", "languageVersion": "3.12"},
+      {"name": "flutter_test", "rootUri": "file:///tmp/gh-aw/agent/bench/stubs/flutter_test/",
+       "packageUri": "lib/", "languageVersion": "3.12"}
+    ]
+  }
+  ```
+  `languageVersion` must be **3.12** (the pubspec constraint is `sdk: ^3.12.0`),
+  not the SDK's 3.13.
+- **Stub `package:flutter/foundation.dart`** — it transitively imports
+  `dart:ui` (engine-only) so it cannot compile under a standalone `dart` VM.
+  Needs `listEquals` (copy verbatim from the SDK's
+  `packages/flutter/lib/src/foundation/collections.dart`) plus a minimal
+  `immutable` annotation.
+- **Stub `package:flutter_test/flutter_test.dart`** — a small matcher/test
+  framework (`test`/`group`/`expect`/`setUp`, `equals`, `isEmpty`, `hasLength`,
+  `isTrue`, `greaterThan`, `lessThan`, `contains`, `same`, `isNot`, …). With
+  it the repo's real `*_test.dart` files run under plain `dart`.
+- Run a script or a test file:
+  `dart --packages=<repo>/.dart_tool/package_config.json <file>.dart`
+- `dart analyze <file>` and `dart format` also work against that config.
+  **`dart format` only reproduces CI output when a package config is present** —
+  the language version selects tall vs short style, and without a config the
+  formatter also inserts a blank line between a `package:` import and a
+  relative import (CI's formatter does not). Place the config BEFORE formatting.
+- Still not possible: `flutter test` / `flutter analyze` against the real
+  dependency set. **CI on GitHub's runners is the authoritative gate**; say so
+  explicitly in the PR body.
+
+## HARD BLOCKER (partial): `flutter pub get` cannot resolve deps offline
+- Validated 2026-10-08, re-verified 2026-10-17 and 2026-10-20.
+- Root cause (identified 2026-10-20): the egress proxy terminates TLS with an
+  **SNI guard**. For hostnames not on its allowlist it presents a self-signed
+  `CN=awf-sni-guard.invalid` certificate, so `curl` exits 60 ("self-signed
+  certificate"). `pub.dev` is not allowlisted — and neither is `github.com`,
+  so `git push` over HTTPS fails too.
+- The proxy CA (`O=MCPG Proxy, CN=MCPG Proxy CA`, 24 h rotation) IS in
+  `/etc/ssl/certs/ca-certificates.crt`; the failure is the *hostname*
+  allowlist, not a missing CA. Do not try to route around it (that is network
+  evasion of the firewall — banned).
 - `flutter pub get --offline` FAILS: "enjoy_player depends on
   flutter_launcher_icons any which doesn't exist (could not find package
-  flutter_launcher_icons in cache)". Pub cache has ~179 packages but is
-  missing required ones.
-- Consequence: `flutter analyze` and `flutter test` CANNOT run here (they
-  need a resolved package_config). `flutter analyze --no-pub` still tries
-  to "update packages" and times out (~5 min).
-- => On this runner I cannot satisfy the AGENTS.md "every edit must be
-  green" gate, so I must NOT open a code-changing PR from this environment.
-  Do discovery + measurement-infra planning here; do code changes on a
-  runner with network, or via a maintainer.
+  flutter_launcher_icons in cache)". No usable pub cache exists.
+- => Use the offline harness above for measurement, analysis, formatting and
+  unit-test execution. CI verifies the rest.
+- **Config fix for the maintainer:** `.github/workflows/ci.yml` already sets
+  `PUB_HOSTED_URL: https://pub.flutter-io.cn` and
+  `FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn` (routed DIRECT),
+  but `.github/workflows/perf-improver.md` sets neither and its
+  `network.allowed` list omits `pub.dev`, `pub.flutter-io.cn` and
+  `storage.flutter-io.cn`. Adding them mirrors CI and unblocks dependency
+  resolution for every future run.
 - To re-validate the toolchain on a networked runner:
   `bash .github/scripts/validate_ci_gates.sh --analyze`.
+
+## GitHub write path in this sandbox
+- `git push` fails TLS (github.com is not on the proxy allowlist).
+- PRs must be created with the safe-outputs `create_pull_request` tool. It
+  does not push itself: it writes a bundle + patch under `/tmp/gh-aw/` and the
+  workflow framework pushes and opens the PR afterwards. So the PR may not be
+  visible via the GitHub API immediately after the call — expected, not a
+  failure.
+- Reads: GitHub MCP tools work (separate proxy path).
 
 ## Canonical gates (from AGENTS.md + .github/scripts/validate_ci_gates.sh)
 - Fast local mirror (format + codegen drift + path-deps gate):

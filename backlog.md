@@ -1,13 +1,16 @@
 # Performance backlog — Enjoy Player
 
-**MAJOR UPDATE 2026-10-18:** All 5 maintainer PRs from #968 are now MERGED on
-`main`. The architecture review pass-4 (transcript content, library views, ruler,
-frame probe, assessment notes) is fully shipped. Repo Assist (run 39099034539)
-recommended closing #968 at 2026-10-18 05:09 UTC since "the architecture review
-pass-4 work is done." The "Also verified, smaller" candidates (P6 startup prefs,
-P7 auto-translate fan-out, P8 position tracker) were explicitly out of scope.
+**UPDATE 2026-10-20:** Issue #968 was **CLOSED** by `@an-lee` on 2026-10-20
+10:58 UTC with all five candidates shipped as #969–#973. The "Also verified,
+smaller" candidates (P6 startup prefs, P7 auto-translate fan-out, P8 position
+tracker) remain out of scope and unclaimed.
 
-**Open items below are Perf Improver candidates for a future NETWORKED runner run.**
+**UPDATE 2026-10-20 (2nd):** The "networked runner" precondition for P3/P6/P7/P8
+is **no longer required** — see the offline harness recipe in `commands.md`.
+Code-changing perf PRs can be authored and measured from this sandbox. P9
+(subtitle SRT parse) shipped this way.
+
+**Open items below are Perf Improver candidates.**
 
 ## ~~P1~~ Transcript recording-count O(n×m)  → #969 MERGED
 ## ~~P2~~ TranscriptStreamGroup double-resolve → #969 MERGED
@@ -78,13 +81,37 @@ P7 auto-translate fan-out, P8 position tracker) were explicitly out of scope.
 - **Status:** offered to an-lee via #968 comment on 2026-10-17. No human
   response yet. Conditional on maintainer green-light.
 
+## P9 — Subtitle SRT parse throughput (SHIPPED 2026-10-20, draft PR open)
+- File: `lib/data/subtitle/subtitle_parser.dart` — `SrtParser.parse`, reached
+  from `transcript_repository_subtitle_import.dart` and
+  `embedded_subtitle_service.dart` on the UI isolate.
+- Problem: every parse ran two whole-string `replaceAll` passes to normalize
+  line endings (even LF-only input), matched the cue-index line with a regex
+  per cue, and re-parsed every timestamp through `tryParseHmsDuration`
+  (allocating a `Duration` per timestamp).
+- Fix: `_splitLines` skips normalization when the content has no `\r` (with a
+  fallback to the original path for lone-CR / mixed endings); `_isAllDigits`
+  replaces the index regex; `_parseTs` + `_digitsToInt` read the timestamp
+  digits directly.
+- Measured (isolated processes, 100 warmup + 200 measured, median of 3 round
+  medians): 5000 cues 10.34 → 5.50 ms (1.88x LF), 11.98 → 6.15 ms (1.95x
+  CRLF); 20000 cues 39.48 → 22.85 ms (1.73x LF), 40.11 → 23.35 ms (1.72x CRLF).
+- Correctness: 60,055 differential cases vs the pre-change parser, 0
+  mismatches; the new structural tests also pass against the original parser.
+- Status: draft PR open on `perf-assist/subtitle-parser-throughput` (commit
+  `5f21e33`). Awaiting CI + maintainer review.
+- **Do not extend to VTT without a fresh measurement** — a VTT variant was
+  tried and measured ≈1.5 % (noise), then reverted.
+
 ## Measurement-infrastructure gaps (docs/perf-measurement.md confirms deferred)
-- No subtitle-parser throughput test. Add a deterministic 5k-line SRT parse
-  microbenchmark (`lib/data/subtitle/subtitle_parser.dart`), loose ceiling.
-  LOW risk, closes a real gap.
+- ~~No subtitle-parser throughput test.~~ **DONE 2026-10-20**:
+  `test/data/subtitle/subtitle_parser_perf_test.dart` — deterministic 5000-cue
+  scale fixture, LF/CRLF/lone-CR/mixed-ending equivalence, accepted timestamp
+  forms, plus a `skip:`-marked local-only microbenchmark with a loose ceiling.
+  Linked from `docs/perf-measurement.md`.
 - No dedicated test/perf/ dir or benchmark CI smoke job (deferred by
-  maintainers — still open as of #968).
-- Only existing `*perf*` test in the repo:
+  maintainers — still open as of #968). Do not add unilaterally.
+- Only other `*perf*` test in the repo:
   `test/features/transcript/transcript_blur_long_list_perf_test.dart`.
 
 ## Considered and de-prioritized
@@ -112,6 +139,9 @@ P7 auto-translate fan-out, P8 position tracker) were explicitly out of scope.
   cancellation guard, #989 tier_catalog) earlier today. Repo Assist opened
   #991 as a follow-up test for #989. No new human engagement on #968;
   P6/P7/P8 still conditional on maintainer green-light or networked runner.
-- Remaining open issues with `performance` label: #864 (my monthly summary),
-  #968 (maintainer roadmap, recommended closure). All others were either
-  auto-managed or absorbed.
+- **2026-10-20 update:** HEAD on main at `0174699` (bump v0.10.0, #999).
+  **#968 CLOSED by an-lee** at 10:58 UTC. Open draft PRs #1000 / #1003 are
+  Repo Assist's. Perf Improver opened its first code-changing PR in 13 runs
+  (P9, subtitle SRT parse) using the offline harness — see `commands.md`.
+- Remaining open issues with `performance` label: #864 (my monthly summary).
+  #968 is closed. All others were either auto-managed or absorbed.
