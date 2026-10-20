@@ -418,6 +418,7 @@ Offline: full local CRUD/review. AI dictionary / contextual translation require 
 - Compact header with back + title; centered column (`contentMaxWidth`).
 - List-first chrome: no persistent stats banner. **Due** count is a badge on the **Review** tab; Total / Due / status breakdown opens from an app-bar insights action (adaptive sheet).
 - Equal-width segmented tabs: **Review** | **All Words** (due badge on Review).
+- **All Words table:** the first context sentence of every visible word is read in one bulk query (repository `firstContextTextsForItems`, chunked at 900 ids) — one query per visible list, not one per rendered row. Items without a context simply show no second line.
 
 ### Review entry + options
 

@@ -1,7 +1,6 @@
 /// Riverpod access to [VocabularyRepository] and derived vocabulary UI state.
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
@@ -58,11 +57,17 @@ List<VocabularyItem> vocabularyVisibleItems(Ref ref) {
   return filterVocabularyItems(items, ref.watch(vocabularyListFiltersProvider));
 }
 
-/// First saved context sentence of a word (the word list's second line).
-final vocabularyFirstContextProvider = FutureProvider.autoDispose
-    .family<String?, String>((ref, itemId) async {
-      final contexts = await ref
-          .watch(vocabularyRepositoryProvider)
-          .getContextsForItem(itemId);
-      return contexts.isEmpty ? null : contexts.first.text;
-    });
+/// Earliest saved context sentence per visible word (the word list's second
+/// line).
+///
+/// One bulk read for the whole filtered list. The previous per-row family
+/// provider issued one query per rendered row and re-queried every row that
+/// scrolled back into view.
+@riverpod
+Future<Map<String, String>> vocabularyFirstContexts(Ref ref) async {
+  final items = ref.watch(vocabularyVisibleItemsProvider);
+  if (items.isEmpty) return const {};
+  return ref
+      .watch(vocabularyRepositoryProvider)
+      .firstContextTextsForItems(items.map((i) => i.id));
+}

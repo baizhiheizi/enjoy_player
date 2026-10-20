@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -168,7 +169,9 @@ class VocabularyWordRow extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-    final context0 = ref.watch(vocabularyFirstContextProvider(item.id)).value;
+    final context0 = ref
+        .watch(vocabularyFirstContextsProvider)
+        .valueOrNull?[item.id];
     final relative = relativeNextReviewLabel(
       nextReviewAt: item.nextReviewAt,
       now: DateTime.now(),

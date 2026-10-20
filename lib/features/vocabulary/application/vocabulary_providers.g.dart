@@ -270,3 +270,65 @@ final class VocabularyVisibleItemsProvider
 
 String _$vocabularyVisibleItemsHash() =>
     r'2953423e75ca2264871b9b5def1945eb1fdfdb34';
+
+/// Earliest saved context sentence per visible word (the word list's second
+/// line).
+///
+/// One bulk read for the whole filtered list. The previous per-row family
+/// provider issued one query per rendered row and re-queried every row that
+/// scrolled back into view.
+
+@ProviderFor(vocabularyFirstContexts)
+final vocabularyFirstContextsProvider = VocabularyFirstContextsProvider._();
+
+/// Earliest saved context sentence per visible word (the word list's second
+/// line).
+///
+/// One bulk read for the whole filtered list. The previous per-row family
+/// provider issued one query per rendered row and re-queried every row that
+/// scrolled back into view.
+
+final class VocabularyFirstContextsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, String>>,
+          Map<String, String>,
+          FutureOr<Map<String, String>>
+        >
+    with
+        $FutureModifier<Map<String, String>>,
+        $FutureProvider<Map<String, String>> {
+  /// Earliest saved context sentence per visible word (the word list's second
+  /// line).
+  ///
+  /// One bulk read for the whole filtered list. The previous per-row family
+  /// provider issued one query per rendered row and re-queried every row that
+  /// scrolled back into view.
+  VocabularyFirstContextsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vocabularyFirstContextsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vocabularyFirstContextsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, String>> create(Ref ref) {
+    return vocabularyFirstContexts(ref);
+  }
+}
+
+String _$vocabularyFirstContextsHash() =>
+    r'7e3c996b87800387f65c747e48fcd3ab1028c015';
