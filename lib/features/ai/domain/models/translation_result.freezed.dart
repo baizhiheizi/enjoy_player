@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'translation_result.dart';
@@ -9,6 +9,7 @@ part of 'translation_result.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $TranslationResultCopyWith<TranslationResult> get copyWith => _$TranslationResul
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TranslationResult&&(identical(other.translatedText, translatedText) || other.translatedText == translatedText)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage));
+  final _this = this as TranslationResult;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TranslationResult&&(identical(other.translatedText, _this.translatedText) || other.translatedText == _this.translatedText)&&(identical(other.sourceLanguage, _this.sourceLanguage) || other.sourceLanguage == _this.sourceLanguage)&&(identical(other.targetLanguage, _this.targetLanguage) || other.targetLanguage == _this.targetLanguage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,translatedText,sourceLanguage,targetLanguage);
+int get hashCode {
+  final _this = this as TranslationResult;
+  return Object.hash(runtimeType,_this.translatedText,_this.sourceLanguage,_this.targetLanguage);
+}
 
 @override
 String toString() {
-  return 'TranslationResult(translatedText: $translatedText, sourceLanguage: $sourceLanguage, targetLanguage: $targetLanguage)';
+  final _this = this as TranslationResult;
+  return 'TranslationResult(translatedText: ${_this.translatedText}, sourceLanguage: ${_this.sourceLanguage}, targetLanguage: ${_this.targetLanguage})';
 }
 
 
@@ -66,7 +72,7 @@ class _$TranslationResultCopyWithImpl<$Res>
 /// Create a copy of TranslationResult
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? translatedText = null,Object? sourceLanguage = freezed,Object? targetLanguage = null,}) {
-  return _then(_self.copyWith(
+  return _then(TranslationResult(
 translatedText: null == translatedText ? _self.translatedText : translatedText // ignore: cast_nullable_to_non_nullable
 as String,sourceLanguage: freezed == sourceLanguage ? _self.sourceLanguage : sourceLanguage // ignore: cast_nullable_to_non_nullable
 as String?,targetLanguage: null == targetLanguage ? _self.targetLanguage : targetLanguage // ignore: cast_nullable_to_non_nullable
@@ -231,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TranslationResult&&(identical(other.translatedText, translatedText) || other.translatedText == translatedText)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TranslationResult&&(identical(other.translatedText, translatedText) || other.translatedText == translatedText)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,translatedText,sourceLanguage,targetLanguage);
+int get hashCode {
+    return Object.hash(runtimeType,translatedText,sourceLanguage,targetLanguage);
+}
 
 @override
 String toString() {
-  return 'TranslationResult(translatedText: $translatedText, sourceLanguage: $sourceLanguage, targetLanguage: $targetLanguage)';
+    return 'TranslationResult(translatedText: $translatedText, sourceLanguage: $sourceLanguage, targetLanguage: $targetLanguage)';
 }
 
 
