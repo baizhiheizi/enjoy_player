@@ -58,21 +58,6 @@ class UnifiedPurchaseSheetBodyState
     return _months * unit;
   }
 
-  SubscriptionPlan? _resolvePlan(
-    List<SubscriptionPlan> plans,
-    CatalogInterval target,
-    SubscriptionTier tier,
-  ) {
-    final tierName = tier.name;
-    for (final plan in plans) {
-      if (catalogIntervalFromString(plan.interval) == target &&
-          plan.tier == tierName) {
-        return plan;
-      }
-    }
-    return null;
-  }
-
   Future<void> _startAutoRenew(SubscriptionPlan plan) async {
     final l10n = AppLocalizations.of(context)!;
     try {
@@ -161,7 +146,7 @@ class UnifiedPurchaseSheetBodyState
     final selectedPlan = plansAsync.maybeWhen(
       data: (plans) => plans.isEmpty
           ? null
-          : _resolvePlan(plans, interval, widget.initialTier),
+          : resolveCatalogPlan(plans, interval, widget.initialTier),
       orElse: () => null,
     );
     final plansLoadedNonEmpty = plansAsync.maybeWhen(
