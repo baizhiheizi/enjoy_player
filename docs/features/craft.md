@@ -58,7 +58,7 @@ Craft choices persist across sessions so learners don't re-pick them every time.
 
 Deliberately **not** persisted: the language pair. It always re-seeds from the learner's profile settings on entry — `CraftController.build()` reads `AppPreferencesCtrl.effectiveNativeLanguage` / `effectiveLearningLanguage` synchronously (so the Express idle pill never renders the `—` placeholder), and the lazy per-widget seeding that used to live in `CaptureStage._startRecording` / `TranslateTool.initState` is gone.
 
-Sign-in semantics mirror `AppPreferencesCtrl`: the blob lives in the per-user DB, so reads/writes are skipped while signed out (translate still works; choices are session-only). `CraftController` setters write through to the prefs controller but never persist on programmatic restores — `loadForEdit` prefills an item's own values via `copyWith` and does not touch the blob. A late hydration never clobbers user input: every user-intent setter latches `_prefsHydrationMutated`, and hydration is skipped while an edit-from-history restore is in flight.
+Sign-in semantics mirror `AppPreferencesCtrl`: the blob lives in the per-user DB, so reads/writes are skipped while signed out (translate still works; choices are session-only). `CraftController` setters write through to the prefs controller but never persist on programmatic restores — `loadForEdit` prefills an item's own values via `copyWith` and does not touch the blob. A late hydration never clobbers user input: every user-intent setter latches `prefsHydrationMutated` (the guard on `CraftControllerCore`), and hydration is skipped while an edit-from-history restore is in flight.
 
 ### Craft history (`/craft/history`)
 
@@ -279,12 +279,14 @@ No `isWide` width calculations or ad-hoc max widths live in Craft widgets — al
 | Layer | Key files |
 |-------|----------|
 | **Domain** | `craft_mode.dart`, `craft_screen_mode.dart`, `craft_stage.dart`, `craft_transcriber.dart`, `craft_failure.dart`, `craft_request.dart`, `craft_job_state.dart`, `craft_job_status.dart`, `craft_preferences.dart`, `craft_translator.dart`, `craft_synthesizer.dart`, `azure_voice.dart`, `translation_style.dart`, `word_boundary_segmenter.dart`, `transcript_timestamp_estimator.dart`, `wav_duration.dart` |
-| **Application** | `craft_controller.dart`, `craft_preferences_provider.dart`, `craft_history_provider.dart` |
+| **Application** | `craft_controller.dart` (+ `craft_controller_core.dart`, `craft_translate_stage.dart`, `craft_synthesize_stage.dart`, `craft_capture_stage.dart`, `craft_library_stage.dart`, `craft_service_providers.dart`), `craft_preferences_provider.dart`, `craft_history_provider.dart` |
 | **Data** | `craft_translation_service_translator.dart`, `craft_tts_service_synthesizer.dart`, `craft_asr_service_transcriber.dart` |
 | **Presentation** | `craft_screen.dart`, `craft_history_screen.dart`, `express_flow.dart`, `capture_stage.dart` (+ `capture_stage_idle_view.dart`, `capture_stage_recording_view.dart`, `capture_stage_text_fallback.dart`), `rewrite_stage.dart`, `audio_stage.dart`, `advanced_tools.dart`, `translate_tool.dart`, `synthesize_tool.dart`, `voice_picker.dart`, `style_picker.dart` |
 | **Integration** | `LibraryRepository.importCraftedFromText()`, `getCraftEditSource()`, `updateCraftedFromText()` (library data layer); `CraftEditSource` (library domain layer) |
 | **AI wiring** | `EnjoyTtsCapability` (`lib/features/ai/data/enjoy/`), `ChatService` / `TtsService` / `AsrService` providers |
 | **Native plugin** | [`packages/azure_speech`](../../packages/azure_speech/) (synthesize, word boundary events) |
+
+`CraftController` is assembled from one mixin per pipeline so no single file owns the whole Craft surface: `CraftControllerCore` (hydration latch, language/voice helpers), `CraftTranslateMixin` (text inputs + translation), `CraftSynthesizeMixin` (voice inputs + TTS + audio handoff), `CraftCaptureMixin` (capture, ASR, rewrite), and `CraftLibraryMixin` (save, dedup, edit restore). The three service providers live in `craft_service_providers.dart` and are re-exported by `craft_controller.dart`, so the public import surface (`CraftController`, `craftControllerProvider`, `craftSynthesizerProvider`, `craftTranslatorProvider`, `craftTranscriberProvider`) is unchanged.
 
 ## Test pointers
 
