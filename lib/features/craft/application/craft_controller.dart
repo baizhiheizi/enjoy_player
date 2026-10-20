@@ -13,10 +13,9 @@ import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
-import 'package:enjoy_player/data/api/api_exception.dart';
-import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/craft/application/craft_controller_core.dart';
 import 'package:enjoy_player/features/craft/application/craft_library_repository_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_preferences_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_service_providers.dart';
@@ -39,14 +38,10 @@ export 'package:enjoy_player/features/craft/application/craft_service_providers.
         craftTranslatorProvider;
 
 /// Two-tool Craft controller for the full-screen Craft route.
-class CraftController extends Notifier<CraftJobState> {
-  /// Set by every user-intent setter so a late preference hydration never
-  /// clobbers choices the user already made this session.
-  bool _prefsHydrationMutated = false;
-
+class CraftController extends Notifier<CraftJobState> with CraftControllerCore {
   @override
   CraftJobState build() {
-    _prefsHydrationMutated = false;
+    prefsHydrationMutated = false;
     final prefs = ref.read(appPreferencesCtrlProvider).valueOrNull;
     final native = canonicalMediaLanguageTag(
       prefs?.effectiveNativeLanguage ?? 'en',
@@ -69,9 +64,9 @@ class CraftController extends Notifier<CraftJobState> {
     if (!ref.mounted) return;
     final prefs = await ref.read(craftPreferencesCtrlProvider.notifier).load();
     if (!ref.mounted) return;
-    if (_prefsHydrationMutated || state.editingMediaId != null) return;
+    if (prefsHydrationMutated || state.editingMediaId != null) return;
 
-    final base = _baseLang(state.targetLanguage);
+    final base = baseLanguage(state.targetLanguage);
     final remembered = prefs.voices[base];
     final rememberedValid =
         remembered != null &&
@@ -90,21 +85,21 @@ class CraftController extends Notifier<CraftJobState> {
   }
 
   void setSourceLanguage(String? lang) {
-    _prefsHydrationMutated = true;
+    prefsHydrationMutated = true;
     state = state.copyWith(sourceLanguage: lang, clearFailure: true);
   }
 
   void setTargetLanguage(String lang) {
-    _prefsHydrationMutated = true;
+    prefsHydrationMutated = true;
     state = state.copyWith(
       targetLanguage: lang,
-      selectedVoice: _voiceMatchingLanguage(lang, state.selectedVoice),
+      selectedVoice: voiceMatchingLanguage(lang, state.selectedVoice),
       clearFailure: true,
     );
   }
 
   void setStyle(TranslationStyle style) {
-    _prefsHydrationMutated = true;
+    prefsHydrationMutated = true;
     state = state.copyWith(style: style, clearFailure: true);
     unawaited(
       ref
@@ -114,7 +109,7 @@ class CraftController extends Notifier<CraftJobState> {
   }
 
   void setCustomPrompt(String? prompt) {
-    _prefsHydrationMutated = true;
+    prefsHydrationMutated = true;
     state = state.copyWith(customPrompt: prompt, clearFailure: true);
     unawaited(
       ref.read(craftPreferencesCtrlProvider.notifier).setCustomPrompt(prompt),
@@ -139,7 +134,7 @@ class CraftController extends Notifier<CraftJobState> {
   }
 
   void swapLanguages() {
-    _prefsHydrationMutated = true;
+    prefsHydrationMutated = true;
     final src = state.sourceLanguage;
     state = state.copyWith(
       sourceLanguage: state.targetLanguage,
@@ -165,7 +160,7 @@ class CraftController extends Notifier<CraftJobState> {
     final src = state.sourceLanguage;
     if (src == null || src.isEmpty) return;
 
-    if (_sameBaseLanguage(src, state.targetLanguage)) {
+    if (sameBaseLanguage(src, state.targetLanguage)) {
       state = state.copyWith(failure: const CraftSameLanguageFailure());
       return;
     }
@@ -204,10 +199,10 @@ class CraftController extends Notifier<CraftJobState> {
   }
 
   void setSynthLanguage(String lang) {
-    _prefsHydrationMutated = true;
+    prefsHydrationMutated = true;
     state = state.copyWith(
       synthLanguage: lang,
-      selectedVoice: _voiceMatchingLanguage(lang, state.selectedVoice),
+      selectedVoice: voiceMatchingLanguage(lang, state.selectedVoice),
       clearPreview: true,
       clearFailure: true,
     );
@@ -218,7 +213,7 @@ class CraftController extends Notifier<CraftJobState> {
   /// RewriteStage picker passes [CraftJobState.targetLanguage] explicitly
   /// because synthLanguage may still be stale there.
   void setSelectedVoice(String? voice, {String? forLanguage}) {
-    _prefsHydrationMutated = true;
+    prefsHydrationMutated = true;
     final language = forLanguage ?? state.synthLanguage;
     state = state.copyWith(
       selectedVoice: voice,
@@ -228,7 +223,7 @@ class CraftController extends Notifier<CraftJobState> {
     unawaited(
       ref
           .read(craftPreferencesCtrlProvider.notifier)
-          .setVoice(_baseLang(language), voice),
+          .setVoice(baseLanguage(language), voice),
     );
   }
 
@@ -263,7 +258,7 @@ class CraftController extends Notifier<CraftJobState> {
       );
     } catch (e, st) {
       logNamed('craft.synthesize').warning('Synthesize failed: $e', e, st);
-      state = state.copyWith(isSynthesizing: false, failure: _mapTtsFailure(e));
+      state = state.copyWith(isSynthesizing: false, failure: mapTtsFailure(e));
     }
   }
 
@@ -409,7 +404,7 @@ class CraftController extends Notifier<CraftJobState> {
     final CraftEditSource? source = await repo.getCraftEditSource(mediaId);
     if (source == null) return false;
 
-    final matchedVoice = _voiceMatchingLanguage(source.language, source.voice);
+    final matchedVoice = voiceMatchingLanguage(source.language, source.voice);
     final isExpress =
         source.sourceFlag == 'craft-express' &&
         source.sourceText != null &&
@@ -460,7 +455,7 @@ class CraftController extends Notifier<CraftJobState> {
   /// choice for the next session.
   void setScreenMode(CraftScreenMode mode) {
     if (mode == state.screenMode) return;
-    _prefsHydrationMutated = true;
+    prefsHydrationMutated = true;
     final rememberedStyle = ref
         .read(craftPreferencesCtrlProvider)
         .styleFor(mode);
@@ -588,7 +583,7 @@ class CraftController extends Notifier<CraftJobState> {
         isTranslating: false,
         isTranscribing: false,
         stage: CraftStage.rewrite,
-        selectedVoice: _voiceMatchingLanguage(target, state.selectedVoice),
+        selectedVoice: voiceMatchingLanguage(target, state.selectedVoice),
         synthLanguage: target,
       );
     } on CreditsFailure catch (failure, st) {
@@ -631,7 +626,7 @@ class CraftController extends Notifier<CraftJobState> {
       stage: CraftStage.audio,
       synthText: state.translatedText!,
       synthLanguage: target,
-      selectedVoice: _voiceMatchingLanguage(target, state.selectedVoice),
+      selectedVoice: voiceMatchingLanguage(target, state.selectedVoice),
       clearPreview: true,
       clearFailure: true,
     );
@@ -675,42 +670,6 @@ class CraftController extends Notifier<CraftJobState> {
       sourceText: '',
       synthText: '',
     );
-  }
-
-  /// Keep [current] when it belongs to [language]; otherwise fall back to
-  /// the remembered voice for that language, then the catalog default.
-  String? _voiceMatchingLanguage(String language, String? current) {
-    final base = _baseLang(language);
-    final voices = voicesForLanguage(base);
-    if (current != null && voices.any((v) => v.id == current)) {
-      return current;
-    }
-    final remembered = ref.read(craftPreferencesCtrlProvider).voices[base];
-    if (remembered != null && voices.any((v) => v.id == remembered)) {
-      return remembered;
-    }
-    return defaultVoiceForLanguage(base)?.id;
-  }
-
-  String _baseLang(String tag) => tag.split('-').first.toLowerCase();
-
-  bool _sameBaseLanguage(String a, String b) {
-    final aBase = a.split('-').first.toLowerCase();
-    final bBase = b.split('-').first.toLowerCase();
-    return aBase == bBase;
-  }
-
-  CraftFailure _mapTtsFailure(Object error) {
-    if (error is CreditsFailure) {
-      return CraftCreditsFailure(error);
-    }
-    if (error is ByokNotConfiguredFailure) {
-      return const CraftTtsFailure(action: CraftFailureAction.openAiSettings);
-    }
-    if (error is ApiException && error.statusCode == 401) {
-      return const CraftTtsFailure(action: CraftFailureAction.openAiSettings);
-    }
-    return const CraftTtsFailure();
   }
 }
 
