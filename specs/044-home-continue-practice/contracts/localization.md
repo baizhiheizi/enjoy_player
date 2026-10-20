@@ -1,7 +1,7 @@
 # Contract: Localization (Continue practicing)
 
 **Date**: 2026-08-23  
-**Feature**: [spec.md](./spec.md)
+**Feature**: [spec.md](../spec.md)
 
 User-visible strings MUST be ARB keys under `lib/l10n/` (en + zh), then `flutter gen-l10n`.
 

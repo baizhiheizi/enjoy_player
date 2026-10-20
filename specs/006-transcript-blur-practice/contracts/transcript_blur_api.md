@@ -1,7 +1,7 @@
 # Contract: Transcript Blur Public API (in-app)
 
-**Feature**: [spec.md](spec.md) · [research.md](research.md) ·
-[data-model.md](data-model.md)
+**Feature**: [spec.md](../spec.md) · [research.md](../research.md) ·
+[data-model.md](../data-model.md)
 **Phase**: 1 (design)
 **Audience**: Contributors wiring the transcript blur feature into
 other widgets / tests.
@@ -12,7 +12,7 @@ feature. There is no network contract — the feature is fully local and
 does not call any external service. Riverpod providers are the
 interface.
 
-The terminology mirrors [data-model.md](data-model.md).
+The terminology mirrors [data-model.md](../data-model.md).
 
 ---
 

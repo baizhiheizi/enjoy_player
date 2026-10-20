@@ -2,7 +2,7 @@
 
 ## Summary
 
-Enjoy Player ships opt-out-able product analytics via [PostHog](https://posthog.com) (spec [`specs/046-posthog-analytics-integration/`](../specs/046-posthog-analytics-integration/spec.md), [ADR-0086](../decisions/0086-posthog-product-analytics.md)). Capture is **on by default** with a visible switch in Settings → About → *Usage analytics*. All vendor access is confined to `lib/core/analytics/`; feature code uses the `Analytics` facade only and never imports `package:posthog_flutter`.
+Enjoy Player ships opt-out-able product analytics via [PostHog](https://posthog.com) (spec [`specs/046-posthog-analytics-integration/`](../../specs/046-posthog-analytics-integration/spec.md), [ADR-0086](../decisions/0086-posthog-product-analytics.md)). Capture is **on by default** with a visible switch in Settings → About → *Usage analytics*. All vendor access is confined to `lib/core/analytics/`; feature code uses the `Analytics` facade only and never imports `package:posthog_flutter`.
 
 ## Platform & build behavior
 
@@ -37,7 +37,7 @@ Settings → About → **Usage analytics** (`Switch.adaptive`). Persisted as the
 
 ## Event catalog
 
-Source of truth: [`specs/046-posthog-analytics-integration/contracts/event-catalog.md`](../specs/046-posthog-analytics-integration/contracts/event-catalog.md); code constants in `lib/core/analytics/analytics_events.dart` (a unit test keeps the two in sync). Journeys covered: practice (shadow reading / word practice / flashcard), transcript generation (ASR / YouTube refresh / subtitle import), dictionary lookup, translation (standard + contextual), craft creation, vocabulary review completion, subscription and credits purchases.
+Source of truth: [`specs/046-posthog-analytics-integration/contracts/event-catalog.md`](../../specs/046-posthog-analytics-integration/contracts/event-catalog.md); code constants in `lib/core/analytics/analytics_events.dart` (a unit test keeps the two in sync). Journeys covered: practice (shadow reading / word practice / flashcard), transcript generation (ASR / YouTube refresh / subtitle import), dictionary lookup, translation (standard + contextual), craft creation, vocabulary review completion, subscription and credits purchases.
 
 House rules:
 
@@ -51,4 +51,4 @@ House rules:
 
 ## Verification
 
-See [`specs/046-posthog-analytics-integration/quickstart.md`](../specs/046-posthog-analytics-integration/quickstart.md) for end-to-end scenarios. Unit coverage lives in `test/core/analytics/` (gating, guard, identity, opt-out, flags, failure mapping) and `test/features/settings/presentation/widgets/analytics_capture_toggle_row_test.dart` (the toggle).
+See [`specs/046-posthog-analytics-integration/quickstart.md`](../../specs/046-posthog-analytics-integration/quickstart.md) for end-to-end scenarios. Unit coverage lives in `test/core/analytics/` (gating, guard, identity, opt-out, flags, failure mapping) and `test/features/settings/presentation/widgets/analytics_capture_toggle_row_test.dart` (the toggle).

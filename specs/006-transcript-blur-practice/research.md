@@ -63,7 +63,7 @@ for the icon button and the existing tooltip / haptic pipeline.
   picker entry point (which already lives in the player transport bar).
 - `EnjoyTappableIcon` already wraps tooltip + hover scale + focus ring
   + haptics and is the project-mandated primitive for icon-only actions
-  (per [ADR-0018](../decisions/0018-shared-interactive-primitives.md)
+  (per [ADR-0018](../../docs/decisions/0018-shared-interactive-primitives.md)
   and QR-003 in the spec).
 
 **Alternatives considered**:

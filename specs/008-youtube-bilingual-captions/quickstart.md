@@ -56,8 +56,11 @@ Each scenario is independently verifiable.
 5. **Expect**: both tracks appear in the subtitle picker under Primary and
    Translation.
 
-Pass criteria: matches [contracts/youtube-transcripts-api.md](./contracts/youtube-transcripts-api.md)
-multi-language `ready` handling and data-model primary/secondary assignment.
+Pass criteria: matches the legacy `contracts/youtube-transcripts-api.md`
+multi-language `ready` handling and data-model primary/secondary
+assignment. (That contract doc was removed with the retired poll-based
+API — the live contract is
+[013's worker cache API](../013-client-yt-transcripts/contracts/worker-cache-api.md).)
 
 ### V2 — Partial (translation missing) does not error
 
@@ -111,6 +114,6 @@ multi-language `ready` handling and data-model primary/secondary assignment.
 
 ## References
 
-- Worker contract (now superseded by the cache-only API): [specs/013-client-yt-transcripts/contracts/worker-cache-api.md](../../013-client-yt-transcripts/contracts/worker-cache-api.md) — see issue #320.
+- Worker contract (now superseded by the cache-only API): [specs/013-client-yt-transcripts/contracts/worker-cache-api.md](../013-client-yt-transcripts/contracts/worker-cache-api.md) — see issue #320.
 - Entities & state transitions: [data-model.md](./data-model.md)
 - Design decisions: [research.md](./research.md)

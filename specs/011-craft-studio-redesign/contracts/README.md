@@ -1,6 +1,6 @@
 # Contracts: Craft Studio (Redesigned)
 
-**Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md)
+**Feature**: [spec.md](../spec.md) · **Plan**: [plan.md](../plan.md)
 
 > Spec 010 infrastructure is reused. This document covers the **new and changed** contracts only.
 

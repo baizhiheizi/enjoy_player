@@ -211,12 +211,10 @@ Interface notes:
   small timelines inline and encodes large ones in a background isolate
   (issue #810 D4).
 
-## Blur practice (listening-focus) mode
+## Dictate lens (listening-focus) mode
 
 The **Dictate** lens (`H`, or the third segment of the top bar's
-Listen · Echo · Dictate switch; canvas v30, ADR-0093 amendment R4) renders every transcript cue body text with a CSS-style
-`ImageFilter.blur` filter so the user can practice listening first and
-then peek at the text to check themselves. Like echo, blur is a
+Listen · Echo · Dictate switch; canvas v30, ADR-0093 amendment R4) replaces every transcript cue body text with rounded **shape bars** sized from the hidden words' text boxes, instead of a Gaussian blur (ADR-0093 decision 6 — cheaper to paint, same reveal rules). The user can practice listening first and then peek at the text to check themselves. Like echo, the Dictate lens is a
 **per-media player practice mode** (not a Settings preference). The
 mode is deliberately hearing-focused:
 
@@ -226,26 +224,27 @@ mode is deliberately hearing-focused:
   [`specs/006-transcript-blur-practice/spec.md`](../../specs/006-transcript-blur-practice/spec.md)
   § Clarifications (Session 2026-07-08) for the user-facing rationale
   and the rule.
-- The only ways to see a cue's text in blur practice mode are
+- The only ways to see a cue's text while the Dictate lens is on are
   pointer hover (macOS, Windows) or a tap that starts a hold
   (every platform).
-- While blur practice is on, the transcript list's off-screen pre-build
-  window shrinks from 1400 px to 200 px (issue #810 G): every cached blurred
-  cue is a GPU `ImageFiltered` saveLayer, and pre-building a screenful of
-  unreadable blurred cues buys nothing. The blur/reveal visual behavior is
-  unchanged — revealed cues still drop their filter individually.
+- While the Dictate lens is on, the transcript list's off-screen pre-build
+  window shrinks from 1400 px to 200 px (issue #810 G —
+  `kTranscriptScrollCacheExtentPx` / `kTranscriptBlurPracticeCacheExtentPx`
+  in `transcript_scrollable_list.dart`): a hidden cue still has to be
+  measured and painted as shape bars, and pre-building a screenful of
+  unreadable cues buys nothing. The reveal behavior is unchanged — revealed
+  cues still drop their shapes individually.
 
 ### Toggle, hover, and tap-reveal
 
-- The **toggle** lives in the CC subtitle sheet's display card
-  ([`transcript_display_settings_sheet.dart`](../../lib/features/transcript/presentation/transcript_display_settings_sheet.dart))
-  on every layout, and also on the wide/desktop transport bar next to Echo
-  ([`global_transport_bar.dart`](../../lib/features/player/presentation/widgets/global_transport_bar.dart)).
-  Narrow (≤720px) transport omits the blur icon so the bar stays
-  play / echo / cc / speed. The bar button (when shown) mirrors Echo
-  styling (active state tinted with the `blurActive` token) and carries
-  a hotkey hint in its tooltip. The `H` key toggles it via
-  `PlayerInteractions.toggleBlur()`.
+- The **toggle** is the **Dictate** segment of the top bar's
+  Listen · Echo · Dictate switch (see the
+  [player dock](player.md) and
+  [Duet presentation](#presentation--the-listen-lens-duet-adr-0093)),
+  and the `H` hotkey (`player.toggleBlurPractice`) fires the same action
+  via `PlayerInteractions.toggleBlur()`. There is **no** Hide-text switch in
+  the CC display card and **no** blur button on the player dock — the
+  Dictate lens owns the mode (ADR-0093 decision 6).
 - On macOS and Windows, **hovering a cue unblurs it**; pointer-out
   re-blurs it within one frame. The hover state is owned by the tile
   widget itself so per-frame hover changes do not invalidate unrelated
@@ -274,7 +273,7 @@ server profile):
   when opening media; cleared with `deactivate()` in
   [`PlayerController.clear`](../../lib/features/player/application/player_controller.dart).
 
-### Rendering
+### The display panel
 
 Wide windows open the picker as the Duet **Subtitles & display
 popover**: a 384px raised card anchored under the top bar's Subtitles
@@ -298,7 +297,7 @@ the panel holds only what you see and read:
   `watchTranscriptActions` (`transcript_actions.dart`).
 - Hide text is no longer a switch here; it is the Dictate lens.
 
-### Rendering
+### Hidden-text rendering
 
 Duet renders hidden lines as **rounded shape bars** sized from the
 hidden words' text boxes (measured once per line layout and cached) —
@@ -306,7 +305,7 @@ no `ImageFilter.blur` anywhere in the player. The reveal rules are
 unchanged (hover / press-and-hold, active cue), and tapping the shapes
 on a selectable cue starts the same hold-to-peek.
 
-The blur is applied via `TranscriptBlurText`
+The hidden text is painted via `TranscriptBlurText`
 ([`lib/features/transcript/presentation/transcript_blur_text.dart`](../../lib/features/transcript/presentation/transcript_blur_text.dart))
 inside `TranscriptLineTile`. Only the body text widgets are wrapped —
 timestamps, recording badges, hover tints, the active-line rail, and
@@ -329,11 +328,11 @@ exactly like every other cue.
 
 ### Echo mode
 
-Blur practice mode continues to apply to cues rendered inside the
+The Dictate lens continues to apply to cues rendered inside the
 echo region, including the active echo cue. Hover and tap-reveal work
 the same way as plain cues: the echo tiles carry a `MouseRegion`
 (hover reveal) and tapping the cue text starts the reveal hold. Only
-the cue body text is blurred — the echo card chrome and the
+the cue body text is hidden — the echo card chrome and the
 shadow-reading panel are not.
 
 ### Tests
@@ -346,12 +345,14 @@ Coverage lives under
   toggle / restoreFromSession.
 - `transcript_blur_session_persist_test.dart` — `blur_active` written
   via `PlaybackSessionPersister.writeNow` and restored.
-- `global_transport_bar_test.dart` — the blur toggle's off/on icon
-  states on **wide** transport, disabled state when there are no
-  transcript lines, that a tap flips `transcriptBlurModeProvider`, and
-  that narrow transport omits the blur icon.
-- `transcript_display_gating_test.dart` / `subtitle_track_picker_sheet_test.dart`
-  — CC display card includes the hide-transcript (blur) switch.
+- `player_top_bar_test.dart` — the desktop mode switch has
+  **Listen · Echo · Dictate** segments, and tapping **Dictate**
+  (`player-lens-dictate`) selects the Dictate lens.
+- `player_interactions_class_test.dart` — `toggleBlur()` activates and
+  deactivates `transcriptBlurModeProvider`, and does not activate when
+  there are no transcript lines.
+- `transcript_display_gating_test.dart` — the CC display card has
+  **no** Hide-text switch (the Dictate lens owns it).
 - `transcript_blur_hover_test.dart` — pointer-enter reveals;
   pointer-out re-blurs; toggle-off bypass.
 - `transcript_blur_selectable_reveal_test.dart` — the active / echo
@@ -363,8 +364,8 @@ Coverage lives under
   active cue never auto-reveals (the spec's hard rule). Karaoke on does
   not change that contract. IPA overlay on also must not auto-reveal or
   leak stored phone labels through an unrevealed cue.
-- `transcript_blur_long_list_perf_test.dart` — 10 000-line smoke
-  under `ImageFiltered`; per-frame budget assertion.
+- `transcript_blur_long_list_perf_test.dart` — 10 000-line smoke:
+  shape-bar tiles render unrevealed and scrolling throws no exception.
 
 ## Presentation — the Listen lens (Duet, ADR-0093)
 

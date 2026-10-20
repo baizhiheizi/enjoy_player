@@ -30,7 +30,6 @@ The card is only mounted on Home when `authCtrlProvider` reports `AuthSignedIn`.
 | └ avatars (initials, wrap grid, overlapping stack) | [`community_activity_avatars.dart`](../../lib/features/community/presentation/community_activity_avatars.dart) |
 | └ bodies (card + summary content) | [`community_activity_bodies.dart`](../../lib/features/community/presentation/community_activity_bodies.dart) |
 | └ metrics (today's practice stat row) | [`community_activity_metrics.dart`](../../lib/features/community/presentation/community_activity_metrics.dart) |
-| └ stats (headline summary content) | [`community_activity_stats.dart`](../../lib/features/community/presentation/community_activity_stats.dart) |
 
 ## Related
 

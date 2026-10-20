@@ -1,7 +1,7 @@
 # Contracts: Crafted Audio Cloud Sync
 
 **Date**: 2026-08-21
-**Feature**: [spec.md](./spec.md) | [plan.md](./plan.md) | [research.md](./research.md)
+**Feature**: [spec.md](../spec.md) | [plan.md](../plan.md) | [research.md](../research.md)
 
 This document specifies the external interfaces that participate in the feature. There are three contracts:
 

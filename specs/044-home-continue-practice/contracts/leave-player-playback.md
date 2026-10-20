@@ -1,7 +1,7 @@
 # Contract: Leave-player playback
 
 **Date**: 2026-08-23  
-**Feature**: [spec.md](./spec.md) | [research.md](../research.md)
+**Feature**: [spec.md](../spec.md) | [research.md](../research.md)
 
 Lifecycle contract for FR-007, FR-008, FR-009, FR-015.
 

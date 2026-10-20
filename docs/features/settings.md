@@ -2,7 +2,7 @@
 
 ## Summary
 
-The Settings hub is reached at `/settings` and groups every preference surface in one editorial screen. It's **searchable**; below `EnjoyThemeTokens.breakpointRail` (900px) it renders the **phone hub** — account card, one grouped card of section rows with short trailing values, drill-in section pages, and the mono version footer (the `Settings` board's `st-narrow` layout) — and at/above the breakpoint a **two-pane** rail + detail layout on desktop. Typing in search on the hub swaps back to the flat single-column stack so matches render inline. It also hosts **sub-screens** — `/settings/hotkeys` (keyboard shortcuts) and `/settings/sync` (cloud metadata sync status) — and the **About / update** entry.
+The Settings hub is reached at `/settings` and groups every preference surface in one editorial screen. It's **searchable**; below `EnjoyThemeTokens.breakpointRail` (900px) it renders the **phone hub** — account card, one grouped card of section rows with short trailing values, drill-in section pages, and the mono version footer (the `Settings` board's `st-narrow` layout) — and at/above the breakpoint a **two-pane** rail + detail layout on desktop. Typing in search on the hub swaps back to the flat single-column stack so matches render inline. It also hosts **sub-screens** — `/settings/keyboard` (keyboard shortcuts) and `/settings/sync` (cloud metadata sync status) — and the **About / update** entry.
 
 Section content lives in one file per section under `lib/features/settings/presentation/widgets/sections/`, shared by both the single-column and two-pane layouts (see [Code map](#code-map)). See `specs/004-settings-redesign/` for the redesign spec/plan/tasks that produced this structure.
 
@@ -15,7 +15,7 @@ Section content lives in one file per section under `lib/features/settings/prese
 | `/settings/recording` | Recording section page (hub drill-in) |
 | `/settings/developer` | Developer section page (hub drill-in; non-release builds only) |
 | `/settings/about` | About section page (hub drill-in) |
-| `/settings/hotkeys` | Keyboard shortcuts editor (sub-screen) |
+| `/settings/keyboard` | Keyboard shortcuts editor (sub-screen) |
 | `/settings/sync` | Cloud metadata sync status (sub-screen) |
 
 ## Search
@@ -46,13 +46,13 @@ Every settings row is a `SettingsRow` (icon, title, subtitle, value badge, optio
 - **Appearance & Language** (`sections/appearance_language_section.dart`) — an inline **System / Light / Dark** `EnjoySegmentedControl` on the Theme row (one tap, no sheet; the row stacks the control under its title below 460 px × text scale via `SettingsRow.stackBelowWidth`), then display, learning, and native language pickers (`language_choice_sheet.dart`). Each pick updates its row's value badge immediately with no need to leave the hub. Native language is capability-gated to the choices that remain after excluding the current learning language.
 - **AI providers** (`sections/ai_providers_section.dart`) — per-modality BYOK provider configuration entry point.
 - **Recording** (`sections/recording_section.dart`) — microphone picker dialog (auto + every input device returned by `AudioRecorder.listInputDevices()`; see [`echo-mode.md`](echo-mode.md) for the virtual-device skip list). An empty device list still renders an explanatory subtitle rather than a blank row.
-- **Keyboard shortcuts** (`sections/keyboard_shortcuts_section.dart`) — link to `/settings/hotkeys` (full editor); desktop-only.
+- **Keyboard shortcuts** (`sections/keyboard_shortcuts_section.dart`) — link to `/settings/keyboard` (full editor); desktop-only.
 - **Developer** (`sections/developer_section.dart`) — API base URL editors for the **Worker** and the **AI gateway**, plus a link to the AI playground (see [`ai.md`](ai.md)); visible only in debug builds; default-collapsed.
 - **About / update** (`sections/about_section.dart`, wrapping `about_section_card.dart`) — gradient About card, a link into the update prompt flow (see [`update.md`](update.md)), a "Contact the developer" row that opens `developer_contact_sheet.dart`, a bottom sheet listing Email/WeChat/Mixin (tapping any row copies the value to the clipboard and shows an `AppNotice.success` confirmation), and the **Usage analytics** opt-out switch (`analytics_capture_toggle_row.dart`, see [`analytics.md`](analytics.md)). Default-collapsed.
 
 ## Sub-screens
 
-### `/settings/hotkeys`
+### `/settings/keyboard`
 
 Full keyboard shortcut editor. Backed by `HotkeysService` (see [`hotkeys.md`](hotkeys.md)); the screen shows current bindings, surfaces conflicts, and offers a confirmation dialog on save. Restyled to `SettingsRow`/`SettingsSectionCard` for visual consistency with the hub (no change to hotkey domain logic).
 
@@ -64,7 +64,7 @@ Cloud metadata sync status (see [`sync.md`](sync.md)). Shows the queue, last syn
 
 Settings has an **Account** section (first rail row, Duet): the identity card (logo-ring avatar, name, email, tier chip) with a danger **Sign out**, or **Sign in** when signed out — full profile management stays on `/profile`. On the **phone hub** the board's account card drops Sign out entirely (avatar, name, "tier · email", chevron → `/profile`), so sign-out is only one tap away on the Profile tab.
 
-Account management **no longer lives inside the Settings hub** as a hero. The signed-in profile is the dedicated `/profile` shell tab; Settings is reached from inside the Profile tab via a tile. The Settings hub therefore starts at the first post-account section (Cloud sync) and the previous `sections/account_hero_section.dart` widget — a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton and a retry affordance on load failure — is no longer wired into either layout. The widget is retained in the source tree because `test/features/settings/presentation/sections/settings_loading_states_test.dart` exercises its signed-in / signed-out / loading / error states in isolation; treat it as a **test-only fixture** until a future surface (e.g. an in-shell "switch account" sheet) reuses it.
+Account management **no longer lives inside the Settings hub** as a hero. The signed-in profile is the dedicated `/profile` shell tab; Settings is reached from inside the Profile tab via a tile. The Settings hub therefore starts at the first post-account section (Cloud sync), and the old `sections/account_hero_section.dart` widget — a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton and a retry affordance on load failure — has been **removed from the source tree**: neither layout wires it, and no test exercises it any more (`test/features/settings/presentation/sections/settings_loading_states_test.dart` now covers the Appearance & Language and Cloud sync sections instead).
 
 Settings still requires a signed-in Enjoy account ([ADR-0031](../decisions/0031-login-only-access.md)) for the sync / AI / appearance surfaces to make sense; unsigned users are redirected to sign-in before reaching this screen, and the Profile tab's sign-out flow returns them there.
 
@@ -101,7 +101,6 @@ Confirmation dialog explains cloud-side consequences (per-target recordings will
 | Section content | [`lib/features/settings/presentation/widgets/sections/`](../../lib/features/settings/presentation/widgets/sections/) |
 | Profile tab body (replaces the old in-Settings account section) | [`lib/features/auth/presentation/widgets/profile_content.dart`](../../lib/features/auth/presentation/widgets/profile_content.dart) |
 | Profile preferences sub-screen | [`lib/features/auth/presentation/profile_preferences_screen.dart`](../../lib/features/auth/presentation/profile_preferences_screen.dart) |
-| Account hero widget (test-only — no longer wired into the active UI) | [`lib/features/settings/presentation/widgets/sections/account_hero_section.dart`](../../lib/features/settings/presentation/widgets/sections/account_hero_section.dart) |
 | Search registry + filter | [`lib/features/settings/domain/settings_search_entry.dart`](../../lib/features/settings/domain/settings_search_entry.dart) |
 | Section specs (icon/l10n/visibility/body per section) + shared visible-section helper | [`lib/features/settings/presentation/settings_section_spec.dart`](../../lib/features/settings/presentation/settings_section_spec.dart) |
 | Search/selection/collapse providers | [`lib/features/settings/application/`](../../lib/features/settings/application/) |

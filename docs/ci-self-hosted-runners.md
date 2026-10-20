@@ -11,7 +11,7 @@ Shared workflow pieces:
 | Path | Purpose |
 |------|---------|
 | [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from the `flutter` entry in [`mise.toml`](../mise.toml). Installs into a persistent, version-keyed directory on the runner's local disk and **skips the download entirely** when that version is already present — no `subosito/flutter-action` cache, and no Actions cache for the SDK itself (it lands in `RUNNER_TOOL_CACHE`, which survives the container per-job reset and persists on the native runners). Reinstalls if the cached tree is missing `bin/flutter` or a working `.git` (required by `flutter --version`). Honors `FLUTTER_STORAGE_BASE_URL` when it does download. |
-| [mise](https://mise.jdx.dev) in [ci.yml](../.github/workflows/ci.yml) | Pilot: [ci.yml](../.github/workflows/ci.yml) installs the same mise.toml pin via `jdx/mise-action` instead of `setup-flutter`. Installs persist under `~/.local/share/mise` on the runner. If the pilot proves out, the remaining workflows migrate off `setup-flutter`. |
+| [mise](https://mise.jdx.dev) in [ci.yml](../.github/workflows/ci.yml) | Pilot: [ci.yml](../.github/workflows/ci.yml) installs the same mise.toml pin via `jdx/mise-action` instead of `setup-flutter`. Installs persist under `~/.local/share/mise` on the runner. The **agentic workflows** (`repo-assist` and friends) also install Flutter through `jdx/mise-action` now — see *Agentic workflows* below. If the pilot proves out, the remaining deterministic workflows migrate off `setup-flutter`. |
 | [`.github/actions/setup-android`](../.github/actions/setup-android) | Wrap `android-actions/setup-android` with retries: the upstream action fails the job when the flaky network cannot fetch dl.google.com package manifests; the wrapper tolerates that, retries the `sdkmanager` install with backoff, and skips the network entirely once the requested packages persist on the runner. |
 | [`.github/actions/setup-macos-runner-env`](../.github/actions/setup-macos-runner-env) | Homebrew PATH, UTF-8 locale, curl HTTP/1.1, `GIT_CONFIG_COUNT=0` (SwiftPM-safe) |
 | [`.github/scripts/apple_spm_hygiene.sh`](../.github/scripts/apple_spm_hygiene.sh) | Host lock + SPM cache clear + retry helpers for Apple CI/release |
@@ -19,7 +19,7 @@ Shared workflow pieces:
 | `AZURE_SPEECH_SDK_CACHE` | Build Windows points the `azure_speech` plugin CMake at `RUNNER_TOOL_CACHE\azure-speech-sdk\` so the Speech SDK NuGet package (~28 s download) is fetched once per version instead of every clean build. The CMake download retries and only marks the SDK extracted once its headers exist. |
 | [`windows/scripts/fetch_ffmpeg.ps1`](../windows/scripts/fetch_ffmpeg.ps1) | Build Windows fetches FFmpeg into `RUNNER_TOOL_CACHE\ffmpeg-release-essentials\` (persists on the native runner) and copies it into the staged workspace, instead of re-downloading ~100 MB from gyan.dev each run. Downloads retry with backoff. |
 | [`.github/scripts/ensure_nuget_feed.ps1`](../.github/scripts/ensure_nuget_feed.ps1) | Ensure NuGet.org feed on Windows |
-| [`.github/workflows/shared/runtime.md`](../.github/workflows/shared/runtime.md) | gh-aw shared Flutter pre-agent setup + `dart` network for agentic workflows |
+| [`.github/workflows/shared/`](../.github/workflows/shared/) + each workflow's own `pre-agent` steps | The shared step files (`engine-*.md`, `formatting.md`, `github-app.md`, `mcp.md`, `reporting.md`) carry the per-engine setup. The **Flutter pre-agent setup now lives in each agentic workflow's own `.md`** (e.g. `repo-assist.md`): `ensure_linux_tooling.sh` → `jdx/mise-action` (installs the `mise.toml` pin) → `flutter --version` → `flutter pub get`. There is no `shared/runtime.md` any more. |
 
 When you bump Flutter in `mise.toml`, the next workflow run downloads that version once per runner/host and reuses it from local disk afterward.
 
@@ -44,7 +44,7 @@ The pool sits behind a per-GB proxy (~55 GB/day of WAN traffic measured). Two me
 
    `pubspec.lock` pins every hosted package by `sha256`, so a mirror that served different bytes fails the hash check instead of installing something else — dependency integrity does not weaken by fetching through a mirror.
 
-**Not yet covered:** the agentic workflows ([`shared/runtime.md`](../.github/workflows/shared/runtime.md)) still resolve from pub.dev directly via their gh-aw firewall allow-lists. Moving them to the mirrors means editing the allow-lists and recompiling the `.lock.yml` files.
+**Not yet covered:** the agentic workflows (their gh-aw firewall allow-lists, compiled into the `.lock.yml` files) still resolve from pub.dev directly. Moving them to the mirrors means editing the allow-lists and recompiling the `.lock.yml` files.
 
 ---
 
@@ -54,7 +54,7 @@ This applies to **toolchains and OS-level prerequisites**, which land in `RUNNER
 
 - **Linux (shared gh-sr agentic pool):** gh-sr builds a Docker image for `runner_mode: container` / `profile: agentic` runners. `runners.yml`'s `container_runner_image.extra_apt_packages` bakes the Flutter Linux build packages (`clang`, `cmake`, `ninja-build`, `xz-utils`, `zip`, `libgtk-3-dev`, `liblzma-dev`, `libsqlite3-dev`) into that image, on top of the packages already in gh-sr's own core manifest (`curl`, `git`, `jq`, `pkg-config`, `unzip`, …). This survives `gh sr rebuild` / `gh sr update` (which recreate the container and would otherwise wipe anything installed at runtime by `ensure_linux_tooling.sh`).
 - **macOS / Windows (native runners):** gh-sr has no generic dependency-baking mechanism for native runners — the runner's own filesystem just persists between jobs as long as it isn't reinstalled from scratch. Install Flutter's OS-level prerequisites once, manually, per the checklists below; the idempotent scripts (`fetch_ffmpeg.ps1`, `ensure_nuget_feed.ps1`, `ensure_inno_setup.ps1`, `ensure_ios_ci_toolchain.sh`) then skip re-installing on every run.
-- **Flutter SDK itself (all platforms):** handled at the workflow level by [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) — see the table above.
+- **Flutter SDK itself (all platforms):** handled at the workflow level — [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) for the deterministic build/release workflows, `jdx/mise-action` for `ci.yml` and the agentic workflows — see the table above.
 
 ---
 
@@ -62,15 +62,18 @@ This applies to **toolchains and OS-level prerequisites**, which land in `RUNNER
 
 GitHub **Agentic Workflows** (`gh-aw`) run on a Linux self-hosted runner with labels **`self-hosted`**, **`linux`**, and **`agentic`**. The same physical machine may also carry the **`Linux`** label used by deterministic CI — that is fine; both share the Flutter pin in [`mise.toml`](../mise.toml).
 
-Each agentic job runs pre-agent steps from [`shared/runtime.md`](../.github/workflows/shared/runtime.md) before the AI engine starts:
+Each agentic job runs pre-agent steps declared in the workflow's own
+`.md` (for example [`repo-assist.md`](../.github/workflows/repo-assist.md))
+before the AI engine starts:
 
 1. `ensure_linux_tooling.sh` (apt packages, idempotent)
-2. [`.github/actions/setup-flutter`](../.github/actions/setup-flutter)
-3. `flutter pub get`
+2. `jdx/mise-action` — installs the Flutter version pinned in [`mise.toml`](../mise.toml)
+3. `flutter --version` (probe)
+4. `flutter pub get`
 
 **Scope:** AWF requires Linux. Agents can run `flutter analyze`, `flutter test`, and `dart format` here — not iOS/macOS/Windows builds or signed Android releases.
 
-**Network:** Shared runtime adds the gh-aw `dart` ecosystem (`pub.dev`, Flutter storage) to the firewall allowlist.
+**Network:** the compiled agentic workflow adds the gh-aw `dart` ecosystem (`pub.dev`, Flutter storage) to the firewall allowlist.
 
 **Compile:** After editing workflow `.md` files, run `gh aw compile --validate` and commit the generated `.lock.yml` files.
 
