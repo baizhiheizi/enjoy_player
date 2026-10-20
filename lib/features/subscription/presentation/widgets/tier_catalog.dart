@@ -30,6 +30,8 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 export 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval.dart'
     show CatalogInterval, catalogIntervalFromString, catalogIntervalWire;
+export 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_plan_lookup.dart'
+    show resolveCatalogPlan;
 
 /// Approximate savings percentage when paying yearly vs monthly for a tier.
 ///

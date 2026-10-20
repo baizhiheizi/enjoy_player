@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_features.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_plan_lookup.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_scaffold.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -46,8 +47,8 @@ class TierPaidCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    final selectedPlan = _resolvePlan(plans, interval, tier);
-    final fallbackPlan = _resolvePlan(plans, CatalogInterval.month, tier);
+    final selectedPlan = resolveCatalogPlan(plans, interval, tier);
+    final fallbackPlan = resolveCatalogPlan(plans, CatalogInterval.month, tier);
     final resolved = selectedPlan ?? fallbackPlan;
     final amount = resolved != null
         ? NumberFormat('0.00').format(resolved.amount)
@@ -186,20 +187,5 @@ class TierPaidCard extends StatelessWidget {
       );
     }
     return inner;
-  }
-
-  SubscriptionPlan? _resolvePlan(
-    List<SubscriptionPlan> plans,
-    CatalogInterval target,
-    SubscriptionTier tier,
-  ) {
-    final tierName = tier == SubscriptionTier.lite ? 'lite' : 'pro';
-    for (final plan in plans) {
-      if (catalogIntervalFromString(plan.interval) == target &&
-          plan.tier == tierName) {
-        return plan;
-      }
-    }
-    return null;
   }
 }
