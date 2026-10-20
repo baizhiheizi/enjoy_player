@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'ai_service_config.dart';
@@ -9,6 +9,7 @@ part of 'ai_service_config.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $BYOKConfigCopyWith<BYOKConfig> get copyWith => _$BYOKConfigCopyWithImpl<BYOKCon
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BYOKConfig&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.region, region) || other.region == region)&&(identical(other.model, model) || other.model == model));
+  final _this = this as BYOKConfig;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BYOKConfig&&(identical(other.vendor, _this.vendor) || other.vendor == _this.vendor)&&(identical(other.apiKey, _this.apiKey) || other.apiKey == _this.apiKey)&&(identical(other.endpoint, _this.endpoint) || other.endpoint == _this.endpoint)&&(identical(other.region, _this.region) || other.region == _this.region)&&(identical(other.model, _this.model) || other.model == _this.model));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,vendor,apiKey,endpoint,region,model);
+int get hashCode {
+  final _this = this as BYOKConfig;
+  return Object.hash(runtimeType,_this.vendor,_this.apiKey,_this.endpoint,_this.region,_this.model);
+}
 
 @override
 String toString() {
-  return 'BYOKConfig(vendor: $vendor, apiKey: $apiKey, endpoint: $endpoint, region: $region, model: $model)';
+  final _this = this as BYOKConfig;
+  return 'BYOKConfig(vendor: ${_this.vendor}, apiKey: ${_this.apiKey}, endpoint: ${_this.endpoint}, region: ${_this.region}, model: ${_this.model})';
 }
 
 
@@ -63,7 +69,7 @@ class _$BYOKConfigCopyWithImpl<$Res>
 /// Create a copy of BYOKConfig
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? vendor = null,Object? apiKey = null,Object? endpoint = freezed,Object? region = freezed,Object? model = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(BYOKConfig(
 vendor: null == vendor ? _self.vendor : vendor // ignore: cast_nullable_to_non_nullable
 as BYOKVendor,apiKey: null == apiKey ? _self.apiKey : apiKey // ignore: cast_nullable_to_non_nullable
 as String,endpoint: freezed == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
@@ -229,16 +235,18 @@ _$BYOKConfigCopyWith<_BYOKConfig> get copyWith => __$BYOKConfigCopyWithImpl<_BYO
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BYOKConfig&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.region, region) || other.region == region)&&(identical(other.model, model) || other.model == model));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BYOKConfig&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.region, region) || other.region == region)&&(identical(other.model, model) || other.model == model));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,vendor,apiKey,endpoint,region,model);
+int get hashCode {
+    return Object.hash(runtimeType,vendor,apiKey,endpoint,region,model);
+}
 
 @override
 String toString() {
-  return 'BYOKConfig(vendor: $vendor, apiKey: $apiKey, endpoint: $endpoint, region: $region, model: $model)';
+    return 'BYOKConfig(vendor: $vendor, apiKey: $apiKey, endpoint: $endpoint, region: $region, model: $model)';
 }
 
 
@@ -294,16 +302,21 @@ $AIServiceConfigCopyWith<AIServiceConfig> get copyWith => _$AIServiceConfigCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AIServiceConfig&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.byok, byok) || other.byok == byok)&&(identical(other.llmByok, llmByok) || other.llmByok == llmByok)&&(identical(other.speechByok, speechByok) || other.speechByok == speechByok)&&(identical(other.localModelId, localModelId) || other.localModelId == localModelId));
+  final _this = this as AIServiceConfig;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AIServiceConfig&&(identical(other.provider, _this.provider) || other.provider == _this.provider)&&(identical(other.byok, _this.byok) || other.byok == _this.byok)&&(identical(other.llmByok, _this.llmByok) || other.llmByok == _this.llmByok)&&(identical(other.speechByok, _this.speechByok) || other.speechByok == _this.speechByok)&&(identical(other.localModelId, _this.localModelId) || other.localModelId == _this.localModelId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,provider,byok,llmByok,speechByok,localModelId);
+int get hashCode {
+  final _this = this as AIServiceConfig;
+  return Object.hash(runtimeType,_this.provider,_this.byok,_this.llmByok,_this.speechByok,_this.localModelId);
+}
 
 @override
 String toString() {
-  return 'AIServiceConfig(provider: $provider, byok: $byok, llmByok: $llmByok, speechByok: $speechByok, localModelId: $localModelId)';
+  final _this = this as AIServiceConfig;
+  return 'AIServiceConfig(provider: ${_this.provider}, byok: ${_this.byok}, llmByok: ${_this.llmByok}, speechByok: ${_this.speechByok}, localModelId: ${_this.localModelId})';
 }
 
 
@@ -332,7 +345,7 @@ class _$AIServiceConfigCopyWithImpl<$Res>
 /// Create a copy of AIServiceConfig
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? provider = null,Object? byok = freezed,Object? llmByok = freezed,Object? speechByok = freezed,Object? localModelId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AIServiceConfig(
 provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
 as AIProvider,byok: freezed == byok ? _self.byok : byok // ignore: cast_nullable_to_non_nullable
 as BYOKConfig?,llmByok: freezed == llmByok ? _self.llmByok : llmByok // ignore: cast_nullable_to_non_nullable
@@ -534,16 +547,18 @@ _$AIServiceConfigCopyWith<_AIServiceConfig> get copyWith => __$AIServiceConfigCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AIServiceConfig&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.byok, byok) || other.byok == byok)&&(identical(other.llmByok, llmByok) || other.llmByok == llmByok)&&(identical(other.speechByok, speechByok) || other.speechByok == speechByok)&&(identical(other.localModelId, localModelId) || other.localModelId == localModelId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AIServiceConfig&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.byok, byok) || other.byok == byok)&&(identical(other.llmByok, llmByok) || other.llmByok == llmByok)&&(identical(other.speechByok, speechByok) || other.speechByok == speechByok)&&(identical(other.localModelId, localModelId) || other.localModelId == localModelId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,provider,byok,llmByok,speechByok,localModelId);
+int get hashCode {
+    return Object.hash(runtimeType,provider,byok,llmByok,speechByok,localModelId);
+}
 
 @override
 String toString() {
-  return 'AIServiceConfig(provider: $provider, byok: $byok, llmByok: $llmByok, speechByok: $speechByok, localModelId: $localModelId)';
+    return 'AIServiceConfig(provider: $provider, byok: $byok, llmByok: $llmByok, speechByok: $speechByok, localModelId: $localModelId)';
 }
 
 

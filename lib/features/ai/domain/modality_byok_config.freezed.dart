@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'modality_byok_config.dart';
@@ -9,6 +9,7 @@ part of 'modality_byok_config.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $LlmByokConfigCopyWith<LlmByokConfig> get copyWith => _$LlmByokConfigCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LlmByokConfig&&(identical(other.apiSpec, apiSpec) || other.apiSpec == apiSpec)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.model, model) || other.model == model)&&(identical(other.presetId, presetId) || other.presetId == presetId));
+  final _this = this as LlmByokConfig;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LlmByokConfig&&(identical(other.apiSpec, _this.apiSpec) || other.apiSpec == _this.apiSpec)&&(identical(other.baseUrl, _this.baseUrl) || other.baseUrl == _this.baseUrl)&&(identical(other.model, _this.model) || other.model == _this.model)&&(identical(other.presetId, _this.presetId) || other.presetId == _this.presetId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,apiSpec,baseUrl,model,presetId);
+int get hashCode {
+  final _this = this as LlmByokConfig;
+  return Object.hash(runtimeType,_this.apiSpec,_this.baseUrl,_this.model,_this.presetId);
+}
 
 @override
 String toString() {
-  return 'LlmByokConfig(apiSpec: $apiSpec, baseUrl: $baseUrl, model: $model, presetId: $presetId)';
+  final _this = this as LlmByokConfig;
+  return 'LlmByokConfig(apiSpec: ${_this.apiSpec}, baseUrl: ${_this.baseUrl}, model: ${_this.model}, presetId: ${_this.presetId})';
 }
 
 
@@ -63,7 +69,7 @@ class _$LlmByokConfigCopyWithImpl<$Res>
 /// Create a copy of LlmByokConfig
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? apiSpec = null,Object? baseUrl = null,Object? model = null,Object? presetId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(LlmByokConfig(
 apiSpec: null == apiSpec ? _self.apiSpec : apiSpec // ignore: cast_nullable_to_non_nullable
 as LlmApiSpec,baseUrl: null == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
@@ -227,16 +233,18 @@ _$LlmByokConfigCopyWith<_LlmByokConfig> get copyWith => __$LlmByokConfigCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LlmByokConfig&&(identical(other.apiSpec, apiSpec) || other.apiSpec == apiSpec)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.model, model) || other.model == model)&&(identical(other.presetId, presetId) || other.presetId == presetId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LlmByokConfig&&(identical(other.apiSpec, apiSpec) || other.apiSpec == apiSpec)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.model, model) || other.model == model)&&(identical(other.presetId, presetId) || other.presetId == presetId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,apiSpec,baseUrl,model,presetId);
+int get hashCode {
+    return Object.hash(runtimeType,apiSpec,baseUrl,model,presetId);
+}
 
 @override
 String toString() {
-  return 'LlmByokConfig(apiSpec: $apiSpec, baseUrl: $baseUrl, model: $model, presetId: $presetId)';
+    return 'LlmByokConfig(apiSpec: $apiSpec, baseUrl: $baseUrl, model: $model, presetId: $presetId)';
 }
 
 
@@ -291,16 +299,21 @@ $SpeechByokConfigCopyWith<SpeechByokConfig> get copyWith => _$SpeechByokConfigCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SpeechByokConfig&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.model, model) || other.model == model)&&(identical(other.region, region) || other.region == region)&&(identical(other.presetId, presetId) || other.presetId == presetId));
+  final _this = this as SpeechByokConfig;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SpeechByokConfig&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.baseUrl, _this.baseUrl) || other.baseUrl == _this.baseUrl)&&(identical(other.model, _this.model) || other.model == _this.model)&&(identical(other.region, _this.region) || other.region == _this.region)&&(identical(other.presetId, _this.presetId) || other.presetId == _this.presetId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,kind,baseUrl,model,region,presetId);
+int get hashCode {
+  final _this = this as SpeechByokConfig;
+  return Object.hash(runtimeType,_this.kind,_this.baseUrl,_this.model,_this.region,_this.presetId);
+}
 
 @override
 String toString() {
-  return 'SpeechByokConfig(kind: $kind, baseUrl: $baseUrl, model: $model, region: $region, presetId: $presetId)';
+  final _this = this as SpeechByokConfig;
+  return 'SpeechByokConfig(kind: ${_this.kind}, baseUrl: ${_this.baseUrl}, model: ${_this.model}, region: ${_this.region}, presetId: ${_this.presetId})';
 }
 
 
@@ -329,7 +342,7 @@ class _$SpeechByokConfigCopyWithImpl<$Res>
 /// Create a copy of SpeechByokConfig
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? baseUrl = freezed,Object? model = freezed,Object? region = freezed,Object? presetId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SpeechByokConfig(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as SpeechByokKind,baseUrl: freezed == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
 as String?,model: freezed == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
@@ -495,16 +508,18 @@ _$SpeechByokConfigCopyWith<_SpeechByokConfig> get copyWith => __$SpeechByokConfi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SpeechByokConfig&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.model, model) || other.model == model)&&(identical(other.region, region) || other.region == region)&&(identical(other.presetId, presetId) || other.presetId == presetId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SpeechByokConfig&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&(identical(other.model, model) || other.model == model)&&(identical(other.region, region) || other.region == region)&&(identical(other.presetId, presetId) || other.presetId == presetId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,kind,baseUrl,model,region,presetId);
+int get hashCode {
+    return Object.hash(runtimeType,kind,baseUrl,model,region,presetId);
+}
 
 @override
 String toString() {
-  return 'SpeechByokConfig(kind: $kind, baseUrl: $baseUrl, model: $model, region: $region, presetId: $presetId)';
+    return 'SpeechByokConfig(kind: $kind, baseUrl: $baseUrl, model: $model, region: $region, presetId: $presetId)';
 }
 
 

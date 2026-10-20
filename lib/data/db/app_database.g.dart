@@ -12311,7 +12311,16 @@ class $$VideosTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$VideosTable, VideoRow>(table),
+                  BaseReferences<_$AppDatabase, $VideosTable, VideoRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -12846,7 +12855,16 @@ class $$AudiosTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$AudiosTable, AudioRow>(table),
+                  BaseReferences<_$AppDatabase, $AudiosTable, AudioRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -13207,7 +13225,16 @@ class $$TranscriptsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$TranscriptsTable, TranscriptRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $TranscriptsTable,
+                    TranscriptRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -13428,7 +13455,19 @@ class $$TranscriptFetchStatesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<
+                    $TranscriptFetchStatesTable,
+                    TranscriptFetchStateRow
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $TranscriptFetchStatesTable,
+                    TranscriptFetchStateRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -14067,7 +14106,16 @@ class $$EchoSessionsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$EchoSessionsTable, EchoSessionRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $EchoSessionsTable,
+                    EchoSessionRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -14511,7 +14559,16 @@ class $$RecordingsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$RecordingsTable, RecordingRow>(table),
+                  BaseReferences<_$AppDatabase, $RecordingsTable, RecordingRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -14938,7 +14995,16 @@ class $$DictationsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$DictationsTable, DictationRow>(table),
+                  BaseReferences<_$AppDatabase, $DictationsTable, DictationRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -15216,7 +15282,16 @@ class $$SyncQueueTableTableManager
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$SyncQueueTable, SyncQueueRow>(table),
+                  BaseReferences<_$AppDatabase, $SyncQueueTable, SyncQueueRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -15355,7 +15430,16 @@ class $$SettingsKvTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$SettingsKvTable, SettingRow>(table),
+                  BaseReferences<_$AppDatabase, $SettingsKvTable, SettingRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -15661,7 +15745,19 @@ class $$YoutubeChannelSubscriptionsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<
+                    $YoutubeChannelSubscriptionsTable,
+                    YoutubeChannelSubscriptionRow
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $YoutubeChannelSubscriptionsTable,
+                    YoutubeChannelSubscriptionRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -15918,7 +16014,18 @@ class $$YoutubeFeedEntriesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$YoutubeFeedEntriesTable, YoutubeFeedEntryRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $YoutubeFeedEntriesTable,
+                    YoutubeFeedEntryRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -16147,7 +16254,16 @@ class $$AiCacheTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$AiCacheTable, AiCacheRow>(table),
+                  BaseReferences<_$AppDatabase, $AiCacheTable, AiCacheRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -16577,7 +16693,16 @@ class $$VocabularyItemsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$VocabularyItemsTable, VocabularyItemRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $VocabularyItemsTable,
+                    VocabularyItemRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -16914,7 +17039,18 @@ class $$VocabularyContextsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$VocabularyContextsTable, VocabularyContextRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $VocabularyContextsTable,
+                    VocabularyContextRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -17295,7 +17431,18 @@ class $$VocabularyReviewsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$VocabularyReviewsTable, VocabularyReviewRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $VocabularyReviewsTable,
+                    VocabularyReviewRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
