@@ -16,7 +16,7 @@ See [spec.md](../../../specs/010-craft-from-text/spec.md) and
 | Layer | File |
 |-------|------|
 | Domain | `domain/craft_mode.dart`, `domain/craft_failure.dart`, `domain/craft_request.dart` |
-| Application | `application/craft_controller.dart` |
+| Application | `application/craft_controller.dart` (+ `craft_controller_core.dart`, `craft_translate_stage.dart`, `craft_synthesize_stage.dart`, `craft_capture_stage.dart`, `craft_library_stage.dart`) |
 | Presentation | `presentation/craft_sheet.dart` |
 | Integration | `lib/features/craft/data/craft_library_repository.dart` (`importCraftedFromText`) |
 | AI wiring | `lib/features/ai/data/enjoy/enjoy_tts_capability.dart` |
