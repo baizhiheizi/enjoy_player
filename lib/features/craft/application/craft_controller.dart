@@ -6,52 +6,37 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/application/app_language_catalog.dart';
-import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
 import 'package:enjoy_player/core/analytics/analytics_provider.dart';
+import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
-import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
-import 'package:enjoy_player/features/craft/data/craft_asr_service_transcriber.dart';
-import 'package:enjoy_player/features/craft/data/craft_translation_service_translator.dart';
-import 'package:enjoy_player/features/craft/data/craft_tts_service_synthesizer.dart';
 import 'package:enjoy_player/features/craft/application/craft_library_repository_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_preferences_provider.dart';
+import 'package:enjoy_player/features/craft/application/craft_service_providers.dart';
 import 'package:enjoy_player/features/craft/application/craft_timeline_enricher.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
+import 'package:enjoy_player/features/craft/domain/craft_edit_source.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/craft/domain/craft_job_state.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/domain/craft_save_result.dart';
 import 'package:enjoy_player/features/craft/domain/craft_screen_mode.dart';
 import 'package:enjoy_player/features/craft/domain/craft_stage.dart';
-import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
-import 'package:enjoy_player/features/craft/domain/craft_transcriber.dart';
-import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/domain/word_boundary_segmenter.dart';
-import 'package:enjoy_player/features/craft/domain/craft_edit_source.dart';
 
-/// Provider for the Craft synthesizer (wraps TtsService).
-final craftSynthesizerProvider = Provider<CraftSynthesizer>((ref) {
-  return CraftTtsServiceSynthesizer(ref.read(ttsServiceProvider));
-});
-
-/// Provider for the Craft translator (wraps ChatService / LLM API).
-final craftTranslatorProvider = Provider<CraftTranslator>((ref) {
-  return CraftTranslationServiceTranslator(ref.read(chatServiceProvider));
-});
-
-/// Provider for the Craft transcriber (wraps AsrService).
-final craftTranscriberProvider = Provider<CraftTranscriber>((ref) {
-  return CraftAsrServiceTranscriber(ref.read(asrServiceProvider));
-});
+export 'package:enjoy_player/features/craft/application/craft_service_providers.dart'
+    show
+        craftSynthesizerProvider,
+        craftTranscriberProvider,
+        craftTranslatorProvider;
 
 /// Two-tool Craft controller for the full-screen Craft route.
 class CraftController extends Notifier<CraftJobState> {
