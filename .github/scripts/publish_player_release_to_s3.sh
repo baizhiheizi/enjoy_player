@@ -126,12 +126,13 @@ purge_feed_cache() {
     return 0
   fi
   if [[ -n "${CLOUDFLARE_API_TOKEN:-}" && -n "${CLOUDFLARE_ZONE_ID:-}" ]]; then
-    # A secret stored with a trailing newline makes Cloudflare reject the
-    # Authorization header, so trim before use.
-    local token="${CLOUDFLARE_API_TOKEN//$'\r'/}"
-    token="${token//$'\n'/}"
-    token="${token#"${token%%[![:space:]]*}"}"
-    token="${token%"${token##*[![:space:]]}"}"
+    # A secret that carries stray characters (whitespace, quotes, a
+    # non-ASCII byte) makes Cloudflare reject the Authorization header with
+    # "Invalid format for Authorization header" (code 6111). A Cloudflare API
+    # token only ever contains [A-Za-z0-9_-], so the value is reduced to that
+    # alphabet before use.
+    local token
+    token="$(printf '%s' "${CLOUDFLARE_API_TOKEN}" | tr -cd 'A-Za-z0-9_-')"
     if curl -fsS -X POST \
       "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
       -H "Authorization: Bearer ${token}" \

@@ -33,17 +33,16 @@ jobs:
         with:
           node-version: "22"
 
-      # A secret set with a trailing newline makes Cloudflare reject the
-      # Authorization header ("Invalid format for Authorization header"), so
-      # the token is trimmed before it is used.
-      - name: Trim the Cloudflare token
+      # A secret that carries stray characters (whitespace, quotes, a
+      # non-ASCII byte) makes Cloudflare reject the Authorization header with
+      # "Invalid format for Authorization header" (code 6111) rather than an
+      # auth error. A Cloudflare API token only ever contains [A-Za-z0-9_-],
+      # so the value is reduced to that alphabet.
+      - name: Sanitize the Cloudflare token
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          token="${CLOUDFLARE_API_TOKEN//$'\r'/}"
-          token="${token//$'\n'/}"
-          token="${token#"${token%%[![:space:]]*}"}"
-          token="${token%"${token##*[![:space:]]}"}"
+          token="$(printf '%s' "${CLOUDFLARE_API_TOKEN}" | tr -cd 'A-Za-z0-9_-')"
           echo "::add-mask::${token}"
           echo "CLOUDFLARE_API_TOKEN=${token}" >> "$GITHUB_ENV"
 
