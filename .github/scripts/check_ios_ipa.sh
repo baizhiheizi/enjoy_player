@@ -26,11 +26,30 @@ if [[ ! -f "${frameworks}/eSpeakNG.framework/eSpeakNG" ]]; then
   exit 1
 fi
 
-# Naked .dylibs in Frameworks/ are not supported on iOS (TN2435). App Store
-# Connect reports that as ITMS-90426 ("SwiftSupport folder is missing") or
-# ITMS-90429 because it treats every .dylib as a Swift stdlib.
+# Naked .dylibs in Frameworks/ are not supported on iOS (TN2435), except for
+# the system Swift libraries Xcode itself provides. Xcode embeds
+# libswiftCompatibilitySpan.dylib for apps that link Swift under a Swift 6
+# toolchain; TN2435 exempts it, and App Store Connect accepts the upload
+# (verified with `xcrun altool --validate-app`). Every other naked .dylib is
+# a packaging bug (the eSpeak library was one) and trips TN2435 / ITMS-90171
+# / ITMS-90426.
+#
+# The exemption is granted on the code-signing identifier, which Xcode keeps
+# when it re-signs the shim with the app's own identity inside the bundle.
+is_xcode_swift_runtime_dylib() {
+  local path="$1" identifier
+  identifier="$(
+    codesign -dv --verbose=2 "${path}" 2>&1 |
+      awk -F= '/^Identifier=/ { print $2; exit }'
+  )"
+  [[ "${identifier}" == "com.apple.dt.runtime.swiftCompatibilitySpan" ]]
+}
+
 naked_dylibs=()
 while IFS= read -r dylib; do
+  if is_xcode_swift_runtime_dylib "${dylib}"; then
+    continue
+  fi
   naked_dylibs+=("${dylib}")
 done < <(find "${frameworks}" -maxdepth 1 -name '*.dylib' -type f | sort)
 
