@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:forced_alignment/forced_alignment.dart';
 import 'package:forced_alignment/src/synth/espeak_synth_host.dart';
 
+import 'helpers/bundle_into_app.dart';
+
 void main() {
   test('source tree has every mapped voice for SetVoiceByName', () {
     final data = resolveEspeakDataPath();
@@ -80,7 +82,7 @@ void main() {
     final macFrameworks = Directory('${macApp.path}/Contents/Frameworks')
       ..createSync();
     File(lib!).copySync('${macFrameworks.path}/libespeak-ng.dylib');
-    _runBundleScript(script.path, macApp.path, platformName: 'macosx');
+    runBundleScript(script.path, macApp.path, platformName: 'macosx');
     expect(
       missingEspeakRequiredDataFiles(
         '${macApp.path}/Contents/Resources/espeak-ng-data',
@@ -92,69 +94,12 @@ void main() {
     final iosFrameworks = Directory('${iosApp.path}/Frameworks')..createSync();
     Directory('${iosFrameworks.path}/eSpeakNG.framework').createSync();
     File(lib).copySync('${iosFrameworks.path}/eSpeakNG.framework/eSpeakNG');
-    _runBundleScript(script.path, iosApp.path, platformName: 'iphoneos');
+    runBundleScript(script.path, iosApp.path, platformName: 'iphoneos');
     expect(
       missingEspeakRequiredDataFiles('${iosApp.path}/espeak-ng-data'),
       isEmpty,
     );
   });
-
-  test('macOS app-bundle dylib still synthesizes a spoken reference', () async {
-    if (!Platform.isMacOS) return;
-    final repoNative = resolveEspeakLibraryPath();
-    final repoData = resolveEspeakDataPath();
-    expect(repoNative, isNotNull);
-    expect(repoData, isNotNull);
-
-    final tmp = Directory.systemTemp.createTempSync('espeak-bundle-synth-');
-    addTearDown(() => tmp.deleteSync(recursive: true));
-    final app = Directory('${tmp.path}/Enjoy Player.app');
-    Directory('${app.path}/Contents/MacOS').createSync(recursive: true);
-    final macFrameworks = Directory('${app.path}/Contents/Frameworks')
-      ..createSync();
-    File(repoNative!).copySync('${macFrameworks.path}/libespeak-ng.dylib');
-    final script = File(
-      '${Directory(repoData!).parent.path}/bundle_into_app.sh',
-    );
-    expect(script.existsSync(), isTrue, reason: script.path);
-    _runBundleScript(script.path, app.path, platformName: 'macosx');
-
-    final bundledLib = File(
-      '${app.path}/Contents/Frameworks/libespeak-ng.dylib',
-    );
-    final bundledData = Directory(
-      '${app.path}/Contents/Resources/espeak-ng-data',
-    );
-    expect(bundledLib.existsSync(), isTrue);
-    expect(bundledData.existsSync(), isTrue);
-    expect(missingEspeakRequiredDataFiles(bundledData.path), isEmpty);
-
-    setEspeakNativePathOverrides(
-      libraryPath: bundledLib.path,
-      dataPath: bundledData.path,
-    );
-    addTearDown(setEspeakNativePathOverrides);
-
-    final ref = await EspeakSynthHost.synthesize(
-      text: 'hello',
-      language: 'en-US',
-    );
-    expect(ref.pcm, isNotEmpty);
-    expect(ref.words, isNotEmpty);
-  });
-}
-
-void _runBundleScript(
-  String script,
-  String appPath, {
-  required String platformName,
-}) {
-  final result = Process.runSync(
-    script,
-    [appPath],
-    environment: {'PLATFORM_NAME': platformName, 'CODE_SIGNING_ALLOWED': 'NO'},
-  );
-  expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
 }
 
 void _copyDataTree(String src, String dest) {
