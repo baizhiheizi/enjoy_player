@@ -106,6 +106,18 @@ the `transcriptGeneration*` funnel, and a repository-wiring case asserting the
 persisted track). The split is also recorded as
 [`2026-07-07-subtitle-track-picker-split-design.md`](../superpowers/specs/2026-07-07-subtitle-track-picker-split-design.md).
 
+The scrollable transcript list is split the same way (issue #1005). The public
+API is unchanged: `TranscriptScrollableList` stays in
+[`transcript_scrollable_list.dart`](../../lib/features/transcript/presentation/transcript_scrollable_list.dart),
+now a composition root (provider watches, `ref.listen` wirings, and the
+`ListView.builder` scaffold with the blur-practice cache-extent constants).
+
+| File | Responsibility |
+|------|----------------|
+| [`transcript_virtual_items.dart`](../../lib/features/transcript/application/transcript_virtual_items.dart) | UI-free render-item model: `buildTranscriptVirtualItems` collapses the echoed line range into one `TranscriptVirtualEcho` card slot, every other line stays a `TranscriptVirtualLine`. |
+| [`transcript_auto_scroll_controller.dart`](../../lib/features/transcript/presentation/transcript_auto_scroll_controller.dart) | `TranscriptAutoScrollController` — the auto-follow engine: `ScrollController`, scroll-generation guard, rotating scroll-target `GlobalKey`s, manual-scroll suppression, and the jump-estimate → `ensureVisible` sequence. Owns `kTranscriptScrollAlignment` (0.42) and `kTranscriptScrollEstimateFactor`. |
+| [`transcript_line_item_builder.dart`](../../lib/features/transcript/presentation/transcript_line_item_builder.dart) | `buildTranscriptListItem` + `TranscriptListItemScope`: one virtual item → one row (echo card, auto-translate resolve + request scheduling, echo-loop edge rows, `TranscriptLineTile`). `requestableAutoTranslate` stays a top-level function, not a per-row closure (issue #764). |
+
 ### Download transcript (SRT / VTT export)
 
 **⋯ More → Download transcript…** (canvas v30, issue #921) saves the active
