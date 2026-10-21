@@ -33,6 +33,20 @@ jobs:
         with:
           node-version: "22"
 
+      # A secret set with a trailing newline makes Cloudflare reject the
+      # Authorization header ("Invalid format for Authorization header"), so
+      # the token is trimmed before it is used.
+      - name: Trim the Cloudflare token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          token="${CLOUDFLARE_API_TOKEN//$'\r'/}"
+          token="${token//$'\n'/}"
+          token="${token#"${token%%[![:space:]]*}"}"
+          token="${token%"${token##*[![:space:]]}"}"
+          echo "::add-mask::${token}"
+          echo "CLOUDFLARE_API_TOKEN=${token}" >> "$GITHUB_ENV"
+
       # Production: the main branch deployment is what player.enjoy.bot serves.
       # Pages resolves wrangler.toml from the working directory and rejects a
       # custom --config path, so the deploy runs inside landing/.
@@ -40,7 +54,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: landing
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npx --yes wrangler@4 pages deploy . \
@@ -53,7 +66,6 @@ jobs:
         if: github.event_name == 'pull_request'
         working-directory: landing
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |

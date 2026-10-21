@@ -126,13 +126,25 @@ purge_feed_cache() {
     return 0
   fi
   if [[ -n "${CLOUDFLARE_API_TOKEN:-}" && -n "${CLOUDFLARE_ZONE_ID:-}" ]]; then
-    curl -fsS -X POST \
+    # A secret stored with a trailing newline makes Cloudflare reject the
+    # Authorization header, so trim before use.
+    local token="${CLOUDFLARE_API_TOKEN//$'\r'/}"
+    token="${token//$'\n'/}"
+    token="${token#"${token%%[![:space:]]*}"}"
+    token="${token%"${token##*[![:space:]]}"}"
+    if curl -fsS -X POST \
       "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
-      -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+      -H "Authorization: Bearer ${token}" \
       -H "Content-Type: application/json" \
       --data "{\"files\":[\"${public_base}/latest.json\",\"${public_base}/appcast.xml\"]}" \
-      >/dev/null
-    echo "Purged Cloudflare cache for feed URLs."
+      >/dev/null 2>&1; then
+      echo "Purged Cloudflare cache for feed URLs."
+    else
+      # The artifacts and feeds are already uploaded at this point; a failed
+      # purge must not fail the publish. The feeds carry max-age=300, so the
+      # CDN serves the previous copy for at most five minutes.
+      echo "warning: Cloudflare cache purge failed; the feed refreshes within 5 minutes." >&2
+    fi
     return 0
   fi
   if [[ -n "${CLOUDFRONT_DISTRIBUTION_ID:-}" ]]; then
