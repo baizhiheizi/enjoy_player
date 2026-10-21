@@ -143,6 +143,23 @@ purge_feed_cache() {
   fi
 }
 
+validate_feed_xml() {
+  local file="$1"
+  if command -v xmllint >/dev/null 2>&1; then
+    if ! xmllint --noout "${file}" >/dev/null 2>&1; then
+      echo "::error::${file} is not well-formed XML; refusing to publish a broken feed" >&2
+      return 1
+    fi
+  elif command -v python3 >/dev/null 2>&1; then
+    if ! python3 -c 'import sys, xml.dom.minidom; xml.dom.minidom.parse(sys.argv[1])' "${file}" >/dev/null 2>&1; then
+      echo "::error::${file} is not well-formed XML; refusing to publish a broken feed" >&2
+      return 1
+    fi
+  else
+    echo "warning: no XML parser available; skipping the appcast well-formedness check" >&2
+  fi
+}
+
 local_stage="${root}/build/release/${version}"
 mkdir -p "${local_stage}"
 
@@ -219,6 +236,7 @@ if [[ "${feeds_only}" == true ]]; then
 fi
 
 if [[ "${feeds_only}" != true ]]; then
+  validate_feed_xml "${feed_dir}/appcast.xml"
   s3_cp "${feed_dir}/latest.json" "s3://${bucket}/${prefix}/latest.json" \
     --content-type application/json \
     --cache-control "max-age=300, must-revalidate"
