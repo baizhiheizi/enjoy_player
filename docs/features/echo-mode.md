@@ -28,8 +28,11 @@
 The loop block stands on the ground inside you-colored corner brackets
 (20px arms, 10px outer radius; 22 / 9 on phones — no full border). The section gutter
 shows the loop start time once (mono, you-ink) next to a
-`LOOP · LINE n · x.x S` overline; loop lines carry no gutter chrome of
-their own. Loop lines grow in place: Literata 500 sized by the board —
+localized overline (`LOOP · LINE n · x.x S` in English — the
+`echoLoopCaptionLine` / `echoLoopCaptionLines` ARB strings, so the
+wording and `S` unit are placeholders, not fixed literals); loop lines
+carry no gutter chrome of their own. Loop lines grow in place: Literata
+500 sized by the board —
 one line clamps 22–28px with viewport width, two lines 20–24, three or
 more 19; the video column uses 20/18 and phones 23/20. The video column
 and phones drop the loop's time gutter, and the takes strip aligns with
@@ -45,29 +48,32 @@ while a take records. They replaced the Earlier / Later pill handles on
 the bracket edges. Neighbour lines fade by distance through `echoLensOpacity`
 (0.65 / 0.35 / 0.2) at the board's lens sizes (16 / 15 / 14
 desktop, 14.5 / 13.5 in the video column and on phones) and restore to full ink on hover. While a take is recording,
-the label swaps to a pulsing dot plus `RECORDING TAKE n`, and a 4px
+the label swaps to a pulsing dot plus the localized recording caption
+(`RECORDING TAKE n` in English — `echoLoopCaptionRecording`), and a 4px
 progress bar with the localized countdown caption runs under the loop
 lines. The old merged card's side rail, surface shell, in-card
 dividers, and active-line plate are gone; lines sit flat inside the
 brackets.
 
-### Takes strip and dock (player embed)
+### Takes row and dock (player embed)
 
 In the player, the panel below the loop renders as the board's takes
-strip instead of the idle toolbar: a `TAKES` overline, one stadium chip
-per take (play circle, take number, mono duration, an uncolored score
-chip that re-opens the assessment, or a `Score` action that runs it),
-the "press R and say it back" hint when the region has no takes, and
-the Pitch pill on the right toggling the contour. The chips render as
-one horizontal line: touch pans natively; on desktop the strip carries
-a scrollbar thumb (hover to drag) and maps the vertical mouse wheel to
-the horizontal axis — claimed through the pointer-signal resolver, so
-the page behind does not scroll while the line overflows (an
-unoverflowed line leaves the wheel to the page). Record / cancel /
+summary row ([`ShadowTakeSummaryRow`](../../lib/features/shadow_reading/presentation/widgets/shadow_take_summary_row.dart))
+instead of the idle toolbar: play/pause for the selected take, its name
+and score (an unscored take reads `Not scored yet · tap to score`, or
+`… · click to score` on pointer devices, and tapping runs the
+assessment), and a `3 takes ›` affordance that opens the takes list.
+With no takes it shows the empty hint (`No recordings for this segment
+yet. Press **R** and say it back.`). The row hides while a take
+records.
+
+`3 takes ›` opens [`ShadowTakesListPanel`](../../lib/features/shadow_reading/presentation/widgets/shadow_takes_list_panel.dart):
+as a bottom sheet below `breakpointCompact` (600 px), otherwise in the
+player margin. The panel lists the takes newest-first with per-take
+play and **delete with the `confirmShadowDeleteTake` confirmation
+dialog** (decision R2, built in D6.3), plus a pitch toggle that
+shows/hides the collapsible pitch-contour section under the takes row
+(`loopPitchVisibleProvider`, also the `P` hotkey). Record / cancel /
 stop live in the dock (Play/Pause + record group; Cancel + Stop
-while recording), so the panel renders nothing while recording. The
-vocabulary "Echo reading" embed keeps the centered-FAB toolbar with the
-take menu (delete with confirm dialog lives there; the player strip
-draws none — where take management lands in the player is tracked as an
-open decision in
-[`docs/design/duet/STATUS.md`](../design/duet/STATUS.md)).
+while recording). The vocabulary "Echo reading" embed keeps the
+centered-FAB toolbar with its take menu.

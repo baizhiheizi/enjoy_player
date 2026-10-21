@@ -448,7 +448,7 @@ bash .github/scripts/release.sh --platform apple --publish-only --publish
 bash .github/scripts/release.sh --platform all --publish-only --publish
 ```
 
-When you publish **one platform at a time** for the same semver, the script **merges** into the existing `latest.json` / `appcast.xml` (downloads the public feed from `dl.enjoy.bot`, then overlays the new platform’s assets). Re-publish all platforms after a bad overwrite:
+When you publish **one platform at a time** for the same semver, the script **merges** into the existing `latest.json` / `appcast.xml` (downloads the public feed from `dl.enjoy.bot`, then overlays the new platform’s assets). Before upload, `publish_player_release_to_s3.sh` validates each feed with `xmllint` (python3 fallback) and **refuses to publish a non-well-formed feed**; the Cloudflare cache purge afterwards is best-effort — a failed purge warns instead of failing the release, and the feeds carry `max-age=300`, so the CDN serves the previous copy for at most five minutes. Re-publish all platforms after a bad overwrite:
 
 ```bash
 bash .github/scripts/release.sh --platform all --publish-only --publish
@@ -585,7 +585,7 @@ git-ignored.
   ```bash
   ./macos/scripts/notarize_release.sh "build/macos/Build/Products/Release/Enjoy Player.app" --skip-sign
   ```
-- **ITMS-90426 / 90429 Invalid Swift Support**: App Store Connect reports this when a standalone `.dylib` is in `Runner.app/Frameworks/` (TN2435). iOS embeds `eSpeakNG.xcframework`, not `libespeak-ng.dylib`. `check_ios_ipa.sh` fails the release if any naked `.dylib` is present. Do not inject a fake `SwiftSupport/` folder to paper over this.
+- **ITMS-90426 / 90429 Invalid Swift Support**: App Store Connect reports this when a standalone `.dylib` is in `Runner.app/Frameworks/` (TN2435). iOS embeds `eSpeakNG.xcframework`, not `libespeak-ng.dylib`. `check_ios_ipa.sh` fails the release if any naked `.dylib` is present, with **one exemption**: Xcode's own Swift runtime shim `libswiftCompatibilitySpan.dylib` (code-signing identifier `com.apple.dt.runtime.swiftCompatibilitySpan`, which Xcode preserves when re-signing it into the bundle). Apps that link Swift under a Swift 6 toolchain — the case since flutter_inappwebview 6.2.0-beta.3 moved to Swift Package Manager — get this shim embedded; TN2435 exempts the system Swift libraries Xcode provides and App Store Connect accepts the upload (verified with `xcrun altool --validate-app`). Every other naked `.dylib` is still a packaging bug. Do not inject a fake `SwiftSupport/` folder to paper over this.
 - **TestFlight credentials missing** (local): put `asc.env` + `AuthKey_<KEY_ID>.p8` under `~/.config/enjoy-player/` (or export the three `APP_STORE_CONNECT_*` env vars), then re-run `bash .github/scripts/verify_macos_release_env.sh`. With `--testflight`, a missing key is a hard error — not a soft skip.
 - **TestFlight upload only** (IPA already built):
   ```bash
@@ -613,7 +613,7 @@ Identity: **`ai.enjoy.player`** everywhere ([ADR-0020](decisions/0020-android-wi
 |----------|------------|-------|
 | Android | minSdk 26, Java 17 | AGP 9; vendored `ffmpeg_kit_flutter_new` |
 | iOS | 15.0 | `use_frameworks!` for Azure Speech, FFmpeg |
-| macOS | 10.15 | App Sandbox on; GPL FFmpeg bundled |
+| macOS | 12.0 | App Sandbox on; GPL FFmpeg bundled |
 | Windows | x64 | Authenticode signing outside repo |
 | Linux | x86_64 | AppImage; bundled `libmpv` + `ffmpeg`; Ubuntu 22.04+ / Fedora 39+ / Debian 12 |
 
@@ -649,8 +649,10 @@ played to the learner and does not replace Craft/library audio.
   `Contents/Resources/` container that Xcode can leave behind and that
   `codesign` rejects as unsealed root content. The exported IPA is
   checked for `eSpeakNG.framework`, no standalone `.dylib` files under
-  `Frameworks/`, `MinimumOSVersion` 15.0, and strict code-sign
-  verification.
+  `Frameworks/` except Xcode's Swift runtime shim
+  (`com.apple.dt.runtime.swiftCompatibilitySpan` — see the ITMS-90426
+  troubleshooting entry above), `MinimumOSVersion` 15.0, and strict
+  code-sign verification.
   Android ships the per-ABI `.so` through jniLibs and `espeak-ng-data`
   as Flutter assets extracted at startup
   (`lib/core/platform/espeak_android_provisioner.dart`). The provisioning

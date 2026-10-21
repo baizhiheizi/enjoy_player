@@ -40,7 +40,7 @@ Settings → **Keyboard shortcuts** → **Customize shortcuts** opens `/settings
 The listener is a thin shell: it filters KeyUp / editable-text focus, then runs **one** `dispatchHotkey` call against the ordered `hotkeyCommands` registry (`lib/features/hotkeys/application/hotkey_commands.dart`). Registration order **is** dispatch priority, and matches the old if-chain exactly:
 
 1. `modal.close` — `ModalCloseHotkeyCommand` (priority logic in `escape_dismissal.dart`; the command gathers state into the context and applies the chosen arm).
-2. `global.*` — `global.help` / `global.settings` / `global.craft` / `global.search` (`global_hotkey_commands.dart`).
+2. `global.*` — `global.help` / `global.settings` / `global.craft` / `global.search` (`global_hotkey_commands.dart`; `global.craft` is gated off webview-owned routes `/player/*` and `/youtube/*` — see [craft.md](craft.md)).
 3. `library.search` — `LibrarySearchHotkeyCommand` (`features/library/application/library_search_hotkey_command.dart`).
 4. Shadow-reading bus pulses — `player.toggleRecording` / `player.playRecording` / `player.togglePitchContour` / `player.toggleAssessment` (`features/shadow_reading/application/shadow_reading_hotkey_commands.dart`).
 5. Session-gated player keys — `player.togglePlay`, `player.toggleExpand`, `player.toggleFullscreen`, line / echo / playback rate (the rate reducer is `decidePlaybackRateStep` / D10 in `features/player/domain/transport_decisions.dart`) (`features/player/application/hotkeys/player_hotkey_commands.dart`).
