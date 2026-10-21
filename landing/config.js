@@ -15,7 +15,7 @@ window.ENJOY_CONFIG = {
   manifestUrl: '/api/latest',
 
   // GitHub releases page — used as JS-disabled fallback for direct downloads.
-  releasesUrl: 'https://github.com/an-lee/enjoy_player/releases/latest',
+  releasesUrl: 'https://github.com/baizhiheizi/enjoy_player/releases/latest',
 
-  githubUrl: 'https://github.com/an-lee/enjoy_player',
+  githubUrl: 'https://github.com/baizhiheizi/enjoy_player',
 };

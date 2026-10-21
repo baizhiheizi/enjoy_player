@@ -12,12 +12,18 @@ pluginManagement {
 
     val isCi = System.getenv("GITHUB_ACTIONS") == "true"
 
+    // Mirrors come first on networks where dl.google.com resets the TLS
+    // handshake. The self-hosted runner pool sits behind that network, so CI
+    // there opts in explicitly (ENABLE_MAVEN_MIRROR=1); a GitHub-hosted
+    // runner leaves it off because a mirror 5xx disables the repository and
+    // blocks fallback resolution.
+    val useMirrors = !isCi || System.getenv("ENABLE_MAVEN_MIRROR") == "1"
+
     repositories {
-        if (!isCi) {
-            // Mirrors first for local dev: avoids TLS/handshake failures to
-            // dl.google.com on some networks (WSL2, corporate proxies, regions
-            // with restricted Google Maven). Skip on CI — Aliyun 502s disable
-            // the repo and block fallback resolution on GitHub-hosted runners.
+        if (useMirrors) {
+            // Mirrors first: avoids TLS/handshake failures to dl.google.com on
+            // some networks (WSL2, corporate proxies, regions with restricted
+            // Google Maven, and the self-hosted runner pool).
             maven { url = uri("https://maven.aliyun.com/repository/google") }
             maven { url = uri("https://maven.aliyun.com/repository/central") }
             maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }

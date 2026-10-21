@@ -17,6 +17,7 @@ on:
       - ".github/scripts/check_dart_format.sh"
       - ".github/scripts/check_coverage_gate.sh"
       - ".github/scripts/validate_ci_gates.sh"
+      - "tool/prefetch_sqlite3_libs.sh"
       - ".github/workflows/ci.yml"
   workflow_dispatch:
 
@@ -141,6 +142,17 @@ jobs:
 
       - name: Flutter pub get
         run: flutter pub get
+
+      # package:sqlite3 3.x downloads its prebuilt library from
+      # github.com/simolus3/sqlite3.dart/releases with Dart HttpClient (no
+      # retries), so a dropped TLS handshake fails the whole test run with
+      # "Building native assets failed". Prefetch into the dart_build shared
+      # cache with curl (which retries) so the hook reuses it. The Apple and
+      # Android paths prefetch the same way.
+      - name: Prefetch sqlite3 Linux native libs
+        run: |
+          bash tool/prefetch_sqlite3_libs.sh linux \
+            || echo "::warning::prefetch_sqlite3_libs skipped; the dart_build hook will fetch on its own"
 
       - name: Forbid new local-path packages
         run: bash .github/scripts/check_no_new_path_deps.sh
