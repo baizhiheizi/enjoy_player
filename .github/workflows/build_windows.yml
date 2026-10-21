@@ -98,11 +98,13 @@ jobs:
       # "Building native assets failed". Prefetch into the dart_build shared
       # cache with curl (which retries) so the hook reuses it. The Apple,
       # Android and Linux paths prefetch the same way.
+      #
+      # shell: bash — this runner's default shell is pwsh, which would pass
+      # the trailing backslash through as a literal argument.
       - name: Prefetch sqlite3 Windows native libs
+        shell: bash
         working-directory: ${{ env.GITHUB_WORKSPACE }}
-        run: |
-          bash tool/prefetch_sqlite3_libs.sh windows \
-            || echo "::warning::prefetch_sqlite3_libs skipped; the dart_build hook will fetch on its own"
+        run: bash tool/prefetch_sqlite3_libs.sh windows || echo "::warning::prefetch_sqlite3_libs skipped; the dart_build hook will fetch on its own"
 
       # The staged workspace is recreated (and windows\ffmpeg excluded) every
       # run, so fetching straight into it re-downloaded ~100 MB from gyan.dev
