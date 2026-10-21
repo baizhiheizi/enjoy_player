@@ -454,6 +454,8 @@ When you publish **one platform at a time** for the same semver, the script **me
 bash .github/scripts/release.sh --platform all --publish-only --publish
 ```
 
+The publish script refuses to upload a malformed feed: `appcast.xml` is checked for well-formedness (`xmllint`, with a `python3` fallback) and the publish aborts when the check fails, so a broken feed never reaches `dl.enjoy.bot`. A failed **Cloudflare cache purge** is only a warning — the feeds carry `max-age=300`, so the CDN serves the previous copy for at most five minutes.
+
 Requires **`jq`** on the publish host (`brew install jq` on macOS).
 
 **Test auto-update locally (no S3):**
@@ -585,7 +587,7 @@ git-ignored.
   ```bash
   ./macos/scripts/notarize_release.sh "build/macos/Build/Products/Release/Enjoy Player.app" --skip-sign
   ```
-- **ITMS-90426 / 90429 Invalid Swift Support**: App Store Connect reports this when a standalone `.dylib` is in `Runner.app/Frameworks/` (TN2435). iOS embeds `eSpeakNG.xcframework`, not `libespeak-ng.dylib`. `check_ios_ipa.sh` fails the release if any naked `.dylib` is present. Do not inject a fake `SwiftSupport/` folder to paper over this.
+- **ITMS-90426 / 90429 Invalid Swift Support**: App Store Connect reports this when a standalone `.dylib` is in `Runner.app/Frameworks/` (TN2435). iOS embeds `eSpeakNG.xcframework`, not `libespeak-ng.dylib`. `check_ios_ipa.sh` fails the release if any naked `.dylib` is present — the one exemption is Xcode's own Swift runtime shim `libswiftCompatibilitySpan.dylib` (code-signing identifier `com.apple.dt.runtime.swiftCompatibilitySpan`), which TN2435 exempts and App Store Connect accepts. Every other naked `.dylib` still fails the gate. Do not inject a fake `SwiftSupport/` folder to paper over this.
 - **TestFlight credentials missing** (local): put `asc.env` + `AuthKey_<KEY_ID>.p8` under `~/.config/enjoy-player/` (or export the three `APP_STORE_CONNECT_*` env vars), then re-run `bash .github/scripts/verify_macos_release_env.sh`. With `--testflight`, a missing key is a hard error — not a soft skip.
 - **TestFlight upload only** (IPA already built):
   ```bash
@@ -613,7 +615,7 @@ Identity: **`ai.enjoy.player`** everywhere ([ADR-0020](decisions/0020-android-wi
 |----------|------------|-------|
 | Android | minSdk 26, Java 17 | AGP 9; vendored `ffmpeg_kit_flutter_new` |
 | iOS | 15.0 | `use_frameworks!` for Azure Speech, FFmpeg |
-| macOS | 10.15 | App Sandbox on; GPL FFmpeg bundled |
+| macOS | 12.0 | App Sandbox on; GPL FFmpeg bundled; `macos/Podfile` and `MACOSX_DEPLOYMENT_TARGET` both pin 12.0 |
 | Windows | x64 | Authenticode signing outside repo |
 | Linux | x86_64 | AppImage; bundled `libmpv` + `ffmpeg`; Ubuntu 22.04+ / Fedora 39+ / Debian 12 |
 
@@ -649,7 +651,10 @@ played to the learner and does not replace Craft/library audio.
   `Contents/Resources/` container that Xcode can leave behind and that
   `codesign` rejects as unsealed root content. The exported IPA is
   checked for `eSpeakNG.framework`, no standalone `.dylib` files under
-  `Frameworks/`, `MinimumOSVersion` 15.0, and strict code-sign
+  `Frameworks/` apart from Xcode's own Swift runtime shim
+  `libswiftCompatibilitySpan.dylib` (identifier
+  `com.apple.dt.runtime.swiftCompatibilitySpan`, which TN2435 exempts),
+  `MinimumOSVersion` 15.0, and strict code-sign
   verification.
   Android ships the per-ABI `.so` through jniLibs and `espeak-ng-data`
   as Flutter assets extracted at startup

@@ -12,7 +12,7 @@ Shared workflow pieces:
 |------|---------|
 | [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from the `flutter` entry in [`mise.toml`](../mise.toml). Installs into a persistent, version-keyed directory on the runner's local disk and **skips the download entirely** when that version is already present — no `subosito/flutter-action` cache, and no Actions cache for the SDK itself (it lands in `RUNNER_TOOL_CACHE`, which survives the container per-job reset and persists on the native runners). Reinstalls if the cached tree is missing `bin/flutter` or a working `.git` (required by `flutter --version`). Honors `FLUTTER_STORAGE_BASE_URL` when it does download. |
 | [mise](https://mise.jdx.dev) in [ci.yml](../.github/workflows/ci.yml) | Pilot: [ci.yml](../.github/workflows/ci.yml) installs the same mise.toml pin via `jdx/mise-action` instead of `setup-flutter`. Installs persist under `~/.local/share/mise` on the runner. The **agentic workflows** (`repo-assist` and friends) also install Flutter through `jdx/mise-action` now — see *Agentic workflows* below. If the pilot proves out, the remaining deterministic workflows migrate off `setup-flutter`. |
-| [`.github/actions/setup-android`](../.github/actions/setup-android) | Wrap `android-actions/setup-android` with retries: the upstream action fails the job when the flaky network cannot fetch dl.google.com package manifests; the wrapper tolerates that, retries the `sdkmanager` install with backoff, and skips the network entirely once the requested packages persist on the runner. |
+| [`.github/actions/setup-android`](../.github/actions/setup-android) | Wrap `android-actions/setup-android` with retries: the upstream action fails the job when the flaky network cannot fetch dl.google.com package manifests; the wrapper tolerates that, retries the `sdkmanager` install with backoff, and skips the network entirely once the requested packages persist on the runner. Since 2026-09 it bootstraps **cmdline-tools from the Tencent Android SDK mirror first** (the mirror zip, unpacked into the versioned `cmdline-tools/` dir) and only falls back to `android-actions/setup-android` (the `dl.google.com` path) when the mirror bootstrap fails — running the Google path first would let a proxy that un-blocks `dl.google.com` silently burn proxy quota. `SDK_TEST_BASE_URL` points `sdkmanager` at the mirror for the package installs too. |
 | [`.github/actions/setup-macos-runner-env`](../.github/actions/setup-macos-runner-env) | Homebrew PATH, UTF-8 locale, curl HTTP/1.1, `GIT_CONFIG_COUNT=0` (SwiftPM-safe) |
 | [`.github/scripts/apple_spm_hygiene.sh`](../.github/scripts/apple_spm_hygiene.sh) | Host lock + SPM cache clear + retry helpers for Apple CI/release |
 | [`.github/scripts/ensure_linux_tooling.sh`](../.github/scripts/ensure_linux_tooling.sh) | Install apt packages only when missing. On the shared gh-sr agentic pool these are now normally baked into the container image (see below), so this is usually a fast no-op. Jobs that never compile the Linux desktop app (CI analyze/test, Android smoke + release) pass `--skip-wpe` to skip the WPE WebKit prefix from deb.debian.org; the Linux build/release jobs still fetch it (with retries, extracted atomically so a failed fetch cannot leave a half-populated prefix). |
@@ -60,7 +60,7 @@ This applies to **toolchains and OS-level prerequisites**, which land in `RUNNER
 
 ## Agentic workflows (gh-aw)
 
-GitHub **Agentic Workflows** (`gh-aw`) run on a Linux self-hosted runner with labels **`self-hosted`**, **`linux`**, and **`agentic`**. The same physical machine may also carry the **`Linux`** label used by deterministic CI — that is fine; both share the Flutter pin in [`mise.toml`](../mise.toml).
+GitHub **Agentic Workflows** (`gh-aw`) run on a Linux self-hosted runner. The main agent job asks for the labels **`self-hosted`**, **`linux`**, and **`slim`** (the compiled `.lock.yml` files use `slim`); the surrounding helper jobs ask for **`self-hosted`**, **`linux`**, and **`agentic`**. The same physical machine may also carry the **`Linux`** label used by deterministic CI — that is fine; all of them share the Flutter pin in [`mise.toml`](../mise.toml).
 
 Each agentic job runs pre-agent steps declared in the workflow's own
 `.md` (for example [`repo-assist.md`](../.github/workflows/repo-assist.md))
@@ -77,7 +77,7 @@ before the AI engine starts:
 
 **Compile:** After editing workflow `.md` files, run `gh aw compile --validate` and commit the generated `.lock.yml` files.
 
-Agentic workflow sources: `grumpy-reviewer`, `repo-assist`, `repo-status`, `weekly-repo-map`. (The earlier `test-improver` / `perf-improver` / `duplicate-code-detector` / `large-file-simplifier` / `issue-triage` / `update-docs` / `agentic-wiki-writer` sources were removed in the 2026-07–09 cleanups.)
+Agentic workflow sources (each `<name>.md` compiles to `<name>.lock.yml`): `duplicate-code-detector`, `grumpy-reviewer`, `large-file-simplifier`, `perf-improver`, `repo-assist`, `repo-status`, `weekly-repo-map`, `weekly-research`. (The earlier `test-improver` / `issue-triage` / `update-docs` / `agentic-wiki-writer` sources were removed in the 2026-07–09 cleanups.) The generated [`agentic_commands.yml`](../.github/workflows/agentic_commands.yml) routes the `/grumpy`, `/perf-assist` and `/repo-assist` slash commands to `grumpy-reviewer`, `perf-improver` and `repo-assist`.
 
 ---
 
@@ -88,7 +88,7 @@ Runners are registered via `gh-sr` (`gh sr setup && gh sr up`), except where not
 | Workflow | Labels | gh-sr runner block |
 |----------|--------|---------------------|
 | CI, Codegen drift, Android APK smoke, Release Android | `self-hosted`, `Linux` | `baizhiheizi` (org-scoped, `profile: agentic`, shared with gh-aw) |
-| gh-aw agentic workflows (grumpy-reviewer, repo-assist, …) | `self-hosted`, `linux`, `agentic` | `baizhiheizi` (same pool as above) |
+| gh-aw agentic workflows (grumpy-reviewer, repo-assist, …) | `self-hosted`, `linux`, `slim` (helper jobs: `self-hosted`, `linux`, `agentic`) | `baizhiheizi` (same pool as above) |
 | Build Apple, Release Apple | `self-hosted`, `macos` | `baizhiheizi-mac` (org-scoped, shared) |
 | Build Windows, Release Windows | `self-hosted`, `windows`, `flutter` | `enjoy-player-win` (repo-scoped, dedicated) |
 
@@ -184,11 +184,13 @@ Windows workflows run `windows/scripts/fetch_ffmpeg.ps1`, `ensure_nuget_feed.ps1
 | [build_linux.yml](../.github/workflows/build_linux.yml) | Linux | PR touching `packages/`, `linux/`, pubspec or CI setup; push also on `lib/`; + manual | Linux desktop build smoke (debug + release) |
 | [build_windows.yml](../.github/workflows/build_windows.yml) | self-hosted Windows | PR touching `packages/`, `windows/`, pubspec; push also on `lib/`; + manual | debug + release smoke |
 | [build_apple.yml](../.github/workflows/build_apple.yml) | macOS | PR touching `packages/`, `ios/`, `macos/`, pubspec; push also on `lib/`; + manual | iOS + macOS compile smoke |
-| [release_apple.yml](../.github/workflows/release_apple.yml) | macOS | manual only (`workflow_dispatch`) | signed IPA, TestFlight, notarized macOS |
-| [release_android.yml](../.github/workflows/release_android.yml) | Linux | manual only (`workflow_dispatch`) | signed AAB/APK for Play / sideload |
-| [release_windows.yml](../.github/workflows/release_windows.yml) | self-hosted Windows (`enjoy-player-win`) | manual only (`workflow_dispatch`) | release build + Inno Setup installer |
+| [release_apple.yml](../.github/workflows/release_apple.yml) | macOS | tag push (`v*.*.*`) + manual (`workflow_dispatch`) | signed IPA, TestFlight, notarized macOS |
+| [release_android.yml](../.github/workflows/release_android.yml) | Linux | tag push (`v*.*.*`) + manual (`workflow_dispatch`) | signed AAB/APK for Play / sideload |
+| [release_windows.yml](../.github/workflows/release_windows.yml) | self-hosted Windows (`enjoy-player-win`) | tag push (`v*.*.*`) + manual (`workflow_dispatch`) | release build + Inno Setup installer |
+| [release_linux.yml](../.github/workflows/release_linux.yml) | Linux (`self-hosted`, `Linux`, `ci`) | tag push (`v*.*.*`) + manual (`workflow_dispatch`) | AppImage build, optional publish to `dl.enjoy.bot` / GitHub Release |
+| [release_publish.yml](../.github/workflows/release_publish.yml) | GitHub-hosted (`ubuntu-latest`) | manual only (`workflow_dispatch`) | finalizes the draft GitHub Release for a tag |
 
-Each build/smoke workflow's `paths` filter lives inline in its own file. Path filters only apply to `pull_request`/`push`; `workflow_dispatch` always runs regardless of what changed. Release workflows dropped their `push: tags: v*` trigger — publishing now always starts from **Actions → Run workflow**, with the release scripts' `--publish` behavior controlled entirely by the `publish` input.
+Each build/smoke workflow's `paths` filter lives inline in its own file. Path filters only apply to `pull_request`/`push`; `workflow_dispatch` always runs regardless of what changed. The four platform release workflows still carry a `push: tags: v*.*.*` trigger, so pushing a release tag starts them; `workflow_dispatch` runs the same workflow on demand, and the release scripts' `--publish` behavior is controlled by the `publish` input. `release_publish.yml` is dispatch-only — it finalizes the draft GitHub Release for a tag.
 
 **PR vs push scope.** The platform builds (Linux, Windows, Apple, Android) use a narrower `pull_request` path list than `push`: on a PR they run only when native, dependency or build-tooling inputs change (`linux/`, `windows/`, `ios/`, `macos/`, `android/`, `packages/`, pubspec, mise, their scripts/workflow). Dart-only (`lib/**`) PRs are covered by CI (analyze + tests) and get the platform builds on the push to `main`. To build a PR branch on demand: `gh workflow run build_windows.yml --ref <branch>`.
 

@@ -23,6 +23,8 @@ YouTube account login remains a separate WebView flow ([features/youtube.md](you
 
 The `/profile` route (`ProfileScreen`) is a top-level shell tab (4th nav destination on both the bottom bar and sidebar). It renders `ProfileContent` (`lib/features/auth/presentation/widgets/profile_content.dart`) directly without its own `Scaffold`/`AppBar` — the shell provides page chrome, consistent with `HomeScreen`/`DiscoverScreen`/`LibraryScreen`. The chrome-free body follows the Duet `Profile` board: the hero card (logo-ring avatar, Literata name + tier chip, **Enjoy ID** in mono groups `1048 2231` with copy — not email, **Edit profile** and **Upgrade to Pro** buttons for Free), then the **Practice** card (`12 min` / `1h 48m` / `6h 02m` Literata figures, "Synced from your account") beside **Credits today** (figure / limit, logo-gradient meter, permanent-credits caption, Usage link), then one list — **Vocabulary** (`n due` value, brand tile), **Subscription** (brand), **Credits usage**, **Preferences** (value `15 min · English`), **Edit profile**, **Settings** — and a danger **Sign out** button. `ProfileContent` is a single-consumer widget and always uses pull-to-refresh.
 
+The **Credits today** card has a low state: at **90 %** of the daily pool used (`creditsLow` in [`lib/features/credits/domain/credits_thresholds.dart`](../../lib/features/credits/domain/credits_thresholds.dart)) the meter fill switches from the logo gradient to the **danger** color, the caption switches to the localized *running low* line instead of the permanent-credits one, and a **Free**-tier profile also gets an **Upgrade** button next to the Usage link.
+
 ### `/profile/edit` — `ProfileEditScreen`
 
 Dedicated identity editor (`lib/features/auth/presentation/profile_edit_screen.dart`):

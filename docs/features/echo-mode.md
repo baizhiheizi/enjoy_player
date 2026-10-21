@@ -28,7 +28,9 @@
 The loop block stands on the ground inside you-colored corner brackets
 (20px arms, 10px outer radius; 22 / 9 on phones — no full border). The section gutter
 shows the loop start time once (mono, you-ink) next to a
-`LOOP · LINE n · x.x S` overline; loop lines carry no gutter chrome of
+`LOOP · LINE n · x.x S` overline (the localized `echoLoopCaptionLine` /
+`echoLoopCaptionLines` strings in [`lib/l10n/app_en.arb`](../../lib/l10n/app_en.arb));
+loop lines carry no gutter chrome of
 their own. Loop lines grow in place: Literata 500 sized by the board —
 one line clamps 22–28px with viewport width, two lines 20–24, three or
 more 19; the video column uses 20/18 and phones 23/20. The video column
@@ -45,29 +47,15 @@ while a take records. They replaced the Earlier / Later pill handles on
 the bracket edges. Neighbour lines fade by distance through `echoLensOpacity`
 (0.65 / 0.35 / 0.2) at the board's lens sizes (16 / 15 / 14
 desktop, 14.5 / 13.5 in the video column and on phones) and restore to full ink on hover. While a take is recording,
-the label swaps to a pulsing dot plus `RECORDING TAKE n`, and a 4px
+the label swaps to a pulsing dot plus `RECORDING TAKE n` (the localized
+`echoLoopCaptionRecording` string), and a 4px
 progress bar with the localized countdown caption runs under the loop
 lines. The old merged card's side rail, surface shell, in-card
 dividers, and active-line plate are gone; lines sit flat inside the
 brackets.
 
-### Takes strip and dock (player embed)
+### Takes summary, list and dock (player embed)
 
-In the player, the panel below the loop renders as the board's takes
-strip instead of the idle toolbar: a `TAKES` overline, one stadium chip
-per take (play circle, take number, mono duration, an uncolored score
-chip that re-opens the assessment, or a `Score` action that runs it),
-the "press R and say it back" hint when the region has no takes, and
-the Pitch pill on the right toggling the contour. The chips render as
-one horizontal line: touch pans natively; on desktop the strip carries
-a scrollbar thumb (hover to drag) and maps the vertical mouse wheel to
-the horizontal axis — claimed through the pointer-signal resolver, so
-the page behind does not scroll while the line overflows (an
-unoverflowed line leaves the wheel to the page). Record / cancel /
-stop live in the dock (Play/Pause + record group; Cancel + Stop
-while recording), so the panel renders nothing while recording. The
-vocabulary "Echo reading" embed keeps the centered-FAB toolbar with the
-take menu (delete with confirm dialog lives there; the player strip
-draws none — where take management lands in the player is tracked as an
-open decision in
-[`docs/design/duet/STATUS.md`](../design/duet/STATUS.md)).
+In the player, the panel below the loop renders as the **takes summary row** ([`ShadowTakeSummaryRow`](../../lib/features/shadow_reading/presentation/widgets/shadow_take_summary_row.dart)) instead of the idle toolbar: a you-filled 34px play circle for the selected take, the take number with its score when the take has one, a second line carrying the score level / the running assessment / the "tap to score" prompt, and a sunk **"3 takes ›"** button on the right that opens the full list. When the region has no takes the row shows the "press R and say it back" hint with the `R` keycap (on phones the short "No recordings for this segment yet." line).
+
+The full list is [`ShadowTakesListPanel`](../../lib/features/shadow_reading/presentation/widgets/shadow_takes_list_panel.dart)): the player margin on desktop, a bottom sheet on phones. Each row carries the take number, a play control, the duration in mono and a trailing score chip — the score, or a `Score` action that runs the assessment — plus a delete action, with the selected take highlighted; the **Pitch** toggle sits under the list and flips the contour. The earlier `TAKES` overline, the stadium take chips and the strip's scrollbar are gone: canvas v30 (D6.3) replaced them with the summary row and the list panel. Record / cancel / stop live in the dock (Play/Pause + record group; Cancel + Stop while recording), so the in-loop row renders nothing while a take records. The vocabulary "Echo reading" embed keeps the centered-FAB toolbar with the take menu (delete with confirm dialog lives there).

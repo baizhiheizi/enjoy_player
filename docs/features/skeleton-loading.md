@@ -68,7 +68,7 @@ scrolling parent without causing an "infinite-size" assertion. See
 
 The subtitle track picker's narrow sheet can use `SkeletonTranscript`, but its
 wide dialog is already inside a `SingleChildScrollView`. The dialog therefore
-uses [`_buildDialogSkeletonLoading`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart),
+uses [`buildDialogSkeletonLoading`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_body.dart),
 a bounded `Column` of four track-row placeholders composed from `Skeleton.box`
 and `Skeleton.line`. Do not replace it with the scrollable transcript placeholder;
 that would reintroduce an unbounded nested viewport.
@@ -168,7 +168,7 @@ New placeholders should:
 | Skeleton app-bootstrap usage | Library, Home, Discover bootstrap paths |
 | Sliver-safe list placeholders | `SkeletonMediaList`, `SkeletonSettingsList` |
 | Scrollable placeholders | `SkeletonTranscript`, `SkeletonProfile` |
-| Bounded subtitle-picker dialog placeholder | [`_buildDialogSkeletonLoading`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart) |
+| Bounded subtitle-picker dialog placeholder | [`buildDialogSkeletonLoading`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_body.dart) |
 | Grid placeholder | `SkeletonMediaGrid` |
 | Home recents tile placeholder | `_HomeRecentGridSkeletonTile` in [`home_screen.dart`](../../lib/features/library/presentation/home_screen.dart) |
 | Layout regression tests | [`test/core/theme/skeleton_layout_test.dart`](../../test/core/theme/skeleton_layout_test.dart) |

@@ -3,6 +3,9 @@
 **Status**: Accepted (2026-10-02)
 **Amends**: [ADR-0091](0091-youtube-linux-playback.md) — narrows FR-008's
 self-containment for the YouTube playback runtime only (v1).
+**Amended by**: [ADR-0098](0098-linux-youtube-software-gl-recovery.md) —
+replaces the in-session engine-rebuild form of the T047 frame-watchdog
+fallback with a persistent, pre-engine recovery.
 **Feature spec**: [specs/047-youtube-linux-playback](../../specs/047-youtube-linux-playback/spec.md)
 
 ## Context
@@ -38,8 +41,11 @@ host**, while everything else in the image stays self-contained:
   broken host runtime into the graceful localized unavailable state; the
   feature docs carry the exact host package list
   (`wpewebkit` + `gst-plugins-good/bad/libav`).
-- The frame-watchdog software-GL fallback (specs/047 T047) remains planned for
-  hosts where hardware export stalls.
+- The frame-watchdog software-GL fallback (specs/047 T047) has **shipped** for
+  hosts where hardware export stalls: the watchdog samples the WebView texture
+  through the stage's `RepaintBoundary`, and on a stall verdict the app sets
+  `LIBGL_ALWAYS_SOFTWARE=1` and rebuilds the WebView in-session. ADR-0098
+  amends that recovery into a persistent, pre-engine one.
 
 ## Alternatives
 
@@ -71,4 +77,6 @@ assertion](https://github.com/pichillilorenzo/flutter_inappwebview/issues/2904)
   no longer our problem to solve per-release (host is self-consistent by
   definition of the distro packages).
 - The known hardware-export stall keeps `LIBGL_ALWAYS_SOFTWARE` in the
-  dev/troubleshooting toolbox and T047 as the shipping mitigation.
+  dev/troubleshooting toolbox, and T047 is the shipping mitigation: the
+  frame watchdog is in the app (Linux-only), with ADR-0098 replacing the
+  in-session engine rebuild by a persistent, pre-engine recovery.
