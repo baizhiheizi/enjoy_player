@@ -1,8 +1,8 @@
-# Feature: Download landing page (`get.enjoy.bot`)
+# Feature: Download landing page (`player.enjoy.bot`)
 
 ## Summary
 
-The download landing page is a **hand-authored static site** in [`landing/`](../../landing/) — no build step, no SSG, and explicitly **not** a Flutter web target (the repo bans Flutter web — see the "Supported platforms" hard rule in [AGENTS.md](../../AGENTS.md)). It is hosted on **Cloudflare Pages** (project `enjoy-player-landing`, CNAME → `https://get.enjoy.bot`) and helps a new user pick the right download for their OS. Direct-download buttons are populated at runtime from the release manifest; store links (TestFlight / Play beta) come from a single config file. The architectural rationale is [ADR-0024](../decisions/0024-download-landing-page.md); the in-app update flow that consumes the same manifest is documented in [update.md](update.md).
+The download landing page is a **hand-authored static site** in [`landing/`](../../landing/) — no build step, no SSG, and explicitly **not** a Flutter web target (the repo bans Flutter web — see the "Supported platforms" hard rule in [AGENTS.md](../../AGENTS.md)). It is hosted on **Cloudflare Pages** (project `enjoy-player-landing`, CNAME → `https://player.enjoy.bot`) and helps a new user pick the right download for their OS. Direct-download buttons are populated at runtime from the release manifest; store links (TestFlight / Play beta) come from a single config file. The architectural rationale is [ADR-0024](../decisions/0024-download-landing-page.md); the in-app update flow that consumes the same manifest is documented in [update.md](update.md).
 
 ## Directory structure
 

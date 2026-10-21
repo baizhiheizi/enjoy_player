@@ -14,7 +14,7 @@ The app explicitly forbids Flutter web (ADR-0005), so the landing page must be a
 
 1. **Static site in `landing/`** — A hand-authored HTML/CSS/JS site, not a Flutter web target and not under `web/`. No build step, no SSG framework; the output is the `landing/` directory itself.
 
-2. **Hosted on Cloudflare Pages** — Project name `enjoy-player-landing`, served at `https://get.enjoy.bot` (CNAME → `enjoy-player-landing.pages.dev`). Cloudflare Pages provides free TLS, global CDN, preview deployments per PR, and Pages Functions.
+2. **Hosted on Cloudflare Pages** — Project name `enjoy-player-landing`, served at `https://player.enjoy.bot` (CNAME → `enjoy-player-landing.pages.dev`). Cloudflare Pages provides free TLS, global CDN, preview deployments per PR, and Pages Functions.
 
 3. **Same-origin manifest proxy** — A Pages Function at `/api/latest` fetches `https://dl.enjoy.bot/player/latest.json` server-side, caches it at the edge (5-minute TTL + stale-while-revalidate), and returns it same-origin. The client reads `assets.windows.url`, `assets.macos.url`, and `assets.android_arm64_v8a.url` to populate download buttons at runtime — no version numbers are hard-coded in the HTML.
 

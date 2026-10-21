@@ -116,7 +116,7 @@ description: "Task list for Linux Desktop Platform Support"
 
 **Goal**: The Linux build emits a single AppImage that runs on a clean Ubuntu 22.04 LTS / Fedora 39 / Debian 12 without `apt install` of project-specific dependencies. The release manifest `dl.enjoy.bot/player/latest.json` exposes a `linux` entry with a real URL. The public landing page (`landing/index.html`, `landing/i18n.js`, `landing/main.js`) shows a Linux download card with localized strings (en + zh), detects Linux via `navigator.userAgent`, and reads the manifest's `linux.url` to update the download link. The release-script dispatcher `.github/scripts/release.sh` routes `--platform linux` to a new `.github/scripts/release_linux.sh`.
 
-**Independent Test**: Run `bash .github/scripts/release.sh --platform linux --skip-checks` on a Linux host with the apt packages installed; confirm a single AppImage is produced; upload it to `dl.enjoy.bot`; open `https://get.enjoy.bot/` on a Linux browser and confirm the Linux card shows a working download link to the new artifact.
+**Independent Test**: Run `bash .github/scripts/release.sh --platform linux --skip-checks` on a Linux host with the apt packages installed; confirm a single AppImage is produced; upload it to `dl.enjoy.bot`; open `https://player.enjoy.bot/` on a Linux browser and confirm the Linux card shows a working download link to the new artifact.
 
 ### Tests for User Story 3
 

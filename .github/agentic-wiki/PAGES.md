@@ -581,7 +581,7 @@ The test directory mirrors `lib/` structure under `test/`. Drift DAOs use `Nativ
 
 Build, sign, and distribute.
 
-The public download page is at **[https://get.enjoy.bot](https://get.enjoy.bot)** — detects visitor OS and surfaces the correct install action.
+The public download page is at **[https://player.enjoy.bot](https://player.enjoy.bot)** — detects visitor OS and surfaces the correct install action.
 
 | Platform | Install path |
 |----------|-------------|

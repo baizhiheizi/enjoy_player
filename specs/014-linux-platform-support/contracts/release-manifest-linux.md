@@ -6,7 +6,7 @@
 
 `GET https://dl.enjoy.bot/player/latest.json`
 
-Same-origin proxy at `https://get.enjoy.bot/player/latest.json` is the URL the landing page reads (today). The schema below adds a `linux` entry; the existing entries are unchanged.
+Same-origin proxy at `https://player.enjoy.bot/player/latest.json` is the URL the landing page reads (today). The schema below adds a `linux` entry; the existing entries are unchanged.
 
 ## Schema
 

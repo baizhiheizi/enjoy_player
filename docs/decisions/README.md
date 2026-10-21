@@ -47,7 +47,7 @@ Trade-offs, follow-up work, risks.
 | [0021](0021-youtube-discover-rss.md) | YouTube discovery via RSS feeds and local channel subscriptions (superseded by 0051) |
 | [0022](0022-unified-library-navigation.md) | Unified Library navigation — local + cloud source switch |
 | [0023](0023-app-update-distribution.md) | App update distribution — store no-op, direct feeds on dl.enjoy.bot |
-| [0024](0024-download-landing-page.md) | Download landing page — static site on Cloudflare Pages at get.enjoy.bot |
+| [0024](0024-download-landing-page.md) | Download landing page — static site on Cloudflare Pages at player.enjoy.bot |
 | [0025](0025-youtube-player-block-google-signin-nav.md) | Block Google sign-in navigations in YouTube player WebView (supplements 0015) |
 | [0026](0026-local-production-diagnostics.md) | Local production diagnostics — rotating logs, opt-in verbose, zip export |
 | [0027](0027-native-auth-v2.md) | Native auth v2 — Google, Apple, email OTP, PKCE fallback (supersedes 0016 WebView-primary) |
