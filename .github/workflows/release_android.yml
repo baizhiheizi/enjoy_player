@@ -36,6 +36,10 @@ jobs:
     runs-on: [self-hosted, Linux]
     env:
       ANDROID_USE_RUNNER_KEYSTORE: ${{ vars.ANDROID_USE_RUNNER_KEYSTORE || 'false' }}
+      # This runner sits behind a network where dl.google.com resets the TLS
+      # handshake, so Gradle resolves Google Maven artifacts through the
+      # Aliyun mirror (see android/settings.gradle.kts).
+      ENABLE_MAVEN_MIRROR: "1"
     steps:
       - uses: actions/checkout@v6
         with:

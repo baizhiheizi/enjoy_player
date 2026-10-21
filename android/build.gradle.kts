@@ -4,9 +4,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val isCi = System.getenv("GITHUB_ACTIONS") == "true"
 
+// See settings.gradle.kts: mirrors are opt-in for CI so the self-hosted
+// runner pool (where dl.google.com resets the TLS handshake) can reach
+// Google Maven artifacts through a mirror, while GitHub-hosted runners
+// keep the plain google()/mavenCentral() path.
+val useMirrors = !isCi || System.getenv("ENABLE_MAVEN_MIRROR") == "1"
+
 allprojects {
     repositories {
-        if (!isCi) {
+        if (useMirrors) {
             maven { url = uri("https://maven.aliyun.com/repository/google") }
             maven { url = uri("https://maven.aliyun.com/repository/central") }
         }
@@ -20,7 +26,7 @@ allprojects {
 subprojects {
     buildscript {
         repositories {
-            if (!isCi) {
+            if (useMirrors) {
                 maven { url = uri("https://maven.aliyun.com/repository/google") }
                 maven { url = uri("https://maven.aliyun.com/repository/central") }
             }

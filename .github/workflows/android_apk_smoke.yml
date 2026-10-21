@@ -48,6 +48,10 @@ concurrency:
 env:
   PUB_HOSTED_URL: https://pub.flutter-io.cn
   FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
+  # This runner sits behind a network where dl.google.com resets the TLS
+  # handshake, so Gradle resolves Google Maven artifacts through the Aliyun
+  # mirror (see android/settings.gradle.kts).
+  ENABLE_MAVEN_MIRROR: "1"
 
 permissions:
   contents: read
