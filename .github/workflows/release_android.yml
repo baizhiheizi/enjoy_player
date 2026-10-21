@@ -78,10 +78,12 @@ jobs:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}
           # Tag pushes have no workflow inputs (null). Treat null/true as build;
           # only workflow_dispatch with build_apk=false skips sideload APKs.
-          # Publish + GitHub Release upload both require EnjoyPlayer-v*-*.apk.
-          INPUT_BUILD_APK: ${{ inputs.build_apk != false }}
+          # `inputs.build_apk != false` is wrong here: GitHub coerces null to
+          # false, so a tag push resolved to "false", passed --no-apk, and the
+          # publish step then failed on the missing APKs.
+          INPUT_BUILD_APK: ${{ inputs.build_apk == null && 'true' || inputs.build_apk }}
           # Same for Play: tag pushes and default-true manual runs upload the AAB.
-          INPUT_UPLOAD_PLAY: ${{ inputs.upload_play != false }}
+          INPUT_UPLOAD_PLAY: ${{ inputs.upload_play == null && 'true' || inputs.upload_play }}
         run: |
           args=()
           # Only skip when explicitly false (empty/null must still build).
