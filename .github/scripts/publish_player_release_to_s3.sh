@@ -126,13 +126,26 @@ purge_feed_cache() {
     return 0
   fi
   if [[ -n "${CLOUDFLARE_API_TOKEN:-}" && -n "${CLOUDFLARE_ZONE_ID:-}" ]]; then
-    curl -fsS -X POST \
+    # A secret that carries stray characters (whitespace, quotes, a
+    # non-ASCII byte) makes Cloudflare reject the Authorization header with
+    # "Invalid format for Authorization header" (code 6111). A Cloudflare API
+    # token only ever contains [A-Za-z0-9_-], so the value is reduced to that
+    # alphabet before use.
+    local token
+    token="$(printf '%s' "${CLOUDFLARE_API_TOKEN}" | tr -cd 'A-Za-z0-9_-')"
+    if curl -fsS -X POST \
       "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
-      -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+      -H "Authorization: Bearer ${token}" \
       -H "Content-Type: application/json" \
       --data "{\"files\":[\"${public_base}/latest.json\",\"${public_base}/appcast.xml\"]}" \
-      >/dev/null
-    echo "Purged Cloudflare cache for feed URLs."
+      >/dev/null 2>&1; then
+      echo "Purged Cloudflare cache for feed URLs."
+    else
+      # The artifacts and feeds are already uploaded at this point; a failed
+      # purge must not fail the publish. The feeds carry max-age=300, so the
+      # CDN serves the previous copy for at most five minutes.
+      echo "warning: Cloudflare cache purge failed; the feed refreshes within 5 minutes." >&2
+    fi
     return 0
   fi
   if [[ -n "${CLOUDFRONT_DISTRIBUTION_ID:-}" ]]; then
@@ -140,6 +153,23 @@ purge_feed_cache() {
       --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
       --paths "/${prefix}/latest.json" "/${prefix}/appcast.xml" >/dev/null
     echo "Invalidated CloudFront paths for feeds."
+  fi
+}
+
+validate_feed_xml() {
+  local file="$1"
+  if command -v xmllint >/dev/null 2>&1; then
+    if ! xmllint --noout "${file}" >/dev/null 2>&1; then
+      echo "::error::${file} is not well-formed XML; refusing to publish a broken feed" >&2
+      return 1
+    fi
+  elif command -v python3 >/dev/null 2>&1; then
+    if ! python3 -c 'import sys, xml.dom.minidom; xml.dom.minidom.parse(sys.argv[1])' "${file}" >/dev/null 2>&1; then
+      echo "::error::${file} is not well-formed XML; refusing to publish a broken feed" >&2
+      return 1
+    fi
+  else
+    echo "warning: no XML parser available; skipping the appcast well-formedness check" >&2
   fi
 }
 
@@ -219,6 +249,7 @@ if [[ "${feeds_only}" == true ]]; then
 fi
 
 if [[ "${feeds_only}" != true ]]; then
+  validate_feed_xml "${feed_dir}/appcast.xml"
   s3_cp "${feed_dir}/latest.json" "s3://${bucket}/${prefix}/latest.json" \
     --content-type application/json \
     --cache-control "max-age=300, must-revalidate"

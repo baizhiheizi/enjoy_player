@@ -148,6 +148,11 @@ for _ in $(seq 1 12); do
   sort -u "$DEP_LIST" -o "$DEP_LIST"
   [[ -s "$DEP_LIST" ]] || break
   while IFS= read -r lib; do
+    # ldd can emit a resolved path that does not exist on disk (a stale
+    # soname, or a token carrying a trailing separator). Copying it would
+    # abort the whole packaging run, so skip anything unresolvable here and
+    # let the unresolved-library check below report the real gaps.
+    [[ -e "$lib" ]] || continue
     cp -aL "$lib" "$APP_USR_LIB/$(basename "$lib")"
     link_soname "$APP_USR_LIB/$(basename "$lib")"
     sources+=("$APP_USR_LIB/$(basename "$lib")")

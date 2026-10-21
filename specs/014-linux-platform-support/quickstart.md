@@ -112,7 +112,7 @@ chmod +x dist/enjoy-player-0.5.0-x86_64.AppImage
 
 1. Update `dl.enjoy.bot/player/latest.json` to include the new `linux` entry (per [contracts/release-manifest-linux.md](contracts/release-manifest-linux.md)).
 2. Upload the AppImage to `dl.enjoy.bot/player/v<version>/enjoy-player-<version>-x86_64.AppImage`.
-3. Open `https://get.enjoy.bot/` in a Linux browser (e.g. Firefox on Ubuntu 22.04 LTS).
+3. Open `https://player.enjoy.bot/` in a Linux browser (e.g. Firefox on Ubuntu 22.04 LTS).
 4. Click the "Linux" download card.
 
 **Expected outcome**:

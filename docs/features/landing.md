@@ -1,8 +1,8 @@
-# Feature: Download landing page (`get.enjoy.bot`)
+# Feature: Download landing page (`player.enjoy.bot`)
 
 ## Summary
 
-The download landing page is a **hand-authored static site** in [`landing/`](../../landing/) — no build step, no SSG, and explicitly **not** a Flutter web target (the repo bans Flutter web — see the "Supported platforms" hard rule in [AGENTS.md](../../AGENTS.md)). It is hosted on **Cloudflare Pages** (project `enjoy-player-landing`, CNAME → `https://get.enjoy.bot`) and helps a new user pick the right download for their OS. Direct-download buttons are populated at runtime from the release manifest; store links (TestFlight / Play beta) come from a single config file. The architectural rationale is [ADR-0024](../decisions/0024-download-landing-page.md); the in-app update flow that consumes the same manifest is documented in [update.md](update.md).
+The download landing page is a **hand-authored static site** in [`landing/`](../../landing/) — no build step, no SSG, and explicitly **not** a Flutter web target (the repo bans Flutter web — see the "Supported platforms" hard rule in [AGENTS.md](../../AGENTS.md)). It is hosted on **Cloudflare Pages** (project `enjoy-player-landing`, CNAME → `https://player.enjoy.bot`) and helps a new user pick the right download for their OS. Direct-download buttons are populated at runtime from the release manifest; store links (TestFlight / Play beta) come from a single config file. The architectural rationale is [ADR-0024](../decisions/0024-download-landing-page.md); the in-app update flow that consumes the same manifest is documented in [update.md](update.md).
 
 ## Directory structure
 
@@ -85,7 +85,7 @@ Per-path caching: `index.html` is `no-cache, must-revalidate` (links must be fre
 
 [`.github/workflows/deploy_landing.yml`](../../.github/workflows/deploy_landing.yml) runs on pushes to `main` touching `landing/**`, on PRs touching `landing/**`, and manually:
 
-- **Production**: `wrangler pages deploy landing --project-name enjoy-player-landing --branch main`.
+- **Production**: `cd landing && npx wrangler pages deploy . --project-name enjoy-player-landing --branch main` (Pages resolves `wrangler.toml` from the working directory and rejects a custom `--config` path, so the deploy runs inside `landing/`).
 - **PR previews**: deploys to branch `pr-<number>` (Cloudflare Pages preview deployment) and comments on the PR.
 - **Required CI secrets**: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. Without them the workflow fails — set both before the first deploy.
 - Concurrency group `deploy-landing-<ref>` with cancel-in-progress.

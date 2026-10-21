@@ -4,7 +4,7 @@
 
 ## How users get the app
 
-The public download page is at **[https://get.enjoy.bot](https://get.enjoy.bot)**. It detects the visitor's OS and surfaces the correct install action:
+The public download page is at **[https://player.enjoy.bot](https://player.enjoy.bot)**. It detects the visitor's OS and surfaces the correct install action:
 
 | Platform | Install path |
 |----------|-------------|
@@ -717,4 +717,4 @@ When the TestFlight invite URL changes or the Play beta URL changes, edit [`land
 
 ### Custom domain
 
-`get.enjoy.bot` must have a CNAME record pointing to `enjoy-player-landing.pages.dev` in Cloudflare DNS. Until the custom domain is attached, the `enjoy-player-landing.pages.dev` URL works for verification.
+`player.enjoy.bot` must have a CNAME record pointing to `enjoy-player-landing.pages.dev` in Cloudflare DNS. Until the custom domain is attached, the `enjoy-player-landing.pages.dev` URL works for verification.

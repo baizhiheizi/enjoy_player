@@ -16,23 +16,39 @@ pick_appcast_item() {
   local file="$1"
   local os_name="$2"
   local ver="$3"
+  # Item markers are matched anywhere in a line, and the closing line is cut
+  # at </item>: a feed written by an older merge glued "</item>  </channel>" or
+  # "</item>    <item>" onto one line, and both would otherwise be carried
+  # into the merged item and break the XML.
   awk -v target_os="${os_name}" -v target_ver="${ver}" '
-    BEGIN { in_item = 0; block = "" }
-    /<item>/ {
-      in_item = 1
-      block = $0 ORS
-      next
+    function emit(b) {
+      if (b ~ ("sparkle:os=\"" target_os "\"") &&
+          b ~ ("<sparkle:shortVersionString>" target_ver "</sparkle:shortVersionString>")) {
+        printf "%s", b
+        exit 0
+      }
     }
-    in_item {
-      block = block $0 ORS
-      if ($0 ~ /<\/item>/) {
-        if (block ~ ("sparkle:os=\"" target_os "\"") &&
-            block ~ ("<sparkle:shortVersionString>" target_ver "</sparkle:shortVersionString>")) {
-          printf "%s", block
-          exit 0
+    {
+      rest = $0
+      while (rest != "") {
+        if (!in_item) {
+          s = index(rest, "<item>")
+          if (s == 0) break
+          block = substr(rest, 1, s + 5) ORS
+          in_item = 1
+          rest = substr(rest, s + 6)
+        } else {
+          s = index(rest, "</item>")
+          if (s == 0) {
+            block = block rest ORS
+            break
+          }
+          block = block substr(rest, 1, s + 6) ORS
+          emit(block)
+          block = ""
+          in_item = 0
+          rest = substr(rest, s + 7)
         }
-        in_item = 0
-        block = ""
       }
     }
   ' "${file}"
@@ -60,7 +76,10 @@ win_item="$(pick_merged_item windows)"
 
 {
   printf '%s\n' "${header}"
-  [[ -n "${mac_item}" ]] && printf '%s' "${mac_item}"
-  [[ -n "${win_item}" ]] && printf '%s' "${win_item}"
+  # Each item block loses its trailing newline to command substitution, so
+  # print one back — otherwise "</item>" is glued to the next element and the
+  # feed stops parsing.
+  [[ -n "${mac_item}" ]] && printf '%s\n' "${mac_item}"
+  [[ -n "${win_item}" ]] && printf '%s\n' "${win_item}"
   printf '%s\n' "${footer}"
 } > "${out}"

@@ -17,7 +17,7 @@ AArch64 (ARM64) Linux is **not supported** for v1. A follow-up ADR will add mult
 
 ## Download and install
 
-1. Go to **[https://get.enjoy.bot](https://get.enjoy.bot)** on your Linux machine.
+1. Go to **[https://player.enjoy.bot](https://player.enjoy.bot)** on your Linux machine.
 2. Download the AppImage (`enjoy-player-<version>-x86_64.AppImage`).
 3. Make it executable:
    ```bash
