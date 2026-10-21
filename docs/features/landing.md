@@ -85,7 +85,7 @@ Per-path caching: `index.html` is `no-cache, must-revalidate` (links must be fre
 
 [`.github/workflows/deploy_landing.yml`](../../.github/workflows/deploy_landing.yml) runs on pushes to `main` touching `landing/**`, on PRs touching `landing/**`, and manually:
 
-- **Production**: `wrangler pages deploy landing --project-name enjoy-player-landing --branch main`.
+- **Production**: `cd landing && npx wrangler pages deploy . --project-name enjoy-player-landing --branch main` (Pages resolves `wrangler.toml` from the working directory and rejects a custom `--config` path, so the deploy runs inside `landing/`).
 - **PR previews**: deploys to branch `pr-<number>` (Cloudflare Pages preview deployment) and comments on the PR.
 - **Required CI secrets**: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. Without them the workflow fails — set both before the first deploy.
 - Concurrency group `deploy-landing-<ref>` with cancel-in-progress.

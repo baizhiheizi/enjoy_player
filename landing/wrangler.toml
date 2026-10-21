@@ -3,5 +3,6 @@ pages_build_output_dir = "."
 compatibility_date = "2024-09-23"
 
 # The site has no build step; the output dir is the landing/ directory itself.
-# Deploy from repo root: npx wrangler pages deploy landing --config landing/wrangler.toml
 # Deploy from landing/:  npx wrangler pages deploy .
+# (Pages resolves wrangler.toml from the working directory and rejects a
+#  custom --config path, so the deploy runs inside landing/.)
