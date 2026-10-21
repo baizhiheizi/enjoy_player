@@ -45,6 +45,11 @@ jobs:
           token="$(printf '%s' "${CLOUDFLARE_API_TOKEN}" | tr -cd 'A-Za-z0-9_-')"
           echo "::add-mask::${token}"
           echo "CLOUDFLARE_API_TOKEN=${token}" >> "$GITHUB_ENV"
+          if [[ -z "${token}" ]]; then
+            echo "::error::The CLOUDFLARE_API_TOKEN secret holds no [A-Za-z0-9_-] characters, so it is not a Cloudflare API token. Replace it with a token created at https://dash.cloudflare.com/profile/api-tokens (Cloudflare Pages: Edit + Account Settings: Read) and set it as the repository secret." >&2
+            exit 1
+          fi
+          echo "Cloudflare token length: ${#token}"
 
       # Production: the main branch deployment is what player.enjoy.bot serves.
       # Pages resolves wrangler.toml from the working directory and rejects a
