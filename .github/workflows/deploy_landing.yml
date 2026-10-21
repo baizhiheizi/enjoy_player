@@ -50,6 +50,9 @@ jobs:
             exit 1
           fi
           echo "Cloudflare token length: ${#token}"
+          if [[ ${#token} -lt 30 ]]; then
+            echo "::warning::The CLOUDFLARE_API_TOKEN secret is only ${#token} characters; Cloudflare API tokens are ~40. It may be truncated." >&2
+          fi
 
       # Production: the main branch deployment is what player.enjoy.bot serves.
       # Pages resolves wrangler.toml from the working directory and rejects a
