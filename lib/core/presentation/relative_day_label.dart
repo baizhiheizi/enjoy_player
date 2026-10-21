@@ -10,10 +10,18 @@ String relativeDayLabel(
   DateTime? now,
 }) {
   final reference = now ?? DateTime.now();
-  final today = DateTime(reference.year, reference.month, reference.day);
-  final day = DateTime(at.year, at.month, at.day);
-  final days = today.difference(day).inDays;
+  final days = _calendarDaysBefore(reference, at);
   if (days == 0) return l10n.mediaRelativeToday;
   if (days == 1) return l10n.mediaRelativeYesterday;
   return DateFormat.MMMd(locale).format(at);
+}
+
+int _calendarDaysBefore(DateTime reference, DateTime at) {
+  final referenceDay = DateTime.utc(
+    reference.year,
+    reference.month,
+    reference.day,
+  );
+  final atDay = DateTime.utc(at.year, at.month, at.day);
+  return referenceDay.difference(atDay).inDays;
 }

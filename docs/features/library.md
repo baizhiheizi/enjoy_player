@@ -24,6 +24,14 @@
 - **Community activity** loads `GET /api/v1/users/active` with the device **IANA** timezone id (e.g. `Asia/Shanghai` from `clientTimezoneId()` in [`lib/core/utils/client_timezone.dart`](../../lib/core/utils/client_timezone.dart); abbreviations like `HKT`/`CST` are not sent — Rails rejects them and falls back to UTC; if the native plugin fails the client falls back to a UTC offset like `+08:00`). Client **8s timeout**; on timeout the card hides / shows no data. See [`community.md`](community.md#endpoint) for the full timezone contract.
 - **Today's Goal** loads `GET /api/v1/mine/stats` with the same IANA timezone id (same `clientTimezoneId()` helper, see [`lib/core/utils/client_timezone.dart`](../../lib/core/utils/client_timezone.dart)).
 
+## Relative-day label
+
+Library and Home media tiles label a row's timestamp as **today** / **yesterday** (`mediaRelativeToday` / `mediaRelativeYesterday`), falling back to a short date (`Sep 27`) in the active locale beyond that — and for any timestamp in the future. [`relativeDayLabel`](../../lib/core/presentation/relative_day_label.dart) counts **calendar days**, not elapsed hours.
+
+The day count is measured between **UTC midnights** built from the two local calendar dates. Two local midnights are not always 24 hours apart: on a spring-forward day the gap is **23 hours**, and `DateTime.difference(...).inDays` truncates toward zero, so the previous calendar day counted as **0** and rendered as *today*. Counting UTC midnights keeps the gap at exactly 24 hours per calendar day whatever the zone's offset is, which is why the helper never measures local midnights. Nothing else changes — the time of day is ignored (as before), future timestamps still fall through to the short date, and the displayed text is identical.
+
+[`test/core/presentation/relative_day_label_test.dart`](../../test/core/presentation/relative_day_label_test.dart) pins the case. A DST transition is only observable in a zone that observes DST, and the Dart VM reads `TZ` once at process start, so CI runs that file under `TZ=America/New_York` with `REQUIRE_DST_TIMEZONE=1`. Without a DST-observing zone the test skips itself rather than failing; the flag turns that skip into a failure, so a runner whose zone never took effect (missing tzdata) cannot silently skip the case.
+
 ## Performance (signed-in cold start, Windows)
 
 **Symptom:** App window not responding to scroll / input for several seconds after launch when signed in, sometimes overlapping slow `GET /api/v1/mine/stats` or `GET /api/v1/users/active` in logs — but those requests are async; the stall was **main-isolate** work, not HTTP latency itself.

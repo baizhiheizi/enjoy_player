@@ -175,6 +175,17 @@ jobs:
           files: coverage/lcov.info
           fail_ci_if_error: false
 
+      # The relative-day label counts calendar days, and the 23-hour day a DST
+      # transition creates is what breaks that count. The runner's default zone
+      # may observe no DST (UTC), where the case skips itself — so run it in a
+      # DST zone and let the test fail loudly if the zone did not take effect
+      # (a runner without tzdata would silently fall back to UTC).
+      - name: Flutter test (calendar labels under a DST timezone)
+        env:
+          TZ: America/New_York
+          REQUIRE_DST_TIMEZONE: '1'
+        run: flutter test test/core/presentation/relative_day_label_test.dart
+
       - name: Flutter test (path packages)
         run: |
           set -euo pipefail
