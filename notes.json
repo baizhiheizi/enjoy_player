@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": null,
-    "investigation_after": 1002
+    "investigation_after": 1016
   },
   "issues": [
     {
@@ -172,6 +172,24 @@
       "state": "deferred",
       "updated_at": "2026-10-19",
       "note": "[repo-map] Repository Tree Map - auto-managed snapshot."
+    },
+    {
+      "number": 1012,
+      "state": "commented",
+      "updated_at": "2026-10-21",
+      "note": "DST calendar-day defect in the core relativeDayLabel; PR #1015 fixes it (CI green). A sibling PR on repo-assist/fix-vocabulary-review-dst fixes the same defect class in the vocabulary label, but its commit message says '(Closes #1012)' - that belongs to #1015. Noted in a comment."
+    },
+    {
+      "number": 1016,
+      "state": "commented",
+      "updated_at": "2026-10-21",
+      "note": "Docs drift review 2026-10-21 (1 new drift + 13 carry-overs = 16 findings). All 16 re-verified against f5147d4a and corrected on branch repo-assist/docs-refresh-1016 (10 files, +48/-43). One claim in the review itself was wrong (B13 '0 lerp'). Mapping comment posted; close once the docs PR merges."
+    },
+    {
+      "number": 1011,
+      "state": "deferred",
+      "updated_at": "2026-10-21",
+      "note": "Fallback review issue for the Flutter-version prompt fix (protected file .github/workflows/repo-assist.md). PR #1014 now carries the change - close after #1014 merges."
     }
   ],
   "fixes": [
@@ -182,20 +200,48 @@
       "status": "open",
       "updated_at": "2026-10-21",
       "note": "Agent prompt restated the Flutter version; now points at the mise.toml pin. Lock body_hash is the only compiled change (gh-aw v0.89.21 used to match the repo pin)."
+    },
+    {
+      "issue": 1016,
+      "pr": null,
+      "branch": "repo-assist/docs-refresh-1016",
+      "status": "open",
+      "updated_at": "2026-10-21",
+      "note": "Markdown-only refresh of all 16 drift findings across 10 doc files (packaging, ci-self-hosted-runners, apple-release-ci, app-ui, echo-mode, library, auth, skeleton-loading, ADR-0092, Duet STATUS). Commit 367b1ba6. No Dart changed."
+    },
+    {
+      "issue": 1012,
+      "pr": 1015,
+      "branch": "repo-assist/improve-relative-day-label-dst-9afab4175cc6cf8e",
+      "status": "open",
+      "updated_at": "2026-10-21",
+      "note": "DST calendar-day defect in the core relativeDayLabel (fixed here) and in the vocabulary next-review label (sibling branch repo-assist/fix-vocabulary-review-dst, commit 11f03d77). Shared helper lib/core/utils/calendar_day.dart pushed onto #1015 as 92fc8eba; CI green."
     }
   ],
   "checks": [
     {
       "area": "ci",
       "checked_at": "2026-10-21",
-      "result": "check_dart_format.sh ok (1863 files, 0 changed); flutter analyze clean on both branches; full flutter test green (6803 passed / 7 skipped on the Task 5 branch, 6806 passed / 6 skipped on the Task 9 branch); new + updated Task 9 files 21/21 pass; gh aw compile --validate passes for 8 workflows.",
-      "follow_up": "Run flutter pub get before flutter analyze / flutter test in this sandbox; a stale .dart_tool makes the Flutter SDK itself fail to compile."
+      "result": "check_dart_format.sh ok (1865 files, 0 changed); flutter analyze clean on all branches; full flutter test green (6805 passed / 7 skipped). PR #1013's analyze-test job sits in the ci-approval environment at action_required - an approval gate for bot-authored PRs, not a test failure.",
+      "follow_up": "Approve the ci-approval deployment (or pre-approve the environment) to unblock #1013; comment rather than push to a gated branch. Run flutter pub get before flutter analyze / flutter test in this sandbox."
     },
     {
       "area": "repo_assist_prs",
       "checked_at": "2026-10-21",
       "result": "The agent prompt (.github/workflows/repo-assist.md) is a runtime import, so editing it changes only the body_hash in repo-assist.lock.yml. Compiling with and without the edit showed only body_hash differed.",
-      "follow_up": "Regenerate a workflow lock with the gh-aw compiler version the repo already pins (v0.89.21), or the diff picks up a toolchain bump."
+      "follow_up": "Regenerate a workflow lock with the pinned gh-aw compiler (v0.89.21) or the diff picks up a toolchain bump. Task 11 allows one update_issue call per run, so #841's body lists the five unacknowledged Repo Assist comments on one line, not five 'Check comment' items."
+    },
+    {
+      "area": "code",
+      "checked_at": "2026-10-21",
+      "result": "Calendar-day gaps are measured on UTC midnights built from local Y/M/D (calendarDaysBetween in lib/core/utils/calendar_day.dart). The DST case passes 13/13 under TZ=America/New_York REQUIRE_DST_TIMEZONE=1 and skips itself in a non-DST zone; it fails against the old implementation.",
+      "follow_up": "A DateTime.difference(...).inDays over local midnights truncates a 23- or 25-hour day to the wrong count - use the shared helper for any future day arithmetic."
+    },
+    {
+      "area": "docs",
+      "checked_at": "2026-10-21",
+      "result": "All 16 findings in #1016 re-verified file by file against f5147d4a before editing; 16/16 were real and one claim in the review itself (B13 '0 lerp') was wrong. Markdown-only diff, 10 files, +48/-43, on branch repo-assist/docs-refresh-1016.",
+      "follow_up": "The docs worktree has no .dart_tool, so dart format warns about package resolution - harmless for a markdown-only branch, but do not run the Dart gates there."
     }
   ],
   "completed_actions": [
@@ -257,6 +303,30 @@
     },
     {
       "key": "echo_region_bounds + auth platform tests (test-echo-region-bounds-and-auth-platform)",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "#841 body refresh 2026-10-21 18:06 UTC",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "vocabulary relativeNextReviewLabel DST fix + shared calendar_day helper (11f03d77)",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "docs drift refresh for #1016 (docs-refresh-1016, 367b1ba6)",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "PR #1015 shared-helper push 92fc8eba",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "comments on #1013 / #1015 / #1016 / #1012 (this run)",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "#841 body refresh (one update_issue slot; per-comment items grouped on one line)",
       "completed_at": "2026-10-21"
     }
   ],
