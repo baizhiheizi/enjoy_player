@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": null,
-    "investigation_after": 968
+    "investigation_after": 1002
   },
   "issues": [
     {
@@ -26,14 +26,14 @@
     {
       "number": 841,
       "state": "commented",
-      "updated_at": "2026-10-19",
-      "note": "Monthly activity 2026-10. 2026-10-19 05:13 UTC run (39203024339): body refreshed. #968 still awaiting close; new refactors #988 (closes #987) and #989 (closes #982) since last run. One close recommendation in Suggested Actions."
+      "updated_at": "2026-10-21",
+      "note": "Monthly activity 2026-10. 2026-10-21 05:41 UTC run (39548135231): body replaced. Removed the eng-codegen-toolchain review item (landed as #998) and the #968 close recommendation (#968 closed by an-lee, completed). Suggested Actions now lists three new draft PRs plus the ADR-0030 custom_lint goal."
     },
     {
       "number": 968,
       "state": "commented",
-      "updated_at": "2026-10-18",
-      "note": "Architecture review pass 4 tracking issue — all five Strong candidates (C1-C5) shipped to main via e4fb98bb, fdc7c02a (#970), 6d640a31 (#973), 437742cc (#971), 0f7e5470 (#972). 2026-10-18 run posted close-recommendation comment. Awaiting maintainer to close. cursor advanced past this on 2026-10-19."
+      "updated_at": "2026-10-20",
+      "note": "Architecture review pass 4 - all five Strong candidates shipped. Closed by an-lee 2026-10-20 10:58 UTC (state_reason completed). The 2026-10-20 close recommendation is no longer needed."
     },
     {
       "number": 850,
@@ -154,15 +154,48 @@
       "state": "deferred",
       "updated_at": "2026-10-17",
       "note": "[repo-status] Daily Status — 2026-10-17 — auto-managed."
+    },
+    {
+      "number": 1002,
+      "state": "commented",
+      "updated_at": "2026-10-21",
+      "note": "Filed by the 2026-10-21 run: the agent prompt hardcoded Flutter 3.44.0 while mise.toml pins 3.47.6. Fixed on branch repo-assist/fix-issue-1002-flutter-version-pin (prompt now points at the pin; lock body_hash is the only compiled change). Draft PR opened; closing comment posted."
+    },
+    {
+      "number": 1004,
+      "state": "deferred",
+      "updated_at": "2026-10-20",
+      "note": "[repo-status] Daily Status - 2026-10-20 - auto-managed."
+    },
+    {
+      "number": 992,
+      "state": "deferred",
+      "updated_at": "2026-10-19",
+      "note": "[repo-map] Repository Tree Map - auto-managed snapshot."
     }
   ],
-  "fixes": [],
+  "fixes": [
+    {
+      "issue": 1002,
+      "pr": null,
+      "branch": "repo-assist/fix-issue-1002-flutter-version-pin",
+      "status": "open",
+      "updated_at": "2026-10-21",
+      "note": "Agent prompt restated the Flutter version; now points at the mise.toml pin. Lock body_hash is the only compiled change (gh-aw v0.89.21 used to match the repo pin)."
+    }
+  ],
   "checks": [
     {
       "area": "ci",
-      "checked_at": "2026-10-18",
-      "result": "format gate OK (1838 files). check_codegen_drift hit transient build_runner error (Could not find bin/build_runner.dart) — AGENTS.md intermittent failure mode; sandbox .dart_tool stale.",
-      "follow_up": "format is the authoritative pre-push guard and stays green. Future runs: clear .dart_tool/build and retry once before opening a code-changing PR."
+      "checked_at": "2026-10-21",
+      "result": "check_dart_format.sh ok (1863 files, 0 changed); flutter analyze clean on both branches; full flutter test green (6803 passed / 7 skipped on the Task 5 branch, 6806 passed / 6 skipped on the Task 9 branch); new + updated Task 9 files 21/21 pass; gh aw compile --validate passes for 8 workflows.",
+      "follow_up": "Run flutter pub get before flutter analyze / flutter test in this sandbox; a stale .dart_tool makes the Flutter SDK itself fail to compile."
+    },
+    {
+      "area": "repo_assist_prs",
+      "checked_at": "2026-10-21",
+      "result": "The agent prompt (.github/workflows/repo-assist.md) is a runtime import, so editing it changes only the body_hash in repo-assist.lock.yml. Compiling with and without the edit showed only body_hash differed.",
+      "follow_up": "Regenerate a workflow lock with the gh-aw compiler version the repo already pins (v0.89.21), or the diff picks up a toolchain bump."
     }
   ],
   "completed_actions": [
@@ -205,6 +238,26 @@
     {
       "key": "#841 body refresh 2026-10-19 05:13 UTC",
       "completed_at": "2026-10-19"
+    },
+    {
+      "key": "#841 body refresh 2026-10-21 05:41 UTC",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "memory refresh 2026-10-21: #968 closed by maintainer, codegen PR #998 merged",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "#1002 filed + draft PR on repo-assist/fix-issue-1002-flutter-version-pin",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "relativeDayLabel DST fix + test + CI step (improve-relative-day-label-dst)",
+      "completed_at": "2026-10-21"
+    },
+    {
+      "key": "echo_region_bounds + auth platform tests (test-echo-region-bounds-and-auth-platform)",
+      "completed_at": "2026-10-21"
     }
   ],
   "priorities": []
