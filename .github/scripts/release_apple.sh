@@ -137,6 +137,25 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
   source "${root}/.github/scripts/apple_spm_hygiene.sh"
   apple_sanitize_git_env_for_spm
 
+  # package:sqlite3 3.x downloads its prebuilt library from
+  # github.com/simolus3/sqlite3.dart/releases with Dart HttpClient (no
+  # retries); a dropped TLS handshake fails the whole build with "Building
+  # native assets failed". Prefetch the slices this release needs into the
+  # dart_build shared cache with curl (which retries), the way the CI smoke
+  # builds do.
+  sqlite3_platforms=()
+  if [[ "${MACOS_ONLY}" != true ]]; then
+    sqlite3_platforms+=(ios)
+  fi
+  if [[ "${IOS_ONLY}" != true ]]; then
+    sqlite3_platforms+=(macos)
+  fi
+  if [[ "${#sqlite3_platforms[@]}" -gt 0 ]]; then
+    echo ">>> Prefetch sqlite3 native libs (${sqlite3_platforms[*]})"
+    bash "${root}/tool/prefetch_sqlite3_libs.sh" "${sqlite3_platforms[@]}" \
+      || echo "prefetch_sqlite3_libs: skipped; the dart_build hook will fetch on its own" >&2
+  fi
+
   if [[ "${MACOS_ONLY}" != true ]]; then
     (cd "${root}/ios" && pod install)
 

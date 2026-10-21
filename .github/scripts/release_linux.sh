@@ -45,6 +45,16 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
   release_load_publish_env "${root}"
   defines=()
   release_append_posthog_defines defines
+
+  # package:sqlite3 3.x downloads its prebuilt library from
+  # github.com/simolus3/sqlite3.dart/releases with Dart HttpClient (no
+  # retries); a dropped TLS handshake fails the whole build with "Building
+  # native assets failed". Prefetch into the dart_build shared cache with
+  # curl (which retries), the way the CI smoke build does.
+  echo ">>> Prefetch sqlite3 Linux native libs"
+  bash "${root}/tool/prefetch_sqlite3_libs.sh" linux \
+    || echo "prefetch_sqlite3_libs: skipped; the dart_build hook will fetch on its own" >&2
+
   echo ">>> Build Linux release (direct channel)"
   flutter build linux --release --dart-define=DISTRIBUTION_CHANNEL=direct ${defines[@]+"${defines[@]}"}
 
