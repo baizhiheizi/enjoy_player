@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "cursors": {
+    "labelling_after": 1033,
+    "investigation_after": 1033
+  },
+  "issues": [
+    {
+      "number": 1033,
+      "state": "commented",
+      "updated_at": "2026-10-22",
+      "note": "macOS YouTube playback never starts. Root cause: the stage gated the InAppWebView mount on YoutubeFrameWatchdog.supportedOn (Linux-only) from #972/0f7e5470, shipped in v0.10.0. Fix PR opened; comment posted."
+    }
+  ],
+  "fixes": [
+    {
+      "issue": 1033,
+      "pr": null,
+      "branch": "repo-assist/fix-issue-1033-youtube-webview-mount-gate",
+      "status": "open",
+      "updated_at": "2026-10-22",
+      "note": "Mount gate restored to canPlay && shouldMountWebView; the Linux-only platform check moved into _FrameWatchdogLayer._maybeStart. Commit 9ac51357. PR number assigned downstream."
+    }
+  ],
+  "checks": [
+    {
+      "area": "tests",
+      "checked_at": "2026-10-22",
+      "result": "flutter test full suite: 6818 passed / 8 skipped, exit 0. New youtube_video_stage_mount_test.dart fails on the 4 non-Linux platforms against the unfixed code.",
+      "follow_up": null
+    },
+    {
+      "area": "ci",
+      "checked_at": "2026-10-22",
+      "result": "validate_ci_gates.sh --fix --analyze: dart format ok, codegen drift ok, path-deps ok, flutter analyze clean.",
+      "follow_up": null
+    }
+  ],
+  "completed_actions": [],
+  "priorities": [
+    {
+      "task": 2,
+      "item": "Verify the #1033 YouTube WebView mount fix on a real macOS build",
+      "note": "The draft PR restores the WebView mount off Linux, but no macOS hardware runner is reachable from the agent. The reporter can confirm on 0.10.1."
+    },
+    {
+      "task": 2,
+      "item": "File issues for the two unrelated defects in the #1033 report",
+      "note": "macOS keychain entitlement error -34018 when deleting enjoy_player.cached_profile_json, and the 'Using ref when a widget is about to or has been unmounted' zone errors."
+    },
+    {
+      "task": 4,
+      "item": "ADR-0030 item 3 custom_lint still needs a maintainer decision",
+      "note": "The analyzer-14 unblock landed in #998, so the deferral condition is met. A new dependency needs maintainer discussion, so Repo Assist will not adopt it."
+    }
+  ]
+}
