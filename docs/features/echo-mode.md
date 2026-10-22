@@ -70,10 +70,13 @@ hides while a take records.
 
 `3 takes ›` opens [`ShadowTakesListPanel`](../../lib/features/shadow_reading/presentation/widgets/shadow_takes_list_panel.dart):
 as a bottom sheet below `breakpointCompact` (600 px), otherwise in the
-player margin. The panel lists the takes newest-first with per-take
-play and **delete with the `confirmShadowDeleteTake` confirmation
-dialog** (decision R2, built in D6.3), plus a pitch toggle that
-shows/hides the collapsible pitch-contour section under the takes row
+player margin. The panel lists the takes newest-first; each row
+carries the take number, a play control, the duration in mono and a
+trailing score chip (the score, or a **Score** action that runs the
+assessment), plus a per-take **delete with the
+`confirmShadowDeleteTake` confirmation dialog** (decision R2, built in
+D6.3), with the selected take highlighted. A pitch toggle shows/hides
+the collapsible pitch-contour section under the takes row
 (`loopPitchVisibleProvider`, also the `P` hotkey). Record / cancel /
 stop live in the dock (Play/Pause + record group; Cancel + Stop
 while recording). The vocabulary "Echo reading" embed keeps the
