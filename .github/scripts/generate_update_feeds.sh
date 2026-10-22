@@ -73,6 +73,7 @@ emit_appcast_item() {
   local sig="$3"
   local sig_attr="$4"
   local asset url path len=0
+  local _key _name _sha
   asset="$(asset_entry_for_key "${asset_key}" || true)"
   if [[ -z "${asset}" ]]; then
     return 0
@@ -133,6 +134,9 @@ fi
 
 appcast="${out_dir}/appcast.xml"
 sparkle_mac_sig="${SPARKLE_ED_SIGNATURE_MACOS:-}"
+# SPARKLE_ED_SIGNATURE_WINDOWS carries a DSA signature (dsa_priv.pem) despite
+# the EdDSA name — CI exports it that way, and the Windows item must emit it
+# as sparkle:dsaSignature, never sparkle:edSignature.
 sparkle_win_sig="${SPARKLE_ED_SIGNATURE_WINDOWS:-}"
 pub_date="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
 
