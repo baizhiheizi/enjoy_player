@@ -36,7 +36,7 @@ imports:
 - shared/engine-minimax.md
 # ==== customized end  ====
 
-source: githubnext/agentics/workflows/duplicate-code-detector.md@055e90108e3d3c40e842f8aa40288f8a19204c4e
+source: githubnext/agentics/workflows/duplicate-code-detector.md@b4e175bab6674279e0fe158f7dc877b77bc9d92f
 ---
 
 # Duplicate Code Detection

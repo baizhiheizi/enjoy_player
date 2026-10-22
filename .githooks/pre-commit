@@ -61,6 +61,10 @@ while read -r file; do
   esac
 
   content=$(git diff --cached -- "$file" 2>/dev/null) || continue
+  # OCI content digests (sha256:<64 hex>) are image pins, not credentials.
+  # Masking them keeps container-pinning commits committable; a bare 64-hex
+  # secret on the same line still matches the scan below.
+  content=$(printf '%s' "$content" | sed -E 's/sha256:[0-9a-f]{64}/sha256:<digest>/g')
   for pat in "${patterns[@]}"; do
     if printf '%s' "$content" | grep -Eq "$pat"; then
       echo "ERROR: possible leaked credential in $file matches /$pat/" >&2
