@@ -1,6 +1,6 @@
 # ADR-0092: Linux YouTube v1 ships with host-provided WPE runtime
 
-**Status**: Accepted (2026-10-02)
+**Status**: Accepted (2026-10-02). Amended by [ADR-0098](0098-linux-youtube-software-gl-recovery.md) — the T047 frame-watchdog fallback this ADR left planned is shipped there (persisted marker + process-tree relaunch on software GL; refined by #972 to gate the probe to Linux and back off when healthy).
 **Amends**: [ADR-0091](0091-youtube-linux-playback.md) — narrows FR-008's
 self-containment for the YouTube playback runtime only (v1).
 **Feature spec**: [specs/047-youtube-linux-playback](../../specs/047-youtube-linux-playback/spec.md)
@@ -38,8 +38,9 @@ host**, while everything else in the image stays self-contained:
   broken host runtime into the graceful localized unavailable state; the
   feature docs carry the exact host package list
   (`wpewebkit` + `gst-plugins-good/bad/libav`).
-- The frame-watchdog software-GL fallback (specs/047 T047) remains planned for
-  hosts where hardware export stalls.
+- The frame-watchdog software-GL fallback (specs/047 T047) was left planned for
+  hosts where hardware export stalls; it has since shipped as
+  [ADR-0098](0098-linux-youtube-software-gl-recovery.md) (see the status note above).
 
 ## Alternatives
 
@@ -71,4 +72,7 @@ assertion](https://github.com/pichillilorenzo/flutter_inappwebview/issues/2904)
   no longer our problem to solve per-release (host is self-consistent by
   definition of the distro packages).
 - The known hardware-export stall keeps `LIBGL_ALWAYS_SOFTWARE` in the
-  dev/troubleshooting toolbox and T047 as the shipping mitigation.
+  dev/troubleshooting toolbox; T047 shipped as the mitigation via
+  [ADR-0098](0098-linux-youtube-software-gl-recovery.md) — the stall verdict now
+  persists a marker file and the Linux runner relaunches the process tree on
+  software GL, so the env var is no longer something the user sets by hand.
