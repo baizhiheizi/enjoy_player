@@ -45,7 +45,7 @@ imports:
 - shared/engine-minimax.md
 # ==== customized end  ====
 
-source: githubnext/agentics/workflows/grumpy-reviewer.md@4bc8419fad05e6b032741cbfd189986700bcf71c
+source: githubnext/agentics/workflows/grumpy-reviewer.md@b4e175bab6674279e0fe158f7dc877b77bc9d92f
 ---
 
 # Grumpy Code Reviewer 🔥

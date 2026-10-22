@@ -42,6 +42,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [features/shadow-reading.md](features/shadow-reading.md) | Product + dev | Shadow reading panel, recording bus, pitch contour, or Azure pronunciation assessment behavior changes |
 | [features/update.md](features/update.md) | Product + dev | App update strategy (NoOp / Direct), manifest schema, evaluator rules, or prompt UX change |
 | [features/landing.md](features/landing.md) | Product + dev | Download landing page (player.enjoy.bot) links, manifest proxy, i18n, or deploy workflow change |
+| [features/agentic-workflows.md](features/agentic-workflows.md) | Dev | Agentic workflow (gh-aw) sources, upstream update procedure, or the safe-update gate changes |
 | [features/share-poster.md](features/share-poster.md) | Product + dev | Shareable practice poster (echo-tailored cover + quote) behavior changes |
 | [features/player.md](features/player.md) | Product + dev | Player engine binding, expand/collapse, transport, echo enforcement, or wide-layout behavior changes |
 | [features/transcript.md](features/transcript.md) | Product + dev | Transcript loading, line navigation, auto-scroll, or cloud fetch behavior changes |
