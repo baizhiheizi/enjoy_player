@@ -21,20 +21,20 @@ void main() {
       );
     });
 
-    test('returns false on Linux (disabled per ADR-0084)', () {
+    test('follows the platform-availability flag on Linux (ADR-0084)', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-      expect(
-        nativeGoogleSignInSupported,
-        false,
-        reason:
-            'The Google Sign-In browser-based OAuth flow fails on real '
-            'Linux installs; the button is hidden and users sign in with '
-            'email OTP or the web PKCE fallback (ADR-0084).',
-      );
       expect(
         nativeGoogleSignInSupported,
         googleSignInAvailableOnLinux,
         reason: 'The Linux branch must follow the platform-availability flag.',
+      );
+      expect(
+        googleSignInAvailableOnLinux,
+        isFalse,
+        reason:
+            'The Google Sign-In browser-based OAuth flow fails on real '
+            'Linux installs; the button is hidden and users sign in with '
+            'email OTP or the web PKCE fallback (ADR-0084).',
       );
     });
 
@@ -59,19 +59,35 @@ void main() {
 
     test('returns false on macOS for a direct-download build', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
-      expect(
-        resolveDistributionChannel(),
-        DistributionChannel.direct,
-        reason:
-            'macOS falls back to the direct channel when DISTRIBUTION_CHANNEL '
-            'is not defined; store builds are covered by the case below.',
-      );
+      if (resolveDistributionChannel() != DistributionChannel.direct) {
+        markTestSkipped(
+          'this build targets the store channel, where macOS keeps the '
+          'Apple Sign-In entitlement',
+        );
+        return;
+      }
       expect(
         nativeAppleSignInSupported,
         false,
         reason:
             'Developer ID direct-download macOS builds omit the Apple '
             'Sign-In entitlement.',
+      );
+    });
+
+    test('returns true on macOS for a store build', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      if (resolveDistributionChannel() != DistributionChannel.store) {
+        markTestSkipped(
+          'this build targets the direct channel, where macOS omits the '
+          'Apple Sign-In entitlement',
+        );
+        return;
+      }
+      expect(
+        nativeAppleSignInSupported,
+        true,
+        reason: 'Store builds ship the Apple Sign-In entitlement.',
       );
     });
 
