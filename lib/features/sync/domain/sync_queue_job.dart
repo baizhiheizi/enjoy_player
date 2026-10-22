@@ -30,6 +30,7 @@ import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 part 'sync_queue_job/delete_jobs.dart';
+part 'sync_queue_job/snapshot.dart';
 part 'sync_queue_job/upsert_jobs.dart';
 part 'sync_queue_job/youtube_upload_retry.dart';
 
@@ -114,59 +115,7 @@ sealed class SyncQueueJob {
     SyncEntityType type,
     String id,
     SyncAction action,
-  ) async {
-    assert(
-      action == SyncAction.create || action == SyncAction.update,
-      'Upsert snapshots are create/update only; use deleteFor',
-    );
-    final registry = MediaRegistry(db);
-    switch (type) {
-      case SyncEntityType.audio:
-        final row = await registry.getAudioById(id);
-        if (row == null) return null;
-        final job = SyncAudioUpsert.snapshot(row, action: action);
-        await registry.upsertAudio(
-          row.copyWith(syncStatus: const Value('pending')),
-        );
-        return job;
-      case SyncEntityType.video:
-        final row = await registry.getVideoById(id);
-        if (row == null) return null;
-        final job = SyncVideoUpsert.snapshot(row, action: action);
-        await registry.upsertVideo(
-          row.copyWith(syncStatus: const Value('pending')),
-        );
-        return job;
-      case SyncEntityType.recording:
-        final row = await db.recordingDao.getById(id);
-        if (row == null) return null;
-        final job = SyncRecordingUpsert.snapshot(row, action: action);
-        await db.recordingDao.insertRow(
-          row.copyWith(syncStatus: const Value('pending')),
-        );
-        return job;
-      case SyncEntityType.youtubeSubscription:
-        final sub = await db.youtubeChannelSubscriptionDao.getByChannelId(id);
-        if (sub == null) return null;
-        return SyncYoutubeSubscriptionUpsert.snapshot(sub, action: action);
-      case SyncEntityType.vocabularyItem:
-        final row = await db.vocabularyItemDao.getById(id);
-        if (row == null) return null;
-        final job = SyncVocabularyItemUpsert.snapshot(row, action: action);
-        await db.vocabularyItemDao.updateRow(
-          row.copyWith(syncStatus: const Value('pending')),
-        );
-        return job;
-      case SyncEntityType.vocabularyContext:
-        final row = await db.vocabularyContextDao.getById(id);
-        if (row == null) return null;
-        final job = SyncVocabularyContextUpsert.snapshot(row, action: action);
-        await db.vocabularyContextDao.updateRow(
-          row.copyWith(syncStatus: const Value('pending')),
-        );
-        return job;
-    }
-  }
+  ) => _snapshotUpsert(db, type, id, action);
 
   /// Interprets a persisted [SyncQueueRow] as a typed job.
   ///
