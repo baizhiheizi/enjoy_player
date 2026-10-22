@@ -30,7 +30,7 @@ Library and Home media tiles label a row's timestamp as **today** / **yesterday*
 
 The day count is measured between **UTC midnights** built from the two local calendar dates. Two local midnights are not always 24 hours apart: on a spring-forward day the gap is **23 hours**, and `DateTime.difference(...).inDays` truncates toward zero, so the previous calendar day counted as **0** and rendered as *today*. Counting UTC midnights keeps the gap at exactly 24 hours per calendar day whatever the zone's offset is, which is why the helper never measures local midnights. Nothing else changes — the time of day is ignored (as before), future timestamps still fall through to the short date, and the displayed text is identical.
 
-[`test/core/presentation/relative_day_label_test.dart`](../../test/core/presentation/relative_day_label_test.dart) pins the case. A DST transition is only observable in a zone that observes DST, and the Dart VM reads `TZ` once at process start, so CI runs that file under `TZ=America/New_York` with `REQUIRE_DST_TIMEZONE=1`. Without a DST-observing zone the test skips itself rather than failing; the flag turns that skip into a failure, so a runner whose zone never took effect (missing tzdata) cannot silently skip the case.
+[`test/core/presentation/relative_day_label_test.dart`](../../test/core/presentation/relative_day_label_test.dart) pins the case, including the DST transition — see [`ci-self-hosted-runners.md`](../ci-self-hosted-runners.md#dst-aware-tests) for how CI runs it in a DST-observing zone.
 
 ## Performance (signed-in cold start, Windows)
 

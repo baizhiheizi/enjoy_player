@@ -16,6 +16,8 @@ String relativeDayLabel(
   return DateFormat.MMMd(locale).format(at);
 }
 
+/// Calendar days between two local calendar dates, counted between UTC
+/// midnights so a DST transition cannot shorten a day to 23 hours.
 int _calendarDaysBefore(DateTime reference, DateTime at) {
   final referenceDay = DateTime.utc(
     reference.year,
