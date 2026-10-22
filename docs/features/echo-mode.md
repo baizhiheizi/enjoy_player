@@ -63,9 +63,10 @@ instead of the idle toolbar: play/pause for the selected take, its name
 and score (an unscored take reads `Not scored yet · tap to score`, or
 `… · click to score` on pointer devices, and tapping runs the
 assessment), and a `3 takes ›` affordance that opens the takes list.
-With no takes it shows the empty hint (`No recordings for this segment
-yet. Press **R** and say it back.`). The row hides while a take
-records.
+With no takes it shows the empty hint: on phones the short
+`No recordings for this segment yet.` line, on pointer devices the same
+sentence with the `R` keycap and `and say it back.` appended. The row
+hides while a take records.
 
 `3 takes ›` opens [`ShadowTakesListPanel`](../../lib/features/shadow_reading/presentation/widgets/shadow_takes_list_panel.dart):
 as a bottom sheet below `breakpointCompact` (600 px), otherwise in the

@@ -613,7 +613,7 @@ Identity: **`ai.enjoy.player`** everywhere ([ADR-0020](decisions/0020-android-wi
 |----------|------------|-------|
 | Android | minSdk 26, Java 17 | AGP 9; vendored `ffmpeg_kit_flutter_new` |
 | iOS | 15.0 | `use_frameworks!` for Azure Speech, FFmpeg |
-| macOS | 12.0 | App Sandbox on; GPL FFmpeg bundled |
+| macOS | 12.0 | App Sandbox on; GPL FFmpeg bundled; `macos/Podfile` and `MACOSX_DEPLOYMENT_TARGET` both pin 12.0 |
 | Windows | x64 | Authenticode signing outside repo |
 | Linux | x86_64 | AppImage; bundled `libmpv` + `ffmpeg`; Ubuntu 22.04+ / Fedora 39+ / Debian 12 |
 
