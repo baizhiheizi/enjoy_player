@@ -63,6 +63,38 @@ asset_entry_for_key() {
   return 1
 }
 
+# Emit one Sparkle appcast <item>. macOS and Windows share the element shape
+# but not the signature scheme: macOS verifies EdDSA (sparkle:edSignature),
+# Windows verifies legacy DSA (sparkle:dsaSignature) — so the attribute name
+# travels with the platform, it is not unified.
+emit_appcast_item() {
+  local os_name="$1"
+  local asset_key="$2"
+  local sig="$3"
+  local sig_attr="$4"
+  local asset url path len=0
+  local _key _name _sha
+  asset="$(asset_entry_for_key "${asset_key}" || true)"
+  if [[ -z "${asset}" ]]; then
+    return 0
+  fi
+  IFS='|' read -r _key _name url _sha path <<< "${asset}"
+  if [[ -f "${path}" ]]; then
+    len="$(wc -c < "${path}" | tr -d ' ')"
+  fi
+  echo '    <item>'
+  echo "      <title>Version ${version}</title>"
+  echo "      <pubDate>${pub_date}</pubDate>"
+  echo '      <sparkle:version>'"${build}"'</sparkle:version>'
+  echo '      <sparkle:shortVersionString>'"${version}"'</sparkle:shortVersionString>'
+  echo '      <enclosure url="'"${url}"'" sparkle:os="'"${os_name}"'" type="application/octet-stream" length="'"${len}"'"'
+  if [[ -n "${sig}" ]]; then
+    echo '        '"${sig_attr}"'="'"${sig}"'"'
+  fi
+  echo '      />'
+  echo '    </item>'
+}
+
 spec=""
 for spec in ${RELEASE_ARTIFACT_SPECS[@]+"${RELEASE_ARTIFACT_SPECS[@]}"}; do
   add_asset "$(release_spec_key "${spec}")" "$(release_spec_path "${spec}")"
@@ -102,6 +134,9 @@ fi
 
 appcast="${out_dir}/appcast.xml"
 sparkle_mac_sig="${SPARKLE_ED_SIGNATURE_MACOS:-}"
+# SPARKLE_ED_SIGNATURE_WINDOWS carries a DSA signature (dsa_priv.pem) despite
+# the EdDSA name — CI exports it that way, and the Windows item must emit it
+# as sparkle:dsaSignature, never sparkle:edSignature.
 sparkle_win_sig="${SPARKLE_ED_SIGNATURE_WINDOWS:-}"
 pub_date="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
 
@@ -114,45 +149,8 @@ pub_date="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
   echo '    <description>Enjoy Player direct-download updates</description>'
   echo '    <language>en</language>'
 
-  mac_asset="$(asset_entry_for_key macos || true)"
-  if [[ -n "${mac_asset}" ]]; then
-    IFS='|' read -r _key _name url _sha mac_path <<< "${mac_asset}"
-    mac_len=0
-    if [[ -f "${mac_path}" ]]; then
-      mac_len="$(wc -c < "${mac_path}" | tr -d ' ')"
-    fi
-    echo '    <item>'
-    echo "      <title>Version ${version}</title>"
-    echo "      <pubDate>${pub_date}</pubDate>"
-    echo '      <sparkle:version>'"${build}"'</sparkle:version>'
-    echo '      <sparkle:shortVersionString>'"${version}"'</sparkle:shortVersionString>'
-    echo '      <enclosure url="'"${url}"'" sparkle:os="macos" type="application/octet-stream" length="'"${mac_len}"'"'
-    if [[ -n "${sparkle_mac_sig}" ]]; then
-      echo '        sparkle:edSignature="'"${sparkle_mac_sig}"'"'
-    fi
-    echo '      />'
-    echo '    </item>'
-  fi
-
-  win_asset="$(asset_entry_for_key windows || true)"
-  if [[ -n "${win_asset}" ]]; then
-    IFS='|' read -r _key _name url _sha win_path <<< "${win_asset}"
-    win_len=0
-    if [[ -f "${win_path}" ]]; then
-      win_len="$(wc -c < "${win_path}" | tr -d ' ')"
-    fi
-    echo '    <item>'
-    echo "      <title>Version ${version}</title>"
-    echo "      <pubDate>${pub_date}</pubDate>"
-    echo '      <sparkle:version>'"${build}"'</sparkle:version>'
-    echo '      <sparkle:shortVersionString>'"${version}"'</sparkle:shortVersionString>'
-    echo '      <enclosure url="'"${url}"'" sparkle:os="windows" type="application/octet-stream" length="'"${win_len}"'"'
-    if [[ -n "${sparkle_win_sig}" ]]; then
-      echo '        sparkle:dsaSignature="'"${sparkle_win_sig}"'"'
-    fi
-    echo '      />'
-    echo '    </item>'
-  fi
+  emit_appcast_item macos macos "${sparkle_mac_sig}" sparkle:edSignature
+  emit_appcast_item windows windows "${sparkle_win_sig}" sparkle:dsaSignature
 
   echo '  </channel>'
   echo '</rss>'
