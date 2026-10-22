@@ -6,7 +6,8 @@ import 'dart:ui' show ImageByteFormat;
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,11 +33,17 @@ class YoutubeVideoStage extends ConsumerWidget {
     required this.engine,
     required this.maxWidth,
     required this.maxHeight,
+    @visibleForTesting this.debugOnWatchdogStarted,
   });
 
   final YoutubePlayerEngine engine;
   final double maxWidth;
   final double maxHeight;
+
+  /// Invoked when the Linux-only frame-stall probe starts; lets tests pin
+  /// the platform gate without observing GPU sampling.
+  @visibleForTesting
+  final VoidCallback? debugOnWatchdogStarted;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,12 +60,11 @@ class YoutubeVideoStage extends ConsumerWidget {
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Colors.black),
-            if (engine.availability.canPlay &&
-                session.shouldMountWebView &&
-                YoutubeFrameWatchdog.supportedOn(defaultTargetPlatform))
+            if (engine.availability.canPlay && session.shouldMountWebView)
               _FrameWatchdogLayer(
                 engine: engine,
                 onStalled: () => _handleStall(context, ref),
+                onWatchdogStarted: debugOnWatchdogStarted,
                 child: _webViewHost(),
               ),
             _StageBufferingLeaf(engine: engine),
@@ -95,15 +101,21 @@ class YoutubeVideoStage extends ConsumerWidget {
 /// video whose texture stays near-black and static is the hardware
 /// frame-export stall, and the verdict arms software GL for the next launch
 /// ([ADR-0098]).
+///
+/// The probe samples only where [YoutubeFrameWatchdog.supportedOn] holds; the
+/// layer still wraps the WebView host on every other platform so the stage
+/// tree shape stays uniform.
 class _FrameWatchdogLayer extends StatefulWidget {
   const _FrameWatchdogLayer({
     required this.engine,
     required this.onStalled,
+    required this.onWatchdogStarted,
     required this.child,
   });
 
   final YoutubePlayerEngine engine;
   final Future<void> Function() onStalled;
+  final VoidCallback? onWatchdogStarted;
   final Widget child;
 
   @override
@@ -130,6 +142,7 @@ class _FrameWatchdogLayerState extends State<_FrameWatchdogLayer> {
 
   void _maybeStart() {
     if (!mounted || _watchdog != null) return;
+    if (!YoutubeFrameWatchdog.supportedOn(defaultTargetPlatform)) return;
     if (!widget.engine.availability.canPlay) return;
     if (!widget.engine.session.loggedFirstPlaying) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
@@ -140,6 +153,7 @@ class _FrameWatchdogLayerState extends State<_FrameWatchdogLayer> {
       playingCheck: () => widget.engine.session.playing,
       stalledCallback: widget.onStalled,
     )..start();
+    widget.onWatchdogStarted?.call();
   }
 
   Future<FrameSample?> _takeSample() async {
