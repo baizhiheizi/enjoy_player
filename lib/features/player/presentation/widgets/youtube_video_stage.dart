@@ -53,9 +53,7 @@ class YoutubeVideoStage extends ConsumerWidget {
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Colors.black),
-            if (engine.availability.canPlay &&
-                session.shouldMountWebView &&
-                YoutubeFrameWatchdog.supportedOn(defaultTargetPlatform))
+            if (engine.availability.canPlay && session.shouldMountWebView)
               _FrameWatchdogLayer(
                 engine: engine,
                 onStalled: () => _handleStall(context, ref),
@@ -95,6 +93,9 @@ class YoutubeVideoStage extends ConsumerWidget {
 /// video whose texture stays near-black and static is the hardware
 /// frame-export stall, and the verdict arms software GL for the next launch
 /// ([ADR-0098]).
+///
+/// The probe only runs where [YoutubeFrameWatchdog.supportedOn] holds; the
+/// WebView host itself mounts on every platform that can play YouTube.
 class _FrameWatchdogLayer extends StatefulWidget {
   const _FrameWatchdogLayer({
     required this.engine,
@@ -130,6 +131,7 @@ class _FrameWatchdogLayerState extends State<_FrameWatchdogLayer> {
 
   void _maybeStart() {
     if (!mounted || _watchdog != null) return;
+    if (!YoutubeFrameWatchdog.supportedOn(defaultTargetPlatform)) return;
     if (!widget.engine.availability.canPlay) return;
     if (!widget.engine.session.loggedFirstPlaying) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
