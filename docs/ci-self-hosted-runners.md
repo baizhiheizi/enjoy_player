@@ -200,7 +200,7 @@ All six build/CI workflows above set the China mirror `env:`. The four Linux (co
 
 ## DST-aware tests
 
-The container pool's default zone is UTC, which observes no daylight saving — so a test that only makes sense across a DST transition would skip itself there. `ci.yml` runs such a file in a second step under an explicit DST zone:
+The container pool's zone is not pinned anywhere in the CI setup, and a zone that observes no daylight saving (UTC is the common case) would make such a test skip itself. `ci.yml` runs the file in a second step under an explicit DST zone:
 
 ```yaml
 - name: Flutter test (calendar labels under a DST timezone)
