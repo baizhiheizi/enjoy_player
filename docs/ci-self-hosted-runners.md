@@ -197,3 +197,19 @@ Each build/smoke workflow's `paths` filter lives inline in its own file. Path fi
 **Approval gate.** PRs from outside the org (`github-actions[bot]` agentic PRs, Copilot, contributors — `author_association` not `OWNER`/`MEMBER`) resolve every job's `environment` to the protected [`ci-approval`](https://github.com/baizhiheizi/enjoy_player/settings/environments), so each run sits in **Waiting** until the required reviewer approves it (**Approve and run**). Org-member PRs (and agents acting with a member's token), `push` and `workflow_dispatch` resolve to the unprotected `ci-direct` and run immediately. Note this is an org-owned repo, so members report `MEMBER`, not `OWNER`. Reviewers for `ci-approval` are managed under **Settings → Environments → ci-approval**.
 
 All six build/CI workflows above set the China mirror `env:`. The four Linux (container-pool) workflows also cache their dependency stores through the LAN `gh-sr-cache` server; `build_apple` / `build_windows` do not, because their native runners keep those stores on disk. The Apple and Windows release workflows set only `FLUTTER_STORAGE_BASE_URL` (a cold Flutter SDK pulls from the mirror) and deliberately do not cache dependency stores: they run rarely, and a release build must resolve the committed `pubspec.lock` against live upstream indexes rather than a warm cache or a different hosted source.
+
+## DST-aware tests
+
+The container pool's zone is not pinned anywhere in the CI setup, and a zone that observes no daylight saving (UTC is the common case) would make such a test skip itself. `ci.yml` runs the file in a second step under an explicit DST zone:
+
+```yaml
+- name: Flutter test (calendar labels under a DST timezone)
+  env:
+    TZ: America/New_York
+    REQUIRE_DST_TIMEZONE: '1'
+  run: flutter test test/core/presentation/relative_day_label_test.dart
+```
+
+The Dart VM reads `TZ` once at process start, so the zone has to be set on the `flutter test` step rather than inside the test. The test skips itself when the local zone has no DST transition; `REQUIRE_DST_TIMEZONE=1` turns that skip into a failure, so a runner whose zone never took effect (missing tzdata) fails loudly instead of silently dropping the case.
+
+The relative-day label is the current case: it counts **calendar days**, and the 23-hour day a spring-forward transition creates is what breaks a count made between two local midnights. See [library.md](features/library.md#relative-day-label).

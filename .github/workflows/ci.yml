@@ -166,6 +166,17 @@ jobs:
       - name: Flutter test (app, with coverage)
         run: flutter test --coverage
 
+      # The relative-day label counts calendar days, and the 23-hour day a DST
+      # transition creates is what breaks that count. The runner's default zone
+      # may observe no DST (UTC), where the case skips itself — so run it in a
+      # DST zone, and REQUIRE_DST_TIMEZONE turns that skip into a failure so a
+      # runner without tzdata cannot silently skip the case.
+      - name: Flutter test (calendar labels under a DST timezone)
+        env:
+          TZ: America/New_York
+          REQUIRE_DST_TIMEZONE: '1'
+        run: flutter test test/core/presentation/relative_day_label_test.dart
+
       - name: Coverage gate (line baseline)
         run: bash .github/scripts/check_coverage_gate.sh coverage/lcov.info
 
