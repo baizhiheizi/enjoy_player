@@ -576,7 +576,7 @@ Maintain a single open issue titled `[repo-assist] Monthly Activity {YYYY}-{MM}`
 
 This is a Flutter repository. The workflow provisions a full dev environment before you start, mirroring CI:
 
-- Flutter `3.44.0` (pinned in `mise.toml`) is installed via mise; `flutter` and `dart` are on your PATH. Do not download or bootstrap your own SDK.
+- The Flutter version pinned in [`mise.toml`](../../mise.toml) is installed via mise; `flutter` and `dart` are on your PATH. Do not download or bootstrap your own SDK.
 - `flutter pub get` has already been run for the root package.
 - Linux desktop build packages (GTK, mpv, SQLite, GStreamer dev headers, …) are installed (see `.github/scripts/ensure_linux_tooling.sh`).
 
