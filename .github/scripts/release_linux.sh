@@ -76,13 +76,8 @@ if [[ "${RELEASE_PUBLISH}" == true ]]; then
     exit 1
   fi
   publish_args=(--linux-appimage "${appimage}")
-  if [[ "${RELEASE_FEEDS_ONLY}" == true ]]; then
-    publish_args=(--feeds-only "${publish_args[@]}")
-  else
-    export RELEASE_REQUIRE_S3=1
-  fi
   echo ">>> Publish (${appimage})"
-  bash "${root}/.github/scripts/publish_player_release_to_s3.sh" "${publish_args[@]}"
+  release_publish_to_s3 "${root}" "${publish_args[@]}"
 fi
 
 if [[ "${RELEASE_PUBLISH_GITHUB}" == true ]]; then

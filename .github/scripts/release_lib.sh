@@ -589,6 +589,27 @@ release_collect_publish_artifact_args() {
   eval "${out_name}=(\"\${out[@]}\")"
 }
 
+# The one place that knows the publish contract: --feeds-only regenerates the
+# update feeds locally without requiring S3, any real publish hard-fails
+# without S3 credentials (RELEASE_REQUIRE_S3). Platform scripts keep owning
+# artifact resolution and preconditions; they hand the resolved flags over.
+#
+# Usage:
+#   release_publish_to_s3 "${root}" --linux-appimage "${appimage}"
+#   release_publish_to_s3 "${root}" ${publish_args[@]+"${publish_args[@]}"}
+release_publish_to_s3() {
+  local root="$1"
+  shift
+  local -a publish_args=()
+  if [[ "${RELEASE_FEEDS_ONLY}" == true ]]; then
+    publish_args+=(--feeds-only)
+  else
+    export RELEASE_REQUIRE_S3=1
+  fi
+  publish_args+=("$@")
+  bash "${root}/.github/scripts/publish_player_release_to_s3.sh" ${publish_args[@]+"${publish_args[@]}"}
+}
+
 release_build_number() {
   bash "$(dirname "${BASH_SOURCE[0]}")/read_pubspec_version.sh" --build
 }
