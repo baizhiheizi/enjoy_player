@@ -2,14 +2,16 @@
 library;
 
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
+    show defaultTargetPlatform, TargetPlatform, visibleForTesting;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/data/api/secure_storage_delete.dart';
 import 'package:enjoy_player/data/api/secure_storage_op_lock.dart';
+import 'package:enjoy_player/data/api/secure_storage_options.dart';
 
 part 'secure_token_store.g.dart';
 
@@ -20,28 +22,9 @@ const _kRefreshTokenKey = 'enjoy_player.refresh_token';
 const _kCachedProfileJsonKey = 'enjoy_player.cached_profile_json';
 const _kTokenExpiresAtKey = 'enjoy_player.token_expires_at';
 
-/// Pin Android to the v10 default RSA-OAEP / AES-GCM ciphers (migrates from
-/// the deprecated Jetpack Security `encryptedSharedPreferences` on first read)
-/// and iOS to `first_unlock` so tokens survive device reboot but stay
-/// inaccessible until the user has unlocked the device at least once.
-const _kAndroidOptions = AndroidOptions();
-const _kIosOptions = IOSOptions(
-  accessibility: KeychainAccessibility.first_unlock,
-);
-const _kMacOsOptions = MacOsOptions(
-  accessibility: KeychainAccessibility.first_unlock,
-  usesDataProtectionKeychain: false,
-);
-
 @Riverpod(keepAlive: true)
 SecureTokenStore secureTokenStore(Ref ref) {
-  return SecureTokenStore(
-    const FlutterSecureStorage(
-      aOptions: _kAndroidOptions,
-      iOptions: _kIosOptions,
-      mOptions: _kMacOsOptions,
-    ),
-  );
+  return SecureTokenStore(secureStorageBackend);
 }
 
 /// Thin wrapper around [FlutterSecureStorage].
@@ -56,6 +39,9 @@ class SecureTokenStore {
 
   final FlutterSecureStorage _storage;
   final SecureStorageOpLock _opLock;
+
+  @visibleForTesting
+  FlutterSecureStorage get storage => _storage;
 
   Future<String?> readAccessToken() =>
       _serialized(() => _storage.read(key: _kAccessTokenKey));
@@ -126,7 +112,8 @@ class SecureTokenStore {
     }
   }
 
-  Future<void> _deleteRaw(String key) => _storage.delete(key: key);
+  Future<void> _deleteRaw(String key) =>
+      deleteSecureStorageKey(_storage, key: key);
 
   /// Writes to the keychain/keystore, self-healing from a stale entry that
   /// conflicts with the current write, and — on Linux — verifying the value

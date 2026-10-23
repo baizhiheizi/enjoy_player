@@ -55,7 +55,7 @@ Keys are **masked** in storage and the field shows a saved-key preview chip (e.g
 ### Persistence and security
 
 - Non-secret config: Drift settings key `ai.modality_configs_v1` (`AiModalityConfigRepository`).
-- Secrets: [`ByokSecretStore`](../../lib/data/api/byok_secret_store.dart) (secure storage per modality).
+- Secrets: [`ByokSecretStore`](../../lib/data/api/byok_secret_store.dart) (secure storage per modality). It shares the app-wide [`secureStorageBackend`](../../lib/data/api/secure_storage_options.dart) with the auth token store, so a BYOK key is stored in the same keychain domain as the session tokens on every platform — on macOS that is the legacy keychain, which is the only one a Developer ID direct-download build can reach (see [ADR-0100](../decisions/0100-macos-direct-download-keychain.md)). A key saved by an older macOS build in the data-protection keychain has to be re-entered once.
 - Validation: [`ByokConfigValidator`](../../lib/features/ai/domain/byok_config_validator.dart) — HTTPS base URLs only, required fields per vendor. Validation failures surface inline via `AppNotice.error` with localized keys from [`byok_validation_messages.dart`](../../lib/features/ai/presentation/settings/byok_validation_messages.dart).
 - Missing secret at runtime: [`ByokNotConfiguredFailure`](../../lib/features/ai/domain/byok_not_configured_failure.dart) with localized message and link back to `/settings/ai-providers` (no silent Enjoy fallback).
 

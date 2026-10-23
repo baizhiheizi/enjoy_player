@@ -121,7 +121,7 @@ Apple Sign-In fails **on the device** with `com.apple.AuthenticationServices.Aut
 | **iOS** | `ios/Runner/Runner.entitlements` | `com.apple.developer.applesignin` → `Default` |
 | **iOS** | `ios/Runner.xcodeproj` | `CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements` on Debug/Release/Profile |
 | **macOS (Xcode / local)** | `macos/Runner/DebugProfile.entitlements` + `Release.entitlements` | sandbox + network (no Apple Sign-In on macOS) |
-| **macOS (Developer ID zip)** | `macos/Runner/ReleaseDirect.entitlements` via `notarize_release.sh` | sandbox + network + app keychain group (no Apple Sign-In entitlement) |
+| **macOS (Developer ID zip)** | `macos/Runner/ReleaseDirect.entitlements` via `notarize_release.sh` | sandbox + network, **no keychain access group** (no Apple Sign-In entitlement) |
 
 After editing entitlements, do a **clean rebuild** (`flutter clean && flutter run`) so Xcode regenerates the provisioning profile that includes the capability. If error 1000 persists on a physical device, open `ios/Runner.xcworkspace` (or `macos/Runner.xcworkspace`) → Runner target → **Signing & Capabilities** and confirm **Sign in with Apple** appears; toggle it off/on to refresh the profile.
 
@@ -131,12 +131,17 @@ Configure Apple verification credentials in Rails (`bin/rails credentials:edit`)
 
 ## Secure storage configuration
 
-[`SecureTokenStore`](../../lib/data/api/secure_token_store.dart) pins platform-specific `flutter_secure_storage` options rather than relying on defaults:
+[`SecureTokenStore`](../../lib/data/api/secure_token_store.dart) and [`ByokSecretStore`](../../lib/data/api/byok_secret_store.dart) share one backend, [`secureStorageBackend`](../../lib/data/api/secure_storage_options.dart), which pins platform-specific `flutter_secure_storage` options rather than relying on defaults:
 
 - **Android** — `AndroidOptions()` (Keystore v10 with RSA-OAEP / AES-GCM). Tokens written by older builds with legacy ciphers are auto-migrated on first read; the migration is logged at info level so support can spot tenants on stale ciphers.
 - **iOS** — `IOSOptions(accessibility: KeychainAccessibility.first_unlock)` so tokens survive reboot but are gated on the first device unlock after boot, matching Apple's recommended posture for non-background tokens.
+- **macOS** — `MacOsOptions(accessibility: KeychainAccessibility.first_unlock, usesDataProtectionKeychain: false)`. The macOS **data-protection** keychain requires a `keychain-access-groups` entitlement; a Developer ID direct-download build cannot carry one (adding it makes AMFI kill the app at launch with `-413 "No matching profile found"` — the "launch error 163" the release script warns about), and the data-protection keychain then fails every call with `-34018`. The legacy keychain needs no entitlement, so every macOS build stores its secrets there. See [ADR-0100](../decisions/0100-macos-direct-download-keychain.md).
 
-If you need to add a new platform-specific option, add a constant in `SecureTokenStore` and document the migration story here — do not change the default globally.
+If you need to add a new platform-specific option, add a constant in `secure_storage_options.dart` and document the migration story here — do not change the default globally.
+
+### Deleting a key that is already gone
+
+`flutter_secure_storage_darwin` deletes an item by probing the synchronizable keychain domain first. On the direct-download channel that probe returns `-34018` instead of "not found", so deleting an **absent** key reports a failure even though nothing was left behind. `deleteSecureStorageKey` ([`secure_storage_delete.dart`](../../lib/data/api/secure_storage_delete.dart)) treats `-34018` as "already absent" and lets every other status through, so the cold-start profile cleanup no longer logs a false "secure storage delete failed" warning while a genuinely broken keyring still surfaces.
 
 ### Self-healing keychain writes (iOS/macOS)
 
