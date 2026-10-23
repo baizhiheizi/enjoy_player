@@ -229,7 +229,7 @@ Defaults: package `ai.enjoy.player`, track `alpha`, status `draft`. Override wit
 
 - **Bundle ID**: `ai.enjoy.player` (ADR-0020)
 - iOS: automatic signing in Xcode; export via [`ios/ExportOptions.export.plist`](../ios/ExportOptions.export.plist)
-- macOS direct download: compile unsigned, then **Developer ID Application** sign + notarization in post-steps (`build_macos_release.sh` + `notarize_release.sh` using `ReleaseDirect.entitlements`; Debug/Profile keep Apple Development + `DebugProfile.entitlements` for local runs). Use the app's own `keychain-access-groups` entry (`$(AppIdentifierPrefix)$(CFBundleIdentifier)`) for secure storage — never an empty array (launch error 163) and never Sign in with Apple (unsupported on Developer ID).
+- macOS direct download: compile unsigned, then **Developer ID Application** sign + notarization in post-steps (`build_macos_release.sh` + `notarize_release.sh` using `ReleaseDirect.entitlements`; Debug/Profile keep Apple Development + `DebugProfile.entitlements` for local runs). `ReleaseDirect.entitlements` deliberately carries **no `keychain-access-groups`** and no Sign in with Apple: both are unsupported for Developer ID — a keychain access group makes AMFI kill the app at launch with `-413 "No matching profile found"` (launch error 163), and Sign in with Apple breaks provisioning. Secure storage works on that channel because every macOS build stores its secrets in the legacy keychain instead of the data-protection keychain, which is the only kind a Developer ID build can reach (see [ADR-0100](decisions/0100-macos-direct-download-keychain.md)).
 
 ### Publish credentials (optional)
 

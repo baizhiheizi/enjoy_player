@@ -17,8 +17,10 @@ Future<void> subscribeRecommendedChannel(
   RecommendedChannel channel,
 ) async {
   final l10n = AppLocalizations.of(context)!;
+  final repository = ref.read(discoverRepositoryProvider);
+  final refresh = ref.read(discoverRefreshStateProvider.notifier);
   try {
-    await ref.read(discoverRepositoryProvider).subscribeRecommended(channel);
+    await repository.subscribeRecommended(channel);
   } catch (_) {
     if (context.mounted) {
       AppNotice.error(context, l10n.discoverSubscribeFailed);
@@ -26,11 +28,10 @@ Future<void> subscribeRecommendedChannel(
     return;
   }
 
-  await waitForDiscoverSubscription(ref, channel.channelId);
-  if (!context.mounted) return;
+  await waitForDiscoverSubscription(repository, channel.channelId);
 
   try {
-    await ref.read(discoverRefreshStateProvider.notifier).refresh(force: true);
+    await refresh.refresh(force: true);
     if (context.mounted) {
       AppNotice.success(context, l10n.discoverSubscribed);
     }

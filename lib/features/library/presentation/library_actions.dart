@@ -101,11 +101,11 @@ Future<void> _runBlockingImport(
   required String unsupportedFileLabel,
 }) async {
   final l10n = AppLocalizations.of(context)!;
+  final auth = ref.read(authCtrlProvider).valueOrNull;
   _showImportProgressDialog(context, progressLabel);
   await WidgetsBinding.instance.endOfFrame;
 
   try {
-    final auth = ref.read(authCtrlProvider).valueOrNull;
     if (auth is! AuthSignedIn) return;
     final id = await import(auth.profile.id);
     if (!context.mounted) return;
@@ -147,17 +147,16 @@ Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
   );
   if (contentLanguage == null || !context.mounted) return;
 
+  final repository = ref.read(mediaLibraryRepositoryProvider);
   await _runBlockingImport(
     context,
     ref,
     progressLabel: (d) => d.importingMedia,
-    import: (userId) => ref
-        .read(mediaLibraryRepositoryProvider)
-        .importMedia(
-          XFile(path),
-          signedInUserId: userId,
-          contentLanguage: contentLanguage,
-        ),
+    import: (userId) => repository.importMedia(
+      XFile(path),
+      signedInUserId: userId,
+      contentLanguage: contentLanguage,
+    ),
     importFailureLabel: (l10n) => l10n.importMediaFailed,
     unsupportedFileLabel: AppLocalizations.of(
       context,
@@ -350,16 +349,19 @@ Future<void> importYoutubeFromDialog(
   );
   if (contentLanguage == null || !context.mounted) return;
 
+  final repository = ref.read(mediaLibraryRepositoryProvider);
+  final container = ProviderScope.containerOf(context, listen: false);
   await _runBlockingImport(
     context,
     ref,
     progressLabel: (d) => d.youtubeImporting,
     import: (userId) async {
-      final id = await ref
-          .read(mediaLibraryRepositoryProvider)
-          .importYoutubeVideo(submitted, contentLanguage: contentLanguage);
-      ref.invalidate(libraryMediaProvider);
-      ref.invalidate(libraryHomeRecentsProvider);
+      final id = await repository.importYoutubeVideo(
+        submitted,
+        contentLanguage: contentLanguage,
+      );
+      container.invalidate(libraryMediaProvider);
+      container.invalidate(libraryHomeRecentsProvider);
       return id;
     },
     importFailureLabel: (l10n) => l10n.youtubeImportInvalid,
@@ -373,6 +375,8 @@ Future<void> editMediaLanguage(
   Media media,
 ) async {
   final l10n = AppLocalizations.of(context)!;
+  final repository = ref.read(mediaLibraryRepositoryProvider);
+  final container = ProviderScope.containerOf(context, listen: false);
   final picked = await showContentLanguagePicker(
     context: context,
     ref: ref,
@@ -383,12 +387,10 @@ Future<void> editMediaLanguage(
   if (tagsEqual(picked, media.language)) return;
 
   try {
-    await ref
-        .read(mediaLibraryRepositoryProvider)
-        .updateMediaLanguage(media.id, picked);
-    final session = ref.read(playerControllerProvider);
+    await repository.updateMediaLanguage(media.id, picked);
+    final session = container.read(playerControllerProvider);
     if (session?.mediaId == media.id) {
-      ref
+      container
           .read(playerControllerProvider.notifier)
           .applySessionPatch(session!.copyWith(language: picked));
     }

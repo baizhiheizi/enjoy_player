@@ -1,18 +1,16 @@
 /// Secure storage for BYOK API keys (device-local, not in Drift).
 library;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/data/api/secure_storage_guard.dart';
 import 'package:enjoy_player/data/api/secure_storage_op_lock.dart';
+import 'package:enjoy_player/data/api/secure_storage_options.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
 
 part 'byok_secret_store.g.dart';
-
-const _kAndroidOptions = AndroidOptions();
-const _kIosOptions = IOSOptions(
-  accessibility: KeychainAccessibility.first_unlock,
-);
 
 String byokSecretKeyFor(ModalityKind modality) =>
     'enjoy_player.byok.${modality.name}.api_key';
@@ -27,12 +25,7 @@ abstract interface class ByokSecretStoreBase {
 
 @Riverpod(keepAlive: true)
 ByokSecretStoreBase byokSecretStore(Ref ref) {
-  return ByokSecretStore(
-    const FlutterSecureStorage(
-      aOptions: _kAndroidOptions,
-      iOptions: _kIosOptions,
-    ),
-  );
+  return ByokSecretStore(secureStorageBackend);
 }
 
 class ByokSecretStore implements ByokSecretStoreBase {
@@ -42,9 +35,16 @@ class ByokSecretStore implements ByokSecretStoreBase {
   final FlutterSecureStorage _storage;
   final SecureStorageOpLock _opLock;
 
+  @visibleForTesting
+  FlutterSecureStorage get storage => _storage;
+
   @override
   Future<void> writeApiKey(ModalityKind modality, String apiKey) => _opLock.run(
-    () => _storage.write(key: byokSecretKeyFor(modality), value: apiKey),
+    () => writeSecureStorageKey(
+      _storage,
+      key: byokSecretKeyFor(modality),
+      value: apiKey,
+    ),
   );
 
   @override
@@ -52,8 +52,9 @@ class ByokSecretStore implements ByokSecretStoreBase {
       _opLock.run(() => _storage.read(key: byokSecretKeyFor(modality)));
 
   @override
-  Future<void> deleteApiKey(ModalityKind modality) =>
-      _opLock.run(() => _storage.delete(key: byokSecretKeyFor(modality)));
+  Future<void> deleteApiKey(ModalityKind modality) => _opLock.run(
+    () => deleteSecureStorageKey(_storage, key: byokSecretKeyFor(modality)),
+  );
 
   @override
   Future<bool> hasApiKey(ModalityKind modality) async {

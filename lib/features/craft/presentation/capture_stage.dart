@@ -155,6 +155,7 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
 
   Future<void> _stopRecording() async {
     String? path;
+    final controller = ref.read(craftControllerProvider.notifier);
     try {
       path = await _recorder.stop();
     } catch (e, st) {
@@ -172,7 +173,7 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     if (path == null || path.isEmpty) {
       _log.warning('recorder.stop returned no path');
       _sessionCapturing = false;
-      ref.read(craftControllerProvider.notifier).cancelCapture();
+      controller.cancelCapture();
       if (mounted) setState(() {});
       return;
     }
@@ -187,10 +188,10 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
 
     if (bytes != null && bytes.isNotEmpty) {
       _sessionCapturing = false;
-      await ref.read(craftControllerProvider.notifier).stopCapture(bytes);
+      await controller.stopCapture(bytes);
     } else {
       _sessionCapturing = false;
-      ref.read(craftControllerProvider.notifier).cancelCapture();
+      controller.cancelCapture();
     }
     if (mounted) setState(() {});
   }
@@ -225,9 +226,10 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
 
   /// Discard the current recording without committing to ASR.
   Future<void> _cancelRecording() async {
+    final controller = ref.read(craftControllerProvider.notifier);
     await _discardMicOnly();
     _sessionCapturing = false;
-    ref.read(craftControllerProvider.notifier).cancelCapture();
+    controller.cancelCapture();
   }
 
   Future<void> _resetRecorderInstance() async {
