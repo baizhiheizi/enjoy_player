@@ -1,5 +1,5 @@
 /// Formats IPA with a single leading/trailing slash pair.
-String formatVocabularyIpa(String raw) {
+String formatIpaWithSlashes(String raw) {
   var s = raw.trim();
   while (s.startsWith('/')) {
     s = s.substring(1);

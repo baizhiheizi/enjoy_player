@@ -11,6 +11,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'bulk_pk_rows_mixin.dart';
 import 'drift_isolate_setup.dart';
 import 'media_library_projection.dart';
+import 'media_row_writes_mixin.dart';
 import 'migration_backup.dart';
 import 'settings_keys.dart';
 import 'youtube_subscription_source.dart';

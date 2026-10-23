@@ -88,7 +88,7 @@ New local uploads use **content-addressed** ids: `vid = contentHash` (no `userId
 
 ### Duplicate create recovery
 
-On rare unique races during `POST /mine/videos`, the client retries with `GET /mine/videos/:id`. If that 404s, sync marks the queue item permanently failed (`SyncDuplicateMissingError`). Public catalog GET is no longer used for ownership recovery.
+On rare unique races during `POST /mine/{videos,audios,vocabulary_items,vocabulary_contexts}`, the client retries with the matching `GET …/:id`. If that 404s, sync marks the queue item permanently failed (`SyncDuplicateMissingError`). Recordings deliberately have no duplicate-recovery path — the duplicate propagates to the sync engine. Public catalog GET is no longer used for ownership recovery.
 
 ## Related
 

@@ -1247,4 +1247,92 @@ void main() {
       );
     });
   });
+
+  group('duplicate recovery parity', () {
+    final cases =
+        <
+          ({
+            String name,
+            String postPath,
+            String getPath,
+            Future<void> Function(SyncUploadService) upload,
+          })
+        >[
+          (
+            name: 'audio',
+            postPath: '/api/v1/mine/audios',
+            getPath: '/api/v1/mine/audios/aud-1',
+            upload: (upload) => upload.uploadAudio(_audioRow()),
+          ),
+          (
+            name: 'video',
+            postPath: '/api/v1/mine/videos',
+            getPath: '/api/v1/mine/videos/vid-1',
+            upload: (upload) => upload.uploadVideo(_videoRow()),
+          ),
+          (
+            name: 'vocabulary_item',
+            postPath: '/api/v1/mine/vocabulary_items',
+            getPath: '/api/v1/mine/vocabulary_items/item-1',
+            upload: (upload) => upload.uploadVocabularyItem(_vocabItemRow()),
+          ),
+          (
+            name: 'vocabulary_context',
+            postPath: '/api/v1/mine/vocabulary_contexts',
+            getPath: '/api/v1/mine/vocabulary_contexts/ctx-1',
+            upload: (upload) =>
+                upload.uploadVocabularyContext(_vocabContextRow()),
+          ),
+        ];
+
+    for (final testCase in cases) {
+      test('${testCase.name}: duplicate create + 404 refetch throws '
+          'SyncDuplicateMissingError', () async {
+        final paths = <String>[];
+        final mock = MockClient((request) async {
+          paths.add('${request.method} ${request.url.path}');
+          if (request.method == 'POST') {
+            return http.Response(
+              jsonEncode('Key (id) already exists.'),
+              400,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response('null', 404);
+        });
+
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final upload = _service(db, _client(mock));
+
+        await expectLater(
+          testCase.upload(upload),
+          throwsA(isA<SyncDuplicateMissingError>()),
+        );
+        expect(paths, ['POST ${testCase.postPath}', 'GET ${testCase.getPath}']);
+      });
+    }
+
+    test('recording: duplicate create is rethrown without a refetch', () async {
+      final paths = <String>[];
+      final mock = MockClient((request) async {
+        paths.add('${request.method} ${request.url.path}');
+        return http.Response(
+          jsonEncode('Key (id) already exists.'),
+          400,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final upload = _service(db, _client(mock));
+
+      await expectLater(
+        upload.uploadRecording(_recordingRow()),
+        throwsA(isA<ApiException>()),
+      );
+      expect(paths, ['POST /api/v1/mine/recordings']);
+    });
+  });
 }

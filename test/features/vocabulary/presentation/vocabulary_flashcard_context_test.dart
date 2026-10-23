@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/utils/ipa_formatter.dart';
 import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -88,10 +89,10 @@ VocabularyFlashcard _card({
 }
 
 void main() {
-  test('formatVocabularyIpa strips duplicate slashes', () {
-    expect(formatVocabularyIpa('ɪnˈvɪʒən'), '/ɪnˈvɪʒən/');
-    expect(formatVocabularyIpa('/ɪnˈvɪʒən/'), '/ɪnˈvɪʒən/');
-    expect(formatVocabularyIpa('//ɪnˈvɪʒən//'), '/ɪnˈvɪʒən/');
+  test('formatIpaWithSlashes strips duplicate slashes', () {
+    expect(formatIpaWithSlashes('ɪnˈvɪʒən'), '/ɪnˈvɪʒən/');
+    expect(formatIpaWithSlashes('/ɪnˈvɪʒən/'), '/ɪnˈvɪʒən/');
+    expect(formatIpaWithSlashes('//ɪnˈvɪʒən//'), '/ɪnˈvɪʒən/');
   });
 
   test('stripRedundantContextualHeading drops duplicate translation H2', () {

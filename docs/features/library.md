@@ -50,6 +50,17 @@ The day count is measured between **UTC midnights** built from the two local cal
 
 **Tab header counts and narrow views** (issue #818, #968 C2): the per-kind totals in the tab headers come from `libraryKindCountsProvider` → `MediaRegistry.watchKindCounts()`, which now issues a `COUNT(*)` per table without materializing rows. Library tabs read per-kind `watchByKind` views ordered on the `updated_at` index instead of one merged whole-catalog `watchAll`; Home's Continue card resolves only the recent sessions' target ids (`watchByIds`); Craft history uses `watchByProvider('craft')` on the new `idx_audios_provider`. `watchAll` remains for export and tests. The counts are the **unfiltered** totals, so a search query still reports "N of M" against the full library.
 
+## Media registry stream merging
+
+`MediaRegistry` merges the `videos` and `audios` Drift streams behind one broadcast stream per watch method (`watchAll`, `watchByProvider`, `watchByIds`, `watchRecentByUpdatedAt`). The merge layer in [`media_registry_streams.dart`](../../lib/data/db/media_registry_streams.dart) must keep four behaviors pinned by [`media_registry_test.dart`](../../test/data/db/media_registry_test.dart):
+
+- **Dedupe.** A re-query that pushes unchanged rows back (a `playbackSessionPersister` write bumping `updatedAt`, a duration probe flipping one row, a no-op `insertOrReplace`) must not re-emit — neither the raw-snapshot gate inside `emit` nor the output-level gate on `StreamDistinctExt.distinctBy`, so each listener keeps its own "last seen" list.
+- **Empty first emission.** `distinctBy` forwards a listener's first value unconditionally, so an empty library still produces its first emission — the historical `a12634c3` bug stays fixed and pinned by `library_repository_test.dart`.
+- **Same-turn coalescing** (PR #756). The two DAO listeners only buffer their snapshot and schedule ONE `emit` on a microtask, so a both-tables change that re-delivers on both streams within the same event-loop turn is merged into a single emission instead of a partial-then-full pair. A microtask always runs before its turn ends, so single-table writes still emit immediately; waiting for the sibling stream "to have produced since the last emit" would deadlock single-table updates, whose sibling stream legitimately never re-emits. When deliveries do straddle microtask hops the old partial-then-full fallback stands — a redundant rebuild, strictly better than a stalled one.
+- **Multi-subscription.** The merge is built per listener — each listener gets its own DAO subscriptions, buffers, and coalescing flag — and the returned stream is broadcast.
+
+The per-listener merge is a deliberate tradeoff, not an oversight (review on #801): N concurrent listeners hold N×2 DAO subscriptions; hoisting the merge into ONE shared broadcast would need a replay cache plus refcounted start/stop of the shared DAO subscriptions — hand-rolled broadcast machinery, i.e. exactly what #794 candidate 6 retired onto `distinctBy`. Each listener pays one cheap in-memory subscription pair, and dedupe state, coalescing, and the `closed` cancellation guard stay strictly per listener with no cross-talk.
+
 ## Future
 
 - Metadata editing, search filters.

@@ -6,12 +6,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/ai/application/ai_cache_fingerprint.dart';
 import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
+import 'package:enjoy_player/features/ai/presentation/widgets/dictionary_senses_view.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
@@ -115,13 +115,7 @@ class _DictionaryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
     final t = EnjoyThemeTokens.of(context);
-    final lemmaTrim = d.lemma?.trim();
-    final showLemma =
-        lemmaTrim != null && lemmaTrim.isNotEmpty && lemmaTrim != d.word.trim();
-    final ipaTrim = d.ipa?.trim();
-    final hasIpa = ipaTrim != null && ipaTrim.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,138 +139,8 @@ class _DictionaryBody extends StatelessWidget {
             ],
           ),
         ),
-        if (hasIpa || showLemma) ...[
-          SizedBox(height: t.space4),
-          Wrap(
-            spacing: t.space8,
-            runSpacing: t.space4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              if (hasIpa)
-                Text(
-                  ipaTrim,
-                  style: tt.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              if (showLemma)
-                Text(
-                  '${l10n.lookupLemma} · $lemmaTrim',
-                  style: tt.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-                ),
-            ],
-          ),
-        ],
         SizedBox(height: t.space12),
-        for (var i = 0; i < d.senses.length; i++) ...[
-          if (i > 0) ...[
-            SizedBox(height: t.space4),
-            Divider(
-              height: 1,
-              color: scheme.outlineVariant.withValues(alpha: 0.2),
-            ),
-            SizedBox(height: t.space4),
-          ],
-          _SenseTile(sense: d.senses[i], l10n: l10n),
-        ],
-      ],
-    );
-  }
-}
-
-class _SenseTile extends StatelessWidget {
-  const _SenseTile({required this.sense, required this.l10n});
-
-  final DictionarySense sense;
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    final t = EnjoyThemeTokens.of(context);
-    final pos = sense.partOfSpeech?.trim();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final translationColor = isDark ? AppColors.brandOnDark : scheme.primary;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (pos != null && pos.isNotEmpty) ...[
-          Text(
-            pos,
-            style: tt.labelSmall?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.4,
-            ),
-          ),
-          SizedBox(height: t.space4),
-        ],
-        if (sense.definition.trim().isNotEmpty)
-          SelectableText(
-            sense.definition,
-            style: tt.bodyMedium?.copyWith(height: 1.4),
-          ),
-        if (sense.translation != null &&
-            sense.translation!.trim().isNotEmpty) ...[
-          SizedBox(height: t.space4),
-          SelectableText(
-            sense.translation!,
-            style: tt.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: translationColor,
-            ),
-          ),
-        ],
-        if (sense.examples != null && sense.examples!.isNotEmpty) ...[
-          SizedBox(height: t.space8),
-          for (final ex in sense.examples!)
-            Padding(
-              padding: EdgeInsets.only(bottom: t.space8),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    left: BorderSide(
-                      width: 2,
-                      color: scheme.primary.withValues(alpha: 0.45),
-                    ),
-                  ),
-                ),
-                padding: EdgeInsetsDirectional.only(start: t.space12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      ex.source,
-                      style: tt.bodySmall?.copyWith(height: 1.4),
-                    ),
-                    if (ex.target != null && ex.target!.trim().isNotEmpty) ...[
-                      SizedBox(height: t.space4),
-                      SelectableText(
-                        ex.target!,
-                        style: tt.bodySmall?.copyWith(
-                          height: 1.4,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-        ],
-        if (sense.notes != null && sense.notes!.trim().isNotEmpty) ...[
-          SizedBox(height: t.space4),
-          Text(
-            sense.notes!,
-            style: tt.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              height: 1.35,
-            ),
-          ),
-        ],
+        DictionarySensesView(result: d, lemmaLabel: l10n.lookupLemma),
       ],
     );
   }
