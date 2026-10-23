@@ -78,13 +78,12 @@ Stream<List<DiscoverChannel>> discoverSubscriptions(Ref ref) {
 
 /// Waits until [channelId] appears on [discoverSubscriptionsProvider]'s stream.
 Future<void> waitForDiscoverSubscription(
-  WidgetRef ref,
+  DiscoverRepository repository,
   String channelId,
 ) async {
-  final repo = ref.read(discoverRepositoryProvider);
-  if (await repo.getSubscription(channelId) != null) return;
+  if (await repository.getSubscription(channelId) != null) return;
 
-  await repo.watchSubscriptions().firstWhere(
+  await repository.watchSubscriptions().firstWhere(
     (subs) => subs.any((s) => s.channelId == channelId),
   );
 }
