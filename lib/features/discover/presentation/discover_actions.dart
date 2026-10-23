@@ -26,6 +26,7 @@ Future<void> subscribeRecommendedChannel(
     return;
   }
 
+  if (!context.mounted) return;
   await waitForDiscoverSubscription(ref, channel.channelId);
   if (!context.mounted) return;
 

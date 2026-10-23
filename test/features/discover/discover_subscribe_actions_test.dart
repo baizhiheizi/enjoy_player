@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -32,6 +34,21 @@ class _FailingDiscoverRepository extends DiscoverRepository {
   @override
   Future<void> subscribeRecommended(RecommendedChannel channel) async {
     throw Exception('subscribe failed');
+  }
+}
+
+class _BlockingDiscoverRepository extends DiscoverRepository {
+  _BlockingDiscoverRepository(
+    super.db, {
+    required super.libraryRepository,
+    required this.gate,
+  });
+
+  final Completer<void> gate;
+
+  @override
+  Future<void> subscribeRecommended(RecommendedChannel channel) async {
+    await gate.future;
   }
 }
 
@@ -126,5 +143,29 @@ void main() {
       );
       expect(find.text('Could not subscribe to that channel.'), findsOneWidget);
     });
+
+    testWidgets(
+      'does not read a disposed ref when the screen closes mid-subscribe',
+      (tester) async {
+        final gate = Completer<void>();
+        final repo = _BlockingDiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          gate: gate,
+        );
+
+        await tester.pumpWidget(_wrap(db: db, repo: repo));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Subscribe recommended'));
+        await tester.pump();
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        gate.complete();
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }
