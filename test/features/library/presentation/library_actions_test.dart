@@ -80,6 +80,21 @@ class _SessionPlayerController extends PlayerController {
   PlaybackSession? build() => _session;
 }
 
+class _PatchingPlayerController extends PlayerController {
+  _PatchingPlayerController(this._session);
+  final PlaybackSession _session;
+
+  int patchCalls = 0;
+
+  @override
+  PlaybackSession? build() => _session;
+
+  @override
+  void applySessionPatch(PlaybackSession patched) {
+    patchCalls++;
+  }
+}
+
 class _FakePrefsCtrl extends AppPreferencesCtrl {
   _FakePrefsCtrl(this._value);
   final AppPreferencesState _value;
@@ -93,6 +108,7 @@ class _CountingLibraryRepository implements MediaLibraryRepository {
 
   final Object? deleteThrows;
 
+  Completer<void>? updateGate;
   int deleteCalls = 0;
   int updateCalls = 0;
   String? lastDeletedId;
@@ -111,6 +127,8 @@ class _CountingLibraryRepository implements MediaLibraryRepository {
     updateCalls++;
     lastUpdatedId = id;
     lastUpdatedLanguage = language;
+    final gate = updateGate;
+    if (gate != null) await gate.future;
   }
 
   @override
@@ -157,12 +175,34 @@ enum _ActionKind {
   final String label;
 }
 
+List<Override> _overrides({
+  required _CountingLibraryRepository repo,
+  AuthState authState = const AuthSignedIn(profile: _profile),
+  PlaybackSession? session,
+  PlayerController? controller,
+}) => [
+  authCtrlProvider.overrideWith(() => _FakeAuthCtrl(authState)),
+  mediaLibraryRepositoryProvider.overrideWithValue(repo),
+  playerControllerProvider.overrideWith(() {
+    if (controller != null) return controller;
+    if (session != null) {
+      return _SessionPlayerController(session);
+    }
+    return _NoSessionPlayerController();
+  }),
+  appPreferencesCtrlProvider.overrideWith(
+    () => _FakePrefsCtrl(AppPreferencesState.initial),
+  ),
+];
+
 Widget _wrap({
   required _CountingLibraryRepository repo,
   required _ActionKind action,
   required Media media,
   AuthState authState = const AuthSignedIn(profile: _profile),
   PlaybackSession? session,
+  PlayerController? controller,
+  ProviderContainer? container,
 }) {
   final router = GoRouter(
     initialLocation: '/',
@@ -179,27 +219,23 @@ Widget _wrap({
   );
   addTearDown(router.dispose);
 
-  final overrides = <Override>[
-    authCtrlProvider.overrideWith(() => _FakeAuthCtrl(authState)),
-    mediaLibraryRepositoryProvider.overrideWithValue(repo),
-    playerControllerProvider.overrideWith(() {
-      if (session != null) {
-        return _SessionPlayerController(session);
-      }
-      return _NoSessionPlayerController();
-    }),
-    appPreferencesCtrlProvider.overrideWith(
-      () => _FakePrefsCtrl(AppPreferencesState.initial),
-    ),
-  ];
+  final overrides = _overrides(
+    repo: repo,
+    authState: authState,
+    session: session,
+    controller: controller,
+  );
 
   final scheme = ColorScheme.fromSeed(
     seedColor: const Color(0xFF7B61FF),
     brightness: Brightness.dark,
   );
 
-  return ProviderScope(
-    overrides: overrides,
+  final scope = container ?? ProviderContainer(overrides: overrides);
+  if (container == null) addTearDown(scope.dispose);
+
+  return UncontrolledProviderScope(
+    container: scope,
     child: MaterialApp.router(
       theme: ThemeData(
         colorScheme: scheme,
@@ -387,5 +423,63 @@ void main() {
 
       expect(repo.updateCalls, 0);
     });
+
+    testWidgets(
+      'applies the saved language to the open session when the screen closes mid-save',
+      (tester) async {
+        final gate = Completer<void>();
+        final repo = _CountingLibraryRepository()..updateGate = gate;
+        final controller = _PatchingPlayerController(
+          PlaybackSession(
+            mediaId: _otherMedia.id,
+            dexieTargetType: 'Video',
+            mediaType: 'video',
+            mediaTitle: 'Other',
+            durationSeconds: 10,
+            currentTimeSeconds: 0,
+            currentSegmentIndex: 0,
+            language: 'es',
+            startedAt: DateTime.utc(2024, 1, 1),
+            lastActiveAt: DateTime.utc(2024, 1, 1),
+          ),
+        );
+
+        final container = ProviderContainer(
+          overrides: _overrides(repo: repo, controller: controller),
+        );
+        addTearDown(container.dispose);
+
+        await tester.pumpWidget(
+          _wrap(
+            repo: repo,
+            action: _ActionKind.editLanguage,
+            media: _otherMedia,
+            controller: controller,
+            container: container,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Edit language'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('English (US)'));
+        await tester.pumpAndSettle();
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const SizedBox.shrink(),
+          ),
+        );
+        gate.complete();
+        await tester.pumpAndSettle();
+
+        expect(repo.updateCalls, 1);
+        expect(repo.lastUpdatedLanguage, 'en-US');
+        expect(controller.patchCalls, 1);
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }

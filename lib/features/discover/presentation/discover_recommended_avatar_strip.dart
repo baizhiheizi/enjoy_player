@@ -88,12 +88,12 @@ class _DiscoverRecommendedAvatarStripState
             primary: false,
             itemCount: available.length,
             separatorBuilder: (_, _) => SizedBox(width: t.space12),
-            itemBuilder: (context, index) {
+            itemBuilder: (itemContext, index) {
               final channel = available[index];
               return _RecommendedAvatarTile(
                 channel: channel,
                 onTap: () {
-                  Haptics.selection(context);
+                  Haptics.selection(itemContext);
                   unawaited(subscribeRecommendedChannel(context, ref, channel));
                 },
               );

@@ -215,12 +215,13 @@ mixin _CloudItemMembershipMixin<W extends ConsumerStatefulWidget>
   Future<void> addToLibrary() async {
     final l10n = AppLocalizations.of(context)!;
     final add = ref.read(cloudAddToLibraryProvider);
+    final container = ProviderScope.containerOf(context, listen: false);
     setState(() => _busy = true);
     try {
       await add.add(cloudItem);
-      ref.invalidate(libraryMediaProvider);
-      ref.invalidate(libraryHomeRecentsProvider);
-      ref.invalidate(libraryFilteredListsProvider);
+      container.invalidate(libraryMediaProvider);
+      container.invalidate(libraryHomeRecentsProvider);
+      container.invalidate(libraryFilteredListsProvider);
       if (!mounted) return;
       setState(() {
         _inLibrary = true;
