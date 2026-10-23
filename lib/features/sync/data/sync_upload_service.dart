@@ -152,10 +152,15 @@ class SyncUploadService {
   }
 
   Future<void> uploadRecording(RecordingRow row) async {
-    final response = await _recordingApi.uploadRecording(
-      prepareForSyncRecordingMap(row),
+    final inner = await _uploadOrRecover(
+      upload: () =>
+          _recordingApi.uploadRecording(prepareForSyncRecordingMap(row)),
+      fetch: () => _recordingApi.recording(row.id),
+      entity: 'recording',
+      id: row.id,
+      envelopeKey: 'recording',
+      recoverFromDuplicate: false,
     );
-    final inner = unwrapEntity(response, 'recording');
     final serverUpdated = _requireServerUpdated(
       inner,
       entity: 'recording',
@@ -227,6 +232,9 @@ class SyncUploadService {
   /// [ensureUpdatedAtOnCreate] covers the vocabulary endpoints that may answer
   /// a create with `{ success: true }`; the duplicate refetch never needs it
   /// because the fetched row is the server row itself.
+  ///
+  /// [recoverFromDuplicate] is `false` for recordings, whose create endpoint
+  /// has no by-id refetch policy — the duplicate propagates to the sync engine.
   Future<Map<String, dynamic>> _uploadOrRecover({
     required Future<Map<String, dynamic>> Function() upload,
     required Future<Map<String, dynamic>> Function() fetch,
@@ -234,6 +242,7 @@ class SyncUploadService {
     required String id,
     required String envelopeKey,
     bool ensureUpdatedAtOnCreate = false,
+    bool recoverFromDuplicate = true,
   }) async {
     try {
       final inner = unwrapEntity(await upload(), envelopeKey);
@@ -246,7 +255,7 @@ class SyncUploadService {
         envelopeKey: envelopeKey,
       );
     } on ApiException catch (e) {
-      if (!e.isDuplicateEntity) rethrow;
+      if (!recoverFromDuplicate || !e.isDuplicateEntity) rethrow;
       _log.fine('$entity $id already on server; fetching existing row');
       try {
         return unwrapEntity(await fetch(), envelopeKey);

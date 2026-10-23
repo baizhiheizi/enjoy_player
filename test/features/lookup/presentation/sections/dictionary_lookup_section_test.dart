@@ -175,6 +175,35 @@ void main() {
     expect(find.textContaining('Lemma ·'), findsNothing);
   });
 
+  testWidgets('keeps the headword-to-sense gap when the header is absent', (
+    tester,
+  ) async {
+    const result = DictionaryResult(
+      word: 'hello',
+      sourceLanguage: 'en',
+      targetLanguage: 'zh',
+      lemma: 'hello',
+      senses: [DictionarySense(definition: 'a greeting')],
+    );
+    await tester.pumpWidget(
+      _harness(
+        overrides: baseOverrides(capability: _FakeDictionaryCapability(result)),
+        child: const DictionaryLookupSection(
+          request: LookupRequest(
+            selectedText: 'hello',
+            sourceLanguage: 'en',
+            targetLanguage: 'zh',
+          ),
+        ),
+      ),
+    );
+    await _expand(tester);
+
+    final headwordBottom = tester.getBottomLeft(find.text('hello')).dy;
+    final senseTop = tester.getTopLeft(find.text('a greeting')).dy;
+    expect(senseTop - headwordBottom, moreOrLessEquals(12, epsilon: 0.01));
+  });
+
   testWidgets('shows AuthRequiredCallout on AuthFailure', (tester) async {
     await tester.pumpWidget(
       _harness(
