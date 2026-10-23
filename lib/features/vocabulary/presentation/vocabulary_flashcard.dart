@@ -10,19 +10,17 @@ import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/utils/ipa_formatter.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/pronounce/application/pronounce_playback_controller.dart';
 import 'package:enjoy_player/features/pronounce/domain/pronounce_target.dart';
 import 'package:enjoy_player/features/pronounce/presentation/pronounce_icon_button.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
-import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_ipa_formatter.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_text_style.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_flashcard_context_tab.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_flashcard_dictionary_tab.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-
-export 'package:enjoy_player/features/vocabulary/presentation/vocabulary_ipa_formatter.dart';
 
 class VocabularyFlashcard extends ConsumerWidget {
   const VocabularyFlashcard({
@@ -167,7 +165,7 @@ class _FlashcardFront extends StatelessWidget {
     final dictionary = decodeDictionaryExplanation(explanation);
     final ipa = dictionary?.ipa == null
         ? ''
-        : formatVocabularyIpa(dictionary!.ipa!);
+        : formatIpaWithSlashes(dictionary!.ipa!);
     final pos = dictionary?.senses
         .map((s) => s.partOfSpeech?.trim())
         .whereType<String>()
