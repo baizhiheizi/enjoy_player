@@ -78,25 +78,15 @@ class SyncUploadService {
       signedId = await _craftAudioCloudUploader.uploadIfNeeded(row);
     }
 
-    Map<String, dynamic> inner;
-    try {
-      final response = await _audioApi.uploadAudio(
+    final inner = await _uploadOrRecover(
+      upload: () => _audioApi.uploadAudio(
         prepareForSyncAudioMap(row, signedId: signedId),
-      );
-      inner = unwrapEntity(response, 'audio');
-    } on ApiException catch (e) {
-      if (!e.isDuplicateEntity) rethrow;
-      _log.fine('audio ${row.id} already on server; fetching existing row');
-      try {
-        final response = await _audioApi.audio(row.id);
-        inner = unwrapEntity(response, 'audio');
-      } on ApiException catch (fetchError) {
-        if (fetchError.statusCode == 404) {
-          throw SyncDuplicateMissingError('audio', row.id);
-        }
-        rethrow;
-      }
-    }
+      ),
+      fetch: () => _audioApi.audio(row.id),
+      entity: 'audio',
+      id: row.id,
+      envelopeKey: 'audio',
+    );
 
     final serverMediaUrl = inner['mediaUrl'] as String? ?? row.mediaUrl;
     if (row.provider == 'craft' &&
@@ -132,23 +122,14 @@ class SyncUploadService {
     await _persistSyncedVideo(row, inner);
   }
 
-  Future<Map<String, dynamic>> _uploadVideoPayload(VideoRow row) async {
-    try {
-      final response = await _videoApi.uploadVideo(prepareForSyncVideoMap(row));
-      return unwrapEntity(response, 'video');
-    } on ApiException catch (e) {
-      if (!e.isDuplicateEntity) rethrow;
-      _log.fine('video ${row.id} already on server; fetching mine row');
-      try {
-        final response = await _videoApi.video(row.id);
-        return unwrapEntity(response, 'video');
-      } on ApiException catch (fetchError) {
-        if (fetchError.statusCode == 404) {
-          throw SyncDuplicateMissingError('video', row.id);
-        }
-        rethrow;
-      }
-    }
+  Future<Map<String, dynamic>> _uploadVideoPayload(VideoRow row) {
+    return _uploadOrRecover(
+      upload: () => _videoApi.uploadVideo(prepareForSyncVideoMap(row)),
+      fetch: () => _videoApi.video(row.id),
+      entity: 'video',
+      id: row.id,
+      envelopeKey: 'video',
+    );
   }
 
   Future<void> _persistSyncedVideo(
@@ -191,33 +172,16 @@ class SyncUploadService {
   }
 
   Future<void> uploadVocabularyItem(VocabularyItemRow row) async {
-    Map<String, dynamic> inner;
-    try {
-      final response = await _vocabularyApi.uploadVocabularyItem(
+    final inner = await _uploadOrRecover(
+      upload: () => _vocabularyApi.uploadVocabularyItem(
         prepareForSyncVocabularyItemMap(row),
-      );
-      inner = await _ensureUpdatedAt(
-        unwrapEntity(response, 'vocabularyItem'),
-        entity: 'vocabulary_item',
-        id: row.id,
-        fetchById: () => _vocabularyApi.vocabularyItem(row.id),
-        envelopeKey: 'vocabularyItem',
-      );
-    } on ApiException catch (e) {
-      if (!e.isDuplicateEntity) rethrow;
-      _log.fine(
-        'vocabulary item ${row.id} already on server; fetching existing row',
-      );
-      try {
-        final response = await _vocabularyApi.vocabularyItem(row.id);
-        inner = unwrapEntity(response, 'vocabularyItem');
-      } on ApiException catch (fetchError) {
-        if (fetchError.statusCode == 404) {
-          throw SyncDuplicateMissingError('vocabulary_item', row.id);
-        }
-        rethrow;
-      }
-    }
+      ),
+      fetch: () => _vocabularyApi.vocabularyItem(row.id),
+      entity: 'vocabulary_item',
+      id: row.id,
+      envelopeKey: 'vocabularyItem',
+      ensureUpdatedAtOnCreate: true,
+    );
     final serverUpdated = _requireServerUpdated(
       inner,
       entity: 'vocabulary_item',
@@ -233,33 +197,16 @@ class SyncUploadService {
   }
 
   Future<void> uploadVocabularyContext(VocabularyContextRow row) async {
-    Map<String, dynamic> inner;
-    try {
-      final response = await _vocabularyApi.uploadVocabularyContext(
+    final inner = await _uploadOrRecover(
+      upload: () => _vocabularyApi.uploadVocabularyContext(
         prepareForSyncVocabularyContextMap(row),
-      );
-      inner = await _ensureUpdatedAt(
-        unwrapEntity(response, 'vocabularyContext'),
-        entity: 'vocabulary_context',
-        id: row.id,
-        fetchById: () => _vocabularyApi.vocabularyContext(row.id),
-        envelopeKey: 'vocabularyContext',
-      );
-    } on ApiException catch (e) {
-      if (!e.isDuplicateEntity) rethrow;
-      _log.fine(
-        'vocabulary context ${row.id} already on server; fetching existing row',
-      );
-      try {
-        final response = await _vocabularyApi.vocabularyContext(row.id);
-        inner = unwrapEntity(response, 'vocabularyContext');
-      } on ApiException catch (fetchError) {
-        if (fetchError.statusCode == 404) {
-          throw SyncDuplicateMissingError('vocabulary_context', row.id);
-        }
-        rethrow;
-      }
-    }
+      ),
+      fetch: () => _vocabularyApi.vocabularyContext(row.id),
+      entity: 'vocabulary_context',
+      id: row.id,
+      envelopeKey: 'vocabularyContext',
+      ensureUpdatedAtOnCreate: true,
+    );
     final serverUpdated = _requireServerUpdated(
       inner,
       entity: 'vocabulary_context',
@@ -272,6 +219,44 @@ class SyncUploadService {
         updatedAt: serverUpdated,
       ),
     );
+  }
+
+  /// Creates [entity] and recovers the server row when the create reports a
+  /// duplicate: refetch by id, and treat a 404 as [SyncDuplicateMissingError].
+  ///
+  /// [ensureUpdatedAtOnCreate] covers the vocabulary endpoints that may answer
+  /// a create with `{ success: true }`; the duplicate refetch never needs it
+  /// because the fetched row is the server row itself.
+  Future<Map<String, dynamic>> _uploadOrRecover({
+    required Future<Map<String, dynamic>> Function() upload,
+    required Future<Map<String, dynamic>> Function() fetch,
+    required String entity,
+    required String id,
+    required String envelopeKey,
+    bool ensureUpdatedAtOnCreate = false,
+  }) async {
+    try {
+      final inner = unwrapEntity(await upload(), envelopeKey);
+      if (!ensureUpdatedAtOnCreate) return inner;
+      return await _ensureUpdatedAt(
+        inner,
+        entity: entity,
+        id: id,
+        fetchById: fetch,
+        envelopeKey: envelopeKey,
+      );
+    } on ApiException catch (e) {
+      if (!e.isDuplicateEntity) rethrow;
+      _log.fine('$entity $id already on server; fetching existing row');
+      try {
+        return unwrapEntity(await fetch(), envelopeKey);
+      } on ApiException catch (fetchError) {
+        if (fetchError.statusCode == 404) {
+          throw SyncDuplicateMissingError(entity, id);
+        }
+        rethrow;
+      }
+    }
   }
 
   /// Older mine vocabulary create endpoints returned `{ success: true }`
