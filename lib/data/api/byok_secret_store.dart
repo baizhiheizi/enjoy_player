@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:enjoy_player/data/api/secure_storage_delete.dart';
+import 'package:enjoy_player/data/api/secure_storage_guard.dart';
 import 'package:enjoy_player/data/api/secure_storage_op_lock.dart';
 import 'package:enjoy_player/data/api/secure_storage_options.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
@@ -40,7 +40,11 @@ class ByokSecretStore implements ByokSecretStoreBase {
 
   @override
   Future<void> writeApiKey(ModalityKind modality, String apiKey) => _opLock.run(
-    () => _storage.write(key: byokSecretKeyFor(modality), value: apiKey),
+    () => writeSecureStorageKey(
+      _storage,
+      key: byokSecretKeyFor(modality),
+      value: apiKey,
+    ),
   );
 
   @override

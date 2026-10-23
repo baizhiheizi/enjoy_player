@@ -9,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/api/secure_storage_delete.dart';
+import 'package:enjoy_player/data/api/secure_storage_guard.dart';
 import 'package:enjoy_player/data/api/secure_storage_op_lock.dart';
 import 'package:enjoy_player/data/api/secure_storage_options.dart';
 
@@ -115,23 +115,9 @@ class SecureTokenStore {
   Future<void> _deleteRaw(String key) =>
       deleteSecureStorageKey(_storage, key: key);
 
-  /// Writes to the keychain/keystore, self-healing from a stale entry that
-  /// conflicts with the current write, and — on Linux — verifying the value
-  /// actually stuck.
-  ///
-  /// On iOS/macOS, `flutter_secure_storage`'s `write()` first checks
-  /// existence with a query that includes `kSecAttrAccessible` (our pinned
-  /// `first_unlock`), then falls back to `SecItemAdd` when nothing matches.
-  /// `kSecAttrAccessible` is **not** part of a keychain item's primary key,
-  /// so a leftover item for the same account/service stored under a
-  /// *different* accessibility (e.g. from an older app build, or a run that
-  /// was killed mid-write) makes that existence check report "not found"
-  /// while `SecItemAdd` still finds a primary-key collision — surfacing as
-  /// `PlatformException(Unexpected security result code, ..., -25299 /
-  /// errSecDuplicateItem, ...)` and permanently blocking sign-in (see the
-  /// PKCE callback failure this was introduced to fix). Deleting the key
-  /// (which searches without an accessibility filter) and retrying once
-  /// clears any such stale entry regardless of its accessibility level.
+  /// Writes to the keychain/keystore, healing a stale entry that conflicts
+  /// with the current write, and — on Linux — verifying the value actually
+  /// stuck.
   Future<void> _writeResilient(String key, String value) async {
     await _writeWithDuplicateHeal(key, value);
     if (defaultTargetPlatform != TargetPlatform.linux) return;
@@ -151,24 +137,6 @@ class SecureTokenStore {
     );
   }
 
-  Future<void> _writeWithDuplicateHeal(String key, String value) async {
-    try {
-      await _storage.write(key: key, value: value);
-    } on PlatformException catch (e) {
-      if (!_isDuplicateKeychainItem(e)) rethrow;
-      _log.warning(
-        'secure storage write hit a stale keychain item for "$key" '
-        '(errSecDuplicateItem); deleting and retrying once',
-        e,
-      );
-      await _deleteRaw(key);
-      await _storage.write(key: key, value: value);
-    }
-  }
-
-  static bool _isDuplicateKeychainItem(PlatformException e) {
-    const errSecDuplicateItem = -25299;
-    return e.details == errSecDuplicateItem ||
-        (e.message?.contains('$errSecDuplicateItem') ?? false);
-  }
+  Future<void> _writeWithDuplicateHeal(String key, String value) =>
+      writeSecureStorageKey(_storage, key: key, value: value, log: _log);
 }

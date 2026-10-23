@@ -183,11 +183,22 @@ void main() {
     );
 
     test('clearing the session survives a missing entitlement', () async {
+      final records = <LogRecord>[];
+      final subscription = Logger(
+        'secureTokenStore',
+      ).onRecord.listen(records.add);
+      addTearDown(subscription.cancel);
       final store = SecureTokenStore(_MissingEntitlementStorage());
 
       await expectLater(store.clearAccessToken(), completes);
       await expectLater(store.clearRefreshToken(), completes);
       await expectLater(store.clearTokenExpiresAt(), completes);
+      expect(
+        records.where(
+          (r) => r.message.contains('secure storage delete failed'),
+        ),
+        isEmpty,
+      );
     });
 
     test('signing out survives a missing entitlement', () async {

@@ -88,6 +88,20 @@ plugin delete [item ABSENT]                  : sync=-34018 nonSync=-25300 verdic
 A `-34018` from a delete therefore means "already gone", not "secret still
 on disk" — but the app logged it as a failure on every cold start.
 
+The status is specific to the **delete** probe. The matching **copy** probe —
+the one `containsKey()` uses as its write gate — returns `errSecItemNotFound`
+on the same channel, so an existing key is still found and the write still
+updates it:
+
+```
+containsKey sync/nonSync/verdict (item absent) : -25300 / -25300 / -25300
+containsKey sync/nonSync/verdict (item present) : -25300 / 0      / 0
+plugin write [EXISTING key]                     : exists=true  status=0
+```
+
+Only the synchronizable **delete** is entitlement-gated, which is why the
+`-34018` shows up on deletes and not on writes.
+
 ## Decision
 
 1. **The direct channel keeps no keychain access group.** `ReleaseDirect.entitlements`
@@ -102,12 +116,16 @@ on disk" — but the app logged it as a failure on every cold start.
    included, where the data-protection keychain would also have worked. One
    store can no longer drift from the others.
 
-3. **Deletes treat a missing entitlement as "already absent".**
-   `deleteSecureStorageKey` ([`lib/data/api/secure_storage_delete.dart`](../../lib/data/api/secure_storage_delete.dart))
-   swallows `-34018` and lets every other status through. `SecureTokenStore`
-   and `ByokSecretStore` both delete through it, so the misleading
+3. **Deletes treat a missing entitlement as "already absent", and writes heal a
+   stale item.** [`secure_storage_guard.dart`](../../lib/data/api/secure_storage_guard.dart)
+   holds the keychain status handling every store shares:
+   `deleteSecureStorageKey` swallows `-34018` and lets every other status
+   through, and `writeSecureStorageKey` clears an item that reports
+   `errSecDuplicateItem` (-25299) and retries the write once. `SecureTokenStore`
+   and `ByokSecretStore` both go through them, so the misleading
    "secure storage delete failed" warning is gone from the direct channel
-   while a genuinely broken keyring still surfaces.
+   while a genuinely broken keyring still surfaces — and a BYOK key that
+   cannot be re-saved is cleared instead of failing the save.
 
 4. **The stale documentation is corrected.** `docs/packaging.md` and
    `docs/features/auth.md` claimed the direct build ships an app keychain

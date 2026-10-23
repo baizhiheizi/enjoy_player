@@ -71,6 +71,53 @@ class _MissingEntitlementStorage extends FlutterSecureStorage {
   }
 }
 
+class _DuplicateItemOnceStorage extends FlutterSecureStorage {
+  _DuplicateItemOnceStorage(this._failingKeys);
+
+  final Set<String> _failingKeys;
+
+  final Map<String, String> written = {};
+  final List<String> deletedKeys = [];
+  int writeAttempts = 0;
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    writeAttempts++;
+    if (_failingKeys.contains(key) && !deletedKeys.contains(key)) {
+      throw PlatformException(
+        code: 'Unexpected security result code',
+        message:
+            'Code: -25299, Message: The specified item already exists '
+            'in the keychain.',
+        details: -25299,
+      );
+    }
+    written[key] = value!;
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    deletedKeys.add(key);
+  }
+}
+
 void main() {
   group('BYOK secret store', () {
     test('the provider shares the app-wide secure-storage backend', () {
@@ -111,6 +158,19 @@ void main() {
       final store = ByokSecretStore(_MissingEntitlementStorage());
 
       await expectLater(store.deleteApiKey(ModalityKind.llm), completes);
+    });
+
+    test('replacing a key heals a stale keychain item', () async {
+      final storage = _DuplicateItemOnceStorage({
+        'enjoy_player.byok.asr.api_key',
+      });
+      final store = ByokSecretStore(storage);
+
+      await store.writeApiKey(ModalityKind.asr, 'sk-asr');
+
+      expect(storage.deletedKeys, ['enjoy_player.byok.asr.api_key']);
+      expect(storage.writeAttempts, 2);
+      expect(storage.written['enjoy_player.byok.asr.api_key'], 'sk-asr');
     });
   });
 }

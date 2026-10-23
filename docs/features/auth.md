@@ -141,7 +141,11 @@ If you need to add a new platform-specific option, add a constant in `secure_sto
 
 ### Deleting a key that is already gone
 
-`flutter_secure_storage_darwin` deletes an item by probing the synchronizable keychain domain first. On the direct-download channel that probe returns `-34018` instead of "not found", so deleting an **absent** key reports a failure even though nothing was left behind. `deleteSecureStorageKey` ([`secure_storage_delete.dart`](../../lib/data/api/secure_storage_delete.dart)) treats `-34018` as "already absent" and lets every other status through, so the cold-start profile cleanup no longer logs a false "secure storage delete failed" warning while a genuinely broken keyring still surfaces.
+`flutter_secure_storage_darwin` deletes an item by probing the synchronizable keychain domain first. On the direct-download channel that probe returns `-34018` instead of "not found", so deleting an **absent** key reports a failure even though nothing was left behind. `deleteSecureStorageKey` ([`secure_storage_guard.dart`](../../lib/data/api/secure_storage_guard.dart)) treats `-34018` as "already absent" and lets every other status through, so the cold-start profile cleanup no longer logs a false "secure storage delete failed" warning while a genuinely broken keyring still surfaces.
+
+### Healing a stale keychain item
+
+`writeSecureStorageKey` (same module) writes through the same guard: when the platform layer reports `errSecDuplicateItem` (-25299) — a leftover item stored under a different accessibility, which reads as absent while the write still collides — the key is deleted and the write is retried once. Both the auth token store and the BYOK store use it, so a key that cannot be re-saved is cleared instead of failing the save.
 
 ### Self-healing keychain writes (iOS/macOS)
 
