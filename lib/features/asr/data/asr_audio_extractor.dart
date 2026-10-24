@@ -184,14 +184,11 @@ class AsrAudioExtractor {
       }
     }
 
-    final cmd =
-        '-nostdin -hide_banner -loglevel error -y '
-        '-i ${shellEscape(input)} -vn '
-        '-af aformat=sample_fmts=s16:channel_layouts=mono -ar 16000 '
-        '-ac 1 -c:a pcm_s16le ${shellEscape(outputWav)}';
     try {
       onProgress?.call(0.1);
-      final session = await FFmpegKit.execute(cmd);
+      final session = await FFmpegKit.executeWithArguments(
+        _extractArgs(input: input, outputWav: outputWav),
+      );
       onProgress?.call(0.9);
       final code = await session.getReturnCode();
       final ok = ReturnCode.isSuccess(code);
@@ -222,28 +219,34 @@ class _CliExtractArgs {
   final String outputWavPath;
 }
 
+List<String> _extractArgs({required String input, required String outputWav}) =>
+    <String>[
+      '-nostdin',
+      '-hide_banner',
+      '-loglevel',
+      'error',
+      '-y',
+      '-i',
+      input,
+      '-vn',
+      '-af',
+      'aformat=sample_fmts=s16:channel_layouts=mono',
+      '-ar',
+      '16000',
+      '-ac',
+      '1',
+      '-c:a',
+      'pcm_s16le',
+      outputWav,
+    ];
+
 Future<({int exitCode, String stderr})> _cliExtract(
   _CliExtractArgs args,
 ) async {
-  final r = await Process.run(args.exe, <String>[
-    '-nostdin',
-    '-hide_banner',
-    '-loglevel',
-    'error',
-    '-y',
-    '-i',
-    args.inputPath,
-    '-vn',
-    '-af',
-    'aformat=sample_fmts=s16:channel_layouts=mono',
-    '-ar',
-    '16000',
-    '-ac',
-    '1',
-    '-c:a',
-    'pcm_s16le',
-    args.outputWavPath,
-  ]);
+  final r = await Process.run(
+    args.exe,
+    _extractArgs(input: args.inputPath, outputWav: args.outputWavPath),
+  );
   return (
     exitCode: r.exitCode,
     stderr: r.stderr is String ? r.stderr as String : '',

@@ -214,23 +214,6 @@ void main() {
     });
   });
 
-  group('buildLoopClipFfmpegCommand', () {
-    test('joins the args, quoting tokens with spaces or quotes', () {
-      expect(
-        buildLoopClipFfmpegCommand(
-          _request(input: '/media/my file.mp4', output: '/out/c.mp4'),
-        ),
-        contains('-i "/media/my file.mp4"'),
-      );
-      expect(
-        buildLoopClipFfmpegCommand(
-          _request(input: '/media/plain.mp4', output: '/out/c.mp4'),
-        ),
-        contains('-i /media/plain.mp4'),
-      );
-    });
-  });
-
   group('loopClipInputIsNetwork', () {
     test('http(s) URLs are network, paths and file URIs are not', () {
       expect(loopClipInputIsNetwork('https://example.com/a.mp4'), isTrue);

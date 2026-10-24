@@ -199,33 +199,34 @@ Future<void> _runFfmpegExtract({
 }) async {
   final ss = startSec.toStringAsFixed(4);
   final dur = durationSec.toStringAsFixed(4);
+  final args = <String>[
+    '-nostdin',
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-y',
+    '-ss',
+    ss,
+    ..._networkArgs(mediaPath),
+    '-i',
+    mediaPath,
+    '-t',
+    dur,
+    '-vn',
+    '-ac',
+    '1',
+    '-ar',
+    '$kEchoPcmSampleRate',
+    '-f',
+    'f32le',
+    outPath,
+  ];
 
   if (FfmpegMediaProbe.usesFfmpegCli) {
     final exe = await _resolveFfmpegOrThrow();
     await _runFfmpegCliProcess(
       exe: exe,
-      args: [
-        '-nostdin',
-        '-hide_banner',
-        '-loglevel',
-        'error',
-        '-y',
-        '-ss',
-        ss,
-        ..._networkArgs(mediaPath),
-        '-i',
-        mediaPath,
-        '-t',
-        dur,
-        '-vn',
-        '-ac',
-        '1',
-        '-ar',
-        '$kEchoPcmSampleRate',
-        '-f',
-        'f32le',
-        outPath,
-      ],
+      args: args,
       token: token,
       timeout: timeout,
       failLabel: 'segment',
@@ -233,13 +234,8 @@ Future<void> _runFfmpegExtract({
     return;
   }
 
-  final cmd =
-      '-nostdin -hide_banner -loglevel error -y -ss $ss '
-      '${_networkArgs(mediaPath).join(' ')} '
-      '-i ${shellEscape(mediaPath)} -t $dur -vn -ac 1 '
-      '-ar $kEchoPcmSampleRate -f f32le ${shellEscape(outPath)}';
   await _runFfmpegKit(
-    command: cmd,
+    args: args,
     token: token,
     timeout: timeout,
     failLabel: 'segment',
@@ -252,27 +248,29 @@ Future<void> _runFfmpegFullDecode({
   required EchoPcmCancelToken? token,
   required Duration timeout,
 }) async {
+  final args = <String>[
+    '-nostdin',
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-y',
+    '-i',
+    mediaPath,
+    '-vn',
+    '-ac',
+    '1',
+    '-ar',
+    '$kEchoPcmSampleRate',
+    '-f',
+    'f32le',
+    outPath,
+  ];
+
   if (FfmpegMediaProbe.usesFfmpegCli) {
     final exe = await _resolveFfmpegOrThrow();
     await _runFfmpegCliProcess(
       exe: exe,
-      args: [
-        '-nostdin',
-        '-hide_banner',
-        '-loglevel',
-        'error',
-        '-y',
-        '-i',
-        mediaPath,
-        '-vn',
-        '-ac',
-        '1',
-        '-ar',
-        '$kEchoPcmSampleRate',
-        '-f',
-        'f32le',
-        outPath,
-      ],
+      args: args,
       token: token,
       timeout: timeout,
       failLabel: 'full decode',
@@ -280,11 +278,8 @@ Future<void> _runFfmpegFullDecode({
     return;
   }
 
-  final cmd =
-      '-nostdin -hide_banner -loglevel error -y -i ${shellEscape(mediaPath)} '
-      '-vn -ac 1 -ar $kEchoPcmSampleRate -f f32le ${shellEscape(outPath)}';
   await _runFfmpegKit(
-    command: cmd,
+    args: args,
     token: token,
     timeout: timeout,
     failLabel: 'full decode',
@@ -364,10 +359,11 @@ Future<void> _runFfmpegCliProcess({
   }
 }
 
-/// Runs FFmpeg via FFmpegKit (Android / iOS / macOS). Uses [FFmpegKit.executeAsync] so a
-/// session id is available for real cancellation via [FFmpegKit.cancel].
+/// Runs FFmpeg via FFmpegKit (Android / iOS / macOS). Uses
+/// [FFmpegKit.executeWithArgumentsAsync] so the argv list is passed verbatim
+/// and a session id is available for real cancellation via [FFmpegKit.cancel].
 Future<void> _runFfmpegKit({
-  required String command,
+  required List<String> args,
   required EchoPcmCancelToken? token,
   required Duration timeout,
   required String failLabel,
@@ -378,7 +374,7 @@ Future<void> _runFfmpegKit({
   final completer = Completer<void>();
   FFmpegSession? session;
   try {
-    session = await FFmpegKit.executeAsync(command, (s) async {
+    session = await FFmpegKit.executeWithArgumentsAsync(args, (s) async {
       if (completer.isCompleted) return;
       final code = await s.getReturnCode();
       if (ReturnCode.isSuccess(code)) {

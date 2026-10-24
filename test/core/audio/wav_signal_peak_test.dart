@@ -148,6 +148,17 @@ void main() {
     expect(r.nonZeroRatio, closeTo(3 / 4, 1e-6));
   });
 
+  test(
+    'scanWavDataPeakFromBytes returns null on an over-declared data chunk',
+    () {
+      final bytes = _pcm16MonoWav(16000, [1, 2, 3, 4]);
+      final patched = Uint8List.fromList(bytes);
+      ByteData.sublistView(patched).setUint32(40, 0xFFFFFFF0, Endian.little);
+
+      expect(scanWavDataPeakFromBytes(patched), isNull);
+    },
+  );
+
   test('scanWavDataPeakFromBytes float32 silence', () {
     final bytes = _float32MonoWav(16000, List.filled(100, 0.0));
     final r = scanWavDataPeakFromBytes(bytes);

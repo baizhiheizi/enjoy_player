@@ -68,7 +68,7 @@ double posterSeekSeconds(int? durationSeconds) {
 /// that decode cost is bounded; otherwise **fast** seek (`-ss` before `-i`).
 ///
 /// Windows / Linux: subprocess via [FfmpegMediaProbe.resolveFfmpegExecutable].
-/// Android / iOS / macOS: [FFmpegKit.execute] (bundled libs).
+/// Android / iOS / macOS: [FFmpegKit.executeWithArguments] (bundled libs).
 ///
 /// Returns `true` when [outputJpegPath] exists and is non-empty after the run.
 Future<bool> writeVideoPosterJpeg({
@@ -91,6 +91,27 @@ Future<bool> writeVideoPosterJpeg({
   final seekStr = seek.toStringAsFixed(3);
   final accurate = seek <= _kAccurateSeekDecodeCap;
   final net = _isNetworkMediaInput(input);
+  final args = <String>[
+    '-y',
+    '-hide_banner',
+    if (net) ...['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'],
+    if (accurate) ...[
+      '-i',
+      input,
+      '-ss',
+      seekStr,
+    ] else ...[
+      '-ss',
+      seekStr,
+      '-i',
+      input,
+    ],
+    '-frames:v',
+    '1',
+    '-q:v',
+    '3',
+    outputJpegPath,
+  ];
 
   try {
     if (FfmpegMediaProbe.usesFfmpegCli) {
@@ -99,60 +120,13 @@ Future<bool> writeVideoPosterJpeg({
         _log.fine('video poster: no ffmpeg CLI found');
         return false;
       }
-      final List<String> args;
-      if (accurate) {
-        args = [
-          '-y',
-          '-hide_banner',
-          if (net) ...['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'],
-          '-i',
-          input,
-          '-ss',
-          seekStr,
-          '-frames:v',
-          '1',
-          '-q:v',
-          '3',
-          outputJpegPath,
-        ];
-      } else {
-        args = [
-          '-y',
-          '-hide_banner',
-          if (net) ...['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'],
-          '-ss',
-          seekStr,
-          '-i',
-          input,
-          '-frames:v',
-          '1',
-          '-q:v',
-          '3',
-          outputJpegPath,
-        ];
-      }
       final r = await Process.run(exe, args);
       if (r.exitCode != 0) {
         _log.fine('video poster ffmpeg failed: ${r.stderr}');
         return false;
       }
     } else {
-      final proto = net
-          ? '-protocol_whitelist file,http,https,tcp,tls,crypto '
-          : '';
-      final String cmd;
-      if (accurate) {
-        cmd =
-            '-y -hide_banner $proto'
-            '-i ${shellEscape(input)} -ss $seekStr '
-            '-frames:v 1 -q:v 3 ${shellEscape(outputJpegPath)}';
-      } else {
-        cmd =
-            '-y -hide_banner $proto'
-            '-ss $seekStr -i ${shellEscape(input)} '
-            '-frames:v 1 -q:v 3 ${shellEscape(outputJpegPath)}';
-      }
-      final session = await FFmpegKit.execute(cmd);
+      final session = await FFmpegKit.executeWithArguments(args);
       final code = await session.getReturnCode();
       if (!ReturnCode.isSuccess(code)) {
         _log.fine(

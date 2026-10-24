@@ -17,6 +17,35 @@ void main() {
   test('wavDurationMsFromBytes returns null for garbage', () {
     expect(wavDurationMsFromBytes(Uint8List(12)), isNull);
   });
+
+  test('wavDurationMsFromBytes rejects a fmt chunk shorter than 16 bytes', () {
+    final wav = _minimalPcmWav(
+      sampleRate: 44100,
+      channels: 1,
+      bitsPerSample: 16,
+      dataByteLength: 44100 * 2,
+    );
+    final patched = Uint8List.fromList(wav);
+    ByteData.sublistView(patched).setUint32(16, 14, Endian.little);
+
+    expect(wavDurationMsFromBytes(patched), isNull);
+  });
+
+  test('wavDurationMsFromBytes ignores a corrupt trailing chunk', () {
+    final wav = _minimalPcmWav(
+      sampleRate: 44100,
+      channels: 1,
+      bitsPerSample: 16,
+      dataByteLength: 44100 * 2,
+    );
+    final trailing = BytesBuilder(copy: false)
+      ..add('LIST'.codeUnits)
+      ..add(_le32(0xFFFFFFF0))
+      ..addByte(0);
+    final bytes = Uint8List.fromList([...wav, ...trailing.toBytes()]);
+
+    expect(wavDurationMsFromBytes(bytes), 1000);
+  });
 }
 
 Uint8List _le32(int v) {

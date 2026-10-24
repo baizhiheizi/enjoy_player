@@ -234,6 +234,63 @@ mixin _CloudItemMembershipMixin<W extends ConsumerStatefulWidget>
   }
 }
 
+mixin _CloudInfiniteScroll<W extends ConsumerStatefulWidget>
+    on ConsumerState<W> {
+  final scroll = ScrollController();
+
+  bool get cloudDone;
+  bool get cloudLoading;
+  Future<void> Function() get cloudLoadMore;
+
+  @override
+  void initState() {
+    super.initState();
+    scroll.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    scroll.removeListener(_onScroll);
+    scroll.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!cloudDone &&
+        !cloudLoading &&
+        scroll.hasClients &&
+        scroll.position.pixels > scroll.position.maxScrollExtent - 200) {
+      unawaited(cloudLoadMore());
+    }
+  }
+}
+
+class _CloudEmptyState extends StatelessWidget {
+  const _CloudEmptyState({
+    required this.onRefresh,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final Future<void> Function() onRefresh;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.55,
+          child: EmptyState(title: title, subtitle: subtitle),
+        ),
+      ),
+    );
+  }
+}
+
 class _CloudAudioList extends ConsumerStatefulWidget {
   const _CloudAudioList({
     required this.items,
@@ -253,30 +310,16 @@ class _CloudAudioList extends ConsumerStatefulWidget {
   ConsumerState<_CloudAudioList> createState() => _CloudAudioListState();
 }
 
-class _CloudAudioListState extends ConsumerState<_CloudAudioList> {
-  final _scroll = ScrollController();
+class _CloudAudioListState extends ConsumerState<_CloudAudioList>
+    with _CloudInfiniteScroll<_CloudAudioList> {
+  @override
+  bool get cloudDone => widget.done;
 
   @override
-  void initState() {
-    super.initState();
-    _scroll.addListener(_onScroll);
-  }
+  bool get cloudLoading => widget.loading;
 
   @override
-  void dispose() {
-    _scroll.removeListener(_onScroll);
-    _scroll.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (!widget.done &&
-        !widget.loading &&
-        _scroll.hasClients &&
-        _scroll.position.pixels > _scroll.position.maxScrollExtent - 200) {
-      unawaited(widget.onLoadMore());
-    }
-  }
+  Future<void> Function() get cloudLoadMore => widget.onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -288,25 +331,17 @@ class _CloudAudioListState extends ConsumerState<_CloudAudioList> {
     }
 
     if (widget.items.isEmpty && widget.done) {
-      return RefreshIndicator(
+      return _CloudEmptyState(
         onRefresh: widget.onRefresh,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.55,
-            child: EmptyState(
-              title: l10n.cloudEmptyAudioTitle,
-              subtitle: l10n.cloudEmptyAudioSubtitle,
-            ),
-          ),
-        ),
+        title: l10n.cloudEmptyAudioTitle,
+        subtitle: l10n.cloudEmptyAudioSubtitle,
       );
     }
 
     return RefreshIndicator(
       onRefresh: widget.onRefresh,
       child: ListView.separated(
-        controller: _scroll,
+        controller: scroll,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(t.space16, t.space8, t.space16, t.space24),
         itemCount: widget.items.length + 1,
@@ -422,30 +457,16 @@ class _CloudVideoGrid extends ConsumerStatefulWidget {
   ConsumerState<_CloudVideoGrid> createState() => _CloudVideoGridState();
 }
 
-class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
-  final _scroll = ScrollController();
+class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid>
+    with _CloudInfiniteScroll<_CloudVideoGrid> {
+  @override
+  bool get cloudDone => widget.done;
 
   @override
-  void initState() {
-    super.initState();
-    _scroll.addListener(_onScroll);
-  }
+  bool get cloudLoading => widget.loading;
 
   @override
-  void dispose() {
-    _scroll.removeListener(_onScroll);
-    _scroll.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (!widget.done &&
-        !widget.loading &&
-        _scroll.hasClients &&
-        _scroll.position.pixels > _scroll.position.maxScrollExtent - 200) {
-      unawaited(widget.onLoadMore());
-    }
-  }
+  Future<void> Function() get cloudLoadMore => widget.onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -457,18 +478,10 @@ class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
     }
 
     if (widget.items.isEmpty && widget.done) {
-      return RefreshIndicator(
+      return _CloudEmptyState(
         onRefresh: widget.onRefresh,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.55,
-            child: EmptyState(
-              title: l10n.cloudEmptyVideoTitle,
-              subtitle: l10n.cloudEmptyVideoSubtitle,
-            ),
-          ),
-        ),
+        title: l10n.cloudEmptyVideoTitle,
+        subtitle: l10n.cloudEmptyVideoSubtitle,
       );
     }
 
@@ -478,7 +491,7 @@ class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
         builder: (context, constraints) {
           final crossAxisExtent = constraints.maxWidth - t.space16 * 2;
           return GridView.builder(
-            controller: _scroll,
+            controller: scroll,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.all(t.space16),
             gridDelegate: mediaCardTileGridDelegateForMaxTileWidth(

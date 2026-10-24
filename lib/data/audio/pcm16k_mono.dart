@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:forced_alignment/forced_alignment.dart';
 
+import 'package:enjoy_player/core/audio/wav_chunks.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 
@@ -257,78 +258,19 @@ final class _ParsedWav {
   final Float32List samples;
 }
 
-bool _fourCc(Uint8List bytes, int offset, String ascii) {
-  if (offset + 4 > bytes.length) return false;
-  for (var i = 0; i < 4; i++) {
-    if (bytes[offset + i] != ascii.codeUnitAt(i)) return false;
-  }
-  return true;
-}
-
-int _u16(Uint8List b, int o) => b[o] | (b[o + 1] << 8);
-int _u32(Uint8List b, int o) =>
-    b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24);
-
 _ParsedWav? _parseWav(Uint8List bytes) {
-  if (bytes.length < 44) return null;
-  if (!_fourCc(bytes, 0, 'RIFF') || !_fourCc(bytes, 8, 'WAVE')) return null;
+  final chunks = readWavChunks(bytes);
+  if (chunks == null) return null;
 
-  int? audioFormat;
-  int? numChannels;
-  int? sampleRate;
-  int? bitsPerSample;
-  int? blockAlign;
-  int? dataStart;
-  int? dataSize;
+  final format = chunks.fmt.audioFormat;
+  final channels = chunks.fmt.numChannels;
+  final rate = chunks.fmt.sampleRate;
+  final bits = chunks.fmt.bitsPerSample;
+  final align = chunks.fmt.blockAlign;
+  if (channels <= 0 || rate <= 0 || align <= 0) return null;
 
-  var offset = 12;
-  while (offset + 8 <= bytes.length) {
-    final chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
-    final chunkSize = _u32(bytes, offset + 4);
-    final chunkData = offset + 8;
-    final afterChunk = chunkData + chunkSize;
-    if (afterChunk > bytes.length) break;
-
-    if (chunkId == 'fmt ') {
-      if (chunkSize < 16) return null;
-      audioFormat = _u16(bytes, chunkData);
-      numChannels = _u16(bytes, chunkData + 2);
-      sampleRate = _u32(bytes, chunkData + 4);
-      blockAlign = _u16(bytes, chunkData + 12);
-      bitsPerSample = _u16(bytes, chunkData + 14);
-    } else if (chunkId == 'data') {
-      dataStart = chunkData;
-      dataSize = chunkSize;
-      break;
-    }
-
-    final padded = chunkSize + (chunkSize.isOdd ? 1 : 0);
-    offset += 8 + padded;
-  }
-
-  final format = audioFormat;
-  final channels = numChannels;
-  final rate = sampleRate;
-  final bits = bitsPerSample;
-  final align = blockAlign;
-  final start = dataStart;
-  final size = dataSize;
-  if (format == null ||
-      channels == null ||
-      channels <= 0 ||
-      rate == null ||
-      rate <= 0 ||
-      bits == null ||
-      align == null ||
-      align <= 0 ||
-      start == null ||
-      size == null ||
-      size <= 0) {
-    return null;
-  }
-
-  final end = math.min(start + size, bytes.length);
-  final data = bytes.sublist(start, end);
+  final end = math.min(chunks.dataStart + chunks.dataSize, bytes.length);
+  final data = bytes.sublist(chunks.dataStart, end);
   final frames = data.length ~/ align;
   if (frames <= 0) return null;
 

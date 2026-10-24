@@ -6,7 +6,6 @@
 /// flow (save dialog / share sheet) in `presentation/loop_clip_export_flow.dart`.
 library;
 
-import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
@@ -173,9 +172,3 @@ List<String> buildLoopClipFfmpegArgs(LoopClipExportRequest request) {
     request.outputPath,
   ];
 }
-
-/// The FFmpegKit command string for [request] (Android / iOS / macOS),
-/// quoting paths with whitespace or quotes via the shared [shellEscape] rule
-/// so it matches [buildLoopClipFfmpegArgs] argument for argument.
-String buildLoopClipFfmpegCommand(LoopClipExportRequest request) =>
-    buildLoopClipFfmpegArgs(request).map(shellEscape).join(' ');

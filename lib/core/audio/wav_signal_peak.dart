@@ -5,27 +5,11 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'wav_chunks.dart';
+
 /// `fmt ` chunk format codes (see [WavFmtLayout.audioFormat]).
 const kWavFormatPcm = 0x0001;
 const kWavFormatIeeeFloat = 0x0003;
-
-/// Parsed `fmt ` chunk fields we need for scanning.
-final class WavFmtLayout {
-  const WavFmtLayout({
-    required this.audioFormat,
-    required this.numChannels,
-    required this.sampleRate,
-    required this.bitsPerSample,
-    required this.blockAlign,
-  });
-
-  /// 1 = PCM integer, 3 = IEEE float (common for Windows MF captures).
-  final int audioFormat;
-  final int numChannels;
-  final int sampleRate;
-  final int bitsPerSample;
-  final int blockAlign;
-}
 
 /// Peak amplitude in the `data` chunk (0–1 full-scale).
 final class WavPeakScan {
@@ -60,18 +44,6 @@ final class WavPeakScan {
   final int totalSamples;
 }
 
-bool _fourCc(Uint8List bytes, int offset, String ascii) {
-  if (offset + 4 > bytes.length) return false;
-  for (var i = 0; i < 4; i++) {
-    if (bytes[offset + i] != ascii.codeUnitAt(i)) return false;
-  }
-  return true;
-}
-
-int _u16(Uint8List b, int o) => b[o] | (b[o + 1] << 8);
-int _u32(Uint8List b, int o) =>
-    b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24);
-
 /// Reads up to [maxReadBytes] from disk (whole file if smaller) and scans `data`.
 Future<WavPeakScan?> scanWavDataPeakFromFile(
   String path, {
@@ -91,47 +63,16 @@ Future<WavPeakScan?> scanWavDataPeakFromFile(
 
 /// Same as [scanWavDataPeakFromFile] but for an in-memory prefix / full file.
 WavPeakScan? scanWavDataPeakFromBytes(Uint8List bytes) {
-  if (bytes.length < 44) return null;
-  if (!_fourCc(bytes, 0, 'RIFF') || !_fourCc(bytes, 8, 'WAVE')) return null;
+  final chunks = readWavChunks(bytes);
+  if (chunks == null) return null;
 
-  WavFmtLayout? fmt;
-  int? dataStart;
-  int? dataSize;
+  final f = chunks.fmt;
+  if (f.numChannels <= 0 || f.blockAlign <= 0) return null;
 
-  var offset = 12;
-  while (offset + 8 <= bytes.length) {
-    final chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
-    final chunkSize = _u32(bytes, offset + 4);
-    final chunkData = offset + 8;
-    final afterChunk = chunkData + chunkSize;
-    if (afterChunk > bytes.length) break;
-
-    if (chunkId == 'fmt ') {
-      if (chunkSize < 16) return null;
-      fmt = WavFmtLayout(
-        audioFormat: _u16(bytes, chunkData),
-        numChannels: _u16(bytes, chunkData + 2),
-        sampleRate: _u32(bytes, chunkData + 4),
-        bitsPerSample: _u16(bytes, chunkData + 14),
-        blockAlign: _u16(bytes, chunkData + 12),
-      );
-    } else if (chunkId == 'data') {
-      dataStart = chunkData;
-      dataSize = chunkSize;
-      break;
-    }
-
-    final padded = chunkSize + (chunkSize.isOdd ? 1 : 0);
-    offset += 8 + padded;
-  }
-
-  final f = fmt;
-  final ds = dataStart;
-  final dz = dataSize;
-  if (f == null || ds == null || dz == null || dz <= 0) return null;
-
-  final end = (ds + dz).clamp(0, bytes.length);
-  final data = bytes.sublist(ds, end);
+  final data = bytes.sublist(
+    chunks.dataStart,
+    chunks.dataStart + chunks.dataSize,
+  );
 
   switch (f.audioFormat) {
     case kWavFormatPcm:
@@ -139,7 +80,7 @@ WavPeakScan? scanWavDataPeakFromBytes(Uint8List bytes) {
         return _scanInt(
           data: data,
           fmt: f,
-          dz: dz,
+          dz: chunks.dataSize,
           fullScale: 32768.0,
           readSampleAtByteOffset: (data, off) {
             final s = data[off] | (data[off + 1] << 8);
@@ -153,7 +94,7 @@ WavPeakScan? scanWavDataPeakFromBytes(Uint8List bytes) {
         return _scanInt(
           data: data,
           fmt: f,
-          dz: dz,
+          dz: chunks.dataSize,
           fullScale: 2147483648.0,
           readSampleAtByteOffset: (data, off) =>
               bd.getInt32(off, Endian.little).toDouble(),
@@ -167,7 +108,7 @@ WavPeakScan? scanWavDataPeakFromBytes(Uint8List bytes) {
         return _scanInt(
           data: data,
           fmt: f,
-          dz: dz,
+          dz: chunks.dataSize,
           fullScale: 1.0,
           readSampleAtByteOffset: (data, off) =>
               bd.getFloat32(off, Endian.little),
