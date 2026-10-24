@@ -105,6 +105,60 @@ class LocalAudioLibraryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    return _LocalLibraryBody(
+      items: items,
+      searchQuery: searchQuery,
+      totalInLibraryOfKind: totalInLibraryOfKind,
+      emptyTitle: l10n.libraryEmptyAudioTitle,
+      emptyHint: l10n.libraryEmptyAudioHint,
+      contentSliver: (context, items, inset, _) {
+        final t = EnjoyThemeTokens.of(context);
+        return DecoratedSliver(
+          decoration: ShapeDecoration(
+            color: t.paper,
+            shape: RoundedSuperellipseBorder(
+              borderRadius: BorderRadius.circular(t.radiusCard),
+              side: BorderSide(color: t.line),
+            ),
+          ),
+          sliver: SliverList.separated(
+            itemCount: items.length,
+            separatorBuilder: (context, _) =>
+                Divider(height: 1, thickness: 1, color: t.line),
+            itemBuilder: (context, index) => LocalAudioRow(media: items[index]),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LocalLibraryBody extends StatelessWidget {
+  const _LocalLibraryBody({
+    required this.items,
+    required this.searchQuery,
+    required this.totalInLibraryOfKind,
+    required this.emptyTitle,
+    required this.emptyHint,
+    required this.contentSliver,
+  });
+
+  final List<Media> items;
+  final String searchQuery;
+  final int totalInLibraryOfKind;
+  final String emptyTitle;
+  final String emptyHint;
+  final Widget Function(
+    BuildContext context,
+    List<Media> items,
+    double inset,
+    double maxWidth,
+  )
+  contentSliver;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
 
     if (items.isEmpty) {
@@ -123,10 +177,7 @@ class LocalAudioLibraryBody extends StatelessWidget {
           actionLabel: l10n.librarySearchClear,
         );
       }
-      return EmptyState(
-        title: l10n.libraryEmptyAudioTitle,
-        subtitle: l10n.libraryEmptyAudioHint,
-      );
+      return EmptyState(title: emptyTitle, subtitle: emptyHint);
     }
 
     return LayoutBuilder(
@@ -142,21 +193,11 @@ class LocalAudioLibraryBody extends StatelessWidget {
               ),
             SliverPadding(
               padding: EdgeInsets.fromLTRB(inset, t.space4, inset, t.space32),
-              sliver: DecoratedSliver(
-                decoration: ShapeDecoration(
-                  color: t.paper,
-                  shape: RoundedSuperellipseBorder(
-                    borderRadius: BorderRadius.circular(t.radiusCard),
-                    side: BorderSide(color: t.line),
-                  ),
-                ),
-                sliver: SliverList.separated(
-                  itemCount: items.length,
-                  separatorBuilder: (context, _) =>
-                      Divider(height: 1, thickness: 1, color: t.line),
-                  itemBuilder: (context, index) =>
-                      LocalAudioRow(media: items[index]),
-                ),
+              sliver: contentSliver(
+                context,
+                items,
+                inset,
+                constraints.maxWidth,
               ),
             ),
           ],
@@ -278,61 +319,28 @@ class LocalVideoLibraryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-
-    if (items.isEmpty) {
-      final filteredBySearch =
-          searchQuery.isNotEmpty && totalInLibraryOfKind > 0;
-      if (filteredBySearch) {
-        return EmptyState(
-          title: l10n.librarySearchNoMatchesTitle,
-          subtitle: l10n.librarySearchNoMatchesHint,
-          action: () {
-            final notifier = ProviderScope.containerOf(
-              context,
-            ).read(librarySearchProvider.notifier);
-            notifier.clear();
-          },
-          actionLabel: l10n.librarySearchClear,
-        );
-      }
-      return EmptyState(
-        title: l10n.libraryEmptyVideoTitle,
-        subtitle: l10n.libraryEmptyVideoHint,
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final inset = libraryBodyInset(context, constraints.maxWidth);
-        final crossAxisExtent = constraints.maxWidth - inset * 2;
-        return CustomScrollView(
-          slivers: [
-            if (searchQuery.isNotEmpty)
-              LibrarySearchResultLine(
-                count: items.length,
-                query: searchQuery,
-                inset: inset,
-              ),
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(inset, t.space4, inset, t.space32),
-              sliver: SliverGrid(
-                gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
-                  crossAxisExtent: crossAxisExtent,
-                  minTileWidth: _kLibraryTileMinWidth,
-                  mainAxisSpacing: 24,
-                  crossAxisSpacing: 20,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => Align(
-                    alignment: Alignment.topCenter,
-                    child: LocalVideoTile(media: items[index]),
-                  ),
-                  childCount: items.length,
-                ),
-              ),
+    return _LocalLibraryBody(
+      items: items,
+      searchQuery: searchQuery,
+      totalInLibraryOfKind: totalInLibraryOfKind,
+      emptyTitle: l10n.libraryEmptyVideoTitle,
+      emptyHint: l10n.libraryEmptyVideoHint,
+      contentSliver: (context, items, inset, maxWidth) {
+        final crossAxisExtent = maxWidth - inset * 2;
+        return SliverGrid(
+          gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
+            crossAxisExtent: crossAxisExtent,
+            minTileWidth: _kLibraryTileMinWidth,
+            mainAxisSpacing: 24,
+            crossAxisSpacing: 20,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => Align(
+              alignment: Alignment.topCenter,
+              child: LocalVideoTile(media: items[index]),
             ),
-          ],
+            childCount: items.length,
+          ),
         );
       },
     );
