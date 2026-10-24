@@ -27,21 +27,14 @@ final _log = logNamed('ai.azure_assessment_wav');
 Future<({int exitCode, String stderr, WavPeakScan? inputScan})>
 _runFfmpegCliInIsolate(_FfmpegCliArgs args) async {
   final inputScan = await scanWavDataPeakFromFile(args.inputPath);
-  final r = await Process.run(args.exe, <String>[
-    '-nostdin',
-    '-hide_banner',
-    '-loglevel',
-    'error',
-    '-y',
-    '-i',
-    args.inputPath,
-    '-vn',
-    '-af',
-    args.audioFilter,
-    '-c:a',
-    'pcm_s16le',
-    args.outputWavPath,
-  ]);
+  final r = await Process.run(
+    args.exe,
+    _normalizeArgs(
+      inputPath: args.inputPath,
+      outputWavPath: args.outputWavPath,
+      audioFilter: args.audioFilter,
+    ),
+  );
   return (
     exitCode: r.exitCode,
     stderr: r.stderr is String ? r.stderr as String : '',
@@ -49,16 +42,39 @@ _runFfmpegCliInIsolate(_FfmpegCliArgs args) async {
   );
 }
 
+List<String> _normalizeArgs({
+  required String inputPath,
+  required String outputWavPath,
+  required String audioFilter,
+}) => <String>[
+  '-nostdin',
+  '-hide_banner',
+  '-loglevel',
+  'error',
+  '-y',
+  '-i',
+  inputPath,
+  '-vn',
+  '-af',
+  audioFilter,
+  '-c:a',
+  'pcm_s16le',
+  outputWavPath,
+];
+
 Future<bool> _runFfmpegKit({
   required String inputPath,
   required String outputWavPath,
   required String audioFilter,
 }) async {
-  final cmd =
-      '-nostdin -hide_banner -loglevel error -y -i ${shellEscape(inputPath)} '
-      '-vn -af $audioFilter -c:a pcm_s16le ${shellEscape(outputWavPath)}';
   try {
-    final session = await FFmpegKit.execute(cmd);
+    final session = await FFmpegKit.executeWithArguments(
+      _normalizeArgs(
+        inputPath: inputPath,
+        outputWavPath: outputWavPath,
+        audioFilter: audioFilter,
+      ),
+    );
     final code = await session.getReturnCode();
     if (!ReturnCode.isSuccess(code)) {
       _log.fine(

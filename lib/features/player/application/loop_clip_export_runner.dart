@@ -98,7 +98,7 @@ Future<void> runLoopClipFfmpeg(LoopClipExportRequest request) async {
     await _runCli(exe, buildLoopClipFfmpegArgs(request));
     return;
   }
-  await _runKit(buildLoopClipFfmpegCommand(request));
+  await _runKit(buildLoopClipFfmpegArgs(request));
 }
 
 Future<void> _runCli(String exe, List<String> args) async {
@@ -145,11 +145,11 @@ Future<void> _runCli(String exe, List<String> args) async {
   }
 }
 
-Future<void> _runKit(String command) async {
+Future<void> _runKit(List<String> args) async {
   final completer = Completer<void>();
   FFmpegSession? session;
   try {
-    session = await FFmpegKit.executeAsync(command, (s) async {
+    session = await FFmpegKit.executeWithArgumentsAsync(args, (s) async {
       if (completer.isCompleted) return;
       final code = await s.getReturnCode();
       if (ReturnCode.isSuccess(code)) {
