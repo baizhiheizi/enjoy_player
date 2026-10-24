@@ -111,7 +111,7 @@ class LocalAudioLibraryBody extends StatelessWidget {
       totalInLibraryOfKind: totalInLibraryOfKind,
       emptyTitle: l10n.libraryEmptyAudioTitle,
       emptyHint: l10n.libraryEmptyAudioHint,
-      contentSliver: (context, items, inset, _) {
+      contentSliver: (context, items, _) {
         final t = EnjoyThemeTokens.of(context);
         return DecoratedSliver(
           decoration: ShapeDecoration(
@@ -133,6 +133,8 @@ class LocalAudioLibraryBody extends StatelessWidget {
   }
 }
 
+typedef _LibraryBodyGeometry = ({double inset, double maxWidth});
+
 class _LocalLibraryBody extends StatelessWidget {
   const _LocalLibraryBody({
     required this.items,
@@ -151,8 +153,7 @@ class _LocalLibraryBody extends StatelessWidget {
   final Widget Function(
     BuildContext context,
     List<Media> items,
-    double inset,
-    double maxWidth,
+    _LibraryBodyGeometry geometry,
   )
   contentSliver;
 
@@ -193,12 +194,10 @@ class _LocalLibraryBody extends StatelessWidget {
               ),
             SliverPadding(
               padding: EdgeInsets.fromLTRB(inset, t.space4, inset, t.space32),
-              sliver: contentSliver(
-                context,
-                items,
-                inset,
-                constraints.maxWidth,
-              ),
+              sliver: contentSliver(context, items, (
+                inset: inset,
+                maxWidth: constraints.maxWidth,
+              )),
             ),
           ],
         );
@@ -325,8 +324,8 @@ class LocalVideoLibraryBody extends StatelessWidget {
       totalInLibraryOfKind: totalInLibraryOfKind,
       emptyTitle: l10n.libraryEmptyVideoTitle,
       emptyHint: l10n.libraryEmptyVideoHint,
-      contentSliver: (context, items, inset, maxWidth) {
-        final crossAxisExtent = maxWidth - inset * 2;
+      contentSliver: (context, items, geometry) {
+        final crossAxisExtent = geometry.maxWidth - geometry.inset * 2;
         return SliverGrid(
           gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
             crossAxisExtent: crossAxisExtent,

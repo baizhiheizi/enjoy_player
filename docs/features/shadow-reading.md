@@ -20,7 +20,7 @@ Mic capture and take persistence live in [`ShadowTakeStore`](../../lib/features/
 
 - **Capture**: mic permission gate, `{appSupport}/recordings/{uuid}.wav` paths, and the 16 kHz mono PCM16 WAV config (`buildShadowRecordConfig`, aligned with web + Azure Speech).
 - **Recorder lifecycle**: the `MicRecorder` port wraps `package:record`'s `AudioRecorder`; the recorder is **recreated after every `stop()`** — `record` on Windows keeps stale Media Foundation state on the same instance, so reusing it silently produces a zero-sample WAV ("second take won't record").
-- **Persistence**: `stopAndPersist` reads the WAV, computes sha256 + duration, applies the **silence heuristic** (RMS < 0.001 or non-zero ratio < 1% → `looksSilent` verdict surfaced by the panel as a warning; the row is persisted regardless), builds the `RecordingRow`, inserts via `recordingDao` (ADR-0002), then enqueues sync create through the injected `SyncEnqueueFn` (ADR-0013).
+- **Persistence**: `stopAndPersist` reads the WAV, computes sha256 + duration (from the RIFF `fmt ` + `data` header; a `fmt ` chunk shorter than 16 bytes yields no duration), applies the **silence heuristic** (RMS < 0.001 or non-zero ratio < 1% → `looksSilent` verdict surfaced by the panel as a warning; the row is persisted regardless), builds the `RecordingRow`, inserts via `recordingDao` (ADR-0002), then enqueues sync create through the injected `SyncEnqueueFn` (ADR-0013).
 - **Deletion**: `deleteTake` enqueues sync delete, removes the WAV file, then deletes the DAO row. Stopping preview playback of the take first is the panel's job (a presentation concern).
 
 ### Wiring (issue #764)

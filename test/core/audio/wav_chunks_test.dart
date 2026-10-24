@@ -22,6 +22,14 @@ Uint8List _chunk(String id, List<int> payload) {
   return b.toBytes();
 }
 
+Uint8List _chunkDeclaring(String id, int declaredSize, List<int> payload) {
+  return (BytesBuilder(copy: false)
+        ..add(_ascii(id))
+        ..add(_le32(declaredSize))
+        ..add(payload))
+      .toBytes();
+}
+
 Uint8List _wav(List<Uint8List> chunks) {
   final body = BytesBuilder(copy: false)..add(_ascii('WAVE'));
   for (final chunk in chunks) {
@@ -113,6 +121,27 @@ void main() {
     ]);
 
     expect(readWavChunks(bytes.sublist(0, bytes.length - 4)), isNull);
+  });
+
+  test('rejects a data chunk that over-declares its size', () {
+    final bytes = _wav([
+      _chunk('fmt ', _fmtPayload()),
+      _chunkDeclaring('data', 1024, [1, 2, 3, 4]),
+    ]);
+
+    expect(readWavChunks(bytes), isNull);
+  });
+
+  test('stops before a corrupt trailing chunk once fmt and data are found', () {
+    final bytes = _wav([
+      _chunk('fmt ', _fmtPayload()),
+      _chunk('data', List<int>.filled(4, 0)),
+      _chunkDeclaring('LIST', 4096, [0]),
+    ]);
+
+    final chunks = readWavChunks(bytes);
+    expect(chunks, isNotNull);
+    expect(chunks!.dataSize, 4);
   });
 
   test('rejects non-RIFF input', () {

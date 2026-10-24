@@ -147,15 +147,3 @@ class FfmpegMediaProbe {
     }
   }
 }
-
-/// Quote [path] for safe inclusion in an FFmpeg filter-graph / CLI argument
-/// embedded inside a larger string. Paths with whitespace or `"` are wrapped
-/// in double quotes and any embedded `"` is backslash-escaped; everything else
-/// is returned unchanged. Used by `ffmpegCommandFromArgs` to keep the CLI and
-/// FFmpegKit paths token-identical.
-String shellEscape(String path) {
-  if (path.contains(' ') || path.contains('"')) {
-    return '"${path.replaceAll('"', r'\"')}"';
-  }
-  return path;
-}

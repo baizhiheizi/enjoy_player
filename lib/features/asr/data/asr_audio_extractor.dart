@@ -17,7 +17,6 @@ library;
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:enjoy_player/data/files/ffmpeg_command.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/features/asr/domain/asr_audio_extraction_failure.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
@@ -185,12 +184,11 @@ class AsrAudioExtractor {
       }
     }
 
-    final cmd = ffmpegCommandFromArgs(
-      _extractArgs(input: input, outputWav: outputWav),
-    );
     try {
       onProgress?.call(0.1);
-      final session = await FFmpegKit.execute(cmd);
+      final session = await FFmpegKit.executeWithArguments(
+        _extractArgs(input: input, outputWav: outputWav),
+      );
       onProgress?.call(0.9);
       final code = await session.getReturnCode();
       final ok = ReturnCode.isSuccess(code);

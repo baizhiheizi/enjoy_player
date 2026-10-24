@@ -10,7 +10,6 @@ import 'dart:isolate';
 
 import 'package:enjoy_player/core/audio/wav_signal_peak.dart';
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/files/ffmpeg_command.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/features/ai/data/azure_assessment_staging_path.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
@@ -68,15 +67,14 @@ Future<bool> _runFfmpegKit({
   required String outputWavPath,
   required String audioFilter,
 }) async {
-  final cmd = ffmpegCommandFromArgs(
-    _normalizeArgs(
-      inputPath: inputPath,
-      outputWavPath: outputWavPath,
-      audioFilter: audioFilter,
-    ),
-  );
   try {
-    final session = await FFmpegKit.execute(cmd);
+    final session = await FFmpegKit.executeWithArguments(
+      _normalizeArgs(
+        inputPath: inputPath,
+        outputWavPath: outputWavPath,
+        audioFilter: audioFilter,
+      ),
+    );
     final code = await session.getReturnCode();
     if (!ReturnCode.isSuccess(code)) {
       _log.fine(

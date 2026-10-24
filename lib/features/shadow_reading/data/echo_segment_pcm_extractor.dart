@@ -14,7 +14,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/files/ffmpeg_command.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_session.dart';
@@ -236,7 +235,7 @@ Future<void> _runFfmpegExtract({
   }
 
   await _runFfmpegKit(
-    command: ffmpegCommandFromArgs(args),
+    args: args,
     token: token,
     timeout: timeout,
     failLabel: 'segment',
@@ -280,7 +279,7 @@ Future<void> _runFfmpegFullDecode({
   }
 
   await _runFfmpegKit(
-    command: ffmpegCommandFromArgs(args),
+    args: args,
     token: token,
     timeout: timeout,
     failLabel: 'full decode',
@@ -360,10 +359,11 @@ Future<void> _runFfmpegCliProcess({
   }
 }
 
-/// Runs FFmpeg via FFmpegKit (Android / iOS / macOS). Uses [FFmpegKit.executeAsync] so a
-/// session id is available for real cancellation via [FFmpegKit.cancel].
+/// Runs FFmpeg via FFmpegKit (Android / iOS / macOS). Uses
+/// [FFmpegKit.executeWithArgumentsAsync] so the argv list is passed verbatim
+/// and a session id is available for real cancellation via [FFmpegKit.cancel].
 Future<void> _runFfmpegKit({
-  required String command,
+  required List<String> args,
   required EchoPcmCancelToken? token,
   required Duration timeout,
   required String failLabel,
@@ -374,7 +374,7 @@ Future<void> _runFfmpegKit({
   final completer = Completer<void>();
   FFmpegSession? session;
   try {
-    session = await FFmpegKit.executeAsync(command, (s) async {
+    session = await FFmpegKit.executeWithArgumentsAsync(args, (s) async {
       if (completer.isCompleted) return;
       final code = await s.getReturnCode();
       if (ReturnCode.isSuccess(code)) {

@@ -12,7 +12,6 @@ import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'ffmpeg_command.dart';
 import 'ffmpeg_media_probe.dart';
 
 final _log = logNamed('VideoPosterExtract');
@@ -69,7 +68,7 @@ double posterSeekSeconds(int? durationSeconds) {
 /// that decode cost is bounded; otherwise **fast** seek (`-ss` before `-i`).
 ///
 /// Windows / Linux: subprocess via [FfmpegMediaProbe.resolveFfmpegExecutable].
-/// Android / iOS / macOS: [FFmpegKit.execute] (bundled libs).
+/// Android / iOS / macOS: [FFmpegKit.executeWithArguments] (bundled libs).
 ///
 /// Returns `true` when [outputJpegPath] exists and is non-empty after the run.
 Future<bool> writeVideoPosterJpeg({
@@ -127,7 +126,7 @@ Future<bool> writeVideoPosterJpeg({
         return false;
       }
     } else {
-      final session = await FFmpegKit.execute(ffmpegCommandFromArgs(args));
+      final session = await FFmpegKit.executeWithArguments(args);
       final code = await session.getReturnCode();
       if (!ReturnCode.isSuccess(code)) {
         _log.fine(
