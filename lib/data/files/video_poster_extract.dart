@@ -12,6 +12,7 @@ import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'ffmpeg_command.dart';
 import 'ffmpeg_media_probe.dart';
 
 final _log = logNamed('VideoPosterExtract');
@@ -91,6 +92,27 @@ Future<bool> writeVideoPosterJpeg({
   final seekStr = seek.toStringAsFixed(3);
   final accurate = seek <= _kAccurateSeekDecodeCap;
   final net = _isNetworkMediaInput(input);
+  final args = <String>[
+    '-y',
+    '-hide_banner',
+    if (net) ...['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'],
+    if (accurate) ...[
+      '-i',
+      input,
+      '-ss',
+      seekStr,
+    ] else ...[
+      '-ss',
+      seekStr,
+      '-i',
+      input,
+    ],
+    '-frames:v',
+    '1',
+    '-q:v',
+    '3',
+    outputJpegPath,
+  ];
 
   try {
     if (FfmpegMediaProbe.usesFfmpegCli) {
@@ -99,60 +121,13 @@ Future<bool> writeVideoPosterJpeg({
         _log.fine('video poster: no ffmpeg CLI found');
         return false;
       }
-      final List<String> args;
-      if (accurate) {
-        args = [
-          '-y',
-          '-hide_banner',
-          if (net) ...['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'],
-          '-i',
-          input,
-          '-ss',
-          seekStr,
-          '-frames:v',
-          '1',
-          '-q:v',
-          '3',
-          outputJpegPath,
-        ];
-      } else {
-        args = [
-          '-y',
-          '-hide_banner',
-          if (net) ...['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'],
-          '-ss',
-          seekStr,
-          '-i',
-          input,
-          '-frames:v',
-          '1',
-          '-q:v',
-          '3',
-          outputJpegPath,
-        ];
-      }
       final r = await Process.run(exe, args);
       if (r.exitCode != 0) {
         _log.fine('video poster ffmpeg failed: ${r.stderr}');
         return false;
       }
     } else {
-      final proto = net
-          ? '-protocol_whitelist file,http,https,tcp,tls,crypto '
-          : '';
-      final String cmd;
-      if (accurate) {
-        cmd =
-            '-y -hide_banner $proto'
-            '-i ${shellEscape(input)} -ss $seekStr '
-            '-frames:v 1 -q:v 3 ${shellEscape(outputJpegPath)}';
-      } else {
-        cmd =
-            '-y -hide_banner $proto'
-            '-ss $seekStr -i ${shellEscape(input)} '
-            '-frames:v 1 -q:v 3 ${shellEscape(outputJpegPath)}';
-      }
-      final session = await FFmpegKit.execute(cmd);
+      final session = await FFmpegKit.execute(ffmpegCommandFromArgs(args));
       final code = await session.getReturnCode();
       if (!ReturnCode.isSuccess(code)) {
         _log.fine(
