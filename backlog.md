@@ -44,9 +44,12 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   response yet. Awaiting maintainer green-light or networked-runner pick-up.
 
 ## P7 — Auto-translate fan-out: 40–80 tile rebuilds per flush
-- Files: `transcript_scrollable_list.dart:439-443, 553-566`,
-  `auto_translate_resolved_text.dart:26-34`,
-  `transcript_repository_auto_translate.dart:115-143`.
+- Files: **STALE — `transcript_scrollable_list.dart` was split by #1007**
+  into `transcript_virtual_items.dart`, `transcript_auto_scroll_controller.dart`,
+  `transcript_line_item_builder.dart` and a reduced
+  `transcript_scrollable_list.dart`; also
+  `auto_translate_resolved_text.dart`,
+  `transcript_repository_auto_translate.dart`.
 - Problem (from #968 "Also verified, smaller"): one flush swaps the secondary
   list identity, so the virtualized window rebuilds 40–80 tiles and each
   re-resolves its secondary text (including a fresh source-key hash); the
@@ -57,8 +60,15 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 - Measure: structural — count tile rebuilds (and `Resolver` lookups) during
   one synthetic translate flush over a 1k-line transcript with ~50% untranslated.
 - Risk: MED (UI correctness around translate race). Confidence: HIGH.
-- **Status:** offered to an-lee via #968 comment on 2026-10-17. No human
-  response yet. Conditional on maintainer green-light.
+- **Status:** offered to an-lee via #968 comment on 2026-10-17. #968 was
+  closed by an-lee on 2026-10-20; the offer stands but needs a fresh
+  channel. **Not re-verified on the post-#1007 tree** — the Explore
+  subagent tasked with that failed with a 503 on 2026-10-25. Re-check the
+  file layout before acting.
+- Note: `resolveAutoTranslateTextForDisplay` in
+  `auto_translate_resolved_text.dart` still calls
+  `resolveAutoTranslateSecondaryText` per line — the per-tile
+  re-resolution cost is still visible in the current tree.
 
 ## P8 — Position tracker seek misclassification
 - Files: `raw_engine_position_stream_provider.dart:11-14`,
@@ -81,7 +91,7 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 - **Status:** offered to an-lee via #968 comment on 2026-10-17. No human
   response yet. Conditional on maintainer green-light.
 
-## P9 — Subtitle SRT parse throughput (SHIPPED 2026-10-20, draft PR open)
+## P9 — Subtitle SRT parse throughput (SHIPPED 2026-10-20 — PR #1006 MERGED)
 - File: `lib/data/subtitle/subtitle_parser.dart` — `SrtParser.parse`, reached
   from `transcript_repository_subtitle_import.dart` and
   `embedded_subtitle_service.dart` on the UI isolate.
@@ -98,10 +108,56 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   CRLF); 20000 cues 39.48 → 22.85 ms (1.73x LF), 40.11 → 23.35 ms (1.72x CRLF).
 - Correctness: 60,055 differential cases vs the pre-change parser, 0
   mismatches; the new structural tests also pass against the original parser.
-- Status: draft PR open on `perf-assist/subtitle-parser-throughput` (commit
-  `5f21e33`). Awaiting CI + maintainer review.
+- **Status: MERGED by an-lee on 2026-10-20** (PR #1006,
+  "perf(subtitle): parse SRT ~1.9x faster"). Shipped in v0.10.0.
 - **Do not extend to VTT without a fresh measurement** — a VTT variant was
   tried and measured ≈1.5 % (noise), then reverted.
+
+## P10 — Timeline revision character count (SHIPPED 2026-10-25, draft PR open)
+- Files: `lib/features/transcript/data/transcript_timeline_codec.dart`
+  (`timelineJsonCharacterCount`), `transcript_repository.dart`,
+  `transcript_repository_lines.dart`,
+  `transcript_repository_auto_translate.dart`.
+- Problem: the decode memo is keyed on `(updatedAt, timelineJson character
+  count)`. The count was `json.runes.length` — a rune-by-rune walk of the
+  whole `timelineJson` blob (documented as 1–10 MB in
+  `docs/features/transcript.md`) — and the repository derived that same
+  revision **three times per tick** (twice in `_preloadLinesForRow`, once in
+  `_linesForRow`), plus once more on every auto-translate flush (every
+  300 ms during translation).
+- Fix: a UTF-16 code-unit scan (surrogate pair = 1 character, unpaired
+  surrogate = 1 — identical to `String.runes.length` and SQLite `length()`),
+  and the revision is derived once per row and threaded through the private
+  preload/decode helpers. Public API unchanged.
+- Measured (isolated processes, 100 warmup + 200 measured, 3 rounds):
+  5000 cues (573 KB) 3.138 → 0.137 ms (22.9x); 20000 cues (2.3 MB)
+  9.763 → 0.483 ms (20.2x). Scan-only 6.7–9.5x, redundancy-only 6.7–7.8x.
+- Correctness: 20,000 fuzz cases + curated edge cases against
+  `String.runes.length`, 0 mismatches.
+- Status: draft PR open on `perf-assist/timeline-revision-scan` (commit
+  `fda2e6c`). The PR number is assigned when the framework pushes the
+  bundle — it was not known during the run.
+- **This supersedes the "P4" style of scan cost noted in #968** — the SHA-1
+  removal in issue #810 D5 left an O(n) walk behind, which is what P10
+  removed.
+
+## P10b — Remove the remaining character-count scan (NEXT, needs a maintainer call)
+- File: `lib/features/transcript/data/transcript_timeline_codec.dart` +
+  `transcript_repository_lines.dart`.
+- Problem: even after P10 the count is still an O(n) walk of the payload.
+  `TranscriptDao.watchRevisionById` / `metaById` already compute
+  `length(timeline_json)` **in SQLite**, so the watch path could take the
+  length from the SQL revision projection instead of re-deriving it from
+  the row.
+- Why it was NOT done in P10: it changes which value keys the decode memo.
+  The SQL revision and the row-derived revision agree by construction today,
+  but in the race between the SQL read and the row fetch the two can
+  differ, and the memo would then be keyed by the stale revision. That is
+  still correct (the next tick re-decodes) but it is a semantic change to
+  the memo-key contract, so it needs maintainer sign-off.
+- Measure: structural — count `timelineJsonCharacterCount` calls per
+  revision tick (today 1; target 0 on the watch path).
+- Risk: MED (memo-key contract). Confidence: MED.
 
 ## Measurement-infrastructure gaps (docs/perf-measurement.md confirms deferred)
 - ~~No subtitle-parser throughput test.~~ **DONE 2026-10-20**:
@@ -143,5 +199,18 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   **#968 CLOSED by an-lee** at 10:58 UTC. Open draft PRs #1000 / #1003 are
   Repo Assist's. Perf Improver opened its first code-changing PR in 13 runs
   (P9, subtitle SRT parse) using the offline harness — see `commands.md`.
+- **2026-10-21 → 2026-10-25 update:** heavy maintainer activity — #1007
+  (transcript_scrollable_list split), #1010 (release pipelines), #1015
+  (DST-safe relative-day label), #1023 (docs drift), #1038 (YouTube WebView
+  mount gate), #1043 (code-health audit), #1046 (disposed WidgetRef),
+  #1048 (macOS secure storage), #1062 (duplicate-code fixes), #1047 (bump
+  v0.10.1). **P9 / PR #1006 was MERGED by an-lee on 2026-10-20** and
+  shipped in v0.10.0 — Perf Improver's first merged code-changing PR.
+  On 2026-10-25 Perf Improver shipped P10 (timeline revision character
+  count) as a second code-changing PR, via the offline harness.
+- **Issue visibility on 2026-10-25:** the MCP integration now returns **no
+  readable open issues** — the 9 open issues the API lists are all dropped
+  by the integrity policy, including #864. A `performance`-label query
+  returns `[]`. Task 5 therefore has no target; do not manufacture one.
 - Remaining open issues with `performance` label: #864 (my monthly summary).
   #968 is closed. All others were either auto-managed or absorbed.

@@ -60,11 +60,32 @@ Use the Dart VM directly with a hand-written package config.
   `dart:ui` (engine-only) so it cannot compile under a standalone `dart` VM.
   Needs `listEquals` (copy verbatim from the SDK's
   `packages/flutter/lib/src/foundation/collections.dart`) plus a minimal
-  `immutable` annotation.
+  `immutable` annotation, **plus `compute`** (added 2026-10-25 — the codec
+  imports it for isolate pre-decode):
+  ```dart
+  import 'dart:async';
+  typedef ComputeCallback<M, R> = FutureOr<R> Function(M message);
+  Future<R> compute<M, R>(ComputeCallback<M, R> callback, M message,
+      {String? debugLabel}) async => callback(message);
+  ```
+  The `dart:async` import is required for `FutureOr`.
 - **Stub `package:flutter_test/flutter_test.dart`** — a small matcher/test
-  framework (`test`/`group`/`expect`/`setUp`, `equals`, `isEmpty`, `hasLength`,
-  `isTrue`, `greaterThan`, `lessThan`, `contains`, `same`, `isNot`, …). With
-  it the repo's real `*_test.dart` files run under plain `dart`.
+  framework. Build it as ONE `abstract class Matcher` with `matches` /
+  `describe` and a subclass per matcher; separate `const` matcher objects
+  plus free functions produced type errors ("A value of type '_Matcher'
+  can't be assigned to a variable of type 'Matcher'") on the first attempt.
+  Needed surface: `test`/`group`/`expect`/`setUp`/`tearDown`/`addTearDown`,
+  `equals` (**deep** list/map comparison — a shallow `==` makes
+  `expect(listA, equals(listB))` fail for lists of objects without value
+  equality), `isNull`, `isNotNull`, `isTrue`, `isFalse`, `isEmpty`,
+  `isNotEmpty`, `same`, `isNot`, `hasLength`, `greaterThan`,
+  `greaterThanOrEqualTo`, `lessThan`, `lessThanOrEqualTo`, `contains`,
+  `startsWith`, `endsWith`, `isA`, `expectLater`, `fail`, `Timeout`, and a
+  `TestFailure` type. With it the repo's real `*_test.dart` files run under
+  plain `dart`.
+- **Negative-control the stub** before trusting a green result: a
+  deliberately failing `expect` must print `[FAIL]` and exit non-zero.
+  Verified 2026-10-25.
 - Run a script or a test file:
   `dart --packages=<repo>/.dart_tool/package_config.json <file>.dart`
 - `dart analyze <file>` and `dart format` also work against that config.
@@ -72,6 +93,12 @@ Use the Dart VM directly with a hand-written package config.
   the language version selects tall vs short style, and without a config the
   formatter also inserts a blank line between a `package:` import and a
   relative import (CI's formatter does not). Place the config BEFORE formatting.
+- **What still cannot compile locally**: anything importing `package:drift`,
+  `package:riverpod`, `package:media_kit`, `package:logging`, `package:path`,
+  `package:cross_file`, or the app's own `app_database.dart`. That includes
+  every `TranscriptRepository` **part file** — a part file is only valid
+  inside its library, and the library needs Drift. `dart format` still
+  parses a part file standalone, so use it as a syntax check.
 - Still not possible: `flutter test` / `flutter analyze` against the real
   dependency set. **CI on GitHub's runners is the authoritative gate**; say so
   explicitly in the PR body.
@@ -136,6 +163,30 @@ Use the Dart VM directly with a hand-written package config.
 - Test count as of 2026-10-17: 6730–6744 across the maintainer's 5 perf
   PRs (#969–#973). Each `flutter test` run is several minutes on a
   networked runner.
+
+## Microbenchmark methodology (validated 2026-10-25 — supersedes ad-hoc timing)
+- **One implementation per fresh process.** An in-process A/B benchmark is
+  order-biased: whichever implementation runs first wins. Use
+  `dart run --packages=<cfg> bench_before.dart` and `bench_after.dart` as
+  separate invocations.
+- **100 warmup + 200 measured iterations**, median per round, **3 rounds**,
+  report the mean of the round medians *and* the minimum-of-rounds.
+- **Warmup length changes the number materially.** A 20-warmup + 60-measured
+  harness reported 1.461 ms for a 2.3 MB character scan; 100 warmup + 200
+  measured reported 0.483 ms for the same work. Never quote a number from a
+  short warmup.
+- Report median / min / p90 together; if min-of-rounds disagrees with the
+  median, the run is JIT-artifacted and must be repeated.
+- Keep the measured function pure and feed it a **sink** (`sink += result`)
+  so the optimizer cannot elide it.
+- Do not compile a `RegExp` inside a measured loop.
+- The in-repo microbenchmark template (`docs/perf-measurement.md`) uses a
+  single warmup + 20 runs, so its printed number is deliberately colder than
+  the isolated headline — say so when quoting both.
+- Useful micro-optimization fact: `json.runes.length` is ~7–9x slower than a
+  `codeUnitAt` scan of the same string (`Runes.length` iterates the `Runes`
+  iterator rune by rune). Dart forbids `WeakReference<String>`, so a
+  string-keyed weak cache is not an option.
 
 ## Performance testing philosophy (docs/perf-measurement.md)
 - Prefers STRUCTURAL deterministic tests over wall-clock benchmarks:
