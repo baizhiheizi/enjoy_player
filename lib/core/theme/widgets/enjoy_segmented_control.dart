@@ -3,8 +3,6 @@
 /// [EnjoySegmentedControl] is the primary control: a recessed track with a
 /// lifted thumb that glides between equal-width segments (the iOS / macOS
 /// idiom, rendered identically on every platform).
-/// [enjoySegmentedButtonStyle] keeps legacy [SegmentedButton] call sites on
-/// the same visual language.
 library;
 
 import 'package:flutter/material.dart';
@@ -12,27 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
-
-/// Shared styling for legacy [SegmentedButton] call sites.
-ButtonStyle enjoySegmentedButtonStyle(BuildContext context) {
-  final t = EnjoyThemeTokens.of(context);
-  final tt = Theme.of(context).textTheme;
-
-  return SegmentedButton.styleFrom(
-    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    visualDensity: VisualDensity.compact,
-    backgroundColor: t.sunk,
-    foregroundColor: t.ink2,
-    selectedForegroundColor: t.ink,
-    selectedBackgroundColor: t.raised,
-    side: BorderSide(color: t.line),
-    splashFactory: NoSplash.splashFactory,
-    shape: RoundedSuperellipseBorder(
-      borderRadius: BorderRadius.circular(t.radiusControl),
-    ),
-    textStyle: tt.labelMedium?.copyWith(fontWeight: FontWeight.w600),
-  );
-}
 
 /// Recessed track color shared by segmented controls and segmented [TabBar]s.
 Color enjoySegmentTrackColor(BuildContext context) =>
