@@ -122,9 +122,9 @@ extension _TranscriptRepositoryLines on TranscriptRepository {
           }
           final row = await transcriptRowById(transcriptId);
           if (row == null) return const <TranscriptLine>[];
-          final revision = _revisionOf(row);
-          await _preloadLinesForRow(row, revision);
-          return _linesForRow(row, revision);
+          final rowRevision = _revisionOf(row);
+          await _preloadLinesForRow(row, rowRevision);
+          return _linesForRow(row, rowRevision);
         })
         .distinctBy(listEquals);
   }

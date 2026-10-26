@@ -38,18 +38,16 @@ List<String> _curatedStrings() => <String>[
   'skin tone 👍🏽 modifier',
   String.fromCharCode(_loneHighSurrogate),
   String.fromCharCode(_loneLowSurrogate),
-  String.fromCharCode(_loneHighSurrogate) + 'a',
-  'a' + String.fromCharCode(_loneLowSurrogate),
+  '${String.fromCharCode(_loneHighSurrogate)}a',
+  'a${String.fromCharCode(_loneLowSurrogate)}',
   String.fromCharCode(_loneHighSurrogate) +
       String.fromCharCode(_loneLowSurrogate),
   String.fromCharCode(_loneHighSurrogate) +
       String.fromCharCode(_loneHighSurrogate),
   String.fromCharCode(_loneLowSurrogate) +
       String.fromCharCode(_loneLowSurrogate),
-  'prefix ' +
-      String.fromCharCode(_loneHighSurrogate) +
-      String.fromCharCode(_loneLowSurrogate) +
-      ' suffix',
+  'prefix ${String.fromCharCode(_loneHighSurrogate)}'
+      '${String.fromCharCode(_loneLowSurrogate)} suffix',
   '😀' * 64,
   'a' * 1024,
 ];
