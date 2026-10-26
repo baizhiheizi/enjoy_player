@@ -1746,6 +1746,7 @@
   "craftSameLanguageSwitch": "Speak directly",
   "craftOfflineBanner": "You're offline. Craft needs an internet connection.",
   "craftSignInRequired": "Sign in to use Craft",
+  "craftSignInCta": "Sign in",
   "craftFailureTts": "We couldn't turn the text into audio. Check your TTS provider settings or try again.",
   "craftFailureTranslate": "We couldn't translate the text. Try again or switch to Speak directly.",
   "craftFailureSave": "The audio was generated but couldn't be saved. Free up space and try again.",

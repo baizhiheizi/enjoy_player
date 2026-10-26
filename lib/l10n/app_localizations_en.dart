@@ -3526,6 +3526,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get craftSignInRequired => 'Sign in to use Craft';
 
   @override
+  String get craftSignInCta => 'Sign in';
+
+  @override
   String get craftFailureTts =>
       'We couldn\'t turn the text into audio. Check your TTS provider settings or try again.';
 

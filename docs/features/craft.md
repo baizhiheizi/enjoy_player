@@ -127,7 +127,7 @@ Every Express stage watches `state.failure` and renders a calm error card using 
 
 Existing failures (`CraftTranslateFailure`, `CraftTtsFailure`, `CraftSaveFailure`, etc.) surface in the same way.
 
-**Failure surface treatment**: `CraftFailureCard` is a *persistent, blocking* stage state — it owns the whole stage body and carries the action the learner must take — so it stays an in-flow card rather than becoming an `AppNotice` toast (toasts auto-dismiss in ~5s and would strand the learner with no retry affordance). It is reskinned as an Aurora error surface: a `ShapeDecoration` + `RoundedSuperellipseBorder` panel tinted with the `scoreBadContainer` / `scoreBad` role tokens, an `EnjoyIcons.errorFill` orb in a hairline circle, a destructive `EnjoyButton.destructive` for the primary action, and a ghost credits CTA for `CraftCreditsFailure`. It borrows the toast's semantic-glyph-plus-error-token grammar (ADR-0089 §9) without adopting its transient lifetime. Inline, non-blocking failures in the two Advanced tool panels (translate / synthesize) stay lightweight: a `scoreBad`-tinted caption plus a ghost credits CTA.
+**Failure surface treatment**: `CraftFailureCard` is a *persistent, blocking* stage state — it owns the whole stage body and carries the action the learner must take — so it stays an in-flow card rather than becoming an `AppNotice` toast (toasts auto-dismiss in ~5s and would strand the learner with no retry affordance). It is reskinned as an Aurora error surface: a `ShapeDecoration` + `RoundedSuperellipseBorder` panel tinted with the `scoreBadContainer` / `scoreBad` role tokens, an `EnjoyIcons.errorFill` orb in a hairline circle, a destructive `EnjoyButton.destructive` for the primary action, and a ghost credits CTA for `CraftCreditsFailure`. It borrows the toast's semantic-glyph-plus-error-token grammar (ADR-0089 §9) without adopting its transient lifetime. Inline, non-blocking failures in the two Advanced tool panels (translate / synthesize) use the compact `CraftInlineFailure` from the same file: a `scoreBad` caption plus the action the failure names — a ghost credits CTA (`/subscription`), sign-in (`/sign-in`), or open-AI-settings (`/settings/ai-providers`) button. Retry and switch-to-speak failures stay caption-only because the panel's own submit button is the retry affordance.
 
 ## Advanced mode
 
@@ -140,7 +140,7 @@ Retained for users who already have prepared text. Uses `EnjoyPageKind.hub` (sam
 - **Style preset** selector (formal, casual, etc.) with an optional custom prompt
 - **Edit / copy / re-translate** actions on the translated output
 - **Same-language guard**: selecting the same source and target language surfaces a localized hint to switch to Speak directly
-- Inline non-blocking failures render as a `scoreBad` caption plus a ghost credits CTA (see [Failure handling in Express stages](#failure-handling-in-express-stages))
+- Inline non-blocking failures render through the shared `CraftInlineFailure` — a `scoreBad` caption plus the action the failure names (see [Failure handling in Express stages](#failure-handling-in-express-stages))
 
 ### Synthesize tool (`SynthesizeTool`)
 

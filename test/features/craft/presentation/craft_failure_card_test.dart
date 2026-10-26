@@ -219,4 +219,124 @@ void main() {
     await tester.pump();
     expect(retried, 1);
   });
+
+  testWidgets('CraftInlineFailure shows the credits CTA and no Retry', (
+    tester,
+  ) async {
+    final l10n = AppLocalizationsEn();
+    await tester.pumpWidget(
+      wrap(
+        CraftInlineFailure(
+          failure: const CraftCreditsFailure(
+            CreditsFailure(
+              'HTTP 402',
+              requiredCredits: 1500,
+              usedCredits: 0,
+              limitCredits: 1000,
+            ),
+          ),
+          l10n: l10n,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('1500'), findsOneWidget);
+    expect(find.text('HTTP 402'), findsNothing);
+    expect(find.text('Retry'), findsNothing);
+    expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
+  });
+
+  testWidgets('CraftInlineFailure renders no action for a retry failure', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        CraftInlineFailure(
+          failure: const CraftTranslateFailure(),
+          l10n: AppLocalizationsEn(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        "We couldn't translate the text. Try again or switch to "
+        'Speak directly.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(EnjoyButton), findsNothing);
+  });
+
+  testWidgets(
+    'CraftInlineFailure routes to /settings/ai-providers for openAiSettings',
+    (tester) async {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: CraftInlineFailure(
+                failure: const CraftTtsFailure(
+                  action: CraftFailureAction.openAiSettings,
+                ),
+                l10n: AppLocalizationsEn(),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/settings/ai-providers',
+            builder: (_, _) =>
+                const Scaffold(body: Text('ai-providers destination')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(wrap(const SizedBox.shrink(), router: router));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Open AI settings'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(EnjoyButton, 'Open AI settings'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ai-providers destination'), findsOneWidget);
+    },
+  );
+
+  testWidgets('CraftInlineFailure routes to /sign-in for signIn failure', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => Scaffold(
+            body: CraftInlineFailure(
+              failure: const CraftSignInRequiredFailure(),
+              l10n: AppLocalizationsEn(),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/sign-in',
+          builder: (_, _) => const Scaffold(body: Text('sign-in destination')),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(wrap(const SizedBox.shrink(), router: router));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sign in to use Craft'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(EnjoyButton, 'Sign in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('sign-in destination'), findsOneWidget);
+  });
 }

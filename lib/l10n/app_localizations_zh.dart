@@ -3376,6 +3376,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get craftSignInRequired => '请登录后使用合成';
 
   @override
+  String get craftSignInCta => '登录';
+
+  @override
   String get craftFailureTts => '无法将文本转为语音。请检查 TTS 提供商设置或重试。';
 
   @override
@@ -7351,6 +7354,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get craftSignInRequired => '请登录后使用合成';
+
+  @override
+  String get craftSignInCta => '登录';
 
   @override
   String get craftFailureTts => '无法将文本转为语音。请检查 TTS 提供商设置或重试。';

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -25,6 +26,11 @@ class _AuthSignedInCtrl extends AuthCtrl {
   Future<AuthState> build() async => const AuthSignedIn(
     profile: UserProfile(id: 'test-user', email: 't@example.com', name: 'Test'),
   );
+}
+
+class _AuthSignedOutCtrl extends AuthCtrl {
+  @override
+  Future<AuthState> build() async => const AuthSignedOut();
 }
 
 class _FakePrefsCtrl extends AppPreferencesCtrl {
@@ -77,8 +83,8 @@ Widget _harness({required List<Override> overrides, required Widget child}) {
   );
 }
 
-List<Override> _baseOverrides() => [
-  authCtrlProvider.overrideWith(_AuthSignedInCtrl.new),
+List<Override> _baseOverrides({AuthCtrl Function()? auth}) => [
+  authCtrlProvider.overrideWith(auth ?? _AuthSignedInCtrl.new),
   appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
   craftTranslatorProvider.overrideWithValue(_FakeTranslator()),
   craftSynthesizerProvider.overrideWithValue(_FakeSynthesizer()),
@@ -234,6 +240,47 @@ void main() {
       expect(find.text('ZH-CN'), findsOneWidget);
       expect(find.text('EN-US'), findsOneWidget);
     });
+
+    testWidgets('same-language guard renders the shared inline hint', (
+      tester,
+    ) async {
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _baseOverrides(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    container = ProviderScope.containerOf(context);
+                    return const TranslateTool();
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final controller = container.read(craftControllerProvider.notifier);
+      controller
+        ..setSourceLanguage('en-US')
+        ..setTargetLanguage('en-US')
+        ..setSourceText('Hello world, this is a test sentence');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithIcon(FilledButton, EnjoyIcons.translate));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Looks like this is already in your learning language.'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('SynthesizeTool', () {
@@ -330,6 +377,41 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('EN'), findsOneWidget);
+    });
+
+    testWidgets('signed-out failure offers the sign-in action', (tester) async {
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _baseOverrides(auth: _AuthSignedOutCtrl.new),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    container = ProviderScope.containerOf(context);
+                    return const SynthesizeTool();
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final controller = container.read(craftControllerProvider.notifier);
+      await container.read(authCtrlProvider.future);
+      controller.setSynthText('Hello world, this is a test sentence');
+      await tester.pumpAndSettle();
+
+      await controller.synthesize();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sign in to use Craft'), findsOneWidget);
+      expect(find.widgetWithText(EnjoyButton, 'Sign in'), findsOneWidget);
     });
   });
 }

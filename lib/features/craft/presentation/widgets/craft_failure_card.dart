@@ -1,7 +1,8 @@
-/// Shared failure card used by every Craft stage (audio, capture, rewrite).
+/// Shared failure surfaces for the Craft flow.
 ///
-/// Centralises the icon + localized message + action button layout so the
-/// three stages render identical failure UX and route the same way:
+/// [CraftFailureCard] owns the whole body of an Express stage: icon + localized
+/// message + action button, so the three stages render identical failure UX
+/// and route the same way:
 ///
 /// * [CraftFailureAction.openAiSettings] → push `/settings/ai-providers`
 /// * [CraftFailureAction.signIn]         → push `/sign-in`
@@ -9,7 +10,11 @@
 ///   [CraftFailureAction.switchToSpeakDirectly] case inherited from the
 ///   duplicated originals) falls back to the supplied [onRetry] callback.
 ///
-/// Previously the same widget lived three times — one private copy each in
+/// [CraftInlineFailure] is the compact, non-blocking counterpart used inside
+/// the Advanced tool panels: a `scoreBad` caption plus the action the failure
+/// names, without taking over the tool body.
+///
+/// Previously the card lived three times — one private copy each in
 /// `audio_stage.dart`, `capture_stage.dart`, and `rewrite_stage.dart` —
 /// see [issue #506](https://github.com/baizhiheizi/enjoy_player/issues/506).
 library;
@@ -25,6 +30,73 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+
+/// Non-blocking failure caption plus its action, for the Advanced tool panels.
+class CraftInlineFailure extends StatelessWidget {
+  const CraftInlineFailure({
+    required this.failure,
+    required this.l10n,
+    super.key,
+  });
+
+  final CraftFailure failure;
+  final AppLocalizations l10n;
+
+  ({String label, VoidCallback onPressed})? _action(BuildContext context) {
+    if (failure is CraftCreditsFailure) {
+      return (
+        label: creditsCtaLabel(l10n),
+        onPressed: () => unawaited(context.push('/subscription')),
+      );
+    }
+    switch (failure.action) {
+      case CraftFailureAction.openAiSettings:
+        return (
+          label: l10n.craftOpenAiSettings,
+          onPressed: () => unawaited(context.push('/settings/ai-providers')),
+        );
+      case CraftFailureAction.signIn:
+        return (
+          label: l10n.craftSignInCta,
+          onPressed: () => unawaited(context.push('/sign-in')),
+        );
+      default:
+        return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final theme = Theme.of(context);
+    final action = _action(context);
+
+    return Padding(
+      padding: EdgeInsets.only(top: t.space12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            failure.message(l10n),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: t.scoreBad,
+              height: 1.4,
+            ),
+          ),
+          if (action != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: EnjoyButton.ghost(
+                size: EnjoyButtonSize.small,
+                onPressed: action.onPressed,
+                child: Text(action.label),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class CraftFailureCard extends StatelessWidget {
   const CraftFailureCard({

@@ -1398,6 +1398,7 @@
   "craftSameLanguageSwitch": "直接朗读",
   "craftOfflineBanner": "当前离线，合成需要联网。",
   "craftSignInRequired": "请登录后使用合成",
+  "craftSignInCta": "登录",
   "craftFailureTts": "无法将文本转为语音。请检查 TTS 提供商设置或重试。",
   "craftFailureTranslate": "无法翻译文本。请重试或切换到直接朗读。",
   "craftFailureSave": "音频已生成但保存失败。请释放空间后重试。",

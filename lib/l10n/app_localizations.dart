@@ -6495,6 +6495,12 @@ abstract class AppLocalizations {
   /// **'Sign in to use Craft'**
   String get craftSignInRequired;
 
+  /// No description provided for @craftSignInCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get craftSignInCta;
+
   /// No description provided for @craftFailureTts.
   ///
   /// In en, this message translates to:
