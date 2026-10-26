@@ -23,8 +23,10 @@ Tracker for [PLAN.md](PLAN.md). Update your row in the same PR that does the wor
 | 4 · App screens | 11 | 10 |
 | 5 · Cleanup, proof, merge | 6 | 3 |
 | A · Audit verification | 6 | 6 |
-| 6 · One player with web + extension (v30) | 14 | 13 |
-| **Total** | **64** | **56 done/in review** |
+| 6 · One player with web + extension (v30) | 14 | 14 |
+| **Total** | **64** | **53 done/in review** |
+
+The Done column counts a task whose row status is `done`, `review`, or `shipped`; `in progress`, `todo`, `blocked`, and `needs decision` are not counted.
 
 ## Decisions
 
