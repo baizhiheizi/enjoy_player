@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
@@ -18,9 +17,8 @@ import 'package:enjoy_player/features/craft/presentation/craft_lang_tile.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_field_border.dart';
-import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
-import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/presentation/style_picker.dart';
@@ -57,7 +55,6 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(craftControllerProvider);
     final controller = ref.read(craftControllerProvider.notifier);
-    final theme = Theme.of(context);
 
     if (state.translatedText != null &&
         _resultCtrl.text != state.translatedText &&
@@ -186,31 +183,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
             ),
           ],
           if (state.failure != null)
-            Padding(
-              padding: EdgeInsets.only(top: tokens.space12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    state.failure!.message(l10n),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: tokens.scoreBad,
-                      height: 1.4,
-                    ),
-                  ),
-                  if (state.failure is CraftCreditsFailure)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: EnjoyButton.ghost(
-                        size: EnjoyButtonSize.small,
-                        onPressed: () =>
-                            unawaited(context.push('/subscription')),
-                        child: Text(creditsCtaLabel(l10n)),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+            CraftInlineFailure(failure: state.failure!, l10n: l10n),
         ],
       ),
     );
