@@ -60,7 +60,8 @@ flutter test --tags gallery --run-skipped test/duet_gallery   # writes build/due
 bash tool/duet_compare.sh Main DEcho                      # → build/duet_gallery/compare/<Board>.png
 ```
 
-- `test/duet_gallery/gallery_support.dart` holds the board presets (desktop 1440 × 900 at 1×, compact 880 × 560 at 1×, phone 390 × 844 at 2×), the light/dark switch, and the capture. Fonts load from the bundled assets only — no network.
+- `test/duet_gallery/gallery_support.dart` holds the board presets (desktop 1440 × 900 at 1×, compact 880 × 560 at 1×, phone 390 × 844 at 2×, plus the `store…` presets at the exact store-listing pixel sizes), the light/dark switch, and the capture. Fonts load from the bundled assets only — no network; the host's Noto CJK SC faces (when installed) are registered under every CJK fallback name the theme lists, so Chinese lines render without tofu.
+- `Store…` scenes feed `assets/store/`: `bash tool/store_screenshots.sh` renders them and writes the listing files (see [landing.md § Screenshots and film](features/landing.md#screenshots-and-film)).
 - `test/duet_gallery/fixtures.dart` holds the `ProviderScope` fixtures (in-memory Drift, signed-in profile, sample library) shared by the scenes.
 - One test per board; the capture file name must match the board name in `docs/design/duet/renders/` so `tool/duet_compare.sh` can pair them.
 - A maintainer-local prototype may exist at `test/_gallery/` (git-excluded); the committed harness does not depend on it.

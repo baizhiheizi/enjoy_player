@@ -517,6 +517,70 @@ void main() {
       null,
       null,
     ),
+    (
+      'StoreIosPhonePlayer',
+      GalleryFrame.storeIosPhone,
+      Brightness.light,
+      _Lens.echo,
+      null,
+      null,
+    ),
+    (
+      'StoreIosPhoneAssessment',
+      GalleryFrame.storeIosPhone,
+      Brightness.light,
+      _Lens.echo,
+      null,
+      null,
+    ),
+    (
+      'StoreAndroidPhonePlayer',
+      GalleryFrame.storeAndroidPhone,
+      Brightness.light,
+      _Lens.echo,
+      null,
+      null,
+    ),
+    (
+      'StoreAndroidPhoneAssessment',
+      GalleryFrame.storeAndroidPhone,
+      Brightness.light,
+      _Lens.echo,
+      null,
+      null,
+    ),
+    (
+      'StoreIosPadPlayerPortrait',
+      GalleryFrame.storeIosPadPortrait,
+      Brightness.light,
+      _Lens.echoIpa,
+      null,
+      null,
+    ),
+    (
+      'StoreIosPadPlayerLandscape',
+      GalleryFrame.storeIosPadLandscape,
+      Brightness.light,
+      _Lens.echo,
+      null,
+      _openAssessmentInside,
+    ),
+    (
+      'StoreAndroidPadPlayer',
+      GalleryFrame.storeAndroidPad,
+      Brightness.light,
+      _Lens.echo,
+      null,
+      _openAssessmentInside,
+    ),
+    (
+      'StoreMacosPlayer',
+      GalleryFrame.storeMacos,
+      Brightness.light,
+      _Lens.echoIpa,
+      null,
+      null,
+    ),
   ]) {
     testWidgets(board, (tester) async {
       final db = memoryDb();
@@ -526,7 +590,8 @@ void main() {
       sceneIsVideo = board == 'DVideo';
       addTearDown(() => sceneIsVideo = false);
       openPosterOnNextMount = board == 'Poster';
-      openAssessmentSheetOnNextMount = board == 'PScored';
+      openAssessmentSheetOnNextMount =
+          board == 'PScored' || board.endsWith('PhoneAssessment');
       openLookupOnNextMount = board == 'PWord';
       if (sceneIsVideo) {
         const windowManager = MethodChannel('window_manager');

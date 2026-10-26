@@ -23,11 +23,26 @@
 /logo.svg
   Cache-Control: public, max-age=86400, immutable
 
-/og-image.svg
-  Cache-Control: public, max-age=86400, immutable
+/og-image.png
+  Cache-Control: public, max-age=86400
 
-/screenshot-hero.png
-  Cache-Control: public, max-age=86400, immutable
+/icons.svg
+  Cache-Control: public, max-age=86400
+
+/boot.js
+  Cache-Control: public, max-age=3600
+
+/i18n.js
+  Cache-Control: public, max-age=3600
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=86400
+
+/videos/*
+  Cache-Control: public, max-age=86400
 
 # Manifest proxy: edge-side caching is set by the Function; browser gets 5 min
 /api/latest

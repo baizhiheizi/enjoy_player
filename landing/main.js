@@ -2,6 +2,14 @@
 
 const cfg = window.ENJOY_CONFIG;
 
+const OS_NAMES = {
+  windows: 'Windows',
+  macos: 'macOS',
+  linux: 'Linux',
+  android: 'Android',
+  ios: 'iOS',
+};
+
 // ── OS detection ────────────────────────────────────────────────
 function detectOS() {
   const ua = navigator.userAgent;
@@ -44,13 +52,11 @@ function applyManifest(manifest) {
 
   const { assets = {} } = manifest;
 
-  // Map button id → (asset key, card-version element id).
-  // The card-version element renders the per-platform version chip.
   const platformMap = {
-    'btn-windows': { asset: 'windows',            chipId: 'version-windows' },
-    'btn-macos':   { asset: 'macos',              chipId: 'version-macos' },
-    'btn-android': { asset: 'android_arm64_v8a',  chipId: 'version-android' },
-    'btn-linux':   { asset: 'linux',              chipId: 'version-linux' },
+    'btn-windows': { asset: 'windows',           chipId: 'version-windows' },
+    'btn-macos':   { asset: 'macos',             chipId: 'version-macos' },
+    'btn-android': { asset: 'android_arm64_v8a', chipId: 'version-android' },
+    'btn-linux':   { asset: 'linux',             chipId: 'version-linux' },
   };
 
   const parsedVersions = [];
@@ -63,38 +69,28 @@ function applyManifest(manifest) {
     btn.href = asset.url;
     btn.setAttribute('download', '');
 
-    // Extract version from the URL path: …/player/<version>/<file>.
     const versionMatch = asset.url.match(/\/player\/([^/]+)\//);
     const platformVersion = versionMatch ? versionMatch[1] : null;
     if (!platformVersion) continue;
 
     parsedVersions.push(platformVersion);
 
-    // Stamp the version on the element so the i18n handler can re-compose
-    // the aria-label when the language changes.
+    // Stamped so the i18n handler can re-compose the aria-label on a
+    // language switch.
     btn.dataset.version = platformVersion;
 
-    // Reveal the per-card version chip.
     const chip = document.getElementById(chipId);
     if (chip) {
       chip.textContent = `v${platformVersion}`;
       chip.classList.remove('hidden');
     }
 
-    // Compose a localized aria-label that includes the version.
-    const ariaKey = btn.getAttribute('data-aria-i18n');
-    if (ariaKey && window.translations) {
-      const lang = document.documentElement.lang || 'en';
-      const base = window.translations[lang]?.[ariaKey];
-      if (base) {
-        btn.setAttribute('aria-label', `${base} (v${platformVersion})`);
-      }
-    }
+    const base = t(btn.getAttribute('data-aria-i18n'));
+    if (base) btn.setAttribute('aria-label', `${base} (v${platformVersion})`);
   }
 
-  // Hero version badge: only show when every direct-download platform is
-  // at the same version. Otherwise the per-card chips are authoritative
-  // and the badge would be misleading.
+  // Hero version badge: only shown when every direct-download platform is
+  // at the same version; otherwise the per-card chips are authoritative.
   const badge = document.getElementById('version-badge');
   if (badge) {
     const allAligned =
@@ -118,23 +114,25 @@ function highlightPlatform(os) {
 
   card.classList.add('card--recommended');
 
-  const badge = document.createElement('div');
+  const badge = document.createElement('span');
   badge.className = 'recommended-badge';
-  badge.setAttribute('aria-label', 'Recommended for your device');
   badge.setAttribute('data-i18n', 'recommended');
-  
-  // Use translation if available
-  const lang = document.documentElement.lang || 'en';
-  badge.textContent = (window.translations && window.translations[lang] && window.translations[lang]['recommended']) 
-    ? window.translations[lang]['recommended'] 
-    : 'Recommended';
-    
+  badge.textContent = t('recommended') || 'Recommended';
   card.prepend(badge);
 
-  // Move recommended card to the front of the grid
   const grid = document.getElementById('platform-grid');
-  if (grid && grid.firstChild !== card) {
+  if (grid && grid.firstElementChild !== card) {
     grid.prepend(card);
+  }
+}
+
+// ── Hero CTA names the detected platform ───────────────────────
+function applyHeroCta(os) {
+  const label = document.getElementById('hero-download-label');
+  if (!label) return;
+  if (os && OS_NAMES[os]) {
+    label.removeAttribute('data-i18n');
+    label.textContent = t('hero.cta_os').replace('{os}', OS_NAMES[os]);
   }
 }
 
@@ -178,16 +176,12 @@ function applyStoreButton(btnId, url, labelKey, isValid, ariaLabel) {
     if (labelEl) labelEl.setAttribute('data-i18n', 'download.comingSoon');
   }
 
-  if (labelEl && window.translations) {
-    const lang = document.documentElement.lang || 'en';
-    const key = labelEl.getAttribute('data-i18n');
-    if (window.translations[lang]?.[key]) {
-      labelEl.textContent = window.translations[lang][key];
-    }
+  if (labelEl) {
+    const text = t(labelEl.getAttribute('data-i18n'));
+    if (text) labelEl.textContent = text;
   }
 }
 
-// ── Apply config URLs (store / TestFlight links from config.js) ─
 function applyConfig() {
   applyStoreButton(
     'btn-testflight',
@@ -205,13 +199,87 @@ function applyConfig() {
   );
 }
 
+// ── The 15-second film ─────────────────────────────────────────
+// Plays muted while on screen, never autoplays for reduced motion, and
+// swaps to the film cut for the page language.
+function initFilm() {
+  const video = document.getElementById('film-video');
+  const toggle = document.getElementById('film-toggle');
+  const replay = document.getElementById('film-replay');
+  if (!video || !toggle || !replay) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let userPaused = reduceMotion;
+  let visible = false;
+
+  const sync = () => toggle.setAttribute('data-playing', String(!video.paused));
+  const play = () => video.play().catch(() => {});
+
+  const loadCut = (lang) => {
+    const cut = lang === 'zh' ? 'zh-CN' : 'en';
+    const src = `videos/enjoy-player-film.${cut}.mp4`;
+    const source = video.querySelector('source');
+    if (source.getAttribute('src') === src) return;
+    source.setAttribute('src', src);
+    video.poster = `videos/enjoy-player-film.${cut}.jpg`;
+    video.load();
+    if (visible && !userPaused) play();
+  };
+
+  video.addEventListener('play', sync);
+  video.addEventListener('pause', sync);
+  toggle.addEventListener('click', () => {
+    if (video.paused) {
+      userPaused = false;
+      play();
+    } else {
+      userPaused = true;
+      video.pause();
+    }
+  });
+  replay.addEventListener('click', () => {
+    userPaused = false;
+    video.currentTime = 0;
+    play();
+  });
+
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    if (visible && !userPaused) play();
+    else if (!visible) video.pause();
+  }, { threshold: 0.35 }).observe(video);
+
+  loadCut(window.currentLanguage ? window.currentLanguage() : 'en');
+  document.addEventListener('enjoy:language', (e) => loadCut(e.detail.lang));
+}
+
+// ── Reveal on scroll ───────────────────────────────────────────
+function initReveal() {
+  const items = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) {
+    items.forEach((el) => el.classList.add('is-in'));
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      entry.target.classList.add('is-in');
+      observer.unobserve(entry.target);
+    }
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  items.forEach((el) => observer.observe(el));
+}
+
 // ── Main ────────────────────────────────────────────────────────
 (async function init() {
+  const os = detectOS();
+  document.addEventListener('enjoy:language', () => applyHeroCta(os));
   if (window.initI18n) window.initI18n();
   applyConfig();
-
-  const os = detectOS();
   highlightPlatform(os);
+  applyHeroCta(os);
+  initReveal();
+  initFilm();
 
   const manifest = await fetchManifest(cfg.manifestUrl);
   applyManifest(manifest);

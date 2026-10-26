@@ -323,6 +323,55 @@ final _scenes = <(String, String, String?, GalleryFrame, Brightness)>[
   ('PhVocabulary', '/vocabulary', null, GalleryFrame.phone, Brightness.light),
   ('PhProfile', '/profile', null, GalleryFrame.phone, Brightness.light),
   ('PhSettings', '/settings', null, GalleryFrame.phone, Brightness.light),
+  (
+    'StoreIosPhoneHome',
+    '/',
+    null,
+    GalleryFrame.storeIosPhone,
+    Brightness.light,
+  ),
+  (
+    'StoreIosPhoneCraft',
+    '/',
+    '/craft',
+    GalleryFrame.storeIosPhone,
+    Brightness.light,
+  ),
+  (
+    'StoreIosPhoneVocabulary',
+    '/vocabulary',
+    null,
+    GalleryFrame.storeIosPhone,
+    Brightness.light,
+  ),
+  (
+    'StoreAndroidPhoneHome',
+    '/',
+    null,
+    GalleryFrame.storeAndroidPhone,
+    Brightness.light,
+  ),
+  (
+    'StoreAndroidPhoneVocabulary',
+    '/vocabulary',
+    null,
+    GalleryFrame.storeAndroidPhone,
+    Brightness.light,
+  ),
+  (
+    'StoreIosPadCraftPortrait',
+    '/',
+    '/craft',
+    GalleryFrame.storeIosPadPortrait,
+    Brightness.light,
+  ),
+  (
+    'StoreIosPadDiscoverPortrait',
+    '/discover',
+    null,
+    GalleryFrame.storeIosPadPortrait,
+    Brightness.light,
+  ),
 ];
 
 void main() {

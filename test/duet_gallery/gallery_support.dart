@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:enjoy_player/core/theme/app_theme.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,16 +21,32 @@ const kGalleryOutDir = 'build/duet_gallery';
 
 /// Board frame presets from `docs/design/duet/README.md`:
 /// desktop 1440 × 900 at 1×, compact 880 × 560 at 1×, phone 390 × 844 at 2×.
+/// The `store…` presets render at the exact pixel sizes of the store
+/// listings in `assets/store/` (see `tool/store_screenshots.sh`).
 enum GalleryFrame {
   desktop(1440, 900, 1),
   compact(880, 560, 1),
-  phone(390, 844, 2);
+  phone(390, 844, 2, mobile: true),
+  storeIosPhone(430, 932, 3, mobile: true),
+  storeAndroidPhone(400, 890, 3, mobile: true),
+  storeIosPadPortrait(1032, 1376, 2, mobile: true),
+  storeIosPadLandscape(1376, 1032, 2, mobile: true),
+  storeAndroidPad(1600, 1068, 2, mobile: true),
+  storeMacos(1671, 1162, 2);
 
-  const GalleryFrame(this.width, this.height, this.devicePixelRatio);
+  const GalleryFrame(
+    this.width,
+    this.height,
+    this.devicePixelRatio, {
+    this.mobile = false,
+  });
 
   final double width;
   final double height;
   final double devicePixelRatio;
+
+  /// Shot as a touch platform (Android) rather than a desktop one (Linux).
+  final bool mobile;
 
   Size get size => Size(width, height);
 }
@@ -67,25 +84,30 @@ Future<void> setUpGallery() async {
   await GoogleFonts.pendingFonts();
 }
 
-/// Registers the host's Noto CJK Simplified Chinese faces under the family
-/// names the theme lists as fallbacks, and under `Roboto` for unstyled text;
-/// `flutter test` has no platform fallback. Code points the built-in
-/// `FlutterTest` font claims (六, 是, 一, …) still draw as boxes behind a Latin
-/// primary font. Missing files are skipped.
+/// Registers the host's Noto CJK Simplified Chinese faces under every CJK
+/// fallback name the theme lists, and under `Roboto` for unstyled text;
+/// `flutter test` has no platform fallback, and an unregistered fallback name
+/// resolves to the built-in `FlutterTest` font, whose boxes would win for
+/// code points it claims (六, 是, 一, …). Missing files are skipped.
 Future<void> _loadHostCjkFonts() async {
   const dirs = ['/usr/share/fonts/noto-cjk', '/usr/share/fonts/opentype/noto'];
   const scFaceIndex = 2;
-  for (final (family, file) in [
-    ('NotoSansSC', 'NotoSansCJK-Regular.ttc'),
-    ('NotoSerifSC', 'NotoSerifCJK-Regular.ttc'),
+  for (final (families, file) in [
+    (
+      [...kCjkNotoSansFallbacks, ...kCjkSansFallbacks, 'Roboto'],
+      'NotoSansCJK-Regular.ttc',
+    ),
+    (
+      [...kCjkNotoSerifFallbacks, ...kCjkSerifFallbacks],
+      'NotoSerifCJK-Regular.ttc',
+    ),
   ]) {
     for (final dir in dirs) {
       final font = File('$dir/$file');
       if (!font.existsSync()) continue;
       final face = _ttcFace(font.readAsBytesSync(), scFaceIndex);
-      await (FontLoader(family)..addFont(Future.value(face))).load();
-      if (family == 'NotoSansSC') {
-        await (FontLoader('Roboto')..addFont(Future.value(face))).load();
+      for (final family in families) {
+        await (FontLoader(family)..addFont(Future.value(face))).load();
       }
       break;
     }
@@ -167,7 +189,7 @@ Future<void> shootBoard(
   tester.view.devicePixelRatio = frame.devicePixelRatio;
   addTearDown(tester.view.reset);
   debugDisableShadows = false;
-  debugDefaultTargetPlatformOverride = frame == GalleryFrame.phone
+  debugDefaultTargetPlatformOverride = frame.mobile
       ? TargetPlatform.android
       : TargetPlatform.linux;
   await tester.pumpWidget(RepaintBoundary(key: _boundaryKey, child: app));

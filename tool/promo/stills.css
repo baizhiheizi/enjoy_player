@@ -1,0 +1,15 @@
+@font-face { font-family: "Geist"; src: url("/landing/fonts/geist-latin-wght-normal.woff2") format("woff2-variations"); font-weight: 100 900; }
+@font-face { font-family: "Literata"; src: url("/landing/fonts/literata-latin-opsz-normal.woff2") format("woff2-variations"); font-weight: 200 900; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { position: relative; overflow: hidden; background: #0B0D12; color: #EEF0F4; font-family: "Geist", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.blob { position: absolute; border-radius: 50%; filter: blur(110px); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px); background-size: 64px 64px; mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 20%, transparent 75%); }
+.abs { position: absolute; }
+.win { position: absolute; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 60px 140px -30px rgba(0,0,0,.85), 0 0 120px -40px rgba(124,58,237,.5); }
+.win .bar { height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 14px; background: #EDEFF2; border-bottom: 1px solid #E3E6EB; }
+.win .bar i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+.win .bar i:nth-child(1) { background: #FF5F57; } .win .bar i:nth-child(2) { background: #FEBC2E; } .win .bar i:nth-child(3) { background: #28C840; }
+.win img, .phone img { display: block; width: 100%; }
+.phone { position: absolute; padding: 9px; border-radius: 48px; background: #05060A; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.14), 0 60px 120px -30px rgba(0,0,0,.9), 0 0 100px -40px rgba(124,58,237,.6); }
+.phone img { border-radius: 39px; }

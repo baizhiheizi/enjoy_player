@@ -3,450 +3,508 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enjoy Player — Language Learning Player</title>
+  <title>Enjoy Player — Practice languages with media you love</title>
 
-  <!-- SEO -->
-  <meta name="description" content="Enjoy Player is a cross-platform language-learning player for audio and video with transcript, echo mode, and YouTube support. Available for Windows, macOS, Linux, Android, and iOS.">
-  <meta name="theme-color" content="#08080E">
+  <meta name="description" content="Enjoy Player turns your own videos, audio and YouTube links into speaking practice: interactive transcripts, echo shadow-reading, pronunciation scoring and spaced-repetition vocabulary. Native on Windows, macOS, Linux, Android and iOS.">
+  <meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0E1014" media="(prefers-color-scheme: dark)">
   <link rel="canonical" href="https://player.enjoy.bot/">
 
-  <!-- Open Graph -->
   <meta property="og:type"        content="website">
   <meta property="og:url"         content="https://player.enjoy.bot/">
-  <meta property="og:title"       content="Enjoy Player — Language Learning Player">
-  <meta property="og:description" content="Cross-platform audio &amp; video player with transcripts, echo mode, and YouTube support. Download for Windows, macOS, Linux, Android, and iOS.">
-  <meta property="og:image"       content="https://player.enjoy.bot/og-image.svg">
-  <meta property="og:image:alt"   content="Enjoy Player logo and tagline">
+  <meta property="og:title"       content="Enjoy Player — Practice languages with media you love">
+  <meta property="og:description" content="Interactive transcripts, echo shadow-reading, pronunciation scoring and spaced-repetition vocabulary — native on every device you own.">
+  <meta property="og:image"       content="https://player.enjoy.bot/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt"   content="Enjoy Player on desktop and phone, with the slogan Practice languages with media you love">
 
-  <!-- Twitter / X -->
-  <meta name="twitter:card"        content="summary">
-  <meta name="twitter:title"       content="Enjoy Player — Language Learning Player">
-  <meta name="twitter:description" content="Cross-platform audio & video player with transcripts, echo mode, and YouTube support.">
-  <meta name="twitter:image"       content="https://player.enjoy.bot/og-image.svg">
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Enjoy Player — Practice languages with media you love">
+  <meta name="twitter:description" content="Interactive transcripts, echo shadow-reading, pronunciation scoring and spaced-repetition vocabulary.">
+  <meta name="twitter:image"       content="https://player.enjoy.bot/og-image.png">
 
-  <!-- Favicon -->
   <link rel="icon" href="logo.svg" type="image/svg+xml">
-
-  <link rel="stylesheet" href="styles.css?v=4">
-
-  <!-- Preconnect to download host for faster manifest fetch -->
+  <link rel="preload" href="fonts/literata-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=6">
   <link rel="preconnect" href="https://dl.enjoy.bot">
+  <script src="boot.js?v=1"></script>
 </head>
 <body>
   <noscript>
     <style>.nojs-notice { display: block !important; }</style>
   </noscript>
 
-  <!-- ── Sticky Header ─────────────────────────────────────────── -->
   <header class="site-header">
-    <div class="header-container">
-      <a href="#" class="header-brand" aria-label="Enjoy Player Home">
+    <div class="container header-row">
+      <a href="#" class="brand" aria-label="Enjoy Player">
         <img src="logo.svg" alt="" width="28" height="28">
-        <span class="header-title">Enjoy Player</span>
+        <span>Enjoy Player</span>
       </a>
       <nav class="header-nav" aria-label="Primary">
-        <a href="#features" data-i18n="nav.features">Features</a>
-        <a href="#why" data-i18n="nav.why">Why</a>
-        <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
-        <a href="#download" data-i18n="nav.download">Download</a>
+        <a href="#features" class="btn btn--sm btn--ghost" data-i18n="nav.features">Features</a>
+        <a href="#devices" class="btn btn--sm btn--ghost" data-i18n="nav.devices">Devices</a>
+        <a href="#pricing" class="btn btn--sm btn--ghost" data-i18n="nav.pricing">Pricing</a>
+        <a href="#download" class="btn btn--sm btn--ghost" data-i18n="nav.download">Download</a>
       </nav>
       <div class="header-actions">
-        <a href="https://github.com/baizhiheizi/enjoy_player" class="header-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/>
-          </svg>
+        <a href="https://github.com/baizhiheizi/enjoy_player" class="btn btn--sm btn--ghost header-github" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+          <svg class="icon" aria-hidden="true"><use href="icons.svg#github"/></svg>
         </a>
-        <div class="lang-switcher">
-          <button class="lang-btn" data-lang="en">EN</button>
-          <span class="lang-sep">/</span>
-          <button class="lang-btn" data-lang="zh">中</button>
+        <div class="lang-switcher" role="group" aria-label="Language">
+          <button class="lang-btn" type="button" data-lang="en">EN</button>
+          <button class="lang-btn" type="button" data-lang="zh">中</button>
         </div>
-        <a href="#download" class="btn btn--secondary btn--small" data-i18n="nav.cta">Download</a>
+        <a href="#download" class="btn btn--sm btn--quiet header-cta" data-i18n="nav.cta">Download</a>
       </div>
     </div>
   </header>
 
-  <div class="site-wrapper">
-    <!-- ── Hero ────────────────────────────────────────────── -->
-    <header class="hero" role="banner">
-      <div class="hero-glow"></div>
-      <p class="hero-eyebrow" data-i18n="hero.eyebrow">Language learning · Windows · macOS · Linux · Android · iOS</p>
-      <h1 data-i18n="hero.title">Practice languages with <em>media you love</em>.</h1>
-      <p class="hero-tagline" data-i18n="hero.tagline">Bring your own videos and audio — or paste a YouTube link. Turn anything you watch into a daily lesson.</p>
-      <span
-        id="version-badge"
-        class="version-badge hidden"
-        aria-label="Current version"
-      ></span>
-      
-      <div class="hero-cta">
-        <a href="#download" class="btn btn--primary btn--large btn--glow" data-i18n="hero.cta">Download free</a>
-        <a href="#features-heading" class="btn btn--secondary btn--large" data-i18n="hero.secondary_cta">View Features</a>
+  <main>
+    <section class="hero">
+      <div class="hero-backdrop" aria-hidden="true">
+        <div class="grid-bg"></div>
+        <span class="aurora aurora--a"></span>
+        <span class="aurora aurora--b"></span>
+        <span class="aurora aurora--c"></span>
       </div>
-
-      <p class="nojs-notice" style="font-size:0.875rem;color:#888899;margin-top:4px;" data-i18n="hero.nojs">
-        Enable JavaScript to get direct download links, or visit the
-        <a href="https://dl.enjoy.bot/player/">download directory</a>.
-      </p>
-    </header>
-  </div><!-- /.site-wrapper -->
-
-  <!-- ── Showcase ────────────────────────────────────────── -->
-  <section class="showcase-section fade-in-up" aria-labelledby="showcase-heading">
-    <div class="showcase-intro">
-      <p class="section-kicker" data-i18n="showcase.kicker">In the app</p>
-      <h2 id="showcase-heading" class="section-heading" data-i18n="showcase.title">One experience, every screen.</h2>
-      <p class="showcase-description" data-i18n="showcase.description">Native on phone, tablet, and desktop — your library, progress, and vocabulary follow you everywhere.</p>
-    </div>
-    <div class="showcase-container">
-      <img src="screenshot-hero.png" alt="Enjoy Player running on iPad — interactive transcript and player in landscape mode" class="showcase-img" width="2752" height="2064" loading="eager" decoding="async">
-    </div>
-  </section>
-
-  <div class="site-wrapper">
-    <main>
-      <!-- ── Features ────────────────────────────────────────── -->
-      <section id="features" class="features-section fade-in-up" style="animation-delay: 100ms;" aria-labelledby="features-heading">
-        <h2 id="features-heading" class="section-label" data-i18n="features.title">Features</h2>
-        <div class="bento-grid">
-          <article class="bento-card bento-card--large">
-            <div class="bento-content">
-              <h3 class="bento-title" data-i18n="features.transcripts.title">Interactive Transcripts</h3>
-              <p class="bento-desc" data-i18n="features.transcripts.desc">Follow along with automatically synced subtitles (SRT/VTT). Click any word to jump to that exact moment in the video or audio.</p>
-            </div>
-          </article>
-          <article class="bento-card">
-            <div class="bento-content">
-              <h3 class="bento-title" data-i18n="features.echo.title">Echo Mode</h3>
-              <p class="bento-desc" data-i18n="features.echo.desc">Practice speaking with line-bounded shadow reading. Listen, record, and compare your pronunciation.</p>
-            </div>
-          </article>
-          <article class="bento-card">
-            <div class="bento-content">
-              <h3 class="bento-title" data-i18n="features.youtube.title">YouTube Support</h3>
-              <p class="bento-desc" data-i18n="features.youtube.desc">Learn from any YouTube video with dual-engine playback and integrated transcripts.</p>
-            </div>
-          </article>
-          <article class="bento-card">
-            <div class="bento-content">
-              <h3 class="bento-title" data-i18n="features.dictionary.title">Dictionary Lookup</h3>
-              <p class="bento-desc" data-i18n="features.dictionary.desc">Instant definitions and translations without leaving the player. Build your vocabulary seamlessly.</p>
-            </div>
-          </article>
-          <article class="bento-card">
-            <div class="bento-content">
-              <h3 class="bento-title" data-i18n="features.sync.title">Cross-Platform Sync</h3>
-              <p class="bento-desc" data-i18n="features.sync.desc">Your progress, library, and settings sync across Windows, macOS, Android, and iOS.</p>
-            </div>
-          </article>
-          <article class="bento-card">
-            <div class="bento-content">
-              <h3 class="bento-title" data-i18n="features.pronunciation.title">Pronunciation Scoring</h3>
-              <p class="bento-desc" data-i18n="features.pronunciation.desc">See accuracy, fluency, completeness, and prosody scores for every shadow-reading take.</p>
-            </div>
-          </article>
-          <article class="bento-card">
-            <div class="bento-content">
-              <h3 class="bento-title" data-i18n="features.vocabulary.title">Spaced-Repetition Vocabulary</h3>
-              <p class="bento-desc" data-i18n="features.vocabulary.desc">Save words in context and review them with a vocabulary deck built around your media.</p>
-            </div>
-          </article>
+      <div class="container hero-inner">
+        <div class="hero-copy rise">
+          <p class="hero-pill">
+            <span class="dot" aria-hidden="true"></span>
+            <span data-i18n="hero.pill">Free &amp; open source</span>
+            <span id="version-badge" class="version-badge hidden" aria-label="Current version"></span>
+          </p>
+          <h1>
+            <span data-i18n="hero.title_lead">Practice languages with </span><span class="focus"><span class="text-brand" data-i18n="hero.title_focus">media you love</span><svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="heroStroke" x1="0" x2="1"><stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#7C3AED"/></linearGradient></defs><path pathLength="1" d="M3 13 C 40 5, 90 4, 130 8 S 185 14, 197 6" fill="none" stroke="url(#heroStroke)" stroke-width="5" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></span><span data-i18n="hero.title_tail">.</span>
+          </h1>
+          <p class="hero-sub" data-i18n="hero.subtitle">Open your own videos and audio, or paste a YouTube link. Follow every line, say it back, get scored — and keep the words you looked up.</p>
+          <div class="hero-cta">
+            <a href="#download" class="btn btn--lg btn--brand" id="hero-download">
+              <svg class="icon" aria-hidden="true"><use href="icons.svg#download"/></svg>
+              <span id="hero-download-label" data-i18n="hero.cta">Download free</span>
+            </a>
+            <a href="https://github.com/baizhiheizi/enjoy_player" class="btn btn--lg btn--quiet" target="_blank" rel="noopener noreferrer">
+              <svg class="icon" aria-hidden="true"><use href="icons.svg#github"/></svg>
+              <span data-i18n="hero.cta_source">View source</span>
+            </a>
+          </div>
+          <p class="hero-footnote" data-i18n="hero.footnote">Free plan, no card needed. Open source under AGPL-3.0.</p>
+          <div class="platform-row">
+            <svg class="icon" role="img" aria-label="Windows"><use href="icons.svg#microsoft-windows"/></svg>
+            <svg class="icon" role="img" aria-label="macOS"><use href="icons.svg#apple"/></svg>
+            <svg class="icon" role="img" aria-label="Linux"><use href="icons.svg#linux"/></svg>
+            <svg class="icon" role="img" aria-label="iOS"><use href="icons.svg#apple-ios"/></svg>
+            <svg class="icon" role="img" aria-label="Android"><use href="icons.svg#android"/></svg>
+          </div>
+          <p class="nojs-notice" data-i18n="hero.nojs">
+            Enable JavaScript to get direct download links, or visit the
+            <a href="https://github.com/baizhiheizi/enjoy_player/releases/latest">latest release</a>.
+          </p>
         </div>
-      </section>
 
-      <!-- ── Why ─────────────────────────────────────────────────── -->
-      <section class="why-section fade-in-up" style="animation-delay: 125ms;" aria-labelledby="why-heading">
-        <div class="why-copy">
-          <p class="section-kicker" data-i18n="why.kicker">Why Enjoy Player</p>
-          <h2 id="why-heading" class="section-heading" data-i18n="why.title">Stop drilling textbooks. Learn from what you already watch.</h2>
-          <p class="why-description" data-i18n="why.description">TED talks, shows, podcasts, anime — bring any media and turn it into a lesson you will actually come back to.</p>
-          <div class="stat-strip">
-            <div class="stat"><strong>5</strong><span data-i18n="why.stat1">native platforms</span></div>
-            <div class="stat"><strong>AGPL-3.0</strong><span data-i18n="why.stat2">open source</span></div>
-            <div class="stat"><strong>$0</strong><span data-i18n="why.stat3">free forever</span></div>
+        <div class="film rise rise--late" id="film">
+          <div class="film-frame">
+            <video id="film-video" muted loop playsinline preload="metadata" poster="videos/enjoy-player-film.en.jpg" aria-label="Enjoy Player in 15 seconds: transcripts, echo, pronunciation scoring and vocabulary" data-aria-i18n="hero.film_label">
+              <source src="videos/enjoy-player-film.en.mp4" type="video/mp4">
+            </video>
+            <div class="film-controls">
+              <button type="button" class="film-btn" id="film-toggle" data-playing="false" aria-label="Play or pause the film" data-aria-i18n="hero.film_toggle">
+                <svg class="icon icon-play" aria-hidden="true"><use href="icons.svg#play"/></svg>
+                <svg class="icon icon-pause" aria-hidden="true"><use href="icons.svg#pause"/></svg>
+              </button>
+              <button type="button" class="film-btn" id="film-replay" aria-label="Watch again" data-aria-i18n="hero.film_replay">
+                <svg class="icon" aria-hidden="true"><use href="icons.svg#rotate-ccw"/></svg>
+              </button>
+            </div>
           </div>
         </div>
-        <div class="why-list">
-          <article class="why-item">
-            <span class="why-number">01</span>
-            <div><h3 data-i18n="why.1.title">Learn with content you enjoy</h3><p data-i18n="why.1.desc">Bring your own files or paste a YouTube URL. The transcript follows your media.</p></div>
+      </div>
+    </section>
+
+    <section id="features" class="section section--paper">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="overline" data-i18n="loop.overline">The practice loop</p>
+          <h2 class="display" data-i18n="loop.title">Three ways through every line.</h2>
+          <p class="lede" data-i18n="loop.intro">Listen until you hear every word, say it back until it sounds right, then hide the text and test your ears. Switch any time — the line stays where you are.</p>
+        </div>
+        <div class="loop-grid">
+          <article class="card loop-card reveal">
+            <div class="loop-demo" aria-hidden="true">
+              <p class="demo-line"><span class="heard">You don't take the</span> <span class="heard word">ferry</span> <span class="rest">to save time.</span></p>
+              <div class="demo-track"><span class="played"></span><span class="left"></span><span class="rate">0.75×</span></div>
+            </div>
+            <h3><span class="dot dot--original" aria-hidden="true"></span><span data-i18n="loop.listen.title">Listen</span></h3>
+            <p data-i18n="loop.listen.body">Every line in time with your media. Tap to seek, loop a line, slow it down, and read the translation and IPA when you need them.</p>
           </article>
-          <article class="why-item">
-            <span class="why-number">02</span>
-            <div><h3 data-i18n="why.2.title">Speak from day one</h3><p data-i18n="why.2.desc">Echo mode records you reading a single line and scores your pronunciation.</p></div>
+          <article class="card loop-card reveal">
+            <div class="loop-demo" aria-hidden="true">
+              <svg class="demo-wave" viewBox="0 0 240 64" fill="none" stroke-linecap="round" preserveAspectRatio="none">
+                <path d="M4 46 C 30 42, 40 14, 70 18 S 110 48, 140 36 S 190 8, 236 22" stroke="#4797F5" stroke-width="3"/>
+                <path d="M4 50 C 32 48, 44 22, 72 26 S 112 50, 142 42 S 188 18, 236 30" stroke="#8B2FE0" stroke-width="3" stroke-dasharray="1 6"/>
+              </svg>
+              <div class="demo-legend">
+                <span><span><i style="background:#4797F5"></i><span data-i18n="loop.original">Original</span></span><span><i style="background:#8B2FE0"></i><span data-i18n="loop.you">You</span></span></span>
+                <span class="score">84</span>
+              </div>
+            </div>
+            <h3><span class="dot dot--you" aria-hidden="true"></span><span data-i18n="loop.echo.title">Echo</span></h3>
+            <p data-i18n="loop.echo.body">Shadow one line at a time. Record over the original, replay both, compare the pitch, and get a score for every take.</p>
           </article>
-          <article class="why-item">
-            <span class="why-number">03</span>
-            <div><h3 data-i18n="why.3.title">Vocabulary that sticks</h3><p data-i18n="why.3.desc">Instant translation plus an SRS deck that reviews when your brain needs it.</p></div>
-          </article>
-          <article class="why-item">
-            <span class="why-number">04</span>
-            <div><h3 data-i18n="why.4.title">One app, every device</h3><p data-i18n="why.4.desc">Native on five platforms, with optional cloud sync for your library and progress.</p></div>
+          <article class="card loop-card reveal">
+            <div class="loop-demo" aria-hidden="true">
+              <div class="demo-words">
+                <span class="shape" style="width:30px"></span><span class="shape" style="width:40px"></span><span class="shape" style="width:34px"></span><span class="shape" style="width:24px"></span><span class="shape" style="width:44px"></span>
+                <span class="shape" style="width:18px"></span><span class="shape" style="width:36px"></span><span class="shape" style="width:40px"></span>
+              </div>
+              <p class="demo-hint"><span class="kbd">H</span> <span data-i18n="loop.dictate.hint">Hover a line to peek</span></p>
+            </div>
+            <h3><span class="dot dot--you" aria-hidden="true"></span><span data-i18n="loop.dictate.title">Dictate</span></h3>
+            <p data-i18n="loop.dictate.body">Hide the text. Words turn into shapes, so you listen first — then hover or hold a line to peek and check yourself.</p>
           </article>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ── Pricing ─────────────────────────────────────────────── -->
-      <section id="pricing" class="pricing-section fade-in-up" style="animation-delay: 150ms;" aria-labelledby="pricing-heading">
-        <div class="pricing-intro">
-          <p class="section-kicker" data-i18n="pricing.kicker">Simple, transparent plans</p>
-          <h2 id="pricing-heading" class="section-label pricing-heading" data-i18n="pricing.title">Choose the pace that fits you</h2>
-          <p class="pricing-description" data-i18n="pricing.description">The player and its core learning loop are free. Paid plans add more daily Enjoy AI credits for learners who want to practise every day.</p>
+    <section id="transcripts" class="section">
+      <div class="container feature">
+        <div class="feature-copy reveal">
+          <p class="overline"><span class="dot dot--original" aria-hidden="true"></span><span data-i18n="transcripts.overline">Interactive transcripts</span></p>
+          <h2 class="display" data-i18n="transcripts.title">Your media, with every line in time.</h2>
+          <p class="lede" data-i18n="transcripts.body">Open an MP4 or an audio file, or paste a YouTube link. Import .srt / .vtt, use YouTube captions, or let AI transcribe and align it line by line.</p>
+          <ul class="checks">
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="transcripts.p1">Local files play locally — nothing is uploaded to watch</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="transcripts.p2">No subtitles? AI transcribes and aligns them</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="transcripts.p3">Translations under each line, cached on your device</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="transcripts.p4">IPA over every word when you want it</span></li>
+          </ul>
         </div>
+        <div class="feature-media reveal">
+          <div class="window">
+            <div class="window-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <img src="images/desktop-echo.webp" width="1800" height="1252" loading="lazy" decoding="async" alt="Enjoy Player on desktop: the transcript with the looped line, IPA over each word and the Chinese translation underneath" data-alt-i18n="transcripts.alt">
+          </div>
+        </div>
+      </div>
+    </section>
 
+    <section id="assessment" class="section section--paper">
+      <div class="container feature feature--stacked">
+        <div class="feature-copy reveal">
+          <p class="overline"><span class="dot dot--original" aria-hidden="true"></span><span data-i18n="assessment.overline">Pronunciation assessment</span></p>
+          <h2 class="display" data-i18n="assessment.title">Feedback down to the sound you got wrong.</h2>
+          <p class="lede" data-i18n="assessment.body">Every take is scored the moment you stop recording — overall, then accuracy, fluency, completeness and prosody, then every word. Tap a word to see which sound slipped.</p>
+          <ul class="checks">
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="assessment.p1">Four dimensions, every word colour-coded</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="assessment.p2">Your pitch laid over the original's</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="assessment.p3">Keep every take and watch the score climb</span></li>
+          </ul>
+        </div>
+        <div class="feature-media stage stage--scored reveal">
+          <div class="window">
+            <div class="window-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <img src="images/desktop-scored.webp" width="1800" height="1202" loading="lazy" decoding="async" alt="A scored take: overall 84, with accuracy, completeness, fluency and prosody bars and per-word scores" data-alt-i18n="assessment.alt">
+          </div>
+          <div class="phone float">
+            <img src="images/phone-scored.webp" width="640" height="1387" loading="lazy" decoding="async" alt="The same assessment on a phone" data-alt-i18n="assessment.alt_phone">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="vocabulary" class="section">
+      <div class="container feature feature--reverse">
+        <div class="feature-copy reveal">
+          <p class="overline"><span class="dot dot--you" aria-hidden="true"></span><span data-i18n="vocabulary.overline">Lookup &amp; vocabulary</span></p>
+          <h2 class="display" data-i18n="vocabulary.title">Look it up in context. Keep it for good.</h2>
+          <p class="lede" data-i18n="vocabulary.body">Select any word or phrase for a translation, a dictionary entry and an AI note on what it means in this scene. One tap saves it — with the line it came from — to a deck that comes back when you're about to forget.</p>
+          <ul class="checks">
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="vocabulary.p1">Translation, dictionary and contextual explanation</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="vocabulary.p2">Spaced repetition with three honest buttons</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="vocabulary.p3">Lookups in 15 languages; Anki export on paid plans</span></li>
+          </ul>
+        </div>
+        <div class="feature-media duo reveal">
+          <div class="phone float float--late">
+            <img src="images/phone-home.webp" width="640" height="1387" loading="lazy" decoding="async" alt="Home: continue practising, today's goal and the community" data-alt-i18n="vocabulary.alt_home">
+          </div>
+          <div class="phone float">
+            <img src="images/phone-vocabulary.webp" width="640" height="1387" loading="lazy" decoding="async" alt="Vocabulary: words due today, progress by status and every saved word with its context" data-alt-i18n="vocabulary.alt">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="craft" class="section section--paper">
+      <div class="container feature">
+        <div class="feature-copy reveal">
+          <p class="overline"><span class="dot dot--brand" aria-hidden="true"></span><span data-i18n="craft.overline">Craft</span></p>
+          <h2 class="display" data-i18n="craft.title">Practise what you actually want to say.</h2>
+          <p class="lede" data-i18n="craft.body">Say or type something from your day in your own language. Craft rewrites it the way a native speaker would, reads it aloud, and drops it into the player so you can shadow it like any other line.</p>
+          <ul class="checks">
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="craft.p1">Idiomatic rewrites, not word-for-word translation</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="craft.p2">Natural voices to listen to and copy</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="craft.p3">Practise it in Echo, scored like everything else</span></li>
+          </ul>
+        </div>
+        <div class="feature-media solo reveal">
+          <div class="phone float">
+            <img src="images/phone-craft.webp" width="640" height="1387" loading="lazy" decoding="async" alt="Craft: tap to record and say what's on your mind" data-alt-i18n="craft.alt">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="devices" class="section night">
+      <div class="night-aurora" aria-hidden="true">
+        <span class="aurora aurora--a"></span>
+        <span class="aurora aurora--b"></span>
+      </div>
+      <div class="container">
+        <div class="devices-head reveal">
+          <div>
+            <p class="overline" data-i18n="devices.overline">Native on every screen</p>
+            <h2 class="display" style="margin-top:12px" data-i18n="devices.title">One library, every device you own.</h2>
+          </div>
+          <div>
+            <p class="lede" data-i18n="devices.body">Built natively for Windows, macOS, Linux, iPhone, iPad and Android. Sign in once and your library, progress, recordings and vocabulary follow you.</p>
+          </div>
+        </div>
+        <div class="devices reveal" role="img" aria-label="Enjoy Player on a desktop window and two phones, light and dark" data-aria-i18n="devices.label">
+          <div class="window">
+            <div class="window-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <img src="images/desktop-echo.webp" width="1800" height="1252" loading="lazy" decoding="async" alt="">
+          </div>
+          <div class="phone phone--left float float--late">
+            <img src="images/phone-dark.webp" width="640" height="1385" loading="lazy" decoding="async" alt="">
+          </div>
+          <div class="phone phone--right float">
+            <img src="images/phone-echo.webp" width="640" height="1387" loading="lazy" decoding="async" alt="">
+          </div>
+          <span class="synced"><span class="dot" aria-hidden="true"></span><span data-i18n="devices.synced">Synced across your devices</span></span>
+        </div>
+        <div class="stats reveal">
+          <div class="stat"><strong>5</strong><span data-i18n="devices.stat_platforms">native platforms</span></div>
+          <div class="stat"><strong>15</strong><span data-i18n="devices.stat_languages">lookup languages</span></div>
+          <div class="stat"><strong>AGPL-3.0</strong><span data-i18n="devices.stat_license">open source</span></div>
+          <div class="stat"><strong>$0</strong><span data-i18n="devices.stat_price">to start, forever</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="overline" data-i18n="pricing.overline">Pricing</p>
+          <h2 class="display" data-i18n="pricing.title">Free to start. Pay only for more AI.</h2>
+          <p class="lede" data-i18n="pricing.intro">The player and every practice mode are free. Paid plans add more daily Enjoy AI credits for transcription, scoring and explanations.</p>
+        </div>
         <div class="pricing-grid">
-          <article class="pricing-card">
-            <div class="pricing-card-top">
-              <h3 class="pricing-name" data-i18n="pricing.free.name">Free</h3>
-              <p class="pricing-tagline" data-i18n="pricing.free.tagline">Start learning at your own pace</p>
-              <div class="pricing-price">
-                <span class="pricing-amount">$0</span>
-                <span class="pricing-period" data-i18n="pricing.free.period">forever</span>
-              </div>
-            </div>
-            <ul class="pricing-features">
-              <li data-i18n="pricing.free.credits">1,000 Enjoy AI credits per day</li>
-              <li data-i18n="pricing.free.core">All core player and learning features</li>
-              <li data-i18n="pricing.free.open">Open source under AGPL-3.0</li>
+          <article class="card plan reveal">
+            <h3 data-i18n="pricing.free.name">Free</h3>
+            <p class="plan-tagline" data-i18n="pricing.free.tagline">Start at your own pace</p>
+            <p class="plan-price"><strong>$0</strong><span data-i18n="pricing.forever">forever</span></p>
+            <ul class="checks">
+              <li><svg class="icon icon--you" aria-hidden="true"><use href="icons.svg#sparkles"/></svg><span data-i18n="pricing.free.credits">1,000 Enjoy AI credits a day</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="pricing.free.p1">Listen, Echo and Dictate</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="pricing.free.p2">Sync across all your devices</span></li>
             </ul>
-            <a class="btn btn--secondary pricing-cta" href="#download" data-i18n="pricing.free.cta">Download free</a>
+            <a class="btn btn--quiet" href="#download" data-i18n="pricing.free.cta">Download free</a>
           </article>
-
-          <article class="pricing-card pricing-card--recommended">
-            <span class="pricing-badge" data-i18n="pricing.recommended">Recommended</span>
-            <div class="pricing-card-top">
-              <h3 class="pricing-name" data-i18n="pricing.lite.name">Lite</h3>
-              <p class="pricing-tagline" data-i18n="pricing.lite.tagline">For daily learners</p>
-              <div class="pricing-price">
-                <span class="pricing-amount">$1.99</span>
-                <span class="pricing-period" data-i18n="pricing.paid.period">/ month</span>
-              </div>
-            </div>
-            <ul class="pricing-features">
-              <li data-i18n="pricing.lite.credits">12,000 Enjoy AI credits per day</li>
-              <li data-i18n="pricing.lite.multiplier">12× the Free plan’s daily credits</li>
-              <li data-i18n="pricing.lite.paid">Anki export and paid-tier extras</li>
+          <article class="card plan plan--featured reveal">
+            <span class="plan-badge" data-i18n="pricing.recommended">Recommended</span>
+            <h3 data-i18n="pricing.lite.name">Lite</h3>
+            <p class="plan-tagline" data-i18n="pricing.lite.tagline">For daily learners</p>
+            <p class="plan-price"><strong>$1.99</strong><span data-i18n="pricing.per_month">/ month</span></p>
+            <ul class="checks">
+              <li><svg class="icon icon--you" aria-hidden="true"><use href="icons.svg#sparkles"/></svg><span data-i18n="pricing.lite.credits">12,000 Enjoy AI credits a day</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="pricing.lite.p1">12× the Free plan's daily credits</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="pricing.paid_extras">Anki export and paid-tier extras</span></li>
             </ul>
-            <a class="btn btn--primary pricing-cta" href="#download" data-i18n="pricing.lite.cta">Get Enjoy Player</a>
+            <a class="btn btn--brand" href="#download" data-i18n="pricing.cta">Get Enjoy Player</a>
           </article>
-
-          <article class="pricing-card pricing-card--pro">
-            <div class="pricing-card-top">
-              <h3 class="pricing-name" data-i18n="pricing.pro.name">Pro</h3>
-              <p class="pricing-tagline" data-i18n="pricing.pro.tagline">For serious learners</p>
-              <div class="pricing-price">
-                <span class="pricing-amount">$9.99</span>
-                <span class="pricing-period" data-i18n="pricing.paid.period">/ month</span>
-              </div>
-            </div>
-            <ul class="pricing-features">
-              <li data-i18n="pricing.pro.credits">60,000 Enjoy AI credits per day</li>
-              <li data-i18n="pricing.pro.multiplier">60× the Free plan’s daily credits</li>
-              <li data-i18n="pricing.pro.paid">Anki export and paid-tier extras</li>
+          <article class="card plan reveal">
+            <h3 data-i18n="pricing.pro.name">Pro</h3>
+            <p class="plan-tagline" data-i18n="pricing.pro.tagline">For serious learners</p>
+            <p class="plan-price"><strong>$9.99</strong><span data-i18n="pricing.per_month">/ month</span></p>
+            <ul class="checks">
+              <li><svg class="icon icon--you" aria-hidden="true"><use href="icons.svg#sparkles"/></svg><span data-i18n="pricing.pro.credits">60,000 Enjoy AI credits a day</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="pricing.pro.p1">60× the Free plan's daily credits</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="pricing.paid_extras">Anki export and paid-tier extras</span></li>
             </ul>
-            <a class="btn btn--secondary pricing-cta" href="#download" data-i18n="pricing.pro.cta">Get Enjoy Player</a>
+            <a class="btn btn--quiet" href="#download" data-i18n="pricing.cta">Get Enjoy Player</a>
           </article>
         </div>
+        <p class="pricing-note" data-i18n="pricing.note">Credits are shared with Enjoy Web and Enjoy Echo. Paid plans are managed inside the app; billing options can vary by platform.</p>
+      </div>
+    </section>
 
-        <p class="pricing-note" data-i18n="pricing.note">Paid plans are managed inside Enjoy Player. Availability and billing options may vary by platform.</p>
-      </section>
-
-      <!-- ── Downloads ───────────────────────────────────────── -->
-      <section id="download" class="platform-section fade-in-up" style="animation-delay: 200ms;" aria-labelledby="download-heading">
-        <h2 id="download-heading" class="section-label" data-i18n="download.title">Download</h2>
+    <section id="download" class="section section--paper">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="overline" data-i18n="download.overline">Download</p>
+          <h2 class="display" data-i18n="download.title">Get Enjoy Player.</h2>
+          <p class="lede" data-i18n="download.intro">Pick your platform — we've put the one you're on first.</p>
+        </div>
 
         <div class="platform-grid" id="platform-grid">
-
-          <!-- Windows -->
-          <article class="card" id="card-windows" aria-label="Windows">
-            <div class="card-header">
-              <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24L10.949 22.051"/>
-              </svg>
+          <article class="card platform-card" id="card-windows" aria-label="Windows">
+            <div class="platform-head">
+              <span class="platform-icon"><svg class="icon" aria-hidden="true"><use href="icons.svg#microsoft-windows"/></svg></span>
               <div>
-                <div class="card-title-row">
-                  <span class="card-title" data-i18n="download.windows.title">Windows</span>
-                  <span class="card-version hidden" id="version-windows"></span>
+                <div class="platform-title-row">
+                  <span class="platform-title" data-i18n="download.windows.title">Windows</span>
+                  <span class="platform-version hidden" id="version-windows"></span>
                 </div>
-                <div class="card-subtitle" data-i18n="download.windows.subtitle">Windows 10 / 11 · x64</div>
+                <div class="platform-subtitle" data-i18n="download.windows.subtitle">Windows 10 / 11 · x64</div>
               </div>
             </div>
-            <div class="card-actions">
-              <a
-                id="btn-windows"
-                class="btn btn--primary"
-                href="https://dl.enjoy.bot/player/"
-                aria-label="Download Enjoy Player installer for Windows"
-                data-aria-i18n="download.windows.aria"
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 12l-4.5-4.5 1.06-1.06L7 8.88V2h2v6.88l2.44-2.44L12.5 7.5 8 12zM2 14v-2h12v2H2z"/></svg>
+            <div class="platform-actions">
+              <a id="btn-windows" class="btn btn--brand" href="https://github.com/baizhiheizi/enjoy_player/releases/latest" aria-label="Download Enjoy Player installer for Windows" data-aria-i18n="download.windows.aria">
+                <svg class="icon" aria-hidden="true"><use href="icons.svg#download"/></svg>
                 <span data-i18n="download.windows.btn">Download for Windows</span>
               </a>
             </div>
           </article>
 
-          <!-- macOS -->
-          <article class="card" id="card-macos" aria-label="macOS">
-            <div class="card-header">
-              <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-                <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.54 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
-              </svg>
+          <article class="card platform-card" id="card-macos" aria-label="macOS">
+            <div class="platform-head">
+              <span class="platform-icon"><svg class="icon" aria-hidden="true"><use href="icons.svg#apple"/></svg></span>
               <div>
-                <div class="card-title-row">
-                  <span class="card-title" data-i18n="download.macos.title">macOS</span>
-                  <span class="card-version hidden" id="version-macos"></span>
+                <div class="platform-title-row">
+                  <span class="platform-title" data-i18n="download.macos.title">macOS</span>
+                  <span class="platform-version hidden" id="version-macos"></span>
                 </div>
-                <div class="card-subtitle" data-i18n="download.macos.subtitle">macOS 10.15+ · Universal</div>
+                <div class="platform-subtitle" data-i18n="download.macos.subtitle">macOS 12+ · Apple silicon &amp; Intel</div>
               </div>
             </div>
-            <div class="card-actions">
-              <a
-                id="btn-macos"
-                class="btn btn--primary"
-                href="https://dl.enjoy.bot/player/"
-                aria-label="Download Enjoy Player for macOS"
-                data-aria-i18n="download.macos.aria"
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 12l-4.5-4.5 1.06-1.06L7 8.88V2h2v6.88l2.44-2.44L12.5 7.5 8 12zM2 14v-2h12v2H2z"/></svg>
+            <div class="platform-actions">
+              <a id="btn-macos" class="btn btn--brand" href="https://github.com/baizhiheizi/enjoy_player/releases/latest" aria-label="Download Enjoy Player for macOS" data-aria-i18n="download.macos.aria">
+                <svg class="icon" aria-hidden="true"><use href="icons.svg#download"/></svg>
                 <span data-i18n="download.macos.btn">Download for macOS</span>
               </a>
             </div>
           </article>
 
-          <!-- Android -->
-          <article class="card" id="card-android" aria-label="Android">
-            <div class="card-header">
-              <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-                <path d="M17.523 15.341c-.551 0-.999-.449-.999-1s.448-.999.999-.999c.551 0 .999.448.999.999 0 .551-.448 1-.999 1m-11.046 0c-.551 0-.999-.449-.999-1s.448-.999.999-.999c.551 0 .999.448.999.999 0 .551-.448 1-.999 1m11.405-6.02l1.997-3.459a.416.416 0 00-.71-.419L17.172 8.9C15.59 8.244 13.853 7.851 12 7.851s-3.59.393-5.172 1.049L4.831 5.443a.416.416 0 00-.71.419l1.997 3.459C2.689 11.187.343 14.659 0 18.761h24c-.344-4.102-2.689-7.574-6.118-9.44"/>
-              </svg>
+          <article class="card platform-card" id="card-linux" aria-label="Linux">
+            <div class="platform-head">
+              <span class="platform-icon"><svg class="icon" aria-hidden="true"><use href="icons.svg#linux"/></svg></span>
               <div>
-                <div class="card-title-row">
-                  <span class="card-title" data-i18n="download.android.title">Android</span>
-                  <span class="card-version hidden" id="version-android"></span>
+                <div class="platform-title-row">
+                  <span class="platform-title" data-i18n="download.linux.title">Linux</span>
+                  <span class="platform-version hidden" id="version-linux"></span>
                 </div>
-                <div class="card-subtitle" data-i18n="download.android.subtitle">Android 8.0+</div>
+                <div class="platform-subtitle" data-i18n="download.linux.subtitle">AppImage · Ubuntu 22.04+ · x86_64</div>
               </div>
             </div>
-            <div class="card-actions">
-              <a
-                id="btn-android"
-                class="btn btn--primary"
-                href="https://dl.enjoy.bot/player/"
-                aria-label="Download Enjoy Player APK for Android"
-                data-aria-i18n="download.android.aria"
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 12l-4.5-4.5 1.06-1.06L7 8.88V2h2v6.88l2.44-2.44L12.5 7.5 8 12zM2 14v-2h12v2H2z"/></svg>
-                <span data-i18n="download.android.btn.apk">Download APK</span>
-              </a>
-              <a
-                id="btn-play-beta"
-                class="btn btn--secondary btn--disabled"
-                aria-label="Google Play release coming soon"
-                aria-disabled="true"
-                tabindex="-1"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.18 23.76c.41.23.88.24 1.28.05l13.2-7.63-3.3-3.3-11.18 10.88zM.5 1.62C.19 2.03 0 2.6 0 3.33v17.34c0 .73.19 1.3.5 1.71l.09.08L9.77 13.3v-.22L.59 1.54l-.09.08zM20.37 10.05L17.26 8.2l-3.63 3.63 3.63 3.63 3.14-1.87c.9-.52.9-1.37 0-1.89l.03-.65zM4.46.19L17.66 7.82l-3.3 3.3L3.18.23C3.59.04 4.06.05 4.46.19z"/></svg>
-                <span data-i18n="download.comingSoon">Coming soon</span>
-              </a>
-            </div>
-            <p class="card-note" data-i18n="download.android.note">
-              Tip: installing the APK requires enabling <em>Install unknown apps</em> in your Android settings.
-            </p>
-          </article>
-
-          <!-- iOS -->
-          <article class="card" id="card-ios" aria-label="iOS">
-            <div class="card-header">
-              <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/>
-              </svg>
-              <div>
-                <div class="card-title" data-i18n="download.ios.title">iOS</div>
-                <div class="card-subtitle" data-i18n="download.ios.subtitle">iOS 14.0+</div>
-              </div>
-            </div>
-            <div class="card-actions">
-              <a
-                id="btn-testflight"
-                class="btn btn--primary btn--disabled"
-                aria-label="TestFlight release coming soon"
-                aria-disabled="true"
-                tabindex="-1"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/><path d="M10.49 8.06L16 12l-5.51 3.94V8.06z"/></svg>
-                <span data-i18n="download.comingSoon">Coming soon</span>
-              </a>
-            </div>
-            <p class="card-note" data-i18n="download.ios.note">
-              App Store and TestFlight releases coming soon.
-            </p>
-          </article>
-
-          <!-- Linux -->
-          <article class="card" id="card-linux" aria-label="Linux">
-            <div class="card-header">
-              <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-                <path d="M19.5 11.5c0 4.14-3.36 7.5-7.5 7.5s-7.5-3.36-7.5-7.5 3.36-7.5 7.5-7.5 7.5 3.36 7.5 7.5zm-7.5-5.5c-1.3 0-2.5.42-3.5 1.16-.22.24-.5.4-.83.4-.41 0-.77-.26-.89-.66l-.19-.63c-.06-.2-.24-.34-.44-.34-.27 0-.48.22-.48.49 0 .05.01.09.02.14-.02 0-.06.01-.1.01-.4 0-.73-.33-.73-.73 0-.13.03-.25.09-.35.1-.53.15-1.08.15-1.65 0-3.31 2.69-6 6-6s6 2.69 6 6c0 .57-.05 1.12-.15 1.65.06.1.09.22.09.35 0 .4-.33.73-.73.73-.04 0-.08 0-.1-.01.01-.05.02-.09.02-.14 0-.27-.22-.49-.48-.49-.2 0-.38.14-.44.34l-.19.63c-.12.4-.48.66-.89.66-.33 0-.61-.16-.83-.4-1-.74-2.2-1.16-3.5-1.16zm-.9 5.6c-.54.28-1.17.44-1.84.44-.68 0-1.31-.16-1.86-.44-.14.07-.28.14-.42.22-.92.55-1.48 1.49-1.63 2.53.85.67 1.88 1.15 3.02 1.34.34.06.66.15.96.28.12-.1.27-.17.42-.17h.02c.15 0 .3.07.42.17.3-.13.62-.22.96-.28 1.14-.19 2.17-.67 3.02-1.34-.15-1.04-.71-1.98-1.63-2.53-.14-.08-.28-.15-.44-.22zm4.07-.38c-.28-.16-.59-.28-.92-.34-.33.32-.75.58-1.23.76-.52.2-1.1.32-1.69.32-.59 0-1.17-.12-1.69-.32-.48-.18-.9-.44-1.23-.76-.34.06-.65.18-.94.34-1.04.6-1.67 1.63-1.83 2.77.88.75 1.97 1.3 3.16 1.55.44.09.85.22 1.21.41.28-.18.63-.29 1-.29h.54c.37 0 .72.11 1 .29.36-.19.77-.32 1.21-.41 1.19-.25 2.28-.8 3.16-1.55-.16-1.14-.79-2.17-1.85-2.77z"/>
-              </svg>
-              <div>
-                <div class="card-title-row">
-                  <span class="card-title" data-i18n="download.linux.title">Linux</span>
-                  <span class="card-version hidden" id="version-linux"></span>
-                </div>
-                <div class="card-subtitle" data-i18n="download.linux.subtitle">Ubuntu 22.04 LTS · x86_64</div>
-              </div>
-            </div>
-            <div class="card-actions">
-              <a
-                id="btn-linux"
-                class="btn btn--primary"
-                href="https://dl.enjoy.bot/player/"
-                aria-label="Download Enjoy Player AppImage for Linux"
-                data-aria-i18n="download.linux.aria"
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 12l-4.5-4.5 1.06-1.06L7 8.88V2h2v6.88l2.44-2.44L12.5 7.5 8 12zM2 14v-2h12v2H2z"/></svg>
+            <div class="platform-actions">
+              <a id="btn-linux" class="btn btn--brand" href="https://github.com/baizhiheizi/enjoy_player/releases/latest" aria-label="Download Enjoy Player AppImage for Linux" data-aria-i18n="download.linux.aria">
+                <svg class="icon" aria-hidden="true"><use href="icons.svg#download"/></svg>
                 <span data-i18n="download.linux.btn">Download for Linux</span>
               </a>
             </div>
-            <p class="card-note" data-i18n="download.linux.note">
-              AppImage: <code>chmod +x enjoy-player-*.AppImage && ./enjoy-player-*.AppImage</code>
-            </p>
+            <p class="platform-note"><code>chmod +x enjoy-player-*.AppImage</code></p>
           </article>
 
-        </div><!-- /.platform-grid -->
-      </section>
+          <article class="card platform-card" id="card-android" aria-label="Android">
+            <div class="platform-head">
+              <span class="platform-icon"><svg class="icon" aria-hidden="true"><use href="icons.svg#android"/></svg></span>
+              <div>
+                <div class="platform-title-row">
+                  <span class="platform-title" data-i18n="download.android.title">Android</span>
+                  <span class="platform-version hidden" id="version-android"></span>
+                </div>
+                <div class="platform-subtitle" data-i18n="download.android.subtitle">Android 8.0+ · phone &amp; tablet</div>
+              </div>
+            </div>
+            <div class="platform-actions">
+              <a id="btn-android" class="btn btn--brand" href="https://github.com/baizhiheizi/enjoy_player/releases/latest" aria-label="Download Enjoy Player APK for Android" data-aria-i18n="download.android.aria">
+                <svg class="icon" aria-hidden="true"><use href="icons.svg#download"/></svg>
+                <span data-i18n="download.android.btn.apk">Download APK</span>
+              </a>
+              <a id="btn-play-beta" class="btn btn--quiet btn--disabled" aria-label="Google Play release coming soon" aria-disabled="true" tabindex="-1">
+                <svg class="icon" aria-hidden="true"><use href="icons.svg#google-play"/></svg>
+                <span data-i18n="download.comingSoon">Coming soon</span>
+              </a>
+            </div>
+            <p class="platform-note" data-i18n="download.android.note">Installing the APK needs “Install unknown apps” enabled for your browser.</p>
+          </article>
 
-      <!-- ── Closing CTA ───────────────────────────────────────── -->
-      <section class="closing-cta fade-in-up" style="animation-delay: 250ms;" aria-labelledby="cta-heading">
-        <div class="closing-cta-inner">
-          <p class="section-kicker" data-i18n="cta.kicker">Your next lesson is ready</p>
-          <h2 id="cta-heading" class="section-heading" data-i18n="cta.title">Start learning tonight.</h2>
-          <p data-i18n="cta.description">Free, open source, and ready on every device you own.</p>
-          <a href="#download" class="btn btn--primary btn--large btn--glow" data-i18n="cta.button">Download free</a>
+          <article class="card platform-card" id="card-ios" aria-label="iOS">
+            <div class="platform-head">
+              <span class="platform-icon"><svg class="icon" aria-hidden="true"><use href="icons.svg#apple-ios"/></svg></span>
+              <div>
+                <div class="platform-title" data-i18n="download.ios.title">iPhone &amp; iPad</div>
+                <div class="platform-subtitle" data-i18n="download.ios.subtitle">iOS 15+ · TestFlight beta</div>
+              </div>
+            </div>
+            <div class="platform-actions">
+              <a id="btn-testflight" class="btn btn--brand btn--disabled" aria-label="TestFlight release coming soon" aria-disabled="true" tabindex="-1">
+                <svg class="icon" aria-hidden="true"><use href="icons.svg#apple"/></svg>
+                <span data-i18n="download.comingSoon">Coming soon</span>
+              </a>
+            </div>
+            <p class="platform-note" data-i18n="download.ios.note">Install TestFlight from the App Store first, then open the invite.</p>
+          </article>
+
+          <aside class="source-card">
+            <div>
+              <strong data-i18n="download.source.title">Built in the open</strong>
+              <p data-i18n="download.source.body">Read the code, file an issue, or build it yourself. Every release and its changelog lives on GitHub.</p>
+            </div>
+            <a class="btn btn--sm" href="https://github.com/baizhiheizi/enjoy_player/releases" target="_blank" rel="noopener noreferrer">
+              <svg class="icon" aria-hidden="true"><use href="icons.svg#github"/></svg>
+              <span data-i18n="download.source.cta">Releases &amp; changelog</span>
+            </a>
+          </aside>
         </div>
-      </section>
-    </main>
-  </div><!-- /.site-wrapper -->
+      </div>
+    </section>
 
-  <!-- ── Footer ───────────────────────────────────────────── -->
+    <section class="section night closing">
+      <div class="container closing-inner">
+        <div class="reveal">
+          <h2 class="display" data-i18n="closing.title">Pick a line. Press play.</h2>
+          <p class="lede" data-i18n="closing.body">Your first loop takes less than a minute. The second one is easier.</p>
+          <div class="ruler" aria-hidden="true">
+            <span class="played" style="flex:4.2 1 0"></span><span class="played practised" style="flex:4.4 1 0"></span><span class="played" style="flex:3.5 1 0"></span><span class="played practised" style="flex:4.8 1 0"></span><span class="played" style="flex:3.7 1 0"></span><span class="looped" style="flex:3.8 1 0"></span><span style="flex:3.9 1 0"></span><span style="flex:3.6 1 0"></span><span style="flex:3.9 1 0"></span><span style="flex:3.6 1 0"></span><span style="flex:4.1 1 0"></span><span style="flex:3.4 1 0"></span>
+          </div>
+        </div>
+        <div class="closing-cta reveal">
+          <a href="#download" class="btn btn--lg btn--brand">
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#download"/></svg>
+            <span data-i18n="closing.cta">Download free</span>
+          </a>
+          <a href="https://github.com/baizhiheizi/enjoy_player" class="btn btn--lg btn--quiet" target="_blank" rel="noopener noreferrer">
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#github"/></svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <footer class="site-footer" role="contentinfo">
-    <a
-      href="https://github.com/baizhiheizi/enjoy_player"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="View Enjoy Player source code on GitHub"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/>
-      </svg>
-      GitHub
-    </a>
-    <span data-i18n="footer.copyright">© 2026 Enjoy Player</span>
-    <a href="https://enjoy.bot" target="_blank" rel="noopener noreferrer">enjoy.bot</a>
+    <div class="container">
+      <div class="footer-row">
+        <div class="footer-brand">
+          <a href="#" class="brand"><img src="logo.svg" alt="" width="24" height="24"><span>Enjoy Player</span></a>
+          <p data-i18n="footer.tagline">Practice languages with media you love.</p>
+        </div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="https://github.com/baizhiheizi/enjoy_player" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="icons.svg#github"/></svg>GitHub</a>
+          <a href="https://github.com/baizhiheizi/enjoy_player/releases" target="_blank" rel="noopener noreferrer" data-i18n="footer.releases">Releases</a>
+          <a href="https://enjoy.bot" target="_blank" rel="noopener noreferrer">enjoy.bot</a>
+        </nav>
+      </div>
+      <p class="footer-legal" data-i18n="footer.copyright">© 2026 Enjoy · Open source under AGPL-3.0</p>
+    </div>
   </footer>
 
   <script src="config.js?v=2"></script>
-  <script src="i18n.js?v=4"></script>
-  <script src="main.js?v=2"></script>
+  <script src="i18n.js?v=5"></script>
+  <script src="main.js?v=3"></script>
 </body>
 </html>
