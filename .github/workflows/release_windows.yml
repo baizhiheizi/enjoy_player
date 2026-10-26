@@ -67,14 +67,12 @@ jobs:
           # Unset ⇒ binary ships analytics-inert.
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           POSTHOG_HOST: ${{ secrets.POSTHOG_HOST }}
-          # Tag pushes have no workflow inputs (null). Treat null/true as build;
-          # only workflow_dispatch with build_installer=false skips the installer.
-          INPUT_BUILD_INSTALLER: ${{ inputs.build_installer != false }}
+          # Tag pushes have no workflow inputs, and `null != false` is false here,
+          # so compare the event explicitly: only workflow_dispatch with
+          # build_installer=false skips the installer.
+          INPUT_BUILD_INSTALLER: ${{ github.event_name == 'push' || inputs.build_installer != false }}
         run: |
-          $gitBash = 'C:\Program Files\Git\bin\bash.exe'
-          if (-not (Test-Path $gitBash)) {
-            throw "Git Bash not found at $gitBash (required for release_windows.sh on Windows)."
-          }
+          $gitBash = & .github/scripts/resolve_release_bash.ps1
           $scriptArgs = @('.github/scripts/release_windows.sh')
           # Only skip when explicitly false (empty/null must still build — tag pushes
           # have no inputs, and the GitHub Release upload step expects the .exe).
@@ -108,56 +106,41 @@ jobs:
           SPARKLE_DSA_PRIV_PEM_BASE64: ${{ secrets.SPARKLE_DSA_PRIV_PEM_BASE64 }}
           RELEASE_REQUIRE_S3: "1"
         run: |
-          $gitBash = 'C:\Program Files\Git\bin\bash.exe'
-          if (-not (Test-Path $gitBash)) {
-            throw "Git Bash not found at $gitBash (required for release_windows.sh on Windows)."
-          }
+          $gitBash = & .github/scripts/resolve_release_bash.ps1
           & $gitBash .github/scripts/release_windows.sh --publish-only --publish
 
-      # gh --generate-notes needs a real .git; the short workspace omits it
-      # (robocopy /XD .git). Stay in github.workspace (checkout) and read the
-      # installer from env.GITHUB_WORKSPACE (C:\e\… build output).
+      # The build ran in the short workspace; read the installer from
+      # env.GITHUB_WORKSPACE because github.workspace is the long checkout.
       - name: Upload binaries to GitHub Release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Enjoy Player ${{ github.ref_name }}
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: ${{ env.GITHUB_WORKSPACE }}/build/windows/installer/EnjoyPlayerSetup-${{ github.ref_name }}.exe
+
+      - name: Read pubspec version
+        id: read_version
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_github
         shell: pwsh
-        working-directory: ${{ github.workspace }}
-        env:
-          GH_REPO: ${{ github.repository }}
         run: |
-          $tag = $env:GITHUB_REF_NAME
-          $version = $tag.TrimStart('v')
-          $installer = Join-Path $env:GITHUB_WORKSPACE "build\windows\installer\EnjoyPlayerSetup-v${version}.exe"
-          if (-not (Test-Path -LiteralPath $installer)) {
-            throw "Windows installer not found at $installer (expected for tag $tag)."
-          }
-          & gh release create $tag $installer `
-            --repo $env:GH_REPO `
-            --title "Enjoy Player $tag" `
-            --draft `
-            --generate-notes `
-            --target main `
-            || & gh release upload $tag $installer --repo $env:GH_REPO --clobber
+          $match = Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9]+\.[0-9]+\.[0-9]+)'
+          if (-not $match) { throw 'Could not read version from pubspec.yaml' }
+          "version=$($match.Matches[0].Groups[1].Value)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Upload binaries to GitHub Release (manual)
         if: github.event_name == 'workflow_dispatch' && inputs.publish_github
-        shell: pwsh
-        working-directory: ${{ github.workspace }}
-        env:
-          GH_REPO: ${{ github.repository }}
-        run: |
-          $version = (& bash .github/scripts/read_pubspec_version.sh).Trim()
-          $tag = "v$version"
-          $installer = Join-Path $env:GITHUB_WORKSPACE "build\windows\installer\EnjoyPlayerSetup-v${version}.exe"
-          if (-not (Test-Path -LiteralPath $installer)) {
-            throw "Windows installer not found at $installer (expected for tag $tag)."
-          }
-          & gh release create $tag $installer `
-            --repo $env:GH_REPO `
-            --title "Enjoy Player $tag" `
-            --draft `
-            --generate-notes `
-            --target main `
-            || & gh release upload $tag $installer --repo $env:GH_REPO --clobber
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.read_version.outputs.version }}
+          name: Enjoy Player v${{ steps.read_version.outputs.version }}
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: ${{ env.GITHUB_WORKSPACE }}/build/windows/installer/EnjoyPlayerSetup-v${{ steps.read_version.outputs.version }}.exe
 
       - name: Remove short workspace stage
         if: always()

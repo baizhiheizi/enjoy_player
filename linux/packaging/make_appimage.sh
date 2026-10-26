@@ -233,16 +233,35 @@ APPIMAGETOOL="${CACHE_DIR}/appimagetool-x86_64.AppImage"
 APPIMAGETOOL_BIN="${CACHE_DIR}/squashfs-root/AppRun"
 
 if [[ ! -x "$APPIMAGETOOL_BIN" ]]; then
-  if [[ ! -f "$APPIMAGETOOL" ]]; then
+  download_appimagetool() {
     echo "==> Downloading appimagetool..."
-    curl -fsSL -o "$APPIMAGETOOL" \
+    local tmp="${APPIMAGETOOL}.download"
+    rm -f "$tmp"
+    curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 -o "$tmp" \
       "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+    mv "$tmp" "$APPIMAGETOOL"
     chmod +x "$APPIMAGETOOL"
+  }
+  extract_appimagetool() {
+    (cd "$CACHE_DIR" && "$APPIMAGETOOL" --appimage-extract >/dev/null 2>&1) ||
+      (cd "$CACHE_DIR" && bash "$APPIMAGETOOL" --appimage-extract >/dev/null 2>&1)
+  }
+
+  if [[ ! -f "$APPIMAGETOOL" ]]; then
+    download_appimagetool
   fi
   # Extract so we can run without FUSE
   echo "==> Extracting appimagetool (no FUSE required)..."
-  (cd "$CACHE_DIR" && "$APPIMAGETOOL" --appimage-extract >/dev/null 2>&1) || \
-    (cd "$CACHE_DIR" && bash "$APPIMAGETOOL" --appimage-extract >/dev/null 2>&1)
+  if ! extract_appimagetool; then
+    echo "==> Cached appimagetool is unusable; re-downloading..." >&2
+    rm -f "$APPIMAGETOOL"
+    rm -rf "$CACHE_DIR/squashfs-root"
+    download_appimagetool
+    extract_appimagetool || {
+      echo "error: appimagetool extraction failed" >&2
+      exit 1
+    }
+  fi
 fi
 
 mkdir -p "$OUTPUT_DIR"
