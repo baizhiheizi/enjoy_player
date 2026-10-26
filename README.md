@@ -2,119 +2,109 @@
   <b>English</b> · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
-<p align="center">
-  <img src="assets/store/feature-graphic.png" alt="Enjoy Player — Practice languages with media you love" width="900">
-</p>
-
-<h1 align="center">Enjoy Player</h1>
+<h1 align="center">
+  <img src="landing/logo.svg" alt="" width="64" height="64"><br>
+  Enjoy Player
+</h1>
 
 <p align="center">
   <strong>Practice languages with media you love.</strong>
   <br>
-  Interactive transcripts, echo shadow-reading, pronunciation scoring and an SRS vocabulary book — on every device you own.
+  Open your own videos and audio, or paste a YouTube link. Follow every line, say it back, get scored — and keep the words you looked up.
 </p>
 
 <p align="center">
-  <a href="https://player.enjoy.bot"><img alt="Download" src="https://img.shields.io/badge/Download-player.enjoy.bot-7B6FF0?style=for-the-badge"></a>
-  <a href="https://github.com/baizhiheizi/enjoy_player/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/baizhiheizi/enjoy_player?style=for-the-badge"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-A42E2E?style=for-the-badge"></a>
+  <a href="https://player.enjoy.bot"><img alt="Download" src="https://img.shields.io/badge/Download-player.enjoy.bot-4F46E5?style=for-the-badge"></a>
+  <a href="https://github.com/baizhiheizi/enjoy_player/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/baizhiheizi/enjoy_player?style=for-the-badge&color=7C3AED"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-12141A?style=for-the-badge"></a>
+</p>
+
+<p align="center">
+  <a href="https://player.enjoy.bot"><img src="assets/readme/showcase.png" alt="Enjoy Player on desktop and phone: the looped line with IPA and translation, a pronunciation score of 84, and the vocabulary book" width="900"></a>
+</p>
+
+<p align="center">
+  <a href="landing/videos/enjoy-player-film.en.mp4"><b>▶ Watch the 15-second film</b></a> · <a href="https://player.enjoy.bot">player.enjoy.bot</a>
 </p>
 
 ---
+
+## The practice loop
+
+Every line of your media, three ways through it. Switch any time — the line stays where you are.
+
+| | |
+| --- | --- |
+| 🔵 **Listen** | Every line in time with your media. Tap to seek, loop a line, slow it down, and read the translation and IPA when you need them. |
+| 🟣 **Echo** | Shadow one line at a time. Record over the original, replay both, compare the pitch, and get a score for every take. |
+| 🟣 **Dictate** | Hide the text. Words turn into shapes, so you listen first — then hover or hold a line to peek and check yourself. |
 
 ## See it in action
 
 <table>
   <tr>
-    <td align="center" width="25%"><img src="assets/store/android_phone_screenshot_1.jpg" alt="Home — daily goal, community activity and recent media" width="240"></td>
-    <td align="center" width="25%"><img src="assets/store/android_phone_screenshot_2.jpg" alt="Player with interactive transcript and echo mode" width="240"></td>
-    <td align="center" width="25%"><img src="assets/store/android_phone_screenshot_3.jpg" alt="Pronunciation assessment with overall score and per-dimension scoring" width="240"></td>
-    <td align="center" width="25%"><img src="assets/store/android_phone_screenshot_4.jpg" alt="Dictionary lookup with contextual translation and vocabulary flashcards" width="240"></td>
+    <td align="center" width="25%"><img src="assets/store/android_phone_screenshot_1.jpg" alt="Home: continue practising, today's goal and the community" width="220"></td>
+    <td align="center" width="25%"><img src="assets/store/android_phone_screenshot_2.jpg" alt="Echo: the looped line with its translation and your latest take" width="220"></td>
+    <td align="center" width="25%"><img src="assets/store/android_phone_screenshot_3.jpg" alt="Pronunciation assessment: overall 84 with accuracy, completeness, fluency and prosody" width="220"></td>
+    <td align="center" width="25%"><img src="assets/store/android_phone_screenshot_4.jpg" alt="Vocabulary: words due today, progress by status and every saved word with its context" width="220"></td>
   </tr>
   <tr>
-    <td align="center"><b>Stay motivated</b><br><sub>Daily goal · Community · Recents</sub></td>
-    <td align="center"><b>Follow every word</b><br><sub>Tap-to-seek · Echo mode</sub></td>
-    <td align="center"><b>Speak like a native</b><br><sub>Azure pronunciation scoring</sub></td>
-    <td align="center"><b>Build vocabulary</b><br><sub>Look up · Save · Review with SRS</sub></td>
+    <td align="center"><b>Pick up where you left off</b><br><sub>Today's goal · Community</sub></td>
+    <td align="center"><b>Say it back</b><br><sub>Loop · Record · Compare</sub></td>
+    <td align="center"><b>Feedback down to the sound</b><br><sub>Four dimensions · Every word</sub></td>
+    <td align="center"><b>Keep the words</b><br><sub>Context · Spaced review</sub></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="assets/store/macos_player_screenshot.png" alt="Enjoy Player on macOS — full-window player with transcript sidebar" width="900">
+  <img src="assets/store/macos_player_screenshot.png" alt="Enjoy Player on macOS: Echo on the looped line, with IPA over every word and the Chinese translation underneath" width="900">
 </p>
 
-<p align="center"><sub><b>One experience, every screen.</b> Native on Windows, macOS, Linux, Android and iOS — phone, tablet and desktop.</sub></p>
+<p align="center"><sub><b>One library, every device you own.</b> Native on Windows, macOS, Linux, iPhone, iPad and Android.</sub></p>
 
 ---
 
-## Why Enjoy Player
+## Features
 
-**Learn with content you actually enjoy.** Bring your own MP4s and audio files, or paste any YouTube URL — TED talks, Netflix shows, podcasts, anime. The transcript follows your media, not the other way around.
-
-**Speak from day one.** Echo mode listens to a single line, records you reading it back, then scores your pronunciation on accuracy, fluency, completeness and prosody. You don't need a language partner to practise.
-
-**Vocabulary that actually sticks.** Highlight any word in the transcript and get an instant translation, dictionary definition and an LLM-powered explanation of what the phrase means in this scene. One tap saves it to a spaced-repetition deck that reviews on the schedule your brain needs.
-
-**One app, every device.** Native builds for Windows, macOS, Linux, Android and iOS. Library, progress, vocabulary and settings follow you everywhere, with optional cloud sync.
-
-**Stay in the game.** A daily practice goal, a community of learners practising alongside you, and progress stats that show you're getting better — one cue at a time.
-
----
-
-## Core features
-
-- **Interactive transcripts** — Auto-synced subtitles from `.srt` / `.vtt` imports, AI transcription or YouTube captions. Tap any line to jump; tap any word to look it up.
-- **Echo mode (shadow reading)** — Listen, record, replay. The player pauses at the end of your echo segment and rewinds, so you can drill the same line again without breaking flow.
-- **Pronunciation assessment** — Native Azure speech scoring per take: overall score plus accuracy / completeness / fluency / prosody, with per-word detail and replay.
-- **Dictionary & contextual translation** — Highlight text in the transcript → translation, dictionary entry, and an LLM-generated "what does this phrase mean here?" explanation.
-- **Spaced-repetition vocabulary** — 3-button flashcards (Don't know / Know / Know well) on a 3-rating SM-2 schedule, with multi-context per word and Anki CSV export (Pro).
-- **YouTube playback** — Paste a URL and play. Enjoy caches captions, fetches metadata and renders the transcript alongside — no ads, no autoplay surprises.
-- **Pitch contour analysis** — Compare your recorded take's intonation against the original line on a YIN-pitch chart. See exactly where your tone drifts.
-- **Practice poster** — Turn a shadow-reading take into a branded 9:16 poster (cover frame, hero line, stats) and share it to WeChat, X or anywhere.
-- **AI auto-translate** — Per-line translations on demand, cached locally, refreshed automatically when the source text changes.
-- **Cross-device sync** — Library, progress, vocabulary and settings sync across every device signed in to your Enjoy account.
+- **Interactive transcripts** — `.srt` / `.vtt` imports, YouTube captions, or AI transcription aligned line by line. Tap a line to seek; select a word to look it up. Per-line translations and IPA when you want them.
+- **Echo (shadow reading)** — Line-bounded loops that pause and rewind at the end of the line, so you can drill it without breaking flow. Every take is kept.
+- **Pronunciation assessment** — Azure speech scoring per take: overall, accuracy, completeness, fluency and prosody, with per-word detail and your pitch contour laid over the original's.
+- **Dictate** — Every line's text becomes shape bars (`H`); listen first, then hover or press-and-hold a line to peek.
+- **Lookup in context** — Translation, a dictionary entry, and an AI explanation of what the phrase means in this scene, in 15 lookup languages.
+- **Spaced-repetition vocabulary** — Three-button flashcards on an SM-2 schedule, several contexts per word, Anki CSV export on paid plans.
+- **Craft** — Say or type something in your own language; Craft rewrites it the way a native speaker would, reads it aloud, and sends it to the player to shadow.
+- **YouTube** — Paste a link and play, with captions fetched and rendered as an interactive transcript.
+- **Practice poster** — Turn a take into a 9:16 poster (cover frame, the line, your score) and share it.
+- **Sync** — Library, progress, recordings, vocabulary and settings follow your Enjoy account across devices.
 
 ---
 
-## Built for every screen
+## Get it
 
-| Platform | What's native |
-| ---------- | --------------- |
-| **Windows** | Windows 10 / 11 · x64 · FFmpeg embedded for subtitles and pitch analysis |
-| **macOS** | macOS 12.0+ · Universal binary · Hardened runtime · Notarized |
-| **Linux** | Ubuntu 22.04 LTS · x86_64 · AppImage |
-| **Android** | Android 8.0+ · Phone & tablet · Play Store and direct APK sideload |
-| **iOS** | iOS 15.0+ · iPhone & iPad · TestFlight public beta |
+The download page puts the right installer for your device first: **[player.enjoy.bot](https://player.enjoy.bot)**
 
-Flutter web is intentionally not supported.
+| Platform | Requirements | Get it |
+| --- | --- | --- |
+| **Windows** | Windows 10 / 11 · x64 | [Installer (.exe)](https://player.enjoy.bot/#download) |
+| **macOS** | macOS 12+ · Apple silicon & Intel · notarized | [Disk image (.dmg)](https://player.enjoy.bot/#download) |
+| **Linux** | Ubuntu 22.04+ · x86_64 | [AppImage](https://player.enjoy.bot/#download) |
+| **Android** | Android 8.0+ · phone & tablet | [APK](https://player.enjoy.bot/#download) |
+| **iPhone & iPad** | iOS 15+ | [TestFlight beta](https://testflight.apple.com/join/6x7kkr3e) |
 
----
+The player and every practice mode are free; paid plans add more daily Enjoy AI credits. Flutter web is intentionally not supported.
 
-## Get it now
-
-The download page picks the right installer for your OS automatically:
-
-**[player.enjoy.bot](https://player.enjoy.bot)**
-
-| | |
-| --- | --- |
-| Windows | [Download .exe](https://player.enjoy.bot) |
-| macOS | [Download .dmg](https://player.enjoy.bot) |
-| Linux | [Download .AppImage](https://player.enjoy.bot) |
-| Android | [APK (direct)](https://player.enjoy.bot) · [Join Play beta](https://play.google.com/) |
-| iOS | [Join TestFlight beta](https://testflight.apple.com/join/6x7kkr3e) |
-
-Source, releases and changelog: **[github.com/baizhiheizi/enjoy_player](https://github.com/baizhiheizi/enjoy_player)**
+Releases and changelog: **[github.com/baizhiheizi/enjoy_player/releases](https://github.com/baizhiheizi/enjoy_player/releases)**
 
 ---
 
-## Open source & built with care
+## Built with
 
 - **Player** — [media_kit](https://pub.dev/packages/media_kit) on a single shared engine ([ADR-0003](docs/decisions/0003-player-core-media-kit.md))
 - **State** — [Riverpod 3](https://pub.dev/packages/flutter_riverpod) + `riverpod_annotation`
 - **Storage** — [Drift](https://pub.dev/packages/drift) (SQLite) for every persisted byte
 - **Speech** — Azure pronunciation assessment + native FFmpeg pitch analysis
-- **Architecture** — See [docs/architecture.md](docs/architecture.md); decisions in [docs/decisions/](docs/decisions/)
+- **Design** — the Duet design language ([ADR-0093](docs/decisions/0093-duet-design-language.md), [docs/design/duet/](docs/design/duet/README.md))
+- **Architecture** — [docs/architecture.md](docs/architecture.md); decisions in [docs/decisions/](docs/decisions/)
 
 ---
 
@@ -127,6 +117,8 @@ flutter run
 ```
 
 Platform toolchain notes: macOS needs Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`; Windows needs the NuGet CLI on `PATH` for `flutter_inappwebview`; Linux needs `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg` plus the WPE WebKit dev packages for the YouTube playback plugin (`libwpewebkit-2.0-dev libwpe-1.0-1 libwpebackend-fdo-1.0-dev` on Ubuntu, `wpewebkit libwpe wpebackend-fdo` on Arch — see [docs/features/linux-platform.md](docs/features/linux-platform.md)). Full release prerequisites: [docs/packaging.md](docs/packaging.md). CI gates and agent rules: [AGENTS.md](AGENTS.md).
+
+The screenshots above and in `assets/store/` are rendered from the app itself — see [docs/features/landing.md § Screenshots and film](docs/features/landing.md#screenshots-and-film).
 
 ---
 

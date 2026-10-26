@@ -1,0 +1,363 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Enjoy Player — 15s film</title>
+<!--
+  The landing-page film. Every frame is a pure function of time: renderFrame(t)
+  sets each element's style for t seconds, so tool/promo/render_film.mjs can
+  step through it frame by frame and hand the shots to ffmpeg. Open it through
+  `node tool/promo/render_film.mjs --serve` to watch it loop in a browser.
+  ?lang=en | zh-CN
+-->
+<style>
+@font-face { font-family: "Geist"; src: url("/landing/fonts/geist-latin-wght-normal.woff2") format("woff2-variations"); font-weight: 100 900; }
+@font-face { font-family: "Geist Mono"; src: url("/landing/fonts/geist-mono-latin-wght-normal.woff2") format("woff2-variations"); font-weight: 100 900; }
+@font-face { font-family: "Literata"; src: url("/landing/fonts/literata-latin-opsz-normal.woff2") format("woff2-variations"); font-weight: 200 900; }
+
+:root {
+  --sunk: #EDEFF2; --line: #E3E6EB;
+  --ink: #12141A; --ink2: #3D4350; --ink3: #5E6573;
+  --blue: #4797F5; --blue-ink: #1D64C8; --blue-soft: #E9F2FE;
+  --you: #8B2FE0; --you-ink: #7E22CE; --you-soft: #F4ECFE; --you-line: #D8B4FE;
+  --good: #1E8E5A; --fair: #B7791F; --poor: #C2410C;
+  --brand: linear-gradient(135deg, #2563EB, #7C3AED);
+  --night: #0B0D12;
+  --serif: "Literata", "Noto Serif CJK SC", "Noto Serif SC", Georgia, serif;
+  --ui: "Geist", "Noto Sans CJK SC", "PingFang SC", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #000; }
+body { display: grid; place-items: center; min-height: 100vh; overflow: hidden; }
+#stage {
+  position: relative; width: 1920px; height: 1080px; overflow: hidden;
+  background: var(--night); color: #EEF0F4; font-family: var(--ui);
+  -webkit-font-smoothing: antialiased; transform-origin: 0 0;
+}
+.abs { position: absolute; }
+.blob { position: absolute; border-radius: 50%; filter: blur(110px); will-change: transform; }
+#grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 20%, transparent 75%);
+}
+section { position: absolute; inset: 0; opacity: 0; }
+
+.kicker { display: inline-flex; align-items: center; gap: 14px; height: 48px; padding: 0 20px 0 12px; border-radius: 999px; background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); font: 600 22px/1 var(--ui); color: #fff; letter-spacing: .01em; }
+.kicker .dot { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; color: #fff; }
+.kicker svg { width: 16px; height: 16px; }
+.headline { margin-top: 30px; font: 500 80px/1.08 var(--serif); letter-spacing: -0.025em; color: #fff; }
+.zh .headline { font-weight: 600; letter-spacing: 0; line-height: 1.2; font-size: 76px; }
+.sub { margin-top: 26px; font: 400 30px/1.4 var(--ui); color: #A9AFBC; }
+.copy > * { will-change: transform, opacity; }
+
+.win { position: absolute; background: #fff; color: var(--ink); border-radius: 20px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 60px 140px -30px rgba(0,0,0,.85), 0 0 120px -40px rgba(124,58,237,.5); will-change: transform, opacity; }
+.win .bar { height: 34px; display: flex; align-items: center; gap: 9px; padding: 0 16px; background: var(--sunk); border-bottom: 1px solid var(--line); }
+.win .bar i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.win .bar i:nth-child(1) { background: #FF5F57; } .win .bar i:nth-child(2) { background: #FEBC2E; } .win .bar i:nth-child(3) { background: #28C840; }
+.win img { display: block; width: 100%; }
+.phone { position: absolute; padding: 11px; border-radius: 58px; background: #05060A; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.14), 0 60px 120px -30px rgba(0,0,0,.9), 0 0 100px -40px rgba(124,58,237,.6); will-change: transform, opacity; }
+.phone img { display: block; width: 100%; border-radius: 47px; }
+
+.pill { height: 56px; padding: 0 24px 0 18px; border-radius: 999px; display: inline-flex; align-items: center; gap: 12px; background: rgba(12,14,20,.78); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 20px 50px rgba(0,0,0,.5); backdrop-filter: blur(10px); font: 600 22px/1 var(--ui); color: #fff; }
+.plat { display: flex; flex-direction: column; align-items: center; gap: 12px; font: 500 19px/1 var(--ui); color: #A9AFBC; }
+.plat svg { width: 46px; height: 46px; color: #fff; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob" id="b1" style="width: 900px; height: 700px; background: #2563EB; opacity: .32"></div>
+  <div class="blob" id="b2" style="width: 820px; height: 720px; background: #7C3AED; opacity: .32"></div>
+  <div class="blob" id="b3" style="width: 600px; height: 500px; background: #4797F5; opacity: .18"></div>
+  <div id="grid"></div>
+
+  <!-- 0 · Slogan -->
+  <section id="s0">
+    <div class="abs" style="left: 0; right: 0; top: 270px; text-align: center">
+      <div id="s0-logo" style="display: inline-block"></div>
+      <div id="s0-lead" style="margin-top: 40px; font: 500 96px/1.1 var(--serif); letter-spacing: -0.03em; color: #fff; white-space: nowrap"></div>
+      <div style="position: relative; display: inline-block; margin-top: 6px">
+        <span id="s0-focus" style="display: inline-block; font: 500 128px/1.1 var(--serif); letter-spacing: -0.03em; background: linear-gradient(135deg,#60A5FA,#A78BFA 55%,#C084FC); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: 12px; white-space: nowrap"></span>
+        <svg viewBox="0 0 200 20" preserveAspectRatio="none" style="position: absolute; left: 0; bottom: -10px; width: 100%; height: 26px; overflow: visible">
+          <defs><linearGradient id="ug" x1="0" x2="1"><stop offset="0" stop-color="#60A5FA"/><stop offset="1" stop-color="#C084FC"/></linearGradient></defs>
+          <path id="s0-path" pathLength="1" d="M3 13 C 40 5, 90 4, 130 8 S 185 14, 197 6" fill="none" stroke="url(#ug)" stroke-width="7" stroke-linecap="round" vector-effect="non-scaling-stroke" stroke-dasharray="1" stroke-dashoffset="1"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 · Interactive transcripts on desktop -->
+  <section id="s1">
+    <div class="copy abs" style="left: 120px; top: 340px; width: 600px">
+      <div class="kicker"><span class="dot" style="background: var(--blue)" data-icon="captions"></span><span data-t="s1k"></span></div>
+      <div class="headline" data-t="s1h"></div>
+      <div class="sub" data-t="s1s"></div>
+    </div>
+    <div class="win" id="s1-win" style="left: 740px; top: 170px; width: 1100px">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <div style="overflow: hidden"><img id="s1-img" src="/landing/images/desktop-echo.webp" alt="" style="transform-origin: 34% 44%"></div>
+    </div>
+  </section>
+
+  <!-- 2 · Echo on the phone -->
+  <section id="s2">
+    <div class="phone" id="s2-back" style="left: 580px; top: 130px; width: 360px"><img src="/landing/images/phone-dark.webp" alt=""></div>
+    <div class="phone" id="s2-front" style="left: 230px; top: 70px; width: 400px"><img src="/landing/images/phone-echo.webp" alt=""></div>
+    <div class="pill abs" id="s2-rec" style="left: 300px; top: 990px"><i style="width: 14px; height: 14px; border-radius: 50%; background: #FF5A5A; display: block"></i><span data-t="recording"></span><span id="s2-clock" style="font-family: var(--mono); font-weight: 500; color: #A9AFBC">0:00</span></div>
+    <div class="copy abs" style="left: 1100px; top: 340px; width: 700px">
+      <div class="kicker"><span class="dot" style="background: var(--you)" data-icon="mic"></span><span data-t="s2k"></span></div>
+      <div class="headline" data-t="s2h"></div>
+      <div class="sub" data-t="s2s"></div>
+    </div>
+  </section>
+
+  <!-- 3 · Pronunciation assessment -->
+  <section id="s3">
+    <div class="copy abs" style="left: 120px; top: 340px; width: 640px">
+      <div class="kicker"><span class="dot" style="background: var(--good)" data-icon="audio-lines"></span><span data-t="s3k"></span></div>
+      <div class="headline" data-t="s3h"></div>
+      <div class="sub" data-t="s3s"></div>
+    </div>
+    <div class="win" id="s3-win" style="left: 820px; top: 210px; width: 980px; padding: 44px 48px 40px">
+      <div class="serif" style="font: 500 34px/1.35 var(--serif); letter-spacing: -0.01em" id="s3-line"></div>
+      <div style="margin-top: 34px; display: flex; align-items: center; gap: 44px">
+        <div style="position: relative; width: 220px; height: 220px; flex-shrink: 0">
+          <svg viewBox="0 0 120 120" style="width: 220px; height: 220px; transform: rotate(-90deg)">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--sunk)" stroke-width="10"/>
+            <circle id="s3-ring" cx="60" cy="60" r="52" fill="none" stroke="var(--good)" stroke-width="10" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+          </svg>
+          <div class="abs" style="inset: 0; display: grid; place-items: center; text-align: center">
+            <div><div id="s3-score" style="font: 500 80px/1 var(--serif); letter-spacing: -0.03em">0</div><div style="margin-top: 8px; font-size: 18px; font-weight: 600; color: var(--good)" data-t="good"></div></div>
+          </div>
+        </div>
+        <div id="s3-bars" style="flex: 1; display: flex; flex-direction: column; gap: 22px"></div>
+      </div>
+      <div id="s3-words" style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 10px; font: 400 26px/1 var(--serif)"></div>
+    </div>
+  </section>
+
+  <!-- 4 · Vocabulary -->
+  <section id="s4">
+    <div class="copy abs" style="left: 120px; top: 340px; width: 680px">
+      <div class="kicker"><span class="dot" style="background: var(--brand)" data-icon="book-open"></span><span data-t="s4k"></span></div>
+      <div class="headline" data-t="s4h"></div>
+      <div class="sub" data-t="s4s"></div>
+    </div>
+    <div class="phone" id="s4-a" style="left: 940px; top: 150px; width: 380px"><img src="/landing/images/phone-home.webp" alt=""></div>
+    <div class="phone" id="s4-b" style="left: 1380px; top: 90px; width: 400px"><img src="/landing/images/phone-vocabulary.webp" alt=""></div>
+  </section>
+
+  <!-- 5 · Everywhere -->
+  <section id="s5">
+    <div class="abs" style="left: 0; right: 0; top: 200px; text-align: center">
+      <div id="s5-logo" style="display: inline-block"></div>
+      <div id="s5-name" style="margin-top: 26px; font: 600 104px/1 var(--ui); letter-spacing: -0.035em; color: #fff">Enjoy Player</div>
+      <div id="s5-tag" style="margin-top: 26px; font: 400 44px/1.3 var(--serif); color: #CDD2DC" data-t="s5t"></div>
+      <div id="s5-plats" style="margin-top: 70px; display: flex; justify-content: center; gap: 72px"></div>
+      <div id="s5-url" style="margin-top: 70px; display: inline-flex; align-items: center; height: 68px; padding: 0 36px; border-radius: 999px; background: var(--brand); font: 600 28px/1 var(--ui); color: #fff; box-shadow: 0 16px 50px rgba(79,70,229,.45)">player.enjoy.bot</div>
+    </div>
+  </section>
+</div>
+
+<script>
+const LANG = new URLSearchParams(location.search).get("lang") || "en"
+const COPY = {
+  en: {
+    lead: "Practice languages with", focus: "media you love.",
+    s1k: "Interactive transcripts", s1h: "Every line,<br>in time.", s1s: "Your files · YouTube · AI transcripts",
+    s2k: "Echo", s2h: "Say it back,<br>line by line.", s2s: "Loop · record · compare",
+    s3k: "Pronunciation", s3h: "Feedback down<br>to the sound.", s3s: "Accuracy · Fluency · Completeness · Prosody",
+    s4k: "Vocabulary", s4h: "Look it up.<br>Keep it.", s4s: "Dictionary · AI context · spaced review",
+    s5t: "Practice languages with media you love.",
+    recording: "Recording", good: "Good", ios: "iPhone & iPad",
+    accuracy: "Accuracy", completeness: "Completeness", fluency: "Fluency", prosody: "Prosody",
+  },
+  "zh-CN": {
+    lead: "练外语，就用", focus: "你喜欢的媒体",
+    s1k: "交互字幕", s1h: "每一句，<br>都对得上。", s1s: "本地文件 · YouTube · AI 转写",
+    s2k: "跟读", s2h: "开口跟读，<br>一句一句来。", s2s: "循环 · 录音 · 对比",
+    s3k: "发音评估", s3h: "反馈细到<br>每一个音。", s3s: "准确度 · 流利度 · 完整度 · 韵律",
+    s4k: "生词本", s4h: "查得到，<br>也记得住。", s4s: "词典 · AI 语境解释 · 间隔复习",
+    s5t: "用你喜欢的媒体练外语。",
+    recording: "录音中", good: "良好", ios: "iPhone 与 iPad",
+    accuracy: "准确度", completeness: "完整度", fluency: "流利度", prosody: "韵律",
+  },
+}[LANG]
+document.documentElement.classList.add(LANG.startsWith("zh") ? "zh" : "en")
+
+const ICONS = window.FILM_ICONS || {}
+const icon = (name, size = 16) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="width:${size}px;height:${size}px">${ICONS[name] || ""}</svg>`
+const logo = (size, id) => `<svg width="${size}" height="${size}" viewBox="10 4 92 92" fill="none"><defs><linearGradient id="${id}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4797F5"/><stop offset="100%" stop-color="#A855F7"/></linearGradient></defs><g stroke="url(#${id})" stroke-width="5" stroke-linejoin="round" fill="url(#${id})"><polygon class="tri" points="30,20 70,40 30,60" opacity=".35"/><polygon class="tri" points="30,40 70,60 30,80" opacity=".65"/><polygon class="tri" points="50,30 90,50 50,70"/></g></svg>`
+
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+$$("[data-t]").forEach((el) => { el.innerHTML = COPY[el.dataset.t] ?? "" })
+$$("[data-icon]").forEach((el) => { el.insertAdjacentHTML("beforeend", icon(el.dataset.icon, 16)) })
+$("#s0-lead").textContent = COPY.lead
+$("#s0-focus").textContent = COPY.focus
+$("#s0-logo").innerHTML = logo(120, "l0")
+$("#s5-logo").innerHTML = logo(132, "l5")
+
+const METRICS = [["accuracy", 82], ["completeness", 100], ["fluency", 78], ["prosody", 75]]
+const tone = (v) => (v >= 80 ? "var(--good)" : v >= 60 ? "var(--fair)" : "var(--poor)")
+$("#s3-bars").innerHTML = METRICS.map(([k, v]) => `
+  <div style="display: grid; grid-template-columns: 170px 1fr 52px; align-items: center; gap: 16px; font-size: 20px">
+    <span style="color: var(--ink2)">${COPY[k]}</span>
+    <span style="height: 10px; border-radius: 5px; background: var(--sunk); position: relative"><span class="s3-bar" data-v="${v}" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 5px; background: ${tone(v)}"></span></span>
+    <span class="s3-val" data-v="${v}" style="text-align: right; font: 600 20px/1 var(--mono); color: ${tone(v)}">0</span>
+  </div>`).join("")
+const LINE = [["You", 96], ["don't", 92], ["take", 90], ["the", 97], ["ferry", 58], ["to", 94], ["save", 88], ["time;", 91]]
+$("#s3-line").innerHTML = LINE.map(([w]) => w).join(" ") + ' <span style="color: var(--ink3)">you take it to slow down.</span>'
+$("#s3-words").innerHTML = LINE.map(([w, s]) => {
+  const look = s >= 80 ? "background: #E8F5EE; color: #146C43" : "background: #FDECEA; color: #B42318; box-shadow: inset 0 0 0 1.5px #F5B5AE"
+  return `<span class="s3-chip" style="height: 50px; padding: 0 16px; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px; ${look}">${w.replace(";", "")}<span style="font: 600 15px/1 var(--mono); opacity: .8">${s}</span></span>`
+}).join("")
+
+$("#s5-plats").innerHTML = [
+  ["microsoft-windows", "Windows"], ["apple", "macOS"], ["linux", "Linux"], ["apple-ios", COPY.ios], ["android", "Android"],
+].map(([i, label]) => `<span class="plat">${icon(i, 46)}${label}</span>`).join("")
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x))
+const P = (t, a, b) => clamp((t - a) / (b - a))
+const out3 = (x) => 1 - Math.pow(1 - x, 3)
+const in3 = (x) => x * x * x
+const io = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
+const back = (x) => { const c = 1.6; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2) }
+const lerp = (a, b, x) => a + (b - a) * x
+const css = (el, o) => Object.assign(el.style, o)
+
+// Scenes: [start, end]; each fades in over 0.5s and out over 0.4s.
+const SCENES = { s0: [0, 2.5], s1: [2.35, 5.3], s2: [5.1, 8.0], s3: [7.8, 10.65], s4: [10.45, 12.85], s5: [12.65, 15] }
+const DURATION = 15
+
+function vis(t, [a, b], { fin = 0.5, fout = 0.4 } = {}) {
+  const i = out3(P(t, a, a + fin))
+  const o = b >= DURATION ? 0 : in3(P(t, b - fout, b))
+  return { i, o, op: i * (1 - o), on: t >= a && t <= b, blur: `blur(${o * 14}px)` }
+}
+
+function copyIn(section, u, v) {
+  $$(".copy > *", section).forEach((el, k) => {
+    const p = out3(P(u, 0.15 + k * 0.12, 0.75 + k * 0.12))
+    css(el, { opacity: p * (1 - v.o), transform: `translateY(${(1 - p) * 40 - v.o * 30}px)`, filter: `blur(${(1 - p) * 8}px)` })
+  })
+}
+
+function slideIn(el, u, v, from = 1, delay = 0) {
+  const p = out3(P(u, delay, delay + 0.8))
+  css(el, {
+    opacity: clamp(p * 1.4) * (1 - v.o),
+    transform: `perspective(2200px) translateX(${from * (1 - p) * 140}px) translateY(${-v.o * 30}px) rotateY(${from * -(1 - p) * 14}deg) scale(${lerp(0.94, 1, p) - v.o * 0.03})`,
+  })
+}
+
+function riseIn(el, u, v, delay = 0, rot = 0) {
+  const p = out3(P(u, delay, delay + 0.9))
+  css(el, {
+    opacity: clamp(p * 1.5) * (1 - v.o),
+    transform: `translateY(${(1 - p) * 160 - v.o * 40}px) rotate(${rot * (1 - p * 0.4)}deg) scale(${lerp(0.92, 1, p)})`,
+  })
+}
+
+function renderFrame(t) {
+  css($("#b1"), { transform: `translate(${-200 + Math.sin(t * 0.35) * 160}px, ${-160 + Math.cos(t * 0.3) * 90}px)` })
+  css($("#b2"), { transform: `translate(${1260 + Math.cos(t * 0.32) * 170}px, ${340 + Math.sin(t * 0.4) * 110}px)` })
+  css($("#b3"), { transform: `translate(${700 + Math.sin(t * 0.5 + 1) * 260}px, ${540 + Math.cos(t * 0.45) * 120}px)` })
+
+  for (const [id, span] of Object.entries(SCENES)) {
+    const v = vis(t, span)
+    css($("#" + id), { opacity: v.on ? v.op : 0, filter: v.blur, visibility: v.on ? "visible" : "hidden" })
+  }
+
+  {
+    const v = vis(t, SCENES.s0), u = t - SCENES.s0[0]
+    const tris = $$("#s0-logo .tri")
+    tris.forEach((el, k) => {
+      const p = back(P(u, 0.05 + k * 0.1, 0.6 + k * 0.1))
+      css(el, { transformOrigin: "50% 50%", transformBox: "fill-box", transform: `translateX(${(1 - p) * -30}px) scale(${clamp(p, 0, 1.2)})`, opacity: clamp(p) * [0.35, 0.65, 1][k] })
+    })
+    const lp = out3(P(u, 0.35, 1.05))
+    css($("#s0-lead"), { opacity: lp, transform: `translateY(${(1 - lp) * 36}px)`, filter: `blur(${(1 - lp) * 10}px)` })
+    const fp = out3(P(u, 0.55, 1.25))
+    css($("#s0-focus"), { opacity: fp, transform: `translateY(${(1 - fp) * 36}px) scale(${lerp(0.96, 1, fp)})`, filter: `blur(${(1 - fp) * 10}px)` })
+    $("#s0-path").style.strokeDashoffset = 1 - out3(P(u, 1.1, 1.85))
+  }
+
+  {
+    const v = vis(t, SCENES.s1), u = t - SCENES.s1[0], sec = $("#s1")
+    copyIn(sec, u, v)
+    slideIn($("#s1-win"), u, v, 1)
+    const z = io(P(u, 0.7, 2.6))
+    css($("#s1-img"), { transform: `scale(${lerp(1, 1.55, z)})` })
+  }
+
+  {
+    const v = vis(t, SCENES.s2), u = t - SCENES.s2[0], sec = $("#s2")
+    copyIn(sec, u, v)
+    riseIn($("#s2-back"), u, v, 0.15, 6)
+    riseIn($("#s2-front"), u, v, 0, -3)
+    const rp = back(P(u, 0.9, 1.4))
+    css($("#s2-rec"), { opacity: clamp(rp) * (1 - v.o), transform: `scale(${lerp(0.6, 1, clamp(rp, 0, 1.1))})` })
+    $("#s2-clock").textContent = `0:0${Math.min(4, Math.max(0, Math.floor((u - 0.9) * 2)))}`
+    $("#s2-rec i").style.opacity = 0.45 + 0.55 * Math.abs(Math.cos(u * 4))
+  }
+
+  {
+    const v = vis(t, SCENES.s3), u = t - SCENES.s3[0], sec = $("#s3")
+    copyIn(sec, u, v)
+    slideIn($("#s3-win"), u, v, 1)
+    const r = out3(P(u, 0.6, 1.8))
+    $("#s3-ring").style.strokeDashoffset = 1 - r * 0.84
+    $("#s3-score").textContent = Math.round(r * 84)
+    $$(".s3-bar").forEach((el, k) => {
+      const p = out3(P(u, 0.8 + k * 0.12, 1.6 + k * 0.12))
+      el.style.width = `${p * +el.dataset.v}%`
+      $$(".s3-val")[k].textContent = Math.round(p * +el.dataset.v)
+    })
+    $$(".s3-chip").forEach((el, k) => {
+      const p = back(P(u, 1.3 + k * 0.07, 1.75 + k * 0.07))
+      css(el, { opacity: clamp(p), transform: `translateY(${(1 - clamp(p, 0, 1.2)) * 18}px) scale(${lerp(0.8, 1, clamp(p, 0, 1.1))})` })
+    })
+  }
+
+  {
+    const v = vis(t, SCENES.s4), u = t - SCENES.s4[0], sec = $("#s4")
+    copyIn(sec, u, v)
+    riseIn($("#s4-a"), u, v, 0.1, -4)
+    riseIn($("#s4-b"), u, v, 0.25, 3)
+  }
+
+  {
+    const v = vis(t, SCENES.s5), u = t - SCENES.s5[0]
+    $$("#s5-logo .tri").forEach((el, k) => {
+      const p = back(P(u, 0.05 + k * 0.1, 0.6 + k * 0.1))
+      css(el, { transformOrigin: "50% 50%", transformBox: "fill-box", transform: `scale(${clamp(p, 0, 1.2)})`, opacity: clamp(p) * [0.35, 0.65, 1][k] })
+    })
+    const items = [$("#s5-name"), $("#s5-tag"), ...$$("#s5-plats .plat"), $("#s5-url")]
+    items.forEach((el, k) => {
+      const p = out3(P(u, 0.3 + k * 0.08, 0.9 + k * 0.08))
+      css(el, { opacity: p, transform: `translateY(${(1 - p) * 30}px)`, filter: `blur(${(1 - p) * 8}px)` })
+    })
+  }
+}
+
+window.FILM = { duration: DURATION }
+renderFrame(0)
+if (!new URLSearchParams(location.search).has("capture")) {
+  const fit = () => {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080)
+    $("#stage").style.transform = `scale(${s})`
+    document.body.style.width = `${1920 * s}px`
+    document.body.style.height = `${1080 * s}px`
+  }
+  fit()
+  addEventListener("resize", fit)
+  const start = performance.now()
+  const loop = () => { renderFrame(((performance.now() - start) / 1000) % DURATION); requestAnimationFrame(loop) }
+  requestAnimationFrame(loop)
+}
+</script>
+</body>
+</html>

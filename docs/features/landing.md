@@ -8,15 +8,19 @@ The download landing page is a **hand-authored static site** in [`landing/`](../
 
 | Path | Role |
 |------|------|
-| `landing/index.html` | Single page: navigation, hero, app showcase, feature bento grid, why section, pricing offers, five platform cards (`card-windows`, `card-macos`, `card-android`, `card-ios`, `card-linux`), closing CTA, and footer. All copy carries `data-i18n` keys. |
-| `landing/styles.css` | All styling; dark editorial theme, responsive sections, gradient "recommended" highlights for the Lite pricing offer and detected platform, `overflow-x: clip` on `<html>` to prevent horizontal scroll from decorative bleed. |
-| `landing/main.js` | OS detection, manifest fetch, store-button validation, recommended-card highlight. |
-| `landing/i18n.js` | `en` / `zh` string tables exposed as `window.translations`; swaps `data-i18n` nodes and persists the choice. |
+| `landing/index.html` | Single page in the Duet design language ([ADR-0093](../decisions/0093-duet-design-language.md)), structured after the `enjoy.bot` landing page in `enjoy_web`: header, hero (slogan, OS-aware download CTA, the 15-second film), the practice loop (Listen · Echo · Dictate), feature rows built on real app screenshots (transcripts, pronunciation assessment, lookup & vocabulary, Craft), the night "every device" band, pricing, five platform cards (`card-windows`, `card-macos`, `card-linux`, `card-android`, `card-ios`) plus a source card, closing band and footer. All copy carries `data-i18n` keys (`data-alt-i18n` / `data-aria-i18n` for attributes). |
+| `landing/styles.css` | All styling, hand-written with the Duet tokens (ground / paper / ink, original blue, you violet, the brand gradient, the night band); light by default, dark through `prefers-color-scheme`. Fonts are self-hosted from `landing/fonts/` because the CSP allows `font-src 'self'` only. `.reveal` elements fade in on scroll (disabled under `prefers-reduced-motion`). |
+| `landing/boot.js` | Adds the `js` class to `<html>` before first paint so scroll reveals only hide content when the script that reveals it can run (the CSP forbids inline scripts). |
+| `landing/main.js` | OS detection, manifest fetch, store-button validation, recommended-card highlight, the hero CTA's platform label (`Download for macOS`), the film controls, and the scroll reveal. |
+| `landing/i18n.js` | `en` / `zh` string tables exposed as `window.translations` and a `t(key)` helper; swaps `data-i18n` nodes, persists the choice, and dispatches `enjoy:language` so the film and hero CTA follow the language. |
 | `landing/config.js` | `window.ENJOY_CONFIG` — the **only file edited for link maintenance** (see below). |
 | `landing/functions/api/latest.js` | Cloudflare Pages Function: same-origin proxy for the release manifest. |
 | `landing/_headers` | Cloudflare Pages security headers + per-path cache policy. |
 | `landing/wrangler.toml` | Pages config; `pages_build_output_dir = "."` (the directory itself is the output). |
-| `landing/logo.svg`, `og-image.svg`, `screenshot-hero.png` | Brand assets and app showcase image (served `immutable`, 24 h TTL). |
+| `landing/icons.svg` | SVG sprite (Lucide + Material Design Icons bodies) referenced with `<use href="icons.svg#name">`. |
+| `landing/images/*.webp` | App screenshots, converted from the Duet gallery renders (see [Screenshots and film](#screenshots-and-film)). |
+| `landing/videos/enjoy-player-film.{en,zh-CN}.{mp4,jpg}` | The 15-second hero film and its poster, one cut per language. |
+| `landing/logo.svg`, `og-image.png` | Brand mark and the 1200 × 630 social card. |
 
 ## Link maintenance — `config.js`
 
@@ -50,12 +54,14 @@ The Pages Function serves `GET /api/latest`:
 ## OS detection & progressive enhancement — `main.js`
 
 - `detectOS()` uses `navigator.userAgent` / `navigator.platform` heuristics; **iPadOS is disambiguated from macOS via `navigator.maxTouchPoints > 1`** (iPadOS reports `MacIntel`).
-- The detected platform's card gets the `card--recommended` gradient highlight plus a localized "Recommended" badge, and is **moved to the front** of `#platform-grid`. All five cards always render regardless.
-- Init order: `initI18n()` → `applyConfig()` (store buttons) → highlight → manifest fetch → `applyManifest()`.
+- The detected platform's card gets the `card--recommended` gradient border plus a localized "For this device" badge, and is **moved to the front** of `#platform-grid`. All five cards always render regardless. The hero CTA names the platform (`Download for macOS`) and links to `#download`.
+- Every direct-download button's static `href` is GitHub releases/latest, so nothing is missing with JavaScript disabled; the `.nojs-notice` says so.
+- The film (`#film-video`) plays muted and looped only while at least 35% of it is on screen, never autoplays under `prefers-reduced-motion`, and swaps to the `zh-CN` cut (video and poster) when the page language is Chinese.
+- Init order: `initI18n()` → `applyConfig()` (store buttons) → highlight → hero CTA → scroll reveal → film → manifest fetch → `applyManifest()`.
 
 ## Internationalization — `i18n.js`
 
-Two locales, `en` (default) and `zh`, selected by the header `EN` / `中` buttons (`data-lang`). `initI18n()` swaps the text of every `[data-i18n]` node from `window.translations` and persists the choice (localStorage), so reloads keep the language. Dynamic strings created later (e.g., the recommended badge) look up their `data-i18n` key against the active locale at creation time.
+Two locales, `en` (default) and `zh`, selected by the header `EN` / `中` buttons (`data-lang`). `initI18n()` swaps the text of every `[data-i18n]` node (plus `data-alt-i18n` image alts and `data-aria-i18n` labels) from `window.translations`, sets `<html lang>` to `en` / `zh-CN`, and persists the choice (localStorage, guarded — a blocked store just keeps the choice for the page view), so reloads keep the language. Dynamic strings created later (e.g., the recommended badge) look up their `data-i18n` key against the active locale at creation time.
 
 ## Pricing offers
 
@@ -79,7 +85,17 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 Permissions-Policy: geolocation=(), microphone=(), camera=()
 ```
 
-Per-path caching: `index.html` is `no-cache, must-revalidate` (links must be fresh); `styles.css` / `main.js` / `config.js` get 1 h (no build-time fingerprinting, so not immutable); SVG brand assets 24 h `immutable`; `/api/latest` mirrors the Function's 5 min + SWR policy.
+Per-path caching: `index.html` is `no-cache, must-revalidate` (links must be fresh); `styles.css` / `main.js` / `i18n.js` / `config.js` / `boot.js` get 1 h (no build-time fingerprinting, so not immutable — bump the `?v=` query in `index.html` when they change); `/fonts/*` a year `immutable`; `/images/*`, `/videos/*`, `icons.svg` and `og-image.png` 24 h; `logo.svg` 24 h `immutable`; `/api/latest` mirrors the Function's 5 min + SWR policy. Videos fall under `default-src 'self'`.
+
+## Screenshots and film
+
+Every screenshot on the page, in the README and in `assets/store/` is rendered from the app itself by the Duet gallery harness (`test/duet_gallery/`, see [testing.md § Gallery](../testing.md#gallery-opt-in-screenshots)) — no device captures, so a re-shoot after a UI change is a command, not a manual session.
+
+1. **Store screenshots** — `bash tool/store_screenshots.sh` runs every `Store…` gallery scene at the exact pixel size of the listing (iPhone 1290 × 2796, Android phone 1200 × 2670, iPad 2064 × 2752 / 2752 × 2064, Android tablet 3200 × 2136, macOS 3342 × 2324) and writes the flattened files into `assets/store/` under their listing names. The vocabulary list replaced the two flashcard shots: the review screen's pronunciation button stays in its loading state under `flutter test`.
+2. **Landing images** — convert the renders in `build/duet_gallery/` to WebP (`magick <Board>.png -resize 640x -quality 82 landing/images/<name>.webp`; 1800 wide for desktop shots). Current mapping: `desktop-echo` ← `StoreMacosPlayer`, `desktop-scored` ← `StoreAndroidPadPlayer`, `phone-echo` / `phone-scored` / `phone-home` / `phone-vocabulary` / `phone-craft` ← the matching `StoreIosPhone…` scene, `phone-dark` ← `PDark`.
+3. **Film and stills** — `node tool/promo/render_film.mjs` renders `tool/promo/film.html` (both language cuts, 15 s at 1920 × 1080 / 30 fps) to `landing/videos/`, plus `og.html` → `landing/og-image.png` and `showcase.html` → `assets/readme/showcase.png`. The film is a pure function of time (`renderFrame(t)`), stepped frame by frame over the Chrome DevTools Protocol and encoded with ffmpeg (libx264); `--serve` previews it at `http://localhost:4418/film.html?lang=en`. Needs Node 22+, Chrome and ffmpeg.
+
+The Play feature graphic (`assets/store/feature-graphic.{svg,png}`, `tool/export_feature_graphic.mjs`) is unchanged.
 
 ## Deployment — GitHub Actions + Wrangler
 
@@ -106,7 +122,8 @@ npx wrangler pages dev landing --config landing/wrangler.toml
 |------|-----------|
 | New TestFlight invite / Play beta URL | Edit `landing/config.js`, merge; production deploys automatically. |
 | New app release | Nothing — the manifest proxy reflects the live `latest.json` on next load. |
-| New platform card | Add the `<article id="card-…">` in `index.html`, wire its button in `main.js` (`urlMap` / `applyConfig`), add `en`+`zh` strings in `i18n.js`. |
+| New platform card | Add the `<article id="card-…">` in `index.html`, wire its button in `main.js` (`platformMap` / `applyConfig`), add `en`+`zh` strings in `i18n.js`. |
+| UI changed in a way the screenshots show | Re-run the three steps in [Screenshots and film](#screenshots-and-film). |
 | Copy changes | Update **both** `en` and `zh` tables in `i18n.js` (the HTML text is only the `en` fallback). |
 
 ## See also
