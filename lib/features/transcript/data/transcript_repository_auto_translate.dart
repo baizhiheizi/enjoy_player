@@ -120,11 +120,12 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
     if (updates.isEmpty) return;
     final row = await _db.transcriptDao.getById(aiTranscriptId);
     if (row == null) return;
-    await _preloadLinesForRow(row);
+    final revision = _revisionOf(row);
+    await _preloadLinesForRow(row, revision);
     final lines = [
       ..._linesCache.linesFor(
         rowId: row.id,
-        revision: _revisionOf(row),
+        revision: revision,
         timelineJson: row.timelineJson,
       ),
     ];

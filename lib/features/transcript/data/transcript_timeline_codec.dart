@@ -127,7 +127,28 @@ typedef TranscriptTimelineRevision = ({DateTime updatedAt, int jsonLength});
 
 /// Character count of [json] as SQLite `length()` would report it: Unicode
 /// scalar values, not UTF-16 code units.
-int timelineJsonCharacterCount(String json) => json.runes.length;
+///
+/// A surrogate pair counts as one character and an unpaired surrogate counts
+/// as one, matching how `String.runes` and SQLite's `length()` each treat it.
+int timelineJsonCharacterCount(String json) {
+  final length = json.length;
+  var count = 0;
+  var index = 0;
+  while (index < length) {
+    final unit = json.codeUnitAt(index);
+    if (unit >= 0xD800 && unit <= 0xDBFF && index + 1 < length) {
+      final next = json.codeUnitAt(index + 1);
+      if (next >= 0xDC00 && next <= 0xDFFF) {
+        count++;
+        index += 2;
+        continue;
+      }
+    }
+    count++;
+    index++;
+  }
+  return count;
+}
 
 /// Maximum number of decoded timelines kept memoized; the least-recently
 /// used decode is dropped on overflow (issue #810, item C1).

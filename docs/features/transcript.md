@@ -212,7 +212,11 @@ Interface notes:
   not `String.length`, so that it matches SQLite `length()`: the revision
   projections (`TranscriptDao.watchRevisionById` / `metaById`) compute it in
   SQL, and a UTF-16 code-unit count would miss the memo for every non-BMP
-  timeline (emoji, astral CJK).
+  timeline (emoji, astral CJK). The Dart-side count is a linear code-unit
+  scan (a surrogate pair counts as one character, as SQLite's `length()`
+  does) rather than a rune-by-rune walk, and the repository derives it once
+  per row per revision tick, threading the revision through the preload and
+  decode paths instead of re-deriving it at each step.
 - Transcript watches are light: `TranscriptDao.watchSummariesForTarget`
   projects only track metadata + change-tick columns (`selectOnly`, no
   `timeline_json`), and the lines/tracks watchers refetch payloads

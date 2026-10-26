@@ -92,14 +92,16 @@ class TranscriptRepository {
   /// one decode home shared with Craft enrichment and the player's line
   /// controls. Buffered auto-translate line writes are overlaid on top, so
   /// every reader sees the logical state, not just the flushed row.
-  List<TranscriptLine> linesForRow(TranscriptRow row) => _linesForRow(row);
+  List<TranscriptLine> linesForRow(TranscriptRow row) =>
+      _linesForRow(row, _revisionOf(row));
 
   /// [linesForRow] with the [kPreloadTimelineJsonBytes] background pre-decode,
   /// so a first-touch decode of a large timeline also stays off the UI
   /// isolate — the gated/memoized path shared with the Craft edit source.
   Future<List<TranscriptLine>> linesForRowPreloaded(TranscriptRow row) async {
-    await _preloadLinesForRow(row);
-    return linesForRow(row);
+    final revision = _revisionOf(row);
+    await _preloadLinesForRow(row, revision);
+    return _linesForRow(row, revision);
   }
 
   /// Reactive lines for the active primary (shadow-reading) transcript.

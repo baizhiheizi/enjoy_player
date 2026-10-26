@@ -5,30 +5,31 @@ part of 'transcript_repository.dart';
 /// pre-decode for large payloads), Drift watch glue for the active primary /
 /// secondary lines, and the sorted track list stream.
 extension _TranscriptRepositoryLines on TranscriptRepository {
-  List<TranscriptLine> _linesForRow(TranscriptRow row) =>
-      _overlayPendingAutoTranslateLines(
-        row.id,
-        _linesCache.linesFor(
-          rowId: row.id,
-          revision: _revisionOf(row),
-          timelineJson: row.timelineJson,
-        ),
-      );
+  List<TranscriptLine> _linesForRow(
+    TranscriptRow row,
+    TranscriptTimelineRevision revision,
+  ) => _overlayPendingAutoTranslateLines(
+    row.id,
+    _linesCache.linesFor(
+      rowId: row.id,
+      revision: revision,
+      timelineJson: row.timelineJson,
+    ),
+  );
 
   /// Pre-decodes [row.timelineJson] in a background isolate and caches the
   /// result when the payload is large enough
   /// ([kPreloadTimelineJsonBytes]) to justify leaving the UI isolate.
-  Future<void> _preloadLinesForRow(TranscriptRow row) async {
-    if (_linesCache.isCached(rowId: row.id, revision: _revisionOf(row))) {
+  Future<void> _preloadLinesForRow(
+    TranscriptRow row,
+    TranscriptTimelineRevision revision,
+  ) async {
+    if (_linesCache.isCached(rowId: row.id, revision: revision)) {
       return;
     }
     if (row.timelineJson.length <= kPreloadTimelineJsonBytes) return;
     final decoded = await compute(decodeTimelineJson, row.timelineJson);
-    _linesCache.store(
-      rowId: row.id,
-      revision: _revisionOf(row),
-      lines: decoded,
-    );
+    _linesCache.store(rowId: row.id, revision: revision, lines: decoded);
   }
 
   List<TranscriptLine> _cachedLinesFor({
@@ -50,8 +51,9 @@ extension _TranscriptRepositoryLines on TranscriptRepository {
     } else {
       final row = await transcriptRowById(transcriptId);
       if (row == null) return null;
-      await _preloadLinesForRow(row);
-      lines = _linesForRow(row);
+      final revision = _revisionOf(row);
+      await _preloadLinesForRow(row, revision);
+      lines = _linesForRow(row, revision);
     }
     return TranscriptContent(
       id: meta.id,
@@ -120,8 +122,9 @@ extension _TranscriptRepositoryLines on TranscriptRepository {
           }
           final row = await transcriptRowById(transcriptId);
           if (row == null) return const <TranscriptLine>[];
-          await _preloadLinesForRow(row);
-          return _linesForRow(row);
+          final rowRevision = _revisionOf(row);
+          await _preloadLinesForRow(row, rowRevision);
+          return _linesForRow(row, rowRevision);
         })
         .distinctBy(listEquals);
   }
