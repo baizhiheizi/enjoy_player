@@ -8,7 +8,7 @@ on:
         type: string
         required: false
       notes_file:
-        description: Path (relative to repo root) to a markdown file with release notes. Leave blank to use CHANGELOG.md.
+        description: Path (relative to repo root) to a markdown file with release notes. Leave blank to use docs/releases/<version>.md, or the ## [Unreleased] section of CHANGELOG.md.
         type: string
         required: false
       finalize:
@@ -60,7 +60,12 @@ jobs:
             version="${tag#v}"
             notes_path="docs/releases/${version}.md"
             if [[ ! -f "${notes_path}" ]]; then
-              notes_path="CHANGELOG.md"
+              notes_path="${RUNNER_TEMP}/unreleased-notes.md"
+              awk '/^## \[Unreleased\]/{flag=1;next} /^## \[/{flag=0} flag' CHANGELOG.md > "${notes_path}"
+              if ! grep -q '[^[:space:]]' "${notes_path}"; then
+                echo "::error::CHANGELOG.md has no '## [Unreleased]' section to publish." >&2
+                exit 1
+              fi
             fi
           fi
           if [[ ! -f "${notes_path}" ]]; then

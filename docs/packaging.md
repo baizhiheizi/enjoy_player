@@ -495,7 +495,7 @@ When a tag like `v0.7.3` is pushed, the four `release_*.yml` workflows run in pa
 After all four platforms finish, promote the draft with [`release_publish.yml`](../.github/workflows/release_publish.yml):
 
 1. Actions → **Publish GitHub Release** → **Run workflow**.
-2. Leave `tag_name` blank to auto-pick the latest draft, set `notes_file` (default: `docs/releases/<version>.md` or `CHANGELOG.md`), set **`finalize=true`** to unmark draft.
+2. Leave `tag_name` blank to auto-pick the latest draft, set `notes_file` (default: `docs/releases/<version>.md`, or the `## [Unreleased]` section of `CHANGELOG.md`), set **`finalize=true`** to unmark draft.
 
 The same `--publish-github` flag works locally:
 
