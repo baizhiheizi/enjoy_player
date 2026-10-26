@@ -48,7 +48,8 @@ The unified modal is split by responsibility under `presentation/widgets/`, and 
 | `unified_purchase_sheet_body.dart` | `UnifiedPurchaseSheetBody` — owns the selected `PaymentPath`, prepaid duration and processor, and dispatches both flows (auto-renew, prepaid) with their error mapping. |
 | `payment_path_selector.dart` | `PaymentPath`, `PaymentPathSelector`, `PaymentOptionCard` — the adaptive auto-renew / pay-once choice. |
 | `purchase_panels.dart` | `AutoRenewPanel`, `PrepaidPanel` — the per-path call-to-action blocks. |
-| `purchase_sheet_helpers.dart` | `ActiveAutoRenewWarning`, `PlansLoadingPlaceholder`, `UnavailablePlansView` — the plans-fetch states. |
+| `purchase_sheet_helpers.dart` | `ActiveAutoRenewWarning`, `PlansLoadingPlaceholder` — the inline plans-fetch states. |
+| `plans_unavailable_view.dart` | `PlansUnavailableView` — the single terminal empty/failed plans card (retry + optional message), shared by the purchase sheet and the tier catalog. |
 | `purchase_amount_format.dart` | `formatUsdAmount` — the single locale-aware two-decimal amount formatter for every price on the sheet. |
 
 The auto-renew card labels its price from the plan's own interval: a yearly plan renders `subscriptionAutoRenewPriceYear` (`… USD/year`), a monthly one `subscriptionAutoRenewPriceMonth`. `launchPayUrl` throws `StateError` with the stable messages `'missing_pay_url'`, `'invalid_pay_url'`, and `'launch_failed'`, and both purchase dispatches match them via `StateError(:final message)` rather than substring-matching a `toString()`.

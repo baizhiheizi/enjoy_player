@@ -7,25 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
-import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/presentation/relative_day_label.dart';
-import 'package:enjoy_player/core/routing/player_navigation.dart';
-import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
-import 'package:enjoy_player/core/theme/widgets/media_card/media_card_sync_badge.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
-import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
-import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/library/application/library_media_provider.dart';
 import 'package:enjoy_player/features/library/application/library_search_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
-import 'package:enjoy_player/features/library/presentation/library_actions.dart';
-import 'package:enjoy_player/features/player/application/local_thumbnail_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
-import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+
+import 'library_media_card.dart';
 
 /// Tab bodies for local library media, driven by a shared [TabController].
 class LocalLibraryTabView extends ConsumerWidget {
@@ -256,49 +249,14 @@ class LocalAudioRow extends ConsumerWidget {
     final playingId = ref.watch(
       playerControllerProvider.select((s) => s?.mediaId),
     );
-    final thumb = ref
-        .watch(
-          localThumbnailFileProvider(
-            localThumbnailPathForCard(media.thumbnailPath),
-          ),
-        )
-        .value;
-    final netThumb = remoteThumbnailForCard(media.thumbnailPath);
-    final dur = formatDurationHmsMs(media.durationMs);
-    final accent = generativeAccentForSeed(media.coverSeed);
-
     final locale = Localizations.localeOf(context).toLanguageTag();
 
-    return MediaCardRow(
-      title: media.title,
+    return LibraryMediaRow(
+      media: media,
       subtitle: l10n.libraryTileAdded(
         relativeDayLabel(l10n, locale, media.createdAt),
       ),
-      language: languageCodeLabel(media.language),
-      onLanguageTap: () => editMediaLanguage(context, ref, media),
-      durationLabel: media.durationMs > 0 ? dur : null,
-      providerBadge: media.provider == 'youtube'
-          ? l10n.youtubeBadge
-          : media.provider == 'craft'
-          ? l10n.libraryProviderCraftBadge
-          : null,
-      cloudSyncBadge: resolveMediaCardSyncBadge(
-        provider: media.provider,
-        mediaUrl: media.mediaUrl,
-        syncStatus: media.syncStatus,
-      ),
-      thumbnailFile: thumb,
-      thumbnailNetworkUrl: netThumb,
-      coverSeed: media.coverSeed,
-      isVideo: false,
-      accentColor: accent,
       heroArtworkMediaId: playingId == media.id ? null : media.id,
-      deleteTooltip: l10n.libraryDeleteMediaTooltip,
-      onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () {
-        warmYoutubeSurfaceIfNeeded(ref, provider: media.provider);
-        openPlayerRoute(context, media.id);
-      },
     );
   }
 }
@@ -359,46 +317,16 @@ class LocalVideoTile extends ConsumerWidget {
     final playingId = ref.watch(
       playerControllerProvider.select((s) => s?.mediaId),
     );
-    final thumb = ref
-        .watch(localThumbnailFileProvider(localThumbnailPathForMedia(media)))
-        .value;
-    final netThumb = networkThumbnailForMedia(media);
-    final dur = formatDurationHmsMs(media.durationMs);
-    final accent = generativeAccentForSeed(media.coverSeed);
-
     final locale = Localizations.localeOf(context).toLanguageTag();
 
-    return MediaCardTile(
-      title: media.title,
+    return LibraryMediaTile(
+      media: media,
       subtitle: l10n.libraryTileAdded(
         relativeDayLabel(l10n, locale, media.createdAt),
       ),
-      language: languageCodeLabel(media.language),
-      languagePlacement: MediaCardLanguagePlacement.title,
-      onLanguageTap: () => editMediaLanguage(context, ref, media),
-      durationLabel: media.durationMs > 0 ? dur : null,
-      thumbnailFile: thumb,
-      providerBadge: media.provider == 'youtube'
-          ? l10n.youtubeBadge
-          : media.provider == 'craft'
-          ? l10n.libraryProviderCraftBadge
-          : null,
-      cloudSyncBadge: resolveMediaCardSyncBadge(
-        provider: media.provider,
-        mediaUrl: media.mediaUrl,
-        syncStatus: media.syncStatus,
-      ),
-      thumbnailNetworkUrl: netThumb,
-      coverSeed: media.coverSeed,
       isVideo: true,
-      accentColor: accent,
+      languagePlacement: MediaCardLanguagePlacement.title,
       heroArtworkMediaId: playingId == media.id ? null : media.id,
-      deleteTooltip: l10n.libraryDeleteMediaTooltip,
-      onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () {
-        warmYoutubeSurfaceIfNeeded(ref, provider: media.provider);
-        openPlayerRoute(context, media.id);
-      },
     );
   }
 }

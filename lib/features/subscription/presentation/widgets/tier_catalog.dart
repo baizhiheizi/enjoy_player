@@ -21,7 +21,7 @@ import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_plans_provider.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
-import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_error.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/plans_unavailable_view.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_free_card.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog_interval_toggle.dart';
@@ -110,7 +110,7 @@ class _TierCatalogState extends ConsumerState<TierCatalog> {
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (_, _) => TierPlansError(
+          error: (_, _) => PlansUnavailableView(
             onRetry: () => ref.invalidate(subscriptionPlansProvider),
           ),
         ),
