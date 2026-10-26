@@ -11,22 +11,16 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
-import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/presentation/relative_day_label.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
-import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/utils/sliver_key_index.dart';
-import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
-import 'package:enjoy_player/core/theme/widgets/media_card/media_card_sync_badge.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
-import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
-import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_card.dart';
@@ -37,13 +31,12 @@ import 'package:enjoy_player/features/onboarding/application/onboarding_controll
 import 'package:enjoy_player/features/onboarding/application/practice_tip_trigger.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
-import 'package:enjoy_player/features/player/application/local_thumbnail_provider.dart';
-import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/library_media_provider.dart';
 import '../domain/media.dart';
 import 'library_actions.dart';
+import 'widgets/library_media_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -539,54 +532,25 @@ class _RecentMediaHeading extends StatelessWidget {
   }
 }
 
-class _HomeMediaTile extends ConsumerWidget {
+class _HomeMediaTile extends StatelessWidget {
   const _HomeMediaTile({required this.media});
 
   final Media media;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isVideo = media.kind == MediaKind.video;
-    final thumb = ref
-        .watch(localThumbnailFileProvider(localThumbnailPathForMedia(media)))
-        .value;
-    final netThumb = networkThumbnailForMedia(media);
-    final dur = formatDurationHmsMs(media.durationMs);
-    final accent = generativeAccentForSeed(media.coverSeed);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final kind = isVideo
         ? l10n.miniPlayerMediaVideo
         : l10n.miniPlayerMediaAudio;
 
-    return MediaCardTile(
-      title: media.title,
+    return LibraryMediaTile(
+      media: media,
       subtitle: '$kind · ${relativeDayLabel(l10n, locale, media.updatedAt)}',
-      language: languageCodeLabel(media.language),
-      onLanguageTap: () => editMediaLanguage(context, ref, media),
-      durationLabel: media.durationMs > 0 ? dur : null,
-      thumbnailFile: thumb,
-      providerBadge: media.provider == 'youtube'
-          ? l10n.youtubeBadge
-          : media.provider == 'craft'
-          ? l10n.libraryProviderCraftBadge
-          : null,
-      cloudSyncBadge: resolveMediaCardSyncBadge(
-        provider: media.provider,
-        mediaUrl: media.mediaUrl,
-        syncStatus: media.syncStatus,
-      ),
-      thumbnailNetworkUrl: netThumb,
-      coverSeed: media.coverSeed,
       isVideo: isVideo,
-      accentColor: accent,
       heroArtworkMediaId: media.id,
-      deleteTooltip: l10n.libraryDeleteMediaTooltip,
-      onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () {
-        warmYoutubeSurfaceIfNeeded(ref, provider: media.provider);
-        openPlayerRoute(context, media.id);
-      },
     );
   }
 }

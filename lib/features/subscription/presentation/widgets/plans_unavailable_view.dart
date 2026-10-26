@@ -1,4 +1,4 @@
-/// Plans-loading failure surface for the tier catalog, with retry.
+/// Terminal state for an empty or failed plans catalog, offering a retry.
 library;
 
 import 'package:flutter/material.dart';
@@ -8,10 +8,11 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-class TierPlansError extends StatelessWidget {
-  const TierPlansError({required this.onRetry, super.key});
+class PlansUnavailableView extends StatelessWidget {
+  const PlansUnavailableView({required this.onRetry, this.label, super.key});
 
   final VoidCallback onRetry;
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +24,10 @@ class TierPlansError extends StatelessWidget {
       padding: EdgeInsets.all(t.space20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            l10n.subscriptionAutoRenewPlansUnavailable,
+            label ?? l10n.subscriptionAutoRenewPlansUnavailable,
             style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: t.space12),

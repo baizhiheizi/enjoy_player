@@ -19,6 +19,7 @@ import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/payment_path_selector.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/purchase_panels.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/plans_unavailable_view.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/purchase_sheet_helpers.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_catalog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -208,8 +209,7 @@ class UnifiedPurchaseSheetBodyState
                 plansAsync.when(
                   data: (plans) {
                     if (plans.isEmpty) {
-                      return UnavailablePlansView(
-                        label: l10n.subscriptionAutoRenewPlansUnavailable,
+                      return PlansUnavailableView(
                         onRetry: () =>
                             ref.invalidate(subscriptionPlansProvider),
                       );
@@ -225,8 +225,7 @@ class UnifiedPurchaseSheetBodyState
                     );
                   },
                   loading: () => const PlansLoadingPlaceholder(),
-                  error: (_, _) => UnavailablePlansView(
-                    label: l10n.subscriptionAutoRenewPlansUnavailable,
+                  error: (_, _) => PlansUnavailableView(
                     onRetry: () => ref.invalidate(subscriptionPlansProvider),
                   ),
                 ),
