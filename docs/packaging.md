@@ -688,35 +688,24 @@ Further reading: [architecture.md](architecture.md), [testing.md](testing.md), p
 
 The landing page lives in [`landing/`](../landing/) — a standalone static site (not a Flutter web build). It is deployed independently of the app.
 
-### Prerequisites
+### Deploys
 
-Set two repository secrets (Settings → Secrets → Actions):
-
-| Secret | Value |
-|--------|-------|
-| `CLOUDFLARE_API_TOKEN` | A Cloudflare API token with **Cloudflare Pages: Edit** permission |
-| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
-
-### Automatic deploys
-
-`.github/workflows/deploy_landing.yml` deploys automatically:
-- **Production** — any push to `main` that touches `landing/**`
-- **Preview** — any PR touching `landing/**` (PR comment links to the preview URL)
-- **Manual** — workflow dispatch from the Actions tab
+The Cloudflare Pages project `enjoy-player` builds `landing/` through its Git integration: every push to `main` deploys production; there is no GitHub Actions workflow and no repository secret for it. Details, previews and troubleshooting: [features/landing.md § Deployment](features/landing.md#deployment--cloudflare-pages-git-integration).
 
 ### Manual local deploy
 
 ```bash
 cd landing
-npx wrangler pages deploy .
+npx wrangler login   # once
+npx wrangler pages deploy . --project-name enjoy-player --branch main
 ```
 
 ### Updating store links
 
-When the TestFlight invite URL changes or the Play beta URL changes, edit [`landing/config.js`](../landing/config.js) and push to `main`. The deploy workflow picks it up automatically.
+When the TestFlight invite URL changes or the Play beta URL changes, edit [`landing/config.js`](../landing/config.js) and push to `main`. The Pages Git integration deploys it.
 
 `testFlightUrl` and `playBetaUrl` accept only `https://testflight.apple.com/join/...` and `https://play.google.com/...` respectively — anything else (including `null` or empty string) disables the matching store button. When disabled, the card stays visible with a **Coming soon** label, `btn--disabled` styling, and `aria-disabled="true"`, so users can still see the platform exists without being sent to a broken link. Direct-download buttons (Windows, macOS, Android APK) are never disabled by this — they always come from `dl.enjoy.bot/player/latest.json`.
 
 ### Custom domain
 
-`player.enjoy.bot` must have a CNAME record pointing to `enjoy-player-landing.pages.dev` in Cloudflare DNS. Until the custom domain is attached, the `enjoy-player-landing.pages.dev` URL works for verification.
+`player.enjoy.bot` is attached to the `enjoy-player` Pages project as a custom domain; `enjoy-player.pages.dev` serves the same production deployment.

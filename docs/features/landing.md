@@ -2,7 +2,7 @@
 
 ## Summary
 
-The download landing page is a **hand-authored static site** in [`landing/`](../../landing/) — no build step, no SSG, and explicitly **not** a Flutter web target (the repo bans Flutter web — see the "Supported platforms" hard rule in [AGENTS.md](../../AGENTS.md)). It is hosted on **Cloudflare Pages** (project `enjoy-player-landing`, CNAME → `https://player.enjoy.bot`) and helps a new user pick the right download for their OS. Direct-download buttons are populated at runtime from the release manifest; store links (TestFlight / Play beta) come from a single config file. The architectural rationale is [ADR-0024](../decisions/0024-download-landing-page.md); the in-app update flow that consumes the same manifest is documented in [update.md](update.md).
+The download landing page is a **hand-authored static site** in [`landing/`](../../landing/) — no build step, no SSG, and explicitly **not** a Flutter web target (the repo bans Flutter web — see the "Supported platforms" hard rule in [AGENTS.md](../../AGENTS.md)). It is hosted on **Cloudflare Pages** (project `enjoy-player`, custom domain `https://player.enjoy.bot`) and helps a new user pick the right download for their OS. Direct-download buttons are populated at runtime from the release manifest; store links (TestFlight / Play beta) come from a single config file. The architectural rationale is [ADR-0024](../decisions/0024-download-landing-page.md); the in-app update flow that consumes the same manifest is documented in [update.md](update.md).
 
 ## Directory structure
 
@@ -97,14 +97,18 @@ Every screenshot on the page, in the README and in `assets/store/` is rendered f
 
 The Play feature graphic (`assets/store/feature-graphic.{svg,png}`, `tool/export_feature_graphic.mjs`) is unchanged.
 
-## Deployment — GitHub Actions + Wrangler
+## Deployment — Cloudflare Pages Git integration
 
-[`.github/workflows/deploy_landing.yml`](../../.github/workflows/deploy_landing.yml) runs on pushes to `main` touching `landing/**`, on PRs touching `landing/**`, and manually:
+The Cloudflare Pages project **`enjoy-player`** (account `an-lee`; domains `enjoy-player.pages.dev` and `player.enjoy.bot`) is connected to `baizhiheizi/enjoy_player` and builds on Cloudflare's side — there is no GitHub Actions workflow for the landing page:
 
-- **Production**: `cd landing && npx wrangler pages deploy . --project-name enjoy-player-landing --branch main` (Pages resolves `wrangler.toml` from the working directory and rejects a custom `--config` path, so the deploy runs inside `landing/`).
-- **PR previews**: deploys to branch `pr-<number>` (Cloudflare Pages preview deployment) and comments on the PR.
-- **Required CI secrets**: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. Without them the workflow fails — set both before the first deploy.
-- Concurrency group `deploy-landing-<ref>` with cancel-in-progress.
+- **Root directory** `landing`, **no build command**, output directory = the root (`landing/wrangler.toml` sets `pages_build_output_dir = "."`; its `name` must stay `enjoy-player`).
+- **Production**: every push to `main` creates a production deployment; Pages Functions in `landing/functions/` deploy with it.
+- **Previews**: off in the project's branch control (`preview_deployment_setting: none`), so pull requests do not get a preview URL; check changes locally (below).
+- **Credentials**: none in the repository or in GitHub secrets — the Cloudflare GitHub app holds the connection.
+- **Manual deploy** (a hotfix, or when a Git build is skipped): from `landing/`, signed in with `npx wrangler login`, run `npx wrangler pages deploy . --project-name enjoy-player --branch main`. It creates an `ad_hoc` production deployment that replaces the live one.
+- **Checking a deploy**: `npx wrangler pages deployment list --project-name enjoy-player` lists deployments with their source commit and status; a Git deployment stuck at `queued` / `idle` was skipped by Cloudflare (`is_skipped` in the API) and never built. Retry it from the dashboard (Pages → enjoy-player → the deployment → *Retry deployment*) or deploy manually.
+
+The GitHub Actions workflow `deploy_landing.yml` was removed on 2026-10-26: it targeted a project name (`enjoy-player-landing`) that does not exist in the account and never completed a deploy.
 
 ## Local development
 
@@ -120,7 +124,7 @@ npx wrangler pages dev landing --config landing/wrangler.toml
 
 | Task | What to do |
 |------|-----------|
-| New TestFlight invite / Play beta URL | Edit `landing/config.js`, merge; production deploys automatically. |
+| New TestFlight invite / Play beta URL | Edit `landing/config.js`, merge; the Pages Git integration deploys `main`. Confirm with `wrangler pages deployment list --project-name enjoy-player`. |
 | New app release | Nothing — the manifest proxy reflects the live `latest.json` on next load. |
 | New platform card | Add the `<article id="card-…">` in `index.html`, wire its button in `main.js` (`platformMap` / `applyConfig`), add `en`+`zh` strings in `i18n.js`. |
 | UI changed in a way the screenshots show | Re-run the three steps in [Screenshots and film](#screenshots-and-film). |

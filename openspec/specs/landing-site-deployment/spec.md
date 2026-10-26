@@ -28,17 +28,12 @@ The site SHALL expose a same-origin endpoint that returns the release manifest, 
 
 ### Requirement: Automated deploy pipeline
 
-The site SHALL be deployed from CI to Cloudflare Pages, with production deploys from the main branch and preview deploys for pull requests.
+The site SHALL be deployed to Cloudflare Pages by the Pages project's Git integration, with production deploys from the main branch.
 
 #### Scenario: Production deploy on main
 
 - **WHEN** a commit that changes `landing/**` lands on the main branch
-- **THEN** CI SHALL deploy the site to the Cloudflare Pages production environment
-
-#### Scenario: Preview deploy on pull request
-
-- **WHEN** a pull request changes `landing/**`
-- **THEN** CI SHALL create a Cloudflare Pages preview deployment for review
+- **THEN** the Cloudflare Pages Git integration SHALL deploy the site to the Cloudflare Pages production environment
 
 ### Requirement: Caching and security headers
 
@@ -56,12 +51,12 @@ The site SHALL serve appropriate caching and security headers for static and dyn
 
 ### Requirement: Deploy credentials are not committed
 
-Deployment SHALL authenticate to Cloudflare using credentials supplied by CI secrets, with no Cloudflare credentials stored in the repository.
+Deployment SHALL authenticate to Cloudflare through the Cloudflare Pages GitHub app connection, with no Cloudflare credentials stored in the repository.
 
-#### Scenario: Token supplied via CI secret
+#### Scenario: No credential in the repository
 
-- **WHEN** the deploy workflow authenticates to Cloudflare
-- **THEN** it SHALL use a `CLOUDFLARE_API_TOKEN` provided as a CI secret, and no Cloudflare credential SHALL be present in the repository
+- **WHEN** the site is deployed from the main branch
+- **THEN** Cloudflare SHALL pull the repository through its GitHub app, and no Cloudflare credential SHALL be present in the repository
 
 ### Requirement: Independence from the Flutter app
 
