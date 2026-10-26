@@ -11,7 +11,7 @@ description: |
   Always methodical, measurement-driven, and mindful of trade-offs.
 
 on:
-  schedule: daily between 00:00 utc+8 and 06:00 utc+8
+  schedule: daily between 12:00 utc+8 and 15:00 utc+8
   workflow_dispatch:
   slash_command:
     name: perf-assist

@@ -6,7 +6,7 @@ description: |
   and project recommendations.
 
 on:
-  schedule: daily
+  schedule: daily between 18:00 utc+8 and 19:00 utc+8
   workflow_dispatch:
 
 permissions:
