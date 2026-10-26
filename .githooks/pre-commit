@@ -65,6 +65,9 @@ while read -r file; do
   # Masking them keeps container-pinning commits committable; a bare 64-hex
   # secret on the same line still matches the scan below.
   content=$(printf '%s' "$content" | sed -E 's/sha256:[0-9a-f]{64}/sha256:<digest>/g')
+  # gh-aw lock metadata carries content hashes (frontmatter_hash/body_hash),
+  # not credentials; mask those values so workflow edits stay committable.
+  content=$(printf '%s' "$content" | sed -E 's/"(frontmatter_hash|body_hash)":"[0-9a-f]{64}"/"\1":"<hash>"/g')
   for pat in "${patterns[@]}"; do
     if printf '%s' "$content" | grep -Eq "$pat"; then
       echo "ERROR: possible leaked credential in $file matches /$pat/" >&2
