@@ -2,63 +2,55 @@
   "version": 1,
   "cursors": {
     "labelling_after": 1072,
-    "investigation_after": 1072
+    "investigation_after": 1087
   },
   "issues": [
     {
-      "number": 1068,
+      "number": 1088,
       "state": "commented",
       "updated_at": "2026-10-26",
-      "note": "Repo Assist run 40164464830: engine HTTP 429 request_rejection, not a repo defect. Commented with the schedule-crowding evidence; repo-side fix is the schedule-stagger PR."
-    },
-    {
-      "number": 1067,
-      "state": "commented",
-      "updated_at": "2026-10-26",
-      "note": "Same 429 class as #1068. Commented; the Duplicate Code Detector cron was already isolated, the crowding came from the other four agentic workflows."
+      "note": "Run 40381182635: release_publish.yml falls back to the whole CHANGELOG.md, not the ## [Unreleased] section ADR-0067 requires, so a release without docs/releases/<version>.md publishes every version's notes. Filed with the patch; the agent cannot push workflow files. Verify the number next run."
     }
   ],
   "fixes": [
     {
-      "issue": 1049,
+      "issue": 1088,
       "pr": null,
-      "branch": "repo-assist/ci-path-filter-guard-4f8b2c9e1d7a",
+      "branch": null,
       "status": "open",
       "updated_at": "2026-10-26",
-      "note": "Re-applied the CI relevance-filter fix closed not_planned in #1049: ci.yml PATTERN now covers tool/prefetch_sqlite3_libs.sh, plus new test/ci_workflow_path_filters_test.dart guard."
-    },
-    {
-      "issue": 1068,
-      "pr": null,
-      "branch": "repo-assist/eng-stagger-agentic-schedules-7c3e9b1d4a82",
-      "status": "open",
-      "updated_at": "2026-10-26",
-      "note": "Perf Improver cron 16:49->04:48 UTC and Repo Status 13:19->10:19 UTC so no two agentic workflows launch within 8 minutes. Locks recompiled with gh aw v0.92.0."
+      "note": "Release-notes fallback: the patch is in the issue body; the agent cannot push .github/workflows/ files, so the maintainer applies it."
     }
   ],
   "checks": [
     {
       "area": "tests",
       "checked_at": "2026-10-26",
-      "result": "flutter test full suite on both new branches: 6886 passed / 9 skipped (CI filter branch), 6882 passed / 9 skipped (schedule branch), exit 0.",
+      "result": "flutter test full suite: 6893 passed / 9 skipped, exit 0. Re-run on the branch itself after a branch switch cut the first run short.",
       "follow_up": null
     },
     {
       "area": "ci",
       "checked_at": "2026-10-26",
-      "result": "validate_ci_gates.sh --fix --test on both branches: dart format ok, codegen drift ok, path-deps ok, flutter analyze clean.",
-      "follow_up": null
+      "result": "validate_ci_gates.sh --fix: format ok (1890 files), codegen drift ok, path-deps ok, flutter analyze clean.",
+      "follow_up": "The sandbox pub cache starts empty: run flutter pub get before any gate, or codegen fails with 'Could not find bin/build_runner.dart'."
     },
     {
       "area": "tooling",
       "checked_at": "2026-10-26",
-      "result": "gh aw v0.92.0 is installed in the agent sandbox and the tree compiles clean (a full recompile of main produced no diff), so gh-aw changes can be proposed directly.",
+      "result": "The agentic GitHub App still cannot push .github/workflows/ files: the branch push is rejected for lack of the workflows permission.",
+      "follow_up": null
+    },
+    {
+      "area": "docs",
+      "checked_at": "2026-10-26",
+      "result": "Two drifts corrected: the CHANGELOG Unreleased section missed seven merged PRs, and the Duet tracker total read 56 against 53 actual rows.",
       "follow_up": null
     },
     {
       "area": "qa",
       "checked_at": "2026-10-26",
-      "result": "No macOS hardware is reachable from the agent: the merged YouTube WebView fix (#1038) still needs a maintainer run on a real macOS build.",
+      "result": "No macOS hardware is reachable from the agent: the merged YouTube WebView fix (#1038) still needs a maintainer run on a real build.",
       "follow_up": null
     }
   ],
@@ -66,33 +58,51 @@
     {
       "key": "publish-github-release-v0.10.1",
       "completed_at": "2026-10-26"
+    },
+    {
+      "key": "ci-path-filter-guard-merged-as-1084",
+      "completed_at": "2026-10-26"
+    },
+    {
+      "key": "agentic-schedule-stagger-merged-as-1085",
+      "completed_at": "2026-10-26"
     }
   ],
   "priorities": [
     {
       "task": 6,
-      "item": "Watch the two new draft PRs for CI or maintainer feedback",
-      "note": "repo-assist/ci-path-filter-guard-4f8b2c9e1d7a (CI relevance filter + guard test) and repo-assist/eng-stagger-agentic-schedules-7c3e9b1d4a82 (agentic schedule slots)."
+      "item": "Watch the three draft PRs from 2026-10-26 for CI or maintainer feedback",
+      "note": "basics-changelog-unreleased-backfill, basics-duet-tracker-count, improve-drop-legacy-segmented-style-shim."
     },
     {
       "task": 4,
-      "item": "Re-apply the three stale first-party action pins (#1050)",
-      "note": "release_publish.yml checkout@v4, build_linux.yml upload-artifact@v4, deploy_landing.yml setup-node@v4. #1050 was closed not_planned because the push was rejected; the drift is still in main."
+      "item": "Re-apply the two remaining stale first-party action pins (#1050)",
+      "note": "release_publish.yml checkout@v4, build_linux.yml upload-artifact@v4; deploy_landing.yml is gone since #1080. Blocked: the App cannot push workflow files."
     },
     {
       "task": 4,
       "item": "ADR-0030 item 3 custom_lint still needs a maintainer decision",
-      "note": "The analyzer-14 unblock landed in #998, so the deferral condition is met. A new dependency needs maintainer discussion, so Repo Assist will not adopt it."
+      "note": "The analyzer-14 unblock landed in #998. A new dependency needs maintainer discussion, so Repo Assist will not adopt it."
     },
     {
       "task": 2,
       "item": "Follow up on the engine-429 request rejections if they recur",
-      "note": "The 2026-10-23/24 cluster is addressed by the schedule-stagger PR; the engine's rate limit is upstream, so further rejections point at fewer concurrent agent sessions."
+      "note": "The schedule-stagger PR merged as #1085; the rate limit is upstream, so further rejections point at fewer concurrent agent sessions."
     },
     {
       "task": 7,
       "item": "Backfill the GitHub Release objects for v0.10.0 and v0.9.0",
-      "note": "v0.10.1 was published 2026-10-26; the two earlier tags still have no Release object, only a tag and a docs/releases note."
+      "note": "v0.10.1 shipped 2026-10-26; the two earlier tags still have no Release object. Needs a maintainer - no release tool for the agent."
+    },
+    {
+      "task": 2,
+      "item": "Apply the release-notes fallback fix filed this run",
+      "note": "See the issue record above; the workflow-file change has to come from the maintainer."
+    },
+    {
+      "task": 5,
+      "item": "Duplication candidates found, but deliberately not proposed",
+      "note": "Also found a verbatim _trimTrailingSlash in three files and five inline RegExp(r'\\s+') copies. The proactive-refactor lane is paused by the maintainer, so only the sanctioned dead-code removal was taken."
     }
   ]
 }
