@@ -1,63 +1,98 @@
 {
   "version": 1,
   "cursors": {
-    "labelling_after": 1042,
-    "investigation_after": 1042
+    "labelling_after": 1072,
+    "investigation_after": 1072
   },
   "issues": [
     {
-      "number": 1044,
-      "state": "awaiting_clarification",
-      "updated_at": "2026-10-23",
-      "note": "Filed (number assigned downstream): macOS ReleaseDirect.entitlements has no keychain-access-groups, so the Developer ID direct-download build hits -34018 in secure storage. Needs the maintainer's choice of literal group."
+      "number": 1068,
+      "state": "commented",
+      "updated_at": "2026-10-26",
+      "note": "Repo Assist run 40164464830: engine HTTP 429 request_rejection, not a repo defect. Commented with the schedule-crowding evidence; repo-side fix is the schedule-stagger PR."
+    },
+    {
+      "number": 1067,
+      "state": "commented",
+      "updated_at": "2026-10-26",
+      "note": "Same 429 class as #1068. Commented; the Duplicate Code Detector cron was already isolated, the crowding came from the other four agentic workflows."
     }
   ],
   "fixes": [
     {
-      "issue": 1033,
+      "issue": 1049,
       "pr": null,
-      "branch": "repo-assist/fix-ref-after-dispose",
+      "branch": "repo-assist/ci-path-filter-guard-4f8b2c9e1d7a",
       "status": "open",
-      "updated_at": "2026-10-23",
-      "note": "Second #1033 side note: WidgetRef used after an await in 4 files. Fix captures providers/container before the await; 2 regression tests fail on the old code. Draft PR open (number assigned downstream)."
+      "updated_at": "2026-10-26",
+      "note": "Re-applied the CI relevance-filter fix closed not_planned in #1049: ci.yml PATTERN now covers tool/prefetch_sqlite3_libs.sh, plus new test/ci_workflow_path_filters_test.dart guard."
+    },
+    {
+      "issue": 1068,
+      "pr": null,
+      "branch": "repo-assist/eng-stagger-agentic-schedules-7c3e9b1d4a82",
+      "status": "open",
+      "updated_at": "2026-10-26",
+      "note": "Perf Improver cron 16:49->04:48 UTC and Repo Status 13:19->10:19 UTC so no two agentic workflows launch within 8 minutes. Locks recompiled with gh aw v0.92.0."
     }
   ],
   "checks": [
     {
       "area": "tests",
-      "checked_at": "2026-10-23",
-      "result": "flutter test full suite: ref-after-dispose branch 6829 passed / 8 skipped, exit 0; CI-filter branch 6827 passed / 8 skipped, exit 0.",
+      "checked_at": "2026-10-26",
+      "result": "flutter test full suite on both new branches: 6886 passed / 9 skipped (CI filter branch), 6882 passed / 9 skipped (schedule branch), exit 0.",
       "follow_up": null
     },
     {
       "area": "ci",
-      "checked_at": "2026-10-23",
-      "result": "validate_ci_gates.sh --fix on both branches: dart format ok, codegen drift ok, path-deps ok, flutter analyze clean.",
+      "checked_at": "2026-10-26",
+      "result": "validate_ci_gates.sh --fix --test on both branches: dart format ok, codegen drift ok, path-deps ok, flutter analyze clean.",
+      "follow_up": null
+    },
+    {
+      "area": "tooling",
+      "checked_at": "2026-10-26",
+      "result": "gh aw v0.92.0 is installed in the agent sandbox and the tree compiles clean (a full recompile of main produced no diff), so gh-aw changes can be proposed directly.",
       "follow_up": null
     },
     {
       "area": "qa",
-      "checked_at": "2026-10-23",
-      "result": "No macOS hardware is reachable from the agent: the keychain entitlement defect and the merged YouTube WebView fix (#1038) still need a maintainer run on a real macOS build.",
+      "checked_at": "2026-10-26",
+      "result": "No macOS hardware is reachable from the agent: the merged YouTube WebView fix (#1038) still needs a maintainer run on a real macOS build.",
       "follow_up": null
     }
   ],
-  "completed_actions": [],
+  "completed_actions": [
+    {
+      "key": "publish-github-release-v0.10.1",
+      "completed_at": "2026-10-26"
+    }
+  ],
   "priorities": [
     {
-      "task": 2,
-      "item": "Follow up on the macOS keychain-entitlement issue once the maintainer picks a fix",
-      "note": "codesign does not expand $(AppIdentifierPrefix), so a literal keychain group has to be baked in at signing time, or the direct-download channel needs a documented non-keychain store."
+      "task": 6,
+      "item": "Watch the two new draft PRs for CI or maintainer feedback",
+      "note": "repo-assist/ci-path-filter-guard-4f8b2c9e1d7a (CI relevance filter + guard test) and repo-assist/eng-stagger-agentic-schedules-7c3e9b1d4a82 (agentic schedule slots)."
     },
     {
-      "task": 6,
-      "item": "Watch the two open draft PRs for CI or maintainer feedback",
-      "note": "repo-assist/eng-ci-pr-relevance-filter-sync (CI path-filter sync + guard test) and repo-assist/fix-ref-after-dispose (Riverpod disposed WidgetRef)."
+      "task": 4,
+      "item": "Re-apply the three stale first-party action pins (#1050)",
+      "note": "release_publish.yml checkout@v4, build_linux.yml upload-artifact@v4, deploy_landing.yml setup-node@v4. #1050 was closed not_planned because the push was rejected; the drift is still in main."
     },
     {
       "task": 4,
       "item": "ADR-0030 item 3 custom_lint still needs a maintainer decision",
       "note": "The analyzer-14 unblock landed in #998, so the deferral condition is met. A new dependency needs maintainer discussion, so Repo Assist will not adopt it."
+    },
+    {
+      "task": 2,
+      "item": "Follow up on the engine-429 request rejections if they recur",
+      "note": "The 2026-10-23/24 cluster is addressed by the schedule-stagger PR; the engine's rate limit is upstream, so further rejections point at fewer concurrent agent sessions."
+    },
+    {
+      "task": 7,
+      "item": "Backfill the GitHub Release objects for v0.10.0 and v0.9.0",
+      "note": "v0.10.1 was published 2026-10-26; the two earlier tags still have no Release object, only a tag and a docs/releases note."
     }
   ]
 }
