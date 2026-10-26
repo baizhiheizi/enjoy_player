@@ -91,7 +91,6 @@
     --brand-soft: rgba(124, 58, 237, 0.2);
     --lift: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
     --float: 0 1px 2px rgba(0, 0, 0, 0.4), 0 18px 52px rgba(0, 0, 0, 0.55);
-    --night: #08090C;
     color-scheme: dark;
   }
 }
