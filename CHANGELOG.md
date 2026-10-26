@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **The landing page deploys through Cloudflare Pages' Git integration only**: `player.enjoy.bot` is served by the Pages project `enjoy-player`, which builds `landing/` from `main` on Cloudflare's side. `.github/workflows/deploy_landing.yml` targeted a project that does not exist (`enjoy-player-landing`) with an invalid token and had never completed a deploy, so it is removed; `landing/wrangler.toml` now names the real project. See [docs/features/landing.md § Deployment](docs/features/landing.md#deployment--cloudflare-pages-git-integration).
+
 ## [0.10.1] - 2026-10-23
 
 ### Fixed

@@ -34,3 +34,7 @@ The app explicitly forbids Flutter web (ADR-0005), so the landing page must be a
 - A new version of the app automatically surfaces on the landing page on the next page load, because the manifest proxy reflects the live `latest.json`.
 - Wrangler and the deploy workflow have no impact on the Flutter app build pipeline.
 - Two CI secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) must be set in the repository before the deploy workflow can run.
+
+## Amendment (2026-10-26) — Git integration replaces the Actions deploy
+
+Decisions 2 and 7 changed in practice. The Pages project serving `player.enjoy.bot` is `enjoy-player` (not `enjoy-player-landing`), and it deploys through Cloudflare's own Git integration (root directory `landing`, production branch `main`). `.github/workflows/deploy_landing.yml` never completed a deploy — it targeted the non-existent `enjoy-player-landing` project — and was removed. PR previews are off in the project's branch control, and the landing deploy needs no repository secrets (`CLOUDFLARE_API_TOKEN` remains for the release workflows' cache purge). Operational details live in [docs/features/landing.md § Deployment](../features/landing.md#deployment--cloudflare-pages-git-integration).

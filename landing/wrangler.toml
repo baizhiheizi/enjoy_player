@@ -1,8 +1,9 @@
-name = "enjoy-player-landing"
+name = "enjoy-player"
 pages_build_output_dir = "."
 compatibility_date = "2024-09-23"
 
-# The site has no build step; the output dir is the landing/ directory itself.
-# Deploy from landing/:  npx wrangler pages deploy .
-# (Pages resolves wrangler.toml from the working directory and rejects a
-#  custom --config path, so the deploy runs inside landing/.)
+# Cloudflare Pages project `enjoy-player` (player.enjoy.bot) builds this
+# directory through its Git integration: root directory `landing`, no build
+# command, production branch `main`. The site has no build step; the output
+# dir is the landing/ directory itself. `name` must match the project.
+# Manual deploy from landing/:  npx wrangler pages deploy . --branch main
