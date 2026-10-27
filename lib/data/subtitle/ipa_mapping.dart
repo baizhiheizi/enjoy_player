@@ -224,12 +224,21 @@ const Map<String, String> kIpaMappings = {
   'ts': 'tz',
 };
 
-const _lengthMarks = {'ː', ':'};
-const _stressMarks = {'ˈ', 'ˌ'};
+/// U+02C8 PRIMARY STRESS MARK.
+const int _primaryStressMark = 0x02c8;
+
+/// U+02CC SECONDARY STRESS MARK.
+const int _secondaryStressMark = 0x02cc;
+
+/// U+02D0 LENGTH MARK.
+const int _longLengthMark = 0x02d0;
 
 List<String>? _phonemeKeysCache;
+Map<int, List<String>>? _phonemeKeysByFirstCodeUnitCache;
 List<String>? _allConsonantsCache;
 List<String>? _allVowelsCache;
+Set<String>? _consonantSet;
+Set<String>? _vowelSet;
 Set<String>? _trillSet;
 Set<String>? _approximantSet;
 Set<String>? _lateralApproximantSet;
@@ -256,33 +265,81 @@ List<String> get _phonemeKeys {
   return _phonemeKeysCache = keys;
 }
 
+Set<String> get _consonants => _consonantSet ??= _allConsonants.toSet();
+
+Set<String> get _vowels => _vowelSet ??= _allVowels.toSet();
+
 Set<String> get _trills => _trillSet ??= kIpaConsonants['trill']!.toSet();
 Set<String> get _approximants =>
     _approximantSet ??= kIpaConsonants['approximant']!.toSet();
 Set<String> get _lateralApproximants =>
     _lateralApproximantSet ??= kIpaConsonants['lateralApproximant']!.toSet();
 
-bool _matchesCatalog(String value, List<String> catalog) {
-  final clean = value.replaceAll(RegExp('[ˈˌ]'), '');
-  for (final entry in catalog) {
-    if (clean == entry || clean.startsWith(entry)) {
-      if (clean == entry) return true;
+/// Phoneme keys bucketed by their first code unit, every bucket keeping the
+/// longest-first order of [_phonemeKeys].
+Map<int, List<String>> get _phonemeKeysByFirstCodeUnit {
+  final cached = _phonemeKeysByFirstCodeUnitCache;
+  if (cached != null) return cached;
+  final byFirst = <int, List<String>>{};
+  for (final key in _phonemeKeys) {
+    byFirst.putIfAbsent(key.codeUnitAt(0), () => <String>[]).add(key);
+  }
+  return _phonemeKeysByFirstCodeUnitCache = byFirst;
+}
+
+bool _isStressMark(int codeUnit) =>
+    codeUnit == _primaryStressMark || codeUnit == _secondaryStressMark;
+
+bool _isLengthMark(int codeUnit) =>
+    codeUnit == _longLengthMark || codeUnit == 0x003a;
+
+/// Index of the first stress mark in [value], or -1 when there is none.
+int _stressMarkIndex(String value) {
+  final units = value.codeUnits;
+  for (var i = 0; i < units.length; i++) {
+    if (_isStressMark(units[i])) return i;
+  }
+  return -1;
+}
+
+/// [value] without any stress mark.
+String _stripStressMarks(String value) {
+  final units = value.codeUnits;
+  var found = false;
+  for (final unit in units) {
+    if (_isStressMark(unit)) {
+      found = true;
+      break;
     }
   }
-  final sorted = List<String>.from(catalog)
-    ..sort((a, b) => b.length.compareTo(a.length));
-  for (final entry in sorted) {
+  if (!found) return value;
+  final buffer = StringBuffer();
+  for (final unit in units) {
+    if (!_isStressMark(unit)) buffer.writeCharCode(unit);
+  }
+  return buffer.toString();
+}
+
+/// Whether [value], ignoring stress marks, starts with a catalog entry.
+bool _matchesCatalog(String value, List<String> catalog, Set<String> exact) {
+  final clean = _stripStressMarks(value);
+  if (exact.contains(clean)) return true;
+  for (final entry in catalog) {
     if (clean.startsWith(entry)) return true;
   }
   return false;
 }
 
-bool _isConsonantToken(String value) => _matchesCatalog(value, _allConsonants);
+bool _isConsonantToken(String value) =>
+    _matchesCatalog(value, _allConsonants, _consonants);
 
-bool _isVowelToken(String value) => _matchesCatalog(value, _allVowels);
+bool _isVowelToken(String value) => _matchesCatalog(value, _allVowels, _vowels);
 
 String? _matchPhonemeAt(String ipa, int index) {
-  for (final key in _phonemeKeys) {
+  if (index >= ipa.length) return null;
+  final candidates = _phonemeKeysByFirstCodeUnit[ipa.codeUnitAt(index)];
+  if (candidates == null) return null;
+  for (final key in candidates) {
     if (ipa.startsWith(key, index)) return key;
   }
   return null;
@@ -291,15 +348,17 @@ String? _matchPhonemeAt(String ipa, int index) {
 /// Split a (possibly concatenated) IPA string into phoneme tokens.
 List<String> tokenizeIpaPhonemes(String ipa) {
   final tokens = <String>[];
+  final units = ipa.codeUnits;
   var i = 0;
-  while (i < ipa.length) {
-    final ch = ipa[i];
-    if (_stressMarks.contains(ch)) {
+  while (i < units.length) {
+    final unit = units[i];
+    if (_isStressMark(unit)) {
+      final ch = String.fromCharCode(unit);
       var j = i + 1;
-      while (j < ipa.length && _lengthMarks.contains(ipa[j])) {
+      while (j < units.length && _isLengthMark(units[j])) {
         j++;
       }
-      if (j >= ipa.length) {
+      if (j >= units.length) {
         i++;
         continue;
       }
@@ -308,13 +367,13 @@ List<String> tokenizeIpaPhonemes(String ipa) {
         tokens.add('$ch$key');
         i = j + key.length;
       } else {
-        tokens.add('$ch${ipa[j]}');
+        tokens.add('$ch${String.fromCharCode(units[j])}');
         i = j + 1;
       }
       continue;
     }
 
-    if (_lengthMarks.contains(ch)) {
+    if (_isLengthMark(unit)) {
       i++;
       continue;
     }
@@ -324,7 +383,7 @@ List<String> tokenizeIpaPhonemes(String ipa) {
       tokens.add(key);
       i += key.length;
     } else {
-      tokens.add(ch);
+      tokens.add(String.fromCharCode(unit));
       i++;
     }
   }
@@ -337,9 +396,11 @@ String convertIpaToNormal(
   Map<String, String> mappings = kIpaMappings,
   bool marked = false,
 }) {
-  final markMatch = RegExp('[ˈˌ]').firstMatch(ipa);
-  final mark = markMatch?.group(0);
-  final cleanIpa = mark == null ? ipa : ipa.replaceFirst(mark, '');
+  final index = _stressMarkIndex(ipa);
+  final mark = index < 0 ? null : ipa[index];
+  final cleanIpa = index < 0
+      ? ipa
+      : ipa.substring(0, index) + ipa.substring(index + 1);
   final converted = mappings[cleanIpa] ?? cleanIpa;
   if (mark != null && marked) return '$mark$converted';
   return converted;
@@ -357,8 +418,8 @@ List<String> convertWordIpaToNormal(
     converted.add(convertIpaToNormal(ipa, mappings: mappings, marked: false));
 
     final isVowel = _isVowelToken(ipa);
-    final markMatch = RegExp('[ˈˌ]').firstMatch(ipa);
-    final mark = markMatch?.group(0);
+    final markIndex = _stressMarkIndex(ipa);
+    final mark = markIndex < 0 ? null : ipa[markIndex];
 
     var j = i - 1;
     for (; j > 0 && j > i - 2; j--) {
