@@ -181,6 +181,19 @@ YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-yo
   formula prefixes and rewrites them to `@rpath`, which is required for
   notarized apps because external Homebrew libraries have a different signing
   team.
+- The bundler also follows `@rpath/<name>.dylib` load commands: Homebrew's
+  relocatable kegs point at their own dependencies that way (`libbrotlidec` →
+  `libbrotlicommon`), and such a dependency carries no `/opt/homebrew/` path, so
+  it is invisible to a path-prefix scan. Each copied dylib gets `@loader_path`
+  added to its `LC_RPATH`, so `@rpath/<name>` resolves inside
+  `Contents/Frameworks/`.
+- After bundling, the build phase runs a **dylib closure check**: every
+  `LC_LOAD_DYLIB` of every Mach-O in the bundle (all slices of fat binaries)
+  must resolve to a system library, the dyld shared cache, or a file that is
+  actually present. An unresolved dependency fails the build. A missing
+  `@rpath` dependency otherwise only surfaces as a launch crash on the user's
+  machine, long after the pipeline went green (see
+  [#1096](https://github.com/baizhiheizi/enjoy_player/issues/1096)).
 - **App Store Connect app** for bundle ID `ai.enjoy.player` (required for full `--platform apple` runs that build iOS)
 - **Keychain certs** (OS Keychain, not files in the repo): Apple Distribution (iOS / TestFlight) and Developer ID Application (macOS direct download)
 - **Local Apple secrets** (one directory — shared by local release and the self-hosted Mac runner):
@@ -564,6 +577,7 @@ git-ignored.
 ### Apple
 
 - **macOS DYLD / missing Homebrew dylib**: run `brew bundle install --file=macos/Brewfile` and rebuild; the release bundle must contain the dependency under `Contents/Frameworks/` with an `@rpath` load path.
+- **macOS build fails with `unresolved dependency @rpath/<name>`**: the bundler's closure check found a load command that points at a file the bundle does not contain. Read the reported binary and dependency — the usual cause is a Homebrew keg that links its own dependencies by `@rpath` (see [#1096](https://github.com/baizhiheizi/enjoy_player/issues/1096)); install the matching formula (the bundle lists them in `macos/Brewfile`) and rebuild.
 - **`Building native assets failed` on `package:sqlite3`** (`Connection terminated during handshake` fetching `libsqlite3.<arch>.macos.dylib`): the `package:sqlite3` build hook downloads its prebuilt library from `github.com` with Dart `HttpClient` (no retries), so a network that drops the TLS handshake fails the whole `flutter build` / `flutter test`. Pre-populate the hook cache with curl (which retries + verifies SHA256), then rebuild:
   ```bash
   bash tool/prefetch_sqlite3_libs.sh macos   # linux / windows / ios / android also accepted
