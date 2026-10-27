@@ -50,6 +50,8 @@ Use the Dart VM directly with a hand-written package config.
       {"name": "flutter", "rootUri": "file:///tmp/gh-aw/agent/bench/stubs/flutter/",
        "packageUri": "lib/", "languageVersion": "3.12"},
       {"name": "flutter_test", "rootUri": "file:///tmp/gh-aw/agent/bench/stubs/flutter_test/",
+       "packageUri": "lib/", "languageVersion": "3.12"},
+      {"name": "meta", "rootUri": "file:///tmp/gh-aw/agent/bench/stubs/meta/",
        "packageUri": "lib/", "languageVersion": "3.12"}
     ]
   }
@@ -69,6 +71,15 @@ Use the Dart VM directly with a hand-written package config.
       {String? debugLabel}) async => callback(message);
   ```
   The `dart:async` import is required for `FutureOr`.
+- **Stub `package:meta/meta.dart`** (added 2026-10-27) — `transcript_word_ipa.dart`
+  imports `package:meta/meta.dart` for `visibleForTesting`. A `const` object
+  per annotation is enough:
+  ```dart
+  const Object visibleForTesting = _VisibleForTesting();
+  const Object immutable = _Immutable();
+  class _VisibleForTesting { const _VisibleForTesting(); }
+  class _Immutable { const _Immutable(); }
+  ```
 - **Stub `package:flutter_test/flutter_test.dart`** — a small matcher/test
   framework. Build it as ONE `abstract class Matcher` with `matches` /
   `describe` and a subclass per matcher; separate `const` matcher objects
@@ -83,9 +94,18 @@ Use the Dart VM directly with a hand-written package config.
   `startsWith`, `endsWith`, `isA`, `expectLater`, `fail`, `Timeout`, and a
   `TestFailure` type. With it the repo's real `*_test.dart` files run under
   plain `dart`.
+  - **`equals` must be a FUNCTION** (`Matcher equals(Object? expected)`),
+    not a `const` matcher — the repo calls `equals(x)`, and a const object
+    does not satisfy that call.
+  - **Async test bodies** (added 2026-10-27): the stub must accept a
+    `Future` returned by the test body. Collect the futures in a list and
+    let them keep the isolate alive; `catchError` on each turns a thrown
+    `expect` into a `[FAIL]`. Without this every `test/core/utils/stream_*`
+    test fails with a false "async test bodies are not supported".
+  - The stub may import `dart:io` to set `exitCode = 1` on failure.
 - **Negative-control the stub** before trusting a green result: a
   deliberately failing `expect` must print `[FAIL]` and exit non-zero.
-  Verified 2026-10-25.
+  Verified 2026-10-25 and re-verified 2026-10-27.
 - Run a script or a test file:
   `dart --packages=<repo>/.dart_tool/package_config.json <file>.dart`
 - `dart analyze <file>` and `dart format` also work against that config.
@@ -93,6 +113,9 @@ Use the Dart VM directly with a hand-written package config.
   the language version selects tall vs short style, and without a config the
   formatter also inserts a blank line between a `package:` import and a
   relative import (CI's formatter does not). Place the config BEFORE formatting.
+  The `analysis_options.yaml` include (`package:flutter_lints/flutter.yaml`)
+  cannot be resolved offline, so the repo's own lint rules are NOT applied —
+  check `require_trailing_commas` / `prefer_single_quotes` by eye.
 - **What still cannot compile locally**: anything importing `package:drift`,
   `package:riverpod`, `package:media_kit`, `package:logging`, `package:path`,
   `package:cross_file`, or the app's own `app_database.dart`. That includes
@@ -175,14 +198,30 @@ Use the Dart VM directly with a hand-written package config.
   harness reported 1.461 ms for a 2.3 MB character scan; 100 warmup + 200
   measured reported 0.483 ms for the same work. Never quote a number from a
   short warmup.
+- **Run enough process pairs to see the spread** (added 2026-10-27). The
+  "after" figures for the IPA derivation were **bimodal across processes**
+  (5.3 ms vs 7.8 ms for the same code) because a given process lands in one
+  of two JIT tiers. Within a single process min ≈ mean (so it is not
+  in-run noise); across processes it is not. Report the median AND the
+  range over n >= 8 process runs, and quote a conservative worst case
+  (fastest before vs slowest after) alongside the median speedup.
+- **Never benchmark on a busy machine.** A concurrent test sweep inflated
+  the same code from 5.5 ms to 11.6 ms. Re-measure on an idle box.
 - Report median / min / p90 together; if min-of-rounds disagrees with the
   median, the run is JIT-artifacted and must be repeated.
 - Keep the measured function pure and feed it a **sink** (`sink += result`)
-  so the optimizer cannot elide it.
+  so the optimizer cannot elide it. Comparing the sink between the two
+  implementations is also a free byte-identical-output check.
 - Do not compile a `RegExp` inside a measured loop.
 - The in-repo microbenchmark template (`docs/perf-measurement.md`) uses a
   single warmup + 20 runs, so its printed number is deliberately colder than
   the isolated headline — say so when quoting both.
+- **Differential correctness harness** (added 2026-10-27): keep a copy of
+  the pre-change implementation and the post-change implementation side by
+  side in two directories, import both from one fuzz script, and compare
+  the results over a random corpus (160,000 cases, 0 mismatches). Generate
+  the golden vectors for the repo test from the **pre-change** copy, so the
+  committed test pins the old behaviour.
 - Useful micro-optimization fact: `json.runes.length` is ~7–9x slower than a
   `codeUnitAt` scan of the same string (`Runes.length` iterates the `Runes`
   iterator rune by rune). Dart forbids `WeakReference<String>`, so a

@@ -1,30 +1,35 @@
 # Perf Improver run state
 
-- **Last run:** 2026-10-25 (workflow run 40225340975, run #67) — fourteenth
-  run. Second run to produce a code-changing PR.
-- **Run history:** #66 2026-10-20 (39489542383) shipped P9 → PR #1006,
-  **MERGED by an-lee 2026-10-20**. Runs 2026-10-09..10-19 (12 runs) were
-  blocked on dependency resolution; 2026-10-08 was the first run.
-- **Next run:** check the `perf-assist/timeline-revision-scan` draft PR's CI;
-  it is the first real compile of the four `TranscriptRepository` part files.
+- **Last run:** 2026-10-27 (workflow run 40485464164, run #72) — fifteenth
+  October run, third run to produce a code-changing PR.
+- **Run history:** #71 2026-10-25 (40225340975) shipped P10 → PR #1071,
+  **MERGED by an-lee 2026-10-26**. #66 2026-10-20 (39489542383) shipped P9 →
+  PR #1006, **MERGED by an-lee 2026-10-20**. Runs #58–#65 (2026-10-12 →
+  2026-10-19) produced no code change (dependency resolution blocked). Runs
+  #67–#70 (2026-10-21 → 2026-10-24) ended without producing a change.
+- **Next run:** check the `perf-assist/ipa-familiar-form-derivation` draft
+  PR's CI. It is the first real compile of `lib/data/subtitle/ipa_mapping.dart`.
 
 ## Repo state at this run
-- HEAD on `main` was `669d127` (bump v0.10.1, #1047). Heavy maintainer
-  activity since: #1007 (transcript_scrollable_list split — **the P7 file
-  references in `backlog.md` are stale**), #1010, #1015, #1023, #1038,
-  #1043, #1046, #1048, #1062.
-- **No open `[perf-improver]` PRs** at the start of the run.
-- **No readable open issues.** The MCP integration now drops all 9 open
-  issues (including #864) via its integrity policy; a `performance`-label
-  query returns `[]`. Task 5 had no target and correctly took no action —
-  do not manufacture one.
+- HEAD on `main` was `26bc53f` (fix(macos) closure check, #1099). Busy
+  maintainer week: #1071 (P10, merged), #1078, #1079, #1080, #1081, #1084,
+  #1085, #1088/#1093 → #1094, #1089, #1090, #1091, #1094, #1097, #1098,
+  #1099.
+- **No open `[perf-improver]` PRs** at the start of the run. PR #1071 (P10)
+  merged on 2026-10-26 — Perf Improver's second merged code-changing PR.
+- **No readable open issues.** The MCP integration drops all open issues
+  (including #864) via its integrity policy; a `performance`-label query
+  returns `[]`. Task 5 had no target and correctly took no action — do not
+  manufacture one. #864's **body and comments are unreadable**, so the
+  monthly summary is written from scratch each run (`operation: replace`);
+  the check-off state is carried from memory (nothing recorded as checked off).
 
 ## Environment
 The egress proxy terminates TLS with an SNI guard (self-signed
 `CN=awf-sni-guard.invalid`), so `pub.dev` and `github.com` are unreachable:
 `flutter pub get` and `git push` fail with exit 60. **Do not route around
 it.** The full offline-harness recipe (Dart VM + hand-written package config
-+ `flutter`/`flutter_test` stubs), the stub requirements, and the
++ `flutter`/`flutter_test`/`meta` stubs), the stub requirements, and the
 microbenchmark methodology are all in **`commands.md`** — read it rather
 than re-deriving them.
 
@@ -33,62 +38,55 @@ here; anything importing `package:drift` (including every
 `TranscriptRepository` part file) cannot be compiled locally. **CI on
 GitHub's runners is the authoritative gate** — say so in every PR body.
 
-Two harness changes this run: the `flutter` stub also needs **`compute`**
-(not just `listEquals`/`immutable`), and `flutter_test`'s `equals` must do
-**deep** list/map comparison. Negative-control the stub (a failing `expect`
-must exit non-zero) before trusting a green result.
-
 ## Tasks completed this run
-- **Task 1**: re-validated the offline harness from scratch; extended the
-  stubs.
-- **Task 2**: the Explore subagent tasked with re-verifying backlog
-  candidates P3/P6/P7/P8 **failed with a 503 from the inference gateway** (no
-  results) — re-verify with direct greps instead of trusting a survey agent
-  that did not return. P6 was confirmed still present by grep (four
-  sequential `readSetting` awaits at
-  `lib/core/application/app_preferences_provider.dart:113-120`). A **new**
-  target was found outside the old backlog (P10).
-- **Task 3**: **DONE.** Branch `perf-assist/timeline-revision-scan`, commit
-  `fda2e6c`, draft PR opened via the safe-outputs tool. Details in
-  `backlog.md` (P10).
-- **Task 4**: no open perf PRs to maintain.
+- **Task 1**: commands were already validated; the harness was rebuilt from
+  scratch and the stubs extended (see `commands.md` for what is new).
+- **Task 2**: surveyed the transcript/player/subtitle hot paths and found
+  **P11** (familiar-form IPA derivation) outside the old backlog. Re-verified
+  P3, P6, P7, P8 and P10b by direct grep — all still present; P8 is
+  **narrowed** (the shared raw engine position stream has landed; only the
+  seek/bucket classification remains).
+- **Task 3**: **DONE.** Branch `perf-assist/ipa-familiar-form-derivation`,
+  commit `4ebeffa`, draft PR opened via the safe-outputs tool. Details in
+  `backlog.md` (P11).
+- **Task 4**: no other open perf PRs to maintain; #1071 merged.
 - **Task 5**: no action — no readable target.
-- **Task 6**: added the repo's second local-only microbenchmark
-  (`test/features/transcript/transcript_timeline_character_count_perf_test.dart`),
-  linked from `docs/perf-measurement.md`. The `test/perf/` dir + benchmark
-  CI job stay deferred per that doc — do not add them unilaterally.
-- **Task 7**: updated issue #864 in the mandated format.
+- **Task 6**: added the repo's third local-only microbenchmark
+  (`test/data/subtitle/ipa_mapping_perf_test.dart`), linked from
+  `docs/perf-measurement.md`. The `test/perf/` dir + benchmark CI job stay
+  deferred per that doc — do not add them unilaterally.
+- **Task 7**: updated issue #864 in the mandated format (replace; the body
+  was unreadable).
 
-## P10 — what shipped (details in `backlog.md`)
-The transcript decode memo is keyed on `(updatedAt, timelineJson character
-count)`. The count was `json.runes.length` — a rune-by-rune walk of the whole
-1–10 MB blob — and the repository derived that same revision **three times
-per tick** plus once more per auto-translate flush. Fixed with a UTF-16
-code-unit scan (identical to `String.runes.length` and SQLite `length()`)
-and by deriving the revision once per row.
+## P11 — what shipped (details in `backlog.md`)
+`lib/data/subtitle/ipa_mapping.dart` derived a word's familiar-form IPA by
+sorting the whole consonant/vowel catalog per phoneme, compiling a `RegExp`
+per phoneme, and scanning all ~160 phoneme keys per character. It now
+answers the catalog from a cached set, finds the stress mark by a code-unit
+scan, and buckets the phoneme table by first code unit.
 
-Measured (isolated processes, 100 warmup + 200 measured, 3 rounds):
-5000 cues (573 KB) 3.138 → 0.137 ms (22.9x); 20000 cues (2.3 MB)
-9.763 → 0.483 ms (20.2x). Scan-only 6.7–9.5x, redundancy-only 6.7–7.8x.
-Correctness: 20,000 fuzz cases + curated edge cases vs `String.runes.length`,
-0 mismatches.
+Measured (isolated processes, 100 warmup + 200 measured, n=8 process runs
+per implementation): 2400-word corpus 34.4 ms -> 5.6 ms per pass (~6.1x at
+the median, 4.3x worst case). Output byte-identical.
+Correctness: 160,000 differential cases + curated edge cases against the
+previous implementation, 0 mismatches.
 
-Status: draft PR open on `perf-assist/timeline-revision-scan`. The PR number
-is assigned when the framework pushes the bundle, so it was **not** known
-during the run — the monthly summary references the branch instead.
+Status: draft PR open on `perf-assist/ipa-familiar-form-derivation`. The PR
+number is assigned when the framework pushes the bundle, so it was **not**
+known during the run — the monthly summary references the branch instead.
 
 ## Write path
 - PRs must go through the safe-outputs `create_pull_request` tool. It does
   not push itself; it writes a bundle + patch under `/tmp/gh-aw/` and the
   framework pushes afterwards, so the PR may not be visible via the API
   immediately. Expected, not a failure. Artifacts this run:
-  `aw-baizhiheizi-enjoy_player-perf-assist-timeline-revision-scan.bundle`
-  (6.8 KB) / `.patch` (18.7 KB).
+  `aw-baizhiheizi-enjoy_player-perf-assist-ipa-familiar-form-derivation.bundle`
+  (7.2 KB) / `.patch` (22.5 KB).
 - Same for `update_issue`: it returns `{"result":"success"}` but the issue
   body may lag. Do not re-issue a write just because the API has not caught up.
-- **Issue #864's body AND comments are unreadable** (integrity policy), so
-  the monthly summary cannot be re-read before it is updated — say so in the
-  body and stay conservative about the check-off state.
+- `update-issue` in `.github/workflows/perf-improver.md` is `target: "*"`,
+  so **`issue_number` must be passed explicitly**, and `max: 1` — one write
+  per run.
 - The perf-improver workflow uses `protected-files: fallback-to-issue`, so a
   PR touching `.github/workflows/**` becomes an issue instead.
 - Delete `<repo>/.dart_tool/package_config.json` at the end of a run so a
