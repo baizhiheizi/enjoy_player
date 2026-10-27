@@ -31,6 +31,21 @@ engine and helper blocks are pulled in through `imports:` (for example
 bump. The compiled `agentic_commands.yml` is the issue-comment slash-command front for
 all eight and is generated, not hand-edited.
 
+### Sandbox network allowlist
+
+The sandbox firewall only reaches the domains of the ecosystems listed in a workflow's
+`network.allowed`. Only `repo-assist` and `perf-improver` declare `dart` (which resolves
+to `pub.dev` / `pub.dartlang.org`), because they are the two workflows that run
+`flutter pub get`. The analysis-only workflows (`repo-status`, `weekly-repo-map`,
+`weekly-research`, `duplicate-code-detector`) read the tree without running the
+toolchain, and `large-file-simplifier`'s `tools.bash` allowlist cannot invoke `flutter`
+at all, so none of them needs `dart`. Adding a language without recompiling leaves the
+lock file — which is what actually runs — without the domain; verify with:
+
+```bash
+grep -c "pub.dev" .github/workflows/perf-improver.lock.yml   # must be > 0
+```
+
 ## Updating
 
 ```bash
