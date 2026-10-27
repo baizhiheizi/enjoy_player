@@ -194,6 +194,9 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
       "${root}/macos/scripts/notarize_release.sh" "${MACOS_APP_PATH}" --sign-only
     fi
 
+    echo ">>> Smoke-test the macOS app"
+    bash "${root}/macos/scripts/smoke_test_launch.sh" "${MACOS_APP_PATH}"
+
     release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
   fi
 else
@@ -232,9 +235,13 @@ else
 
     if [[ "${RELEASE_PUBLISH}" == true ]]; then
       release_assert_macos_app_notarized "${MACOS_APP_PATH}"
+      echo ">>> Smoke-test the macOS app"
+      bash "${root}/macos/scripts/smoke_test_launch.sh" "${MACOS_APP_PATH}"
       echo ">>> Repack macOS zip from notarized app"
       release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
     elif [[ "${NOTARIZE}" == true ]]; then
+      echo ">>> Smoke-test the macOS app"
+      bash "${root}/macos/scripts/smoke_test_launch.sh" "${MACOS_APP_PATH}"
       release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
     fi
   fi
