@@ -6,7 +6,6 @@
 /// "Save & practice" (navigate to player) and "Save & say another" (loop).
 library;
 
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -14,19 +13,18 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/typography.dart';
-import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
-import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
+import 'package:enjoy_player/features/craft/presentation/audio_stage_actions.dart';
+import 'package:enjoy_player/features/craft/presentation/audio_stage_preview_player.dart';
+import 'package:enjoy_player/features/craft/presentation/audio_stage_script_block.dart';
+import 'package:enjoy_player/features/craft/presentation/audio_stage_voice_chip.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
-import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_loading_view.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -207,7 +205,7 @@ class _AudioStageState extends ConsumerState<AudioStage> {
     final sourceLang = state.sourceLanguage?.toUpperCase() ?? '—';
     final targetLang = state.targetLanguage.toUpperCase();
     final previewText = state.translatedText ?? state.synthText;
-    final voiceLabel = _voiceDisplayLabel(state.selectedVoice);
+    final voiceLabel = voiceDisplayLabel(state.selectedVoice);
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space8),
@@ -217,14 +215,14 @@ class _AudioStageState extends ConsumerState<AudioStage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _ScriptBlock(
+              AudioStageScriptBlock(
                 sourceLang: sourceLang,
                 targetLang: targetLang,
                 text: previewText,
                 theme: theme,
               ),
               SizedBox(height: t.space20),
-              _PreviewPlayer(
+              AudioStagePreviewPlayer(
                 isPlaying: _isPlaying,
                 position: _position,
                 duration: _duration,
@@ -237,7 +235,7 @@ class _AudioStageState extends ConsumerState<AudioStage> {
                 theme: theme,
               ),
               SizedBox(height: t.space16),
-              _VoiceChip(
+              AudioStageVoiceChip(
                 expanded: _voiceExpanded,
                 synthLanguage: state.synthLanguage,
                 selectedVoice: state.selectedVoice,
@@ -260,13 +258,15 @@ class _AudioStageState extends ConsumerState<AudioStage> {
               ),
               SizedBox(height: t.space20),
               if (state.hasUnsavedPreview) ...[
-                _UnsavedPreviewHint(message: l10n.craftAudioUnsavedHint),
+                AudioStageUnsavedPreviewHint(
+                  message: l10n.craftAudioUnsavedHint,
+                ),
                 SizedBox(height: t.space16),
               ],
               if (state.isSaving)
                 const Center(child: LoadingIcon(size: 28, strokeWidth: 2.5))
               else
-                _AudioActions(
+                AudioStageActions(
                   practiceLabel: l10n.craftAudioPracticeNow,
                   sayAnotherLabel: l10n.craftAudioSaySomethingElse,
                   onPractice: _saveAndPractice,
@@ -275,379 +275,6 @@ class _AudioStageState extends ConsumerState<AudioStage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-String? _voiceDisplayLabel(String? voiceId) {
-  if (voiceId == null || voiceId.isEmpty) return null;
-  for (final v in kAzureVoices) {
-    if (v.id == voiceId) return v.label;
-  }
-  return voiceId;
-}
-
-class _UnsavedPreviewHint extends StatelessWidget {
-  const _UnsavedPreviewHint({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
-
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: t.fill,
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(t.radiusMd),
-          side: BorderSide(color: t.line),
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: t.space12,
-          vertical: t.space8,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(EnjoyIcons.info, size: 18, color: t.brandInk),
-            SizedBox(width: t.space8),
-            Expanded(
-              child: Text(
-                message,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.4,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AudioActions extends StatelessWidget {
-  const _AudioActions({
-    required this.practiceLabel,
-    required this.sayAnotherLabel,
-    required this.onPractice,
-    required this.onSayAnother,
-  });
-
-  final String practiceLabel;
-  final String sayAnotherLabel;
-  final VoidCallback onPractice;
-  final VoidCallback onSayAnother;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        EnjoyButton.brand(
-          onPressed: onPractice,
-          icon: EnjoyIcons.libraryAdded,
-          expand: true,
-          child: Text(practiceLabel),
-        ),
-        SizedBox(height: t.space8),
-        EnjoyButton.secondary(
-          onPressed: onSayAnother,
-          icon: EnjoyIcons.mic,
-          expand: true,
-          child: Text(sayAnotherLabel),
-        ),
-      ],
-    );
-  }
-}
-
-/// Full script for follow-along listening. Short text sizes naturally; long
-/// text scrolls inside a capped viewport so the preview player stays nearby.
-class _ScriptBlock extends StatefulWidget {
-  const _ScriptBlock({
-    required this.sourceLang,
-    required this.targetLang,
-    required this.text,
-    required this.theme,
-  });
-
-  /// Soft cap so very long scripts don't push actions off-screen.
-  static const double maxScriptHeight = 240;
-  static const double accentBarWidth = 3;
-
-  final String sourceLang;
-  final String targetLang;
-  final String text;
-  final ThemeData theme;
-
-  @override
-  State<_ScriptBlock> createState() => _ScriptBlockState();
-}
-
-class _ScriptBlockState extends State<_ScriptBlock> {
-  final _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final theme = widget.theme;
-    final scheme = theme.colorScheme;
-    final scriptStyle = theme.textTheme.bodyLarge?.copyWith(
-      color: scheme.onSurface,
-      height: 1.55,
-    );
-
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: t.fill,
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(t.radiusLg),
-          side: BorderSide(color: t.line),
-        ),
-      ),
-      child: ClipRSuperellipse(
-        borderRadius: BorderRadius.circular(t.radiusLg),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: ColoredBox(
-                color: t.brandInk,
-                child: const SizedBox(width: _ScriptBlock.accentBarWidth),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                t.space16 + _ScriptBlock.accentBarWidth,
-                t.space12,
-                t.space16,
-                t.space12,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${widget.sourceLang}  →  ${widget.targetLang}',
-                    style: enjoyMonoStyle(
-                      context,
-                      size: 12.5,
-                      weight: FontWeight.w600,
-                      color: t.brandInk,
-                    ),
-                  ),
-                  SizedBox(height: t.space8),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxHeight: _ScriptBlock.maxScriptHeight,
-                    ),
-                    child: Scrollbar(
-                      controller: _scrollController,
-                      child: SingleChildScrollView(
-                        controller: _scrollController,
-                        primary: false,
-                        child: SelectableText(widget.text, style: scriptStyle),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _VoiceChip extends StatelessWidget {
-  const _VoiceChip({
-    required this.expanded,
-    required this.synthLanguage,
-    required this.selectedVoice,
-    required this.voiceLabel,
-    required this.theme,
-    required this.onToggle,
-    required this.onVoiceChanged,
-  });
-
-  final bool expanded;
-  final String synthLanguage;
-  final String? selectedVoice;
-  final String? voiceLabel;
-  final ThemeData theme;
-  final VoidCallback onToggle;
-  final void Function(String) onVoiceChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-    final scheme = theme.colorScheme;
-    return EnjoyCard(
-      elevated: false,
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          EnjoyPressable(
-            onTap: onToggle,
-            borderRadius: BorderRadius.circular(t.radiusMd),
-            pressedScale: 0.995,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: t.space8,
-                horizontal: t.space12,
-              ),
-              child: Row(
-                children: [
-                  Icon(EnjoyIcons.speak, size: 18, color: t.brandInk),
-                  SizedBox(width: t.space8),
-                  Text(
-                    l10n.craftVoiceLabel,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(width: t.space8),
-                  Expanded(
-                    child: Text(
-                      voiceLabel ?? l10n.craftVoiceLabel,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                    ),
-                  ),
-                  SizedBox(width: t.space4),
-                  Icon(
-                    expanded ? EnjoyIcons.chevronUp : EnjoyIcons.chevronDown,
-                    size: 18,
-                    color: t.ink3,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (expanded) ...[
-            Padding(
-              padding: EdgeInsets.fromLTRB(t.space12, 0, t.space12, t.space12),
-              child: VoicePicker(
-                language: synthLanguage,
-                selectedVoice: selectedVoice,
-                onChanged: onVoiceChanged,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _PreviewPlayer extends StatelessWidget {
-  const _PreviewPlayer({
-    required this.isPlaying,
-    required this.position,
-    required this.duration,
-    required this.onToggle,
-    required this.onSeek,
-    required this.fmt,
-    required this.theme,
-  });
-
-  final bool isPlaying;
-  final Duration position;
-  final Duration duration;
-  final VoidCallback onToggle;
-  final ValueChanged<Duration> onSeek;
-  final String Function(Duration) fmt;
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final timeStyle = enjoyMonoStyle(
-      context,
-      size: 12,
-      color: theme.colorScheme.onSurfaceVariant,
-    );
-    final clampedPosition = position > duration && duration > Duration.zero
-        ? duration
-        : position;
-    final maxMs = duration.inMilliseconds.toDouble().clamp(
-      1.0,
-      double.infinity,
-    );
-    final valueMs = clampedPosition.inMilliseconds.toDouble().clamp(0.0, maxMs);
-
-    return EnjoyCard(
-      elevated: false,
-      padding: EdgeInsets.symmetric(horizontal: t.space12, vertical: t.space12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          EnjoyPressable(
-            onTap: onToggle,
-            shape: const CircleBorder(),
-            pressedScale: 0.95,
-            child: AnimatedContainer(
-              duration: t.motionFast,
-              width: 56,
-              height: 56,
-              decoration: ShapeDecoration(
-                gradient: t.brand,
-                shape: const CircleBorder(),
-                shadows: t.shadowBrandButton,
-              ),
-              child: Icon(
-                isPlaying ? EnjoyIcons.pause : EnjoyIcons.play,
-                size: 26,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          SizedBox(width: t.space12),
-          Text(fmt(clampedPosition), style: timeStyle),
-          Expanded(
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 3,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-              ),
-              child: Slider(
-                value: valueMs,
-                max: maxMs,
-                onChanged: duration > Duration.zero
-                    ? (v) => onSeek(Duration(milliseconds: v.round()))
-                    : null,
-              ),
-            ),
-          ),
-          Text(fmt(duration), style: timeStyle),
-        ],
       ),
     );
   }
