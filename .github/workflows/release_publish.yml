@@ -8,7 +8,7 @@ on:
         type: string
         required: false
       notes_file:
-        description: Path (relative to repo root) to a markdown file with release notes. Leave blank to use docs/releases/<version>.md, or the ## [Unreleased] section of CHANGELOG.md.
+        description: Path (relative to repo root) to a markdown file with release notes. Leave blank to use docs/releases/<version>.md, or the ## [<version>] section of CHANGELOG.md at the tag.
         type: string
         required: false
       finalize:
@@ -28,10 +28,6 @@ jobs:
     name: Update notes and finalize release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Resolve tag
         id: tag
         env:
@@ -52,18 +48,27 @@ jobs:
             exit 1
           fi
 
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+          fetch-depth: 0
+
       - name: Resolve notes file
         id: notes
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          NOTES_FILE: ${{ inputs.notes_file }}
         run: |
-          notes_path="${{ inputs.notes_file }}"
+          notes_path="${NOTES_FILE}"
           if [[ -z "${notes_path}" ]]; then
-            version="${tag#v}"
+            version="${TAG#v}"
             notes_path="docs/releases/${version}.md"
             if [[ ! -f "${notes_path}" ]]; then
-              notes_path="${RUNNER_TEMP}/unreleased-notes.md"
-              awk '/^## \[Unreleased\]/{flag=1;next} /^## \[/{flag=0} flag' CHANGELOG.md > "${notes_path}"
+              notes_path="${RUNNER_TEMP}/release-notes.md"
+              section="## [${version}]"
+              awk -v section="${section}" 'index($0, section) == 1 {flag=1; next} /^## \[/ {flag=0} flag' CHANGELOG.md > "${notes_path}"
               if ! grep -q '[^[:space:]]' "${notes_path}"; then
-                echo "::error::CHANGELOG.md has no '## [Unreleased]' section to publish." >&2
+                echo "::error::CHANGELOG.md at ${TAG} has no '${section}' section to publish." >&2
                 exit 1
               fi
             fi

@@ -19,6 +19,7 @@ on:
       - ".github/scripts/validate_ci_gates.sh"
       - "tool/prefetch_sqlite3_libs.sh"
       - ".github/workflows/ci.yml"
+      - ".github/workflows/release_publish.yml"
   workflow_dispatch:
 
 concurrency:
@@ -55,7 +56,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
-          PATTERN: '^(lib/|test/|packages/|tool/prefetch_sqlite3_libs\.sh$|pubspec\.(yaml|lock)$|analysis_options\.yaml$|mise\.toml$|\.github/scripts/(ensure_linux_tooling|check_no_new_path_deps|check_dart_format|check_coverage_gate|validate_ci_gates)\.sh$|\.github/workflows/ci\.yml$)'
+          PATTERN: '^(lib/|test/|packages/|tool/prefetch_sqlite3_libs\.sh$|pubspec\.(yaml|lock)$|analysis_options\.yaml$|mise\.toml$|\.github/scripts/(ensure_linux_tooling|check_no_new_path_deps|check_dart_format|check_coverage_gate|validate_ci_gates)\.sh$|\.github/workflows/(ci|release_publish)\.yml$)'
         run: |
           if ! files="$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')"; then
             echo "::warning::Could not list PR files; running the checks."

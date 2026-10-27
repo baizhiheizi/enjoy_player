@@ -76,8 +76,16 @@ A new `release_publish.yml` workflow (manual-only, `workflow_dispatch`)
 owns the **single** release body for a tag and the draft→ready
 transition. It:
 
-- reads `docs/releases/<version>.md` if present, otherwise falls back
-  to `## [Unreleased]` from `CHANGELOG.md`
+- checks out the resolved tag, then reads `docs/releases/<version>.md`
+  if present, otherwise extracts the `## [<version>]` section (heading
+  dropped, stops at the next `## [` heading) from `CHANGELOG.md` at that
+  tag, failing loudly when the section is missing or empty. The tag-time
+  checkout matters twice: the release bump renames `## [Unreleased]` to
+  `## [<version>]`, so the Unreleased heading no longer exists when the
+  coordinator runs, and the dispatch branch may have moved past the tag.
+  (§ 2 originally said "falls back to `## [Unreleased]` from
+  `CHANGELOG.md`" — amended in #1094 when review showed that heading is
+  always gone at publish time.)
 - calls `gh release edit <tag> --notes-file …` to set the body
 - optionally flips `gh release edit <tag> --draft=false` to publish
 
