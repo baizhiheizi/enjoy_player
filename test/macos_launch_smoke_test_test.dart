@@ -28,6 +28,12 @@ class _FakeApp {
     Process.runSync('chmod', ['+x', file.path]);
   }
 
+  void writeBinaryExecutable(List<int> bytes) {
+    final file = File('${app.path}/Contents/MacOS/Enjoy Player');
+    file.writeAsBytesSync(bytes);
+    Process.runSync('chmod', ['+x', file.path]);
+  }
+
   ProcessResult run({int timeoutSeconds = 3}) {
     return Process.runSync(
       'bash',
@@ -76,6 +82,18 @@ void main() {
     expect(result.exitCode, isNot(0));
     expect(result.stderr, contains('dynamic-linker failure'));
     expect(result.stderr, contains('libbrotlicommon.1.dylib'));
+  }, skip: skipOnWindows);
+
+  test('fails when the executable cannot be launched at all', () {
+    final fake = _FakeApp.create();
+    addTearDown(fake.dispose);
+
+    fake.writeBinaryExecutable([0, 1, 2, 3, 4, 5, 6, 7]);
+
+    final result = fake.run();
+
+    expect(result.exitCode, isNot(0));
+    expect(result.stderr, contains('never ran'));
   }, skip: skipOnWindows);
 
   test('passes when the app stays up for the whole timeout', () {

@@ -3,9 +3,10 @@
 #
 # The failure this guards against is a bundle that cannot be loaded at all:
 # dyld aborts before main(), so the app never renders a window and never
-# reports the problem itself. The check fails only on a dynamic-linker
-# signature; any other exit is reported and passed, because a runner without a
-# window server makes the app quit for unrelated reasons.
+# reports the problem itself. The check fails on a dynamic-linker signature or
+# when the executable never ran (exec-level failure, e.g. a wrong-arch slice);
+# any other exit is reported and passed, because a runner without a window
+# server makes the app quit for unrelated reasons.
 #
 # Usage: smoke_test_launch.sh <path/to/Enjoy Player.app>
 set -eu
@@ -54,6 +55,12 @@ set +e
 wait "${app_pid}"
 status=$?
 set -e
+
+if [ "${status}" -eq 126 ] || [ "${status}" -eq 127 ]; then
+  echo "smoke_test_launch: the executable never ran (exit ${status}):" >&2
+  cat "${LOG}" >&2
+  exit 1
+fi
 
 if grep -Eq 'Library not loaded|Namespace DYLD|dyld: |Symbol not found|Reason: tried:' "${LOG}"; then
   echo "smoke_test_launch: the app died with a dynamic-linker failure (exit ${status}):" >&2

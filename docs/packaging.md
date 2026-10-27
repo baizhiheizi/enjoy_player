@@ -392,9 +392,10 @@ bash .github/scripts/release.sh --platform apple --ios-only --testflight --skip-
 
 Before the macOS zip is packed, the release runs
 [`macos/scripts/smoke_test_launch.sh`](../macos/scripts/smoke_test_launch.sh):
-it starts the signed app with an isolated `HOME` and fails the release only
-when the app dies with a dynamic-linker failure (dyld aborts before `main()`,
-so the app can neither render nor report the problem itself). Any other exit
+it starts the signed app with an isolated `HOME` and fails the release when the
+app dies with a dynamic-linker failure (dyld aborts before `main()`, so the app
+can neither render nor report the problem itself) or when the executable never
+ran at all (exec-level failure, e.g. a wrong-arch slice). Any other exit
 passes, because a build host without a window server makes the app quit for
 unrelated reasons. `MACOS_LAUNCH_SMOKE_TIMEOUT` sets how long the app has to
 stay up (default 20s).
