@@ -15,6 +15,7 @@ fi
 
 FRAMEWORKS_DIR="${APP_BUNDLE}/Contents/Frameworks"
 CONTENTS_MACOS_DIR="${APP_BUNDLE}/Contents/MacOS"
+MAIN_EXECUTABLE="${CONTENTS_MACOS_DIR}/$(basename "${APP_BUNDLE}" .app)"
 if [ ! -d "${FRAMEWORKS_DIR}" ]; then
   echo "bundle_ffmpeg_homebrew_deps: missing Frameworks dir in ${APP_BUNDLE}" >&2
   exit 1
@@ -55,10 +56,20 @@ resolve_sign_identity() {
   fi
 }
 
-# Every LC_LOAD_DYLIB of $1, across all slices of a fat binary. otool -L prints
-# one "<path>:" header per slice; only the indented lines carry load commands.
+# Every LC_LOAD_DYLIB of $1, across all slices of a fat binary, as otool -L
+# prints them: one "<path>:" header per slice, the load commands indented with
+# their "(compatibility version ...)" suffix. Install names may contain spaces
+# (an app called "Enjoy Player" links @rpath/Enjoy Player.debug.dylib), so the
+# name is everything before the suffix, not the first whitespace field.
 otool_deps() {
-  otool -L "$1" 2>/dev/null | awk '/^[[:space:]]/ { print $1 }'
+  otool -L "$1" 2>/dev/null | awk '
+    /^[[:space:]]/ {
+      line = $0
+      sub(/^[[:space:]]+/, "", line)
+      sub(/[[:space:]]+\(compatibility version.*$/, "", line)
+      print line
+    }
+  '
 }
 
 homebrew_deps_for() {
@@ -176,6 +187,26 @@ macho_rpaths() {
   cat "${cache}"
 }
 
+# Load commands dyld must actually be able to satisfy: LC_LOAD_DYLIB,
+# LC_LOAD_UPWARD_DYLIB and LC_REEXPORT_DYLIB of $1, across all slices. Weak
+# links are skipped (a missing weak library is legal at runtime — Xcode's
+# Swift back-deployment libs are weak and copied by a later build phase), and
+# so is LC_ID_DYLIB (otool -L prints the install id as a dependency-looking
+# line, but dyld never resolves it).
+macho_strong_deps() {
+  otool -l "$1" 2>/dev/null | awk '
+    /^Load command/ { current = "" }
+    /^[[:space:]]*cmd (LC_LOAD_DYLIB|LC_LOAD_UPWARD_DYLIB|LC_REEXPORT_DYLIB)[[:space:]]*$/ { current = "load" }
+    current == "load" && /^[[:space:]]*name[[:space:]]/ {
+      line = $0
+      sub(/^[[:space:]]*name[[:space:]]+/, "", line)
+      sub(/[[:space:]]*\(offset.*$/, "", line)
+      print line
+      current = ""
+    }
+  '
+}
+
 MACHO_LIST="$(mktemp)"
 RPATH_CACHE_DIR="$(mktemp -d)"
 WORKLIST="$(mktemp)"
@@ -220,7 +251,7 @@ while :; do
       brew) src="$(resolve_homebrew_dep "${reference}" || true)" ;;
       rpath)
         name="${reference#@rpath/}"
-        if [ -f "${FRAMEWORKS_DIR}/${name}" ]; then
+        if [ -f "${FRAMEWORKS_DIR}/${name}" ] || [ -f "${CONTENTS_MACOS_DIR}/${name}" ]; then
           continue
         fi
         src="$(resolve_rpath_dep "${reference}" "${keg_dir}" || true)"
@@ -328,6 +359,33 @@ bundle_path_exists() {
   return 1
 }
 
+# @rpath resolution as dyld performs it: the loading image's LC_RPATH entries
+# followed by the main executable's. The dyld shared cache is not visible to
+# the shell, so exactly one cache-served family is whitelisted by name:
+# /usr/lib/swift/libswift*.dylib, the OS Swift runtime the toolchain's
+# back-deployment libraries link through the executable's /usr/lib/swift
+# rpath. Everything else has to exist as a file.
+resolve_rpath_against() {
+  owner="$1"
+  name="$2"
+  owner_dir="$(dirname "${owner}")"
+  while read -r rp; do
+    [ -n "${rp}" ] || continue
+    case "${rp}" in
+      @loader_path*) candidate="${owner_dir}${rp#@loader_path}" ;;
+      @executable_path*) candidate="${CONTENTS_MACOS_DIR}${rp#@executable_path}" ;;
+      /*) candidate="${rp}" ;;
+      *) continue ;;
+    esac
+    probe="${candidate}/${name}"
+    case "${probe}" in
+      /usr/lib/swift/libswift*.dylib) return 0 ;;
+    esac
+    bundle_path_exists "${probe}" && return 0
+  done < <(macho_rpaths "${owner}")
+  return 1
+}
+
 resolve_bundle_dep() {
   loader="$1"
   dep="$2"
@@ -345,17 +403,12 @@ resolve_bundle_dep() {
           return 1
           ;;
       esac
-      while read -r rp; do
-        [ -n "${rp}" ] || continue
-        case "${rp}" in
-          @loader_path*) candidate="${loader_dir}${rp#@loader_path}" ;;
-          @executable_path*) candidate="${CONTENTS_MACOS_DIR}${rp#@executable_path}" ;;
-          /*) candidate="${rp}" ;;
-          *) continue ;;
-        esac
-        bundle_path_exists "${candidate}/${name}" && return 0
-      done < <(macho_rpaths "${loader}")
+      resolve_rpath_against "${loader}" "${name}" && return 0
+      if [ -f "${MAIN_EXECUTABLE}" ]; then
+        resolve_rpath_against "${MAIN_EXECUTABLE}" "${name}" && return 0
+      fi
       bundle_path_exists "${FRAMEWORKS_DIR}/${name}" && return 0
+      bundle_path_exists "${CONTENTS_MACOS_DIR}/${name}" && return 0
       return 1
       ;;
     @loader_path/*)
@@ -387,7 +440,7 @@ while IFS= read -r -d '' f; do
       closure_failures=$((closure_failures + 1))
     fi
   done <<EOF
-$(otool_deps "${f}")
+$(macho_strong_deps "${f}")
 EOF
 done < <(find "${APP_BUNDLE}/Contents" -type f -print0 2>/dev/null)
 
@@ -474,7 +527,7 @@ EOF
 $(find "${FRAMEWORKS_DIR}" -maxdepth 1 -name '*.framework' -type d 2>/dev/null)
 EOF
 
-  EXECUTABLE="${CONTENTS_MACOS_DIR}/$(basename "${APP_BUNDLE}" .app)"
+  EXECUTABLE="${MAIN_EXECUTABLE}"
   if [ -f "${EXECUTABLE}" ]; then
     sign_path "${EXECUTABLE}" 1
   fi
