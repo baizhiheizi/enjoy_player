@@ -2,56 +2,56 @@
   "version": 1,
   "cursors": {
     "labelling_after": 1072,
-    "investigation_after": 1087
+    "investigation_after": 1096
   },
   "issues": [
     {
-      "number": 1088,
+      "number": 1096,
       "state": "commented",
-      "updated_at": "2026-10-26",
-      "note": "Run 40381182635: release_publish.yml falls back to the whole CHANGELOG.md, not the ## [Unreleased] section ADR-0067 requires, so a release without docs/releases/<version>.md publishes every version's notes. Filed with the patch; the agent cannot push workflow files. Verify the number next run."
+      "updated_at": "2026-10-27",
+      "note": "macOS v0.10.1 dyld crash. The bundler scanned for /opt/homebrew/ load commands only, so a keg's @rpath/libbrotlicommon.1.dylib was never copied. Two draft branches fix it; the appcast and v0.10.2 are maintainer-side."
     }
   ],
   "fixes": [
     {
-      "issue": 1088,
+      "issue": 1096,
       "pr": null,
-      "branch": null,
+      "branch": "repo-assist/fix-1096-macos-rpath-dylib-closure",
       "status": "open",
-      "updated_at": "2026-10-26",
-      "note": "Release-notes fallback: the patch is in the issue body; the agent cannot push .github/workflows/ files, so the maintainer applies it."
+      "updated_at": "2026-10-27",
+      "note": "Bundler follows @rpath deps, adds @loader_path to copies, gates the dylib closure; 4-case Linux regression test. Second branch repo-assist/smoke-test-macos-launch adds a launch smoke test before the zip is packed."
     }
   ],
   "checks": [
     {
       "area": "tests",
-      "checked_at": "2026-10-26",
-      "result": "flutter test full suite: 6893 passed / 9 skipped, exit 0. Re-run on the branch itself after a branch switch cut the first run short.",
+      "checked_at": "2026-10-27",
+      "result": "flutter test full suite green: 6904 passed / 9 skipped combined, 6900 / 9 skipped on the smoke-test branch, exit 0.",
       "follow_up": null
     },
     {
       "area": "ci",
-      "checked_at": "2026-10-26",
-      "result": "validate_ci_gates.sh --fix: format ok (1890 files), codegen drift ok, path-deps ok, flutter analyze clean.",
-      "follow_up": "The sandbox pub cache starts empty: run flutter pub get before any gate, or codegen fails with 'Could not find bin/build_runner.dart'."
-    },
-    {
-      "area": "tooling",
-      "checked_at": "2026-10-26",
-      "result": "The agentic GitHub App still cannot push .github/workflows/ files: the branch push is rejected for lack of the workflows permission.",
-      "follow_up": null
-    },
-    {
-      "area": "docs",
-      "checked_at": "2026-10-26",
-      "result": "Two drifts corrected: the CHANGELOG Unreleased section missed seven merged PRs, and the Duet tracker total read 56 against 53 actual rows.",
-      "follow_up": null
+      "checked_at": "2026-10-27",
+      "result": "validate_ci_gates.sh --fix --analyze --test: format ok, codegen drift ok, path-deps ok, flutter analyze clean.",
+      "follow_up": "Run flutter pub get before any gate; the sandbox pub cache starts empty."
     },
     {
       "area": "qa",
-      "checked_at": "2026-10-26",
-      "result": "No macOS hardware is reachable from the agent: the merged YouTube WebView fix (#1038) still needs a maintainer run on a real build.",
+      "checked_at": "2026-10-27",
+      "result": "No macOS host is reachable. The closure gate and the launch smoke test ran only against Linux stand-ins; build_apple.yml builds Debug+Release on macos/** changes.",
+      "follow_up": "A maintainer should run one real macOS release build and confirm both gates pass."
+    },
+    {
+      "area": "docs",
+      "checked_at": "2026-10-27",
+      "result": "docs/packaging.md documents the @rpath handling, the closure check, the launch smoke test, the keg log, and the new closure-check failure mode.",
       "follow_up": null
+    },
+    {
+      "area": "tooling",
+      "checked_at": "2026-10-27",
+      "result": "The agentic GitHub App still cannot push .github/workflows/ files. Whether .github/scripts/ is pushable is untested - that PR lands after this run.",
+      "follow_up": "Next run: if repo-assist/smoke-test-macos-launch opened, only .github/workflows/ is blocked."
     }
   ],
   "completed_actions": [
@@ -66,18 +66,34 @@
     {
       "key": "agentic-schedule-stagger-merged-as-1085",
       "completed_at": "2026-10-26"
+    },
+    {
+      "key": "changelog-unreleased-backfill-merged-as-1089",
+      "completed_at": "2026-10-27"
+    },
+    {
+      "key": "duet-tracker-count-merged-as-1090",
+      "completed_at": "2026-10-27"
+    },
+    {
+      "key": "segmented-style-shim-merged-as-1091",
+      "completed_at": "2026-10-27"
+    },
+    {
+      "key": "release-notes-fallback-fixed-as-1094",
+      "completed_at": "2026-10-27"
     }
   ],
   "priorities": [
     {
-      "task": 6,
-      "item": "Watch the three draft PRs from 2026-10-26 for CI or maintainer feedback",
-      "note": "basics-changelog-unreleased-backfill, basics-duet-tracker-count, improve-drop-legacy-segmented-style-shim."
+      "task": 2,
+      "item": "Follow up on #1096 once the maintainer re-signs the appcast and ships v0.10.2",
+      "note": "v0.10.1 users auto-update into a crasher and cannot self-update. Only the maintainer can regenerate the signed appcast."
     },
     {
       "task": 4,
       "item": "Re-apply the two remaining stale first-party action pins (#1050)",
-      "note": "release_publish.yml checkout@v4, build_linux.yml upload-artifact@v4; deploy_landing.yml is gone since #1080. Blocked: the App cannot push workflow files."
+      "note": "release_publish.yml checkout@v4, build_linux.yml upload-artifact@v4; deploy_landing.yml is gone since #1080. Blocked on the workflows permission."
     },
     {
       "task": 4,
@@ -85,24 +101,19 @@
       "note": "The analyzer-14 unblock landed in #998. A new dependency needs maintainer discussion, so Repo Assist will not adopt it."
     },
     {
-      "task": 2,
-      "item": "Follow up on the engine-429 request rejections if they recur",
-      "note": "The schedule-stagger PR merged as #1085; the rate limit is upstream, so further rejections point at fewer concurrent agent sessions."
-    },
-    {
       "task": 7,
       "item": "Backfill the GitHub Release objects for v0.10.0 and v0.9.0",
-      "note": "v0.10.1 shipped 2026-10-26; the two earlier tags still have no Release object. Needs a maintainer - no release tool for the agent."
-    },
-    {
-      "task": 2,
-      "item": "Apply the release-notes fallback fix filed this run",
-      "note": "See the issue record above; the workflow-file change has to come from the maintainer."
+      "note": "v0.10.1 shipped 2026-10-26; the two earlier tags still have no Release object. Needs a maintainer."
     },
     {
       "task": 5,
-      "item": "Duplication candidates found, but deliberately not proposed",
-      "note": "Also found a verbatim _trimTrailingSlash in three files and five inline RegExp(r'\\s+') copies. The proactive-refactor lane is paused by the maintainer, so only the sanctioned dead-code removal was taken."
+      "item": "The proactive-refactor lane stays paused by the maintainer",
+      "note": "Do not re-propose primitive deduplication; the _trimTrailingSlash and inline RegExp copies were found and deliberately left alone."
+    },
+    {
+      "task": 2,
+      "item": "Follow up on the engine-429 request rejections if they recur",
+      "note": "The schedule-stagger PR merged as #1085; the rate limit is upstream, so further rejections point at fewer concurrent agent sessions."
     }
   ]
 }
