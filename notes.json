@@ -2,37 +2,37 @@
   "version": 1,
   "cursors": {
     "labelling_after": 1072,
-    "investigation_after": 1096
+    "investigation_after": 1101
   },
   "issues": [
     {
       "number": 1096,
       "state": "commented",
       "updated_at": "2026-10-27",
-      "note": "macOS v0.10.1 dyld crash. The bundler scanned for /opt/homebrew/ load commands only, so a keg's @rpath/libbrotlicommon.1.dylib was never copied. Two draft branches fix it; the appcast and v0.10.2 are maintainer-side."
+      "note": "macOS v0.10.1 dyld crash. Fixed in code (#1097/#1098/#1099 merged). The v0.10.2 release is prepared on branch repo-assist/release-prepare-v0-10-2; the tag and the re-signed appcast stay maintainer-side."
     }
   ],
   "fixes": [
     {
       "issue": 1096,
       "pr": null,
-      "branch": "repo-assist/fix-1096-macos-rpath-dylib-closure",
+      "branch": "repo-assist/release-prepare-v0-10-2",
       "status": "open",
       "updated_at": "2026-10-27",
-      "note": "Bundler follows @rpath deps, adds @loader_path to copies, gates the dylib closure; 4-case Linux regression test. Second branch repo-assist/smoke-test-macos-launch adds a launch smoke test before the zip is packed."
+      "note": "v0.10.2 release prep on branch repo-assist/release-prepare-v0-10-2: pubspec 0.10.2+18, installer version synced, CHANGELOG renamed to 0.10.2, docs/releases/0.10.2.md added. Guard test on branch repo-assist/test-release-version-consistency."
     }
   ],
   "checks": [
     {
       "area": "tests",
       "checked_at": "2026-10-27",
-      "result": "flutter test full suite green: 6904 passed / 9 skipped combined, 6900 / 9 skipped on the smoke-test branch, exit 0.",
+      "result": "flutter test full suite green: 6909 passed / 9 skipped on the release branch, 6912 / 9 on the test branch (3 new cases), exit 0.",
       "follow_up": null
     },
     {
       "area": "ci",
       "checked_at": "2026-10-27",
-      "result": "validate_ci_gates.sh --fix --analyze --test: format ok, codegen drift ok, path-deps ok, flutter analyze clean.",
+      "result": "validate_ci_gates.sh --fix --analyze on both branches: format ok, codegen drift ok, path-deps ok, flutter analyze clean.",
       "follow_up": "Run flutter pub get before any gate; the sandbox pub cache starts empty."
     },
     {
@@ -44,14 +44,14 @@
     {
       "area": "docs",
       "checked_at": "2026-10-27",
-      "result": "docs/packaging.md documents the @rpath handling, the closure check, the launch smoke test, the keg log, and the new closure-check failure mode.",
+      "result": "docs/packaging.md documents the @rpath handling, the closure check, the launch smoke test, the keg log, and the new closure-check failure mode. docs/releases/0.10.2.md carries the user-facing v0.10.2 notes, including the manual re-download.",
       "follow_up": null
     },
     {
       "area": "tooling",
       "checked_at": "2026-10-27",
-      "result": "The agentic GitHub App still cannot push .github/workflows/ files. Whether .github/scripts/ is pushable is untested - that PR lands after this run.",
-      "follow_up": "Next run: if repo-assist/smoke-test-macos-launch opened, only .github/workflows/ is blocked."
+      "result": "The agentic App still cannot push .github/workflows/; .github/scripts/ is pushable. The compiled *.lock.yml carries the egress allowlist, so a .github/workflows/*.md edit needs gh aw compile to take effect.",
+      "follow_up": "Next run: check whether the dart-allowlist issue was applied and the lock files recompiled."
     }
   ],
   "completed_actions": [
@@ -82,13 +82,22 @@
     {
       "key": "release-notes-fallback-fixed-as-1094",
       "completed_at": "2026-10-27"
+    },
+    {
+      "key": "macos-rpath-closure-and-launch-smoke-merged-as-1097-1098-1099",
+      "completed_at": "2026-10-27"
     }
   ],
   "priorities": [
     {
       "task": 2,
-      "item": "Follow up on #1096 once the maintainer re-signs the appcast and ships v0.10.2",
-      "note": "v0.10.1 users auto-update into a crasher and cannot self-update. Only the maintainer can regenerate the signed appcast."
+      "item": "Follow up on the v0.10.2 release once the maintainer tags it and re-signs the appcast",
+      "note": "The release-prep PR is open. v0.10.1 users auto-update into a crasher and cannot self-update; only the maintainer can regenerate the signed appcast."
+    },
+    {
+      "task": 4,
+      "item": "Add `- dart` to the Perf Improver workflow's network.allowed and recompile the lock file",
+      "note": "Filed as an issue on 2026-10-27 with the exact patch. The compiled perf-improver.lock.yml allows no pub.dev domain, so flutter pub get cannot resolve in that sandbox."
     },
     {
       "task": 4,
