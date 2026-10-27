@@ -44,6 +44,7 @@ network:
   - python
   - rust
   - java
+  - dart
 
 safe-outputs:
   add-comment:
