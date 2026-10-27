@@ -158,19 +158,26 @@ EOF
   return 1
 }
 
-# LC_RPATH entries of $1, across all slices.
+# LC_RPATH entries of $1, across all slices. Cached per file: otool -l prints
+# every load command of a fat binary, and the closure check asks for the same
+# file once per dependency.
 macho_rpaths() {
-  otool -l "$1" 2>/dev/null | awk '
-    /^[[:space:]]*path[[:space:]]/ {
-      line = $0
-      sub(/^[[:space:]]*path[[:space:]]+/, "", line)
-      sub(/[[:space:]]*\(offset.*$/, "", line)
-      print line
-    }
-  '
+  cache="${RPATH_CACHE_DIR}/$(printf '%s' "$1" | tr '/' '_')"
+  if [ ! -f "${cache}" ]; then
+    otool -l "$1" 2>/dev/null | awk '
+      /^[[:space:]]*path[[:space:]]/ {
+        line = $0
+        sub(/^[[:space:]]*path[[:space:]]+/, "", line)
+        sub(/[[:space:]]*\(offset.*$/, "", line)
+        print line
+      }
+    ' >"${cache}"
+  fi
+  cat "${cache}"
 }
 
 MACHO_LIST="$(mktemp)"
+RPATH_CACHE_DIR="$(mktemp -d)"
 WORKLIST="$(mktemp)"
 BUNDLED="$(mktemp)"
 DEP_REWRITES="$(mktemp)"
@@ -178,6 +185,12 @@ DEP_REWRITES="$(mktemp)"
 : >"${WORKLIST}"
 : >"${BUNDLED}"
 : >"${DEP_REWRITES}"
+
+cleanup() {
+  rm -f "${MACHO_LIST}" "${WORKLIST}" "${BUNDLED}" "${DEP_REWRITES}"
+  rm -rf "${RPATH_CACHE_DIR}"
+}
+trap cleanup EXIT
 
 while IFS= read -r -d '' f; do
   if is_macho "$f" && references_homebrew "$f"; then
@@ -401,7 +414,6 @@ if [ "${CODE_SIGNING_ALLOWED:-YES}" = "NO" ]; then
   else
     echo "bundle_ffmpeg_homebrew_deps: skipping codesign (unsigned build)"
   fi
-  rm -f "${MACHO_LIST}" "${WORKLIST}" "${BUNDLED}" "${DEP_REWRITES}"
   exit 0
 fi
 
@@ -473,4 +485,3 @@ elif [ "${RESIGN_ALL_FRAMEWORKS}" -eq 1 ]; then
   echo "bundle_ffmpeg_homebrew_deps: re-signed embedded frameworks in ${FRAMEWORKS_DIR}"
 fi
 
-rm -f "${MACHO_LIST}" "${WORKLIST}" "${BUNDLED}" "${DEP_REWRITES}"
