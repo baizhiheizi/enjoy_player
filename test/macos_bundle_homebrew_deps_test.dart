@@ -9,6 +9,15 @@ import 'package:flutter_test/flutter_test.dart';
 /// See `docs/packaging.md` (macOS) and issue #1096.
 const _scriptPath = 'macos/scripts/bundle_ffmpeg_homebrew_deps.sh';
 
+/// A dylib version no real Homebrew keg ships. The fixture load commands keep
+/// the real `/opt/homebrew/opt/<formula>/lib/...` shape the bundler matches on,
+/// so a machine that really has the formula installed (every macOS build host)
+/// must not satisfy them: resolution has to go through the stubbed `brew`.
+const _sandboxKegVersion = '99';
+const _freetypeKegDylib = 'libfreetype.$_sandboxKegVersion.dylib';
+const _brotlidecKegDylib = 'libbrotlidec.$_sandboxKegVersion.dylib';
+const _brotlicommonKegDylib = 'libbrotlicommon.$_sandboxKegVersion.dylib';
+
 const _otoolStub = r'''
 #!/bin/sh
 mode="$1"
@@ -223,28 +232,28 @@ _Sandbox _buildSandbox({bool withBrotliCommon = true}) {
     ..writeStub('brew', _brewStub)
     ..writeStub('codesign', _codesignStub);
 
-  sandbox.writeKegLib('freetype', 'libfreetype.6.dylib');
-  sandbox.writeKegLib('brotli', 'libbrotlidec.1.dylib');
+  sandbox.writeKegLib('freetype', _freetypeKegDylib);
+  sandbox.writeKegLib('brotli', _brotlidecKegDylib);
   if (withBrotliCommon) {
-    sandbox.writeKegLib('brotli', 'libbrotlicommon.1.dylib');
+    sandbox.writeKegLib('brotli', _brotlicommonKegDylib);
   }
 
-  sandbox.writeDeps('libfreetype.6.dylib', [
-    '/opt/homebrew/opt/brotli/lib/libbrotlidec.1.dylib',
+  sandbox.writeDeps(_freetypeKegDylib, [
+    '/opt/homebrew/opt/brotli/lib/$_brotlidecKegDylib',
     '/usr/lib/libSystem.B.dylib',
   ]);
-  sandbox.writeDeps('libbrotlidec.1.dylib', [
-    '@rpath/libbrotlicommon.1.dylib',
+  sandbox.writeDeps(_brotlidecKegDylib, [
+    '@rpath/$_brotlicommonKegDylib',
     '/usr/lib/libSystem.B.dylib',
   ]);
-  sandbox.writeDeps('libbrotlicommon.1.dylib', ['/usr/lib/libSystem.B.dylib']);
+  sandbox.writeDeps(_brotlicommonKegDylib, ['/usr/lib/libSystem.B.dylib']);
   sandbox.writeDeps('Enjoy Player', [
-    '/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib',
+    '/opt/homebrew/opt/freetype/lib/$_freetypeKegDylib',
     '/usr/lib/libSystem.B.dylib',
   ]);
 
-  sandbox.writeRpaths('libfreetype.6.dylib', ['@loader_path']);
-  sandbox.writeRpaths('libbrotlidec.1.dylib', [
+  sandbox.writeRpaths(_freetypeKegDylib, ['@loader_path']);
+  sandbox.writeRpaths(_brotlidecKegDylib, [
     '@loader_path/../lib',
     '@loader_path',
   ]);
@@ -274,19 +283,19 @@ void main() {
         reason: 'bundler failed:\n${result.stdout}\n${result.stderr}',
       );
       expect(
-        File('${sandbox.frameworksDir}/libbrotlicommon.1.dylib').existsSync(),
+        File('${sandbox.frameworksDir}/$_brotlicommonKegDylib').existsSync(),
         isTrue,
         reason:
-            'libbrotlicommon.1.dylib is only referenced as '
-            '@rpath/libbrotlicommon.1.dylib; the bundler has to copy it too.',
+            '$_brotlicommonKegDylib is only referenced as '
+            '@rpath/$_brotlicommonKegDylib; the bundler has to copy it too.',
       );
       expect(
-        File('${sandbox.frameworksDir}/libbrotlidec.1.dylib').existsSync(),
+        File('${sandbox.frameworksDir}/$_brotlidecKegDylib').existsSync(),
         isTrue,
       );
       expect(
-        sandbox.depsOf('libbrotlidec.1.dylib'),
-        contains('@rpath/libbrotlicommon.1.dylib'),
+        sandbox.depsOf(_brotlidecKegDylib),
+        contains('@rpath/$_brotlicommonKegDylib'),
       );
     },
     skip: skipOnWindows,
@@ -305,7 +314,7 @@ void main() {
     );
     expect(
       sandbox.depsOf('Enjoy Player'),
-      contains('@rpath/libfreetype.6.dylib'),
+      contains('@rpath/$_freetypeKegDylib'),
     );
   }, skip: skipOnWindows);
 
@@ -318,7 +327,7 @@ void main() {
     expect(result.exitCode, isNot(0));
     expect(
       result.stderr,
-      contains('libbrotlicommon.1.dylib'),
+      contains(_brotlicommonKegDylib),
       reason:
           'The closure check has to name the dependency that cannot be '
           'resolved, otherwise the release dies in dyld on the user machine.',

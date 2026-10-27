@@ -396,6 +396,13 @@ if [ "${closure_failures}" -gt 0 ]; then
   exit 1
 fi
 
+if [ "${BUNDLED_COUNT}" -gt 0 ]; then
+  while read -r src; do
+    [ -n "${src}" ] || continue
+    echo "bundle_ffmpeg_homebrew_deps: ${src} -> ${FRAMEWORKS_DIR}/$(basename "${src}")"
+  done <"${BUNDLED}"
+fi
+
 SCRIPT_DIR="$(CDPATH= cd "$(dirname "$0")" && pwd)"
 MACOS_DIR="$(dirname "${SCRIPT_DIR}")"
 if [ "${CONFIGURATION:-Debug}" = "Release" ] || [ "${ENABLE_HARDENED_RUNTIME:-}" = "YES" ]; then
@@ -476,10 +483,6 @@ EOF
 fi
 
 if [ "${BUNDLED_COUNT}" -gt 0 ]; then
-  while read -r src; do
-    [ -n "${src}" ] || continue
-    echo "bundle_ffmpeg_homebrew_deps: ${src} -> ${FRAMEWORKS_DIR}/$(basename "${src}")"
-  done <"${BUNDLED}"
   echo "bundle_ffmpeg_homebrew_deps: bundled ${BUNDLED_COUNT} Homebrew dylib(s) into ${FRAMEWORKS_DIR}"
 elif [ "${RESIGN_ALL_FRAMEWORKS}" -eq 1 ]; then
   echo "bundle_ffmpeg_homebrew_deps: re-signed embedded frameworks in ${FRAMEWORKS_DIR}"
