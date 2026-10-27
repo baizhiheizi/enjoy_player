@@ -26,6 +26,9 @@ target="$1"
 base=$(basename "$target")
 case "$mode" in
   -L)
+    if [ -f "$STATE_DIR/ids/$base" ]; then
+      printf '\t%s (compatibility version 1.0.0, current version 1.0.0)\n' "$(cat "$STATE_DIR/ids/$base")"
+    fi
     deps="$FIXTURE_DIR/deps/$base"
     [ -f "$deps" ] || exit 0
     printf '%s:\n' "$target"
@@ -36,13 +39,29 @@ case "$mode" in
     ;;
   -l)
     printf '%s:\n' "$target"
+    load_index=1
     for source in "$FIXTURE_DIR/rpaths/$base" "$STATE_DIR/rpaths/$base"; do
       [ -f "$source" ] || continue
       while IFS= read -r line; do
         [ -n "$line" ] || continue
-        printf 'Load command 1\n          cmd LC_RPATH\n      cmdsize 48\n         path %s (offset 12)\n' "$line"
+        printf 'Load command %s\n          cmd LC_RPATH\n      cmdsize 48\n         path %s (offset 12)\n' "$load_index" "$line"
+        load_index=$((load_index + 1))
       done <"$source"
     done
+    if [ -f "$FIXTURE_DIR/deps/$base" ]; then
+      while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        printf 'Load command %s\n          cmd LC_LOAD_DYLIB\n      cmdsize 88\n         name %s (offset 24)\n' "$load_index" "$line"
+        load_index=$((load_index + 1))
+      done <"$FIXTURE_DIR/deps/$base"
+    fi
+    if [ -f "$FIXTURE_DIR/weak_deps/$base" ]; then
+      while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        printf 'Load command %s\n          cmd LC_LOAD_WEAK_DYLIB\n      cmdsize 88\n         name %s (offset 24)\n' "$load_index" "$line"
+        load_index=$((load_index + 1))
+      done <"$FIXTURE_DIR/weak_deps/$base"
+    fi
     ;;
 esac
 exit 0
@@ -164,6 +183,12 @@ class _Sandbox {
       ..writeAsStringSync('${deps.join('\n')}\n');
   }
 
+  void writeWeakDeps(String binary, List<String> deps) {
+    File('${fixtures.path}/weak_deps/$binary')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('${deps.join('\n')}\n');
+  }
+
   void writeRpaths(String binary, List<String> rpaths) {
     File('${fixtures.path}/rpaths/$binary')
       ..createSync(recursive: true)
@@ -258,7 +283,6 @@ _Sandbox _buildSandbox({bool withBrotliCommon = true}) {
     '@loader_path',
   ]);
   sandbox.writeRpaths('Enjoy Player', ['@executable_path/../Frameworks']);
-
   sandbox.writeAppFile('Contents/MacOS/Enjoy Player', 'mach-o');
   sandbox.createAppDir('Contents/Frameworks');
   return sandbox;
@@ -358,4 +382,109 @@ void main() {
     },
     skip: skipOnWindows,
   );
+
+  test('keeps install names that contain a space resolvable', () {
+    final sandbox = _buildSandbox();
+    addTearDown(sandbox.dispose);
+
+    sandbox.writeDeps('Enjoy Player', [
+      '/opt/homebrew/opt/freetype/lib/$_freetypeKegDylib',
+      '@rpath/Enjoy Player.debug.dylib',
+      '/usr/lib/libSystem.B.dylib',
+    ]);
+    sandbox.writeRpaths('Enjoy Player', [
+      '@executable_path/../Frameworks',
+      '@executable_path',
+    ]);
+    sandbox.writeDeps('Enjoy Player.debug.dylib', [
+      '/usr/lib/libSystem.B.dylib',
+    ]);
+    sandbox.writeAppFile('Contents/MacOS/Enjoy Player.debug.dylib', 'mach-o');
+
+    final result = sandbox.runBundler();
+
+    expect(
+      result.exitCode,
+      0,
+      reason:
+          'Xcode debug builds load the debug dylib through the spaced install '
+          'name @rpath/Enjoy Player.debug.dylib; truncating the name at the '
+          'space fails the closure check on every Debug build:\n${result.stdout}\n${result.stderr}',
+    );
+    expect(result.stderr, isNot(contains('cannot resolve')));
+  }, skip: skipOnWindows);
+
+  test('does not fail on a weak-linked library that is not bundled', () {
+    final sandbox = _buildSandbox();
+    addTearDown(sandbox.dispose);
+
+    sandbox.writeWeakDeps(_freetypeKegDylib, [
+      '@rpath/libswiftCompatibilitySpan.dylib',
+    ]);
+
+    final result = sandbox.runBundler();
+
+    expect(
+      result.exitCode,
+      0,
+      reason:
+          'A missing LC_LOAD_WEAK_DYLIB is legal at runtime — Xcode back-ports '
+          'Swift compatibility libraries in a later build phase:\n${result.stdout}\n${result.stderr}',
+    );
+  }, skip: skipOnWindows);
+
+  test('resolves the OS Swift runtime through the executable rpath', () {
+    final sandbox = _buildSandbox();
+    addTearDown(sandbox.dispose);
+
+    sandbox.writeDeps('libswift_Concurrency.dylib', [
+      '@rpath/libswiftCore.dylib',
+    ]);
+    sandbox.writeAppFile(
+      'Contents/Frameworks/libswift_Concurrency.dylib',
+      'mach-o',
+    );
+    sandbox.writeRpaths('Enjoy Player', [
+      '@executable_path/../Frameworks',
+      '/usr/lib/swift',
+    ]);
+
+    final result = sandbox.runBundler();
+
+    expect(
+      result.exitCode,
+      0,
+      reason:
+          'The toolchain back-deployment libraries have no LC_RPATH of their '
+          'own and libswiftCore.dylib only exists in the dyld shared cache; '
+          'dyld resolves it with the main executable rpaths:\n${result.stdout}\n${result.stderr}',
+    );
+  }, skip: skipOnWindows);
+
+  test('does not treat a /usr/lib rpath as a blanket resolution', () {
+    final sandbox = _buildSandbox();
+    addTearDown(sandbox.dispose);
+
+    sandbox.writeDeps(_freetypeKegDylib, [
+      '/opt/homebrew/opt/brotli/lib/$_brotlidecKegDylib',
+      '@rpath/libpng16.16.dylib',
+      '/usr/lib/libSystem.B.dylib',
+    ]);
+    sandbox.writeRpaths('Enjoy Player', [
+      '@executable_path/../Frameworks',
+      '/usr/lib/swift',
+    ]);
+
+    final result = sandbox.runBundler();
+
+    expect(result.exitCode, isNot(0));
+    expect(
+      result.stderr,
+      contains('libpng16.16.dylib'),
+      reason:
+          'A Homebrew-shaped @rpath dependency must stay unresolved even when '
+          'the executable carries a /usr/lib rpath; only the OS Swift runtime '
+          'is served from the dyld shared cache.',
+    );
+  }, skip: skipOnWindows);
 }
