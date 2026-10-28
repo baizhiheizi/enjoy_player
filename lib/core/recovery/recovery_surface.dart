@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
 import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
-import 'package:enjoy_player/core/recovery/recovery_text_style.dart';
+import 'package:enjoy_player/core/recovery/recovery_error_panel.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
@@ -47,104 +47,57 @@ class _RecoverySurfaceState extends State<RecoverySurface>
     final tt = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(t.space24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Icon(EnjoyIcons.warning, size: 64, color: cs.error),
-                  SizedBox(height: t.space16),
-                  Text(
-                    l10n.recoveryTitle,
-                    textAlign: TextAlign.center,
-                    style: tt.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: t.space12),
-                  Text(
-                    l10n.recoverySubtitle,
-                    textAlign: TextAlign.center,
-                    style: tt.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: t.space24),
-                  EnjoyCard(
-                    padding: EdgeInsets.all(t.space20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          widget.error.toString(),
-                          style: recoveryMonoText(context, cs),
-                          maxLines: 6,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: t.space16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: EnjoyButton.secondary(
-                            icon: EnjoyIcons.copy,
-                            onPressed: busy ? null : _onCopy,
-                            child: Text(l10n.recoveryCopyError),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: t.space16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: EnjoyButton.secondary(
-                      icon: EnjoyIcons.folder,
-                      onPressed: busy ? null : _onOpenLogs,
-                      child: Text(l10n.recoveryOpenLogs),
-                    ),
-                  ),
-                  SizedBox(height: t.space24),
-                  EnjoyCard(
-                    padding: EdgeInsets.all(t.space20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          l10n.recoveryResetLibrary,
-                          style: tt.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: t.space8),
-                        Text(
-                          l10n.recoveryResetLibrarySubtitle,
-                          style: tt.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                            height: 1.45,
-                          ),
-                        ),
-                        SizedBox(height: t.space16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: EnjoyButton.destructive(
-                            icon: EnjoyIcons.delete,
-                            onPressed: busy ? null : _onResetRequest,
-                            child: Text(l10n.recoveryResetLibrary),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+      body: RecoveryErrorLayout(
+        children: [
+          RecoveryErrorPanel(
+            icon: EnjoyIcons.warning,
+            title: l10n.recoveryTitle,
+            subtitle: l10n.recoverySubtitle,
+            message: widget.error.toString(),
+            busy: busy,
+            onCopy: _onCopy,
+            maxLines: 6,
+          ),
+          SizedBox(height: t.space16),
+          SizedBox(
+            width: double.infinity,
+            child: EnjoyButton.secondary(
+              icon: EnjoyIcons.folder,
+              onPressed: busy ? null : _onOpenLogs,
+              child: Text(l10n.recoveryOpenLogs),
             ),
           ),
-        ),
+          SizedBox(height: t.space24),
+          EnjoyCard(
+            padding: EdgeInsets.all(t.space20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.recoveryResetLibrary,
+                  style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                SizedBox(height: t.space8),
+                Text(
+                  l10n.recoveryResetLibrarySubtitle,
+                  style: tt.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+                ),
+                SizedBox(height: t.space16),
+                SizedBox(
+                  width: double.infinity,
+                  child: EnjoyButton.destructive(
+                    icon: EnjoyIcons.delete,
+                    onPressed: busy ? null : _onResetRequest,
+                    child: Text(l10n.recoveryResetLibrary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

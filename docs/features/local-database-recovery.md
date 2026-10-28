@@ -19,6 +19,8 @@ Matches route to [`RecoverySurface`](../../lib/core/recovery/recovery_surface.da
 
 ## Recovery surface
 
+`RecoverySurface` and `WidgetErrorSurface` share `RecoveryErrorLayout` (SafeArea → 520 px column → scroll) and `RecoveryErrorPanel` (error icon, title, subtitle, mono error card, copy action) from `lib/core/recovery/recovery_error_panel.dart`; only the shell (`Scaffold` vs `Material`) and the surface-specific extra actions differ.
+
 Full-screen, localized (`AppLocalizations`) UI offering:
 
 - **Copy error** — error + stack trace to clipboard, for support handoff.

@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
+import 'package:enjoy_player/core/recovery/recovery_error_panel.dart';
 import 'package:enjoy_player/core/recovery/recovery_surface.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Local data needs attention'), findsOneWidget);
+    expect(find.byType(RecoveryErrorPanel), findsOneWidget);
     expect(find.text('Copy error'), findsOneWidget);
     expect(find.text('Open logs folder'), findsOneWidget);
     expect(find.text('Reset local library'), findsAtLeastNWidgets(1));
