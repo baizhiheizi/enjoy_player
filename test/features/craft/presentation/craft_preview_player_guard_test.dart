@@ -4,26 +4,41 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('Craft owns a single preview playback implementation', () {
-    final files = Directory('lib/features/craft')
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((file) => file.path.endsWith('.dart'))
-        .toList();
+    final sources = {
+      for (final file
+          in Directory('lib/features/craft')
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((file) => file.path.endsWith('.dart')))
+        file.path.replaceAll(Platform.pathSeparator, '/'): file
+            .readAsStringSync(),
+    };
 
-    final playerOwners = files
-        .where((file) => file.readAsStringSync().contains('AudioPlayer('))
-        .map((file) => file.path)
+    final playerOwners = sources.entries
+        .where((entry) => RegExp(r'\bAudioPlayer\s*\(').hasMatch(entry.value))
+        .map((entry) => entry.key)
         .toList();
     expect(playerOwners, [
       'lib/features/craft/application/craft_preview_controller.dart',
-    ]);
+    ], reason: 'Construct AudioPlayer only in CraftPreviewController.');
 
-    final privatePlayers = files
+    final audioPlayersImports = sources.entries
         .where(
-          (file) => file.readAsStringSync().contains('class _PreviewPlayer'),
+          (entry) =>
+              entry.key !=
+              'lib/features/craft/application/craft_preview_controller.dart',
         )
-        .map((file) => file.path)
+        .where(
+          (entry) => RegExp(
+            r"import\s+'package:audioplayers/audioplayers\.dart';",
+          ).hasMatch(entry.value),
+        )
+        .map((entry) => entry.key)
         .toList();
-    expect(privatePlayers, isEmpty);
+    expect(
+      audioPlayersImports,
+      isEmpty,
+      reason: 'Use CraftPreviewPlayer instead of importing audioplayers.',
+    );
   });
 }

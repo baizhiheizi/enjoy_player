@@ -23,25 +23,29 @@ class CraftPreviewController extends ChangeNotifier {
 
     if (_isPlaying) {
       await player.pause();
-      if (_disposed) return;
+      if (_disposed || _player != player) return;
       _isPlaying = false;
       notifyListeners();
       return;
     }
 
+    if (_disposed || _player != player) return;
     if (_position == _duration && _duration > Duration.zero) {
       await player.seek(Duration.zero);
+      if (_disposed || _player != player) return;
     }
     await player.play(BytesSource(bytes));
-    if (_disposed) return;
+    if (_disposed || _player != player) return;
     _isPlaying = true;
     notifyListeners();
   }
 
   Future<void> seek(Duration value) async {
     if (_disposed) return;
-    await _player?.seek(value);
-    if (_disposed) return;
+    final player = _player;
+    if (player == null) return;
+    await player.seek(value);
+    if (_disposed || _player != player) return;
     _position = value;
     notifyListeners();
   }
