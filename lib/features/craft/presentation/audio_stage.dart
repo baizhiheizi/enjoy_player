@@ -7,9 +7,7 @@
 library;
 
 import 'dart:async';
-import 'dart:typed_data';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,15 +16,14 @@ import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
-import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/presentation/audio_stage_actions.dart';
-import 'package:enjoy_player/features/craft/presentation/audio_stage_preview_player.dart';
 import 'package:enjoy_player/features/craft/presentation/audio_stage_script_block.dart';
 import 'package:enjoy_player/features/craft/presentation/audio_stage_voice_chip.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_loading_view.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_preview_player.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Audio stage for the Express flow.
@@ -38,74 +35,7 @@ class AudioStage extends ConsumerStatefulWidget {
 }
 
 class _AudioStageState extends ConsumerState<AudioStage> {
-  AudioPlayer? _player;
-  bool _isPlaying = false;
-  Duration _position = Duration.zero;
-  Duration _duration = Duration.zero;
-  StreamSubscription? _positionSub;
-  StreamSubscription? _durationSub;
-  StreamSubscription? _completeSub;
   bool _voiceExpanded = false;
-
-  @override
-  void dispose() {
-    _cancelStreams();
-    unawaited(_player?.dispose());
-    super.dispose();
-  }
-
-  void _cancelStreams() {
-    unawaited(_positionSub?.cancel());
-    unawaited(_durationSub?.cancel());
-    unawaited(_completeSub?.cancel());
-    _positionSub = null;
-    _durationSub = null;
-    _completeSub = null;
-  }
-
-  Future<void> _togglePlay() async {
-    final bytes = ref.read(craftControllerProvider).previewAudioBytes;
-    if (bytes == null) return;
-
-    _player ??= AudioPlayer();
-
-    if (_isPlaying) {
-      await _player!.pause();
-      if (mounted) setState(() => _isPlaying = false);
-    } else {
-      if (_positionSub == null) {
-        _positionSub = _player!.onPositionChanged.listen((pos) {
-          if (!mounted) return;
-          setState(() {
-            _position = _duration > Duration.zero && pos > _duration
-                ? _duration
-                : pos;
-          });
-        });
-        _durationSub = _player!.onDurationChanged.listen((dur) {
-          if (!mounted) return;
-          setState(() {
-            _duration = dur;
-            if (_position > dur) _position = dur;
-          });
-        });
-        _completeSub = _player!.onPlayerComplete.listen((_) {
-          if (mounted) {
-            setState(() {
-              _isPlaying = false;
-              _position = Duration.zero;
-            });
-          }
-        });
-      }
-
-      if (_position == _duration && _duration > Duration.zero) {
-        await _player!.seek(Duration.zero);
-      }
-      await _player!.play(BytesSource(bytes));
-      if (mounted) setState(() => _isPlaying = true);
-    }
-  }
 
   Future<void> _saveAndCaptureNext() async {
     final result = await ref
@@ -122,12 +52,6 @@ class _AudioStageState extends ConsumerState<AudioStage> {
       context,
       savedSolidTimeline: result.wroteSolidTranscript,
     );
-    _cancelStreams();
-    unawaited(_player?.dispose());
-    _player = null;
-    _isPlaying = false;
-    _position = Duration.zero;
-    _duration = Duration.zero;
   }
 
   Future<void> _saveAndPractice() async {
@@ -151,23 +75,6 @@ class _AudioStageState extends ConsumerState<AudioStage> {
     final state = ref.watch(craftControllerProvider);
     final theme = Theme.of(context);
     final t = EnjoyThemeTokens.of(context);
-
-    ref.listen<Uint8List?>(
-      craftControllerProvider.select((s) => s.previewAudioBytes),
-      (prev, next) {
-        if (prev == next) return;
-        _cancelStreams();
-        unawaited(_player?.dispose());
-        _player = null;
-        if (mounted) {
-          setState(() {
-            _isPlaying = false;
-            _position = Duration.zero;
-            _duration = Duration.zero;
-          });
-        }
-      },
-    );
 
     if (state.isSynthesizing) {
       return CraftLoadingView(message: l10n.craftLoadingSynthesizing);
@@ -222,18 +129,7 @@ class _AudioStageState extends ConsumerState<AudioStage> {
                 theme: theme,
               ),
               SizedBox(height: t.space20),
-              AudioStagePreviewPlayer(
-                isPlaying: _isPlaying,
-                position: _position,
-                duration: _duration,
-                onToggle: _togglePlay,
-                onSeek: (pos) async {
-                  await _player?.seek(pos);
-                  if (mounted) setState(() => _position = pos);
-                },
-                fmt: formatDurationHms,
-                theme: theme,
-              ),
+              CraftPreviewPlayer(audioBytes: state.previewAudioBytes!),
               SizedBox(height: t.space16),
               AudioStageVoiceChip(
                 expanded: _voiceExpanded,

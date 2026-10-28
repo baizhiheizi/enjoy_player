@@ -15,8 +15,10 @@ import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
 import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
+import 'package:enjoy_player/features/craft/presentation/audio_stage_preview_player.dart';
 import 'package:enjoy_player/features/craft/presentation/synthesize_tool.dart';
 import 'package:enjoy_player/features/craft/presentation/translate_tool.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_preview_player.dart';
 import 'package:enjoy_player/features/craft/application/craft_library_repository_provider.dart';
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -367,6 +369,9 @@ void main() {
 
       expect(find.text('Save to library'), findsOneWidget);
 
+      expect(find.byType(CraftPreviewPlayer), findsOneWidget);
+      expect(find.byType(AudioStagePreviewPlayer), findsOneWidget);
+      expect(find.byType(Slider), findsOneWidget);
       expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
     });
 
