@@ -10,7 +10,7 @@ import 'failures.dart';
 import 'language_map.dart';
 import 'outcome.dart';
 import 'request.dart';
-import 'synth/espeak_ng_synthesizer.dart';
+import 'synth/espeak_ffi.dart';
 import 'synth/espeak_synth_host.dart';
 import 'synth/spoken_reference.dart';
 import 'types.dart';

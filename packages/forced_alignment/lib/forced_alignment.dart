@@ -13,12 +13,12 @@ export 'src/language_map.dart'
 export 'src/outcome.dart';
 export 'src/phonemize.dart';
 export 'src/request.dart';
-export 'src/synth/espeak_ng_synthesizer.dart'
+export 'src/synth/espeak_ffi.dart'
     show
-        EspeakNgSynthesizer,
         decodeEspeakPhonemeIdBytes,
         debugSetEspeakFfiAvailable,
         espeakFfiIsAvailable;
+export 'src/synth/espeak_ng_synthesizer.dart' show EspeakNgSynthesizer;
 export 'src/synth/native_paths.dart'
     show
         kEspeakAndroidSoname,
