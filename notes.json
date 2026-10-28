@@ -6,52 +6,58 @@
   },
   "issues": [
     {
-      "number": 1096,
+      "number": 864,
       "state": "commented",
-      "updated_at": "2026-10-27",
-      "note": "macOS v0.10.1 dyld crash. Fixed in code (#1097/#1098/#1099 merged). The v0.10.2 release is prepared on branch repo-assist/release-prepare-v0-10-2; the tag and the re-signed appcast stay maintainer-side."
+      "updated_at": "2026-10-28",
+      "note": "Perf Improver monthly issue. Commented: P3's vocabulary_item_dao.listDue has NO production caller; the live over-fetch is VocabularyReviewSessionLifecycle.start() loading repo.listAll() and filtering in Dart. Not implemented - needs a maintainer decision."
     }
   ],
   "fixes": [
     {
-      "issue": 1096,
+      "issue": 864,
       "pr": null,
-      "branch": "repo-assist/release-prepare-v0-10-2",
+      "branch": "repo-assist/perf-startup-settings-bulk-read",
       "status": "open",
-      "updated_at": "2026-10-27",
-      "note": "v0.10.2 release prep on branch repo-assist/release-prepare-v0-10-2: pubspec 0.10.2+18, installer version synced, CHANGELOG renamed to 0.10.2, docs/releases/0.10.2.md added. Guard test on branch repo-assist/test-release-version-consistency."
+      "updated_at": "2026-10-28",
+      "note": "perf(startup): the four shell preferences now read in one settings query (SettingsDao.readSettings, WHERE key IN (...)). A drift QueryInterceptor counts the settings SELECTs and pins the count at 1. 6937 tests passed."
     }
   ],
   "checks": [
     {
       "area": "tests",
-      "checked_at": "2026-10-27",
-      "result": "flutter test full suite green: 6909 passed / 9 skipped on the release branch, 6912 / 9 on the test branch (3 new cases), exit 0.",
+      "checked_at": "2026-10-28",
+      "result": "flutter test green on both branches: perf branch 6937 passed / 10 skipped; dependency branch 6930 passed / 10 skipped, plus forced_alignment 86 and azure_speech 12.",
       "follow_up": null
     },
     {
       "area": "ci",
-      "checked_at": "2026-10-27",
-      "result": "validate_ci_gates.sh --fix --analyze on both branches: format ok, codegen drift ok, path-deps ok, flutter analyze clean.",
-      "follow_up": "Run flutter pub get before any gate; the sandbox pub cache starts empty."
+      "checked_at": "2026-10-28",
+      "result": "validate_ci_gates.sh --fix --analyze --test (perf branch) and the same plus --packages (dependency branch): format ok, codegen drift ok, path-deps ok, flutter analyze clean, exit 0.",
+      "follow_up": "Run flutter pub get first; the sandbox pub cache starts empty. The full suite takes ~12 min, so run the gate in the background with a long timeout."
+    },
+    {
+      "area": "release",
+      "checked_at": "2026-10-28",
+      "result": "v0.10.2 is tagged (c729f1f8). Release Apple and Release Linux succeeded; Release Windows and Release Android failed on 5 platform-specific test failures (Windows log: '6869 tests passed, 5 failed'). #1123 fixes them, but the tag predates it.",
+      "follow_up": "No GitHub Release object exists for v0.10.2. A maintainer must publish it and re-sign the Sparkle appcast; v0.10.1 users cannot self-update."
     },
     {
       "area": "qa",
-      "checked_at": "2026-10-27",
-      "result": "No macOS host is reachable. The closure gate and the launch smoke test ran only against Linux stand-ins; build_apple.yml builds Debug+Release on macos/** changes.",
-      "follow_up": "A maintainer should run one real macOS release build and confirm both gates pass."
+      "checked_at": "2026-10-28",
+      "result": "No macOS or Windows host is reachable. The v0.10.2 Windows and Android release failures were read from the GitHub Actions job logs, not reproduced locally.",
+      "follow_up": "A maintainer should re-run the release jobs on a new tag once #1123 is in."
     },
     {
       "area": "docs",
-      "checked_at": "2026-10-27",
-      "result": "docs/packaging.md documents the @rpath handling, the closure check, the launch smoke test, the keg log, and the new closure-check failure mode. docs/releases/0.10.2.md carries the user-facing v0.10.2 notes, including the manual re-download.",
+      "checked_at": "2026-10-28",
+      "result": "docs/features/app-ui.md gains a 'Startup preferences' section: the four shell preferences resolve in one settings query before the router renders, and the QueryInterceptor regression check pins the count at one.",
       "follow_up": null
     },
     {
       "area": "tooling",
-      "checked_at": "2026-10-27",
-      "result": "The agentic App still cannot push .github/workflows/; .github/scripts/ is pushable. The compiled *.lock.yml carries the egress allowlist, so a .github/workflows/*.md edit needs gh aw compile to take effect.",
-      "follow_up": "Next run: check whether the dart-allowlist issue was applied and the lock files recompiled."
+      "checked_at": "2026-10-28",
+      "result": "The Perf Improver dart allowlist landed as #1111, but from the maintainer's own branch - the agentic App still cannot push .github/workflows/. .github/scripts/ stays pushable.",
+      "follow_up": "The compiled *.lock.yml carries the egress allowlist, so a .github/workflows/*.md edit still needs gh aw compile."
     }
   ],
   "completed_actions": [
@@ -85,24 +91,37 @@
     },
     {
       "key": "macos-rpath-closure-and-launch-smoke-merged-as-1097-1098-1099",
-      "completed_at": "2026-10-27"
+      "completed_at": "2026-10-28"
+    },
+    {
+      "key": "perf-improver-dart-allowlist-merged-as-1111",
+      "completed_at": "2026-10-28"
+    },
+    {
+      "key": "v0.10.2-release-prep-merged-as-1102",
+      "completed_at": "2026-10-28"
     }
   ],
   "priorities": [
     {
       "task": 2,
-      "item": "Follow up on the v0.10.2 release once the maintainer tags it and re-signs the appcast",
-      "note": "The release-prep PR is open. v0.10.1 users auto-update into a crasher and cannot self-update; only the maintainer can regenerate the signed appcast."
+      "item": "Follow up on the v0.10.2 release: tagged, but Windows and Android failed, no Release object",
+      "note": "v0.10.1 users auto-update into a dyld crasher and cannot self-update, so the macOS appcast re-sign and a published release are the only way out. #1123 fixes the five failing tests, but the tag predates it."
+    },
+    {
+      "task": 8,
+      "item": "The review-session vocabulary over-fetch needs a maintainer decision",
+      "note": "Detailed on issue #864: VocabularyReviewSessionLifecycle.start() loads repo.listAll() (every row + explanation blob) and filters in Dart. Only the queued rows need the blob."
     },
     {
       "task": 4,
-      "item": "Add `- dart` to the Perf Improver workflow's network.allowed and recompile the lock file",
-      "note": "Filed as an issue on 2026-10-27 with the exact patch. The compiled perf-improver.lock.yml allows no pub.dev domain, so flutter pub get cannot resolve in that sandbox."
+      "item": "Review the dependency-update draft PR (repo-assist/eng-dependency-updates-2026-10-28)",
+      "note": "35 packages moved forward within the existing constraints; pubspec.yaml unchanged and build_runner produced no generated-file diff. 6930 + 86 + 12 tests passed."
     },
     {
-      "task": 4,
-      "item": "Re-apply the two remaining stale first-party action pins (#1050)",
-      "note": "release_publish.yml checkout@v4, build_linux.yml upload-artifact@v4; deploy_landing.yml is gone since #1080. Blocked on the workflows permission."
+      "task": 7,
+      "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
+      "note": "v0.10.1 shipped 2026-10-26; the three other tagged versions still have no Release object. Needs a maintainer."
     },
     {
       "task": 4,
@@ -110,14 +129,14 @@
       "note": "The analyzer-14 unblock landed in #998. A new dependency needs maintainer discussion, so Repo Assist will not adopt it."
     },
     {
-      "task": 7,
-      "item": "Backfill the GitHub Release objects for v0.10.0 and v0.9.0",
-      "note": "v0.10.1 shipped 2026-10-26; the two earlier tags still have no Release object. Needs a maintainer."
-    },
-    {
       "task": 5,
       "item": "The proactive-refactor lane stays paused by the maintainer",
       "note": "Do not re-propose primitive deduplication; the _trimTrailingSlash and inline RegExp copies were found and deliberately left alone."
+    },
+    {
+      "task": 4,
+      "item": "Do not re-propose the stale first-party action pins",
+      "note": "#1050 was closed not_planned by the maintainer on 2026-10-23, so release_publish.yml checkout@v4 and build_linux.yml upload-artifact@v4 are out of scope."
     },
     {
       "task": 2,
