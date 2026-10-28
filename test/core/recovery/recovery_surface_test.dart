@@ -28,11 +28,16 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Local data needs attention'), findsOneWidget);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(RecoverySurface)),
+    )!;
+
+    expect(find.byType(RecoveryErrorLayout), findsOneWidget);
     expect(find.byType(RecoveryErrorPanel), findsOneWidget);
-    expect(find.text('Copy error'), findsOneWidget);
-    expect(find.text('Open logs folder'), findsOneWidget);
-    expect(find.text('Reset local library'), findsAtLeastNWidgets(1));
+    expect(find.text(l10n.recoveryTitle), findsOneWidget);
+    expect(find.text(l10n.recoveryCopyError), findsOneWidget);
+    expect(find.text(l10n.recoveryOpenLogs), findsOneWidget);
+    expect(find.text(l10n.recoveryResetLibrary), findsAtLeastNWidgets(1));
     expect(
       find.textContaining('file is not a database'),
       findsAtLeastNWidgets(1),
@@ -50,12 +55,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Reset local library'));
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(RecoverySurface)),
+    )!;
+
+    await tester.tap(
+      find.widgetWithText(FilledButton, l10n.recoveryResetLibrary),
+    );
     await tester.pumpAndSettle();
 
-    expect(find.text('Reset local library?'), findsOneWidget);
-    expect(find.text('Reset everything'), findsOneWidget);
-    expect(find.text('Cancel'), findsOneWidget);
+    expect(find.text(l10n.recoveryResetLibraryConfirmTitle), findsOneWidget);
+    expect(find.text(l10n.recoveryResetLibraryConfirmAction), findsOneWidget);
+    expect(find.text(l10n.authCancel), findsOneWidget);
   });
 
   testWidgets(
@@ -81,15 +92,22 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(RecoverySurface)),
+      )!;
+
       await tester.tap(
-        find.widgetWithText(FilledButton, 'Reset local library'),
+        find.widgetWithText(FilledButton, l10n.recoveryResetLibrary),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Reset everything'));
+      await tester.tap(find.text(l10n.recoveryResetLibraryConfirmAction));
       await tester.pumpAndSettle();
 
       expect(resetCalls, 1);
-      expect(find.textContaining('Reloading your data'), findsOneWidget);
+      expect(
+        find.textContaining(l10n.recoveryResetLibrarySuccess),
+        findsOneWidget,
+      );
     },
   );
 }
