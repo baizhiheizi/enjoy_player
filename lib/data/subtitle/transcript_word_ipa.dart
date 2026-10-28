@@ -34,10 +34,28 @@ List<String> wordIpaPieces(TranscriptWord word) {
   ];
 }
 
+/// Familiar-form spellings memoized per word instance.
+///
+/// Weak keys: an entry dies with the word it was derived from, so no
+/// eviction policy is needed.
+final Expando<String> _spellingMemo = Expando<String>('wordIpaSpelling');
+
+/// Number of familiar forms derived rather than read from [_spellingMemo].
+@visibleForTesting
+int wordIpaDerivationCount = 0;
+
 /// Familiar-form pronunciation for overlay, or null when none.
 String? wordIpaSpelling(TranscriptWord word) {
-  final pieces = wordIpaPieces(word);
-  if (pieces.isEmpty) return null;
-  final spelling = formatPhonesAsFamiliarIpa(pieces);
+  final memoized = _spellingMemo[word];
+  if (memoized != null) return memoized.isEmpty ? null : memoized;
+  final spelling = _deriveWordIpaSpelling(word);
+  _spellingMemo[word] = spelling;
+  wordIpaDerivationCount++;
   return spelling.isEmpty ? null : spelling;
+}
+
+String _deriveWordIpaSpelling(TranscriptWord word) {
+  final pieces = wordIpaPieces(word);
+  if (pieces.isEmpty) return '';
+  return formatPhonesAsFamiliarIpa(pieces);
 }

@@ -439,6 +439,22 @@ in-place word paint). The separate `karaokeWordIndexProvider` /
 latter was an orphan with no call sites). Provider tests live in
 [`transcript_playback_highlight_provider_test.dart`](../../test/features/transcript/application/transcript_playback_highlight_provider_test.dart).
 
+## Familiar-form IPA derivation
+
+[`wordIpaSpelling`](../../lib/data/subtitle/transcript_word_ipa.dart) turns a
+word's stored phone labels into the familiar teaching form the IPA overlay
+paints. The result depends only on `TranscriptWord.phones`, so it is memoized
+per word instance in an `Expando` — weak keys, so an entry dies with the word
+and no eviction policy is needed. The transcript list asks for the same words
+again on every cue change, and `transcriptDisplayReadiness` asks per line, so
+the memo takes the repeated derivation out of both paths. The readiness scan
+also stops once `hasPhones` and `hasTimedWords` are both known: the flags are
+monotone, so the remaining lines cannot change them.
+
+The invariant the memo relies on: a `TranscriptWord`'s `phones` list is never
+mutated after construction (`TranscriptWord` is `@immutable`, and every
+producer builds a fresh list).
+
 ## Alignment engine (Craft save + on-demand enrich)
 
 `packages/forced_alignment` maps known text + 16 kHz extractable PCM to

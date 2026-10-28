@@ -95,4 +95,66 @@ void main() {
       );
     });
   });
+
+  group('wordIpaSpelling memoization', () {
+    test('derives the familiar form once for a repeated word', () {
+      const word = TranscriptWord(
+        text: 'memo',
+        phones: [
+          TranscriptPhone(phone: 'm', text: 'm', startTime: 0, endTime: 0.05),
+          TranscriptPhone(phone: 'ɛ', text: 'ɛ', startTime: 0.05, endTime: 0.1),
+        ],
+      );
+
+      final before = wordIpaDerivationCount;
+      expect(wordIpaSpelling(word), 'me');
+      expect(wordIpaDerivationCount, before + 1);
+
+      expect(wordIpaSpelling(word), 'me');
+      expect(wordIpaDerivationCount, before + 1);
+    });
+
+    test('reuses the memoized familiar form for every word of a line', () {
+      final words = [
+        for (var i = 0; i < 12; i++)
+          TranscriptWord(
+            text: 'w$i',
+            phones: const [
+              TranscriptPhone(
+                phone: 'h',
+                text: 'h',
+                startTime: 0,
+                endTime: 0.1,
+              ),
+            ],
+          ),
+      ];
+
+      final before = wordIpaDerivationCount;
+      for (final word in words) {
+        expect(wordIpaSpelling(word), 'h');
+      }
+      expect(wordIpaDerivationCount, before + words.length);
+
+      for (final word in words) {
+        expect(wordIpaSpelling(word), 'h');
+      }
+      expect(wordIpaDerivationCount, before + words.length);
+    });
+
+    test('memoizes a word without displayable phones as null', () {
+      const word = TranscriptWord(
+        text: 'silent',
+        phones: [
+          TranscriptPhone(phone: '  ', text: '', startTime: 0, endTime: 0.1),
+        ],
+      );
+
+      final before = wordIpaDerivationCount;
+      expect(wordIpaSpelling(word), isNull);
+      expect(wordIpaDerivationCount, before + 1);
+      expect(wordIpaSpelling(word), isNull);
+      expect(wordIpaDerivationCount, before + 1);
+    });
+  });
 }
