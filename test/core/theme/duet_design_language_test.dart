@@ -131,6 +131,33 @@ void main() {
     );
   });
 
+  test('no Material SegmentedButton in lib/ (ADR-0093)', () {
+    const exempt = {
+      'lib/features/ai/presentation/settings/widgets/llm_byok_form.dart',
+      'lib/features/ai/presentation/settings/widgets/speech_byok_form.dart',
+    };
+    final offenders = <String>[];
+    for (final f in sources) {
+      final relative = _relativePosix(root, f);
+      if (exempt.contains(relative)) continue;
+      final lines = f.readAsLinesSync();
+      for (var i = 0; i < lines.length; i++) {
+        if (RegExp(r'SegmentedButton(?!ThemeData)').hasMatch(lines[i])) {
+          offenders.add('$relative:${i + 1}');
+        }
+      }
+    }
+    expect(
+      offenders,
+      isEmpty,
+      reason:
+          'Use EnjoySegmentedControl / EnjoySegment — the Duet sliding-thumb '
+          'primitive. The two AI BYOK pickers are exempt because their labels '
+          'need the two lines a fixed-height Duet segment cannot give them.\n'
+          '${offenders.join('\n')}',
+    );
+  });
+
   test('no print() in lib/ (AGENTS.md logging rule)', () {
     final offenders = <String>[];
     for (final f in sources) {
