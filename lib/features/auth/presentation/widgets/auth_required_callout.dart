@@ -68,11 +68,11 @@ extension AuthRequiredSurfaceX on AuthRequiredSurface {
     ),
     AuthRequiredSurface.profileEdit => (
       l10n.profileEditTitle,
-      l10n.authSignInSubtitle,
+      l10n.syncScreenSignedOutBody,
     ),
     AuthRequiredSurface.profilePreferences => (
       l10n.profileSectionPreferences,
-      l10n.authSignInSubtitle,
+      l10n.syncScreenSignedOutBody,
     ),
   };
 }

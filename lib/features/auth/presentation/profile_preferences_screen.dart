@@ -67,7 +67,6 @@ class _ProfilePreferencesScreenState
       showBack: true,
       body: (context, metrics) => SignedInGate(
         surface: AuthRequiredSurface.profilePreferences,
-        loading: const Center(child: CircularProgressIndicator()),
         builder: (context, state) {
           final p = state.profile;
           if (_hydratedForProfileId != p.id) {

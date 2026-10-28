@@ -106,10 +106,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(SignedInGate)),
+    )!;
+    expect(find.text(l10n.errorGenericLoadFailed), findsOneWidget);
     expect(find.textContaining('auth blew up'), findsNothing);
   });
 }

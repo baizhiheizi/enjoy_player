@@ -135,7 +135,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(CreditsUsageScreen), findsOneWidget);
     expect(find.byType(AuthRequiredCallout), findsOneWidget);
-    expect(find.widgetWithText(EmptyState, 'Sign in'), findsOneWidget);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(CreditsUsageScreen)),
+    )!;
+    expect(
+      find.widgetWithText(EmptyState, l10n.syncScreenGoSignIn),
+      findsOneWidget,
+    );
   });
 
   testWidgets('loading state renders skeleton list', (tester) async {

@@ -9,8 +9,8 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 class SignedInGate extends ConsumerWidget {
   const SignedInGate({
     required this.surface,
-    required this.loading,
     required this.builder,
+    this.loading = const Center(child: CircularProgressIndicator()),
     super.key,
   });
 

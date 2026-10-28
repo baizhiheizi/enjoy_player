@@ -170,7 +170,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       showBack: true,
       body: (context, metrics) => SignedInGate(
         surface: AuthRequiredSurface.profileEdit,
-        loading: const Center(child: CircularProgressIndicator()),
         builder: (context, state) {
           final p = state.profile;
           if (_hydratedForProfileId != p.id) {
