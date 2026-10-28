@@ -41,8 +41,9 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   path; today = 4 sequential awaits, target = 1.
 - Risk: LOW (single seam). Impact: cold-start latency on first paint.
 - Confidence: HIGH (single-file, well-bounded).
-- **Status:** offered to an-lee via #968 comment on 2026-10-17. No human
-  response yet. Awaiting maintainer green-light or networked-runner pick-up.
+- **Status 2026-10-28: CLAIMED BY REPO ASSIST** — PR #1124
+  ("[repo-assist] perf(startup): read the four shell preferences in one
+  query"), draft, open. **Do not duplicate P6.** Drop it from the backlog.
 
 ## P7 — Auto-translate fan-out: 40–80 tile rebuilds per flush
 - Files: **STALE — `transcript_scrollable_list.dart` was split by #1007**
@@ -197,6 +198,51 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   entirely, but it needs a cache-eviction story — do not add one without a
   measurement.
 
+## P12 — Familiar-form IPA memoization + readiness short-circuit (SHIPPED 2026-10-28, draft PR open)
+- Files: `lib/data/subtitle/transcript_word_ipa.dart` (`wordIpaSpelling`),
+  `lib/data/subtitle/transcript_display_readiness.dart`
+  (`transcriptDisplayReadiness`).
+- Problem: `wordIpaSpelling` is called **per word** from
+  `TranscriptAlignedWords.build` (`transcript_word_ipa_layer.dart:93`) and
+  again from `transcriptWordsHavePhones` (`:15`), and every visible row
+  re-derives on every list rebuild (the list rebuilds on each cue change).
+  `transcriptDisplayReadiness` derived the familiar form **once per line**
+  over the whole transcript — a 2000-line transcript meant 2000 derivations
+  in one synchronous UI-isolate pass, and the scan never short-circuited
+  once `hasPhones` / `hasTimedWords` were already known.
+- Fix: the familiar form is memoized per `TranscriptWord` instance in an
+  `Expando` (weak keys → an entry dies with the word, so there is **no
+  eviction story** — this was the open risk P11 left behind); the readiness
+  scan stops as soon as both flags are known (the flags are monotone).
+- Measured (separate processes per implementation, `flutter test --run-skipped`,
+  n=3 per implementation):
+  - visible-window rebuild (480 words, 200 passes):
+    unmemoized 1.633 / 1.910 / 2.297 ms per pass → memoized
+    0.072 / 0.083 / 0.103 ms per pass. Median **1.910 → 0.083 ms (~23x)**;
+    worst pairing (fastest before / slowest after) ~16x.
+  - readiness scan (2000 fresh lines):
+    2.256 / 2.992 / 3.100 ms per pass → 0.032 / 0.053 / 0.095 ms.
+    Median **2.992 → 0.053 ms (~56x)**; worst pairing ~24x.
+  - The output sink is byte-identical between the two implementations.
+- Strategy choice, measured: **`Expando` (identity hash) beat an
+  `L1Store`/LinkedHashMap memo by ~3.5x** — the map has to hash the word's
+  whole `phones` list (value equality), while the Expando uses identity.
+  Bench: derive 6.3-8.2 ms / 2400-word pass; Expando memo 0.375-0.450 ms;
+  map memo 1.32-1.34 ms.
+- Correctness: the memo is safe because `wordIpaSpelling` is pure in
+  `TranscriptWord.phones` and a word's `phones` list is never mutated after
+  construction (verified: `attach_alignment_to_lines.dart` builds a fresh
+  list before the word). New tests pin "derived once per word" and
+  "readiness derives once for a long transcript" via a `@visibleForTesting`
+  derivation counter (`wordIpaDerivationCount`).
+- Status: draft PR open on `perf-assist/ipa-spelling-memoization`. The PR
+  number is assigned when the framework pushes the bundle — it was not known
+  during the run.
+- **Watch out for const canonicalization in tests**: `const TranscriptWord(...)`
+  with identical arguments is the *same instance* across tests, so the memo
+  already holds it. A test that asserts "one derivation" must use a word whose
+  phone labels are unique in the file.
+
 ## P10b — Remove the remaining character-count scan (NEXT, needs a maintainer call)
 - File: `lib/features/transcript/data/transcript_timeline_codec.dart` +
   `transcript_repository_lines.dart`.
@@ -215,6 +261,62 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   revision tick (today 1; target 0 on the watch path).
 - Risk: MED (memo-key contract). Confidence: MED.
 
+## P13 — Auto-translate source key: a SHA-256 per visible row per rebuild (NEXT)
+- File: `lib/features/transcript/domain/auto_translate.dart:219-229`
+  (`autoTranslateSourceKey` → `sha256.convert(utf8.encode(payload))`),
+  called from `resolveAutoTranslateSecondaryText` (`:251`), which is called
+  **per row** from `transcript_line_item_builder.dart:126` and again from
+  `transcript_echo_region_merged_card.dart:124`.
+- Problem: the key depends only on `(primaryText, src, tgt)` and never
+  changes, but it is re-hashed for every visible row on every rebuild while
+  auto-translate is active (`sourceLanguage`/`targetLanguage` are non-null
+  then, so the hash always runs).
+- Fix: memoize the key the same way P12 memoized the familiar form
+  (`Expando` on the primary line, or a small map keyed by the primary text).
+- Measure: count `sha256.convert` calls across one rebuild of 40 rows
+  (today 40 → target 0 after the first pass).
+- Risk: LOW-MED. Confidence: HIGH.
+
+## P14 — Recording counts are O(lines x recordings) (NEXT)
+- File: `lib/features/transcript/domain/transcript_recording_counts.dart:24-40`
+  (`countRecordingsPerLineIndex`) — an inner loop over every recording for
+  every line. Called from `transcript_line_recording_counts_provider.dart`,
+  which `TranscriptScrollableList` and `EchoRegionMergedCard` watch.
+- Problem: n = transcript lines (thousands), m = shadow-reading takes
+  (hundreds). n*m overlap comparisons per DB emission.
+- Fix: sort the recordings by `referenceStart` once and sweep the lines in
+  time order, keeping the overlapping window (a sorted merge instead of a
+  nested scan).
+- Measure: instrument `recordingOverlapsLine` and assert the comparison
+  count is O(n + m) rather than n*m; keep the same counts as the current
+  implementation (differential check over random fixtures).
+- Risk: LOW (pure function). Confidence: HIGH.
+
+## P15 — The plain cue text is derived twice per row (NEXT)
+- Files: `lib/features/transcript/presentation/transcript_line_tile.dart:207`
+  and `:388` — both call `transcriptPlainForSelection(widget.line.text)`.
+  Line 388 feeds `TranscriptBlurText(shapeWords:)` and is evaluated on
+  every build even when the blur is revealed (the default).
+- Underlying: `lib/data/subtitle/subtitle_markup_parser.dart` caches parsed
+  segments in a 256-entry FIFO map; a transcript with more than 256 distinct
+  cue texts evicts on nearly every new row, and the parser then re-parses
+  character by character.
+- Fix: compute the plain text once per row and reuse it; consider an LRU
+  (`L1Store`) instead of the FIFO map for the parse cache.
+- Measure: count `parseSubtitleMarkup` misses over a 2000-line scroll and
+  assert the plain-text derivation happens once per row, not twice.
+- Risk: LOW. Confidence: HIGH.
+
+## P16 — The echo card builds every line of the echo range eagerly (MED RISK)
+- File: `lib/features/transcript/presentation/transcript_echo_region_merged_card.dart:117-200`
+  — a non-virtualized `Column` of `TranscriptLineTile` for every line in
+  `echo.startLineIndex..echo.endLineIndex`, built in one frame. A long echo
+  selection builds hundreds of tiles at once, unlike the virtualized main
+  list.
+- Fix: virtualize the echo range the way the main list is virtualized.
+- Measure: count tiles built for a 500-line echo region.
+- Risk: MED (echo layout and selection behaviour). Confidence: MED.
+
 ## Measurement-infrastructure gaps (docs/perf-measurement.md confirms deferred)
 - ~~No subtitle-parser throughput test.~~ **DONE 2026-10-20**:
   `test/data/subtitle/subtitle_parser_perf_test.dart` — deterministic 5000-cue
@@ -229,6 +331,12 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   longest-match semantics, a 2400-word scale fixture, and a `skip:`-marked
   local-only microbenchmark (8.15 ms/pass, ceiling 100 ms). Linked from
   `docs/perf-measurement.md`.
+- ~~No coverage for the IPA memo / readiness scan.~~ **DONE 2026-10-28**:
+  `test/data/subtitle/transcript_word_ipa_perf_test.dart` — visible-window
+  rebuild and transcript-readiness microbenchmarks (env-var selected so one
+  process measures one implementation), plus derivation-count assertions in
+  `transcript_word_ipa_test.dart` and
+  `transcript_display_readiness_test.dart`.
 - No dedicated test/perf/ dir or benchmark CI smoke job (deferred by
   maintainers — still open as of #968). Do not add unilaterally.
 - Only other `*perf*` test in the repo:
@@ -285,3 +393,16 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   idle between 2026-08-31 and 2026-10-12.
 - Remaining open issues with `performance` label: #864 (my monthly summary).
   #968 is closed. All others were either auto-managed or absorbed.
+- **2026-10-28 update:** #1111 ("ci(agents): allow the dart ecosystem in the
+  Perf Improver sandbox") landed — **`pub.dev` is reachable again**, so
+  `flutter pub get` / `flutter analyze` / `flutter test` now all work in the
+  sandbox (see `commands.md`). The old offline-harness blocker is gone.
+  PR #1100 (P11, familiar-form IPA ~6x faster) was **MERGED by an-lee on
+  2026-10-27** — Perf Improver's third merged code-changing PR. Repo Assist
+  opened **#1124** (startup bulk read of the four shell preferences), which
+  **claims P6** — do not duplicate it. This run shipped **P12** (draft PR on
+  `perf-assist/ipa-spelling-memoization`).
+- **Const-canonicalization trap in tests:** `const TranscriptWord(...)` with
+  identical arguments is the *same instance* in every test in the file, so a
+  per-instance memo already holds it. A test that asserts "derived exactly
+  once" must use phone labels unique to that test file.

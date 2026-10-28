@@ -1,5 +1,51 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
+## 2026-10-28 — THE FULL GATE NOW WORKS (pub.dev is reachable)
+PR #1111 ("ci(agents): allow the dart ecosystem in the Perf Improver sandbox")
+added `dart` to the `network.allowed` list of `.github/workflows/perf-improver.md`.
+**`pub.dev` now answers HTTP 200** and `flutter pub get` succeeds. The
+multi-run "HARD BLOCKER" below is **HISTORICAL** — the offline harness is no
+longer needed for most work.
+
+Verified 2026-10-28 in the sandbox:
+- `flutter pub get` → "Got dependencies!" (worked first try).
+- `flutter analyze` → "No issues found!" (~3-20 s).
+- `flutter test` → **6930 passed, 10 skipped, 0 failed, 4:46**.
+  (`flutter test` runs the whole app suite; the path packages under
+  `packages/*` need their own `flutter pub get && flutter test`.)
+
+### The one remaining snag: package:sqlite3's native asset
+`package:sqlite3` 3.x has a Dart hooks build hook that **downloads** the
+prebuilt `libsqlite3.so` from **github.com** — and github.com is still behind
+the proxy's SNI guard (curl exits 60). Without the lib, `flutter test` dies
+with "Building native assets failed".
+
+**Workaround (local only, revert before committing!):** the hook honours
+`hooks: user_defines: sqlite3:` in the root `pubspec.yaml`. Use the system
+library instead of the download:
+
+```yaml
+hooks:
+  user_defines:
+    sqlite3:
+      source: system
+      name_linux: sqlite3
+```
+
+`LookupSystem` then does `dlopen('libsqlite3.so')` → the runner's
+`/lib/x86_64-linux-gnu/libsqlite3.so` (SQLite 3.45.1, FTS5 present).
+After editing, re-run `flutter pub get` so the hook config is picked up.
+The repo's own `tool/prefetch_sqlite3_libs.sh` does NOT help here — it also
+fetches from github.com.
+**The `hooks:` block must NOT be committed.** `git diff pubspec.yaml` before
+every commit; `git checkout -- pubspec.yaml` to drop it.
+
+### Other proxy facts (2026-10-28)
+- `pub.dev` → 200 (reachable).
+- `pub.flutter-io.cn` → still blocked.
+- `github.com` / `objects.githubusercontent.com` → still blocked (TLS
+  `awf-sni-guard.invalid`).
+
 ## Toolchain quirk (IMPORTANT, cost me time — reuse this)
 - The CI-installed Flutter at `/home/runner/.toolcache/flutter-3.47.6-stable`
   is on a **READ-ONLY filesystem**. Any `flutter`/`dart` command run from
@@ -29,7 +75,7 @@
 - Old workaround targeting the 3.44.0 SDK is OBSOLETE; use the 3.47.6 copy
   above.
 
-## OFFLINE HARNESS (validated 2026-10-20 — supersedes the "cannot change code" blocker below)
+## OFFLINE HARNESS (validated 2026-10-20 — **HISTORICAL since 2026-10-28**, see the top of this file)
 The pub.dev block is real, but it does NOT prevent measuring or changing code.
 Use the Dart VM directly with a hand-written package config.
 
@@ -39,8 +85,9 @@ Use the Dart VM directly with a hand-written package config.
   (Dart 3.13.5).
 - No pub cache exists (`~/.pub-cache` absent) and the repo has no
   `.dart_tool/package_config.json`. Write one by hand at
-  `<repo>/.dart_tool/package_config.json` (gitignored — DELETE IT at the end
-  of the run so a later `pub get` is not confused):
+  `<repo>/.dart_tool/package_config.json` (gitignored). **HISTORICAL** — since
+  2026-10-28 `flutter pub get` works; use the real toolchain (see the top of
+  this file) instead of this harness.
   ```json
   {
     "configVersion": 2,
@@ -126,7 +173,7 @@ Use the Dart VM directly with a hand-written package config.
   dependency set. **CI on GitHub's runners is the authoritative gate**; say so
   explicitly in the PR body.
 
-## HARD BLOCKER (partial): `flutter pub get` cannot resolve deps offline
+## HARD BLOCKER (partial) — **RESOLVED 2026-10-28, HISTORICAL**: `flutter pub get` cannot resolve deps offline
 - Validated 2026-10-08, re-verified 2026-10-17 and 2026-10-20.
 - Root cause (identified 2026-10-20): the egress proxy terminates TLS with an
   **SNI guard**. For hostnames not on its allowlist it presents a self-signed
@@ -192,6 +239,17 @@ Use the Dart VM directly with a hand-written package config.
   order-biased: whichever implementation runs first wins. Use
   `dart run --packages=<cfg> bench_before.dart` and `bench_after.dart` as
   separate invocations.
+- **Same rule under `flutter test`** (now possible, see the 2026-10-28 note):
+  keep ONE perf test file that can measure either implementation, select the
+  implementation with an **env var** (`IPA_BENCH_MODE=unmemoized flutter test
+  --run-skipped ...`), and run the file once per mode. Env vars reach the test
+  process. A perf test that must compile against BOTH the pre-change and the
+  post-change `lib/` cannot reference symbols the old code lacks — so the
+  before/after selector must re-implement the old path locally in the test
+  file rather than import it.
+- **`git stash push -- <one lib file>`** is the clean way to measure the
+  pre-change behaviour of a single file while keeping the new perf test in
+  the tree: `git stash push -- lib/x.dart`, run the bench, `git stash pop`.
 - **100 warmup + 200 measured iterations**, median per round, **3 rounds**,
   report the mean of the round medians *and* the minimum-of-rounds.
 - **Warmup length changes the number materially.** A 20-warmup + 60-measured
