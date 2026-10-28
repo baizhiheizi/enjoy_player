@@ -2,7 +2,7 @@
 /// sentences, recorded verbatim from the vendored library.
 library;
 
-import 'package:forced_alignment/src/synth/espeak_ng_synthesizer.dart';
+import 'package:forced_alignment/src/synth/espeak_events.dart';
 
 /// One synthesized cue with its en-US word events (textPosition, length,
 /// audioMs) and the reference duration the tests assume.

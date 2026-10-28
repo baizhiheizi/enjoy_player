@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forced_alignment/forced_alignment.dart';
-import 'package:forced_alignment/src/synth/espeak_ng_synthesizer.dart';
+import 'package:forced_alignment/src/synth/espeak_events.dart';
+import 'package:forced_alignment/src/synth/espeak_reference_words.dart';
+import 'package:forced_alignment/src/synth/espeak_token_mapping.dart';
 
 import 'helpers/espeak_word_event_fixtures.dart';
 
@@ -8,10 +10,10 @@ import 'helpers/espeak_word_event_fixtures.dart';
 /// source orthography. Word events are captured verbatim from eSpeak-NG
 /// (en-US) for the reported cues plus edge-case sentences.
 void main() {
-  group('buildWords keeps the tokenizer orthography', () {
+  group('buildReferenceWords keeps the tokenizer orthography', () {
     for (final cue in capturedCues) {
       test(cue.text, () {
-        final words = EspeakNgSynthesizer.buildWords(
+        final words = buildReferenceWords(
           text: cue.text,
           duration: cue.durationSeconds,
           wordEvents: cueWordEvents(cue),
@@ -38,7 +40,7 @@ void main() {
       for (var ms = 2380; ms < 3200; ms += 100)
         EspeakPhoneEvent(phone: 's', audioMs: ms, textPosition: 46),
     ];
-    final words = EspeakNgSynthesizer.buildWords(
+    final words = buildReferenceWords(
       text: cueNumeral.text,
       duration: cueNumeral.durationSeconds,
       wordEvents: cueWordEvents(cueNumeral),
@@ -115,7 +117,7 @@ void main() {
   });
 
   test('out-of-order event times stay monotone and throw-free', () {
-    final words = EspeakNgSynthesizer.buildWords(
+    final words = buildReferenceWords(
       text: 'hello world foo',
       duration: 1.0,
       wordEvents: const [
@@ -141,7 +143,7 @@ void main() {
   });
 
   test('no word events falls back to token spans', () {
-    final words = EspeakNgSynthesizer.buildWords(
+    final words = buildReferenceWords(
       text: 'hello world',
       duration: 1.0,
       wordEvents: const [],
@@ -150,7 +152,7 @@ void main() {
     );
     expect(words.map((w) => w.text), ['hello', 'world']);
     expect(
-      () => EspeakNgSynthesizer.buildWords(
+      () => buildReferenceWords(
         text: 'hello world',
         duration: 1.0,
         wordEvents: const [],
@@ -161,7 +163,7 @@ void main() {
   });
 
   test('fallback path threads the injected phone events', () {
-    final words = EspeakNgSynthesizer.buildWords(
+    final words = buildReferenceWords(
       text: 'hello world',
       duration: 1.0,
       wordEvents: const [],
@@ -219,7 +221,7 @@ void main() {
 }
 
 List<ReferenceWord> _build(CapturedCue cue) {
-  return EspeakNgSynthesizer.buildWords(
+  return buildReferenceWords(
     text: cue.text,
     duration: cue.durationSeconds,
     wordEvents: cueWordEvents(cue),
