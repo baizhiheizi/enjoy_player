@@ -4,12 +4,10 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -25,6 +23,7 @@ import 'package:enjoy_player/features/craft/presentation/widgets/craft_field_bor
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_preview_player.dart';
 import 'package:enjoy_player/features/library/presentation/widgets/content_language_picker.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -37,9 +36,6 @@ class SynthesizeTool extends ConsumerStatefulWidget {
 
 class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
   late final TextEditingController _textCtrl;
-  AudioPlayer? _audioPlayer;
-  bool _isPlaying = false;
-  StreamSubscription? _completeSub;
 
   @override
   void initState() {
@@ -50,8 +46,6 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
   @override
   void dispose() {
     _textCtrl.dispose();
-    unawaited(_completeSub?.cancel());
-    unawaited(_audioPlayer?.dispose() ?? Future.value());
     super.dispose();
   }
 
@@ -135,11 +129,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
             SizedBox(height: tokens.space20),
             EnjoySectionHeader(title: l10n.craftPreviewLabel),
             SizedBox(height: tokens.space8),
-            _PreviewPlayer(
-              audioBytes: state.previewAudioBytes!,
-              isPlaying: _isPlaying,
-              onPlayPause: _togglePlay,
-            ),
+            CraftPreviewPlayer(audioBytes: state.previewAudioBytes!),
             SizedBox(height: tokens.space12),
             EnjoyButton.secondary(
               onPressed: state.isSaving ? null : _save,
@@ -217,27 +207,6 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
     if (nav.canPop()) nav.pop();
   }
 
-  Future<void> _togglePlay() async {
-    final bytes = ref.read(craftControllerProvider).previewAudioBytes;
-    if (bytes == null) return;
-
-    _audioPlayer ??= AudioPlayer();
-
-    if (_isPlaying) {
-      await _audioPlayer!.pause();
-      if (!mounted) return;
-      setState(() => _isPlaying = false);
-    } else {
-      await _audioPlayer!.play(BytesSource(bytes));
-      if (!mounted) return;
-      setState(() => _isPlaying = true);
-      unawaited(_completeSub?.cancel());
-      _completeSub = _audioPlayer!.onPlayerComplete.listen((_) {
-        if (mounted) setState(() => _isPlaying = false);
-      });
-    }
-  }
-
   Future<void> _save() async {
     final controller = ref.read(craftControllerProvider.notifier);
     final result = await controller.saveToLibrary();
@@ -291,55 +260,6 @@ class _SynthLangTile extends StatelessWidget {
           ),
           SizedBox(width: t.space4),
           Icon(EnjoyIcons.chevronRight, size: 18, color: t.ink3),
-        ],
-      ),
-    );
-  }
-}
-
-class _PreviewPlayer extends StatelessWidget {
-  const _PreviewPlayer({
-    required this.audioBytes,
-    required this.isPlaying,
-    required this.onPlayPause,
-  });
-
-  final dynamic audioBytes;
-  final bool isPlaying;
-  final VoidCallback onPlayPause;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    return EnjoyCard(
-      elevated: false,
-      radius: t.radiusMd,
-      padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
-      child: Row(
-        children: [
-          EnjoyPressable(
-            onTap: onPlayPause,
-            shape: const CircleBorder(),
-            pressedScale: 0.95,
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Center(
-                child: Icon(
-                  isPlaying ? EnjoyIcons.pause : EnjoyIcons.play,
-                  size: 22,
-                  color: t.brandInk,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: t.space8),
-          Expanded(
-            child: Text(
-              AppLocalizations.of(context)!.craftPreviewLabel,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
         ],
       ),
     );

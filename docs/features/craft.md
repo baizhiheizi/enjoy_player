@@ -108,7 +108,7 @@ A new `TranslationStyle.auto` is the **default** for Express mode. Instead of a 
 ### Audio stage (`AudioStage`)
 
 - **Script block** — a `fill` + `hairline` superellipse card with a mono `accentInk` language pair and an `accentInk` left rail, wrapping the full learning-language text (selectable) so the learner can follow along while previewing. Long scripts scroll inside a capped viewport (~240px) so the player and actions stay reachable; text is never ellipsis-truncated.
-- **Inline preview player** — an `EnjoyCard` with a lit-fill play/pause circle and a single-row progress control (mono time · slider · mono duration), driven by `audioplayers` `AudioPlayer` reading `state.previewAudioBytes` from memory via `BytesSource`
+- **Inline preview player** — an `EnjoyCard` with a lit-fill play/pause circle and a single-row progress control (mono time · slider · mono duration). Both Express and Advanced mount the same `CraftPreviewPlayer`, which owns the single `CraftPreviewController` (`audioplayers` `AudioPlayer`) and feeds it `state.previewAudioBytes` from memory via `BytesSource`; a guard test keeps Craft's `AudioPlayer` construction confined to that controller.
 - **Voice** control (an `EnjoyCard` with an `EnjoyPressable` disclosure row showing the current voice label; expandable to full `VoicePicker` — changing voice re-synthesizes)
 - **Unsaved hint** — when `hasUnsavedPreview` is true, an inline callout (`craftAudioUnsavedHint`) reminds the learner that TTS bytes are in memory only until a save CTA runs
 - Two save CTAs (labels make persistence explicit):
@@ -147,7 +147,7 @@ Retained for users who already have prepared text. Uses `EnjoyPageKind.hub` (sam
 - **Text** input (either the translated result or pasted learning-language text), with a ghost `EnjoyIconButton` paste affordance
 - **Target language** (pre-filled) shown as a mono code in a `CraftLangTile` with a chevron affordance
 - **Voice picker** (Azure Neural voices per language)
-- **Preview** button to hear a sample before saving — an `EnjoyCard` with an `EnjoyPressable` play/pause circle
+- **Preview** to hear a sample before saving — the shared `CraftPreviewPlayer` (play/pause + seek bar), identical to the Express audio stage
 - **Save** generates the audio file and inserts the media row
 
 ### Voice picker (v1)
@@ -279,9 +279,9 @@ No `isWide` width calculations or ad-hoc max widths live in Craft widgets — al
 | Layer | Key files |
 |-------|----------|
 | **Domain** | `craft_mode.dart`, `craft_screen_mode.dart`, `craft_stage.dart`, `craft_transcriber.dart`, `craft_failure.dart`, `craft_request.dart`, `craft_job_state.dart`, `craft_job_status.dart`, `craft_preferences.dart`, `craft_translator.dart`, `craft_synthesizer.dart`, `azure_voice.dart`, `translation_style.dart`, `word_boundary_segmenter.dart`, `transcript_timestamp_estimator.dart`, `wav_duration.dart` |
-| **Application** | `craft_controller.dart` (+ `craft_controller_core.dart`, `craft_translate_stage.dart`, `craft_synthesize_stage.dart`, `craft_capture_stage.dart`, `craft_library_stage.dart`, `craft_service_providers.dart`), `craft_preferences_provider.dart`, `craft_history_provider.dart` |
+| **Application** | `craft_controller.dart` (+ `craft_controller_core.dart`, `craft_translate_stage.dart`, `craft_synthesize_stage.dart`, `craft_capture_stage.dart`, `craft_library_stage.dart`, `craft_service_providers.dart`), `craft_preview_controller.dart`, `craft_preferences_provider.dart`, `craft_history_provider.dart` |
 | **Data** | `craft_translation_service_translator.dart`, `craft_tts_service_synthesizer.dart`, `craft_asr_service_transcriber.dart` |
-| **Presentation** | `craft_screen.dart`, `craft_history_screen.dart`, `express_flow.dart`, `capture_stage.dart` (+ `capture_stage_idle_view.dart`, `capture_stage_recording_view.dart`, `capture_stage_text_fallback.dart`), `rewrite_stage.dart`, `audio_stage.dart` (+ `audio_stage_script_block.dart`, `audio_stage_preview_player.dart`, `audio_stage_voice_chip.dart`, `audio_stage_actions.dart`), `advanced_tools.dart`, `translate_tool.dart`, `synthesize_tool.dart`, `voice_picker.dart`, `style_picker.dart` |
+| **Presentation** | `craft_screen.dart`, `craft_history_screen.dart`, `express_flow.dart`, `capture_stage.dart` (+ `capture_stage_idle_view.dart`, `capture_stage_recording_view.dart`, `capture_stage_text_fallback.dart`), `rewrite_stage.dart`, `audio_stage.dart` (+ `audio_stage_script_block.dart`, `audio_stage_preview_player.dart`, `audio_stage_voice_chip.dart`, `audio_stage_actions.dart`), `widgets/craft_preview_player.dart`, `advanced_tools.dart`, `translate_tool.dart`, `synthesize_tool.dart`, `voice_picker.dart`, `style_picker.dart` |
 | **Integration** | `LibraryRepository.importCraftedFromText()`, `getCraftEditSource()`, `updateCraftedFromText()` (library data layer); `CraftEditSource` (library domain layer) |
 | **AI wiring** | `EnjoyTtsCapability` (`lib/features/ai/data/enjoy/`), `ChatService` / `TtsService` / `AsrService` providers |
 | **Native plugin** | [`packages/azure_speech`](../../packages/azure_speech/) (synthesize, word boundary events) |
