@@ -121,5 +121,71 @@ void main() {
         expect(kDefaultAiApiBaseUrl, startsWith('https://'));
       },
     );
+
+    group('readSettings', () {
+      test('returns stored values for present keys', () async {
+        await db.settingsDao.setValue(
+          SettingsKeys.apiBaseUrl.name,
+          'https://one.test',
+        );
+        await db.settingsDao.setValue(
+          SettingsKeys.apiAiBaseUrl.name,
+          'https://two.test',
+        );
+
+        final values = await db.settingsDao.readSettings([
+          SettingsKeys.apiBaseUrl,
+          SettingsKeys.apiAiBaseUrl,
+        ]);
+
+        expect(values[SettingsKeys.apiBaseUrl.name], 'https://one.test');
+        expect(values[SettingsKeys.apiAiBaseUrl.name], 'https://two.test');
+      });
+
+      test('falls back to the declared default for a missing key', () async {
+        final values = await db.settingsDao.readSettings([
+          SettingsKeys.apiBaseUrl,
+          SettingsKeys.apiAiBaseUrl,
+        ]);
+
+        expect(values[SettingsKeys.apiBaseUrl.name], kDefaultApiBaseUrl);
+        expect(values[SettingsKeys.apiAiBaseUrl.name], kDefaultAiApiBaseUrl);
+      });
+
+      test('decodes each key with its own codec', () async {
+        await db.settingsDao.setValue(
+          SettingsKeys.diagnosticsVerboseEnabled.name,
+          'true',
+        );
+
+        final values = await db.settingsDao.readSettings([
+          SettingsKeys.diagnosticsVerboseEnabled,
+          SettingsKeys.transcriptKaraokeHighlight,
+        ]);
+
+        expect(values[SettingsKeys.diagnosticsVerboseEnabled.name], isTrue);
+        expect(values[SettingsKeys.transcriptKaraokeHighlight.name], isFalse);
+      });
+
+      test('an empty key list yields an empty map', () async {
+        expect(await db.settingsDao.readSettings<String>([]), isEmpty);
+      });
+
+      test('reads every requested key exactly once', () async {
+        await db.settingsDao.setValue(
+          SettingsKeys.apiBaseUrl.name,
+          'https://one.test',
+        );
+
+        final values = await db.settingsDao.readSettings([
+          SettingsKeys.apiBaseUrl,
+          SettingsKeys.apiAiBaseUrl,
+        ]);
+
+        expect(values.keys, hasLength(2));
+        expect(values[SettingsKeys.apiBaseUrl.name], 'https://one.test');
+        expect(values[SettingsKeys.apiAiBaseUrl.name], kDefaultAiApiBaseUrl);
+      });
+    });
   });
 }

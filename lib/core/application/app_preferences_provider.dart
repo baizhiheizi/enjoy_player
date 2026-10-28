@@ -110,16 +110,16 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     }
 
     final db = ref.watch(appDatabaseProvider);
-    var localeRaw = await db.settingsDao.readSetting(SettingsKeys.prefsLocale);
-    var learnRaw = await db.settingsDao.readSetting(
+    final stored = await db.settingsDao.readSettings([
+      SettingsKeys.prefsLocale,
       SettingsKeys.prefsLearningLanguage,
-    );
-    var nativeRaw = await db.settingsDao.readSetting(
       SettingsKeys.prefsNativeLanguage,
-    );
-    final themeRaw = await db.settingsDao.readSetting(
       SettingsKeys.prefsThemeMode,
-    );
+    ]);
+    var localeRaw = stored[SettingsKeys.prefsLocale.name];
+    var learnRaw = stored[SettingsKeys.prefsLearningLanguage.name];
+    var nativeRaw = stored[SettingsKeys.prefsNativeLanguage.name];
+    final themeRaw = stored[SettingsKeys.prefsThemeMode.name];
     final themeMode = themeModeFromStorage(themeRaw);
 
     final learnCanonical = canonicalFocusLanguageTag(learnRaw);

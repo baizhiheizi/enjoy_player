@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
@@ -63,6 +64,22 @@ class _SignedOutAuthCtrl extends AuthCtrl {
 Future<void> _pump() async {
   await Future<void>.delayed(Duration.zero);
   await Future<void>.delayed(Duration.zero);
+}
+
+class _SettingsSelectCounter extends drift.QueryInterceptor {
+  int selectCount = 0;
+
+  static final _settingsTable = RegExp(r'FROM\s+"?settings"?');
+
+  @override
+  Future<List<Map<String, Object?>>> runSelect(
+    drift.QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) {
+    if (_settingsTable.hasMatch(statement)) selectCount++;
+    return executor.runSelect(statement, args);
+  }
 }
 
 void main() {
@@ -234,11 +251,12 @@ void main() {
 
     Future<ProviderContainer> signedInContainer({
       UserProfile profile = _kProfile,
+      AppDatabase? database,
     }) async {
       final container = ProviderContainer(
         overrides: [
           authCtrlProvider.overrideWith(() => _SignedInAuthCtrl(profile)),
-          appDatabaseProvider.overrideWithValue(db),
+          appDatabaseProvider.overrideWithValue(database ?? db),
         ],
       );
       await container.read(authCtrlProvider.future);
@@ -396,6 +414,62 @@ void main() {
 
         final state = container.read(appPreferencesCtrlProvider).valueOrNull!;
         expect(state.locale, kAppDefaultDisplayLocale);
+      });
+    });
+
+    group('startup settings read', () {
+      test('reads the four preference settings with one query', () async {
+        final counter = _SettingsSelectCounter();
+        final countingDb = AppDatabase(
+          executor: NativeDatabase.memory().interceptWith(counter),
+        );
+        addTearDown(countingDb.close);
+
+        final container = await signedInContainer(database: countingDb);
+        addTearDown(container.dispose);
+
+        await container.read(appPreferencesCtrlProvider.future);
+        await _pump();
+
+        expect(counter.selectCount, 1);
+      });
+
+      test('the single query resolves every stored preference', () async {
+        final counter = _SettingsSelectCounter();
+        final countingDb = AppDatabase(
+          executor: NativeDatabase.memory().interceptWith(counter),
+        );
+        addTearDown(countingDb.close);
+
+        await countingDb.settingsDao.setValue(
+          SettingsKeys.prefsLocale.name,
+          'en-US',
+        );
+        await countingDb.settingsDao.setValue(
+          SettingsKeys.prefsLearningLanguage.name,
+          'ja-JP',
+        );
+        await countingDb.settingsDao.setValue(
+          SettingsKeys.prefsNativeLanguage.name,
+          'zh-CN',
+        );
+        await countingDb.settingsDao.setValue(
+          SettingsKeys.prefsThemeMode.name,
+          'light',
+        );
+
+        final container = await signedInContainer(database: countingDb);
+        addTearDown(container.dispose);
+
+        await container.read(appPreferencesCtrlProvider.future);
+        await _pump();
+
+        final state = container.read(appPreferencesCtrlProvider).valueOrNull!;
+        expect(state.locale, const Locale('en', 'US'));
+        expect(state.learningLanguage, 'ja-JP');
+        expect(state.nativeLanguage, 'zh-CN');
+        expect(state.themeMode, ThemeMode.light);
+        expect(counter.selectCount, 1);
       });
     });
 
