@@ -6,10 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
 import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
-import 'package:enjoy_player/core/recovery/recovery_text_style.dart';
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/recovery/recovery_error_panel.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Shown via [ErrorWidget.builder] when the widget tree hits an uncaught error.
@@ -27,70 +24,23 @@ class _WidgetErrorSurfaceState extends State<WidgetErrorSurface>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
     final message = widget.details.exceptionAsString();
 
     return Material(
       color: cs.surface,
-      child: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(t.space24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Icon(EnjoyIcons.error, size: 56, color: cs.error),
-                  SizedBox(height: t.space16),
-                  Text(
-                    l10n.widgetErrorTitle,
-                    textAlign: TextAlign.center,
-                    style: tt.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: t.space12),
-                  Text(
-                    l10n.widgetErrorSubtitle,
-                    textAlign: TextAlign.center,
-                    style: tt.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: t.space24),
-                  EnjoyCard(
-                    padding: EdgeInsets.all(t.space20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          message,
-                          style: recoveryMonoText(context, cs),
-                          maxLines: 8,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: t.space16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: EnjoyButton.secondary(
-                            icon: EnjoyIcons.copy,
-                            onPressed: busy ? null : _onCopy,
-                            child: Text(l10n.recoveryCopyError),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      child: RecoveryErrorLayout(
+        children: [
+          RecoveryErrorPanel(
+            icon: EnjoyIcons.error,
+            iconSize: 56,
+            title: l10n.widgetErrorTitle,
+            subtitle: l10n.widgetErrorSubtitle,
+            message: message,
+            busy: busy,
+            onCopy: _onCopy,
           ),
-        ),
+        ],
       ),
     );
   }
