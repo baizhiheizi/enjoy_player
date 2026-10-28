@@ -43,11 +43,13 @@ Translation, dictionary, and contextual translation follow the **LLM** provider 
 Each modality is rendered through the shared [`ModalityProviderCard`](../../lib/features/ai/presentation/settings/widgets/modality_provider_card.dart) widget so the four surfaces stay visually consistent:
 
 1. **Header** — modality icon (`auto_awesome_outlined`, `graphic_eq_rounded`, `record_voice_over_outlined`, `verified_outlined`) next to the title, subtitle, and a **provider pill** (`_ProviderPill`) that reflects the active provider (Enjoy / BYOK).
-2. **Segmented provider control** — `SegmentedButton<AIProvider>` with `Enjoy AI` and `BYOK` segments. Disabled while a save is in flight.
+2. **Segmented provider control** — `EnjoySegmentedControl<AIProvider>` with `Enjoy AI` and `BYOK` segments. Disabled while a save is in flight.
 3. **Inset BYOK panel** (`_ByokPanel`) — an `AnimatedSwitcher` reveals an inset surface when the provider switches to BYOK. Inside the panel:
    - LLM → `LlmByokForm` with a `SegmentedButton<LlmApiSpec>` for OpenAI / Anthropic / Google compatibility, plus a preset shortcut list and a "fetch models" affordance when the base URL is editable.
    - Speech (ASR / TTS) → `SpeechByokForm` with a `SegmentedButton<SpeechByokKind>` for OpenAI-compatible vs Azure Speech, switching between subscription-key fields and base-URL + model fields.
    - Assessment → `SpeechByokForm` (Azure-only, subscription key + region).
+
+   The two pickers inside the BYOK panel are Material `SegmentedButton`s — the one place in the app where the Duet segmented control is not used, because their labels need two lines. See [app-ui.md § Shape, depth, interaction, motion](app-ui.md#shape-depth-interaction-motion).
 4. **Footer** — a `Divider` separator, then a quiet row with a provider-status icon, the privacy/explainer text, an optional **Remove BYOK** button (only when BYOK is already saved), and a primary **Save** button with a loading spinner.
 
 Keys are **masked** in storage and the field shows a saved-key preview chip (e.g. `sk-…1234`) so users can confirm the secret is persisted without revealing it.
