@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 /// Walks [libDir] and returns every `.dart` source file, skipping generated
 /// `.g.dart` / `.freezed.dart` output.
@@ -11,6 +12,9 @@ List<File> _dartSources(Directory root) => root
     .where((f) => !f.path.endsWith('.g.dart'))
     .where((f) => !f.path.endsWith('.freezed.dart'))
     .toList();
+
+String _relativePosix(Directory root, File f) =>
+    p.posix.joinAll(p.split(p.relative(f.path, from: root.path)));
 
 String _repoRoot() {
   var dir = Directory.current;
@@ -39,7 +43,7 @@ void main() {
       final lines = f.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
         if (lines[i].contains('InkWell(')) {
-          offenders.add('${f.path.replaceFirst('${root.path}/', '')}:${i + 1}');
+          offenders.add('${_relativePosix(root, f)}:${i + 1}');
         }
       }
     }
@@ -64,7 +68,7 @@ void main() {
             line.trimLeft().startsWith('*')) {
           continue;
         }
-        offenders.add('${f.path.replaceFirst('${root.path}/', '')}:${i + 1}');
+        offenders.add('${_relativePosix(root, f)}:${i + 1}');
       }
     }
     expect(
@@ -79,11 +83,11 @@ void main() {
   test('mono text goes through enjoyMonoStyle, not a raw fontFamily', () {
     final offenders = <String>[];
     for (final f in sources) {
-      if (f.path.contains('${lib.path}/core/theme/')) continue;
+      if (_relativePosix(root, f).startsWith('lib/core/theme/')) continue;
       final lines = f.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
         if (lines[i].contains("fontFamily: 'monospace'")) {
-          offenders.add('${f.path.replaceFirst('${root.path}/', '')}:${i + 1}');
+          offenders.add('${_relativePosix(root, f)}:${i + 1}');
         }
       }
     }
@@ -103,12 +107,14 @@ void main() {
   test('no hard-coded colors outside lib/core/theme/ (ADR-0089 §1)', () {
     final offenders = <String>[];
     for (final f in sources) {
-      if (f.path.contains('${lib.path}/core/theme/')) continue;
-      if (f.path.endsWith('${lib.path}/core/notices/app_notice.dart')) continue;
+      if (_relativePosix(root, f).startsWith('lib/core/theme/')) continue;
+      if (_relativePosix(root, f) == 'lib/core/notices/app_notice.dart') {
+        continue;
+      }
       final lines = f.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
         if (lines[i].contains('Color(0x')) {
-          offenders.add('${f.path.replaceFirst('${root.path}/', '')}:${i + 1}');
+          offenders.add('${_relativePosix(root, f)}:${i + 1}');
         }
       }
     }
@@ -132,7 +138,7 @@ void main() {
       for (var i = 0; i < lines.length; i++) {
         final trimmed = lines[i].trimLeft();
         if (!trimmed.startsWith('print(')) continue;
-        offenders.add('${f.path.replaceFirst('${root.path}/', '')}:${i + 1}');
+        offenders.add('${_relativePosix(root, f)}:${i + 1}');
       }
     }
     expect(
@@ -160,9 +166,7 @@ void main() {
             final line = lines[i];
             if (line.contains('BackdropFilter') ||
                 line.contains('ImageFilter.blur')) {
-              offenders.add(
-                '${f.path.replaceFirst('${root.path}/', '')}:${i + 1}',
-              );
+              offenders.add('${_relativePosix(root, f)}:${i + 1}');
             }
           }
         }
@@ -195,7 +199,7 @@ void main() {
         for (final symbol in deleted) {
           if (lines[i].contains(symbol)) {
             offenders.add(
-              '${f.path.replaceFirst('${root.path}/', '')}:${i + 1} '
+              '${_relativePosix(root, f)}:${i + 1} '
               '$symbol',
             );
           }

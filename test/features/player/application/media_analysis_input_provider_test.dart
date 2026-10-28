@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/player/application/media_analysis_input_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/data/echo_segment_pcm_extractor.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 final _now = DateTime(2026, 10, 1);
 
@@ -51,13 +54,14 @@ void main() {
   tearDown(() => db.close());
 
   test('prefers the local file path', () async {
+    final localPath = p.join(Directory.systemTemp.path, 'take.mp3');
     await db.audioDao.insertRow(
       _audio(
-        localUri: Uri.file('/tmp/take.mp3').toString(),
+        localUri: Uri.file(localPath).toString(),
         mediaUrl: 'https://assets.example/take',
       ),
     );
-    expect(await resolveMediaAnalysisInput(registry, 'a-1'), '/tmp/take.mp3');
+    expect(await resolveMediaAnalysisInput(registry, 'a-1'), localPath);
   });
 
   test('falls back to the https media url for cloud-only rows', () async {
