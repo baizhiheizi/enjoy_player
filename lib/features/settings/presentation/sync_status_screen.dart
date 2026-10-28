@@ -17,9 +17,8 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
-import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/signed_in_gate.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -40,33 +39,21 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final auth = ref.watch(authCtrlProvider);
 
     return EnjoyPage(
       kind: EnjoyPageKind.hub,
       title: l10n.syncScreenTitle,
       showBack: true,
-      body: (context, metrics) => auth.when(
-        data: (state) {
-          if (state is! AuthSignedIn) {
-            return const Center(
-              child: AuthRequiredCallout(
-                surface: AuthRequiredSurface.sync,
-                compact: false,
-              ),
-            );
-          }
-          return _SignedInBody(
-            metrics: metrics,
-            busyRetry: _busyRetry,
-            busySync: _busySync,
-            onRetryFailed: () => _runRetryFailed(context, l10n),
-            onSyncNow: () => _runSyncNow(context, l10n),
-          );
-        },
-        loading: () => const SkeletonSettingsList(rowCount: 6),
-        error: (Object e, StackTrace s) =>
-            Center(child: Text(l10n.errorGenericLoadFailed)),
+      body: (context, metrics) => SignedInGate(
+        surface: AuthRequiredSurface.sync,
+        loading: const SkeletonSettingsList(rowCount: 6),
+        builder: (context, _) => _SignedInBody(
+          metrics: metrics,
+          busyRetry: _busyRetry,
+          busySync: _busySync,
+          onRetryFailed: () => _runRetryFailed(context, l10n),
+          onSyncNow: () => _runSyncNow(context, l10n),
+        ),
       ),
     );
   }

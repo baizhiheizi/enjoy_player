@@ -8,9 +8,8 @@ import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
-import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/signed_in_gate.dart';
 import 'package:enjoy_player/features/credits/application/credits_usage_provider.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_page.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_packages_card.dart';
@@ -36,26 +35,15 @@ class CreditsUsageScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final auth = ref.watch(authCtrlProvider);
 
     return EnjoyPage(
       kind: EnjoyPageKind.hub,
       title: l10n.creditsUsageTitle,
       showBack: true,
-      body: (context, metrics) => auth.when(
-        data: (state) {
-          if (state is! AuthSignedIn) {
-            return const Center(
-              child: AuthRequiredCallout(
-                surface: AuthRequiredSurface.credits,
-                compact: false,
-              ),
-            );
-          }
-          return _CreditsUsageBody(metrics: metrics);
-        },
-        loading: () => const SkeletonSettingsList(rowCount: 8),
-        error: (Object e, StackTrace s) => Center(child: Text('$e')),
+      body: (context, metrics) => SignedInGate(
+        surface: AuthRequiredSurface.credits,
+        loading: const SkeletonSettingsList(rowCount: 8),
+        builder: (context, _) => _CreditsUsageBody(metrics: metrics),
       ),
     );
   }

@@ -25,6 +25,8 @@ enum AuthRequiredSurface {
   sync,
   credits,
   subscription,
+  profileEdit,
+  profilePreferences,
 }
 
 extension AuthRequiredSurfaceX on AuthRequiredSurface {
@@ -36,6 +38,8 @@ extension AuthRequiredSurfaceX on AuthRequiredSurface {
     AuthRequiredSurface.sync => 'sync',
     AuthRequiredSurface.credits => 'credits',
     AuthRequiredSurface.subscription => 'subscription',
+    AuthRequiredSurface.profileEdit => 'profile_edit',
+    AuthRequiredSurface.profilePreferences => 'profile_preferences',
   };
 
   /// Title + body for the callout (localized).
@@ -61,6 +65,14 @@ extension AuthRequiredSurfaceX on AuthRequiredSurface {
     AuthRequiredSurface.subscription => (
       l10n.subscriptionTitle,
       l10n.syncScreenSignedOutBody,
+    ),
+    AuthRequiredSurface.profileEdit => (
+      l10n.profileEditTitle,
+      l10n.authSignInSubtitle,
+    ),
+    AuthRequiredSurface.profilePreferences => (
+      l10n.profileSectionPreferences,
+      l10n.authSignInSubtitle,
     ),
   };
 }

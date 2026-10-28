@@ -26,6 +26,8 @@ void main() {
   group('encodeSignInFrom', () {
     test('profile and credits shorthands', () {
       expect(encodeSignInFrom('/profile'), 'profile');
+      expect(encodeSignInFrom('/profile/edit'), 'profile_edit');
+      expect(encodeSignInFrom('/profile/preferences'), 'profile_preferences');
       expect(encodeSignInFrom('/credits'), 'credits');
       expect(encodeSignInFrom('/subscription'), 'subscription');
     });
@@ -45,6 +47,11 @@ void main() {
 
     test('shorthand targets', () {
       expect(resolvePostSignInPath('profile'), '/profile');
+      expect(resolvePostSignInPath('profile_edit'), '/profile/edit');
+      expect(
+        resolvePostSignInPath('profile_preferences'),
+        '/profile/preferences',
+      );
       expect(resolvePostSignInPath('credits'), '/credits');
       expect(resolvePostSignInPath('subscription'), '/subscription');
     });

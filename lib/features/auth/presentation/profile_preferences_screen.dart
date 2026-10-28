@@ -18,6 +18,8 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/signed_in_gate.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class ProfilePreferencesScreen extends ConsumerStatefulWidget {
@@ -58,17 +60,15 @@ class _ProfilePreferencesScreenState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final auth = ref.watch(authCtrlProvider);
 
     return EnjoyPage(
       kind: EnjoyPageKind.form,
       title: l10n.profileSectionPreferences,
       showBack: true,
-      body: (context, metrics) => auth.when(
-        data: (state) {
-          if (state is! AuthSignedIn) {
-            return Center(child: Text(l10n.authSignInTitle));
-          }
+      body: (context, metrics) => SignedInGate(
+        surface: AuthRequiredSurface.profilePreferences,
+        loading: const Center(child: CircularProgressIndicator()),
+        builder: (context, state) {
           final p = state.profile;
           if (_hydratedForProfileId != p.id) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -250,8 +250,6 @@ class _ProfilePreferencesScreenState
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
       ),
     );
   }
