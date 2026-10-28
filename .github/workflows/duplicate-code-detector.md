@@ -20,7 +20,7 @@ safe-outputs:
     group: true
     max: 3
 
-timeout-minutes: 15
+timeout-minutes: 25
 
 # ==== customized start  ====
 runs-on:
