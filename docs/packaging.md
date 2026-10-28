@@ -152,7 +152,7 @@ flutter test
     libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
     libsecret-1-dev libmpv-dev ffmpeg
   ```
-- **No `appimagetool` install is needed.** [`linux/packaging/make_appimage.sh`](../linux/packaging/make_appimage.sh) provisions it itself: it downloads `appimagetool-x86_64.AppImage` into `~/.cache/appimagetool`, extracts it so it runs without FUSE, retries the download, and re-downloads when the cached copy is unusable. Nothing on `PATH` is consulted.
+- **`appimagetool`** — nothing to install: [`make_appimage.sh`](../linux/packaging/make_appimage.sh) provisions its own copy. On first run it downloads the continuous `appimagetool-x86_64.AppImage` into `~/.cache/appimagetool`, extracts it FUSE-less, retries the download, and re-fetches a cached copy that cannot be extracted (#1077).
 - The first build downloads the Azure Speech SDK NuGet package (network once, cached under `build/linux/…/plugins/azure_speech`); its Linux libraries land in `bundle/lib` and ship in the AppImage ([ADR-0096](decisions/0096-native-azure-speech-sdk-on-linux.md)).
 - No signing key required; AppImage auto-update is intentionally out of scope for v1 (see [ADR-0048](decisions/0048-linux-platform-support.md)).
 
@@ -182,18 +182,18 @@ YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-yo
   it is invisible to a path-prefix scan. Each copied dylib gets `@loader_path`
   added to its `LC_RPATH`, so `@rpath/<name>` resolves inside
   `Contents/Frameworks/`.
-- After bundling, the build phase runs a **dylib closure check**: the **strong
-  load commands** of every Mach-O in the bundle (all slices of fat binaries) —
-  `LC_LOAD_DYLIB`, `LC_LOAD_UPWARD_DYLIB` and `LC_REEXPORT_DYLIB` — must
-  resolve to a system library, the dyld shared cache, or a file that is
-  actually present. Weak links are exempt (a missing weak library is legal at
-  runtime), and so is the `LC_ID_DYLIB` install-id line (dyld never resolves
-  an install id). An `@rpath` dependency resolves the way dyld resolves it:
-  through the loading image's own `LC_RPATH` entries, then the main
-  executable's — and a file under `Contents/MacOS/` counts as bundled, not
-  only one under `Contents/Frameworks/`. An unresolved dependency fails the
-  build. A missing `@rpath` dependency otherwise only surfaces as a launch
-  crash on the user's machine, long after the pipeline went green (see
+- After bundling, the build phase runs a **dylib closure check** over every Mach-O in
+  the bundle (all slices of fat binaries): each strong load command —
+  `LC_LOAD_DYLIB`, `LC_LOAD_UPWARD_DYLIB`, `LC_REEXPORT_DYLIB` — must resolve to an
+  OS library (`/usr/lib`, `/System`, `/usr/libexec`), to a file inside the bundle
+  (`Contents/Frameworks/` or `Contents/MacOS/`, including via `@loader_path` /
+  `@executable_path` and via `@rpath` resolved against the loading image's `LC_RPATH`
+  entries — the main executable's as fallback — the way dyld resolves them), or, for
+  Swift back-deployment, to an rpath-located `/usr/lib/swift/libswift*.dylib`. Weak
+  links and `LC_ID_DYLIB` install-id lines are exempt: dyld never resolves those at
+  runtime, so a missing weak library is legal. An unresolved dependency fails the
+  build. A missing `@rpath` dependency otherwise only surfaces as a launch crash on
+  the user's machine, long after the pipeline went green (see
   [#1096](https://github.com/baizhiheizi/enjoy_player/issues/1096)).
 - **App Store Connect app** for bundle ID `ai.enjoy.player` (required for full `--platform apple` runs that build iOS)
 - **Keychain certs** (OS Keychain, not files in the repo): Apple Distribution (iOS / TestFlight) and Developer ID Application (macOS direct download)
