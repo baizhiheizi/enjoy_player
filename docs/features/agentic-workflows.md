@@ -106,16 +106,23 @@ The scanner now masks `sha256:<64 hex>` before the scan, which keeps digest-pinn
 commits committable without weakening the credential check: a real 64-hex secret is not
 `sha256:`-prefixed, and a secret sharing a line with a digest is still matched.
 
-Manually verified against the staged diff after the change:
+A second benign 64-hex shape got the same treatment: gh-aw lock files carry
+`"frontmatter_hash"` / `"body_hash"` content hashes in their metadata header, so editing
+a workflow's schedule or body tripped the scan on the lock file's own hash. Both JSON
+values are masked too (#1085); a bare 64-hex secret sharing the line still matches.
+
+Manually verified against the staged diff after each change:
 
 | Input | Result |
 |---|---|
 | `sha256:` + 64 hex only | passes (the fix) |
+| `"frontmatter_hash":"<64 hex>"` only | passes (#1085) |
 | bare 64-hex secret | blocked |
 | `AKIA…` key id | blocked |
 | `AWS_SECRET_ACCESS_KEY="…"` | blocked |
 | `r2.cloudflarestorage.com/<hex>` | blocked |
 | digest and bare secret on one line | blocked |
+| gh-aw hash and bare secret on one line | blocked |
 
 ## Security review notes
 
