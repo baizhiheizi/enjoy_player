@@ -45,6 +45,7 @@ List<int> mapWordEventsToTokenSpans(List<WordSpan> spans, List<int> positions) {
 /// eSpeak counts characters (code points) while Dart string indexes count
 /// code units, so any non-BMP character (emoji, rare CJK) before a word
 /// shifts its event by one without this conversion.
+@internal
 List<int>? codePointOffsetTable(String text) {
   if (text.runes.length == text.length) return null;
   final table = List<int>.filled(text.runes.length + 1, 0);
@@ -58,6 +59,7 @@ List<int>? codePointOffsetTable(String text) {
   return table;
 }
 
+@internal
 int utf16Offset(List<int>? table, int zeroBasedCodePoint) {
   if (table == null) return zeroBasedCodePoint;
   return table[math.max(0, math.min(table.length - 1, zeroBasedCodePoint))];

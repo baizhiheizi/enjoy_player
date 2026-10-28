@@ -10,6 +10,7 @@ import 'spoken_reference.dart';
 /// no PCM to measure. Ends at the last event's *onset*, so the final
 /// phoneme collapses to zero width — pre-existing eSpeak limitation, kept
 /// because stretching the clock would shift every IPA phone.
+@internal
 double referenceEventDurationSeconds(
   List<EspeakWordEvent> wordEvents,
   List<EspeakPhoneEvent> phoneEvents,
