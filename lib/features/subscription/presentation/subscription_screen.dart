@@ -22,10 +22,9 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
-import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/signed_in_gate.dart';
 import 'package:enjoy_player/features/credits/application/credits_packages_provider.dart';
 import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
@@ -54,26 +53,16 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final auth = ref.watch(authCtrlProvider);
 
     return EnjoyPage(
       kind: EnjoyPageKind.hub,
       title: l10n.subscriptionTitle,
       showBack: true,
-      body: (context, metrics) => auth.when(
-        data: (state) {
-          if (state is! AuthSignedIn) {
-            return const Center(
-              child: AuthRequiredCallout(
-                surface: AuthRequiredSurface.subscription,
-                compact: false,
-              ),
-            );
-          }
-          return _SubscriptionBody(onRefresh: _refresh, metrics: metrics);
-        },
-        loading: () => const SkeletonSettingsList(rowCount: 6),
-        error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
+      body: (context, metrics) => SignedInGate(
+        surface: AuthRequiredSurface.subscription,
+        loading: const SkeletonSettingsList(rowCount: 6),
+        builder: (context, _) =>
+            _SubscriptionBody(onRefresh: _refresh, metrics: metrics),
       ),
     );
   }

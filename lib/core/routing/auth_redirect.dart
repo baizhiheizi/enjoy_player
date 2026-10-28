@@ -37,6 +37,10 @@ String encodeSignInFrom(String matchedLocation) {
       return 'credits';
     case '/subscription':
       return 'subscription';
+    case '/profile/edit':
+      return 'profile_edit';
+    case '/profile/preferences':
+      return 'profile_preferences';
     default:
       return Uri.encodeComponent(matchedLocation);
   }
@@ -60,6 +64,10 @@ String resolvePostSignInPath(String? from) {
       return '/credits';
     case 'subscription':
       return '/subscription';
+    case 'profile_edit':
+      return '/profile/edit';
+    case 'profile_preferences':
+      return '/profile/preferences';
     default:
       final decoded = Uri.decodeComponent(trimmed);
       if (decoded.startsWith('/') && !decoded.startsWith('/sign-in')) {

@@ -60,7 +60,7 @@ class _VocabularyAnkiExportDialogState
             height: 120,
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (e, _) => Text('$e'),
+          error: (e, _) => Text(l10n.errorGenericLoadFailed),
           data: (items) {
             if (!isPaid) {
               return Column(

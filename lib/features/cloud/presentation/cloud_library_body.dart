@@ -24,6 +24,7 @@ import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/signed_in_gate.dart';
 import 'package:enjoy_player/features/cloud/application/cloud_providers.dart';
 import 'package:enjoy_player/features/cloud/data/cloud_index_repository.dart';
 import 'package:enjoy_player/features/cloud/domain/remote_library_item.dart';
@@ -106,41 +107,28 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final auth = ref.watch(authCtrlProvider);
-
-    return auth.when(
-      data: (state) {
-        if (state is! AuthSignedIn) {
-          return const Center(
-            child: AuthRequiredCallout(
-              surface: AuthRequiredSurface.cloud,
-              compact: false,
-            ),
-          );
-        }
-        return TabBarView(
-          controller: widget.tabController,
-          children: [
-            _CloudVideoGrid(
-              items: _videos.items,
-              loading: _videos.loading,
-              done: _videos.done,
-              onLoadMore: () => _loadVideoPage(reset: false),
-              onRefresh: () => _loadVideoPage(reset: true),
-            ),
-            _CloudAudioList(
-              items: _audios.items,
-              loading: _audios.loading,
-              done: _audios.done,
-              onLoadMore: () => _loadAudioPage(reset: false),
-              onRefresh: () => _loadAudioPage(reset: true),
-            ),
-          ],
-        );
-      },
-      loading: () => const SkeletonMediaList(),
-      error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
+    return SignedInGate(
+      surface: AuthRequiredSurface.cloud,
+      loading: const SkeletonMediaList(),
+      builder: (context, _) => TabBarView(
+        controller: widget.tabController,
+        children: [
+          _CloudVideoGrid(
+            items: _videos.items,
+            loading: _videos.loading,
+            done: _videos.done,
+            onLoadMore: () => _loadVideoPage(reset: false),
+            onRefresh: () => _loadVideoPage(reset: true),
+          ),
+          _CloudAudioList(
+            items: _audios.items,
+            loading: _audios.loading,
+            done: _audios.done,
+            onLoadMore: () => _loadAudioPage(reset: false),
+            onRefresh: () => _loadAudioPage(reset: true),
+          ),
+        ],
+      ),
     );
   }
 }

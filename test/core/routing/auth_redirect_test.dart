@@ -1,6 +1,7 @@
 import 'package:enjoy_player/core/routing/auth_redirect.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -26,6 +27,8 @@ void main() {
   group('encodeSignInFrom', () {
     test('profile and credits shorthands', () {
       expect(encodeSignInFrom('/profile'), 'profile');
+      expect(encodeSignInFrom('/profile/edit'), 'profile_edit');
+      expect(encodeSignInFrom('/profile/preferences'), 'profile_preferences');
       expect(encodeSignInFrom('/credits'), 'credits');
       expect(encodeSignInFrom('/subscription'), 'subscription');
     });
@@ -45,8 +48,31 @@ void main() {
 
     test('shorthand targets', () {
       expect(resolvePostSignInPath('profile'), '/profile');
+      expect(resolvePostSignInPath('profile_edit'), '/profile/edit');
+      expect(
+        resolvePostSignInPath('profile_preferences'),
+        '/profile/preferences',
+      );
       expect(resolvePostSignInPath('credits'), '/credits');
       expect(resolvePostSignInPath('subscription'), '/subscription');
+    });
+
+    test('profile surface tags round-trip to their routes', () {
+      expect(AuthRequiredSurface.profileEdit.fromQueryParam, 'profile_edit');
+      expect(
+        AuthRequiredSurface.profilePreferences.fromQueryParam,
+        'profile_preferences',
+      );
+      expect(
+        resolvePostSignInPath(AuthRequiredSurface.profileEdit.fromQueryParam),
+        '/profile/edit',
+      );
+      expect(
+        resolvePostSignInPath(
+          AuthRequiredSurface.profilePreferences.fromQueryParam,
+        ),
+        '/profile/preferences',
+      );
     });
 
     test('encoded full paths', () {

@@ -5,6 +5,7 @@ import 'package:enjoy_player/data/api/services/ai/credits_api.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/credits/application/credits_usage_provider.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_packages_card.dart';
 import 'package:enjoy_player/features/credits/application/credits_packages_provider.dart';
@@ -133,6 +134,14 @@ void main() {
     await tester.pumpWidget(_wrap(stub: stub, auth: const AuthSignedOut()));
     await tester.pumpAndSettle();
     expect(find.byType(CreditsUsageScreen), findsOneWidget);
+    expect(find.byType(AuthRequiredCallout), findsOneWidget);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(CreditsUsageScreen)),
+    )!;
+    expect(
+      find.widgetWithText(EmptyState, l10n.syncScreenGoSignIn),
+      findsOneWidget,
+    );
   });
 
   testWidgets('loading state renders skeleton list', (tester) async {
