@@ -46,6 +46,16 @@ One stroke family — **Phosphor** (MIT) vendored as `PhosphorRegular` / `Phosph
 
 Duet light + dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0093); `duet_tokens_test.dart` pins each theme's values to `tokens.json`. `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
 
+## Startup preferences
+
+`AppPreferencesCtrl` ([`lib/core/application/app_preferences_provider.dart`](../../lib/core/application/app_preferences_provider.dart)) resolves the four shell preferences — `prefs.locale`, `prefs.learning_language`, `prefs.native_language`, `prefs.theme_mode` — before the app renders its router, so its reads sit on the **signed-in cold-start critical path**.
+
+The controller reads all four with **one** `settings` query — `SettingsDao.readSettings` issues a single `WHERE key IN (…)` — instead of four per-key round trips. Each key still resolves through its own codec and falls back to its declared default when its row is missing, exactly like a single `readSetting`.
+
+The canonicalization writes (persisting a non-canonical language tag or locale back to the DB) stay **awaited** inside the build: they only fire when a stored value is not canonical, and awaiting them keeps the persisted value consistent with the state the app just rendered.
+
+**Regression checks:** [`test/core/application/app_preferences_provider_test.dart`](../../test/core/application/app_preferences_provider_test.dart) counts the `settings` SELECTs through a Drift `QueryInterceptor` and pins the count at **one**; [`test/data/db/daos/settings_dao_test.dart`](../../test/data/db/daos/settings_dao_test.dart) pins the bulk read's defaults and per-key codec decoding.
+
 ## Navigation
 
 - **Mobile**: `EnjoyBottomNav` — a solid full-width paper bar (58pt content + the real bottom safe inset; 84pt on home-indicator devices) with a top `line`. The selected tab gets a 52×30 `brandSoft` pill, a filled glyph in `brandInk`, and a 600 label. **Four** destinations: Home, Discover, Library, **Profile** (Settings is reached from a tile inside Profile); the update badge stays on Profile. Profile stays selected across the screens it opens — `/settings`, `/subscription`, `/credits`, and `/vocabulary`. `RootShell` mounts it as `Scaffold.bottomNavigationBar` with `extendBody`; the routed body reserves `rootShellBottomNavClearance`.

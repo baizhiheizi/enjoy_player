@@ -75,6 +75,30 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
   Future<T> readSetting<T>(SettingKey<T> key) async {
     _assertPlacement(key);
     final raw = await getValue(key.name);
+    return _decodeSetting(key, raw);
+  }
+
+  /// Reads several settings with a single query, keyed by setting name.
+  ///
+  /// Each key resolves like [readSetting]: the declared default when its row
+  /// is missing, else the codec-decoded stored value.
+  Future<Map<String, T>> readSettings<T>(List<SettingKey<T>> keys) async {
+    for (final key in keys) {
+      _assertKnownKey(key.name);
+      _assertPlacement(key);
+    }
+    if (keys.isEmpty) return const {};
+    final names = keys.map((key) => key.name).toList();
+    final rows = await (select(
+      settingsKv,
+    )..where((t) => t.key.isIn(names))).get();
+    final stored = {for (final row in rows) row.key: row.value};
+    return {
+      for (final key in keys) key.name: _decodeSetting(key, stored[key.name]),
+    };
+  }
+
+  T _decodeSetting<T>(SettingKey<T> key, String? raw) {
     if (raw == null) {
       assert(
         key.defaultValue != null || null is T,
