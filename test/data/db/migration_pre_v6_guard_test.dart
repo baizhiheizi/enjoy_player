@@ -81,6 +81,7 @@ void main() {
       PathProviderPlatform.instance = _BrokenPathProvider();
 
       final failing = AppDatabase(executor: NativeDatabase(dbFile));
+      addTearDown(failing.close);
 
       Object? caught;
       try {

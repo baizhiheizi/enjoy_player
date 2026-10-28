@@ -114,6 +114,11 @@ void main() {
     thumb.writeAsBytesSync(base64Decode(_onePixelPng));
     final container = ProviderContainer();
     addTearDown(container.dispose);
+    final subscription = container.listen(
+      localThumbnailFileProvider(thumb.path),
+      (_, _) {},
+    );
+    addTearDown(subscription.close);
 
     final first = await container.read(
       localThumbnailFileProvider(thumb.path).future,
