@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/data/subtitle/transcript_display_readiness.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/data/subtitle/transcript_word_ipa.dart';
 
 void main() {
   const lineOnly = [
@@ -146,4 +147,37 @@ void main() {
       expect(youtube.karaokeSwitchEnabled, isFalse);
     },
   );
+
+  test('derives the familiar form once for a long transcript', () {
+    final lines = [
+      for (var i = 0; i < 200; i++)
+        TranscriptLine(
+          text: 'line $i',
+          startMs: i * 1000,
+          durationMs: 900,
+          timeline: [
+            TranscriptWord(
+              text: 'w$i',
+              startMs: 0,
+              durationMs: 500,
+              phones: const [
+                TranscriptPhone(
+                  phone: 'h',
+                  text: 'h',
+                  startTime: 0,
+                  endTime: 0.1,
+                ),
+              ],
+            ),
+          ],
+        ),
+    ];
+
+    final before = wordIpaDerivationCount;
+    final r = transcriptDisplayReadiness(lines: lines, canTrustWordTimes: true);
+    expect(r.hasNestedWords, isTrue);
+    expect(r.hasPhones, isTrue);
+    expect(r.hasTimedWords, isTrue);
+    expect(wordIpaDerivationCount, before + 1);
+  });
 }

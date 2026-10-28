@@ -68,13 +68,18 @@ TranscriptDisplayReadiness transcriptDisplayReadiness({
     final words = line.timeline;
     if (words == null || words.isEmpty) continue;
     hasNestedWords = true;
-    if (words.any((w) => wordIpaSpelling(w) != null)) hasPhones = true;
-    for (var i = 0; i < words.length; i++) {
-      if (wordMediaWindowMs(line, i) != null) {
-        hasTimedWords = true;
-        break;
+    if (!hasPhones && words.any((w) => wordIpaSpelling(w) != null)) {
+      hasPhones = true;
+    }
+    if (!hasTimedWords) {
+      for (var i = 0; i < words.length; i++) {
+        if (wordMediaWindowMs(line, i) != null) {
+          hasTimedWords = true;
+          break;
+        }
       }
     }
+    if (hasPhones && hasTimedWords) break;
   }
 
   final enrichmentComplete = canTrustWordTimes
