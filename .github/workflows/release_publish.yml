@@ -84,6 +84,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release edit "${{ steps.tag.outputs.tag }}" --notes-file "${{ steps.notes.outputs.path }}"
 
+      - name: Verify platform assets
+        if: inputs.finalize
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git show origin/main:.github/scripts/release_finalize.sh > "${RUNNER_TEMP}/release_finalize.sh"
+          bash "${RUNNER_TEMP}/release_finalize.sh" --tag "${{ steps.tag.outputs.tag }}" --check-only
+
       - name: Mark release ready
         if: inputs.finalize
         env:

@@ -521,6 +521,8 @@ After all four platforms finish, promote the draft with [`release_publish.yml`](
 1. Actions → **Publish GitHub Release** → **Run workflow**.
 2. Leave `tag_name` blank to auto-pick the latest draft, set `notes_file` (default: `docs/releases/<version>.md`, or the `## [<version>]` section of `CHANGELOG.md` at the tag), set **`finalize=true`** to unmark draft.
 
+With `finalize=true` the workflow runs [`release_finalize.sh --check-only`](../.github/scripts/release_finalize.sh) from `main` before promoting, so a draft missing a platform asset fails the run instead of publishing. Tags that predate the script are still checked.
+
 The draft collects one platform's assets at a time, so a release whose Windows or Android job failed looks exactly like a complete one until somebody publishes it. [`release_finalize.sh`](../.github/scripts/release_finalize.sh) compares the attached assets with the expected per-platform set (Windows installer, macOS zip, Linux AppImage, Android AAB) and refuses to promote a release that is missing one:
 
 ```bash
