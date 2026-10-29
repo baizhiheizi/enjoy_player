@@ -455,6 +455,28 @@ The invariant the memo relies on: a `TranscriptWord`'s `phones` list is never
 mutated after construction (`TranscriptWord` is `@immutable`, and every
 producer builds a fresh list).
 
+## Recording overlap counts
+
+[`countRecordingsPerLineIndex`](../../lib/features/transcript/domain/transcript_recording_counts.dart)
+answers "how many shadow-reading takes overlap this cue?" for every cue of a
+media. The counts feed the recording badge on each transcript row and the
+practice-poster stats, and the whole set is recomputed whenever the transcript
+lines or the recordings change.
+
+The overlap rule is `max(startA, startB) < min(endA, endB)`. Applying it by
+scanning every recording for every cue costs `lines × recordings`. Instead the
+recording windows are projected onto two sorted lists — their start times and
+their end times — and each cue is resolved with two binary searches. A cue
+overlaps exactly the recordings that started before the cue ends, minus the
+ones that ended at or before the cue starts. Those two sets are nested (a
+recording that ended at or before the cue started also started before the cue
+ends), so their difference is the overlap count and the two sorted projections
+are enough to answer every cue.
+
+A window of non-positive length never overlaps anything, so it contributes
+nothing: a recording with a zero or negative duration contributes no window,
+and a cue with a zero or negative duration has no count.
+
 ## Alignment engine (Craft save + on-demand enrich)
 
 `packages/forced_alignment` maps known text + 16 kHz extractable PCM to
