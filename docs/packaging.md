@@ -521,6 +521,15 @@ After all four platforms finish, promote the draft with [`release_publish.yml`](
 1. Actions → **Publish GitHub Release** → **Run workflow**.
 2. Leave `tag_name` blank to auto-pick the latest draft, set `notes_file` (default: `docs/releases/<version>.md`, or the `## [<version>]` section of `CHANGELOG.md` at the tag), set **`finalize=true`** to unmark draft.
 
+The draft collects one platform's assets at a time, so a release whose Windows or Android job failed looks exactly like a complete one until somebody publishes it. [`release_finalize.sh`](../.github/scripts/release_finalize.sh) compares the attached assets with the expected per-platform set (Windows installer, macOS zip, Linux AppImage, Android AAB) and refuses to promote a release that is missing one:
+
+```bash
+bash .github/scripts/release_finalize.sh --tag v0.10.3 --check-only
+bash .github/scripts/release_finalize.sh --tag v0.10.3
+```
+
+`--require <asset>` adds an asset the release must also carry (the iOS IPA, the sideload APKs), and `--allow-missing <asset>` records a channel that is intentionally skipped.
+
 The same `--publish-github` flag works locally:
 
 ```bash
@@ -528,7 +537,7 @@ bash .github/scripts/release.sh --platform apple  --publish-only --publish-githu
 bash .github/scripts/release.sh --platform all    --publish-only --publish-github
 ```
 
-This calls [`release_lib.sh::release_publish_github`](../.github/scripts/release_lib.sh) which uses `gh release` (authenticate once with `gh auth login`). It creates the release as a draft; promote via the workflow above or `gh release edit vX.Y.Z --draft=false`.
+This calls [`release_lib.sh::release_publish_github`](../.github/scripts/release_lib.sh) which uses `gh release` (authenticate once with `gh auth login`). It creates the release as a draft; promote via the workflow above or `bash .github/scripts/release_finalize.sh --tag vX.Y.Z`, which checks the attached assets before publishing.
 
 Platform CI setup (secrets, runners):
 
