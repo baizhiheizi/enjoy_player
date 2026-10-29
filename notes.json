@@ -9,54 +9,70 @@
       "number": 864,
       "state": "commented",
       "updated_at": "2026-10-28",
-      "note": "Perf Improver monthly issue. Commented: P3's vocabulary_item_dao.listDue has NO production caller; the live over-fetch is VocabularyReviewSessionLifecycle.start() loading repo.listAll() and filtering in Dart. Not implemented - needs a maintainer decision."
+      "note": "Perf Improver monthly issue. Commented: P3's listDue has no production caller; the live over-fetch is VocabularyReviewSessionLifecycle.start() loading repo.listAll(). Not implemented - needs a maintainer decision."
     }
   ],
   "fixes": [
     {
-      "issue": 864,
+      "issue": 1128,
       "pr": null,
-      "branch": "repo-assist/perf-startup-settings-bulk-read",
+      "branch": "repo-assist/basics-doc-links-2026-10-29",
       "status": "open",
-      "updated_at": "2026-10-28",
-      "note": "perf(startup): the four shell preferences now read in one settings query (SettingsDao.readSettings, WHERE key IN (...)). A drift QueryInterceptor counts the settings SELECTs and pins the count at 1. 6937 tests passed."
+      "updated_at": "2026-10-29",
+      "note": "docs: nine dead relative links under docs/decisions repaired; test/doc_relative_links_test.dart now guards every relative link in docs/ and README. 6944 tests passed."
+    },
+    {
+      "issue": 1096,
+      "pr": null,
+      "branch": "repo-assist/eng-release-asset-gate-2026-10-29",
+      "status": "open",
+      "updated_at": "2026-10-29",
+      "note": "ci(release): release_finalize.sh refuses to promote a draft GitHub Release that is missing a platform asset. The workflow step is filed as an issue; the app cannot push workflows. 6950 tests passed."
+    },
+    {
+      "issue": 1088,
+      "pr": null,
+      "branch": "repo-assist/release-prepare-v0-10-3-2026-10-29",
+      "status": "open",
+      "updated_at": "2026-10-29",
+      "note": "release: v0.10.3 prepared - pubspec 0.10.3+19, CHANGELOG section, docs/releases/0.10.3.md, plus a guard that a version with release notes has its CHANGELOG section. 6944 tests passed."
     }
   ],
   "checks": [
     {
       "area": "tests",
-      "checked_at": "2026-10-28",
-      "result": "flutter test green on both branches: perf branch 6937 passed / 10 skipped; dependency branch 6930 passed / 10 skipped, plus forced_alignment 86 and azure_speech 12.",
+      "checked_at": "2026-10-29",
+      "result": "flutter test green on all three branches: doc-links 6944 passed / 12 skipped, release-gate 6950 passed / 12 skipped, v0.10.3 6944 passed / 12 skipped.",
       "follow_up": null
     },
     {
       "area": "ci",
-      "checked_at": "2026-10-28",
-      "result": "validate_ci_gates.sh --fix --analyze --test (perf branch) and the same plus --packages (dependency branch): format ok, codegen drift ok, path-deps ok, flutter analyze clean, exit 0.",
-      "follow_up": "Run flutter pub get first; the sandbox pub cache starts empty. The full suite takes ~12 min, so run the gate in the background with a long timeout."
+      "checked_at": "2026-10-29",
+      "result": "check_dart_format.sh ok and flutter analyze clean on all three branches; check_codegen_drift.sh ok on the base commit.",
+      "follow_up": "Run flutter pub get in every fresh worktree - the sandbox pub cache starts empty. The full suite takes ~12 min per branch."
     },
     {
       "area": "release",
-      "checked_at": "2026-10-28",
-      "result": "v0.10.2 is tagged (c729f1f8). Release Apple and Release Linux succeeded; Release Windows and Release Android failed on 5 platform-specific test failures (Windows log: '6869 tests passed, 5 failed'). #1123 fixes them, but the tag predates it.",
-      "follow_up": "No GitHub Release object exists for v0.10.2. A maintainer must publish it and re-sign the Sparkle appcast; v0.10.1 users cannot self-update."
+      "checked_at": "2026-10-29",
+      "result": "v0.10.2 is tagged but has NO GitHub Release object: Apple and Linux shipped, Windows and Android failed on 5 platform tests. #1123 fixes them and landed after the tag.",
+      "follow_up": "v0.10.3 is prepared on a branch and needs only the maintainer's tag. The macOS appcast re-sign is still open, so v0.10.1 users cannot self-update."
     },
     {
       "area": "qa",
-      "checked_at": "2026-10-28",
-      "result": "No macOS or Windows host is reachable. The v0.10.2 Windows and Android release failures were read from the GitHub Actions job logs, not reproduced locally.",
-      "follow_up": "A maintainer should re-run the release jobs on a new tag once #1123 is in."
+      "checked_at": "2026-10-29",
+      "result": "No macOS or Windows host is reachable; the release failures were read from the GitHub Actions job logs, not reproduced locally.",
+      "follow_up": "A maintainer should re-run the release jobs on the v0.10.3 tag."
     },
     {
       "area": "docs",
-      "checked_at": "2026-10-28",
-      "result": "docs/features/app-ui.md gains a 'Startup preferences' section: the four shell preferences resolve in one settings query before the router renders, and the QueryInterceptor regression check pins the count at one.",
-      "follow_up": null
+      "checked_at": "2026-10-29",
+      "result": "docs/decisions: nine relative links repaired. The only other dead relative links are in openspec/changes/archive/** and a vendored package README.",
+      "follow_up": "The link guard scans docs/ and README.md only; widening it to openspec/ needs a decision on the archived changes."
     },
     {
       "area": "tooling",
-      "checked_at": "2026-10-28",
-      "result": "The Perf Improver dart allowlist landed as #1111, but from the maintainer's own branch - the agentic App still cannot push .github/workflows/. .github/scripts/ stays pushable.",
+      "checked_at": "2026-10-29",
+      "result": "The agentic App still cannot push .github/workflows/ - the release_publish.yml asset-gate step was filed as an issue. .github/scripts/ stays pushable.",
       "follow_up": "The compiled *.lock.yml carries the egress allowlist, so a .github/workflows/*.md edit still needs gh aw compile."
     }
   ],
@@ -100,23 +116,31 @@
     {
       "key": "v0.10.2-release-prep-merged-as-1102",
       "completed_at": "2026-10-28"
+    },
+    {
+      "key": "perf-startup-settings-bulk-read-merged-as-1124",
+      "completed_at": "2026-10-29"
+    },
+    {
+      "key": "dependency-updates-merged-as-1125",
+      "completed_at": "2026-10-29"
     }
   ],
   "priorities": [
     {
-      "task": 2,
-      "item": "Follow up on the v0.10.2 release: tagged, but Windows and Android failed, no Release object",
-      "note": "v0.10.1 users auto-update into a dyld crasher and cannot self-update, so the macOS appcast re-sign and a published release are the only way out. #1123 fixes the five failing tests, but the tag predates it."
+      "task": 10,
+      "item": "The v0.10.3 release needs the maintainer's tag",
+      "note": "v0.10.3 is prepared on repo-assist/release-prepare-v0-10-3-2026-10-29. The v0.10.2 tag can never publish its Windows and Android artifacts, and v0.10.1 users cannot self-update."
+    },
+    {
+      "task": 4,
+      "item": "The release_publish.yml asset-gate step needs the maintainer's branch",
+      "note": "The check shipped as .github/scripts/release_finalize.sh; only the one workflow step is missing, because the agentic App is refused on .github/workflows/ pushes. The issue carries the YAML."
     },
     {
       "task": 8,
       "item": "The review-session vocabulary over-fetch needs a maintainer decision",
-      "note": "Detailed on issue #864: VocabularyReviewSessionLifecycle.start() loads repo.listAll() (every row + explanation blob) and filters in Dart. Only the queued rows need the blob."
-    },
-    {
-      "task": 4,
-      "item": "Review the dependency-update draft PR (repo-assist/eng-dependency-updates-2026-10-28)",
-      "note": "35 packages moved forward within the existing constraints; pubspec.yaml unchanged and build_runner produced no generated-file diff. 6930 + 86 + 12 tests passed."
+      "note": "On issue #864: VocabularyReviewSessionLifecycle.start() loads repo.listAll() (every row + explanation blob) and filters in Dart. Only the queued rows need the blob."
     },
     {
       "task": 7,
@@ -142,6 +166,11 @@
       "task": 2,
       "item": "Follow up on the engine-429 request rejections if they recur",
       "note": "The schedule-stagger PR merged as #1085; the rate limit is upstream, so further rejections point at fewer concurrent agent sessions."
+    },
+    {
+      "task": 7,
+      "item": "Consider widening the doc link guard to openspec/",
+      "note": "The guard scans docs/ and README.md. openspec/changes/app-update-system/proposal.md has two dead links; openspec/changes/archive/** has more, but those are historical records."
     }
   ]
 }
