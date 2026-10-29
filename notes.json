@@ -9,29 +9,21 @@
       "number": 864,
       "state": "commented",
       "updated_at": "2026-10-28",
-      "note": "Perf Improver monthly issue. Commented: P3's listDue has no production caller; the live over-fetch is VocabularyReviewSessionLifecycle.start() loading repo.listAll(). Not implemented - needs a maintainer decision."
+      "note": "Perf Improver monthly issue. Commented: P3's listDue has no production caller; the live over-fetch is VocabularyReviewSessionLifecycle.start() loading repo.listAll(). Needs a maintainer decision."
     }
   ],
   "fixes": [
     {
-      "issue": 1128,
+      "issue": 1144,
       "pr": null,
-      "branch": "repo-assist/basics-doc-links-2026-10-29",
+      "branch": "repo-assist/fix-appcast-merge-union",
       "status": "open",
       "updated_at": "2026-10-29",
-      "note": "docs: nine dead relative links under docs/decisions repaired; test/doc_relative_links_test.dart now guards every relative link in docs/ and README. 6944 tests passed."
-    },
-    {
-      "issue": 1096,
-      "pr": null,
-      "branch": "repo-assist/eng-release-asset-gate-2026-10-29",
-      "status": "open",
-      "updated_at": "2026-10-29",
-      "note": "ci(release): release_finalize.sh refuses to promote a draft GitHub Release that is missing a platform asset. The workflow step is filed as an issue; the app cannot push workflows. 6950 tests passed."
+      "note": "fix(release): the appcast merge now unions - the published version wins for its platform, a platform the publish does not ship keeps its item and signature. 5 cases drive the script. 6956 tests passed. The issue number is a guess (filed this run); confirm it from the PR Closes line."
     },
     {
       "issue": 1088,
-      "pr": null,
+      "pr": 1140,
       "branch": "repo-assist/release-prepare-v0-10-3-2026-10-29",
       "status": "open",
       "updated_at": "2026-10-29",
@@ -42,38 +34,50 @@
     {
       "area": "tests",
       "checked_at": "2026-10-29",
-      "result": "flutter test green on all three branches: doc-links 6944 passed / 12 skipped, release-gate 6950 passed / 12 skipped, v0.10.3 6944 passed / 12 skipped.",
+      "result": "flutter test green on all three branches of this run: appcast merge 6956 passed / 12 skipped, feed gate 6962 / 12, openspec link guard 6962 / 12.",
       "follow_up": null
     },
     {
       "area": "ci",
       "checked_at": "2026-10-29",
-      "result": "check_dart_format.sh ok and flutter analyze clean on all three branches; check_codegen_drift.sh ok on the base commit.",
-      "follow_up": "Run flutter pub get in every fresh worktree - the sandbox pub cache starts empty. The full suite takes ~12 min per branch."
+      "result": "check_dart_format.sh ok and flutter analyze clean on all three branches of this run.",
+      "follow_up": "The release scripts the branches touch are not in ci.yml's path PATTERN, so a PR that changes only those scripts skips the analyze-test job. ci.yml cannot be pushed by the agentic App."
     },
     {
       "area": "release",
       "checked_at": "2026-10-29",
-      "result": "v0.10.2 is tagged but has NO GitHub Release object: Apple and Linux shipped, Windows and Android failed on 5 platform tests. #1123 fixes them and landed after the tag.",
-      "follow_up": "v0.10.3 is prepared on a branch and needs only the maintainer's tag. The macOS appcast re-sign is still open, so v0.10.1 users cannot self-update."
+      "result": "v0.10.2 is tagged but has NO GitHub Release object: Apple and Linux shipped, Windows and Android failed on 5 platform tests. #1123 fixes them and landed after the tag. PR #1140 (v0.10.3) is open. The release_publish.yml asset-gate step landed as #1141, so issue #1139 is closed.",
+      "follow_up": "v0.10.3 needs only the maintainer's tag. The macOS Sparkle EdDSA key lives in the runner's login keychain, no CI secret holds it, and the sign failure was swallowed; the new feed gate now refuses an unsigned enclosure."
     },
     {
       "area": "qa",
       "checked_at": "2026-10-29",
-      "result": "No macOS or Windows host is reachable; the release failures were read from the GitHub Actions job logs, not reproduced locally.",
-      "follow_up": "A maintainer should re-run the release jobs on the v0.10.3 tag."
+      "result": "No macOS or Windows host is reachable, and dl.enjoy.bot returns 403 through the sandbox proxy, so the live appcast.xml could not be read.",
+      "follow_up": "A maintainer should read the published appcast.xml and confirm it holds an item for every platform the manifest advertises."
     },
     {
       "area": "docs",
       "checked_at": "2026-10-29",
-      "result": "docs/decisions: nine relative links repaired. The only other dead relative links are in openspec/changes/archive/** and a vendored package README.",
-      "follow_up": "The link guard scans docs/ and README.md only; widening it to openspec/ needs a decision on the archived changes."
+      "result": "The relative-link guard now covers docs/, README.md and openspec/. The only dead relative links left are the 21 in openspec/changes/archive/** and one vendored package README.",
+      "follow_up": "The archived changes are deliberately excluded - repairing them would rewrite a frozen record. A maintainer may still want them fixed by hand."
     },
     {
       "area": "tooling",
       "checked_at": "2026-10-29",
-      "result": "The agentic App still cannot push .github/workflows/ - the release_publish.yml asset-gate step was filed as an issue. .github/scripts/ stays pushable.",
+      "result": "The agentic App still cannot push .github/workflows/ - the release_publish.yml asset-gate step remains filed as an issue. .github/scripts/ stays pushable, which is where both of this run's release gates live.",
       "follow_up": "The compiled *.lock.yml carries the egress allowlist, so a .github/workflows/*.md edit still needs gh aw compile."
+    },
+    {
+      "area": "dependencies",
+      "checked_at": "2026-10-29",
+      "result": "flutter pub outdated shows only major-version candidates beyond the constraints plus in-constraint patch bumps that #1125 already covered today. No Dependabot alerts are open.",
+      "follow_up": "Nothing to bundle - a dependency PR would only repeat #1125."
+    },
+    {
+      "area": "repo_assist_prs",
+      "checked_at": "2026-10-29",
+      "result": "Three Repo Assist PRs are open from this run: the appcast merge union, the update-feed gate, and the openspec link guard.",
+      "follow_up": "They are a stack - each branch was cut from the previous one, so merge the appcast merge first, then the feed gate, then the link guard. PR #1140 (v0.10.3) is independent. The stack was explained in a comment on #841."
     }
   ],
   "completed_actions": [
@@ -124,18 +128,36 @@
     {
       "key": "dependency-updates-merged-as-1125",
       "completed_at": "2026-10-29"
+    },
+    {
+      "key": "doc-links-guard-merged-as-1137",
+      "completed_at": "2026-10-29"
+    },
+    {
+      "key": "release-asset-gate-merged-as-1138-1141",
+      "completed_at": "2026-10-29"
     }
   ],
   "priorities": [
     {
-      "task": 10,
-      "item": "The v0.10.3 release needs the maintainer's tag",
-      "note": "v0.10.3 is prepared on repo-assist/release-prepare-v0-10-3-2026-10-29. The v0.10.2 tag can never publish its Windows and Android artifacts, and v0.10.1 users cannot self-update."
+      "task": 4,
+      "item": "Review PR branch repo-assist/fix-appcast-merge-union (stack 1/3)",
+      "note": "The Sparkle appcast merge now unions - a single-platform publish no longer removes the other platform's update from the feed. 5 cases drive the real script."
     },
     {
       "task": 4,
-      "item": "The release_publish.yml asset-gate step needs the maintainer's branch",
-      "note": "The check shipped as .github/scripts/release_finalize.sh; only the one workflow step is missing, because the agentic App is refused on .github/workflows/ pushes. The issue carries the YAML."
+      "item": "Review PR branch repo-assist/eng-verify-update-feeds-2026-10-29 (stack 2/3)",
+      "note": "A gate refuses to publish a feed whose latest.json and appcast.xml disagree, or whose appcast item has no Sparkle signature. jq with a python3 fallback."
+    },
+    {
+      "task": 4,
+      "item": "Review PR branch repo-assist/basics-openspec-link-guard-2026-10-29 (stack 3/3)",
+      "note": "The relative-link guard now scans openspec/ as well as docs/, and the two dead links in the active app-update-system proposal are repaired."
+    },
+    {
+      "task": 10,
+      "item": "The v0.10.3 release needs the maintainer's tag",
+      "note": "v0.10.3 is prepared and draft PR #1140 is open. The v0.10.2 tag can never publish its Windows and Android artifacts, and v0.10.1 users cannot self-update."
     },
     {
       "task": 8,
@@ -168,9 +190,14 @@
       "note": "The schedule-stagger PR merged as #1085; the rate limit is upstream, so further rejections point at fewer concurrent agent sessions."
     },
     {
-      "task": 7,
-      "item": "Consider widening the doc link guard to openspec/",
-      "note": "The guard scans docs/ and README.md. openspec/changes/app-update-system/proposal.md has two dead links; openspec/changes/archive/** has more, but those are historical records."
+      "task": 4,
+      "item": "Decide where the macOS Sparkle EdDSA private key comes from",
+      "note": "ADR-0023 wants it in a release secret, but signing depends on the runner's login keychain. The feed gate now fails the publish on an unsigned enclosure; the key source is still a maintainer decision."
+    },
+    {
+      "task": 4,
+      "item": "latest.json advertises one global version while its assets are per-platform",
+      "note": "evaluateUpdate compares the manifest version with no platform awareness, so a macOS user is told 0.10.3 is available when the macOS enclosure is 0.10.2. A per-platform version in the feed is a schema change."
     }
   ]
 }
