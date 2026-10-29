@@ -3,9 +3,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
-/// Drives `.github/scripts/release_finalize.sh` with a stand-in for the `gh`
-/// CLI, so the gate that refuses to publish an incomplete GitHub Release is
-/// covered on every platform that runs the Dart test suite.
 const _scriptPath = '.github/scripts/release_finalize.sh';
 const _tag = 'v9.9.9';
 const _version = '9.9.9';
