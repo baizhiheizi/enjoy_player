@@ -235,6 +235,13 @@ feed_dir="${FEED_OUT_DIR:-${root}/build/update-feeds}"
 cp -f "${feed_dir}/latest.json" "${local_stage}/latest.json"
 cp -f "${feed_dir}/appcast.xml" "${local_stage}/appcast.xml"
 
+# A feed that lists a platform in one file but not the other leaves the
+# clients of that platform without an update, and a feed without a signature
+# is refused by Sparkle. Refuse to publish either.
+bash "${root}/.github/scripts/verify_update_feeds.sh" \
+  "${feed_dir}/latest.json" \
+  "${feed_dir}/appcast.xml"
+
 if [[ "${feeds_only}" == true ]]; then
   serve_root="${root}/build/release/serve"
   serve_player="${serve_root}/player"

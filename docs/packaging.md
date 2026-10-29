@@ -300,6 +300,23 @@ $env:SPARKLE_DSA_PRIV_PEM = Join-Path (git rev-parse --show-toplevel) "keys/dsa_
 CI injects the key as base64 via `SPARKLE_DSA_PRIV_PEM_BASE64` (see
 [`sign_sparkle_enclosure.sh`](../.github/scripts/sign_sparkle_enclosure.sh)).
 
+#### Update feed gate
+
+`publish_player_release_to_s3.sh` runs
+[`verify_update_feeds.sh`](../.github/scripts/verify_update_feeds.sh) on the
+generated `latest.json` / `appcast.xml` pair before either is uploaded, and
+**refuses to publish a feed** that
+
+- lists a platform in the manifest but not in the appcast, or the other way
+  round — the clients of that platform would find no update to install;
+- carries an appcast item without its Sparkle signature, or with the wrong
+  scheme (macOS expects EdDSA, Windows expects DSA) — Sparkle refuses an
+  enclosure it cannot verify.
+
+The gate needs `jq` or `python3` on the publish host. When it fails, the
+artifacts are already uploaded but the feed is not: fix the cause and re-run
+the publish, or re-publish every platform to rebuild the feed from scratch.
+
 #### Local publish setup
 
 ```powershell
