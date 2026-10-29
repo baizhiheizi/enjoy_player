@@ -1,17 +1,18 @@
 # Perf Improver run state
 
-- **Last run:** 2026-10-28 (workflow run 40675246196, run #73) — sixteenth
-  October run, fourth run to produce a code-changing PR.
-- **Run history:** #73 2026-10-28 (40675246196) shipped P12 → draft PR on
-  `perf-assist/ipa-spelling-memoization`. #72 2026-10-27 (40485464164)
-  shipped P11 → PR #1100, **MERGED by an-lee 2026-10-27**. #71 2026-10-25
-  (40225340975) shipped P10 → PR #1071, **MERGED by an-lee 2026-10-26**.
-  #66 2026-10-20 (39489542383) shipped P9 → PR #1006, **MERGED by an-lee
-  2026-10-20**. Runs #59–#65 (2026-10-13 → 2026-10-19) and #67–#70
-  (2026-10-21 → 2026-10-24) produced no code change.
-- **Next run:** check the `perf-assist/ipa-spelling-memoization` draft PR's
-  CI. It is the first code to use an `Expando` memo in `lib/data/subtitle/`.
-  The next backlog candidate is **P13** (auto-translate source-key SHA-256).
+- **Last run:** 2026-10-29 (workflow run 40862808812, run #74) — seventeenth
+  October run, fifth run to produce a code-changing PR.
+- **Run history:** #74 2026-10-29 (40862808812) shipped P14 → draft PR on
+  `perf-assist/recording-count-sweep`. #73 2026-10-28 (40675246196) shipped
+  P12 → PR #1127, **MERGED by an-lee 2026-10-28**. #72 2026-10-27
+  (40485464164) shipped P11 → PR #1100, **MERGED by an-lee 2026-10-27**.
+  #71 2026-10-25 (40225340975) shipped P10 → PR #1071, **MERGED by an-lee
+  2026-10-26**. #66 2026-10-20 (39489542383) shipped P9 → PR #1006, **MERGED
+  by an-lee 2026-10-20**. Runs #59–#65 (2026-10-13 → 2026-10-19) and
+  #67–#70 (2026-10-21 → 2026-10-24) produced no code change.
+- **Next run:** check the `perf-assist/recording-count-sweep` draft PR's CI.
+  The next backlog candidate is **P13** (auto-translate source-key SHA-256),
+  then **P15** (plain cue text derived twice per row).
 
 ## THE BIG CHANGE 2026-10-28 — the sandbox can run the full gate
 PR #1111 ("ci(agents): allow the dart ecosystem in the Perf Improver sandbox")
@@ -33,11 +34,11 @@ offline-harness recipe.
   commit.
 
 ## Repo state at this run
-- HEAD on `main` was `e5a79f60` (v0.10.2 release-gate tests, #1123).
-- **No open `[perf-improver]` PRs** at the start of the run. PR #1100 (P11)
-  merged on 2026-10-27 — Perf Improver's third merged code-changing PR.
-- Open PRs by other agents: #1124 (repo-assist startup bulk read — this
-  **claims P6**, do not duplicate it) and #1125 (repo-assist deps).
+- HEAD on `main` was `4e6c00d` (ci(release): verify platform assets, #1141).
+- **No open `[perf-improver]` PRs** at the start of the run. PR #1127 (P12)
+  merged on 2026-10-28 — Perf Improver's **fourth** merged code-changing PR.
+- Open PRs by other agents: #1140 (repo-assist release v0.10.3). PR #1124
+  (repo-assist startup bulk read) **claims P6** — do not duplicate it.
 - **No readable open issues.** The MCP integration drops all open issues
   (including #864) via its integrity policy; a `performance`-label query
   returns `[]`. Task 5 has no target and correctly took no action — do not
@@ -48,29 +49,47 @@ offline-harness recipe.
 - The Perf Improver **Actions** API *is* readable, so the monthly summary's
   run history can be rebuilt from
   `actions_list(method=list_workflow_runs, resource_id=perf-improver.lock.yml)`.
-  October 2026 runs are **#59–#73** (2026-10-13 → 2026-10-28). The run
+  October 2026 runs are **#59–#74** (2026-10-13 → 2026-10-29). The run
   numbers **skip #53–#58** — the workflow was idle 2026-08-31 → 2026-10-13.
+  The JSON is nested: `d[0]['structuredContent']['workflow_runs']['workflow_runs']`
+  (the MCP tool wraps it in a `_meta`/`content`/`structuredContent` envelope).
 
 ## Tasks completed this run
-- **Task 1**: the full toolchain now works (see above). Rebuilt the writable
-  Flutter SDK copy, resolved dependencies, and established a **green
-  baseline** (6930 passed / 10 skipped).
-- **Task 2**: surveyed the transcript/player hot paths. Confirmed the
-  familiar-form IPA memoization (P12) and re-verified P3, P7, P8, P10b by
-  direct grep. Added **P13–P16** to the backlog (auto-translate SHA-256,
-  recording counts O(n×m), the twice-derived plain cue text, the eagerly
-  built echo card).
-- **Task 3**: **DONE.** Branch `perf-assist/ipa-spelling-memoization`,
-  commit `0cdd3495`, draft PR opened via the safe-outputs tool. Details in
-  `backlog.md` (P12).
-- **Task 4**: no other open perf PRs to maintain; #1100 merged.
+- **Task 1**: rebuilt the writable Flutter SDK copy, resolved dependencies,
+  and established a **green baseline** (6951 passed / 12 skipped).
+- **Task 2**: re-verified the backlog against the current tree; confirmed
+  P12 merged, P13/P15/P16 still open, P6 still claimed by repo-assist.
+- **Task 3**: **DONE.** Branch `perf-assist/recording-count-sweep`,
+  commit `00031fa`, draft PR opened via the safe-outputs tool. Details in
+  `backlog.md` (P14).
+- **Task 4**: no open perf PRs to maintain; #1127 merged.
 - **Task 5**: no action — no readable target.
-- **Task 6**: added the repo's fourth local-only microbenchmark
-  (`test/data/subtitle/transcript_word_ipa_perf_test.dart`), linked from
-  `docs/perf-measurement.md`. The `test/perf/` dir + benchmark CI job stay
-  deferred per that doc — do not add them unilaterally.
+- **Task 6**: added the repo's fifth local-only microbenchmark
+  (`test/features/transcript/transcript_recording_counts_perf_test.dart`),
+  linked from `docs/perf-measurement.md`. The `test/perf/` dir + benchmark CI
+  job stay deferred per that doc — do not add them unilaterally.
 - **Task 7**: updated issue #864 in the mandated format (replace; the body
   was unreadable).
+
+## P14 — what shipped (details in `backlog.md`)
+`countRecordingsPerLineIndex` applied the overlap rule to every recording
+for every cue — O(cues × takes) — and the whole set is recomputed on every
+transcript revision (the provider watches the lines stream) and again on the
+practice-poster path. The recording windows are now projected onto two
+sorted lists (start times, end times) and each cue is resolved with two
+binary searches: `#{started before the cue ends} - #{ended at or before the
+cue starts}`. The two sets are nested, so the difference is the overlap
+count. Non-positive-length windows never overlap anything and are excluded.
+
+Measured (separate processes per implementation, `flutter test --run-skipped`,
+n=4 process pairs): 2000 cues × 200 takes 0.938 → 0.288 ms/pass (~3.3x
+median, ~2.3x worst pairing); 4000 cues × 800 takes 6.988 → 0.519 ms/pass
+(~13.5x median, ~10.1x worst pairing). The output sink is identical across
+all eight process runs at both scales.
+
+Status: draft PR open on `perf-assist/recording-count-sweep`. The PR number
+is assigned when the framework pushes the bundle, so it was **not** known
+during the run — the monthly summary references the branch instead.
 
 ## P12 — what shipped (details in `backlog.md`)
 `wordIpaSpelling` (the familiar-form IPA) was derived from scratch every
@@ -86,13 +105,7 @@ n=3): visible-window rebuild (480 words) 1.910 → 0.083 ms/pass (~23x median,
 ~16x worst pairing); readiness scan (2000 fresh lines) 2.992 → 0.053 ms/pass
 (~56x median, ~24x worst pairing). The output sink is byte-identical.
 
-Strategy choice, measured: an `Expando` beat an `L1Store`/`LinkedHashMap`
-memo by ~3.5x — the map must hash the word's whole `phones` list under
-value equality, while the `Expando` uses identity.
-
-Status: draft PR open on `perf-assist/ipa-spelling-memoization`. The PR
-number is assigned when the framework pushes the bundle, so it was **not**
-known during the run — the monthly summary references the branch instead.
+Status: **PR #1127 MERGED by an-lee on 2026-10-28.**
 
 ## Write path
 - PRs must go through the safe-outputs `create_pull_request` tool. It does

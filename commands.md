@@ -216,6 +216,11 @@ Use the Dart VM directly with a hand-written package config.
 - Full (slow): `bash .github/scripts/validate_ci_gates.sh --all`
 - Individual: `flutter analyze`, `flutter test`,
   `bash .github/scripts/check_dart_format.sh [--fix]`
+- **There is no `flutter format`** — use
+  `dart format lib test packages/*/lib packages/*/test`. The `dart` binary
+  lives at
+  `/tmp/gh-aw/agent/flutter-3.47.6/flutter/bin/cache/dart-sdk/bin/dart`
+  (the read-only toolcache copy works for `dart` too).
 - Codegen after annotation changes: `dart run build_runner build` or
   `bash .github/scripts/check_codegen_drift.sh --fix` (run in MAIN checkout,
   not agent worktree).
@@ -230,9 +235,9 @@ Use the Dart VM directly with a hand-written package config.
 - 24 features under lib/features/ (player, transcript, asr, sync, vocabulary,
   library, discover, lookup, ai, craft, shadow_reading, etc.).
 - Tests use Drift (sqlite) + Riverpod; heavy use of Freezed/codegen.
-- Test count as of 2026-10-17: 6730–6744 across the maintainer's 5 perf
-  PRs (#969–#973). Each `flutter test` run is several minutes on a
-  networked runner.
+- Test count as of 2026-10-29: **6951 passed / 12 skipped** on `main`
+  (6930–6954 across the last few merges). Each `flutter test` run is
+  ~3–5 minutes.
 
 ## Microbenchmark methodology (validated 2026-10-25 — supersedes ad-hoc timing)
 - **One implementation per fresh process.** An in-process A/B benchmark is

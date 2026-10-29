@@ -238,6 +238,9 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 - Status: draft PR open on `perf-assist/ipa-spelling-memoization`. The PR
   number is assigned when the framework pushes the bundle — it was not known
   during the run.
+- **UPDATE 2026-10-29: PR #1127 was MERGED by an-lee on 2026-10-28**
+  ("perf(transcript): derive the familiar-form IPA once per word"). Perf
+  Improver's **fourth** merged code-changing PR.
 - **Watch out for const canonicalization in tests**: `const TranscriptWord(...)`
   with identical arguments is the *same instance* across tests, so the memo
   already holds it. A test that asserts "one derivation" must use a word whose
@@ -277,20 +280,42 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   (today 40 → target 0 after the first pass).
 - Risk: LOW-MED. Confidence: HIGH.
 
-## P14 — Recording counts are O(lines x recordings) (NEXT)
-- File: `lib/features/transcript/domain/transcript_recording_counts.dart:24-40`
-  (`countRecordingsPerLineIndex`) — an inner loop over every recording for
-  every line. Called from `transcript_line_recording_counts_provider.dart`,
-  which `TranscriptScrollableList` and `EchoRegionMergedCard` watch.
+## P14 — Recording counts are O(lines x recordings) (SHIPPED 2026-10-29, draft PR open)
+- File: `lib/features/transcript/domain/transcript_recording_counts.dart`
+  (`countRecordingsPerLineIndex`) — was an inner loop over every recording
+  for every line. Called from `transcript_line_recording_counts_provider.dart`,
+  which `TranscriptScrollableList` and `EchoRegionMergedCard` watch, and from
+  `lib/features/share_poster/domain/practice_poster_data.dart` (twice).
 - Problem: n = transcript lines (thousands), m = shadow-reading takes
-  (hundreds). n*m overlap comparisons per DB emission.
-- Fix: sort the recordings by `referenceStart` once and sweep the lines in
-  time order, keeping the overlapping window (a sorted merge instead of a
-  nested scan).
-- Measure: instrument `recordingOverlapsLine` and assert the comparison
-  count is O(n + m) rather than n*m; keep the same counts as the current
-  implementation (differential check over random fixtures).
-- Risk: LOW (pure function). Confidence: HIGH.
+  (hundreds). n*m overlap comparisons per emission, and the provider
+  recomputes on every transcript revision (the lines stream emits).
+- Fix: project the recording windows onto **two sorted int lists** (start
+  times and end times) and resolve each cue with **two binary searches**:
+  `#{started before the cue ends} - #{ended at or before the cue starts}`.
+  The two sets are nested (positive-length windows), so the difference is
+  exactly the overlap count. Windows of non-positive length never overlap
+  anything and are excluded up front.
+  Note this is NOT a time-ordered sweep — the binary search needs no
+  assumption that the cues are sorted by `startMs`.
+- Measured (separate processes per implementation, `flutter test --run-skipped`,
+  n=4 process pairs, two scales):
+  - 2000 cues × 200 takes: nested 0.741/1.130/1.127/0.749 ms →
+    sorted 0.251/0.302/0.317/0.273 ms. Median **0.938 → 0.288 ms (~3.3x)**;
+    worst pairing ~2.3x.
+  - 4000 cues × 800 takes: nested 5.599/8.310/8.330/5.665 ms →
+    sorted 0.481/0.557/0.543/0.494 ms. Median **6.988 → 0.519 ms (~13.5x)**;
+    worst pairing ~10.1x.
+  - The output sink is **identical** across all eight process runs at both
+    scales (20260 and 60780) — a byte-identical-output check.
+  - The nested figures are bimodal across processes (0.74 vs 1.13 ms) — the
+    same JIT-tier effect seen in P11. The sorted figures are stable.
+- Correctness: a differential test over 60 random fixtures compares the new
+  result against the nested scan (which uses the untouched public
+  `recordingOverlapsLine` as the oracle), plus explicit degenerate-window
+  tests. `recordingOverlapsLine` is kept as the canonical rule + oracle.
+- Status: draft PR open on `perf-assist/recording-count-sweep` (commit
+  `00031fa`). The PR number is assigned when the framework pushes the
+  bundle — it was not known during the run.
 
 ## P15 — The plain cue text is derived twice per row (NEXT)
 - Files: `lib/features/transcript/presentation/transcript_line_tile.dart:207`
@@ -339,6 +364,11 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   `transcript_display_readiness_test.dart`.
 - No dedicated test/perf/ dir or benchmark CI smoke job (deferred by
   maintainers — still open as of #968). Do not add unilaterally.
+- ~~No coverage for the recording overlap counts.~~ **DONE 2026-10-29**:
+  `test/features/transcript/transcript_recording_counts_perf_test.dart` —
+  differential equivalence against the nested scan over 60 random fixtures,
+  degenerate-window semantics, and a two-scale local-only microbenchmark
+  (2000×200 and 4000×800). Linked from `docs/perf-measurement.md`.
 - Only other `*perf*` test in the repo:
   `test/features/transcript/transcript_blur_long_list_perf_test.dart`.
 
@@ -406,3 +436,10 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   identical arguments is the *same instance* in every test in the file, so a
   per-instance memo already holds it. A test that asserts "derived exactly
   once" must use phone labels unique to that test file.
+- **2026-10-29 update:** PR #1127 (P12, familiar-form IPA memoization) was
+  **MERGED by an-lee on 2026-10-28** — Perf Improver's fourth merged
+  code-changing PR. This run shipped **P14** (recording overlap counts, draft
+  PR on `perf-assist/recording-count-sweep`). The next candidates are
+  **P13** (auto-translate source-key SHA-256) and **P15** (plain cue text
+  derived twice per row). P3 and P6 remain open but P6 is claimed by
+  repo-assist PR #1124.
