@@ -14,7 +14,7 @@ Two problems to solve:
 ## Decision
 
 ### 1. Strict-priority budget packing (C1–C6)
-Replace the coupled “prev/next always-on” model with a **pure** resolver, [`resolveNarrowTransportBudget`](../../lib/features/player/presentation/widgets/global_transport_bar.dart), that:
+Replace the coupled “prev/next always-on” model with a **pure** resolver, `resolveNarrowTransportBudget` (removed with the global transport bar in [ADR-0093](0093-duet-design-language.md)), that:
 
 - Computes a fixed **always-on base cost** = play ring + echo + blur + cc + speed + spacing.
 - Treats the remaining controls as independently droppable items, each with a priority and a width cost, and **greedily packs** them highest-priority-first into the remaining budget.
