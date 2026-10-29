@@ -111,7 +111,7 @@ for its own opened path.
 ### 5. Native plugin: `enjoy.player/security_scoped_bookmark`
 
 A new Swift class
-[`SecurityScopedBookmarkChannel`](macos/Runner/SecurityScopedBookmarkChannel.swift)
+[`SecurityScopedBookmarkChannel`](../../macos/Runner/SecurityScopedBookmarkChannel.swift)
 is registered with `flutterViewController.engine.binaryMessenger` from
 `MainFlutterWindow.swift`. Three methods:
 
@@ -138,7 +138,7 @@ and the bug returns — the codebase already has
 ### 7. Cross-platform behavior
 
 The Dart wrapper
-[`SecurityScopedBookmarkChannel`](lib/data/files/security_scoped_bookmark.dart)
+[`SecurityScopedBookmarkChannel`](../../lib/data/files/security_scoped_bookmark.dart)
 catches `MissingPluginException` from every call and returns
 `null` / no-ops. iOS / Android / Windows / Linux / Web tests see the
 existing legacy `localUri` path unchanged. iOS can adopt the same
@@ -178,6 +178,6 @@ behind the same channel name without touching the Dart API.
   surfaced this macOS-only failure mode).
 * ADR-0057 — permanent player surface host (interacts with engine
   swap timing, not changed by this ADR).
-* Spec / feature docs: [`docs/features/local-library.md`](features/local-library.md),
-  [`docs/features/media-player.md`](features/media-player.md) — both
+* Spec / feature docs: [`docs/features/library.md`](../features/library.md),
+  [`docs/features/player.md`](../features/player.md) — both
   pick up a "macOS sandbox / security-scoped bookmark" note.
