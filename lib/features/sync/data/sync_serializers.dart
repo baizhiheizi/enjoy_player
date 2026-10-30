@@ -36,6 +36,12 @@ String? maxUpdatedAtIso(List<Map<String, dynamic>> batch) {
       max = t;
     }
   }
+  if (max == null && batch.isNotEmpty) {
+    _log.warning(
+      '${batch.length} downloaded rows carry no parseable updatedAt; '
+      'the entity cursor stays put and the same window re-fetches',
+    );
+  }
   return max?.toUtc().toIso8601String();
 }
 
