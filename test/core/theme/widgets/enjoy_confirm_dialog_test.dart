@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -87,13 +88,13 @@ void main() {
       tester,
       destructive: true,
       inspect: (t) async {
-        final button = t.widget<FilledButton>(
+        final button = t.widget<EnjoyButton>(
           find.ancestor(
             of: find.text('Delete it'),
-            matching: find.byType(FilledButton),
+            matching: find.byType(EnjoyButton),
           ),
         );
-        expect(button.onPressed, isNotNull);
+        expect(button.variant, EnjoyButtonVariant.destructive);
       },
       act: (t) => t.tap(find.text('Delete it')),
     );
@@ -106,7 +107,6 @@ void main() {
     expect(
       await openConfirmAndAct(
         tester,
-        destructive: true,
         deemphasizeConfirm: true,
         cancelLabel: 'Keep subscription',
         confirmLabel: 'Cancel subscription',
@@ -117,7 +117,6 @@ void main() {
     expect(
       await openConfirmAndAct(
         tester,
-        destructive: true,
         deemphasizeConfirm: true,
         cancelLabel: 'Keep subscription',
         confirmLabel: 'Cancel subscription',
@@ -132,20 +131,26 @@ void main() {
     (tester) async {
       final result = await openConfirmAndAct(
         tester,
-        destructive: true,
         deemphasizeConfirm: true,
         cancelLabel: 'Keep subscription',
         confirmLabel: 'Cancel subscription',
         inspect: (t) async {
           expect(find.text('Cancel subscription'), findsOneWidget);
           expect(find.text('Keep subscription'), findsOneWidget);
-          final safeAction = t.widget<FilledButton>(
+          final guardrailConfirm = t.widget<TextButton>(
             find.ancestor(
-              of: find.text('Keep subscription'),
-              matching: find.byType(FilledButton),
+              of: find.text('Cancel subscription'),
+              matching: find.byType(TextButton),
             ),
           );
-          expect(safeAction.onPressed, isNotNull);
+          expect(guardrailConfirm.onPressed, isNotNull);
+          final safeAction = t.widget<EnjoyButton>(
+            find.ancestor(
+              of: find.text('Keep subscription'),
+              matching: find.byType(EnjoyButton),
+            ),
+          );
+          expect(safeAction.variant, EnjoyButtonVariant.primary);
         },
         act: (t) => t.tap(find.text('Keep subscription')),
       );

@@ -150,10 +150,11 @@ Future<T?> showEnjoyAlertDialog<T>({
 /// [EnjoyButton.destructive] when [destructive], else [EnjoyButton.brand].
 /// Resolves `true` only when the user confirms.
 ///
-/// With [deemphasizeConfirm], the confirm action renders as a low-emphasis
-/// error text button leading a primary safe action — the guardrail layout
-/// for high-stakes destructive confirmations; the result contract is
-/// unchanged.
+/// With [deemphasizeConfirm] — the guardrail layout for high-stakes
+/// destructive confirmations — the confirm action renders as a low-emphasis
+/// error text button leading a primary safe action. It implies
+/// [destructive]: the confirm action always means the harmful choice, and
+/// the result contract is unchanged.
 Future<bool> showEnjoyConfirmDialog({
   required BuildContext context,
   required String title,
@@ -173,6 +174,7 @@ Future<bool> showEnjoyConfirmDialog({
     actionsBuilder: (ctx) {
       final resolvedCancel =
           cancelLabel ?? MaterialLocalizations.of(ctx).cancelButtonLabel;
+      final destructiveConfirm = destructive || deemphasizeConfirm;
       if (deemphasizeConfirm) {
         return [
           TextButton(
@@ -193,7 +195,7 @@ Future<bool> showEnjoyConfirmDialog({
           onPressed: () => Navigator.pop(ctx, false),
           child: Text(resolvedCancel),
         ),
-        destructive
+        destructiveConfirm
             ? EnjoyButton.destructive(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(confirmLabel),

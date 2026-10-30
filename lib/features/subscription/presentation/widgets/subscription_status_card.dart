@@ -47,7 +47,6 @@ class SubscriptionStatusCard extends ConsumerWidget {
       message: l10n.subscriptionAutoRenewCancelConfirmMessage(dateLabel),
       confirmLabel: l10n.subscriptionAutoRenewCancelConfirmAction,
       cancelLabel: l10n.subscriptionAutoRenewCancelKeep,
-      destructive: true,
       deemphasizeConfirm: true,
     );
     if (ok != true || !context.mounted) return;
