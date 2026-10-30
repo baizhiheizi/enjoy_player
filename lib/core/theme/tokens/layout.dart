@@ -250,3 +250,35 @@ final class _LayoutTokens {
     );
   }
 }
+
+extension LayoutTokenAccessors on EnjoyThemeTokens {
+  double get breakpointCompact => _layout.breakpointCompact;
+  double get breakpointRail => _layout.breakpointRail;
+  double get breakpointTranscriptSideBySide =>
+      _layout.breakpointTranscriptSideBySide;
+  double get breakpointMarginDrawer => _layout.breakpointMarginDrawer;
+  double get contentMaxWidth => _layout.contentMaxWidth;
+  double get formMaxWidth => _layout.formMaxWidth;
+  double get hubMaxWidth => _layout.hubMaxWidth;
+  double get sidebarWidth => _layout.sidebarWidth;
+  double get sidebarBrandHeight => _layout.sidebarBrandHeight;
+  double get transportHeight => _layout.transportHeight;
+  double get bottomNavHeight => _layout.bottomNavHeight;
+  double get modalMaxWidth => _layout.modalMaxWidth;
+  double get modalMaxWidthLarge => _layout.modalMaxWidthLarge;
+  double get shellInset => _layout.shellInset;
+  double get tabBarHeight => _layout.tabBarHeight;
+  double get tabBarSafeInset => _layout.tabBarSafeInset;
+  double get playerTopBarHeight => _layout.playerTopBarHeight;
+  double get subpageHeaderHeight => _layout.subpageHeaderHeight;
+  double get rulerHitHeight => _layout.rulerHitHeight;
+  double get transcriptMaxListen => _layout.transcriptMaxListen;
+  double get transcriptMaxEcho => _layout.transcriptMaxEcho;
+  double get videoColumnMin => _layout.videoColumnMin;
+  double get videoColumnMax => _layout.videoColumnMax;
+  double get videoColumnShare => _layout.videoColumnShare;
+  double get pageMaxBrowse => _layout.pageMaxBrowse;
+  double get pageMaxCraft => _layout.pageMaxCraft;
+  double get pageMaxHub => _layout.pageMaxHub;
+  double get pageMaxForm => _layout.pageMaxForm;
+}

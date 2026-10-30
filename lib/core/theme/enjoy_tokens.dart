@@ -60,12 +60,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final _AccentColors _accents;
   final _EffectTokens _effects;
 
-  double get breakpointCompact => _layout.breakpointCompact;
-  double get breakpointRail => _layout.breakpointRail;
-  double get breakpointTranscriptSideBySide =>
-      _layout.breakpointTranscriptSideBySide;
-  double get breakpointMarginDrawer => _layout.breakpointMarginDrawer;
-
   Color get echoActive => _accents.echoActive;
   Color get blurActive => _accents.blurActive;
   Color get scoreGood => _accents.scoreGood;
@@ -82,15 +76,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
   EdgeInsets get transcriptLinePadding => _effects.transcriptLinePadding;
 
-  double get contentMaxWidth => _layout.contentMaxWidth;
-  double get formMaxWidth => _layout.formMaxWidth;
-  double get hubMaxWidth => _layout.hubMaxWidth;
-
   double get miniBarBlurSigma => _components.miniBarBlurSigma;
-
-  double get sidebarWidth => _layout.sidebarWidth;
-  double get sidebarBrandHeight => _layout.sidebarBrandHeight;
-  double get transportHeight => _layout.transportHeight;
 
   double get heroTitleLetterSpacing => _components.heroTitleLetterSpacing;
 
@@ -98,11 +84,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   Color get glassBorder => _palette.glassBorder;
   Color get gradientStart => _palette.gradientStart;
   Color get gradientEnd => _palette.gradientEnd;
-
-  double get bottomNavHeight => _layout.bottomNavHeight;
-
-  double get modalMaxWidth => _layout.modalMaxWidth;
-  double get modalMaxWidthLarge => _layout.modalMaxWidthLarge;
 
   Color get canvas => _palette.canvas;
   Color get card => _palette.card;
@@ -113,8 +94,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   Color get logoStart => _palette.logoStart;
   Color get logoEnd => _palette.logoEnd;
   Color get topHighlight => _palette.topHighlight;
-
-  double get shellInset => _layout.shellInset;
 
   double get controlHeightSm => _components.controlHeightSm;
   double get controlHeight => _components.controlHeight;
@@ -167,22 +146,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   double get originalPillWidth => _components.originalPillWidth;
   double get originalPillHeight => _components.originalPillHeight;
   double get originalButtonPhoneSize => _components.originalButtonPhoneSize;
-
-  double get tabBarHeight => _layout.tabBarHeight;
-  double get tabBarSafeInset => _layout.tabBarSafeInset;
-  double get playerTopBarHeight => _layout.playerTopBarHeight;
-  double get subpageHeaderHeight => _layout.subpageHeaderHeight;
-  double get rulerHitHeight => _layout.rulerHitHeight;
-
-  double get transcriptMaxListen => _layout.transcriptMaxListen;
-  double get transcriptMaxEcho => _layout.transcriptMaxEcho;
-  double get videoColumnMin => _layout.videoColumnMin;
-  double get videoColumnMax => _layout.videoColumnMax;
-  double get videoColumnShare => _layout.videoColumnShare;
-  double get pageMaxBrowse => _layout.pageMaxBrowse;
-  double get pageMaxCraft => _layout.pageMaxCraft;
-  double get pageMaxHub => _layout.pageMaxHub;
-  double get pageMaxForm => _layout.pageMaxForm;
 
   List<double> get echoLensOpacity => _effects.echoLensOpacity;
   double get referencePitchOpacity => _effects.referencePitchOpacity;
