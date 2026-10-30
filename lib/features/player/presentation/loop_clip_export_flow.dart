@@ -6,15 +6,14 @@ library;
 
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/platform/file_share_export.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/media_registry_provider.dart';
@@ -29,8 +28,6 @@ import 'package:enjoy_player/features/transcript/application/transcript_lines_pr
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 final _log = logNamed('LoopClipExportFlow');
-
-bool get _isMobileSharePlatform => Platform.isIOS || Platform.isAndroid;
 
 /// Runs the export for [mediaId]'s active Echo loop and reports through
 /// [AppNotice]. Never throws — every failure is surfaced as a notice.
@@ -88,27 +85,22 @@ Future<void> exportLoopAsClip(
     if (!context.mounted) return;
 
     try {
-      if (_isMobileSharePlatform) {
-        final result = await SharePlus.instance.share(
-          ShareParams(files: [XFile(written)]),
-        );
-        if (!context.mounted) return;
-        if (result.status == ShareResultStatus.dismissed) return;
-        AppNotice.success(context, l10n.playerMoreExportLoopClipSuccess);
-        return;
-      }
-
-      final bytes = await File(written).readAsBytes();
-      if (!context.mounted) return;
-      final saved = await FilePicker.saveFile(
-        dialogTitle: l10n.playerMoreExportLoopClip,
+      final outcome = await saveOrShareFile(
+        sourcePath: written,
         fileName: fileName,
-        bytes: bytes,
         mimeType: video ? 'video/mp4' : 'audio/mp4',
+        dialogTitle: l10n.playerMoreExportLoopClip,
       );
       if (!context.mounted) return;
-      if (saved == null) return;
-      AppNotice.success(context, l10n.playerMoreExportLoopClipSuccess);
+      switch (outcome) {
+        case FileShareOutcome.shared:
+        case FileShareOutcome.saved:
+          AppNotice.success(context, l10n.playerMoreExportLoopClipSuccess);
+        case FileShareOutcome.cancelled:
+          break;
+        case FileShareOutcome.failed:
+          AppNotice.error(context, l10n.playerMoreExportLoopClipFailed);
+      }
     } finally {
       try {
         await File(written).delete();

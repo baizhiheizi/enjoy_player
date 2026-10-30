@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/platform/file_share_export.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_serializer.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_export_io.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/download_transcript.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -108,7 +108,7 @@ void main() {
   Future<List<_SavedExport>> startDownload(
     WidgetTester tester, {
     _FormatPickSpy? pick,
-    TranscriptExportIoOutcome Function()? saveResult,
+    FileShareOutcome Function()? saveResult,
     List<TranscriptLine> lines = _lines,
   }) async {
     final saved = <_SavedExport>[];
@@ -127,7 +127,7 @@ void main() {
             required dialogTitle,
           }) async {
             saved.add(_SavedExport(bytes, fileName, mimeType, dialogTitle));
-            return saveResult?.call() ?? TranscriptExportIoOutcome.saved;
+            return saveResult?.call() ?? FileShareOutcome.saved;
           },
     );
     await pendingDownload;
@@ -169,7 +169,7 @@ void main() {
     final saved = await startDownload(
       tester,
       pick: pick,
-      saveResult: () => TranscriptExportIoOutcome.cancelled,
+      saveResult: () => FileShareOutcome.cancelled,
     );
 
     expect(saved, hasLength(1));
@@ -183,7 +183,7 @@ void main() {
     await startDownload(
       tester,
       pick: pick,
-      saveResult: () => TranscriptExportIoOutcome.failed,
+      saveResult: () => FileShareOutcome.failed,
     );
 
     expect(find.text('Could not download the transcript.'), findsOneWidget);
