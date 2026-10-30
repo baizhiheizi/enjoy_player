@@ -217,3 +217,22 @@ final class _ElevationTokens {
     );
   }
 }
+
+extension ElevationTokenAccessors on EnjoyThemeTokens {
+  double get elevationNone => _elevation.elevationNone;
+  double get elevationCard => _elevation.elevationCard;
+  double get elevationSheet => _elevation.elevationSheet;
+  double get elevationModal => _elevation.elevationModal;
+  double get elevationBar => _elevation.elevationBar;
+  double get elevationSurface => _elevation.elevationSurface;
+  double get focusRingWidth => _elevation.focusRingWidth;
+  List<BoxShadow> get shadowLift => _elevation.shadowLift;
+  List<BoxShadow> get shadowFloat => _elevation.shadowFloat;
+  List<BoxShadow> get shadowPopover => _elevation.shadowPopover;
+  double get strokeReferencePitch => _elevation.strokeReferencePitch;
+  double get strokeYourPitch => _elevation.strokeYourPitch;
+  double get strokeLoopBracket => _elevation.strokeLoopBracket;
+  double get strokeRulerTrack => _elevation.strokeRulerTrack;
+  List<BoxShadow> get shadowBrandButton => _elevation.shadowBrandButton;
+  List<BoxShadow> get shadowRecordButton => _elevation.shadowRecordButton;
+}

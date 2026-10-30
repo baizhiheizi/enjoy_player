@@ -60,13 +60,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final _AccentColors _accents;
   final _EffectTokens _effects;
 
-  double get elevationNone => _elevation.elevationNone;
-  double get elevationCard => _elevation.elevationCard;
-  double get elevationSheet => _elevation.elevationSheet;
-  double get elevationModal => _elevation.elevationModal;
-  double get elevationBar => _elevation.elevationBar;
-  double get elevationSurface => _elevation.elevationSurface;
-
   double get breakpointCompact => _layout.breakpointCompact;
   double get breakpointRail => _layout.breakpointRail;
   double get breakpointTranscriptSideBySide =>
@@ -111,8 +104,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   double get modalMaxWidth => _layout.modalMaxWidth;
   double get modalMaxWidthLarge => _layout.modalMaxWidthLarge;
 
-  double get focusRingWidth => _elevation.focusRingWidth;
-
   Color get canvas => _palette.canvas;
   Color get card => _palette.card;
   Color get popover => _palette.popover;
@@ -128,10 +119,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   double get controlHeightSm => _components.controlHeightSm;
   double get controlHeight => _components.controlHeight;
   double get controlHeightLg => _components.controlHeightLg;
-
-  List<BoxShadow> get shadowLift => _elevation.shadowLift;
-  List<BoxShadow> get shadowFloat => _elevation.shadowFloat;
-  List<BoxShadow> get shadowPopover => _elevation.shadowPopover;
 
   Color get ground => _palette.ground;
   Color get paper => _palette.paper;
@@ -199,13 +186,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
   List<double> get echoLensOpacity => _effects.echoLensOpacity;
   double get referencePitchOpacity => _effects.referencePitchOpacity;
-
-  double get strokeReferencePitch => _elevation.strokeReferencePitch;
-  double get strokeYourPitch => _elevation.strokeYourPitch;
-  double get strokeLoopBracket => _elevation.strokeLoopBracket;
-  double get strokeRulerTrack => _elevation.strokeRulerTrack;
-  List<BoxShadow> get shadowBrandButton => _elevation.shadowBrandButton;
-  List<BoxShadow> get shadowRecordButton => _elevation.shadowRecordButton;
 
   /// Soft-landing curve, cubic-bezier(.2, .8, .2, 1).
   static const Curve ease = Cubic(0.2, 0.8, 0.2, 1);
