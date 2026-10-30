@@ -76,6 +76,10 @@ runs-on-slim:
 - linux
 - slim
 timeout-minutes: 60
+checkout:
+  fetch:
+  - "*"
+  fetch-depth: 0
 tools:
   bash: true
   github:
