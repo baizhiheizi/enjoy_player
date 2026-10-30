@@ -61,11 +61,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final _AccentColors _accents;
   final _EffectTokens _effects;
 
-  EdgeInsets get transcriptLinePadding => _effects.transcriptLinePadding;
-
-  List<double> get echoLensOpacity => _effects.echoLensOpacity;
-  double get referencePitchOpacity => _effects.referencePitchOpacity;
-
   /// Soft-landing curve, cubic-bezier(.2, .8, .2, 1).
   static const Curve ease = Cubic(0.2, 0.8, 0.2, 1);
 
@@ -83,7 +78,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   LinearGradient get logo => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [logoStart, logoEnd],
+    colors: [_palette.logoStart, _palette.logoEnd],
   );
 
   static EnjoyThemeTokens of(BuildContext context) {
