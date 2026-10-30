@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_cta_state.dart';
@@ -101,22 +102,13 @@ class _AddToVocabularyControlState
     if (media == null || kind == null || _busy) return;
 
     if (kind == VocabularyCtaKind.alreadyInVocabulary) {
-      final confirmed = await showDialog<bool>(
+      final confirmed = await showEnjoyConfirmDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(l10n.vocabularyConfirmDeleteTitle),
-          content: Text(l10n.vocabularyConfirmDeleteBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l10n.vocabularyCancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l10n.vocabularyDelete),
-            ),
-          ],
-        ),
+        title: l10n.vocabularyConfirmDeleteTitle,
+        message: l10n.vocabularyConfirmDeleteBody,
+        confirmLabel: l10n.vocabularyDelete,
+        cancelLabel: l10n.vocabularyCancel,
+        destructive: true,
       );
       if (confirmed != true || !mounted) return;
       setState(() => _busy = true);

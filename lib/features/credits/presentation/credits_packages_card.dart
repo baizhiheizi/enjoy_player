@@ -12,6 +12,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/credits/application/credits_packages_provider.dart';
 import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
 import 'package:enjoy_player/features/credits/domain/credits_package.dart';
@@ -32,24 +33,11 @@ class CreditsPackagesCard extends ConsumerWidget {
     if (!context.mounted) return;
 
     final creditsLabel = NumberFormat.decimalPattern().format(pkg.credits);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.creditsPackageConfirmTitle),
-        content: Text(
-          l10n.creditsPackageConfirmMessage(pkg.amount, creditsLabel),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.creditsPackageConfirmAction),
-          ),
-        ],
-      ),
+      title: l10n.creditsPackageConfirmTitle,
+      message: l10n.creditsPackageConfirmMessage(pkg.amount, creditsLabel),
+      confirmLabel: l10n.creditsPackageConfirmAction,
     );
     if (confirmed != true || !context.mounted) return;
 

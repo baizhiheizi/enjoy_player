@@ -149,6 +149,11 @@ Future<T?> showEnjoyAlertDialog<T>({
 /// Yes / no confirmation: a secondary Cancel and a confirm button that is
 /// [EnjoyButton.destructive] when [destructive], else [EnjoyButton.brand].
 /// Resolves `true` only when the user confirms.
+///
+/// With [deemphasizeConfirm], the confirm action renders as a low-emphasis
+/// error text button leading a primary safe action — the guardrail layout
+/// for high-stakes destructive confirmations; the result contract is
+/// unchanged.
 Future<bool> showEnjoyConfirmDialog({
   required BuildContext context,
   required String title,
@@ -157,6 +162,7 @@ Future<bool> showEnjoyConfirmDialog({
   Widget? content,
   String? cancelLabel,
   bool destructive = false,
+  bool deemphasizeConfirm = false,
   bool useRootNavigator = true,
 }) async {
   final confirmed = await showEnjoyAlertDialog<bool>(
@@ -164,23 +170,40 @@ Future<bool> showEnjoyConfirmDialog({
     useRootNavigator: useRootNavigator,
     title: Text(title),
     content: content ?? (message == null ? null : Text(message)),
-    actionsBuilder: (ctx) => [
-      EnjoyButton.secondary(
-        onPressed: () => Navigator.pop(ctx, false),
-        child: Text(
-          cancelLabel ?? MaterialLocalizations.of(ctx).cancelButtonLabel,
-        ),
-      ),
-      destructive
-          ? EnjoyButton.destructive(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(confirmLabel),
-            )
-          : EnjoyButton.brand(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(confirmLabel),
+    actionsBuilder: (ctx) {
+      final resolvedCancel =
+          cancelLabel ?? MaterialLocalizations.of(ctx).cancelButtonLabel;
+      if (deemphasizeConfirm) {
+        return [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.error,
             ),
-    ],
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(confirmLabel),
+          ),
+          EnjoyButton.primary(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(resolvedCancel),
+          ),
+        ];
+      }
+      return [
+        EnjoyButton.secondary(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(resolvedCancel),
+        ),
+        destructive
+            ? EnjoyButton.destructive(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(confirmLabel),
+              )
+            : EnjoyButton.brand(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(confirmLabel),
+              ),
+      ];
+    },
   );
   return confirmed ?? false;
 }

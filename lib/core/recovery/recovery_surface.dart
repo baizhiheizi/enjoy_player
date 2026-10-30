@@ -13,6 +13,7 @@ import 'package:enjoy_player/core/recovery/recovery_error_panel.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class RecoverySurface extends StatefulWidget {
@@ -116,28 +117,17 @@ class _RecoverySurfaceState extends State<RecoverySurface>
 
   Future<void> _onResetRequest() async {
     final l10n = AppLocalizations.of(context)!;
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.recoveryResetLibraryConfirmTitle),
-        content: Text(
-          l10n.recoveryResetLibraryConfirmBody,
-          style: tt.bodyMedium?.copyWith(height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.authCancel),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: cs.error),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.recoveryResetLibraryConfirmAction),
-          ),
-        ],
+      title: l10n.recoveryResetLibraryConfirmTitle,
+      content: Text(
+        l10n.recoveryResetLibraryConfirmBody,
+        style: tt.bodyMedium?.copyWith(height: 1.5),
       ),
+      confirmLabel: l10n.recoveryResetLibraryConfirmAction,
+      cancelLabel: l10n.authCancel,
+      destructive: true,
     );
     if (confirmed == true && mounted) {
       await _onResetConfirm();
