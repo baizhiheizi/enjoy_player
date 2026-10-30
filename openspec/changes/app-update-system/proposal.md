@@ -27,11 +27,11 @@ Before the first public release, Enjoy Player has no way to tell users a newer v
 
 ## Impact
 
-- **App code**: new `lib/features/update/` (or `core/release/`) `UpdateService` + per-platform strategies; wiring into `main()`/root provider and the existing About card ([`about_section_card.dart`](lib/features/settings/presentation/widgets/about_section_card.dart)).
+- **App code**: new `lib/features/update/` (or `core/release/`) `UpdateService` + per-platform strategies; wiring into `main()`/root provider and the existing About card ([`about_section_card.dart`](../../../lib/features/settings/presentation/widgets/about_section_card.dart)).
 - **Dependencies**: `auto_updater` (desktop Sparkle/WinSparkle), `ota_update` (Android sideload), optional `upgrader` (store soft-nudge later); reuse existing `package_info_plus`, `url_launcher`.
 - **Build config**: Android/iOS/macOS/Windows **flavors** (`store` vs `direct`) — new variant axis on top of current per-platform CI.
 - **CI**: `release_android.yml`, `release_apple.yml`, `release_windows.yml` gain an S3 upload + manifest-generation step.
 - **Infra**: new `dl.enjoy.bot` subdomain (S3 + CDN), signing keys for appcast (Sparkle ed signatures) alongside existing Authenticode/notarization.
-- **Docs**: new ADR (update channels + feed schema + flavors); updates to [`docs/packaging.md`](docs/packaging.md).
+- **Docs**: new ADR (update channels + feed schema + flavors); updates to [`docs/packaging.md`](../../../docs/packaging.md).
 - **Settings**: new `settings_kv` keys (last-check timestamp, snooze-until); new l10n strings.
 - **Constraints**: native desktop/mobile only (no web/`kIsWeb`); no `print()` (use `Log`); no store-policy-violating forced updates on `store` flavor.
