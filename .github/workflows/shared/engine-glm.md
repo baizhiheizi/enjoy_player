@@ -15,12 +15,11 @@ models:
       models:
         glm-5.3-flash:
           cost:
-            input: 1.2e-7
-            output: 4.2e-7
-            cache_read: 3.4e-8
+            input: 1.2e-6
+            output: 4.8e-6
+            cache_read: 2.4e-7
 network:
   allowed:
     - defaults
-    - api.minimaxi.com
     - open.bigmodel.cn
 ---
