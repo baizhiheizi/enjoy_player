@@ -177,3 +177,24 @@ final class _ComponentTokens {
     );
   }
 }
+
+extension ComponentTokenAccessors on EnjoyThemeTokens {
+  double get miniBarBlurSigma => _components.miniBarBlurSigma;
+  double get heroTitleLetterSpacing => _components.heroTitleLetterSpacing;
+  double get controlHeightSm => _components.controlHeightSm;
+  double get controlHeight => _components.controlHeight;
+  double get controlHeightLg => _components.controlHeightLg;
+  double get touchTargetMin => _components.touchTargetMin;
+  double get iconButtonSize => _components.iconButtonSize;
+  double get iconButtonSizePhone => _components.iconButtonSizePhone;
+  double get segmentHeight => _components.segmentHeight;
+  double get chipHeight => _components.chipHeight;
+  double get takeChipHeight => _components.takeChipHeight;
+  double get playButtonSize => _components.playButtonSize;
+  double get playButtonSizePhone => _components.playButtonSizePhone;
+  double get recordButtonSize => _components.recordButtonSize;
+  double get recordButtonSizePhone => _components.recordButtonSizePhone;
+  double get originalPillWidth => _components.originalPillWidth;
+  double get originalPillHeight => _components.originalPillHeight;
+  double get originalButtonPhoneSize => _components.originalButtonPhoneSize;
+}

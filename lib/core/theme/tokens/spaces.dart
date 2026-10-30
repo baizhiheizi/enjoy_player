@@ -119,3 +119,21 @@ final class _SpaceTokens {
     );
   }
 }
+
+extension SpaceTokenAccessors on EnjoyThemeTokens {
+  double get space4 => _spaces.space4;
+  double get space8 => _spaces.space8;
+  double get space12 => _spaces.space12;
+  double get space16 => _spaces.space16;
+  double get space20 => _spaces.space20;
+  double get space24 => _spaces.space24;
+  double get space32 => _spaces.space32;
+  double get space40 => _spaces.space40;
+  double get space48 => _spaces.space48;
+  double get pageGutterCompact => _spaces.pageGutterCompact;
+  double get pageGutter => _spaces.pageGutter;
+  double get desktopGutter => _spaces.desktopGutter;
+  double get marginWidth => _spaces.marginWidth;
+  double get gutter => _spaces.gutter;
+  double get gutterPhone => _spaces.gutterPhone;
+}

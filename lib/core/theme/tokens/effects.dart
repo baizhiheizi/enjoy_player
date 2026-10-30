@@ -54,3 +54,9 @@ final class _EffectTokens {
     );
   }
 }
+
+extension EffectTokenAccessors on EnjoyThemeTokens {
+  EdgeInsets get transcriptLinePadding => _effects.transcriptLinePadding;
+  List<double> get echoLensOpacity => _effects.echoLensOpacity;
+  double get referencePitchOpacity => _effects.referencePitchOpacity;
+}
