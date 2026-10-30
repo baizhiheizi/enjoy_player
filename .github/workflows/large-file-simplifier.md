@@ -16,7 +16,7 @@ tracker-id: large-file-simplifier
 imports:
   - shared/formatting.md
   - shared/reporting.md
-  - shared/engine-minimax.md
+  - shared/engine-glm.md
 
 safe-outputs:
   create-issue:
@@ -54,7 +54,7 @@ runs-on-slim:
 - slim
 # ==== customized end  ====
 
-source: githubnext/agentics/workflows/large-file-simplifier.md@b4e175bab6674279e0fe158f7dc877b77bc9d92f
+source: githubnext/agentics/workflows/large-file-simplifier.md@139fa09ef17cde4135e696ff8e7af09bc5ddfa6e
 ---
 
 # Large File Simplifier Agent
