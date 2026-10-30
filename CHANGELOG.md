@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.3] - 2026-10-29
+
+### Fixed
+
+- **The Windows and Android release jobs ship their artifacts again** ([#1123](https://github.com/baizhiheizi/enjoy_player/pull/1123)): a tag push runs the whole test suite on the Windows and Android runners, and five cases failed there for platform reasons rather than product ones — two design guards compared raw paths with `/` separators, so their Windows exemptions never matched; one media-analysis case expected a POSIX path back from `Uri.toFilePath()`; the pre-v6 migration guard left the failing `AppDatabase` open, so Windows could not delete its temp directory; and the expanded-player thumbnail test read an autoDispose provider without a listener, so it could be disposed between reads. All five now pass on their own runners, so a tag produces the Windows installer and the Android bundle/APKs instead of failing the job.
+
+### Changed
+
+- **The signed-in cold start reads the four shell preferences in one query** ([#1124](https://github.com/baizhiheizi/enjoy_player/pull/1124)): `AppPreferencesCtrl` resolves the locale, the learning language, the native language and the theme mode before the app renders its router, so its reads sit on the signed-in cold-start critical path — and it issued four sequential per-key SELECTs against the settings table. `SettingsDao.readSettings` fetches the four keys with a single `WHERE key IN (...)` query and resolves each through its own codec, falling back to the key's declared default when the row is missing, so the startup path issues one settings query instead of four. The canonicalization writes stay awaited inside the build: they only fire when a stored value is not canonical, and awaiting them keeps the persisted value consistent with the state the app just rendered. A Drift `QueryInterceptor` regression check counts the settings SELECTs and pins the count at one.
+- **The familiar-form IPA is derived once per word** ([#1127](https://github.com/baizhiheizi/enjoy_player/pull/1127)): the IPA was derived from scratch every time it was asked for, on the UI isolate's hottest transcript paths — once per word of a row on every row rebuild, once more per word for the "does this row have phones" boolean, and once per line across the whole transcript in the display-readiness scan. The derivation is now memoized per word in a weak-keyed `Expando` (an entry dies with the word, so there is no eviction policy), and the readiness scan stops once its monotone flags are known.
+- **The dependency set moves forward within the existing constraints** ([#1125](https://github.com/baizhiheizi/enjoy_player/pull/1125)): `flutter pub upgrade` resolves every package the pubspec constraints already allow, so no constraint is widened and no dependency is added or removed — drift 2.34.4 -> 2.35.3, drift_dev 2.35.1 -> 2.35.2, sqlite3 3.7.0 -> 3.8.0, json_serializable 6.14.1 -> 6.15.2, posthog_flutter 5.53.0 -> 5.57.1, archive 4.5.1 -> 4.5.2 and crypto 3.0.7 -> 3.0.8, plus 28 transitive packages. `dart run build_runner build` under the new drift_dev produces no generated-file diff, so the change is `pubspec.lock` only.
+- **The eSpeak-NG synthesizer splits into focused modules** ([#1135](https://github.com/baizhiheizi/enjoy_player/pull/1135)) (no user-visible change): the 652-line `espeak_ng_synthesizer.dart` in the forced-alignment package becomes five modules under 300 lines each — the FFI availability probe, the event value types, the token mapping, and the reference-word timing — with the public API and the behavior unchanged, and the three cross-file helpers marked `@internal`.
+
+### Documentation
+
+- **The 2026-10-28 docs-drift review findings are resolved** ([#1130](https://github.com/baizhiheizi/enjoy_player/pull/1130), [#1133](https://github.com/baizhiheizi/enjoy_player/pull/1133)): every claim re-verified against the tree — the macOS bundle closure check covers the strong load commands only (`LC_LOAD_DYLIB`, `LC_LOAD_UPWARD_DYLIB`, `LC_REEXPORT_DYLIB`), exempts weak links and the install id, and resolves `@rpath` through the loading image's own `LC_RPATH`; the Linux AppImage script provisions `appimagetool` itself instead of asking for it on `PATH`; and the segmented-control rule names the two AI BYOK pickers that still mount a Material `SegmentedButton`. A design guard now bans Material's `SegmentedButton` in `lib/` ([#1131](https://github.com/baizhiheizi/enjoy_player/pull/1131)).
+
 ## [0.10.2] - 2026-10-27
 
 ### Fixed
