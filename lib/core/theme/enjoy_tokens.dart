@@ -60,16 +60,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final _AccentColors _accents;
   final _EffectTokens _effects;
 
-  double get space4 => _spaces.space4;
-  double get space8 => _spaces.space8;
-  double get space12 => _spaces.space12;
-  double get space16 => _spaces.space16;
-  double get space20 => _spaces.space20;
-  double get space24 => _spaces.space24;
-  double get space32 => _spaces.space32;
-  double get space40 => _spaces.space40;
-  double get space48 => _spaces.space48;
-
   double get radiusSm => _radii.radiusSm;
   double get radiusMd => _radii.radiusMd;
   double get radiusLg => _radii.radiusLg;
@@ -117,9 +107,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   double get formMaxWidth => _layout.formMaxWidth;
   double get hubMaxWidth => _layout.hubMaxWidth;
 
-  double get pageGutterCompact => _spaces.pageGutterCompact;
-  double get pageGutter => _spaces.pageGutter;
-
   double get miniBarBlurSigma => _components.miniBarBlurSigma;
 
   double get sidebarWidth => _layout.sidebarWidth;
@@ -134,8 +121,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   Color get gradientEnd => _palette.gradientEnd;
 
   double get bottomNavHeight => _layout.bottomNavHeight;
-
-  double get desktopGutter => _spaces.desktopGutter;
 
   double get modalMaxWidth => _layout.modalMaxWidth;
   double get modalMaxWidthLarge => _layout.modalMaxWidthLarge;
@@ -231,8 +216,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   double get subpageHeaderHeight => _layout.subpageHeaderHeight;
   double get rulerHitHeight => _layout.rulerHitHeight;
 
-  double get marginWidth => _spaces.marginWidth;
-
   double get transcriptMaxListen => _layout.transcriptMaxListen;
   double get transcriptMaxEcho => _layout.transcriptMaxEcho;
   double get videoColumnMin => _layout.videoColumnMin;
@@ -242,9 +225,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   double get pageMaxCraft => _layout.pageMaxCraft;
   double get pageMaxHub => _layout.pageMaxHub;
   double get pageMaxForm => _layout.pageMaxForm;
-
-  double get gutter => _spaces.gutter;
-  double get gutterPhone => _spaces.gutterPhone;
 
   List<double> get echoLensOpacity => _effects.echoLensOpacity;
   double get referencePitchOpacity => _effects.referencePitchOpacity;
