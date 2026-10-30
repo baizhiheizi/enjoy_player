@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/platform/file_share_export.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_filename.dart';
@@ -20,8 +19,6 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/transcript_lines_provider.dart';
 import 'download_transcript_format_dialog.dart';
-
-final _log = logNamed('TranscriptDownload');
 
 /// Resolves the lines of the active primary transcript for a media id.
 typedef TranscriptLinesLoad = Future<List<TranscriptLine>> Function();
@@ -84,7 +81,6 @@ Future<void> downloadActiveTranscript(
     case FileShareOutcome.shared:
       AppNotice.success(context, l10n.transcriptDownloadSuccess);
     case FileShareOutcome.failed:
-      _log.warning('Transcript download failed for $fileName');
       AppNotice.error(context, l10n.transcriptDownloadError);
     case FileShareOutcome.cancelled:
       break;

@@ -54,13 +54,13 @@ Future<FileShareOutcome> _saveOrShare({
   String? sourcePath,
   required String fileName,
   required String mimeType,
-  required String? dialogTitle,
+  String? dialogTitle,
 }) async {
   try {
     if (isMobilePlatform) {
       final file = sourcePath == null
-          ? XFile.fromData(bytes!, mimeType: mimeType, name: fileName)
-          : XFile(sourcePath, mimeType: mimeType, name: fileName);
+          ? XFile.fromData(bytes!, mimeType: mimeType)
+          : XFile(sourcePath, mimeType: mimeType);
       final result = await SharePlus.instance.share(ShareParams(files: [file]));
       if (result.status == ShareResultStatus.dismissed) {
         return FileShareOutcome.cancelled;

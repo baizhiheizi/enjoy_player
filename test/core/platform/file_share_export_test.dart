@@ -78,10 +78,19 @@ class _FakeFilePickerPlatform extends FilePickerPlatform {
 void main() {
   final shareFake = _FakeSharePlatform();
   final pickerFake = _FakeFilePickerPlatform();
+  late final SharePlatform originalSharePlatform;
+  late final FilePickerPlatform originalPickerPlatform;
 
   setUpAll(() {
+    originalSharePlatform = SharePlatform.instance;
+    originalPickerPlatform = FilePickerPlatform.instance;
     SharePlatform.instance = shareFake;
     FilePickerPlatform.instance = pickerFake;
+  });
+
+  tearDownAll(() {
+    SharePlatform.instance = originalSharePlatform;
+    FilePickerPlatform.instance = originalPickerPlatform;
   });
 
   setUp(() {
