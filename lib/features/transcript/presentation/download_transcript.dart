@@ -11,13 +11,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/platform/file_share_export.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_filename.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_serializer.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-import '../application/transcript_export_io.dart';
 import '../application/transcript_lines_provider.dart';
 import 'download_transcript_format_dialog.dart';
 
@@ -32,7 +32,7 @@ typedef TranscriptFormatPick =
 
 /// Writes the serialized bytes via the platform save / share surface.
 typedef TranscriptExportSave =
-    Future<TranscriptExportIoOutcome> Function({
+    Future<FileShareOutcome> Function({
       required Uint8List bytes,
       required String fileName,
       required String mimeType,
@@ -71,7 +71,7 @@ Future<void> downloadActiveTranscript(
   final fileName = '${transcriptExportBaseName(title)}.${format.fileExtension}';
   final bytes = utf8.encode(format.serialize(lines));
 
-  final save = saveFile ?? saveOrShareTranscriptFile;
+  final save = saveFile ?? saveOrShareBytes;
   final outcome = await save(
     bytes: bytes,
     fileName: fileName,
@@ -80,13 +80,13 @@ Future<void> downloadActiveTranscript(
   );
   if (!context.mounted) return;
   switch (outcome) {
-    case TranscriptExportIoOutcome.saved:
-    case TranscriptExportIoOutcome.shared:
+    case FileShareOutcome.saved:
+    case FileShareOutcome.shared:
       AppNotice.success(context, l10n.transcriptDownloadSuccess);
-    case TranscriptExportIoOutcome.failed:
+    case FileShareOutcome.failed:
       _log.warning('Transcript download failed for $fileName');
       AppNotice.error(context, l10n.transcriptDownloadError);
-    case TranscriptExportIoOutcome.cancelled:
+    case FileShareOutcome.cancelled:
       break;
   }
 }

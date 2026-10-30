@@ -6,13 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/platform/file_share_export.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_anki_export.dart';
-import 'package:enjoy_player/features/vocabulary/application/vocabulary_anki_export_io.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_export_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
@@ -208,13 +208,13 @@ class _VocabularyAnkiExportDialogState
       );
       if (!context.mounted) return;
       switch (outcome) {
-        case VocabularyAnkiExportIoOutcome.shared:
-        case VocabularyAnkiExportIoOutcome.saved:
+        case FileShareOutcome.shared:
+        case FileShareOutcome.saved:
           AppNotice.success(context, l10n.vocabularyExportSuccess);
           Navigator.of(context).pop();
-        case VocabularyAnkiExportIoOutcome.cancelled:
+        case FileShareOutcome.cancelled:
           AppNotice.info(context, l10n.vocabularyExportCancelled);
-        case VocabularyAnkiExportIoOutcome.failed:
+        case FileShareOutcome.failed:
           AppNotice.error(context, l10n.vocabularyExportError);
       }
     } on StateError catch (e) {

@@ -132,8 +132,10 @@ reads the primary lines and the media title, asks for the format
 ([`showTranscriptExportFormatDialog`](../../lib/features/transcript/presentation/download_transcript_format_dialog.dart)),
 serializes, and hands the bytes to the platform save dialog (desktop,
 `FilePicker.saveFile`) or share sheet (iOS / Android, `share_plus`) — the same
-IO shape as the diagnostics, Anki, and practice-poster exports
-([`transcript_export_io.dart`](../../lib/features/transcript/application/transcript_export_io.dart)).
+IO shape as the diagnostics, Anki, and practice-poster exports, all through the
+shared
+[`saveOrShareBytes`](../../lib/core/platform/file_share_export.dart)
+helper.
 The file is named after the media title
 (`transcriptExportBaseName` in
 [`subtitle_filename.dart`](../../lib/data/subtitle/subtitle_filename.dart):
