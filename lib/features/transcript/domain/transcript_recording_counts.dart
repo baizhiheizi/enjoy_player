@@ -51,8 +51,9 @@ int _countLessThanOrEqual(List<int> sorted, int bound) {
 /// Count overlapping recordings per transcript line index (0-based).
 ///
 /// Equivalent to scanning every recording for every line, but resolved
-/// through two sorted projections of the recording windows so the cost
-/// grows with `lines + recordings` instead of their product.
+/// through two sorted projections of the recording windows: sorting the
+/// recordings once, then one binary search per line, instead of a nested
+/// scan.
 Map<int, int> countRecordingsPerLineIndex(
   List<TranscriptLine> lines,
   List<RecordingRow> recordings,
