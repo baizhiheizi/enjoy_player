@@ -25,6 +25,26 @@ DateTime? parseIsoDate(dynamic value) {
 DateTime requireIsoDate(dynamic value, DateTime fallback) =>
     parseIsoDate(value) ?? fallback;
 
+/// Newest `updatedAt` in a downloaded page, as a UTC ISO cursor value; null
+/// when no row carries a parseable timestamp, so the caller keeps the
+/// previous cursor.
+String? maxUpdatedAtIso(List<Map<String, dynamic>> batch) {
+  DateTime? max;
+  for (final m in batch) {
+    final t = parseIsoDate(m['updatedAt']);
+    if (t != null && (max == null || t.isAfter(max))) {
+      max = t;
+    }
+  }
+  if (max == null && batch.isNotEmpty) {
+    _log.warning(
+      '${batch.length} downloaded rows carry no parseable updatedAt; '
+      'the entity cursor stays put and the same window re-fetches',
+    );
+  }
+  return max?.toUtc().toIso8601String();
+}
+
 /// Server jsonb columns arrive as objects; rows store JSON text.
 String? jsonTextFromWire(dynamic value) {
   if (value == null) return null;

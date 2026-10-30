@@ -1108,4 +1108,36 @@ void main() {
       expect(row.syncStatus, 'synced');
     });
   });
+
+  group('maxUpdatedAtIso', () {
+    test('returns the newest updatedAt as a UTC ISO string', () {
+      final cursor = maxUpdatedAtIso([
+        {'updatedAt': '2026-01-02T10:00:00.000Z'},
+        {'updatedAt': '2026-01-03T09:30:00.000+02:00'},
+        {'updatedAt': '2026-01-01T00:00:00.000Z'},
+      ]);
+      expect(cursor, '2026-01-03T07:30:00.000Z');
+    });
+
+    test('skips rows without a parseable updatedAt', () {
+      final cursor = maxUpdatedAtIso([
+        {'updatedAt': null},
+        {'id': 'no-timestamp'},
+        {'updatedAt': 'not-a-date'},
+        {'updatedAt': '2026-03-04T05:06:07.000Z'},
+      ]);
+      expect(cursor, '2026-03-04T05:06:07.000Z');
+    });
+
+    test('returns null when no row has a parseable updatedAt', () {
+      expect(
+        maxUpdatedAtIso([
+          {'updatedAt': 'nope'},
+          {},
+        ]),
+        isNull,
+      );
+      expect(maxUpdatedAtIso(const []), isNull);
+    });
+  });
 }
