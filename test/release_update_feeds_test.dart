@@ -199,6 +199,9 @@ void main() {
 }
 
 bool get _hasJq {
-  final result = Process.runSync('jq', ['--version']);
-  return result.exitCode == 0;
+  try {
+    return Process.runSync('jq', ['--version']).exitCode == 0;
+  } on ProcessException {
+    return false;
+  }
 }
