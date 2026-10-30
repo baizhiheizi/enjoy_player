@@ -94,3 +94,13 @@ final class _MotionTokens {
     );
   }
 }
+
+extension MotionTokenAccessors on EnjoyThemeTokens {
+  Duration get motionFast => _motion.motionFast;
+  Duration get motionStandard => _motion.motionStandard;
+  Duration get motionEnter => _motion.motionEnter;
+  Duration get motionExit => _motion.motionExit;
+  Duration get motionMedium => _motion.motionMedium;
+  Duration get motionLens => _motion.motionLens;
+  Duration get motionMargin => _motion.motionMargin;
+}

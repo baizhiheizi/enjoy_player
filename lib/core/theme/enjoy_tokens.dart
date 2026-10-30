@@ -73,14 +73,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       _layout.breakpointTranscriptSideBySide;
   double get breakpointMarginDrawer => _layout.breakpointMarginDrawer;
 
-  Duration get motionFast => _motion.motionFast;
-  Duration get motionStandard => _motion.motionStandard;
-  Duration get motionEnter => _motion.motionEnter;
-  Duration get motionExit => _motion.motionExit;
-  Duration get motionMedium => _motion.motionMedium;
-  Duration get motionLens => _motion.motionLens;
-  Duration get motionMargin => _motion.motionMargin;
-
   Color get echoActive => _accents.echoActive;
   Color get blurActive => _accents.blurActive;
   Color get scoreGood => _accents.scoreGood;
