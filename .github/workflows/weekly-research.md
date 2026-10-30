@@ -1,34 +1,22 @@
 ---
+on:
+  schedule: weekly on monday
+  workflow_dispatch: null
+permissions: read-all
+network: defaults
+imports:
+- shared/engine-glm.md
+- shared/mcp.md
+safe-outputs:
+  create-discussion:
+    category: ideas
+    title-prefix: "[weekly-research] "
 description: |
   This workflow performs research to  provides industry insights and competitive analysis.
   Reviews recent code, issues, PRs, industry news, and trends to create comprehensive
   research reports. Covers related products, research papers, market opportunities,
   business analysis, and new ideas. Creates GitHub discussions with findings to inform
   strategic decision-making.
-
-on:
-  schedule: weekly on monday
-  workflow_dispatch:
-
-permissions: read-all
-
-network: defaults
-
-safe-outputs:
-  create-discussion:
-    title-prefix: "[weekly-research] "
-    category: "ideas"
-
-tools:
-  bash: ["cat", "ls", "find", "grep", "head", "tail", "wc"]
-  github:
-    toolsets: [all]
-    min-integrity: none # This workflow is allowed to examine and comment on any issues or PRs
-  web-fetch:
-
-timeout-minutes: 15
-
-# ==== customized start  ====
 runs-on:
 - self-hosted
 - linux
@@ -37,16 +25,27 @@ runs-on-slim:
 - self-hosted
 - linux
 - slim
-
-imports:
-  - shared/engine-minimax.md
-  - shared/mcp.md
-# ==== customized end  ====
-
-source: githubnext/agentics/workflows/weekly-research.md@b4e175bab6674279e0fe158f7dc877b77bc9d92f
+timeout-minutes: 15
+tools:
+  bash:
+  - cat
+  - ls
+  - find
+  - grep
+  - head
+  - tail
+  - wc
+  - curl
+  github:
+    min-integrity: none
+    toolsets:
+    - all
+source: githubnext/agentics/workflows/weekly-research.md@139fa09ef17cde4135e696ff8e7af09bc5ddfa6e
 ---
 
 # Weekly Research
+
+Use GitHub read tools for repository content and proxy-aware `curl` through bash for external references. Stay within the configured network allowlist, keep TLS verification enabled, and report blocked requests rather than bypassing the firewall or guessing missing content.
 
 ## Job Description
 
