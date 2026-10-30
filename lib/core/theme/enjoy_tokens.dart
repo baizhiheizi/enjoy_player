@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 
 import 'colors.dart';
 
-part 'tokens/accents.dart';
+part 'tokens/accents_values.dart';
 part 'tokens/accents_accessors.dart';
 part 'tokens/components.dart';
 part 'tokens/effects.dart';
