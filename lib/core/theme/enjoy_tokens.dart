@@ -78,7 +78,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   LinearGradient get logo => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [_palette.logoStart, _palette.logoEnd],
+    colors: [logoStart, logoEnd],
   );
 
   static EnjoyThemeTokens of(BuildContext context) {
