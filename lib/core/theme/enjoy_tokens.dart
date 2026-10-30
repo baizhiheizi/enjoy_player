@@ -60,12 +60,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final _AccentColors _accents;
   final _EffectTokens _effects;
 
-  double get radiusSm => _radii.radiusSm;
-  double get radiusMd => _radii.radiusMd;
-  double get radiusLg => _radii.radiusLg;
-  double get radiusXl => _radii.radiusXl;
-  double get radiusFull => _radii.radiusFull;
-
   double get elevationNone => _elevation.elevationNone;
   double get elevationCard => _elevation.elevationCard;
   double get elevationSheet => _elevation.elevationSheet;
@@ -127,9 +121,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
   double get focusRingWidth => _elevation.focusRingWidth;
 
-  double get radiusXs => _radii.radiusXs;
-  double get radius2xl => _radii.radius2xl;
-
   Color get canvas => _palette.canvas;
   Color get card => _palette.card;
   Color get popover => _palette.popover;
@@ -141,8 +132,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   Color get topHighlight => _palette.topHighlight;
 
   double get shellInset => _layout.shellInset;
-
-  double get panelRadius => _radii.panelRadius;
 
   double get controlHeightSm => _components.controlHeightSm;
   double get controlHeight => _components.controlHeight;
@@ -185,16 +174,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   Color get vocabLearning => _accents.vocabLearning;
   Color get vocabReviewing => _accents.vocabReviewing;
   Color get vocabMastered => _accents.vocabMastered;
-
-  double get radiusKeycap => _radii.radiusKeycap;
-  double get radiusBadge => _radii.radiusBadge;
-  double get radiusSegmentThumb => _radii.radiusSegmentThumb;
-  double get radiusControl => _radii.radiusControl;
-  double get radiusTile => _radii.radiusTile;
-  double get radiusCard => _radii.radiusCard;
-  double get radiusCardLarge => _radii.radiusCardLarge;
-  double get radiusDialog => _radii.radiusDialog;
-  double get radiusSheet => _radii.radiusSheet;
 
   double get touchTargetMin => _components.touchTargetMin;
   double get iconButtonSize => _components.iconButtonSize;
