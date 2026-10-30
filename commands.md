@@ -1,5 +1,24 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
+## 2026-10-30 — run-mechanics gotchas (read before the next run)
+- **A cold `pub get` can exceed the 10-minute background cap** (this run:
+  524 MB downloaded, wrapper killed at the cap — the dart child died with
+  it). `~/.pub-cache` survives the kill, so an immediate re-run finishes in
+  ~1 min. Recipe: start pub get FIRST in the background, do read-only work
+  meanwhile, and re-run on the cap-kill notification.
+- **`pgrep -f "pub get"` self-matches your watcher shell** (the pattern is
+  part of the watcher's own command line), so `until ! pgrep -f "pub get"`;
+  do sleep; done never exits. Stop such watchers with TaskStop and poll the
+  artifact instead (`package_config.json`, or the task output file).
+- **Launch A/B bench loops SEQUENTIALLY.** Two concurrent `flutter test`
+  bench loops run on a busy machine and violate the methodology (made and
+  fixed this run; TaskStop the second loop, check for stray `flutter_tester`
+  processes, and treat only post-stop runs as clean).
+- Run gates with the writable SDK on PATH:
+  `PATH="/tmp/gh-aw/agent/flutter-3.47.6/flutter/bin:$PATH" bash .github/scripts/check_dart_format.sh`
+  — otherwise the script dies on the read-only toolcache
+  (`engine.stamp.tmp: Read-only file system`).
+
 ## 2026-10-28 — THE FULL GATE NOW WORKS (pub.dev is reachable)
 PR #1111 ("ci(agents): allow the dart ecosystem in the Perf Improver sandbox")
 added `dart` to the `network.allowed` list of `.github/workflows/perf-improver.md`.

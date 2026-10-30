@@ -22,13 +22,28 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 ## C1 TranscriptContent (#969) MERGED
 **All 5 maintainer candidates from #968 shipped. P1, P2, P4, P5 absorbed.**
 
-## P3 — vocabulary_item_dao.listDue over-fetches (NOT in #968)
-- File: `lib/data/db/daos/vocabulary_item_dao.dart:45-56` — broad
-  `nextReviewAt <= now` SELECT, then filters `lastReviewedAt` in Dart. Push
-  second predicate into SQL.
-- Measure: structural — rows considered vs rows returned on a seeded table.
-- Impact: MED, Confidence: HIGH. Keep as Perf Improver candidate.
-- **Re-verified 2026-10-27:** still present, unchanged.
+## P3 — vocabulary review session over-fetch (REFRAMED 2026-10-30)
+- **Repo Assist's comment on #864 (2026-10-28) reframed P3:** the original
+  target `vocabulary_item_dao.listDue` has **no production caller** — a
+  repo-wide grep finds only the definition and its own DAO test. Optimizing
+  it would optimize a path the app never takes.
+- The **live** over-fetch is one layer up:
+  `VocabularyReviewSessionLifecycle.start()`
+  (`lib/features/vocabulary/application/vocabulary_review_session_lifecycle.dart:10`)
+  builds the session queue from `repo.listAll()` — every vocabulary row
+  including its `explanation` JSON blob — then filters in Dart via
+  `buildVocabularySessionQueue`. Only queued rows need the blob; the flashcard
+  reads `item.explanation` while `vocabulary_review_options.dart:56` and
+  `vocabulary_screen.dart:508` already work off the blob-free
+  `vocabularyItemsProvider` projection.
+- For `due` mode the filter could push into SQL — the domain predicate is
+  already one function, `isVocabularyItemDue`
+  (`lib/features/vocabulary/domain/vocabulary_srs.dart:17`).
+- Repo Assist deliberately did NOT implement it: it changes what the review
+  session loads, so it needs a maintainer decision (including whether the
+  flashcard may fetch an explanation lazily).
+- Status: **conditional on maintainer sign-off** — surface it in the monthly
+  summary; do not implement unilaterally.
 
 ## P6 — Startup preferences: 4 sequential readSetting gates skeleton
 - Files: `lib/core/application/app_preferences_provider.dart:113-159`,
@@ -41,9 +56,11 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   path; today = 4 sequential awaits, target = 1.
 - Risk: LOW (single seam). Impact: cold-start latency on first paint.
 - Confidence: HIGH (single-file, well-bounded).
-- **Status 2026-10-28: CLAIMED BY REPO ASSIST** — PR #1124
-  ("[repo-assist] perf(startup): read the four shell preferences in one
-  query"), draft, open. **Do not duplicate P6.** Drop it from the backlog.
+- **Status: DONE — repo-assist PR #1124 ("[repo-assist] perf(startup): read
+  the four shell preferences in one query") was MERGED by an-lee on
+  2026-10-28.** `SettingsDao.readSettings` issues one `WHERE key IN (...)`;
+  the canonicalization writes stayed awaited by design (Repo Assist's #864
+  comment). Drop P6 from the backlog.
 
 ## P7 — Auto-translate fan-out: 40–80 tile rebuilds per flush
 - Files: **STALE — `transcript_scrollable_list.dart` was split by #1007**
@@ -264,21 +281,47 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   revision tick (today 1; target 0 on the watch path).
 - Risk: MED (memo-key contract). Confidence: MED.
 
-## P13 — Auto-translate source key: a SHA-256 per visible row per rebuild (NEXT)
-- File: `lib/features/transcript/domain/auto_translate.dart:219-229`
+## P13 — Auto-translate source key: a SHA-256 per visible row per rebuild (SHIPPED 2026-10-30, draft PR open)
+- File: `lib/features/transcript/domain/auto_translate.dart`
   (`autoTranslateSourceKey` → `sha256.convert(utf8.encode(payload))`),
-  called from `resolveAutoTranslateSecondaryText` (`:251`), which is called
+  called from `resolveAutoTranslateSecondaryText`, which is called
   **per row** from `transcript_line_item_builder.dart:126` and again from
-  `transcript_echo_region_merged_card.dart:124`.
+  `transcript_echo_region_merged_card.dart:124`. The controller call
+  (`auto_translate_controller.dart:386`) is once per line request — cold.
 - Problem: the key depends only on `(primaryText, src, tgt)` and never
-  changes, but it is re-hashed for every visible row on every rebuild while
-  auto-translate is active (`sourceLanguage`/`targetLanguage` are non-null
-  then, so the hash always runs).
-- Fix: memoize the key the same way P12 memoized the familiar form
-  (`Expando` on the primary line, or a small map keyed by the primary text).
-- Measure: count `sha256.convert` calls across one rebuild of 40 rows
-  (today 40 → target 0 after the first pass).
-- Risk: LOW-MED. Confidence: HIGH.
+  changes, but it was re-hashed (markup parse + regex collapse + utf8 +
+  sha256 + hex + substring) for every visible row on every rebuild while
+  auto-translate is active.
+- Fix: the expected key is memoized per primary `TranscriptLine` instance in
+  an `Expando` (P12 pattern; weak keys, no eviction story). The entry records
+  the language pair and re-derives when the pair changes — one entry per
+  line, last pair wins (a pair switch is a one-shot user action). Sound
+  because `TranscriptLine` is `@immutable` with final fields and
+  `workerLanguageBase` is pure. The public `autoTranslateSourceKey` is
+  unchanged; a `@visibleForTesting` counter
+  (`autoTranslateSourceKeyDerivationCount`) pins "once per line".
+- Measured (one impl per fresh process, n=4 per mode, `flutter test
+  --run-skipped`; legacy mode re-implements the old resolve body in the test
+  file; sinks identical across all 8 runs — 38000 window / 46240 sweep):
+  - visible-window rebuild (40 rows): 0.298/0.396/0.255/0.395 ms →
+    0.008/0.010/0.010/0.012 ms. Median **0.347 → 0.010 ms (~35x)**; worst
+    pairing ~21x.
+  - sweep (40-row window advancing over 512 lines):
+    0.349/0.495/0.337/0.497 ms → 0.004/0.006/0.008/0.008 ms. Median
+    **0.422 → 0.007 ms (~60x)**; worst pairing ~42x.
+  - The before-cost is HIGHER on the sweep (512 distinct texts overflow the
+    256-entry parse cache → re-parse); the after-cost is unchanged — the
+    memo does not degrade with transcript length.
+- Correctness: all existing resolve tests pass unchanged (soft-stale /
+  missing-key semantics); new derivation-count tests pin "once per line" and
+  "re-derives once on language-pair change"; the legacy-vs-memoized sink
+  equality is the differential output check.
+- Status: draft PR open on `perf-assist/auto-translate-source-key` (commit
+  `a3c1c4a8`). The PR number is assigned when the framework pushes the
+  bundle — it was not known during the run.
+- Bench note: launch the A/B bench loops SEQUENTIALLY — two concurrent
+  `flutter test` bench loops violate the "never benchmark on a busy machine"
+  rule (made and fixed this run).
 
 ## P14 — Recording counts are O(lines x recordings) (SHIPPED 2026-10-29, draft PR open)
 - File: `lib/features/transcript/domain/transcript_recording_counts.dart`
@@ -316,6 +359,9 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 - Status: draft PR open on `perf-assist/recording-count-sweep` (commit
   `00031fa`). The PR number is assigned when the framework pushes the
   bundle — it was not known during the run.
+- **UPDATE 2026-10-30: PR #1142 was MERGED by an-lee on 2026-10-30 01:21 UTC**
+  ("perf(transcript): count recording overlaps without a nested scan", merge
+  commit `aa106dc7`). Perf Improver's **fifth** merged code-changing PR.
 
 ## P15 — The plain cue text is derived twice per row (NEXT)
 - Files: `lib/features/transcript/presentation/transcript_line_tile.dart:207`
@@ -443,3 +489,11 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   **P13** (auto-translate source-key SHA-256) and **P15** (plain cue text
   derived twice per row). P3 and P6 remain open but P6 is claimed by
   repo-assist PR #1124.
+- **2026-10-30 update:** PR #1142 (P14) was **MERGED by an-lee at 01:21 UTC**
+  — Perf Improver's **fifth** merged code-changing PR. repo-assist PR #1124
+  (P6) also merged (2026-10-28) — P6 is done. **Issue #864 is readable again**
+  (body + comments), after being dropped by the MCP integrity policy
+  2026-10-25 → 2026-10-29. Repo Assist's 2026-10-28 comment on #864 reframed
+  P3 (see the P3 section). This run shipped **P13** (draft PR on
+  `perf-assist/auto-translate-source-key`). Next candidates: **P15**, then
+  **P16**.
