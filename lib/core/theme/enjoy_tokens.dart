@@ -76,10 +76,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
   EdgeInsets get transcriptLinePadding => _effects.transcriptLinePadding;
 
-  double get miniBarBlurSigma => _components.miniBarBlurSigma;
-
-  double get heroTitleLetterSpacing => _components.heroTitleLetterSpacing;
-
   Color get glassTint => _palette.glassTint;
   Color get glassBorder => _palette.glassBorder;
   Color get gradientStart => _palette.gradientStart;
@@ -94,10 +90,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   Color get logoStart => _palette.logoStart;
   Color get logoEnd => _palette.logoEnd;
   Color get topHighlight => _palette.topHighlight;
-
-  double get controlHeightSm => _components.controlHeightSm;
-  double get controlHeight => _components.controlHeight;
-  double get controlHeightLg => _components.controlHeightLg;
 
   Color get ground => _palette.ground;
   Color get paper => _palette.paper;
@@ -132,20 +124,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   Color get vocabLearning => _accents.vocabLearning;
   Color get vocabReviewing => _accents.vocabReviewing;
   Color get vocabMastered => _accents.vocabMastered;
-
-  double get touchTargetMin => _components.touchTargetMin;
-  double get iconButtonSize => _components.iconButtonSize;
-  double get iconButtonSizePhone => _components.iconButtonSizePhone;
-  double get segmentHeight => _components.segmentHeight;
-  double get chipHeight => _components.chipHeight;
-  double get takeChipHeight => _components.takeChipHeight;
-  double get playButtonSize => _components.playButtonSize;
-  double get playButtonSizePhone => _components.playButtonSizePhone;
-  double get recordButtonSize => _components.recordButtonSize;
-  double get recordButtonSizePhone => _components.recordButtonSizePhone;
-  double get originalPillWidth => _components.originalPillWidth;
-  double get originalPillHeight => _components.originalPillHeight;
-  double get originalButtonPhoneSize => _components.originalButtonPhoneSize;
 
   List<double> get echoLensOpacity => _effects.echoLensOpacity;
   double get referencePitchOpacity => _effects.referencePitchOpacity;
