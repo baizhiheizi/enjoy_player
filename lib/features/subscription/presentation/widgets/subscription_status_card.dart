@@ -14,6 +14,7 @@ import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_purchase_provider.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
@@ -40,28 +41,13 @@ class SubscriptionStatusCard extends ConsumerWidget {
         _formatDate(context, ar.currentPeriodEnd) ??
         _formatDate(context, status.subscriptionExpireDate) ??
         l10n.subscriptionNeverExpires;
-    final ok = await showDialog<bool>(
+    final ok = await showEnjoyConfirmDialog(
       context: context,
-      builder: (ctx) {
-        final cs = Theme.of(ctx).colorScheme;
-        return AlertDialog(
-          title: Text(l10n.subscriptionAutoRenewCancelConfirmTitle),
-          content: Text(
-            l10n.subscriptionAutoRenewCancelConfirmMessage(dateLabel),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: TextButton.styleFrom(foregroundColor: cs.error),
-              child: Text(l10n.subscriptionAutoRenewCancelConfirmAction),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l10n.subscriptionAutoRenewCancelKeep),
-            ),
-          ],
-        );
-      },
+      title: l10n.subscriptionAutoRenewCancelConfirmTitle,
+      message: l10n.subscriptionAutoRenewCancelConfirmMessage(dateLabel),
+      confirmLabel: l10n.subscriptionAutoRenewCancelConfirmAction,
+      cancelLabel: l10n.subscriptionAutoRenewCancelKeep,
+      deemphasizeConfirm: true,
     );
     if (ok != true || !context.mounted) return;
     try {
