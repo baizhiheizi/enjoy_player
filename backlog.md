@@ -363,20 +363,41 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   ("perf(transcript): count recording overlaps without a nested scan", merge
   commit `aa106dc7`). Perf Improver's **fifth** merged code-changing PR.
 
-## P15 — The plain cue text is derived twice per row (NEXT)
+## P15 — The plain cue text is derived twice per row (SHIPPED 2026-10-31, draft PR open)
 - Files: `lib/features/transcript/presentation/transcript_line_tile.dart:207`
-  and `:388` — both call `transcriptPlainForSelection(widget.line.text)`.
-  Line 388 feeds `TranscriptBlurText(shapeWords:)` and is evaluated on
-  every build even when the blur is revealed (the default).
+  and `:388` — both called `transcriptPlainForSelection(widget.line.text)`.
+  Structural note discovered this run: line 207 sits in the OUTER
+  `State.build`, line 388 inside the `ValueListenableBuilder` closure — so
+  hover rebuilds only re-derived at 388, but every outer build (parent-list
+  rebuild, karaoke-highlight tick on the active row) derived TWICE.
 - Underlying: `lib/data/subtitle/subtitle_markup_parser.dart` caches parsed
   segments in a 256-entry FIFO map; a transcript with more than 256 distinct
   cue texts evicts on nearly every new row, and the parser then re-parses
   character by character.
-- Fix: compute the plain text once per row and reuse it; consider an LRU
-  (`L1Store`) instead of the FIFO map for the parse cache.
-- Measure: count `parseSubtitleMarkup` misses over a 2000-line scroll and
-  assert the plain-text derivation happens once per row, not twice.
-- Risk: LOW. Confidence: HIGH.
+- Fix (shipped): (1) tile `shapeWords:` reuses the already-computed
+  `primaryPlain` (2→1 derivations per outer build; the remaining one is
+  needed for karaoke/semantics — that is the floor). (2) Parser fast path:
+  inputs with no `<` and no `&` return a single segment immediately — no
+  map hash, no per-char loop, no cache insert/evict; plain texts also stop
+  competing with marked-up texts for the 256 slots. This REPLACES the LRU
+  idea (better: plain texts never touch the cache). (3) A
+  `@visibleForTesting` counter `transcriptPlainDerivationCount` (in
+  `transcript_markup.dart`) pins the count.
+- Measured (one impl per fresh process, n=4 per mode, SEQUENTIAL, sinks
+  identical across all 8 runs — 731800/4638400): scroll sweep over 512
+  distinct plain cues 0.642–0.958 → 0.099–0.153 ms/sweep (**~8.1x median,
+  ~4.2x worst pairing**); 40-row warm window parity (~0.023 vs ~0.024
+  ms/pass — legacy already hit the parse cache there). Structural: tile
+  stashed → counter test fails with delta 2 per outer build; fixed →
+  exactly 1.
+- Correctness: differential vs a faithful legacy copy in the test file over
+  a curated markup corpus + 2000 fuzz cases (segment text + all four style
+  fields + plain selection text); slow path untouched.
+- Status: draft PR open on `perf-assist/plain-cue-text-once-per-row`
+  (commit `272d27ac`). The PR number is assigned when the framework pushes
+  the bundle — not known during the run.
+- Bench gotcha: `flutter test -n` does NOT exist on Flutter 3.47 — use
+  `--plain-name`.
 
 ## P16 — The echo card builds every line of the echo range eagerly (MED RISK)
 - File: `lib/features/transcript/presentation/transcript_echo_region_merged_card.dart:117-200`
@@ -415,6 +436,13 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   differential equivalence against the nested scan over 60 random fixtures,
   degenerate-window semantics, and a two-scale local-only microbenchmark
   (2000×200 and 4000×800). Linked from `docs/perf-measurement.md`.
+- ~~No coverage for the plain cue text derivation / markup parse fast
+  path.~~ **DONE 2026-10-31**:
+  `test/features/transcript/transcript_plain_cue_text_perf_test.dart` —
+  derivation-count widget test, differential equivalence against a legacy
+  parser copy (markup corpus + 2000 fuzz cases), and a two-regime
+  local-only microbenchmark (warm window / eviction sweep). Linked from
+  `docs/perf-measurement.md`.
 - Only other `*perf*` test in the repo:
   `test/features/transcript/transcript_blur_long_list_perf_test.dart`.
 
@@ -497,3 +525,10 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   P3 (see the P3 section). This run shipped **P13** (draft PR on
   `perf-assist/auto-translate-source-key`). Next candidates: **P15**, then
   **P16**.
+- **2026-10-31 update:** P13's draft PR is **#1167** (open, GitGuardian
+  check green, no repo CI runs on the branch). This run shipped **P15**
+  (draft PR on `perf-assist/plain-cue-text-once-per-row`, commit `272d27ac`).
+  Full suite after the change: **6983 passed / 14 skipped**. Next candidate:
+  **P16** (echo card eager build, MED risk) — the last remaining code-level
+  backlog item; after that only maintainer-decision items (P3/P7/P8/P10b)
+  remain.

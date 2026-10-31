@@ -1,5 +1,12 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
+## 2026-10-31 — small additions
+- **`flutter test -n <name>` does NOT exist** on the pinned Flutter 3.47.6
+  (AGENTS.md's "AI-debug route" snippet is wrong about the flag) — use
+  `flutter test <file> --plain-name <name>`.
+- 2026-10-31 run: the SDK copy + `pub get` completed in ~1 min (warm), no
+  cold-download cap kill. The cold-cap note below stands as a caveat.
+
 ## 2026-10-30 — run-mechanics gotchas (read before the next run)
 - **A cold `pub get` can exceed the 10-minute background cap** (this run:
   524 MB downloaded, wrapper killed at the cap — the dart child died with
