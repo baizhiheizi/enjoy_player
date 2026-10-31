@@ -385,7 +385,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
         final blurredPrimary = TranscriptBlurText(
           revealed: isRevealed,
-          shapeWords: transcriptPlainForSelection(widget.line.text),
+          shapeWords: primaryPlain,
           shapeFontSize: baseBody.fontSize,
           onShapesTap: widget.selectable ? _revealHoldOnly : null,
           child: primaryWidget,
