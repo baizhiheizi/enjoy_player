@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Assert every compiled agentic workflow routes inference through the ADR-0028 proxy
-# and declares api.minimaxi.com in its egress allow-list (GH_AW firewall).
+# Assert every compiled agentic workflow routes inference through a proxy host
+# declared by a shared engine component (ADR-0028) and that its egress
+# allow-list includes that host (GH_AW firewall).
 set -euo pipefail
 
-PROXY_HOST="api.minimaxi.com"
-PROXY_BASE_URL="https://api.minimaxi.com/anthropic"
 WORKFLOWS_DIR=".github/workflows"
 errors=0
 
@@ -13,40 +12,57 @@ fail() {
   errors=$((errors + 1))
 }
 
-# Source workflows that invoke the MiniMax proxy must import the shared engine component.
+base_url_hosts() {
+  sed -nE 's|.*ANTHROPIC_BASE_URL:[[:space:]]*"?(https?://)([^/"[:space:]]+).*|\2|p' "$1"
+}
+
+# The sanctioned hosts are whatever the shared engine components declare, so an
+# engine switch (ADR-0028 amendment) extends the set without editing this gate.
+SANCTIONED_HOSTS="$(for engine_md in "${WORKFLOWS_DIR}"/shared/engine-*.md; do
+  [[ -f "${engine_md}" ]] || continue
+  base_url_hosts "${engine_md}"
+done | sort -u)"
+
+if [[ -z "${SANCTIONED_HOSTS}" ]]; then
+  echo "::error::no shared engine component declares ANTHROPIC_BASE_URL (ADR-0028)."
+  exit 1
+fi
+
+# A source workflow that configures inference inline bypasses the shared engine
+# components the sanctioned set is derived from.
 for md in "${WORKFLOWS_DIR}"/*.md; do
   [[ -f "${md}" ]] || continue
-  base="$(basename "${md}")"
-  [[ "${base}" == shared ]] && continue
-
-  if grep -qE 'engine-minimax|ANTHROPIC_BASE_URL' "${md}" 2>/dev/null; then
-    if ! grep -q 'shared/engine-minimax.md' "${md}"; then
-      fail "${md}: agentic source must import shared/engine-minimax.md (ADR-0028)."
-    fi
+  if grep -q 'ANTHROPIC_BASE_URL' "${md}" && ! grep -qE 'shared/engine-[a-z0-9-]+\.md' "${md}"; then
+    fail "${md}: inline engine config must move to a shared engine component (ADR-0028)."
   fi
 done
 
-# Compiled lock files: proxy URL + allow-list must include the proxy host.
 for lock in "${WORKFLOWS_DIR}"/*.lock.yml; do
   [[ -f "${lock}" ]] || continue
-  base="$(basename "${lock}")"
 
-  if ! grep -q "${PROXY_BASE_URL}" "${lock}"; then
-    fail "${lock}: missing ANTHROPIC_BASE_URL=${PROXY_BASE_URL}."
+  hosts="$(base_url_hosts "${lock}" | sort -u)"
+  if [[ -z "${hosts}" ]]; then
+    fail "${lock}: no ANTHROPIC_BASE_URL — every agentic lock routes inference through a shared engine's proxy (ADR-0028)."
+    continue
   fi
 
-  if ! grep -q "${PROXY_HOST}" "${lock}"; then
-    fail "${lock}: egress allow-list must include ${PROXY_HOST}."
-  fi
+  while IFS= read -r host; do
+    if ! printf '%s\n' "${SANCTIONED_HOSTS}" | grep -Fxq "${host}"; then
+      fail "${lock}: ANTHROPIC_BASE_URL host ${host} is not declared by any shared engine component (ADR-0028)."
+    fi
+    if ! grep -v 'ANTHROPIC_BASE_URL' "${lock}" | grep "${host}" > /dev/null; then
+      fail "${lock}: egress allow-list must include ${host}."
+    fi
+  done <<< "${hosts}"
 done
 
-# agentic_commands.yml is a slash-command router (no inference); ensure it does not
-# declare a direct Anthropic endpoint that would bypass the proxy.
 commands_yml="${WORKFLOWS_DIR}/agentic_commands.yml"
 if [[ -f "${commands_yml}" ]]; then
-  if grep -q 'ANTHROPIC_BASE_URL' "${commands_yml}" && ! grep -q "${PROXY_HOST}" "${commands_yml}"; then
-    fail "${commands_yml}: must not route inference outside ${PROXY_HOST}."
-  fi
+  while IFS= read -r host; do
+    if ! printf '%s\n' "${SANCTIONED_HOSTS}" | grep -Fxq "${host}"; then
+      fail "${commands_yml}: must not route inference outside the shared engine proxies (ADR-0028: ${host})."
+    fi
+  done < <(base_url_hosts "${commands_yml}")
 fi
 
 if [[ "${errors}" -gt 0 ]]; then
@@ -54,4 +70,5 @@ if [[ "${errors}" -gt 0 ]]; then
   exit 1
 fi
 
-echo "Agentic egress allow-list assertion passed ($(find "${WORKFLOWS_DIR}" -name '*.lock.yml' | wc -l | tr -d ' ') lock file(s))."
+lock_count="$(find "${WORKFLOWS_DIR}" -name '*.lock.yml' | wc -l | tr -d ' ')"
+echo "Agentic egress allow-list assertion passed (${lock_count} lock file(s); sanctioned hosts: $(echo "${SANCTIONED_HOSTS}" | tr '\n' ' '))"
