@@ -314,6 +314,7 @@ class _PaidMembershipCard extends StatelessWidget {
           creditsLabel: creditsLabel,
           trailing: EnjoyPillBadge(
             label: renewing ? l10n.subscriptionAutoRenewOn : tierBadge,
+            fillWidth: true,
           ),
         ),
         if (endingSoon)

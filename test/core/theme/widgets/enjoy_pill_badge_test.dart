@@ -56,4 +56,43 @@ void main() {
     expect(box.padding, const EdgeInsets.symmetric(horizontal: 10));
     expect((box.decoration! as ShapeDecoration).shape, isA<StadiumBorder>());
   });
+
+  testWidgets('badge fits its label instead of the width its parent offers', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      Align(
+        alignment: Alignment.topLeft,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 300),
+          child: const Align(
+            alignment: Alignment.centerRight,
+            child: EnjoyPillBadge(label: 'Allowed'),
+          ),
+        ),
+      ),
+    );
+
+    final badgeWidth = tester.getSize(find.byType(EnjoyPillBadge)).width;
+    final labelWidth = tester.getSize(find.byType(Text)).width;
+    expect(badgeWidth, closeTo(labelWidth + 20, 0.01));
+  });
+
+  testWidgets('fillWidth badge fills the width its parent offers', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      Align(
+        alignment: Alignment.topLeft,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 300),
+          child: const EnjoyPillBadge(label: 'Allowed', fillWidth: true),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(EnjoyPillBadge)).width, 300);
+  });
 }
