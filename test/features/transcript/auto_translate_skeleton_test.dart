@@ -170,6 +170,88 @@ void main() {
         isNull,
       );
     });
+
+    test('derives the expected key once per primary line, not per rebuild', () {
+      final primary = [
+        for (var i = 0; i < 8; i++)
+          TranscriptLine(
+            text: 'memo cue number $i',
+            startMs: i * 1000,
+            durationMs: 900,
+          ),
+      ];
+      final ai = [
+        for (var i = 0; i < primary.length; i++)
+          TranscriptLine(
+            text: '译本 $i',
+            startMs: i * 1000,
+            durationMs: 900,
+            sourceKey: autoTranslateSourceKey(
+              primaryText: primary[i].text,
+              sourceLanguage: 'en',
+              targetLanguage: 'zh-CN',
+            ),
+          ),
+      ];
+      String? resolve(int lineIndex) => resolveAutoTranslateSecondaryText(
+        primaryLines: primary,
+        aiLines: ai,
+        lineIndex: lineIndex,
+        sourceLanguage: 'en',
+        targetLanguage: 'zh-CN',
+      );
+      autoTranslateSourceKeyDerivationCount = 0;
+      for (var i = 0; i < primary.length; i++) {
+        expect(resolve(i), '译本 $i');
+      }
+      expect(autoTranslateSourceKeyDerivationCount, primary.length);
+
+      final afterFirstPass = autoTranslateSourceKeyDerivationCount;
+      for (var rebuild = 0; rebuild < 5; rebuild++) {
+        for (var i = 0; i < primary.length; i++) {
+          expect(resolve(i), '译本 $i');
+        }
+      }
+      expect(autoTranslateSourceKeyDerivationCount, afterFirstPass);
+    });
+
+    test('re-derives when the language pair changes', () {
+      const primary = [
+        TranscriptLine(text: 'language pair cue', startMs: 0, durationMs: 900),
+      ];
+      final zhKey = autoTranslateSourceKey(
+        primaryText: primary[0].text,
+        sourceLanguage: 'en',
+        targetLanguage: 'zh-CN',
+      );
+      final jaKey = autoTranslateSourceKey(
+        primaryText: primary[0].text,
+        sourceLanguage: 'en',
+        targetLanguage: 'ja-JP',
+      );
+      String? resolve(String target, String key) =>
+          resolveAutoTranslateSecondaryText(
+            primaryLines: primary,
+            aiLines: [
+              TranscriptLine(
+                text: 'target text',
+                startMs: 0,
+                durationMs: 900,
+                sourceKey: key,
+              ),
+            ],
+            lineIndex: 0,
+            sourceLanguage: 'en',
+            targetLanguage: target,
+          );
+      autoTranslateSourceKeyDerivationCount = 0;
+      expect(resolve('zh-CN', zhKey), 'target text');
+      expect(autoTranslateSourceKeyDerivationCount, 1);
+      expect(resolve('zh-CN', zhKey), 'target text');
+      expect(autoTranslateSourceKeyDerivationCount, 1);
+      expect(resolve('ja-JP', jaKey), 'target text');
+      expect(autoTranslateSourceKeyDerivationCount, 2);
+    });
   });
 
   group('findCachedAutoTranslateText', () {
