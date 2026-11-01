@@ -163,6 +163,16 @@ else
 fi
 
 echo
+echo "--- Compat dylibs (deployment-target floor for bundled Homebrew libs) ---"
+compat_prefix="${ENJOY_MACOS_COMPAT_PREFIX:-${HOME}/Library/Caches/ai.enjoy.player/macos-compat}"
+if [[ -x "${compat_prefix}/lib/libfreetype.6.dylib" ]]; then
+  ok "compat prefix present: ${compat_prefix}"
+else
+  warn "compat prefix missing — bundling falls back to /opt/homebrew kegs, which fails the macOS 12 floor gate"
+  warn "Run: bash macos/scripts/build_compat_dylibs.sh"
+fi
+
+echo
 echo "--- Artifacts (ephemeral; optional) ---"
 ipa_count=0
 if compgen -G "${root}/build/ios/ipa/"*.ipa >/dev/null 2>&1; then

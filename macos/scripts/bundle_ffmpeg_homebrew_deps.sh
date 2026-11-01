@@ -21,6 +21,12 @@ if [ ! -d "${FRAMEWORKS_DIR}" ]; then
   exit 1
 fi
 
+SCRIPT_DIR="$(CDPATH= cd "$(dirname "$0")" && pwd)"
+# shellcheck source=compat_dylibs_env.sh
+source "${SCRIPT_DIR}/compat_dylibs_env.sh"
+COMPAT_PREFIX="$(compat_dylibs_prefix)"
+ALLOWED_USR_LIBS="$(compat_allowed_usr_libs)"
+
 # The bundle is only as good as the kegs it was built against, so the build
 # machine's Homebrew state belongs in the build log.
 if command -v brew >/dev/null 2>&1; then
@@ -93,6 +99,14 @@ homebrew_formula_for() {
 
 resolve_homebrew_dep() {
   dep="$1"
+  # The compat prefix wins over the keg: Homebrew bottles carry their bottle
+  # tag's macOS as LC_BUILD_VERSION minos (26.0 today), which dyld rejects on
+  # the macOS versions this app still supports (#1187).
+  compat_candidate="${COMPAT_PREFIX}/lib/$(basename "${dep}")"
+  if [ -f "${compat_candidate}" ]; then
+    printf '%s' "${compat_candidate}"
+    return 0
+  fi
   if [ -f "${dep}" ]; then
     printf '%s' "${dep}"
     return 0
@@ -142,6 +156,11 @@ resolve_rpath_dep() {
   keg_dir="$2"
   name="${reference#@rpath/}"
   [ -n "${name}" ] || return 1
+
+  if [ -f "${COMPAT_PREFIX}/lib/${name}" ]; then
+    printf '%s' "${COMPAT_PREFIX}/lib/${name}"
+    return 0
+  fi
 
   if [ -n "${keg_dir}" ]; then
     for candidate_dir in "${keg_dir}" "${keg_dir}/../lib"; do
@@ -265,6 +284,7 @@ while :; do
       fi
       echo "bundle_ffmpeg_homebrew_deps: cannot resolve ${reference}" >&2
       echo "Install Homebrew deps: brew bundle install --file=macos/Brewfile" >&2
+      echo "and build the compat prefix: bash macos/scripts/build_compat_dylibs.sh" >&2
       exit 1
     fi
     if grep -Fxq "${src}" "${BUNDLED}" 2>/dev/null; then
@@ -386,12 +406,26 @@ resolve_rpath_against() {
   return 1
 }
 
+usr_lib_allowed() {
+  case "$1" in
+    /usr/lib/swift/*) return 0 ;;
+  esac
+  printf '%s\n' "${ALLOWED_USR_LIBS}" | grep -Fxq "$(basename "$1")"
+}
+
 resolve_bundle_dep() {
   loader="$1"
   dep="$2"
   loader_dir="$(dirname "${loader}")"
   case "${dep}" in
-    /usr/lib/* | /System/* | /usr/libexec/*)
+    /usr/lib/*)
+      if ! usr_lib_allowed "${dep}"; then
+        echo "bundle_ffmpeg_homebrew_deps: ${dep} is not on the macOS ${COMPAT_MIN_MACOS_VERSION} system-dylib allowlist (it may not exist on older macOS)" >&2
+        return 1
+      fi
+      return 0
+      ;;
+    /System/* | /usr/libexec/*)
       return 0
       ;;
     @rpath/*)
@@ -446,6 +480,54 @@ done < <(find "${APP_BUNDLE}/Contents" -type f -print0 2>/dev/null)
 
 if [ "${closure_failures}" -gt 0 ]; then
   echo "bundle_ffmpeg_homebrew_deps: ${closure_failures} unresolved dylib dependency/dependencies in ${APP_BUNDLE}" >&2
+  exit 1
+fi
+
+# Deployment-target floor: every dylib copied into the bundle must load on the
+# app's minimum macOS. Homebrew bottles carry their bottle tag's OS as
+# LC_BUILD_VERSION minos — 26.0 for current arm64 bottles — and dyld aborts at
+# launch ("built for macOS 26.0 which is newer than running OS") on anything
+# older (#1187). Compat-prefix builds set the app's real minimum instead.
+minos_of() {
+  vtool -show-build "$1" 2>/dev/null | awk '
+    /^ platform/ { platform = $2 }
+    /^ +minos / { if (platform == "MACOS") print $2 }
+  ' | sort -t. -k1,1n -k2,2n | tail -1
+}
+
+minos_exceeds_floor() {
+  awk -v a="$1" -v b="${COMPAT_MIN_MACOS_VERSION}" 'BEGIN {
+    split(a, x, "."); split(b, y, ".")
+    exit !(x[1] > y[1] || (x[1] == y[1] && x[2] > y[2]))
+  }'
+}
+
+floor_failures=0
+while read -r src; do
+  [ -n "${src}" ] || continue
+  bin="${FRAMEWORKS_DIR}/$(basename "${src}")"
+  worst="$(minos_of "${bin}")"
+  if [ -z "${worst}" ]; then
+    echo "bundle_ffmpeg_homebrew_deps: cannot read LC_BUILD_VERSION of ${bin}" >&2
+    floor_failures=$((floor_failures + 1))
+    continue
+  fi
+  if minos_exceeds_floor "${worst}"; then
+    echo "bundle_ffmpeg_homebrew_deps: ${bin} is built for macOS ${worst} > ${COMPAT_MIN_MACOS_VERSION} and would crash dyld on older macOS (#1187)" >&2
+    case "${src}" in
+      "${COMPAT_PREFIX}"/*) ;;
+      *)
+        echo "  It was copied from ${src} (a Homebrew keg)." >&2
+        echo "  Rebuild the compat prefix and bundle from it instead:" >&2
+        echo "    bash macos/scripts/build_compat_dylibs.sh" >&2
+        ;;
+    esac
+    floor_failures=$((floor_failures + 1))
+  fi
+done <"${BUNDLED}"
+
+if [ "${floor_failures}" -gt 0 ]; then
+  echo "bundle_ffmpeg_homebrew_deps: ${floor_failures} bundled dylib(s) exceed the macOS ${COMPAT_MIN_MACOS_VERSION} floor" >&2
   exit 1
 fi
 

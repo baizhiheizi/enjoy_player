@@ -130,6 +130,8 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
   if [[ "${IOS_ONLY}" != true ]]; then
     echo ">>> Homebrew + CocoaPods"
     brew bundle install --file="${root}/macos/Brewfile"
+    echo ">>> Compat dylibs (macOS 12 floor)"
+    bash "${root}/macos/scripts/build_compat_dylibs.sh"
     (cd "${root}/macos" && pod install)
   fi
 

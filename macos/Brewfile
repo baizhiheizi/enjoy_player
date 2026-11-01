@@ -1,5 +1,16 @@
 # Homebrew libraries required by ffmpeg_kit_flutter_new macOS prebuilt frameworks.
 # Install before macOS dev builds: brew bundle install --file=macos/Brewfile
+#
+# Releases must NOT bundle these kegs directly: Homebrew bottles carry the
+# macOS version of their bottle tag as LC_BUILD_VERSION minos (currently
+# 26.0), and FreeType >= 2.15 bottles additionally link /usr/lib/libhvf.dylib
+# (macOS 26 only), so any keg copy crashes dyld on older macOS. The bundler
+# resolves these libs from the deployment-target-12.0 prefix built by
+# macos/scripts/build_compat_dylibs.sh first; the kegs are only a dev-machine
+# fallback and every copy is gated on minos <= 12.0 (see ADR-0096).
+brew "cmake"
+brew "meson"
+brew "ninja"
 brew "zlib"
 brew "libiconv"
 brew "libsamplerate"
