@@ -12,6 +12,7 @@ import 'package:enjoy_player/data/audio/http_media_download.dart';
 import 'package:enjoy_player/data/audio/pcm16k_mono.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/media_target_resolver.dart';
+import 'package:enjoy_player/data/subtitle/align_lines_to_pcm.dart';
 import 'package:enjoy_player/data/subtitle/alignment_language.dart';
 import 'package:enjoy_player/data/subtitle/attach_alignment_to_lines.dart';
 import 'package:enjoy_player/data/subtitle/attach_phonemes_to_lines.dart';
@@ -271,68 +272,41 @@ final class TranscriptEnricher {
     EnrichProgressFn? onProgress,
   }) async {
     onProgress?.call(completed: 0, total: lines.length);
-    late final Float32List pcm;
-    try {
-      pcm = await backend.decodeFile(localPath);
-    } on Object catch (e, st) {
-      logNamed(
-        'transcript.enrichment',
-      ).warning('PCM extract failed: $e', e, st);
-      return const TranscriptEnrichmentErr('audioUnavailable');
-    }
-    if (pcm.isEmpty) {
-      return const TranscriptEnrichmentErr('audioUnavailable');
-    }
-    if (cancel?.isCancelled ?? false) {
-      return const TranscriptEnrichmentErr('cancelled');
-    }
 
-    final segments = [
-      for (var i = 0; i < lines.length; i++)
-        AlignmentSegment(
-          text: lines[i].text,
-          startTime: lines[i].startSeconds,
-          endTime: lines[i].endSeconds,
-          id: i,
-        ),
-    ];
-
-    late final AlignmentOutcome outcome;
-    try {
-      outcome = await backend.alignSegments(
-        sourcePcm16k: pcm,
-        language: language,
-        segments: segments,
-        cancel: cancel,
-      );
-    } on Object catch (e, st) {
-      logNamed(
-        'transcript.enrichment',
-      ).warning('alignSegments threw: $e', e, st);
-      return const TranscriptEnrichmentErr('internal');
-    }
-    if (cancel?.isCancelled ?? false) {
-      return const TranscriptEnrichmentErr('cancelled');
-    }
-    switch (outcome) {
-      case AlignmentFailed(:final failure):
-        return TranscriptEnrichmentErr(failure.reason.name);
-      case AlignmentSuccess(:final result):
-        try {
-          final attached = attachAlignmentToLines(lines, result);
-          onProgress?.call(completed: lines.length, total: lines.length);
-          return await _persistIfChanged(
-            transcriptId: transcriptId,
-            original: lines,
-            attached: attached,
+    final outcome = await alignLinesToPcm(
+      decodePcm: () => backend.decodeFile(localPath),
+      language: language,
+      lines: lines,
+      align: ({required sourcePcm16k, required language, required segments}) =>
+          backend.alignSegments(
+            sourcePcm16k: sourcePcm16k,
+            language: language,
+            segments: segments,
             cancel: cancel,
-          );
-        } on Object catch (e, st) {
-          logNamed(
-            'transcript.enrichment',
-          ).warning('alignment mapping failed: $e', e, st);
-          return const TranscriptEnrichmentErr('internal');
-        }
+          ),
+      log: logNamed('transcript.enrichment'),
+      cancel: cancel,
+    );
+
+    switch (outcome) {
+      case AlignLinesAttached(lines: final attached):
+        onProgress?.call(completed: lines.length, total: lines.length);
+        return _persistIfChanged(
+          transcriptId: transcriptId,
+          original: lines,
+          attached: attached,
+          cancel: cancel,
+        );
+      case AlignLinesRejected(:final reason):
+        return TranscriptEnrichmentErr(reason);
+      case AlignLinesUnavailable():
+        return const TranscriptEnrichmentErr('audioUnavailable');
+      case AlignLinesErrored():
+        return const TranscriptEnrichmentErr('internal');
+      case AlignLinesCancelled():
+        return const TranscriptEnrichmentErr('cancelled');
+      case AlignLinesLineCountChanged():
+        return const TranscriptEnrichmentErr('line count changed');
     }
   }
 

@@ -14,6 +14,7 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_filter_pill.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_list_controller.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
@@ -71,7 +72,7 @@ class VocabularyWordToolbar extends ConsumerWidget {
             onChanged: ctrl.setQuery,
           ),
         ),
-        _FilterMenu<VocabularyStatus?>(
+        EnjoyFilterMenu<VocabularyStatus?>(
           label: l10n.vocabularyFilterStatus,
           value: filters.status,
           entries: [
@@ -79,81 +80,22 @@ class VocabularyWordToolbar extends ConsumerWidget {
             for (final s in VocabularyStatus.values)
               (s, vocabularyStatusLabel(l10n, s)),
           ],
+          formatLabel: l10n.vocabularyFilterValue,
+          height: _kToolbarHeight,
           onChanged: ctrl.setStatus,
         ),
-        _FilterMenu<String?>(
+        EnjoyFilterMenu<String?>(
           label: l10n.vocabularyFilterLanguage,
           value: filters.language,
           entries: [
             (null, l10n.vocabularyFilterAll),
             for (final lang in languages) (lang, languageCodeLabel(lang)),
           ],
+          formatLabel: l10n.vocabularyFilterValue,
+          height: _kToolbarHeight,
           onChanged: ctrl.setLanguage,
         ),
       ],
-    );
-  }
-}
-
-class _FilterMenu<T> extends StatelessWidget {
-  const _FilterMenu({
-    required this.label,
-    required this.value,
-    required this.entries,
-    required this.onChanged,
-  });
-
-  final String label;
-  final T value;
-  final List<(T, String)> entries;
-  final ValueChanged<T> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-    final tt = Theme.of(context).textTheme;
-    final current = entries
-        .firstWhere((e) => e.$1 == value, orElse: () => entries.first)
-        .$2;
-    return MenuAnchor(
-      menuChildren: [
-        for (final entry in entries)
-          MenuItemButton(
-            onPressed: () => onChanged(entry.$1),
-            child: Text(entry.$2),
-          ),
-      ],
-      builder: (context, controller, _) => EnjoyPressable(
-        onTap: () => controller.isOpen ? controller.close() : controller.open(),
-        borderRadius: BorderRadius.circular(11),
-        child: Container(
-          height: _kToolbarHeight,
-          padding: const EdgeInsets.only(left: 12, right: 9),
-          decoration: ShapeDecoration(
-            color: t.paper,
-            shape: RoundedSuperellipseBorder(
-              borderRadius: BorderRadius.circular(11),
-              side: BorderSide(color: t.line),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l10n.vocabularyFilterValue(label, current),
-                style: tt.labelMedium?.copyWith(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: t.ink2,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Icon(EnjoyIcons.chevronDown, size: 14, color: t.ink3),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

@@ -8,18 +8,11 @@ import 'package:forced_alignment/forced_alignment.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/audio/pcm16k_mono.dart';
+import 'package:enjoy_player/data/subtitle/align_lines_to_pcm.dart';
 import 'package:enjoy_player/data/subtitle/alignment_language.dart';
-import 'package:enjoy_player/data/subtitle/attach_alignment_to_lines.dart';
 import 'package:enjoy_player/features/transcript/data/transcript_timeline_codec.dart';
 
 typedef DecodePcm16k = Future<Float32List> Function(Uint8List bytes);
-
-typedef AlignSegmentsFn =
-    Future<AlignmentOutcome> Function({
-      required Float32List sourcePcm16k,
-      required String language,
-      required List<AlignmentSegment> segments,
-    });
 
 /// Maps a Craft synth language onto an alignment catalog tag.
 ///
@@ -27,7 +20,7 @@ typedef AlignSegmentsFn =
 String? alignmentLanguageForCraft(String language) =>
     alignmentLanguageForTranscript(language);
 
-/// Extract + [alignSegments] + [attachAlignmentToLines] for Craft save.
+/// Extract + [alignSegments] + attach for Craft save.
 ///
 /// Always attempts enrichment on a real Craft write. When [timelineJson] is
 /// null or extract/alignment fails, returns the original spec 030 JSON
@@ -66,53 +59,30 @@ final class CraftTimelineEnricher {
       return _fallback(timelineJson, 'unsupportedLanguage');
     }
 
-    late final Float32List pcm;
-    try {
-      pcm = await _decodePcm(audioBytes);
-    } on Object catch (e, st) {
-      logNamed('craft.enrichment').warning('PCM extract failed: $e', e, st);
-      return timelineJson;
-    }
-    if (pcm.isEmpty) {
-      return _fallback(timelineJson, 'empty PCM');
-    }
-
-    final segments = [
-      for (var i = 0; i < lines.length; i++)
-        AlignmentSegment(
-          text: lines[i].text,
-          startTime: lines[i].startSeconds,
-          endTime: lines[i].endSeconds,
-          id: i,
-        ),
-    ];
-
-    late final AlignmentOutcome outcome;
-    try {
-      outcome = await _alignSegments(
-        sourcePcm16k: pcm,
-        language: alignmentLanguage,
-        segments: segments,
-      );
-    } on Object catch (e, st) {
-      logNamed('craft.enrichment').warning('alignSegments threw: $e', e, st);
-      return timelineJson;
-    }
+    final outcome = await alignLinesToPcm(
+      decodePcm: () => _decodePcm(audioBytes),
+      language: alignmentLanguage,
+      lines: lines,
+      align: _alignSegments,
+      log: logNamed('craft.enrichment'),
+    );
 
     switch (outcome) {
-      case AlignmentFailed(:final failure):
-        return _fallback(timelineJson, failure.reason.name);
-      case AlignmentSuccess(:final result):
+      case AlignLinesAttached(lines: final attached):
         try {
-          final attached = attachAlignmentToLines(lines, result);
-          if (attached.length != lines.length) {
-            return _fallback(timelineJson, 'line count changed');
-          }
           return await encodeTimelineJsonGated(attached);
         } on Object catch (e, st) {
           logNamed('craft.enrichment').warning('mapping failed: $e', e, st);
           return timelineJson;
         }
+      case AlignLinesRejected(:final reason):
+        return _fallback(timelineJson, reason);
+      case AlignLinesLineCountChanged():
+        return _fallback(timelineJson, 'line count changed');
+      case AlignLinesUnavailable():
+      case AlignLinesErrored():
+      case AlignLinesCancelled():
+        return timelineJson;
     }
   }
 

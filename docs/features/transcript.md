@@ -532,6 +532,17 @@ fails; a missing lib on other packaged hosts still fail-closes. See
 [ADR-0071](../decisions/0071-on-device-alignment-engine.md)
 and [ADR-0072](../decisions/0072-spoken-alignment-reference.md).
 
+The Craft save hook and the on-demand enrich run **one** alignment pipeline
+([`align_lines_to_pcm.dart`](../../lib/data/subtitle/align_lines_to_pcm.dart)):
+decode 16 kHz mono PCM → align one segment per line (segment id = line index)
+→ attach the word/phone spans back onto the lines → validate that the line
+count did not change. Only the failure vocabulary differs — Craft fails closed
+and keeps today’s line timings, the CC-sheet enrich reports a typed reason
+(`audioUnavailable` / `internal` / the engine’s failure reason / `cancelled` /
+`line count changed`). The long-file path stays **per-cue** (extract + `align()`
+against a padded window) because it aligns one cue at a time rather than the
+whole file; it keeps its own segment assembly.
+
 ## Transcript editor (⋯ More → Edit transcript)
 
 The player's ⋯ More menu and the phone Subtitles & display sheet list
