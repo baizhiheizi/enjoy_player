@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **A single-platform publish no longer drops the other platform's self-update** ([#1145](https://github.com/baizhiheizi/enjoy_player/pull/1145), fixes [#1144](https://github.com/baizhiheizi/enjoy_player/issues/1144)): the Sparkle `appcast.xml` merge kept only the version being published, so publishing from a single platform wiped the other platform's item from the feed — its installed clients got an empty appcast and no self-update while `latest.json` still advertised the asset. The merge now unions: the published version wins for the platform it carries, and an unshipped platform keeps its existing item and signature intact.
+- **The five hand-rolled yes/no dialogs go through `showEnjoyConfirmDialog`** ([#1165](https://github.com/baizhiheizi/enjoy_player/pull/1165), closes [#1154](https://github.com/baizhiheizi/enjoy_player/issues/1154)): the credits purchase confirm, subscription cancel, product-tips reset, vocabulary delete, and recovery-library reset each rolled their own `AlertDialog` while the Duet rule says every confirmation uses the shared primitive — and the vocabulary delete had no destructive styling at all. All five now render through `showEnjoyConfirmDialog`, the vocabulary delete and recovery reset gain the destructive fill, and the subscription cancel keeps its deliberate inverted layout through a new `deemphasizeConfirm` guardrail mode (low-emphasis error confirm behind a primary safe action). See [docs/features/app-ui.md](docs/features/app-ui.md).
+
+### Changed
+
+- **The five save/share hand-off flows share one implementation** ([#1161](https://github.com/baizhiheizi/enjoy_player/pull/1161), closes [#1151](https://github.com/baizhiheizi/enjoy_player/issues/1151)): the diagnostics zip, transcript download, Anki CSV export, practice poster, and loop-clip export each carried drifted copies of the platform hand-off that already disagreed on dismissed-share semantics and desktop mime types. They all delegate to `saveOrShareBytes` / `saveOrShareFile` now: a dismissed share sheet is treated as cancelled (silent) everywhere, desktop saves pass an explicit mime type, and the shared `FileShareOutcome` contract is uniform. See [docs/features/share-poster.md](docs/features/share-poster.md).
+- **The release pipeline refuses to publish an update users cannot consume** ([#1138](https://github.com/baizhiheizi/enjoy_player/pull/1138), [#1141](https://github.com/baizhiheizi/enjoy_player/pull/1141), [#1146](https://github.com/baizhiheizi/enjoy_player/pull/1146)): a GitHub Release missing a platform asset is refused instead of published ([#1138](https://github.com/baizhiheizi/enjoy_player/pull/1138)), draft releases verify their platform assets against the built artifacts before publish ([#1141](https://github.com/baizhiheizi/enjoy_player/pull/1141)), and `verify_update_feeds.sh` checks `latest.json` and `appcast.xml` agree — the platform list in both directions plus the signature scheme of every appcast item — before either feed is uploaded ([#1146](https://github.com/baizhiheizi/enjoy_player/pull/1146)). See [docs/packaging.md](docs/packaging.md).
+
 ## [0.10.2] - 2026-10-27
 
 ### Fixed

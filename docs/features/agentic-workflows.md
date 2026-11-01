@@ -25,7 +25,8 @@ The upstream commit SHA is pinned in each workflow's `source:` frontmatter field
 changes live in the same file — the Flutter pre-agent steps and `runs-on` sit between the
 `# ==== customized start ====` / `# ==== customized end ====` markers — and the shared
 engine and helper blocks are pulled in through `imports:` (for example
-`shared/engine-minimax.md`).
+`shared/engine-glm.md`; every workflow currently imports that engine block —
+`engine-minimax.md` and `engine-deepseek.md` remain in `shared/` unused).
 
 `gh aw update` performs a three-way merge, so local customizations survive an upstream
 bump. The compiled `agentic_commands.yml` is the issue-comment slash-command front for
@@ -39,7 +40,10 @@ to `pub.dev` / `pub.dartlang.org`), because they are the two workflows that run
 `flutter pub get`. The workflows that only read the tree or the pull request
 (`repo-status`, `weekly-repo-map`, `weekly-research`, `duplicate-code-detector`,
 `grumpy-reviewer`) run no package resolution, and `large-file-simplifier`'s `tools.bash`
-allowlist cannot invoke `flutter` at all, so none of them needs `dart`. Adding a language
+allowlist cannot invoke `flutter` at all, so none of them needs `dart`. The imported
+engine block contributes its own `network.allowed` domains to **every** workflow's
+allowlist — `shared/engine-glm.md` adds the agent API endpoint `open.bigmodel.cn` on top
+of the defaults, so even the read-only workflows reach it. Adding a language
 without recompiling leaves the lock file — which is what actually runs — without the
 domain; verify with:
 
