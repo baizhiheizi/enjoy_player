@@ -35,6 +35,31 @@ void main() {
           'the two and fails when both are missing.',
     );
   });
+
+  test('every version with release notes has a CHANGELOG section', () {
+    final changelog = File('CHANGELOG.md').readAsStringSync();
+    final notes =
+        Directory('docs/releases')
+            .listSync()
+            .whereType<File>()
+            .where((file) => file.path.endsWith('.md'))
+            .map((file) => file.uri.pathSegments.last.replaceAll('.md', ''))
+            .toList()
+          ..sort();
+
+    final withoutSection = notes
+        .where((version) => !changelog.contains('## [$version]'))
+        .toList();
+
+    expect(
+      withoutSection,
+      isEmpty,
+      reason:
+          'These versions have a docs/releases/<version>.md file but no '
+          '"## [<version>]" CHANGELOG.md section, so the changelog loses '
+          'their changes: ${withoutSection.join(', ')}.',
+    );
+  });
 }
 
 String _rawPubspecVersion() {
