@@ -80,6 +80,10 @@ String plainTextFromSubtitleMarkup(String input) {
 List<SubtitleTextSegment> parseSubtitleMarkup(String input) {
   if (input.isEmpty) return const [];
 
+  if (!input.contains('<') && !input.contains('&')) {
+    return [SubtitleTextSegment(input)];
+  }
+
   final cached = _parseCache[input];
   if (cached != null) return cached;
 

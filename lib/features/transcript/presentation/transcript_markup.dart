@@ -6,8 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/data/subtitle/current_transcript_word.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart';
 
+@visibleForTesting
+int transcriptPlainDerivationCount = 0;
+
 /// Plain text as rendered by [transcriptMarkupToTextSpan] (for selection indices).
 String transcriptPlainForSelection(String raw) {
+  transcriptPlainDerivationCount++;
   final segments = parseSubtitleMarkup(raw);
   if (segments.isEmpty) {
     final plain = raw.replaceAll(tagStripRegExp, '').trim();
