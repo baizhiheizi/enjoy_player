@@ -290,7 +290,7 @@ class SyncDownloadService {
       }
 
       if (pageFailed == 0) {
-        final maxIso = _maxUpdatedAtIso(batch);
+        final maxIso = maxUpdatedAtIso(batch);
         if (maxIso != null) {
           cursor = maxIso;
           await _db.settingsDao.writeSetting(cursorKey, maxIso);
@@ -317,15 +317,4 @@ class SyncDownloadService {
     final vc = await _downloadVocabularyContextsInternal(resetCursor: true);
     return a.merge(v).merge(r).merge(vi).merge(vc);
   }
-}
-
-String? _maxUpdatedAtIso(List<Map<String, dynamic>> batch) {
-  DateTime? max;
-  for (final m in batch) {
-    final t = parseIsoDate(m['updatedAt']);
-    if (t != null && (max == null || t.isAfter(max))) {
-      max = t;
-    }
-  }
-  return max?.toUtc().toIso8601String();
 }

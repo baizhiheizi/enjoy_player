@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/diagnostics/diagnostics_verbose_provider.dart'
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/onboarding/application/onboarding_progress_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/developer_contact_sheet.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/analytics_capture_toggle_row.dart';
@@ -56,22 +57,12 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
     WidgetRef ref,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showEnjoyConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.settingsResetProductTipsConfirmTitle),
-        content: Text(l10n.settingsResetProductTipsConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.settingsResetProductTipsConfirmAction),
-          ),
-        ],
-      ),
+      title: l10n.settingsResetProductTipsConfirmTitle,
+      message: l10n.settingsResetProductTipsConfirmBody,
+      confirmLabel: l10n.settingsResetProductTipsConfirmAction,
+      destructive: true,
     );
     if (confirmed != true || !context.mounted) return;
     await ref.read(onboardingProgressProvider.notifier).resetAll();

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/platform/file_share_export.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
@@ -131,15 +132,15 @@ class _PracticePosterPreviewSheetState
       if (!mounted) return;
 
       switch (outcome) {
-        case PracticePosterExportOutcome.shared:
+        case FileShareOutcome.shared:
           AppNotice.success(context, l10n.practicePosterShareSuccess);
           Navigator.of(context).pop();
-        case PracticePosterExportOutcome.saved:
+        case FileShareOutcome.saved:
           AppNotice.success(context, l10n.practicePosterSaveSuccess);
           Navigator.of(context).pop();
-        case PracticePosterExportOutcome.cancelled:
+        case FileShareOutcome.cancelled:
           break;
-        case PracticePosterExportOutcome.failed:
+        case FileShareOutcome.failed:
           AppNotice.error(context, l10n.practicePosterExportError);
       }
     } on Object {

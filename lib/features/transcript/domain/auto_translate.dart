@@ -228,6 +228,46 @@ String autoTranslateSourceKey({
   return sha256.convert(utf8.encode(payload)).toString().substring(0, 32);
 }
 
+typedef _SourceKeyEntry = ({String source, String target, String key});
+
+/// Expected source keys memoized per primary line instance.
+///
+/// Weak keys: an entry dies with the line it was derived from, so no
+/// eviction policy is needed. [TranscriptLine.text] is final, so a cached
+/// key stays valid for the instance's lifetime.
+final Expando<_SourceKeyEntry> _sourceKeyMemo = Expando<_SourceKeyEntry>(
+  'autoTranslateSourceKeyForLine',
+);
+
+/// Number of keys derived rather than read from [_sourceKeyMemo].
+@visibleForTesting
+int autoTranslateSourceKeyDerivationCount = 0;
+
+String _sourceKeyForPrimaryLine(
+  TranscriptLine primaryLine,
+  String sourceLanguage,
+  String targetLanguage,
+) {
+  final memoized = _sourceKeyMemo[primaryLine];
+  if (memoized != null &&
+      memoized.source == sourceLanguage &&
+      memoized.target == targetLanguage) {
+    return memoized.key;
+  }
+  final key = autoTranslateSourceKey(
+    primaryText: primaryLine.text,
+    sourceLanguage: sourceLanguage,
+    targetLanguage: targetLanguage,
+  );
+  _sourceKeyMemo[primaryLine] = (
+    source: sourceLanguage,
+    target: targetLanguage,
+    key: key,
+  );
+  autoTranslateSourceKeyDerivationCount++;
+  return key;
+}
+
 /// Secondary text for AI overlay at [lineIndex], or null when empty / soft-stale.
 ///
 /// Uses primary index (not time matching). When [sourceLanguage] and
@@ -248,10 +288,10 @@ String? resolveAutoTranslateSecondaryText({
   final src = sourceLanguage;
   final tgt = targetLanguage;
   if (src != null && src.isNotEmpty && tgt != null && tgt.isNotEmpty) {
-    final expected = autoTranslateSourceKey(
-      primaryText: primaryLines[lineIndex].text,
-      sourceLanguage: src,
-      targetLanguage: tgt,
+    final expected = _sourceKeyForPrimaryLine(
+      primaryLines[lineIndex],
+      src,
+      tgt,
     );
     final stored = slot.sourceKey;
     if (stored == null || stored != expected) return null;

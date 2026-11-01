@@ -120,7 +120,7 @@ class RecordingTargetSyncService {
         errors.addAll(counts.errors);
       }
 
-      final maxIso = _maxUpdatedAtIso(batch);
+      final maxIso = maxUpdatedAtIso(batch);
       if (maxIso != null) {
         cursor = maxIso;
         await _db.settingsDao.writeSetting(cursorKey, maxIso);
@@ -146,15 +146,4 @@ class RecordingTargetSyncService {
       errors: errors.isEmpty ? null : errors,
     );
   }
-}
-
-String? _maxUpdatedAtIso(List<Map<String, dynamic>> batch) {
-  DateTime? max;
-  for (final m in batch) {
-    final t = parseIsoDate(m['updatedAt']);
-    if (t != null && (max == null || t.isAfter(max))) {
-      max = t;
-    }
-  }
-  return max?.toUtc().toIso8601String();
 }

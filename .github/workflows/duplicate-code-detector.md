@@ -33,10 +33,10 @@ runs-on-slim:
 - slim
 
 imports:
-- shared/engine-minimax.md
+- shared/engine-glm.md
 # ==== customized end  ====
 
-source: githubnext/agentics/workflows/duplicate-code-detector.md@b4e175bab6674279e0fe158f7dc877b77bc9d92f
+source: githubnext/agentics/workflows/duplicate-code-detector.md@139fa09ef17cde4135e696ff8e7af09bc5ddfa6e
 ---
 
 # Duplicate Code Detection

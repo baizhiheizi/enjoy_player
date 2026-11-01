@@ -34,7 +34,7 @@
   - **Label / metadata**: the stored transcript's `label` prefers `response.metadata.title` (trimmed, if non-empty); otherwise it falls back to the hardcoded (non-localized) string `"YouTube captions (<language>)"` where `<language>` is the same base subtag sent in the request.
 - **Embedded subtitles (video)**: No automatic demux. The picker and the transcript **empty state** offer **Extract** (video only); streams are saved as `source: user` (same uniqueness as imports). If `media_kit` has not listed subtitle tracks yet, the app falls back to **`ffmpeg -i`** stderr to find `Subtitle:` streams and demuxes with `-map 0:s:N` (same as before when tracks were known). **Windows / Linux**: Demux uses a CLI `ffmpeg` — next to the app (`ffmpeg.exe` on Windows installed from `windows/ffmpeg/ffmpeg.exe` when present at build time; `ffmpeg` next to the Linux executable or under its `lib/` for AppImage/desktop bundles) or **`ffmpeg` on PATH**. If neither is available, extraction no-ops; users can still import `.srt` / `.vtt`. FFmpegKit is Android / iOS / macOS only — the vendored plugin ships no Windows/Linux implementation, so those platforms must never route through it. Details: [`windows/ffmpeg/README.md`](../../windows/ffmpeg/README.md).
 - **On-video subtitles**: Disabled by default (`SubtitleTrack.no()` after open + `SubtitleViewConfiguration.visible: false` on [`Video`](../../lib/features/player/presentation/layouts/video_player_layout.dart)); cues are shown in the transcript panel instead.
-- **Markup**: SSA/HTML-like cues (`<font color="…">`, `<b>`, `<i>`, `<br>`, etc.) are parsed in the transcript panel via `parseSubtitleMarkup` (`lib/data/subtitle/subtitle_markup_parser.dart`); colors and styles render as rich text instead of raw tags.
+- **Markup**: SSA/HTML-like cues (`<font color="…">`, `<b>`, `<i>`, `<br>`, etc.) are parsed in the transcript panel via `parseSubtitleMarkup` (`lib/data/subtitle/subtitle_markup_parser.dart`); colors and styles render as rich text instead of raw tags. A cue with no `<` and no `&` carries neither markup nor entities, so it comes back as one unstyled segment without touching the 256-entry parse cache — plain cues therefore no longer evict marked-up cues from it. The transcript tile derives the plain cue text once per build and reuses it for the karaoke range, the semantics snippet, and the blurred shape words.
 - **Line UI**: Each cue has a compact **meta row** (timestamp first; **recording count** badge with mic icon when shadow-reading takes overlap that cue by time range), then body text after a **2px** gap. Horizontal line padding is **16** from `EnjoyThemeTokens.transcriptLinePadding` (do **not** pass `EdgeInsets.horizontal` into `EdgeInsets.symmetric` — that getter sums left+right). Vertical padding comes from [`transcriptDensityOf`](../../lib/core/transcript/transcript_density.dart) `lineVerticalPadding`. Row backgrounds are **transparent** by default; **hover**, **active playback**, **echo-range**, and **active inside echo** use distinct tints (playback within the echo region blends echo orange with primary vs plain active vs echo-only lines).
 - **Active-line rail**: the **active** playback line carries a **3px left rail** (rounded ends) colored **primary** for a plain active cue and **echo orange** for a cue inside the echo region — also when both apply. Cues outside the active/echo set have no rail.
 - **Secondary (translation) track hierarchy**: when a translation track is rendered alongside the primary line, it sits below the primary with a **2px left border** tinted `onSurfaceVariant @ 22%` to keep reads ordered without italic. Rendered through `Noto Sans SC` with the same CJK fallback chain as the primary track — see [app-ui § Typography](app-ui.md#typography).
@@ -132,8 +132,10 @@ reads the primary lines and the media title, asks for the format
 ([`showTranscriptExportFormatDialog`](../../lib/features/transcript/presentation/download_transcript_format_dialog.dart)),
 serializes, and hands the bytes to the platform save dialog (desktop,
 `FilePicker.saveFile`) or share sheet (iOS / Android, `share_plus`) — the same
-IO shape as the diagnostics, Anki, and practice-poster exports
-([`transcript_export_io.dart`](../../lib/features/transcript/application/transcript_export_io.dart)).
+IO shape as the diagnostics, Anki, and practice-poster exports, all through the
+shared
+[`saveOrShareBytes`](../../lib/core/platform/file_share_export.dart)
+helper.
 The file is named after the media title
 (`transcriptExportBaseName` in
 [`subtitle_filename.dart`](../../lib/data/subtitle/subtitle_filename.dart):
@@ -454,6 +456,46 @@ monotone, so the remaining lines cannot change them.
 The invariant the memo relies on: a `TranscriptWord`'s `phones` list is never
 mutated after construction (`TranscriptWord` is `@immutable`, and every
 producer builds a fresh list).
+
+## Auto-translate source key
+
+[`autoTranslateSourceKey`](../../lib/features/transcript/domain/auto_translate.dart)
+hashes the normalized primary cue text together with the language pair into
+the `sourceKey` fingerprint every AI cue stores, so an edited primary text
+soft-invalidates that line. The transcript list re-derives that key for every
+visible row on every rebuild — the row builder and the echo card both resolve
+the secondary text — while auto-translate is active, so the expected key is
+memoized per primary line instance in an `Expando`: weak keys, so an entry
+dies with the line and no eviction policy is needed.
+
+The invariant the memo relies on: a `TranscriptLine`'s `text` is never mutated
+after construction (`TranscriptLine` is `@immutable`), and the normalized text
+and the language base tags are pure functions of it. The memo records the
+language pair it was derived for and re-derives when the pair changes, so a
+target-language switch costs one derivation per line rather than one per
+rebuild.
+
+## Recording overlap counts
+
+[`countRecordingsPerLineIndex`](../../lib/features/transcript/domain/transcript_recording_counts.dart)
+answers "how many shadow-reading takes overlap this cue?" for every cue of a
+media. The counts feed the recording badge on each transcript row and the
+practice-poster stats, and the whole set is recomputed whenever the transcript
+lines or the recordings change.
+
+The overlap rule is `max(startA, startB) < min(endA, endB)`. Applying it by
+scanning every recording for every cue costs `lines × recordings`. Instead the
+recording windows are projected onto two sorted lists — their start times and
+their end times — and each cue is resolved with two binary searches. A cue
+overlaps exactly the recordings that started before the cue ends, minus the
+ones that ended at or before the cue starts. Those two sets are nested (a
+recording that ended at or before the cue started also started before the cue
+ends), so their difference is the overlap count and the two sorted projections
+are enough to answer every cue.
+
+A window of non-positive length never overlaps anything, so it contributes
+nothing: a recording with a zero or negative duration contributes no window,
+and a cue with a zero or negative duration has no count.
 
 ## Alignment engine (Craft save + on-demand enrich)
 

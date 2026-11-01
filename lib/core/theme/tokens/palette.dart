@@ -211,3 +211,31 @@ final class _SurfaceColors {
     );
   }
 }
+
+extension PaletteTokenAccessors on EnjoyThemeTokens {
+  Color get glassTint => _palette.glassTint;
+  Color get glassBorder => _palette.glassBorder;
+  Color get gradientStart => _palette.gradientStart;
+  Color get gradientEnd => _palette.gradientEnd;
+  Color get canvas => _palette.canvas;
+  Color get card => _palette.card;
+  Color get popover => _palette.popover;
+  Color get hairline => _palette.hairline;
+  Color get fill => _palette.fill;
+  Color get textFaint => _palette.textFaint;
+  Color get logoStart => _palette.logoStart;
+  Color get logoEnd => _palette.logoEnd;
+  Color get topHighlight => _palette.topHighlight;
+  Color get ground => _palette.ground;
+  Color get paper => _palette.paper;
+  Color get raised => _palette.raised;
+  Color get sunk => _palette.sunk;
+  Color get line => _palette.line;
+  Color get ink => _palette.ink;
+  Color get ink2 => _palette.ink2;
+  Color get ink3 => _palette.ink3;
+  Color get shape => _palette.shape;
+  Color get tick => _palette.tick;
+  Color get scrim => _palette.scrim;
+  Color get video => _palette.video;
+}

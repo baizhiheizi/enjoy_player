@@ -14,7 +14,7 @@ First real-world Linux smoke (release AppImage and dev builds) showed both Enjoy
 
 ## Decision
 
-1. **Google Sign-In is hidden on Linux.** `googleSignInAvailableOnLinux` flips to `false` in [`lib/core/platform/linux_platform_availability.dart`](../../lib/core/platform/platform_availability.dart) (the ADR-0048 kill switch). The gate chain (`nativeGoogleSignInSupported` → `SignInScreen`) hides the button automatically. Linux users sign in with **email OTP** or the **web PKCE fallback**.
+1. **Google Sign-In is hidden on Linux.** `googleSignInAvailableOnLinux` flips to `false` in [`lib/core/platform/linux_platform_availability.dart`](../../lib/core/platform/linux_platform_availability.dart) (the ADR-0048 kill switch). The gate chain (`nativeGoogleSignInSupported` → `SignInScreen`) hides the button automatically. Linux users sign in with **email OTP** or the **web PKCE fallback**.
 2. **Linux runner forwards URIs to the running instance** ([`linux/runner/my_application.cc`](../../linux/runner/my_application.cc)), mirroring the app_links upstream example:
    - Flags: `G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_HANDLES_OPEN` replace `G_APPLICATION_NON_UNIQUE`. The primary instance is now unique per session bus under `ai.enjoy.player.enjoy_player`; secondary launches forward their command line over D-Bus to the primary and exit immediately.
    - `local_command_line` returns `FALSE` so GApplication routes command lines; `activate()` presents the existing window instead of building a second one when invoked on a running instance.

@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_anki_export.dart';
-import 'package:enjoy_player/features/vocabulary/application/vocabulary_anki_export_io.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_csv.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_export_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
@@ -319,21 +318,6 @@ void main() {
       }
 
       await probe();
-    });
-  });
-
-  group('VocabularyAnkiExportIoOutcome', () {
-    test('has four values', () {
-      expect(VocabularyAnkiExportIoOutcome.values, hasLength(4));
-      expect(
-        VocabularyAnkiExportIoOutcome.values,
-        containsAll(<VocabularyAnkiExportIoOutcome>[
-          VocabularyAnkiExportIoOutcome.shared,
-          VocabularyAnkiExportIoOutcome.saved,
-          VocabularyAnkiExportIoOutcome.cancelled,
-          VocabularyAnkiExportIoOutcome.failed,
-        ]),
-      );
     });
   });
 }

@@ -131,3 +131,23 @@ final class _RadiusTokens {
     );
   }
 }
+
+extension RadiusTokenAccessors on EnjoyThemeTokens {
+  double get radiusSm => _radii.radiusSm;
+  double get radiusMd => _radii.radiusMd;
+  double get radiusLg => _radii.radiusLg;
+  double get radiusXl => _radii.radiusXl;
+  double get radiusFull => _radii.radiusFull;
+  double get radiusXs => _radii.radiusXs;
+  double get radius2xl => _radii.radius2xl;
+  double get panelRadius => _radii.panelRadius;
+  double get radiusKeycap => _radii.radiusKeycap;
+  double get radiusBadge => _radii.radiusBadge;
+  double get radiusSegmentThumb => _radii.radiusSegmentThumb;
+  double get radiusControl => _radii.radiusControl;
+  double get radiusTile => _radii.radiusTile;
+  double get radiusCard => _radii.radiusCard;
+  double get radiusCardLarge => _radii.radiusCardLarge;
+  double get radiusDialog => _radii.radiusDialog;
+  double get radiusSheet => _radii.radiusSheet;
+}

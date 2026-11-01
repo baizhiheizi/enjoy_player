@@ -300,6 +300,23 @@ $env:SPARKLE_DSA_PRIV_PEM = Join-Path (git rev-parse --show-toplevel) "keys/dsa_
 CI injects the key as base64 via `SPARKLE_DSA_PRIV_PEM_BASE64` (see
 [`sign_sparkle_enclosure.sh`](../.github/scripts/sign_sparkle_enclosure.sh)).
 
+#### Update feed gate
+
+`publish_player_release_to_s3.sh` runs
+[`verify_update_feeds.sh`](../.github/scripts/verify_update_feeds.sh) on the
+generated `latest.json` / `appcast.xml` pair before either is uploaded, and
+**refuses to publish a feed** that
+
+- lists a platform in the manifest but not in the appcast, or the other way
+  round — the clients of that platform would find no update to install;
+- carries an appcast item without its Sparkle signature, or with the wrong
+  scheme (macOS expects EdDSA, Windows expects DSA) — Sparkle refuses an
+  enclosure it cannot verify.
+
+The gate needs `jq` or `python3` on the publish host. When it fails, the
+artifacts are already uploaded but the feed is not: fix the cause and re-run
+the publish, or re-publish every platform to rebuild the feed from scratch.
+
 #### Local publish setup
 
 ```powershell
@@ -472,7 +489,7 @@ bash .github/scripts/release.sh --platform apple --publish-only --publish
 bash .github/scripts/release.sh --platform all --publish-only --publish
 ```
 
-When you publish **one platform at a time** for the same semver, the script **merges** into the existing `latest.json` / `appcast.xml` (downloads the public feed from `dl.enjoy.bot`, then overlays the new platform’s assets). Before upload, `publish_player_release_to_s3.sh` validates each feed with `xmllint` (python3 fallback) and **refuses to publish a non-well-formed feed**; the Cloudflare cache purge afterwards is best-effort — a failed purge warns instead of failing the release, and the feeds carry `max-age=300`, so the CDN serves the previous copy for at most five minutes. Re-publish all platforms after a bad overwrite:
+When you publish **one platform at a time** for the same semver, the script **merges** into the existing `latest.json` / `appcast.xml` (downloads the public feed from `dl.enjoy.bot`, then overlays the new platform’s assets). Both merges are **unions**: the published version wins for the platform it carries, and a platform this publish does not ship keeps its entry — its `latest.json` asset and, for `appcast.xml`, its item with the Sparkle signature it was published with. A single-platform publish therefore never removes the other platform’s update from the feed. Before upload, `publish_player_release_to_s3.sh` validates each feed with `xmllint` (python3 fallback) and **refuses to publish a non-well-formed feed**; the Cloudflare cache purge afterwards is best-effort — a failed purge warns instead of failing the release, and the feeds carry `max-age=300`, so the CDN serves the previous copy for at most five minutes. Re-publish all platforms after a bad overwrite:
 
 ```bash
 bash .github/scripts/release.sh --platform all --publish-only --publish
@@ -521,6 +538,17 @@ After all four platforms finish, promote the draft with [`release_publish.yml`](
 1. Actions → **Publish GitHub Release** → **Run workflow**.
 2. Leave `tag_name` blank to auto-pick the latest draft, set `notes_file` (default: `docs/releases/<version>.md`, or the `## [<version>]` section of `CHANGELOG.md` at the tag), set **`finalize=true`** to unmark draft.
 
+With `finalize=true` the workflow runs [`release_finalize.sh --check-only`](../.github/scripts/release_finalize.sh) from `main` before promoting, so a draft missing a platform asset fails the run instead of publishing. Tags that predate the script are still checked.
+
+The draft collects one platform's assets at a time, so a release whose Windows or Android job failed looks exactly like a complete one until somebody publishes it. [`release_finalize.sh`](../.github/scripts/release_finalize.sh) compares the attached assets with the expected per-platform set (Windows installer, macOS zip, Linux AppImage, Android AAB) and refuses to promote a release that is missing one:
+
+```bash
+bash .github/scripts/release_finalize.sh --tag v0.10.3 --check-only
+bash .github/scripts/release_finalize.sh --tag v0.10.3
+```
+
+`--require <asset>` adds an asset the release must also carry (the iOS IPA, the sideload APKs), and `--allow-missing <asset>` records a channel that is intentionally skipped.
+
 The same `--publish-github` flag works locally:
 
 ```bash
@@ -528,7 +556,7 @@ bash .github/scripts/release.sh --platform apple  --publish-only --publish-githu
 bash .github/scripts/release.sh --platform all    --publish-only --publish-github
 ```
 
-This calls [`release_lib.sh::release_publish_github`](../.github/scripts/release_lib.sh) which uses `gh release` (authenticate once with `gh auth login`). It creates the release as a draft; promote via the workflow above or `gh release edit vX.Y.Z --draft=false`.
+This calls [`release_lib.sh::release_publish_github`](../.github/scripts/release_lib.sh) which uses `gh release` (authenticate once with `gh auth login`). It creates the release as a draft; promote via the workflow above or `bash .github/scripts/release_finalize.sh --tag vX.Y.Z`, which checks the attached assets before publishing.
 
 Platform CI setup (secrets, runners):
 

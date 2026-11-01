@@ -208,7 +208,8 @@ release_publish_github() {
   fi
 
   echo ">>> GitHub Release draft: https://github.com/$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null || echo '<owner>/<repo>')/releases/tag/${tag}"
-  echo "Promote to ready via: gh release edit ${tag} --draft=false"
+  echo "Promote to ready via: bash .github/scripts/release_finalize.sh --tag ${tag}"
+  echo "  (checks that every expected platform asset is attached before publishing)"
   echo "Or run .github/workflows/release_publish.yml (workflow_dispatch, finalize=true)."
 }
 

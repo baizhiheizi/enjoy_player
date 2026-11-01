@@ -18,7 +18,7 @@ cache service". That position assumed two things that no longer hold:
    gh-sr runs each job inside a fresh inner environment and logs
    `[gh-sr:job-started] resetting inner environment to a pristine state (image
    cache preserved)` before every run. Only the image cache survives — which is
-   exactly why the Flutter SDK install in [`.github/actions/setup-flutter`](../.github/actions/setup-flutter)
+   exactly why the Flutter SDK install in [`.github/actions/setup-flutter`](../../.github/actions/setup-flutter)
    persists (it installs under `RUNNER_TOOL_CACHE` / `~/.local/share/mise`)
    while `~/.pub-cache` and `~/.gradle` do not. A run log shows `Downloading
    packages...` and a full `(N available)` version query against pub.dev on

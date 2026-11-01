@@ -4,12 +4,13 @@ library;
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/platform/file_share_export.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
-import 'package:enjoy_player/features/vocabulary/application/vocabulary_anki_export_io.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_csv.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_export_filters.dart';
@@ -85,7 +86,7 @@ Future<VocabularyAnkiExportBundle> buildVocabularyAnkiExport({
   );
 }
 
-Future<VocabularyAnkiExportIoOutcome> runVocabularyAnkiExport({
+Future<FileShareOutcome> runVocabularyAnkiExport({
   required bool isPaid,
   required Future<List<VocabularyItem>> Function() listAll,
   required Future<Map<String, List<VocabularyContext>>> Function(
@@ -105,11 +106,18 @@ Future<VocabularyAnkiExportIoOutcome> runVocabularyAnkiExport({
     filters: filters,
     onProgress: onProgress,
   );
-  return saveOrShareAnkiCsv(bytes: bundle.bytes, dialogTitle: dialogTitle);
+  final name =
+      'enjoy-vocabulary-anki-${DateFormat('yyyyMMdd').format(DateTime.now())}.csv';
+  return saveOrShareBytes(
+    bytes: bundle.bytes,
+    fileName: name,
+    mimeType: 'text/csv',
+    dialogTitle: dialogTitle ?? 'Export to Anki',
+  );
 }
 
 /// Riverpod-wired export (for callers with a [Ref]).
-Future<VocabularyAnkiExportIoOutcome> runVocabularyAnkiExportWithRef({
+Future<FileShareOutcome> runVocabularyAnkiExportWithRef({
   required Ref ref,
   required VocabularyAnkiExportFilters filters,
   String? dialogTitle,
