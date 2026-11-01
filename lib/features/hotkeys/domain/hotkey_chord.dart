@@ -207,6 +207,50 @@ LogicalKeyboardKey hotkeyBaseKey(KeyEvent event) {
   return logical;
 }
 
+const _letterKeys = <LogicalKeyboardKey>[
+  LogicalKeyboardKey.keyA,
+  LogicalKeyboardKey.keyB,
+  LogicalKeyboardKey.keyC,
+  LogicalKeyboardKey.keyD,
+  LogicalKeyboardKey.keyE,
+  LogicalKeyboardKey.keyF,
+  LogicalKeyboardKey.keyG,
+  LogicalKeyboardKey.keyH,
+  LogicalKeyboardKey.keyI,
+  LogicalKeyboardKey.keyJ,
+  LogicalKeyboardKey.keyK,
+  LogicalKeyboardKey.keyL,
+  LogicalKeyboardKey.keyM,
+  LogicalKeyboardKey.keyN,
+  LogicalKeyboardKey.keyO,
+  LogicalKeyboardKey.keyP,
+  LogicalKeyboardKey.keyQ,
+  LogicalKeyboardKey.keyR,
+  LogicalKeyboardKey.keyS,
+  LogicalKeyboardKey.keyT,
+  LogicalKeyboardKey.keyU,
+  LogicalKeyboardKey.keyV,
+  LogicalKeyboardKey.keyW,
+  LogicalKeyboardKey.keyX,
+  LogicalKeyboardKey.keyY,
+  LogicalKeyboardKey.keyZ,
+];
+
+const _functionKeyBases = <LogicalKeyboardKey>[
+  LogicalKeyboardKey.f1,
+  LogicalKeyboardKey.f2,
+  LogicalKeyboardKey.f3,
+  LogicalKeyboardKey.f4,
+  LogicalKeyboardKey.f5,
+  LogicalKeyboardKey.f6,
+  LogicalKeyboardKey.f7,
+  LogicalKeyboardKey.f8,
+  LogicalKeyboardKey.f9,
+  LogicalKeyboardKey.f10,
+  LogicalKeyboardKey.f11,
+  LogicalKeyboardKey.f12,
+];
+
 bool _mainKeyMatches(KeyDownEvent e, String main, ParsedHotkey full) {
   final key = hotkeyBaseKey(e);
   switch (main) {
@@ -259,35 +303,7 @@ bool _mainKeyMatches(KeyDownEvent e, String main, ParsedHotkey full) {
   if (main.length == 1) {
     final code = main.codeUnitAt(0);
     if (code >= 0x61 && code <= 0x7a) {
-      const letterKeys = <LogicalKeyboardKey>[
-        LogicalKeyboardKey.keyA,
-        LogicalKeyboardKey.keyB,
-        LogicalKeyboardKey.keyC,
-        LogicalKeyboardKey.keyD,
-        LogicalKeyboardKey.keyE,
-        LogicalKeyboardKey.keyF,
-        LogicalKeyboardKey.keyG,
-        LogicalKeyboardKey.keyH,
-        LogicalKeyboardKey.keyI,
-        LogicalKeyboardKey.keyJ,
-        LogicalKeyboardKey.keyK,
-        LogicalKeyboardKey.keyL,
-        LogicalKeyboardKey.keyM,
-        LogicalKeyboardKey.keyN,
-        LogicalKeyboardKey.keyO,
-        LogicalKeyboardKey.keyP,
-        LogicalKeyboardKey.keyQ,
-        LogicalKeyboardKey.keyR,
-        LogicalKeyboardKey.keyS,
-        LogicalKeyboardKey.keyT,
-        LogicalKeyboardKey.keyU,
-        LogicalKeyboardKey.keyV,
-        LogicalKeyboardKey.keyW,
-        LogicalKeyboardKey.keyX,
-        LogicalKeyboardKey.keyY,
-        LogicalKeyboardKey.keyZ,
-      ];
-      return key == letterKeys[code - 0x61];
+      return key == _letterKeys[code - 0x61];
     }
     switch (main) {
       case '/':
@@ -316,21 +332,7 @@ bool _mainKeyMatches(KeyDownEvent e, String main, ParsedHotkey full) {
   if (main.startsWith('f')) {
     final n = int.tryParse(main.substring(1));
     if (n != null && n >= 1 && n <= 24) {
-      const bases = <LogicalKeyboardKey>[
-        LogicalKeyboardKey.f1,
-        LogicalKeyboardKey.f2,
-        LogicalKeyboardKey.f3,
-        LogicalKeyboardKey.f4,
-        LogicalKeyboardKey.f5,
-        LogicalKeyboardKey.f6,
-        LogicalKeyboardKey.f7,
-        LogicalKeyboardKey.f8,
-        LogicalKeyboardKey.f9,
-        LogicalKeyboardKey.f10,
-        LogicalKeyboardKey.f11,
-        LogicalKeyboardKey.f12,
-      ];
-      if (n <= 12) return key == bases[n - 1];
+      if (n <= 12) return key == _functionKeyBases[n - 1];
     }
   }
 
@@ -411,36 +413,8 @@ String? serializeChordFromKeyEvent(KeyDownEvent event) {
   } else if (key == LogicalKeyboardKey.arrowDown) {
     mainToken = 'arrowdown';
   } else {
-    const letterKeys = <LogicalKeyboardKey>[
-      LogicalKeyboardKey.keyA,
-      LogicalKeyboardKey.keyB,
-      LogicalKeyboardKey.keyC,
-      LogicalKeyboardKey.keyD,
-      LogicalKeyboardKey.keyE,
-      LogicalKeyboardKey.keyF,
-      LogicalKeyboardKey.keyG,
-      LogicalKeyboardKey.keyH,
-      LogicalKeyboardKey.keyI,
-      LogicalKeyboardKey.keyJ,
-      LogicalKeyboardKey.keyK,
-      LogicalKeyboardKey.keyL,
-      LogicalKeyboardKey.keyM,
-      LogicalKeyboardKey.keyN,
-      LogicalKeyboardKey.keyO,
-      LogicalKeyboardKey.keyP,
-      LogicalKeyboardKey.keyQ,
-      LogicalKeyboardKey.keyR,
-      LogicalKeyboardKey.keyS,
-      LogicalKeyboardKey.keyT,
-      LogicalKeyboardKey.keyU,
-      LogicalKeyboardKey.keyV,
-      LogicalKeyboardKey.keyW,
-      LogicalKeyboardKey.keyX,
-      LogicalKeyboardKey.keyY,
-      LogicalKeyboardKey.keyZ,
-    ];
-    for (var i = 0; i < letterKeys.length; i++) {
-      if (key == letterKeys[i]) {
+    for (var i = 0; i < _letterKeys.length; i++) {
+      if (key == _letterKeys[i]) {
         mainToken = String.fromCharCode(0x61 + i);
         break;
       }
