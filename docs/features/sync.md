@@ -26,7 +26,7 @@
 
 ### Lazy recording pull
 
-When the user opens a media item in the player **while signed in**, the app pulls **recording metadata only** for that `(targetType, targetId)` from `GET /api/v1/mine/recordings` (paged with `updatedAfter`). Cursors live under `settings_kv` as `sync.cursor.recording.{TargetType}.{targetId}`. This replaces the old global “download all recordings” pass on sign-in. Each page is merged and persisted through the same bulk pre-read + batch-upsert helper as the full download service (issue #827 B3).
+When the user opens a media item in the player **while signed in**, the app pulls **recording metadata only** for that `(targetType, targetId)` from `GET /api/v1/mine/recordings` (paged with `updatedAfter`). Cursors live under `settings_kv` as `sync.cursor.recording.{TargetType}.{targetId}`. This replaces the old global “download all recordings” pass on sign-in. Each page is merged and persisted through the same bulk pre-read + batch-upsert helper as the full download service (issue #827 B3), and follows the same **cursor invariant** as the download path above: the per-target cursor advances only when every row in the page applied cleanly, and a failed page stops the pull so the next media-open re-fetches the same window.
 
 ### Import IDs (web parity)
 

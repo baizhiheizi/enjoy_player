@@ -106,6 +106,7 @@ class RecordingTargetSyncService {
         );
       }
 
+      var pageFailed = 0;
       if (pendingUpserts.isNotEmpty) {
         final counts = await mergeAndUpsertPage<RecordingRow>(
           pendingUpserts,
@@ -115,18 +116,22 @@ class RecordingTargetSyncService {
           insertRow: _db.recordingDao.insertRow,
           merge: mergeRecordingLastWriteWins,
         );
+        pageFailed = counts.failed;
         synced += counts.synced;
         failed += counts.failed;
         errors.addAll(counts.errors);
       }
 
-      final maxIso = maxUpdatedAtIso(batch);
-      if (maxIso != null) {
-        cursor = maxIso;
-        await _db.settingsDao.writeSetting(cursorKey, maxIso);
+      if (pageFailed == 0) {
+        final maxIso = maxUpdatedAtIso(batch);
+        if (maxIso != null) {
+          cursor = maxIso;
+          await _db.settingsDao.writeSetting(cursorKey, maxIso);
+        }
       }
 
       if (batch.length < _pageSize) break;
+      if (pageFailed > 0) break;
     }
 
     if (pages >= _kMaxPagesPerCall) {
