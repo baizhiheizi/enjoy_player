@@ -241,6 +241,84 @@ void main() {
       expect(countingDb.recordingDaoOverride.insertRowCalls, 3);
       expect(await countingDb.recordingDaoOverride.getById('r2'), isNotNull);
     });
+
+    test('a page whose merge reports a failure keeps the cursor and stops '
+        'the pull (issue #1164)', () async {
+      final poisonedPage = List.generate(
+        50,
+        (i) => i == 25
+            ? {...recording(i), 'pronunciationScore': 'not-an-int'}
+            : recording(i),
+      );
+      api = _FakeRecordingApi([
+        poisonedPage,
+        List.generate(3, (i) => recording(100 + i)),
+      ], _NullApiClient());
+      service = RecordingTargetSyncService(db: db, recordingApi: api);
+      final t0 = DateTime.utc(2024, 6, 1, 12);
+
+      final result = await service.pullRecordingsForTarget(
+        targetType: 'audio',
+        targetId: 't1',
+        now: t0,
+      );
+
+      expect(result.synced, 49);
+      expect(result.failed, 1);
+      expect(result.success, isFalse);
+      expect(api.callCount, 1, reason: 'a failed page must stop the pull');
+
+      final cursor = await db.settingsDao.getValue(
+        SettingsKeys.syncCursorRecordingTarget('audio', 't1'),
+      );
+      expect(
+        cursor,
+        isNull,
+        reason: 'the cursor must not advance past rows that failed to merge',
+      );
+    });
+
+    test('after a failed page the next pull re-fetches the same window '
+        '(issue #1164)', () async {
+      final poisonedPage = List.generate(
+        50,
+        (i) => i == 25
+            ? {...recording(i), 'pronunciationScore': 'not-an-int'}
+            : recording(i),
+      );
+      api = _FakeRecordingApi([
+        poisonedPage,
+        List.generate(3, (i) => recording(100 + i)),
+      ], _NullApiClient());
+      service = RecordingTargetSyncService(db: db, recordingApi: api);
+      final t0 = DateTime.utc(2024, 6, 1, 12);
+
+      final failed = await service.pullRecordingsForTarget(
+        targetType: 'audio',
+        targetId: 't1',
+        now: t0,
+      );
+      expect(failed.success, isFalse);
+
+      final resumed = await service.pullRecordingsForTarget(
+        targetType: 'audio',
+        targetId: 't1',
+        now: t0.add(const Duration(minutes: 6)),
+      );
+
+      expect(resumed.success, isTrue);
+      expect(resumed.synced, 3);
+      expect(resumed.failed, 0);
+      expect(
+        api.lastUpdatedAfter,
+        isNull,
+        reason: 'the resume re-fetches from the un-advanced cursor',
+      );
+      final cursor = await db.settingsDao.getValue(
+        SettingsKeys.syncCursorRecordingTarget('audio', 't1'),
+      );
+      expect(cursor, isNotNull);
+    });
   });
 }
 
