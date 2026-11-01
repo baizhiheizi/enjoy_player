@@ -4,7 +4,7 @@
 
 **Discover** helps users find YouTube videos to practice with when they do not already have a URL. Browse **recommended channels** (bundled catalog), **subscribe** to YouTube channels, handles, and playlists locally, view a merged **timeline** of recent uploads (fetched via a server-side RSSHub proxy), and **Add to library** to start echo / transcript workflows.
 
-Discover feeds are **not** library items until imported. Subscriptions are **Enjoy-local** — not YouTube account subscriptions. Multi-device sync uses the existing cloud sync infrastructure (ADR-0010, ADR-0013).
+Discover feeds are **not** library items until imported. Subscriptions are **Enjoy-local** — not YouTube account subscriptions. They are also **per-device**: the sync schema declares subscription variants (ADR-0010, ADR-0013), but nothing enqueues, uploads, or pulls them yet (issue #1176), so a subscription added on one device does not appear on another.
 
 ## Navigation
 
@@ -191,6 +191,7 @@ No caption availability in the worker feed. After import, transcript loading fol
 - **Fixed feed size.** The RSSHub proxy returns a fixed set of entries (~15–50 per feed). Pagination and `since`-based incremental refresh are deferred to a follow-up enhancement.
 - **View count not available.** JSON Feed v1.1 does not expose view counts; the client cannot display per-video view counts from the worker feed.
 - **Worker dependency.** Initial subscription requires worker connectivity for feed fetching. Cached entries remain fully browsable offline.
+- **Subscriptions do not sync across devices.** `SyncYoutubeSubscriptionUpsert` / `SyncYoutubeSubscriptionDelete` and their serializers are declared ([`upsert_jobs.dart`](../../lib/features/sync/domain/sync_queue_job/upsert_jobs.dart)), but no producer enqueues them, the engine consumer drops them, and the download service never pulls them — [ADR-0021](../decisions/0021-youtube-discover-rss.md) keeps subscriptions local-only until that lands. Moving devices means re-adding channels by hand.
 - Subscriptions and feed cache live in the signed-in per-user SQLite file (`enjoy_player_<userId>`)
 - No hard upper bound on per-channel cache size in v1; users bound growth by unsubscribing (see [ADR-0046](../decisions/0046-discover-feed-append-only.md))
 
