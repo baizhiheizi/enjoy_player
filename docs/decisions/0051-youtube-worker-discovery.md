@@ -28,7 +28,7 @@ The decision was made to move YouTube discovery to a server-side worker, keeping
 1. The worker deploys an **RSSHub instance** (https://docs.rsshub.app/routes/youtube) serving the three standard RSSHub YouTube routes.
 2. The client constructs feed URLs from user input (channel ID, @handle, playlist ID) and fetches them via simple HTTP GET.
 3. RSSHub returns **JSON Feed v1.1** format (via `?format=json`), which the client parses and caches locally.
-4. **Subscriptions remain client-side** — stored in Drift `youtube_channel_subscriptions`, synced across devices via existing cloud sync infrastructure (ADR-0010, ADR-0013).
+4. **Subscriptions remain client-side** — stored in Drift `youtube_channel_subscriptions`. Cross-device sync via the existing cloud sync infrastructure (ADR-0010, ADR-0013) is the intent, but it is **not wired yet** (see the amendment below).
 5. The worker is **stateless with respect to user subscriptions** — it does not store per-user state or track which users follow which sources.
 
 ### Worker API Contract
@@ -73,6 +73,10 @@ Schema **v12 → v13** adds `source_type` / `feed_url` on `youtube_channel_subsc
 2. **Custom worker API (JSON RPC-style POST endpoints).** Rejected in favor of RSSHub's well-defined URL patterns. Using RSSHub standardizes the API and reduces worker implementation effort.
 
 3. **Cloud-sync subscriptions through worker.** Rejected per user direction: "The subscription stays in client, the worker API just replace the client-side RSS fetching." Subscriptions remain local-first and sync via existing cloud sync infrastructure.
+
+## Amendment (2026-11-01) — subscription cross-device sync is declared, not wired
+
+The original text of Decision 4 said subscriptions are "synced across devices via existing cloud sync infrastructure", and Rejected Alternative 3 repeats the phrase. That was the intent, but no code path does it today: `DiscoverRepository` subscribe/unsubscribe writes only touch Drift, the sync queue's `SyncYoutubeSubscriptionUpsert` / `SyncYoutubeSubscriptionDelete` variants have no producer and the engine consumer drops them, and the download service never pulls subscriptions (issue #1176). Subscriptions are **per-device** until the producer, consumer, and pull land; [discover.md](../features/discover.md) § Limitations tracks the current state.
 
 ## References
 
