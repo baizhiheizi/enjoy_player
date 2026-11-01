@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_pill_badge.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_purchase_provider.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
@@ -311,9 +312,8 @@ class _PaidMembershipCard extends StatelessWidget {
                   ? l10n.subscriptionNeverExpires
                   : l10n.subscriptionNeverExpires),
           creditsLabel: creditsLabel,
-          trailing: _SoftChip(
+          trailing: EnjoyPillBadge(
             label: renewing ? l10n.subscriptionAutoRenewOn : tierBadge,
-            emphasized: false,
           ),
         ),
         if (endingSoon)
@@ -362,35 +362,5 @@ String? _formatDate(BuildContext context, String? iso) {
     ).format(date);
   } catch (_) {
     return iso;
-  }
-}
-
-class _SoftChip extends StatelessWidget {
-  const _SoftChip({required this.label, required this.emphasized});
-
-  final String label;
-  final bool emphasized;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final tt = Theme.of(context).textTheme;
-    return Container(
-      height: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      alignment: Alignment.center,
-      decoration: ShapeDecoration(
-        color: emphasized ? t.ink : t.sunk,
-        shape: const StadiumBorder(),
-      ),
-      child: Text(
-        label,
-        style: tt.labelSmall?.copyWith(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: emphasized ? t.paper : t.ink2,
-        ),
-      ),
-    );
   }
 }

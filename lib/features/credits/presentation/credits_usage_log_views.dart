@@ -8,6 +8,7 @@ import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_pill_badge.dart';
 import 'package:enjoy_player/features/credits/application/credits_usage_provider.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_filters.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_log.dart';
@@ -229,8 +230,8 @@ class UsageTable extends StatelessWidget {
                 right: true,
               ),
               cellOf(
-                _UsageBadge(
-                  allowed: log.allowed,
+                EnjoyPillBadge(
+                  emphasized: !log.allowed,
                   label: log.allowed
                       ? l10n.creditsUsageAllowed
                       : l10n.creditsUsageDenied,
@@ -303,7 +304,7 @@ class UsageLogCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: t.space8),
-              _UsageBadge(allowed: log.allowed, label: statusLabel),
+              EnjoyPillBadge(emphasized: !log.allowed, label: statusLabel),
             ],
           ),
           SizedBox(height: t.space12),
@@ -344,37 +345,6 @@ class UsageLogCard extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _UsageBadge extends StatelessWidget {
-  const _UsageBadge({required this.allowed, required this.label});
-
-  final bool allowed;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    return Container(
-      height: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: ShapeDecoration(
-        color: allowed ? t.sunk : t.ink,
-        shape: const StadiumBorder(),
-      ),
-      child: Center(
-        widthFactor: 1,
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: allowed ? t.ink2 : t.paper,
-          ),
-        ),
       ),
     );
   }
