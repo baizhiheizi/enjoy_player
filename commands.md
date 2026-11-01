@@ -6,6 +6,10 @@
   `flutter test <file> --plain-name <name>`.
 - 2026-10-31 run: the SDK copy + `pub get` completed in ~1 min (warm), no
   cold-download cap kill. The cold-cap note below stands as a caveat.
+- **2026-11-01: `testWidgets(..., skip: 'reason')` does NOT compile** —
+  `testWidgets` takes `bool? skip`; only plain `test(...)` accepts a String
+  reason. Use `skip: true` and keep the "local-only" note in the
+  description.
 
 ## 2026-10-30 — run-mechanics gotchas (read before the next run)
 - **A cold `pub get` can exceed the 10-minute background cap** (this run:

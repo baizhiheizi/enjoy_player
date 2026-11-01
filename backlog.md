@@ -399,15 +399,49 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 - Bench gotcha: `flutter test -n` does NOT exist on Flutter 3.47 — use
   `--plain-name`.
 
-## P16 — The echo card builds every line of the echo range eagerly (MED RISK)
-- File: `lib/features/transcript/presentation/transcript_echo_region_merged_card.dart:117-200`
+## P16 — The echo card builds every line of the echo range eagerly (SHIPPED 2026-11-01, draft PR open)
+- File: `lib/features/transcript/presentation/transcript_echo_region_merged_card.dart`
   — a non-virtualized `Column` of `TranscriptLineTile` for every line in
-  `echo.startLineIndex..echo.endLineIndex`, built in one frame. A long echo
-  selection builds hundreds of tiles at once, unlike the virtualized main
-  list.
-- Fix: virtualize the echo range the way the main list is virtualized.
-- Measure: count tiles built for a 500-line echo region.
-- Risk: MED (echo layout and selection behaviour). Confidence: MED.
+  `echo.startLineIndex..echo.endLineIndex`, built in one frame. The card is
+  ONE `TranscriptVirtualEcho` item in the virtualized main list, so while it
+  is visible every list rebuild (each cue change) re-built EVERY tile.
+- Fix (shipped): per-line tile cache in the card State, NOT virtualization.
+  Each build computes a named inputs record per line (line identity,
+  isActive, resolved secondaryText, canRetranslate, wavyWordIndexes,
+  recordingCount, loopFontSize); when it equals the cached record the EXACT
+  cached widget instance is reused, so Flutter's identical-widget
+  short-circuit skips the whole subtree. Provider-driven (karaoke, blur,
+  reveal) and inherited-driven (theme, locale) tile rebuilds are unaffected.
+  Auto-translate request scheduling + resolve stay per-line-per-build — the
+  controller dedupes (in-flight/waiting) and self-pumps its queue
+  (`requestTranslateLine` enqueues at max concurrency, never drops), so
+  scheduling only on rebuilds is behavior-preserving. Cache clears on
+  lines-identity / mediaId / echo-range change (`didUpdateWidget`).
+  Request scheduling must NOT be tied to the cache: a line whose record is
+  unchanged never rebuilds, so keeping scheduling in the main loop is what
+  preserves the "auto-translate turned on later" path.
+  Matcher gotcha: `TranscriptSecondaryMatcher.match` falls back to
+  "nearest below" (`_sec[upper]`), so ANY secondary line matches nearly
+  every primary — single-line secondary-text tests are impossible; use the
+  recording-counts provider for single-line invalidation tests.
+- Measured (structural `transcriptTileBuildCount`, new @visibleForTesting
+  counter in `transcript_line_tile.dart`): 60-line block — cue change
+  180 → 2 tile builds; unchanged rebuild 360 → 0; recording-count change
+  540 → 1 (legacy multipliers = every card rebuild rebuilt all 60 tiles,
+  ~3-6 card builds per interaction from settle frames).
+  Wall clock (300-line block, 40 cue changes/process, 4 sequential process
+  pairs, legacy via `git stash` of the card file): 124.5/129.7/124.0/128.7 →
+  17.2/16.7/16.6/12.0 ms per cue change. Median 126.6 → 16.7 ms (~7.6x),
+  worst pairing ~7.2x. A typical few-line loop stays sub-ms in both modes.
+- Correctness: existing echo-card tests unchanged; new
+  `test/features/transcript/transcript_echo_region_card_rebuild_perf_test.dart`
+  pins per-interaction build counts (cue change / unchanged / counts change /
+  range change) + skip-marked long-block microbenchmark. Linked from
+  `docs/perf-measurement.md`.
+- Status: draft PR open on `perf-assist/echo-card-tile-reuse`. The PR number
+  is assigned when the framework pushes the bundle — not known during the
+  run.
+
 
 ## Measurement-infrastructure gaps (docs/perf-measurement.md confirms deferred)
 - ~~No subtitle-parser throughput test.~~ **DONE 2026-10-20**:
@@ -532,3 +566,14 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   **P16** (echo card eager build, MED risk) — the last remaining code-level
   backlog item; after that only maintainer-decision items (P3/P7/P8/P10b)
   remain.
+- **2026-11-01 update:** BOTH open perf-improver PRs were **merged by
+  an-lee today**: #1167 (P13, auto-translate source key) at 00:29 UTC and
+  #1175 (P15, plain cue text once per row) at 01:31 UTC — Perf Improver's
+  **sixth and seventh** merged code-changing PRs. Heavy maintainer refactor
+  day also landed (#1178–#1181, #1185, #1186, #1188, v0.10.3 in #1140);
+  HEAD on main `ad1895e9`. The P16 target survived the refactors unchanged.
+  This run shipped **P16** (draft PR on
+  `perf-assist/echo-card-tile-reuse`) via a per-line tile cache instead of
+  full virtualization (same layout semantics, much lower risk). The
+  code-level backlog is now EMPTY — remaining items (P3-reframed, P7, P8,
+  P10b) all wait on maintainer decisions.

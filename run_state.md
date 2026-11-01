@@ -1,88 +1,96 @@
 # Perf Improver run state
 
-- **Last run:** 2026-10-31 (workflow run 41193493646, run #76) — nineteenth
-  October run, seventh run to produce a code-changing PR.
-- **Run history:** #76 2026-10-31 (41193493646) shipped P15 → draft PR on
-  `perf-assist/plain-cue-text-once-per-row` (commit `272d27ac`). #75
-  2026-10-30 (41045058648) shipped P13 → **PR #1167** (open; GitGuardian
-  check green; no repo CI on the branch). #74 shipped P14 → PR #1142
-  MERGED 2026-10-30. #73 P12 → #1127 merged 2026-10-28. #72 P11 → #1100
-  merged 2026-10-27. #71 P10 → #1071 merged 2026-10-26. #66 P9 → #1006
-  merged 2026-10-20. Five merged code-changing PRs total.
-- **Next run:** check PR #1167 (P13) and the P15 PR's state (number assigned
-  when the framework pushes the bundle; find it via
-  `search_pull_requests "perf-improver in:title"`). The next backlog
-  candidate is **P16** (echo card builds every line of the echo range
-  eagerly — virtualize it; MED risk: echo layout + selection behaviour) —
-  the last code-level backlog item. After P16 only maintainer-decision
-  items remain (P3-reframed, P7, P8, P10b).
+- **Last run:** 2026-11-01 (workflow run 41302117389, run #77) — first
+  November run, eighth run to produce a code-changing PR.
+- **Run history:** #77 2026-11-01 (41302117389) shipped P16 → draft PR on
+  `perf-assist/echo-card-tile-reuse` (commit `15572391`). Same day,
+  **an-lee merged BOTH open perf-improver PRs**: #1167 (P13) at 00:29 UTC
+  and #1175 (P15) at 01:31 UTC → **seven merged code-changing PRs total**
+  (#1006, #1071, #1100, #1127, #1142, #1167, #1175).
+- **Next run:** find the P16 PR number (`search_pull_requests
+  "perf-improver in:title"` or list PRs; the framework assigns it when
+  pushing the bundle) and check its CI/GitGuardian state. **The code-level
+  backlog is now EMPTY** — after P16, only maintainer-decision items remain
+  (P3-reframed, P7, P8, P10b; surfaced in the November monthly issue). The
+  2026-10-31→11-01 maintainer refactor day (#1178–#1181, #1185, #1186,
+  #1188, v0.10.3) touched many files — a fresh Task 2 scan of the
+  post-refactor tree for NEW measurable opportunities is the natural next
+  Task 3 candidate if the P16 PR needs no maintenance.
 
 ## Sandbox facts this run
-- The writable Flutter SDK copy at `/tmp/gh-aw/agent/flutter-3.47.6` must be
-  re-created each run (`cp -a` from the toolcache) — recipe in `commands.md`.
-  This run the copy + `pub get` were FAST (~1 min warm; the 2026-10-30 cold
-  cap-kill did not recur — sandbox image may have warmed).
-- **`flutter test -n` does NOT exist** on Flutter 3.47 despite AGENTS.md's
-  "AI-debug route" showing `-n testName` — use `--plain-name`.
-- Baseline this run: full suite **6983 passed / 14 skipped** AFTER the P15
-  change (adds 3 tests + 1 skip). Pre-change demonstration done via
-  `git stash push -- <tile file>` (counter test failed with delta 2 — the
-  empirical "before").
-- Sequential bench loops again (legacy n=4, then fast n=4); sinks identical
-  across all 8 runs.
+- SDK copy + `pub get` warm (~1 min total). sqlite3 `hooks: user_defines:`
+  workaround applied for test runs and REVERTED before commit (`git
+  checkout -- pubspec.yaml`).
+- Full suite after P16: **7028 passed / 17 skipped** (tree gained tests
+  from the maintainer refactor day: was 6983/14 on 2026-10-31).
+- `testWidgets(..., skip: 'reason')` does NOT compile — `testWidgets` takes
+  `bool? skip` (only plain `test` accepts a String reason).
+- Bench this run: 4 sequential legacy/cached process pairs; legacy measured
+  via `git stash push -- <card file>` with the counter + tests still in the
+  tree; the stash/pop cycle inside a script is safe as long as no other
+  process touches the stashed file (do NOT format/edit lib while a stash
+  loop runs).
+- Structural counter tests + stash give an empirical "before" without a
+  legacy copy: stash the lib change → counter test FAILS with the legacy
+  delta (documented as the before-evidence).
 
 ## Repo state at this run
-- HEAD on `main` at run start: `1a98abb2` (fix(ui) #1165).
-- **Open `[perf-improver]` PRs:** #1167 (P13 auto-translate source key) and
-  the new P15 PR. Both awaiting maintainer review; neither merged.
-- repo-assist: nothing new since #1124 (P6, merged 2026-10-28).
-- Issue #864 readable (body + the 2026-10-28 Repo Assist comment). No new
-  human comments anywhere since run #75 — P3/P7/P8/P10b still waiting on
-  maintainer decisions (surfaced in the monthly summary).
+- HEAD on `main` at run start: `ad1895e9` (moved from `1a98abb2` —
+  maintainer refactor day #1178/#1179/#1180/#1181/#1185/#1186/#1188 +
+  v0.10.3 #1140).
+- Open perf-improver PRs after this run: the P16 draft (number assigned
+  post-run). #1167 and #1175 merged.
+- Monthly: **October #864 CLOSED** (update_issue status=closed, no closing
+  comment); **November issue created** (number unknown during the run;
+  find via search_issues "Monthly Activity 2026-11").
+- Issue #864 had no new human comments since 2026-10-31; its action
+  checkboxes were never ticked by the maintainer; P7/P8/P3/P10b carried to
+  the November issue.
 
 ## Tasks completed this run
-- **Task 1**: SDK re-created; sqlite3 pubspec workaround applied (and
-  REVERTED before commit — `git checkout -- pubspec.yaml`); pub get warm;
-  analyze + format + codegen/path-deps gates + full suite all green.
-- **Task 2**: P15 re-verified on the current tree (tile lines 207/388
-  unchanged since the backlog entry; parser + FIFO cache unchanged).
-- **Task 3**: **DONE.** Branch `perf-assist/plain-cue-text-once-per-row`,
-  commit `272d27ac`, draft PR via safe-outputs (bundle 7.9 KB / patch
-  20 KB). Details in `backlog.md` (P15).
-- **Task 4**: PR #1167 open + green (only GitGuardian runs there); nothing
-  to maintain. P14 merged last run.
-- **Task 5**: no open performance issues besides #864 (my own monthly
-  summary); no action.
-- **Task 6**: no new infrastructure this run (the P15 perf test follows the
-  established env-var bench + differential pattern; `docs/perf-measurement.md`
+- **Task 1**: commands still valid (see `commands.md`); no new discovery.
+- **Task 3**: **DONE** — P16 shipped as a per-line tile cache
+  (identical-widget short-circuit), NOT virtualization: much lower risk,
+  same layout/selection semantics. Structural: cue change 180 → 2 tile
+  builds (60-line block); wall clock 300-line block 126.6 → 16.7 ms median
+  (~7.6x). Details in `backlog.md` (P16).
+- **Task 4**: both open PRs merged today — nothing to maintain.
+- **Task 5**: #864 was the only performance-labeled open issue (my own
+  monthly summary); no new human comments → no comments posted.
+- **Task 6**: no new infrastructure this run (the P16 perf test follows the
+  established counter + skip-marked bench pattern; `docs/perf-measurement.md`
   index updated in the PR).
-- **Task 7**: updated issue #864 (replace): carried P7/P8/P10b/P3 actions,
-  swapped the P13 branch-compare action for the real PR #1167 review link,
-  added the P15 review action, prepended the run entry.
+- **Task 7**: closed #864 (October), created the November monthly issue
+  with the carried-over maintainer decisions + the P16 review action.
 
-## P15 — what shipped (details in `backlog.md`)
-1. Tile: `shapeWords:` reuses `primaryPlain` — 2→1 derivations per outer
-   build (counter `transcriptPlainDerivationCount` pins it).
-2. Parser: fast path for inputs with no `<`/`&` — no cache, no per-char
-   loop. Supersedes the LRU idea from the backlog.
-Measured: eviction-regime sweep ~8.1x median; warm window parity; output
-sinks identical. Differential-tested vs a legacy copy (corpus + 2000 fuzz).
+## P16 — key implementation notes (details in `backlog.md`)
+1. `ConsumerStatefulWidget` + `Map<int, ({inputs, tile})>`; record equality
+   (named fields) decides identical-widget reuse.
+2. `didUpdateWidget` clears on lines-identity / mediaId / range change.
+3. Request scheduling + resolve stay per-line-per-build (do NOT tie them to
+   the cache — preserves the "auto-translate enabled later" path; the
+   controller dedupes and self-pumps).
+4. `TranscriptSecondaryMatcher.match` falls back to nearest-below → any
+   secondary line matches nearly every primary → single-line invalidation
+   tests must use the recording-counts provider.
+5. `@visibleForTesting transcriptTileBuildCount` in
+   `transcript_line_tile.dart` is the structural counter.
 
 ## Write path
 - PRs must go through the safe-outputs `create_pull_request` tool; the
   framework pushes the bundle afterwards, so the PR may not be visible via
   the API immediately. Expected, not a failure.
-- `update_issue` (`target: "*"`): **`issue_number` must be passed
-  explicitly**, and `max: 1` — one write per run.
-- `create_pull_request` adds the `[perf-improver] ` title prefix itself —
-  do **not** put it in the title you pass.
+- `update_issue` supports `status: closed` — used to close the October
+  monthly issue (max 1 update_issue write per run).
+- `create_pull_request` / `create_issue` add the `[perf-improver] ` title
+  prefix themselves — do **not** put it in the title you pass.
 - `.dart_tool/package_config.json` is a real pub-generated config
   (gitignored); leaving it saves the next run a (warm) `pub get`.
 
 ## Open blockers / standing decisions
-- The monthly summary for 2026-10 stays open until 2026-11; close it and
-  open a new one in November.
+- P7 / P8 / P10b / P3-reframed all wait on maintainer decisions (surfaced
+  in the November monthly issue).
 - `test/perf/` dir + benchmark CI job stay deferred per
   `docs/perf-measurement.md` — do not add them unilaterally.
-- P7 / P8 / P10b / P3-reframed all wait on maintainer decisions (surfaced in
-  the monthly summary each run).
+- The November monthly issue must be closed and a 2026-12 one opened when
+  December starts.
