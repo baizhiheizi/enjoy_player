@@ -457,6 +457,24 @@ The invariant the memo relies on: a `TranscriptWord`'s `phones` list is never
 mutated after construction (`TranscriptWord` is `@immutable`, and every
 producer builds a fresh list).
 
+## Auto-translate source key
+
+[`autoTranslateSourceKey`](../../lib/features/transcript/domain/auto_translate.dart)
+hashes the normalized primary cue text together with the language pair into
+the `sourceKey` fingerprint every AI cue stores, so an edited primary text
+soft-invalidates that line. The transcript list re-derives that key for every
+visible row on every rebuild — the row builder and the echo card both resolve
+the secondary text — while auto-translate is active, so the expected key is
+memoized per primary line instance in an `Expando`: weak keys, so an entry
+dies with the line and no eviction policy is needed.
+
+The invariant the memo relies on: a `TranscriptLine`'s `text` is never mutated
+after construction (`TranscriptLine` is `@immutable`), and the normalized text
+and the language base tags are pure functions of it. The memo records the
+language pair it was derived for and re-derives when the pair changes, so a
+target-language switch costs one derivation per line rather than one per
+rebuild.
+
 ## Recording overlap counts
 
 [`countRecordingsPerLineIndex`](../../lib/features/transcript/domain/transcript_recording_counts.dart)
