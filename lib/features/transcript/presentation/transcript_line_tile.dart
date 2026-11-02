@@ -28,6 +28,9 @@ import 'package:enjoy_player/features/transcript/presentation/transcript_markup.
 import 'package:enjoy_player/features/transcript/presentation/transcript_word_ipa_layer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+@visibleForTesting
+int transcriptTileBuildCount = 0;
+
 class TranscriptLineTile extends ConsumerStatefulWidget {
   const TranscriptLineTile({
     required this.line,
@@ -158,6 +161,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
   @override
   Widget build(BuildContext context) {
+    transcriptTileBuildCount++;
     final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
     final typography = TranscriptTypographyTokens.of(context);

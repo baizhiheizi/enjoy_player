@@ -38,7 +38,7 @@ import 'package:enjoy_player/features/transcript/presentation/transcript_line_ti
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-class EchoRegionMergedCard extends ConsumerWidget {
+class EchoRegionMergedCard extends ConsumerStatefulWidget {
   const EchoRegionMergedCard({
     required this.mediaId,
     required this.lines,
@@ -46,6 +46,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
     required this.activeCueIndex,
     required this.secondaryLines,
     this.secondaryMatcher,
+    @visibleForTesting this.reuseUnchangedTiles = true,
     super.key,
   });
 
@@ -58,8 +59,47 @@ class EchoRegionMergedCard extends ConsumerWidget {
   /// When null, a matcher is built from [secondaryLines].
   final TranscriptSecondaryMatcher? secondaryMatcher;
 
+  /// Whether a rebuild may reuse a tile whose inputs are unchanged.
+  @visibleForTesting
+  final bool reuseUnchangedTiles;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EchoRegionMergedCard> createState() =>
+      _EchoRegionMergedCardState();
+}
+
+typedef _EchoTileInputs = ({
+  TranscriptLine line,
+  bool isActive,
+  String? secondaryText,
+  bool canRetranslate,
+  Set<int>? wavyWordIndexes,
+  int? recordingCount,
+  double loopFontSize,
+});
+
+class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
+  final Map<int, ({_EchoTileInputs inputs, Widget tile})> _tiles = {};
+
+  @override
+  void didUpdateWidget(EchoRegionMergedCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.lines, widget.lines) ||
+        oldWidget.mediaId != widget.mediaId ||
+        oldWidget.reuseUnchangedTiles != widget.reuseUnchangedTiles ||
+        oldWidget.echo.startLineIndex != widget.echo.startLineIndex ||
+        oldWidget.echo.endLineIndex != widget.echo.endLineIndex) {
+      _tiles.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaId = widget.mediaId;
+    final lines = widget.lines;
+    final echo = widget.echo;
+    final activeCueIndex = widget.activeCueIndex;
+    final secondaryLines = widget.secondaryLines;
     final tok = EnjoyThemeTokens.of(context);
     final density = transcriptDensityOf(context);
     final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
@@ -67,7 +107,8 @@ class EchoRegionMergedCard extends ConsumerWidget {
       shadowReadingHotkeyBusProvider.select((s) => s.isRecordingActive),
     );
     final matcher =
-        secondaryMatcher ?? TranscriptSecondaryMatcher.from(secondaryLines);
+        widget.secondaryMatcher ??
+        TranscriptSecondaryMatcher.from(secondaryLines);
     final lineRecordingCounts = ref.watch(
       transcriptLineRecordingCountsProvider(mediaId),
     );
@@ -112,15 +153,18 @@ class EchoRegionMergedCard extends ConsumerWidget {
               )
               ?.byLine;
 
-    final lineWidgets = <Widget>[];
     var maxTakeNumber = 0;
+    if (lineRecordingCounts != null) {
+      for (var i = echo.startLineIndex; i <= echo.endLineIndex; i++) {
+        final n = lineRecordingCounts[i];
+        if (n != null && n > maxTakeNumber) maxTakeNumber = n;
+      }
+    }
+
+    final lineWidgets = <Widget>[];
     for (var i = echo.startLineIndex; i <= echo.endLineIndex; i++) {
       final line = lines[i];
       final isActive = i == activeCueIndex;
-      maxTakeNumber = switch (lineRecordingCounts?[i]) {
-        final int n when n > maxTakeNumber => n,
-        _ => maxTakeNumber,
-      };
       final resolved = resolveAutoTranslateTextForDisplay(
         autoTranslateActive: autoTranslateActive,
         primaryLines: lines,
@@ -162,9 +206,24 @@ class EchoRegionMergedCard extends ConsumerWidget {
         );
       }
 
+      final inputs = (
+        line: line,
+        isActive: isActive,
+        secondaryText: secondaryText,
+        canRetranslate: canRetranslate,
+        wavyWordIndexes: wavyByLine?[i],
+        recordingCount: lineRecordingCounts?[i],
+        loopFontSize: loopFontSize,
+      );
+      final cached = widget.reuseUnchangedTiles ? _tiles[i] : null;
+      if (cached != null && cached.inputs == inputs) {
+        lineWidgets.add(cached.tile);
+        continue;
+      }
+
       final tile = TranscriptLineTile(
         key: ValueKey<String>('echo-line-$i'),
-        wavyWordIndexes: wavyByLine?[i],
+        wavyWordIndexes: inputs.wavyWordIndexes,
         line: line,
         lineIndex: i,
         mediaId: mediaId,
@@ -173,7 +232,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
         inEcho: true,
         groupedInEcho: true,
         selectable: true,
-        recordingCount: lineRecordingCounts?[i],
+        recordingCount: inputs.recordingCount,
         loopFontSize: loopFontSize,
         onLookupRequested: (t) => openTranscriptLookup(
           ref: ref,
@@ -192,14 +251,16 @@ class EchoRegionMergedCard extends ConsumerWidget {
         onTap: () => ref.read(playerInteractionsProvider).seekToLine(line, i),
       );
 
-      lineWidgets.add(
-        i == echo.endLineIndex
-            ? tile
-            : Padding(
-                padding: EdgeInsets.only(bottom: metrics.loopLineGap),
-                child: tile,
-              ),
-      );
+      final entry = i == echo.endLineIndex
+          ? tile
+          : Padding(
+              padding: EdgeInsets.only(bottom: metrics.loopLineGap),
+              child: tile,
+            );
+      if (widget.reuseUnchangedTiles) {
+        _tiles[i] = (inputs: inputs, tile: entry);
+      }
+      lineWidgets.add(entry);
     }
 
     final loopSeconds = (echo.endTimeSeconds - echo.startTimeSeconds).clamp(
