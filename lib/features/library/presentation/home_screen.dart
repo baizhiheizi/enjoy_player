@@ -14,6 +14,7 @@ import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/presentation/relative_day_label.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/error_state.dart';
 import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -128,32 +129,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             );
           },
           loading: () => _HomeLoadingScrollView(metrics: metrics),
-          error: (e, _) {
-            final cs = Theme.of(context).colorScheme;
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(t.space24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(EnjoyIcons.error, size: 48, color: cs.error),
-                    SizedBox(height: t.space16),
-                    Text(
-                      '${l10n.error}: $e',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    SizedBox(height: t.space16),
-                    EnjoyButton.tonal(
-                      onPressed: () =>
-                          ref.invalidate(libraryHomeRecentsProvider),
-                      child: Text(l10n.retry),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+          error: (e, _) => ErrorState(
+            message: '${l10n.error}: $e',
+            onRetry: () => ref.invalidate(libraryHomeRecentsProvider),
+          ),
         );
       },
     );

@@ -159,6 +159,7 @@ Legacy:     `auroraStart`/`auroraEnd`/`aurora` = logo stops · `shadowCard`=lift
 | `EnjoySubpageAppBar` / `EnjoyBackButton` | `core/theme/widgets/enjoy_subpage_app_bar.dart` | Push-route chrome |
 | `EditorialHeader` / `EnjoyOverline` / `EnjoySectionHeader` | `core/theme/widgets/editorial_header.dart` | Literata 42 / 32 page title (+ `overline`, `subtitle`), Geist 600 11 caps eyebrow in ink3, Literata 24 section heading |
 | `EmptyState` / `EnjoyIconOrb` / `EnjoyLogoMark` | `core/theme/widgets/empty_state.dart`, `core/theme/widgets/enjoy_logo.dart` | The logo's three planes at low opacity + serif title + actions (`EnjoyIconOrb` survives only for surfaces not yet rebuilt) |
+| `ErrorState` | `core/theme/widgets/error_state.dart` | The centered async `error:` presentation: error glyph at 48, the message, and an optional tonal retry — the counterpart to `EmptyState`; new screens render it instead of hand-rolling the column |
 | `EnjoyBottomNav` | `core/theme/widgets/enjoy_bottom_nav.dart` | Full-width paper tab bar with a top line; the selected tab gets a `brandSoft` pill, a filled `brandInk` glyph, and a 600 label |
 | `NavItemPill` | `core/theme/widgets/nav_item_pill.dart` | Sidebar / settings-rail row (ADR-0018) |
 | `showEnjoySheet` / `showEnjoyAdaptiveSheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Popover-surface sheets / dialogs, shared scrim + `enjoyDialogAnimationStyle`; dialog titles are Literata 22 (theme `dialogTheme.titleTextStyle`) |

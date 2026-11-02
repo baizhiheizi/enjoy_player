@@ -107,30 +107,98 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SignedInGate(
       surface: AuthRequiredSurface.cloud,
       loading: const SkeletonMediaList(),
       builder: (context, _) => TabBarView(
         controller: widget.tabController,
         children: [
-          _CloudVideoGrid(
-            items: _videos.items,
-            loading: _videos.loading,
-            done: _videos.done,
+          _CloudPagedMedia(
+            page: _videos,
             onLoadMore: () => _loadVideoPage(reset: false),
             onRefresh: () => _loadVideoPage(reset: true),
+            skeleton: const SkeletonMediaGrid(),
+            emptyTitle: l10n.cloudEmptyVideoTitle,
+            emptySubtitle: l10n.cloudEmptyVideoSubtitle,
+            contentBuilder: _cloudVideoPageContent,
           ),
-          _CloudAudioList(
-            items: _audios.items,
-            loading: _audios.loading,
-            done: _audios.done,
+          _CloudPagedMedia(
+            page: _audios,
             onLoadMore: () => _loadAudioPage(reset: false),
             onRefresh: () => _loadAudioPage(reset: true),
+            skeleton: const SkeletonMediaList(),
+            emptyTitle: l10n.cloudEmptyAudioTitle,
+            emptySubtitle: l10n.cloudEmptyAudioSubtitle,
+            contentBuilder: _cloudAudioPageContent,
           ),
         ],
       ),
     );
   }
+}
+
+Widget _cloudVideoPageContent(
+  BuildContext context,
+  ScrollController scroll,
+  _CloudPagedList page,
+) {
+  final t = EnjoyThemeTokens.of(context);
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final crossAxisExtent = constraints.maxWidth - t.space16 * 2;
+      return GridView.builder(
+        controller: scroll,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(t.space16),
+        gridDelegate: mediaCardTileGridDelegateForMaxTileWidth(
+          crossAxisExtent: crossAxisExtent,
+        ),
+        itemCount: page.items.length + (page.loading && !page.done ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index >= page.items.length) {
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.all(t.space24),
+                child: Skeleton.circle(diameter: 32),
+              ),
+            );
+          }
+          return Align(
+            alignment: Alignment.topCenter,
+            child: _CloudVideoTile(item: page.items[index]),
+          );
+        },
+      );
+    },
+  );
+}
+
+Widget _cloudAudioPageContent(
+  BuildContext context,
+  ScrollController scroll,
+  _CloudPagedList page,
+) {
+  final t = EnjoyThemeTokens.of(context);
+  return ListView.separated(
+    controller: scroll,
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: EdgeInsets.fromLTRB(t.space16, t.space8, t.space16, t.space24),
+    itemCount: page.items.length + 1,
+    separatorBuilder: (_, _) => SizedBox(height: t.space8),
+    itemBuilder: (context, index) {
+      if (index == page.items.length) {
+        if (page.loading) {
+          return Padding(
+            padding: EdgeInsets.all(t.space16),
+            child: Center(child: Skeleton.circle(diameter: 28)),
+          );
+        }
+        return const SizedBox.shrink();
+      }
+      return _CloudAudioRow(item: page.items[index]);
+    },
+  );
 }
 
 String _coverSeed(RemoteLibraryItem item) {
@@ -194,6 +262,24 @@ mixin _CloudItemMembershipMixin<W extends ConsumerStatefulWidget>
   bool _busy = false;
 
   RemoteLibraryItem get cloudItem;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(loadMembership());
+  }
+
+  String? get playingMediaId =>
+      ref.watch(playerControllerProvider.select((s) => s?.mediaId));
+
+  String? get heroArtworkMediaId {
+    if (_inLibrary != true) return null;
+    return playingMediaId == cloudItem.id ? null : cloudItem.id;
+  }
+
+  void openInPlayer(BuildContext context) {
+    if (_inLibrary == true) openPlayerRoute(context, cloudItem.id);
+  }
 
   Future<void> loadMembership() async {
     final v = await ref.read(cloudAddToLibraryProvider).isInLibrary(cloudItem);
@@ -279,74 +365,64 @@ class _CloudEmptyState extends StatelessWidget {
   }
 }
 
-class _CloudAudioList extends ConsumerStatefulWidget {
-  const _CloudAudioList({
-    required this.items,
-    required this.loading,
-    required this.done,
+typedef _CloudPageContent =
+    Widget Function(
+      BuildContext context,
+      ScrollController scroll,
+      _CloudPagedList page,
+    );
+
+class _CloudPagedMedia extends ConsumerStatefulWidget {
+  const _CloudPagedMedia({
+    required this.page,
     required this.onLoadMore,
     required this.onRefresh,
+    required this.skeleton,
+    required this.emptyTitle,
+    required this.emptySubtitle,
+    required this.contentBuilder,
   });
 
-  final List<RemoteLibraryItem> items;
-  final bool loading;
-  final bool done;
+  final _CloudPagedList page;
   final Future<void> Function() onLoadMore;
   final Future<void> Function() onRefresh;
+  final Widget skeleton;
+  final String emptyTitle;
+  final String emptySubtitle;
+  final _CloudPageContent contentBuilder;
 
   @override
-  ConsumerState<_CloudAudioList> createState() => _CloudAudioListState();
+  ConsumerState<_CloudPagedMedia> createState() => _CloudPagedMediaState();
 }
 
-class _CloudAudioListState extends ConsumerState<_CloudAudioList>
-    with _CloudInfiniteScroll<_CloudAudioList> {
+class _CloudPagedMediaState extends ConsumerState<_CloudPagedMedia>
+    with _CloudInfiniteScroll<_CloudPagedMedia> {
   @override
-  bool get cloudDone => widget.done;
+  bool get cloudDone => widget.page.done;
 
   @override
-  bool get cloudLoading => widget.loading;
+  bool get cloudLoading => widget.page.loading;
 
   @override
   Future<void> Function() get cloudLoadMore => widget.onLoadMore;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-
-    if (widget.items.isEmpty && widget.loading) {
-      return const SkeletonMediaList();
+    if (widget.page.items.isEmpty && widget.page.loading) {
+      return widget.skeleton;
     }
 
-    if (widget.items.isEmpty && widget.done) {
+    if (widget.page.items.isEmpty && widget.page.done) {
       return _CloudEmptyState(
         onRefresh: widget.onRefresh,
-        title: l10n.cloudEmptyAudioTitle,
-        subtitle: l10n.cloudEmptyAudioSubtitle,
+        title: widget.emptyTitle,
+        subtitle: widget.emptySubtitle,
       );
     }
 
     return RefreshIndicator(
       onRefresh: widget.onRefresh,
-      child: ListView.separated(
-        controller: scroll,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(t.space16, t.space8, t.space16, t.space24),
-        itemCount: widget.items.length + 1,
-        separatorBuilder: (_, _) => SizedBox(height: t.space8),
-        itemBuilder: (context, index) {
-          if (index == widget.items.length) {
-            if (widget.loading) {
-              return Padding(
-                padding: EdgeInsets.all(t.space16),
-                child: Center(child: Skeleton.circle(diameter: 28)),
-              );
-            }
-            return const SizedBox.shrink();
-          }
-          return _CloudAudioRow(item: widget.items[index]);
-        },
-      ),
+      child: widget.contentBuilder(context, scroll, widget.page),
     );
   }
 }
@@ -366,20 +442,11 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
   RemoteLibraryItem get cloudItem => widget.item;
 
   @override
-  void initState() {
-    super.initState();
-    unawaited(loadMembership());
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final playingId = ref.watch(
-      playerControllerProvider.select((s) => s?.mediaId),
-    );
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
-    final dur = formatDurationHmsSeconds(widget.item.durationSeconds);
     final item = widget.item;
+    final dur = formatDurationHmsSeconds(item.durationSeconds);
     final seed = _coverSeed(item);
     final accent = generativeAccentForSeed(seed);
 
@@ -410,100 +477,12 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
       coverSeed: seed,
       isVideo: false,
       accentColor: accent,
-      heroArtworkMediaId: _inLibrary == true && playingId != item.id
-          ? item.id
-          : null,
+      heroArtworkMediaId: heroArtworkMediaId,
       trailing: trailing,
       providerBadge: item.provider == kProviderYoutube
           ? l10n.youtubeBadge
           : null,
-      onTap: () {
-        if (_inLibrary == true) {
-          openPlayerRoute(context, item.id);
-        }
-      },
-    );
-  }
-}
-
-class _CloudVideoGrid extends ConsumerStatefulWidget {
-  const _CloudVideoGrid({
-    required this.items,
-    required this.loading,
-    required this.done,
-    required this.onLoadMore,
-    required this.onRefresh,
-  });
-
-  final List<RemoteLibraryItem> items;
-  final bool loading;
-  final bool done;
-  final Future<void> Function() onLoadMore;
-  final Future<void> Function() onRefresh;
-
-  @override
-  ConsumerState<_CloudVideoGrid> createState() => _CloudVideoGridState();
-}
-
-class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid>
-    with _CloudInfiniteScroll<_CloudVideoGrid> {
-  @override
-  bool get cloudDone => widget.done;
-
-  @override
-  bool get cloudLoading => widget.loading;
-
-  @override
-  Future<void> Function() get cloudLoadMore => widget.onLoadMore;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-
-    if (widget.items.isEmpty && widget.loading) {
-      return const SkeletonMediaGrid();
-    }
-
-    if (widget.items.isEmpty && widget.done) {
-      return _CloudEmptyState(
-        onRefresh: widget.onRefresh,
-        title: l10n.cloudEmptyVideoTitle,
-        subtitle: l10n.cloudEmptyVideoSubtitle,
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: widget.onRefresh,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisExtent = constraints.maxWidth - t.space16 * 2;
-          return GridView.builder(
-            controller: scroll,
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.all(t.space16),
-            gridDelegate: mediaCardTileGridDelegateForMaxTileWidth(
-              crossAxisExtent: crossAxisExtent,
-            ),
-            itemCount:
-                widget.items.length + (widget.loading && !widget.done ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= widget.items.length) {
-                return Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(t.space24),
-                    child: Skeleton.circle(diameter: 32),
-                  ),
-                );
-              }
-              return Align(
-                alignment: Alignment.topCenter,
-                child: _CloudVideoTile(item: widget.items[index]),
-              );
-            },
-          );
-        },
-      ),
+      onTap: () => openInPlayer(context),
     );
   }
 }
@@ -523,20 +502,11 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile>
   RemoteLibraryItem get cloudItem => widget.item;
 
   @override
-  void initState() {
-    super.initState();
-    unawaited(loadMembership());
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final playingId = ref.watch(
-      playerControllerProvider.select((s) => s?.mediaId),
-    );
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
-    final dur = formatDurationHmsSeconds(widget.item.durationSeconds);
     final item = widget.item;
+    final dur = formatDurationHmsSeconds(item.durationSeconds);
     final seed = _coverSeed(item);
     final accent = generativeAccentForSeed(seed);
 
@@ -585,17 +555,11 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile>
           coverSeed: seed,
           isVideo: true,
           accentColor: accent,
-          heroArtworkMediaId: _inLibrary == true && playingId != item.id
-              ? item.id
-              : null,
+          heroArtworkMediaId: heroArtworkMediaId,
           providerBadge: item.provider == kProviderYoutube
               ? l10n.youtubeBadge
               : null,
-          onTap: () {
-            if (_inLibrary == true) {
-              openPlayerRoute(context, item.id);
-            }
-          },
+          onTap: () => openInPlayer(context),
         ),
         Positioned(top: 8, right: 8, child: overlay),
       ],
