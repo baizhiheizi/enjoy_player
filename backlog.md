@@ -1,5 +1,9 @@
 # Performance backlog — Enjoy Player
 
+**UPDATE 2026-11-02:** P17 (blur cue-id memo) shipped this run — draft PR on
+`perf-assist/cue-id-memo` (commit `6ca3e6c4`). The code-level backlog is
+**EMPTY again**; everything below P17 is a maintainer-decision item.
+
 **UPDATE 2026-10-20:** Issue #968 was **CLOSED** by `@an-lee` on 2026-10-20
 10:58 UTC with all five candidates shipped as #969–#973. The "Also verified,
 smaller" candidates (P6 startup prefs, P7 auto-translate fan-out, P8 position
@@ -262,6 +266,72 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   with identical arguments is the *same instance* across tests, so the memo
   already holds it. A test that asserts "one derivation" must use a word whose
   phone labels are unique in the file.
+
+## P17 — Blur cue identity re-derived per tile build (SHIPPED 2026-11-02, draft PR open)
+- File: `lib/features/transcript/domain/transcript_blur.dart` (`cueIdFor`).
+- Problem: the cue identity (markup plain extraction + trim + FNV-1a over all
+  code units + string build) was re-derived on every call — once per
+  `TranscriptLineTile` build (`transcript_line_tile.dart:238`), again in
+  `_cueRevealed()` (:141) and per tap-reveal hold (:117/:132). Every visible
+  tile rebuilds on cue advance/provider emissions; the active tile rebuilds at
+  word-boundary rate during karaoke playback.
+- Fix: memoized per `TranscriptLine` instance in a top-level `Expando<String>`
+  (P12 pattern; weak keys die with the instances a transcript revision
+  replaces). Pure in final fields → never stale. `@visibleForTesting
+  cueIdDerivationCount` pins the rate. Public API and callers unchanged.
+- Measured (one impl per fresh process, n=4 per mode, SEQUENTIAL,
+  `flutter test --run-skipped`, per-round medians): warm window (40 lines ×
+  200 derivations/pass) legacy settled 0.0136–0.0324 → memoized
+  0.0010–0.0020 ms/pass — median pairing **0.0192 → 0.0012 (~16x)**, worst
+  pairing ~6.8x. Fresh-line sweep (512 distinct, parse-cache thrash) parity:
+  legacy 1.08–1.31 vs memoized 0.84–1.22 ms/sweep. Sinks identical across all
+  16 process runs per regime.
+- Correctness: differential vs unmemoized copy over a 512-line marked-up/
+  unicode/sentinel corpus; derivation-count pins (once per instance across
+  10 passes; fresh equal-content instance derives separately); existing
+  contract tests in `transcript_line_test.dart` / `domain_gaps_coverage_test.dart`
+  unchanged and green. Full suite: **7037 passed / 19 skipped**.
+- Test file: `test/features/transcript/transcript_cue_id_perf_test.dart`
+  (env `CUE_ID_BENCH_MODE=legacy|memoized`), linked from
+  `docs/perf-measurement.md`.
+- Status: draft PR open on `perf-assist/cue-id-memo` (commit `6ca3e6c4`).
+  PR number assigned when the framework pushes the bundle.
+
+## Verified non-targets (2026-11-02 scan — do NOT re-report)
+- **`attachAlignmentToLines` fallback** (`lib/data/subtitle/
+  attach_alignment_to_lines.dart:120-131`, `_wordsInWindow` re-walks the whole
+  alignment tree per line): DEAD in production. `alignSegments`
+  (packages/forced_alignment alignment_service.dart:293-303) stamps
+  `withSegmentId(entry, segment.id)` on every success, `alignLinesToPcm` builds
+  segments with `id: i`, and the enrichment controller normalizes ids
+  (`copyWithId(i)` / explicit `id: i`) before calling attach. `segmentsById[i]`
+  is always populated → `_collectWords(tagged)` path always taken. Same trap
+  as P3/listDue: verify callers before optimizing.
+- **Assessment-JSON parse per build** (`pronunciationScoreFromRecording`,
+  recording_assessment_button.dart:27-48): live but CONDITIONAL — short-circuits
+  when the persisted `pronunciationScore` column is set, and the sync
+  serializers round-trip that column, so only legacy/edge rows parse per
+  rebuild. Full `jsonDecode` per build is real waste where it happens, but the
+  population is small; the always-on per-build waste is only `trim()` copies
+  (O(n) alloc per rebuild at 4 sites). Not worth a PR alone.
+- **Pitch-contour runs/median per repaint** (pitch_contour_chart.dart):
+  real (~2.5 Hz during playback, full sort per point) but painter-coupled;
+  memoization target is inside a `CustomPainter` with mutating fields. Held
+  for a future run — needs a structural-measurement plan first.
+- **Transcript tile `_snippet`/`formatTranscriptTimestampMs` per rebuild**:
+  tiny constants; cueIdFor (P17) was the only derivation with real weight.
+- **Sync `watchSnapshot` full sort per queue mutation**
+  (sync_queue_repository.dart:128-150): real but n is small; ideal fix is a
+  DB-side `ORDER BY ... LIMIT` (DAO change) — maintainer-decision territory.
+- **Vocabulary context span resolved twice per lookup tap**
+  (`openTranscriptLookup` calls `buildVocabularyContext` +
+  `buildMediaVocabularyContext`, both resolve the span): per-tap frequency,
+  needs API threading through two builders. Candidate if a future run needs a
+  low-risk fix; measure first (span derivation is pure).
+- Trivial regex hoists (all cold paths, measured negligible): normalizeWord,
+  getSentenceBoundaries (both ternary arms are IDENTICAL — a latent dead
+  branch, cleanup not perf), formatRateCore, languageCodeLabel,
+  highlightVocabularyWord.
 
 ## P10b — Remove the remaining character-count scan (NEXT, needs a maintainer call)
 - File: `lib/features/transcript/data/transcript_timeline_codec.dart` +

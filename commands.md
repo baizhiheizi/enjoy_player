@@ -1,5 +1,17 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
+## 2026-11-02 — GitHub/read mechanics
+- The workspace checkout is a **blobless/partial clone**: `git show <sha>` /
+  `git log -p` on non-HEAD commits fails ("could not fetch ... from promisor
+  remote", TLS-blocked). Use GitHub MCP `get_commit` (detail=stats) for
+  per-commit file lists; Read/Grep at HEAD work normally.
+- `list_issues` with label filters gets results dropped by the MCP integrity
+  policy (even a single result), but `issue_read` DIRECTLY on a known issue
+  number works. Find issue numbers via `search_issues` (may also filter) or
+  from memory.
+- `search_pull_requests` `fields` does NOT accept `merged_at` (use `closed_at`
+  / `state`); `list_issues` `fields` does NOT accept `html_url`.
+
 ## 2026-10-31 — small additions
 - **`flutter test -n <name>` does NOT exist** on the pinned Flutter 3.47.6
   (AGENTS.md's "AI-debug route" snippet is wrong about the flag) — use
