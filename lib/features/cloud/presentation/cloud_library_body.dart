@@ -115,28 +115,22 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
         controller: widget.tabController,
         children: [
           _CloudPagedMedia(
-            items: _videos.items,
-            loading: _videos.loading,
-            done: _videos.done,
+            page: _videos,
             onLoadMore: () => _loadVideoPage(reset: false),
             onRefresh: () => _loadVideoPage(reset: true),
             skeleton: const SkeletonMediaGrid(),
             emptyTitle: l10n.cloudEmptyVideoTitle,
             emptySubtitle: l10n.cloudEmptyVideoSubtitle,
-            contentBuilder: (context, scroll) =>
-                _cloudVideoPageContent(context, scroll, _videos),
+            contentBuilder: _cloudVideoPageContent,
           ),
           _CloudPagedMedia(
-            items: _audios.items,
-            loading: _audios.loading,
-            done: _audios.done,
+            page: _audios,
             onLoadMore: () => _loadAudioPage(reset: false),
             onRefresh: () => _loadAudioPage(reset: true),
             skeleton: const SkeletonMediaList(),
             emptyTitle: l10n.cloudEmptyAudioTitle,
             emptySubtitle: l10n.cloudEmptyAudioSubtitle,
-            contentBuilder: (context, scroll) =>
-                _cloudAudioPageContent(context, scroll, _audios),
+            contentBuilder: _cloudAudioPageContent,
           ),
         ],
       ),
@@ -372,13 +366,15 @@ class _CloudEmptyState extends StatelessWidget {
 }
 
 typedef _CloudPageContent =
-    Widget Function(BuildContext context, ScrollController scroll);
+    Widget Function(
+      BuildContext context,
+      ScrollController scroll,
+      _CloudPagedList page,
+    );
 
 class _CloudPagedMedia extends ConsumerStatefulWidget {
   const _CloudPagedMedia({
-    required this.items,
-    required this.loading,
-    required this.done,
+    required this.page,
     required this.onLoadMore,
     required this.onRefresh,
     required this.skeleton,
@@ -387,9 +383,7 @@ class _CloudPagedMedia extends ConsumerStatefulWidget {
     required this.contentBuilder,
   });
 
-  final List<RemoteLibraryItem> items;
-  final bool loading;
-  final bool done;
+  final _CloudPagedList page;
   final Future<void> Function() onLoadMore;
   final Future<void> Function() onRefresh;
   final Widget skeleton;
@@ -404,19 +398,21 @@ class _CloudPagedMedia extends ConsumerStatefulWidget {
 class _CloudPagedMediaState extends ConsumerState<_CloudPagedMedia>
     with _CloudInfiniteScroll<_CloudPagedMedia> {
   @override
-  bool get cloudDone => widget.done;
+  bool get cloudDone => widget.page.done;
 
   @override
-  bool get cloudLoading => widget.loading;
+  bool get cloudLoading => widget.page.loading;
 
   @override
   Future<void> Function() get cloudLoadMore => widget.onLoadMore;
 
   @override
   Widget build(BuildContext context) {
-    if (widget.items.isEmpty && widget.loading) return widget.skeleton;
+    if (widget.page.items.isEmpty && widget.page.loading) {
+      return widget.skeleton;
+    }
 
-    if (widget.items.isEmpty && widget.done) {
+    if (widget.page.items.isEmpty && widget.page.done) {
       return _CloudEmptyState(
         onRefresh: widget.onRefresh,
         title: widget.emptyTitle,
@@ -426,7 +422,7 @@ class _CloudPagedMediaState extends ConsumerState<_CloudPagedMedia>
 
     return RefreshIndicator(
       onRefresh: widget.onRefresh,
-      child: widget.contentBuilder(context, scroll),
+      child: widget.contentBuilder(context, scroll, widget.page),
     );
   }
 }

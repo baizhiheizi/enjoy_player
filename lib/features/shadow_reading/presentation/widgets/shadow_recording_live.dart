@@ -1,9 +1,9 @@
 /// Live recording stage: paint-only countdown ring + 10 Hz caption.
 ///
-/// The elapsed timebase is the shared `RecordingElapsedTicker` mixin (see
-/// its library docs for the paint-only design, issues #810 E2 and #818);
-/// this stage adds the over-target pulse evaluation and the ring/caption
-/// rendering.
+/// The elapsed timebase is the shared `RecordingElapsedTicker` mixin; the
+/// paint-only rationale and its history live in that mixin's library docs
+/// and docs/features/shadow-reading.md. This stage adds the over-target
+/// pulse evaluation and the ring/caption rendering.
 library;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -53,7 +53,8 @@ class _ShadowRecordingLiveState extends State<ShadowRecordingLive>
 
   @override
   void onRecordingTick(Duration elapsed) {
-    final over = widget.targetSec > 0 && elapsedSec.value > widget.targetSec;
+    final over =
+        widget.targetSec > 0 && elapsedController.value > widget.targetSec;
     if (over && !_over) _overStartMs = elapsed.inMilliseconds;
     final overPulseHigh =
         over &&
@@ -77,7 +78,7 @@ class _ShadowRecordingLiveState extends State<ShadowRecordingLive>
               child: ShadowRecordFab(
                 recording: true,
                 echoActive: widget.echoActive,
-                ringElapsedSec: elapsedSec,
+                ringElapsedSec: elapsedController,
                 ringTargetSec: widget.targetSec,
                 overTarget: _over,
                 overPulseHigh: _overPulseHigh,

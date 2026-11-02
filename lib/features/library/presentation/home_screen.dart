@@ -132,7 +132,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           error: (e, _) => ErrorState(
             message: '${l10n.error}: $e',
             onRetry: () => ref.invalidate(libraryHomeRecentsProvider),
-            retryLabel: l10n.retry,
           ),
         );
       },

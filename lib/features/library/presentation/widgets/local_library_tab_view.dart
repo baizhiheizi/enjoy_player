@@ -57,7 +57,6 @@ class LocalLibraryTabView extends ConsumerWidget {
       error: (e, _) => ErrorState(
         message: '${l10n.error}: $e',
         onRetry: () => ref.invalidate(libraryFilteredListsProvider),
-        retryLabel: l10n.retry,
       ),
     );
   }

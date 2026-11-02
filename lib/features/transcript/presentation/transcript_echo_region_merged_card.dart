@@ -438,7 +438,7 @@ class _LoopRecordingProgressState extends State<_LoopRecordingProgress>
                 width: constraints.maxWidth,
                 child: CustomPaint(
                   painter: _LoopBarPainter(
-                    elapsed: elapsedSec,
+                    elapsed: elapsedController,
                     targetSec: widget.targetSec,
                     track: tok.youSoft,
                     fill: tok.you,
