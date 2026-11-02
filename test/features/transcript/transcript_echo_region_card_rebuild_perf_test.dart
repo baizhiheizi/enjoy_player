@@ -40,6 +40,7 @@ Widget _harness({
   required EchoState echo,
   required int activeCueIndex,
   Map<int, int>? counts = const {},
+  bool reuseUnchangedTiles = true,
 }) {
   return ProviderScope(
     overrides: [
@@ -61,6 +62,7 @@ Widget _harness({
               echo: echo,
               activeCueIndex: activeCueIndex,
               secondaryLines: const [],
+              reuseUnchangedTiles: reuseUnchangedTiles,
             ),
           ],
         ),
@@ -140,6 +142,54 @@ void main() {
     expect(transcriptTileBuildCount, before + 30);
   });
 
+  testWidgets('a new transcript lines list invalidates the cached tiles', (
+    tester,
+  ) async {
+    final lines = _lines(60);
+    await tester.pumpWidget(
+      _harness(lines: lines, echo: _echo(0, 59), activeCueIndex: 10),
+    );
+    await tester.pumpAndSettle();
+
+    final before = transcriptTileBuildCount;
+    await tester.pumpWidget(
+      _harness(
+        lines: List<TranscriptLine>.of(lines),
+        echo: _echo(0, 59),
+        activeCueIndex: 10,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(transcriptTileBuildCount - before, greaterThanOrEqualTo(60));
+  });
+
+  testWidgets('without tile reuse a cue change rebuilds the whole range', (
+    tester,
+  ) async {
+    final lines = _lines(60);
+    await tester.pumpWidget(
+      _harness(
+        lines: lines,
+        echo: _echo(0, 59),
+        activeCueIndex: 10,
+        reuseUnchangedTiles: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final before = transcriptTileBuildCount;
+    await tester.pumpWidget(
+      _harness(
+        lines: lines,
+        echo: _echo(0, 59),
+        activeCueIndex: 11,
+        reuseUnchangedTiles: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(transcriptTileBuildCount - before, greaterThanOrEqualTo(60));
+  });
+
   testWidgets('cue-change rebuild cost across a long echo block (local only)', (
     tester,
   ) async {
@@ -147,9 +197,15 @@ void main() {
     const changes = 40;
     final lines = _lines(lineCount);
     final mode = Platform.environment['ECHO_CARD_BENCH_MODE'] ?? 'cached';
+    final reuseUnchangedTiles = mode != 'legacy';
 
     await tester.pumpWidget(
-      _harness(lines: lines, echo: _echo(0, lineCount - 1), activeCueIndex: 0),
+      _harness(
+        lines: lines,
+        echo: _echo(0, lineCount - 1),
+        activeCueIndex: 0,
+        reuseUnchangedTiles: reuseUnchangedTiles,
+      ),
     );
     await tester.pumpAndSettle();
     for (var i = 1; i <= 5; i++) {
@@ -158,6 +214,7 @@ void main() {
           lines: lines,
           echo: _echo(0, lineCount - 1),
           activeCueIndex: i,
+          reuseUnchangedTiles: reuseUnchangedTiles,
         ),
       );
       await tester.pump();
@@ -171,6 +228,7 @@ void main() {
           lines: lines,
           echo: _echo(0, lineCount - 1),
           activeCueIndex: i,
+          reuseUnchangedTiles: reuseUnchangedTiles,
         ),
       );
     }

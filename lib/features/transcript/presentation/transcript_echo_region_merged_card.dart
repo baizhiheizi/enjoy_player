@@ -46,6 +46,7 @@ class EchoRegionMergedCard extends ConsumerStatefulWidget {
     required this.activeCueIndex,
     required this.secondaryLines,
     this.secondaryMatcher,
+    @visibleForTesting this.reuseUnchangedTiles = true,
     super.key,
   });
 
@@ -57,6 +58,10 @@ class EchoRegionMergedCard extends ConsumerStatefulWidget {
 
   /// When null, a matcher is built from [secondaryLines].
   final TranscriptSecondaryMatcher? secondaryMatcher;
+
+  /// Whether a rebuild may reuse a tile whose inputs are unchanged.
+  @visibleForTesting
+  final bool reuseUnchangedTiles;
 
   @override
   ConsumerState<EchoRegionMergedCard> createState() =>
@@ -81,6 +86,7 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.lines, widget.lines) ||
         oldWidget.mediaId != widget.mediaId ||
+        oldWidget.reuseUnchangedTiles != widget.reuseUnchangedTiles ||
         oldWidget.echo.startLineIndex != widget.echo.startLineIndex ||
         oldWidget.echo.endLineIndex != widget.echo.endLineIndex) {
       _tiles.clear();
@@ -209,7 +215,7 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
         recordingCount: lineRecordingCounts?[i],
         loopFontSize: loopFontSize,
       );
-      final cached = _tiles[i];
+      final cached = widget.reuseUnchangedTiles ? _tiles[i] : null;
       if (cached != null && cached.inputs == inputs) {
         lineWidgets.add(cached.tile);
         continue;
@@ -251,7 +257,9 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
               padding: EdgeInsets.only(bottom: metrics.loopLineGap),
               child: tile,
             );
-      _tiles[i] = (inputs: inputs, tile: entry);
+      if (widget.reuseUnchangedTiles) {
+        _tiles[i] = (inputs: inputs, tile: entry);
+      }
       lineWidgets.add(entry);
     }
 

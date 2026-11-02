@@ -497,6 +497,43 @@ A window of non-positive length never overlaps anything, so it contributes
 nothing: a recording with a zero or negative duration contributes no window,
 and a cue with a zero or negative duration has no count.
 
+## Echo card tile reuse
+
+[`EchoRegionMergedCard`](../../lib/features/transcript/presentation/transcript_echo_region_merged_card.dart)
+is one item of the virtualized transcript list, so every list rebuild
+rebuilds it — and it used to rebuild every cue of the echo range on every
+rebuild. Nothing caps the loop length, so the cost scaled with it: a cue
+change over a 300-line loop rebuilt 300 `TranscriptLineTile`s in one frame
+(~120 ms — a dropped frame), while a typical few-line loop was free.
+
+The card now keeps one cached tile per line and reuses the **same widget
+instance** when that line's inputs are unchanged, so Flutter's
+identical-widget short-circuit skips the line's whole subtree. A cue change
+over a 300-line loop rebuilds 2 tiles — the outgoing and the incoming active
+cue — instead of 300: ~120 ms → ~15 ms per cue change.
+
+A cached tile is reused only while its inputs record is unchanged: the line,
+`isActive`, the resolved secondary text, `canRetranslate`,
+`wavyWordIndexes`, the recording count, and the loop font size. The card
+drops the whole cache when the transcript `lines` list identity changes, the
+`mediaId` changes, or the echo range moves.
+
+The invariant the cache relies on: a line's inputs fully determine how its
+tile renders, and the card never serves a tile built against a superseded
+transcript. Provider-driven rebuilds inside a tile (karaoke highlight, blur,
+tap-reveal) and inherited-driven rebuilds (theme, locale, media query) are
+unaffected — a tile subscribes to those itself, so the short-circuit only
+prunes parent-driven rebuilds.
+
+Auto-translate request scheduling stays per line per build, exactly as
+before: the policy depends on controller state read at build time, and the
+controller dedupes in-flight requests and pumps its own queue.
+
+`reuseUnchangedTiles: false` rebuilds every tile on every build — the
+pre-optimization path — so the microbenchmark in
+[`transcript_echo_region_card_rebuild_perf_test.dart`](../../test/features/transcript/transcript_echo_region_card_rebuild_perf_test.dart)
+can measure both sides in one process.
+
 ## Alignment engine (Craft save + on-demand enrich)
 
 `packages/forced_alignment` maps known text + 16 kHz extractable PCM to
