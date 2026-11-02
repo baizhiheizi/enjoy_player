@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_loop_edge_row.dart';
-import 'package:flutter/scheduler.dart' show Ticker;
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -21,6 +20,7 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading_panel.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_recording_caption.dart';
 import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
@@ -417,33 +417,9 @@ class _LoopRecordingProgress extends StatefulWidget {
 }
 
 class _LoopRecordingProgressState extends State<_LoopRecordingProgress>
-    with TickerProviderStateMixin {
-  late final AnimationController _elapsedSec;
-  late final Ticker _ticker;
-  final ValueNotifier<int> _elapsedTenths = ValueNotifier<int>(0);
-
-  @override
-  void initState() {
-    super.initState();
-    _elapsedSec = AnimationController.unbounded(vsync: this);
-    _ticker = createTicker(_onTick);
-    unawaited(_ticker.start());
-  }
-
-  @override
-  void dispose() {
-    _ticker.dispose();
-    _elapsedSec.dispose();
-    _elapsedTenths.dispose();
-    super.dispose();
-  }
-
-  void _onTick(Duration elapsed) {
-    _elapsedSec.value = elapsed.inMicroseconds / 1e6;
-    final tenths = (elapsed.inMicroseconds ~/ 100000);
-    if (tenths != _elapsedTenths.value) _elapsedTenths.value = tenths;
-  }
-
+    with
+        TickerProviderStateMixin,
+        RecordingElapsedTicker<_LoopRecordingProgress> {
   @override
   Widget build(BuildContext context) {
     final tok = EnjoyThemeTokens.of(context);
@@ -462,7 +438,7 @@ class _LoopRecordingProgressState extends State<_LoopRecordingProgress>
                 width: constraints.maxWidth,
                 child: CustomPaint(
                   painter: _LoopBarPainter(
-                    elapsed: _elapsedSec,
+                    elapsed: elapsedSec,
                     targetSec: widget.targetSec,
                     track: tok.youSoft,
                     fill: tok.you,
@@ -474,7 +450,7 @@ class _LoopRecordingProgressState extends State<_LoopRecordingProgress>
         ),
         const SizedBox(width: 12),
         ValueListenableBuilder<int>(
-          valueListenable: _elapsedTenths,
+          valueListenable: elapsedTenths,
           builder: (context, tenths, _) {
             final elapsedSec = tenths / 10;
             final overTarget =
