@@ -173,11 +173,6 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final ttToggleRecording = hotkeyTooltipLabel(
-      ref,
-      'player.toggleRecording',
-      _recording ? l10n.shadowRecordingStop : l10n.shadowRecordingRecord,
-    );
     ref.listen<int>(shadowReadingHotkeyBusProvider.select((s) => s.recording), (
       prev,
       next,
@@ -253,7 +248,11 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
           return ShadowRecordingLive(
             targetSec: targetSec,
             echoActive: widget.echoActive,
-            stopTooltip: ttToggleRecording,
+            stopTooltip: hotkeyTooltipLabel(
+              ref,
+              'player.toggleRecording',
+              l10n.shadowRecordingStop,
+            ),
             onStop: () => _toggleRecord(l10n),
             l10n: l10n,
             tt: Theme.of(context).textTheme,

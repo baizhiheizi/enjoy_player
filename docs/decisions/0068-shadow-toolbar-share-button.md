@@ -28,7 +28,8 @@ take action behind the same visual group.
 Move `SharePracticePosterButton` from the transcript overlay into the
 leftmost slot of the new `leadingShare` parameter on
 `ShadowReadingToolbarRow`. The button is now passed by
-`shadow_reading_panel.dart` into the toolbar that already owns the
+`shadow_reading_panel.dart` (since the #1196 split, via its
+`ShadowIdlePanelColumn`) into the toolbar that already owns the
 record FAB.
 
 The button still self-hides via `SizedBox.shrink()` when there are no
@@ -75,7 +76,8 @@ This is a deliberate narrowing of the previous surface.
 - `lib/features/shadow_reading/presentation/shadow_reading_panel.dart` —
   passes `SharePracticePosterButton(mediaId: mediaId, iconColor: scheme.onSurface)`
   into the toolbar in the idle branch only (the recording branch keeps
-  the centered FAB + caption row and does not host a row).
+  the centered FAB + caption row and does not host a row). Since the
+  #1196 split this wiring lives in `widgets/shadow_idle_panel_column.dart`.
 
 ### What did not change
 
