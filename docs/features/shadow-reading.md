@@ -74,7 +74,12 @@ Two presentations share the panel (Duet, ADR-0093):
   `AnimationController`: a `ListenableBuilder` on the controller would
   rebuild the caption on every vsync, which is the cost the paint-only
   design exists to avoid. Over-target state (error ring + pulse) still
-  rebuilds discretely on the flip and at the 600 ms pulse cadence.
+  rebuilds discretely on the flip and at the 600 ms pulse cadence. This
+  timebase is shared code now ([#1199](https://github.com/baizhiheizi/enjoy_player/issues/1199)):
+  `RecordingElapsedTicker` in
+  `lib/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart`
+  also drives the transcript echo loop's recording readout, whose
+  over-target handling is intentionally caption-only.
 - All toolbar controls use **≥44×44** hit targets where possible; the
   assessment badge control is **44×44** with explicit
   `Semantics(label, button)` so VoiceOver / TalkBack see it as a
