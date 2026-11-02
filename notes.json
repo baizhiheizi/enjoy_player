@@ -1,79 +1,51 @@
 {
   "version": 1,
   "cursors": {
-    "labelling_after": 1072,
-    "investigation_after": 1101
+    "labelling_after": 1205,
+    "investigation_after": 1205
   },
   "issues": [
     {
-      "number": 864,
+      "number": 1204,
       "state": "commented",
-      "updated_at": "2026-10-28",
-      "note": "Perf Improver monthly issue. Commented: P3's listDue has no production caller; the live over-fetch is VocabularyReviewSessionLifecycle.start() loading repo.listAll(). Needs a maintainer decision."
+      "updated_at": "2026-11-02",
+      "note": "Weekly-research died at Start MCP Gateway: the three BigModel MCP servers returned empty tools/list bodies; first run on the gh-aw v1.0.1 stack from #1149. Commented: check ZAI_API_KEY first, then the mcpg bump."
+    },
+    {
+      "number": 1187,
+      "state": "commented",
+      "updated_at": "2026-11-02",
+      "note": "Launch crash fixed by #1189 + test build. New in-thread symptom: desktop cannot fetch YouTube subtitles. Commented the Dart-HTTP-bypasses-system-proxy hypothesis and log triage steps; suggested its own issue."
     }
   ],
   "fixes": [
     {
-      "issue": 1164,
+      "issue": 864,
       "pr": null,
-      "branch": "repo-assist/fix-recording-cursor-poison-2026-10-31",
+      "branch": null,
       "status": "open",
-      "updated_at": "2026-10-31",
-      "note": "Per-target recording pull follows the cursor invariant now - cursor advances only on a clean page, a failed page stops the pull. Discriminating test included. Suite 6981 passed. Not in the 0.10.3 backfill; wants an entry if it merges before the tag."
-    },
-    {
-      "issue": 1168,
-      "pr": null,
-      "branch": "repo-assist/basics-docs-drift-2026-10-31",
-      "status": "open",
-      "updated_at": "2026-10-31",
-      "note": "Docs-drift audit findings: D1 share-poster.md export pipeline rewritten (in-memory bytes, saveOrShareBytes, desktop branch, cancelled-silent contract) and D2 agentic-workflows.md engine-glm example + imported network.allowed note. R1 changelog backfill went to PR #1140 instead."
-    },
-    {
-      "issue": 1088,
-      "pr": 1140,
-      "branch": "repo-assist/release-prepare-v0-10-3-2026-10-29-dcc263851197d12b",
-      "status": "open",
-      "updated_at": "2026-10-31",
-      "note": "release: v0.10.3 prepared (pubspec 0.10.3+19, CHANGELOG section, release notes, version-notes guard). On 2026-10-31 pushed the R1 changelog backfill (#1145, #1138/#1141/#1146, #1161, #1165, #1142) to the CHANGELOG and the notes list. Consistency test 4/4 green."
+      "updated_at": "2026-10-28",
+      "note": "Review-session vocabulary over-fetch (VocabularyReviewSessionLifecycle.start() loads repo.listAll()) still needs a maintainer decision."
     }
   ],
   "checks": [
     {
       "area": "tests",
-      "checked_at": "2026-10-31",
-      "result": "flutter test full suite green on repo-assist/fix-recording-cursor-poison-2026-10-31: 6981 passed / 13 skipped. Focused 7/7 on the recording sync service. Docs branch: validate_ci_gates ok + link guard 1/1. Release branch: release_version_consistency_test 4/4.",
+      "checked_at": "2026-11-02",
+      "result": "validate_ci_gates --fix green (format+codegen+path-deps); focused fallback file 13/13 after F5/F6 additions; full analyze+test run in progress at run time.",
       "follow_up": null
     },
     {
       "area": "release",
-      "checked_at": "2026-10-31",
-      "result": "PR #1140 (v0.10.3) now carries the R1 changelog backfill. v0.10.2 is tagged but has NO GitHub Release object; v0.10.3 needs only the maintainer's tag. The macOS Sparkle EdDSA key still lives only in the runner's login keychain.",
-      "follow_up": "If anything else merges to main before the tag (e.g. the #1164 fix), it wants a 0.10.3 changelog entry."
-    },
-    {
-      "area": "ci",
-      "checked_at": "2026-10-29",
-      "result": "check_dart_format.sh ok and flutter analyze clean on all branches this run.",
-      "follow_up": "The release scripts are not in ci.yml's path PATTERN, so a PR changing only those scripts skips the analyze-test job. ci.yml cannot be pushed by the agentic App."
-    },
-    {
-      "area": "docs",
-      "checked_at": "2026-10-31",
-      "result": "The 2026-10-30 docs-drift audit (#1168) findings D1 and D2 are fixed on repo-assist/basics-docs-drift-2026-10-31 with every claim re-verified at HEAD before editing.",
-      "follow_up": "The audit issue also tracks R1 (backfill, done on #1140). The audit workflow re-verifies weekly on its own."
-    },
-    {
-      "area": "dependencies",
-      "checked_at": "2026-10-29",
-      "result": "flutter pub outdated showed only major-version candidates beyond constraints; #1125 covered the in-constraint bumps. No Dependabot alerts open.",
-      "follow_up": null
+      "checked_at": "2026-11-02",
+      "result": "PR #1140 (v0.10.3) merged 2026-11-01 by an-lee. Still NO v0.10.3 tag/GitHub Release object; latest published release is the issue-1187-test-1 test build.",
+      "follow_up": "v0.10.3 still only needs the maintainer's tag."
     },
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-10-31",
-      "result": "Two new draft PRs this run (fix #1164 cursor poison; docs drift D1/D2) plus PR #1140 (v0.10.3, updated with the backfill). The 2026-10-29 appcast stack (merge union #1145, feed gate #1146, link guard #1147) all merged.",
-      "follow_up": "All three are independent - no merge order constraint."
+      "checked_at": "2026-11-02",
+      "result": "All three 2026-10-31 drafts resolved by the maintainer: #1178 (recording cursor, fixes #1164) merged, #1179 (docs drift D1/D2, resolves #1168) merged, #1140 merged. Open PRs now: #1203 (perf-improver), #1189 (human, macOS compat).",
+      "follow_up": null
     }
   ],
   "completed_actions": [
@@ -136,23 +108,40 @@
     {
       "key": "appcast-stack-merged-as-1145-1146-1147",
       "completed_at": "2026-10-31"
+    },
+    {
+      "key": "recording-cursor-fix-merged-as-1178",
+      "completed_at": "2026-11-02"
+    },
+    {
+      "key": "docs-drift-d1-d2-merged-as-1179",
+      "completed_at": "2026-11-02"
+    },
+    {
+      "key": "v0103-release-prep-merged-as-1140",
+      "completed_at": "2026-11-02"
     }
   ],
   "priorities": [
     {
-      "task": 3,
-      "item": "Review draft PR on branch repo-assist/fix-recording-cursor-poison-2026-10-31 (fixes #1164)",
-      "note": "The per-target recording pull advances its cursor only on clean pages now; a failed page stops the pull. Discriminating test included; suite 6981 green."
+      "task": 10,
+      "item": "The v0.10.3 release needs the maintainer's tag",
+      "note": "PR #1140 merged 2026-11-01 with the full changelog + release notes. No v0.10.3 release object exists yet."
+    },
+    {
+      "task": 2,
+      "item": "Watch weekly-research for recurrence (#1204)",
+      "note": "First failure: BigModel MCP servers returned empty tools/list bodies on the v1.0.1 stack. If it recurs after a key check, the mcpg v0.4.31->v0.5.0 bump from #1149 is the suspect."
+    },
+    {
+      "task": 2,
+      "item": "Follow up on #1187 desktop-subtitle report when the diagnostic log arrives",
+      "note": "Hypothesis on record: Dart HTTP ignores the macOS system proxy that the webview/extension use; TUN-mode test or the log's Tier 2 error discriminates. Possible fixes: honor system proxy on desktop, or route caption fetches via the worker proxy like youtube_feed_api.dart."
     },
     {
       "task": 7,
-      "item": "Review draft PR on branch repo-assist/basics-docs-drift-2026-10-31 (resolves #1168 D1+D2)",
-      "note": "share-poster.md export pipeline and agentic-workflows.md engine example/allowlist text corrected against HEAD."
-    },
-    {
-      "task": 10,
-      "item": "The v0.10.3 release needs the maintainer's tag",
-      "note": "PR #1140 now carries the full changelog + release notes including the R1 backfill. The v0.10.2 tag can never publish its Windows and Android artifacts, and v0.10.1 users cannot self-update."
+      "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
+      "note": "Still missing; needs a maintainer."
     },
     {
       "task": 8,
@@ -160,39 +149,29 @@
       "note": "On issue #864: VocabularyReviewSessionLifecycle.start() loads repo.listAll() (every row + explanation blob) and filters in Dart. Only the queued rows need the blob."
     },
     {
-      "task": 7,
-      "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
-      "note": "v0.10.1 shipped 2026-10-26; the three other tagged versions still have no Release object. Needs a maintainer."
-    },
-    {
       "task": 4,
       "item": "ADR-0030 item 3 custom_lint still needs a maintainer decision",
-      "note": "The analyzer-14 unblock landed in #998. A new dependency needs maintainer discussion, so Repo Assist will not adopt it."
+      "note": "A new dependency needs maintainer discussion; Repo Assist will not adopt it unilaterally."
     },
     {
       "task": 5,
       "item": "The proactive-refactor lane stays paused by the maintainer",
-      "note": "Do not re-propose primitive deduplication; the _trimTrailingSlash and inline RegExp copies were found and deliberately left alone. The new duplicate-code issues #1171/#1173/#1174 are the detector's output - same lane, stay out without a maintainer go-ahead."
+      "note": "Duplicate-code issues #1171/#1173/#1174 are the detector's output - stay out without a maintainer go-ahead."
     },
     {
       "task": 4,
       "item": "Do not re-propose the stale first-party action pins",
-      "note": "#1050 was closed not_planned by the maintainer on 2026-10-23, so release_publish.yml checkout@v4 and build_linux.yml upload-artifact@v4 are out of scope."
-    },
-    {
-      "task": 2,
-      "item": "Follow up on the engine-429 request rejections if they recur",
-      "note": "The schedule-stagger PR merged as #1085; the rate limit is upstream, so further rejections point at fewer concurrent agent sessions."
+      "note": "#1050 closed not_planned 2026-10-23."
     },
     {
       "task": 4,
       "item": "Decide where the macOS Sparkle EdDSA private key comes from",
-      "note": "ADR-0023 wants it in a release secret, but signing depends on the runner's login keychain. The feed gate now fails the publish on an unsigned enclosure; the key source is still a maintainer decision."
+      "note": "ADR-0023 wants it in a release secret; the feed gate fails the publish on an unsigned enclosure; still a maintainer decision."
     },
     {
       "task": 4,
       "item": "latest.json advertises one global version while its assets are per-platform",
-      "note": "evaluateUpdate compares the manifest version with no platform awareness, so a macOS user is told 0.10.3 is available when the macOS enclosure is 0.10.2. A per-platform version in the feed is a schema change."
+      "note": "evaluateUpdate has no platform awareness; a per-platform version in the feed is a schema change."
     }
   ]
 }
