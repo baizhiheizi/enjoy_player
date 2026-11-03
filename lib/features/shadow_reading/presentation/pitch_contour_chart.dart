@@ -124,16 +124,25 @@ class _PitchRunsCache {
   List<List<(double, double)>>? user;
 }
 
-final Expando<_PitchRunsCache> _pitchRunsByPoints = Expando();
+/// Runs memoized per series on the merged points list.
+///
+/// Weak keys: an entry dies with the list it was derived from, so no
+/// eviction policy is needed. The merged series is never mutated after
+/// construction, so a cached run stays valid for the list's lifetime.
+final Expando<_PitchRunsCache> _pitchRunsByPoints = Expando<_PitchRunsCache>(
+  'pitchContourRuns',
+);
 
 @visibleForTesting
 int pitchContourRunsDerivationCount = 0;
 
-/// Voiced contour runs for [points], memoized per series on the list's
-/// identity: playback progress ticks repaint the chart with the same series,
-/// so each series is derived once per list instead of once per paint. The
-/// cache entry dies with the list; lists passed here must not be mutated
-/// after construction (the merged-series memo owns the instance).
+/// Voiced contour runs for [points], one entry per series.
+///
+/// The runs are memoized on the list's identity, so a playback tick that
+/// repaints the chart with the same series re-uses them instead of
+/// re-deriving them; a series is derived only once it is visible. The list
+/// must not be mutated after construction — the merged-series memo owns the
+/// instance.
 PitchContourRuns pitchContourRuns(
   List<EchoRegionSeriesPoint> points, {
   required bool showReference,
