@@ -475,6 +475,28 @@ language pair it was derived for and re-derives when the pair changes, so a
 target-language switch costs one derivation per line rather than one per
 rebuild.
 
+## Cue identity
+
+[`cueIdFor`](../../lib/features/transcript/domain/transcript_blur.dart) is the
+single source of truth for which `TranscriptLine` maps to which blur-reveal
+provider entry: it strips the inline markup, trims the text, and hashes the
+result together with the line's start and end. Every transcript tile derives
+that id while it builds — once for the reveal provider key, again for the
+reveal check, and again on each tap-reveal hold — and the active tile rebuilds
+at word-boundary rate during karaoke playback, so the same line was stripped,
+hashed, and stringified over and over on the UI isolate. The markup parse
+itself was already cached by content, so the repeat path paid for the trim, the
+FNV-1a walk, and the id string.
+
+The id is now memoized per line instance in an `Expando`: weak keys, so an
+entry dies with the line and no eviction policy is needed.
+
+The invariant the memo relies on: a `TranscriptLine`'s `text`, `startMs`, and
+`durationMs` are never mutated after construction (`TranscriptLine` is
+`@immutable`), so a cached id stays valid for the instance's lifetime. The
+memo is keyed by instance identity, so two value-equal lines keep their own
+entries and still derive the same id.
+
 ## Recording overlap counts
 
 [`countRecordingsPerLineIndex`](../../lib/features/transcript/domain/transcript_recording_counts.dart)
