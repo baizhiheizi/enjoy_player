@@ -64,7 +64,7 @@ List<TranscriptLine> _buildLines() {
 List<TranscriptLine> _buildWindow() => _buildLines().sublist(0, _kWindowLines);
 
 /// The pre-memoization derivation: parse, trim, FNV-1a, stringify.
-String deriveCueIdUnmemoized(TranscriptLine line) {
+String _legacyCueIdFor(TranscriptLine line) {
   final start = line.startMs;
   final end = line.startMs + line.durationMs;
   final plain = plainTextFromSubtitleMarkup(line.text).trim();
@@ -141,9 +141,17 @@ double _benchSweep(String Function(TranscriptLine) derive) {
 
 void main() {
   test('cue ids match the legacy derivation over the corpus', () {
-    final lines = _buildLines();
+    final lines = <TranscriptLine>[
+      ..._buildLines(),
+      const TranscriptLine(text: '', startMs: 100, durationMs: 500),
+      const TranscriptLine(
+        text: '<font color="#E5E5E5">   </font>',
+        startMs: 0,
+        durationMs: 0,
+      ),
+    ];
     for (final line in lines) {
-      expect(cueIdFor(line), deriveCueIdUnmemoized(line));
+      expect(cueIdFor(line), _legacyCueIdFor(line));
     }
   });
 
@@ -158,7 +166,7 @@ void main() {
     }
     expect(ids, hasLength(80));
     expect(ids.toSet(), hasLength(8));
-    expect(cueIdDerivationCount - before, 8);
+    expect(cueIdDerivationCount, before + 8);
   });
 
   test('a fresh equal-content line derives its own memo entry', () {
@@ -175,21 +183,23 @@ void main() {
           durationMs: 1000,
         );
     expect(a, isNot(same(b)));
+    final before = cueIdDerivationCount;
     expect(cueIdFor(a), cueIdFor(b));
-    expect(cueIdFor(a), deriveCueIdUnmemoized(a));
-    expect(cueIdDerivationCount, greaterThan(0));
+    expect(cueIdDerivationCount, before + 2);
+    expect(cueIdFor(a), _legacyCueIdFor(a));
+    expect(cueIdFor(b), _legacyCueIdFor(b));
   });
 
   test('warm-window derivation stays under the loose ceiling (local only)', () {
     final mode = Platform.environment['CUE_ID_BENCH_MODE'] ?? 'memoized';
-    final derive = mode == 'legacy' ? deriveCueIdUnmemoized : cueIdFor;
+    final derive = mode == 'legacy' ? _legacyCueIdFor : cueIdFor;
     final medianMs = _benchWindow(derive);
     expect(medianMs, lessThan(50));
   }, skip: 'Local-only microbenchmark; run with --run-skipped.');
 
   test('fresh-line sweep stays under the loose ceiling (local only)', () {
     final mode = Platform.environment['CUE_ID_BENCH_MODE'] ?? 'memoized';
-    final derive = mode == 'legacy' ? deriveCueIdUnmemoized : cueIdFor;
+    final derive = mode == 'legacy' ? _legacyCueIdFor : cueIdFor;
     final medianMs = _benchSweep(derive);
     expect(medianMs, lessThan(100));
   }, skip: 'Local-only microbenchmark; run with --run-skipped.');

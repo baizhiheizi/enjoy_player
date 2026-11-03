@@ -53,22 +53,23 @@ class TapRevealHold {
 /// hashing so two cues that differ only in inline markup map to the
 /// same id. Empty / null text maps to a deterministic sentinel id that
 /// never collides with real cue ids.
-///
-/// The id is derived once per line instance and memoized with weak
-/// keys; [TranscriptLine] inputs are final, so the memo never goes
-/// stale, and entries die with the line instances a transcript
-/// revision replaces.
 String cueIdFor(TranscriptLine line) {
-  final memo = _cueIdByLine[line];
+  final memo = _cueIdMemo[line];
   if (memo != null) return memo;
   final id = _deriveCueId(line);
+  _cueIdMemo[line] = id;
   cueIdDerivationCount++;
-  _cueIdByLine[line] = id;
   return id;
 }
 
-final Expando<String> _cueIdByLine = Expando<String>();
+/// Cue identities memoized per line instance.
+///
+/// Weak keys: an entry dies with the line it was derived from, so no
+/// eviction policy is needed. The derived fields are final, so a cached
+/// id stays valid for the instance's lifetime.
+final Expando<String> _cueIdMemo = Expando<String>('cueIdFor');
 
+/// Number of cue ids derived rather than read from [_cueIdMemo].
 @visibleForTesting
 int cueIdDerivationCount = 0;
 
