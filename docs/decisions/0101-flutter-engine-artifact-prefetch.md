@@ -78,6 +78,14 @@ unretried.
    next run hits exactly. (Writing the matched prefix key instead would fail,
    because that key already exists.)
 
+5. **Put the Flutter version in the Gradle cache key.**
+   A save is skipped on an exact hit, so a key that never changes means a
+   cache that never learns what the build downloaded. The engine's dependency
+   set — the androidx versions it pins, among others — follows the Flutter
+   version, so the key carries it: `gradle-<os>-<hash(gradle-wrapper.properties)>-<hash(pubspec.lock)>-<flutter-version>`.
+   A Flutter bump now rotates the key, the save fires, and the artifacts the
+   build fetched are captured instead of being re-fetched on every run.
+
 ## Consequences
 
 - The Android build no longer depends on the mirror for its largest and most
@@ -86,7 +94,8 @@ unretried.
 - The engine artifacts are fetched once per Flutter version rather than once
   per run, which also removes ~520 MB of mirror traffic per Android build.
 - The dependency caches now capture what the build downloaded, so a dependency
-  bump is a single cold run rather than a permanent cold path.
+  bump — or a Flutter bump — is a single cold run rather than a permanent
+  cold path. The first run after such a bump still fetches the full set.
 - The local Maven repository adds a copy of the engine artifacts to the job's
   workspace (~520 MB) alongside the Gradle module cache. The Gradle cache
   itself does not grow by that amount: Gradle resolves a `file://` repository
@@ -97,3 +106,7 @@ unretried.
 - The prefetch is a dependency of the local Maven repository, not of the
   mirror: if the prefetch is skipped the build still works, it just falls back
   to resolving the engine artifacts from the mirror.
+- The Gradle cache gains one dimension, so a Flutter bump leaves an extra
+  ~2.4 GB entry behind until the cache server evicts it. The per-repository
+  limit is 10 GB and eviction is LRU, so this is bounded, but the entries are
+  worth watching.

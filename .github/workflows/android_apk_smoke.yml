@@ -76,8 +76,12 @@ jobs:
 
       # Resolve the cache keys once, before `flutter pub get` rewrites
       # pubspec.lock against the mirror — the hashes must describe the same
-      # lockfile for the restore and for the save, and the Flutter version
-      # selects the engine artifacts the build needs.
+      # lockfile for the restore and for the save. The Flutter version is part
+      # of the Gradle key because the engine's dependency set (the androidx
+      # versions it pins, among others) follows it: without it a Flutter bump
+      # would leave the cache key unchanged, the save would stay skipped, and
+      # every artifact the build downloaded would be fetched again on every
+      # run — from mirrors whose TLS handshake the runner network resets.
       - name: Resolve cache keys
         id: cache-keys
         shell: bash
@@ -89,7 +93,7 @@ jobs:
           fi
           echo "flutter=$version" >> "$GITHUB_OUTPUT"
           echo "pub=pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}" >> "$GITHUB_OUTPUT"
-          echo "gradle=gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('**/pubspec.lock') }}" >> "$GITHUB_OUTPUT"
+          echo "gradle=gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('**/pubspec.lock') }}-$version" >> "$GITHUB_OUTPUT"
 
       # The job's inner environment is reset to a pristine state before each
       # run, so ~/.pub-cache cannot persist on the runner between jobs. The
