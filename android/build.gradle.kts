@@ -10,8 +10,21 @@ val isCi = System.getenv("GITHUB_ACTIONS") == "true"
 // keep the plain google()/mavenCentral() path.
 val useMirrors = !isCi || System.getenv("ENABLE_MAVEN_MIRROR") == "1"
 
+// The Flutter Gradle plugin resolves the engine artifacts (the embedding plus
+// one libflutter.so jar per ABI) from
+// $FLUTTER_STORAGE_BASE_URL/download.flutter.io. Gradle downloads them without
+// a retry, and the China mirror that serves them intermittently resets the TLS
+// handshake on the runner network, which fails the build after half an hour of
+// work. tool/prefetch_flutter_engine_android_libs.sh stages them in a local
+// Maven repository; listing it first means Gradle resolves io.flutter:* from
+// disk and never touches the mirror.
+val flutterEngineMavenRepo = file("../build/flutter-engine-maven")
+
 allprojects {
     repositories {
+        if (flutterEngineMavenRepo.isDirectory) {
+            maven { url = uri(flutterEngineMavenRepo) }
+        }
         if (useMirrors) {
             maven { url = uri("https://maven.aliyun.com/repository/google") }
             maven { url = uri("https://maven.aliyun.com/repository/central") }

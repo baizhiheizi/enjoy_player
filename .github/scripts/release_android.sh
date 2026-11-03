@@ -94,6 +94,14 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
   echo ">>> Prefetch sqlite3 Android native libs"
   bash "${root}/tool/prefetch_sqlite3_libs.sh"
 
+  # The Flutter Gradle plugin pulls the engine artifacts (the embedding plus
+  # one libflutter.so jar per ABI, ~520 MB) from the mirror with no retry.
+  # The mirror resets the TLS handshake often enough to fail whole builds, so
+  # fetch them here — with retries and Range resume — and let Gradle resolve
+  # them from the local Maven repository this produces.
+  echo ">>> Prefetch Flutter engine Android artifacts"
+  bash "${root}/tool/prefetch_flutter_engine_android_libs.sh" release
+
   release_stop_gradle_daemons "${root}"
 
   defines=()

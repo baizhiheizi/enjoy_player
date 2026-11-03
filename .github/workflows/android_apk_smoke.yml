@@ -64,12 +64,36 @@ jobs:
     environment:
       name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux]
-    # Successful runs land in 11–23 min; 45 min absorbs the setup-android
-    # retry backoff without letting a hung dl.google.com fetch hold the
-    # runner forever (self-hosted jobs have no default timeout).
-    timeout-minutes: 45
+    # Successful runs land in 11–23 min once the engine artifacts come from
+    # the cache; the first run after a Flutter bump also fetches ~520 MB of
+    # them, and 60 min absorbs the setup-android retry backoff without
+    # letting a hung dl.google.com fetch hold the runner forever
+    # (self-hosted jobs have no default timeout). The engine prefetch bounds
+    # its own transfers, so a stalled mirror cannot outlive the job either.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
+
+      # Resolve the cache keys once, before `flutter pub get` rewrites
+      # pubspec.lock against the mirror — the hashes must describe the same
+      # lockfile for the restore and for the save. The Flutter version is part
+      # of the Gradle key because the engine's dependency set (the androidx
+      # versions it pins, among others) follows it: without it a Flutter bump
+      # would leave the cache key unchanged, the save would stay skipped, and
+      # every artifact the build downloaded would be fetched again on every
+      # run — from mirrors whose TLS handshake the runner network resets.
+      - name: Resolve cache keys
+        id: cache-keys
+        shell: bash
+        run: |
+          version="$(sed -nE 's/^[[:space:]]*flutter[[:space:]]*=[[:space:]]*"([^"]+)".*$/\1/p' mise.toml | head -n1)"
+          if [ -z "$version" ]; then
+            echo "::error::Could not read the flutter pin from mise.toml ([tools] flutter = \"...\")"
+            exit 1
+          fi
+          echo "flutter=$version" >> "$GITHUB_OUTPUT"
+          echo "pub=pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}" >> "$GITHUB_OUTPUT"
+          echo "gradle=gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('**/pubspec.lock') }}-$version" >> "$GITHUB_OUTPUT"
 
       # The job's inner environment is reset to a pristine state before each
       # run, so ~/.pub-cache cannot persist on the runner between jobs. The
@@ -80,16 +104,19 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          key: ${{ steps.cache-keys.outputs.pub }}
           restore-keys: |
             pub-${{ runner.os }}-
 
-      - name: Save pub cache
-        if: steps.pub-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # The prefetched Flutter engine artifacts are a function of the Flutter
+      # version alone, so they get their own cache entry instead of riding
+      # along with the Gradle module cache.
+      - name: Restore prefetched Flutter engine artifacts
+        id: engine-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.pub-cache
-          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
+          path: build/flutter-engine-maven
+          key: flutter-engine-${{ runner.os }}-${{ steps.cache-keys.outputs.flutter }}
 
       # Deliberately not the whole ~/.gradle/caches: on this project that tree
       # is ~6.1 GB, of which caches/9.1.0 alone is ~3.8 GB of path-keyed,
@@ -106,19 +133,10 @@ jobs:
           path: |
             ~/.gradle/wrapper/dists
             ~/.gradle/caches/modules-2
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('**/pubspec.lock') }}
+          key: ${{ steps.cache-keys.outputs.gradle }}
           restore-keys: |
             gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}-
             gradle-${{ runner.os }}-
-
-      - name: Save Gradle caches
-        if: steps.gradle-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.gradle/wrapper/dists
-            ~/.gradle/caches/modules-2
-          key: ${{ steps.gradle-cache.outputs.cache-primary-key }}
 
       - name: Ensure Linux tooling
         run: bash .github/scripts/ensure_linux_tooling.sh --skip-wpe
@@ -152,6 +170,14 @@ jobs:
       # ("Target dart_build failed"). Prefetch like release_android.sh does.
       - name: Prefetch sqlite3 Android native libs
         run: bash tool/prefetch_sqlite3_libs.sh
+
+      # The Flutter Gradle plugin pulls the engine artifacts (the embedding
+      # plus one libflutter.so jar per ABI, ~520 MB) from the mirror with no
+      # retry. The mirror resets the TLS handshake often enough to fail whole
+      # builds, so fetch them here — with retries and Range resume — and let
+      # Gradle resolve them from the local Maven repository this produces.
+      - name: Prefetch Flutter engine Android artifacts
+        run: bash tool/prefetch_flutter_engine_android_libs.sh
 
       - name: Flutter build apk (debug)
         run: flutter build apk --debug --flavor store
@@ -189,3 +215,33 @@ jobs:
 
       - name: Flutter build appbundle (release, compile-only)
         run: flutter build appbundle --release --flavor store
+
+      # The saves run last, after the build has populated the stores. Saving
+      # before the build captured only the restored snapshot, so everything the
+      # build downloaded was discarded and re-fetched on every run — the
+      # engine artifacts alone are ~520 MB, fetched from a mirror whose TLS
+      # handshake the runner network resets often enough to fail the build.
+      # Each save targets the primary key: an exact hit skips it, and a
+      # prefix restore writes the primary key so the next run hits exactly.
+      - name: Save pub cache
+        if: steps.pub-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ steps.cache-keys.outputs.pub }}
+
+      - name: Save prefetched Flutter engine artifacts
+        if: steps.engine-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: build/flutter-engine-maven
+          key: flutter-engine-${{ runner.os }}-${{ steps.cache-keys.outputs.flutter }}
+
+      - name: Save Gradle caches
+        if: steps.gradle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches/modules-2
+          key: ${{ steps.cache-keys.outputs.gradle }}
