@@ -4,6 +4,10 @@
 /// shapes are continuous-corner (superellipse), elevation is replaced by
 /// hairlines + soft ambient shadows, and every platform shares one page
 /// transition (iOS keeps its native edge-swipe).
+///
+/// Composition root: shared state lives in `_AppThemeBase`; one mixin per
+/// concern (buttons, inputs, surfaces, controls) lives in a sibling part
+/// file and composes onto it.
 library;
 
 import 'package:flutter/cupertino.dart';
@@ -14,6 +18,11 @@ import 'colors.dart';
 import 'enjoy_tokens.dart';
 import 'page_transitions.dart';
 import 'typography.dart';
+
+part 'app_theme_buttons.dart';
+part 'app_theme_controls.dart';
+part 'app_theme_inputs.dart';
+part 'app_theme_surfaces.dart';
 
 ThemeData? _cachedLight;
 ThemeData? _cachedDark;
@@ -38,26 +47,54 @@ ThemeData buildAppTheme([Brightness brightness = Brightness.dark]) {
 }
 
 ThemeData _buildAppThemeImpl(Brightness brightness) {
-  final light = brightness == Brightness.light;
   final cs = AppColors.colorScheme(brightness);
   final t = EnjoyThemeTokens.build(cs);
-
   final baseTheme = ThemeData(
     colorScheme: cs,
     useMaterial3: true,
     brightness: brightness,
   );
   final tt = buildBaseTextTheme(baseTheme.textTheme, cs);
+  final light = brightness == Brightness.light;
 
-  final transcriptTokens = TranscriptTypographyTokens.build(
-    useSerif: true,
-    base: tt,
-    scheme: cs,
-  );
+  return _AppTheme(
+    brightness: brightness,
+    cs: cs,
+    t: t,
+    tt: tt,
+    hover: cs.onSurface.withValues(alpha: light ? 0.045 : 0.06),
+    pressed: cs.onSurface.withValues(alpha: light ? 0.08 : 0.10),
+    focus: cs.primary.withValues(alpha: 0.14),
+    disabledFg: cs.onSurface.withValues(alpha: 0.36),
+    disabledBg: cs.onSurface.withValues(alpha: light ? 0.06 : 0.08),
+  ).build();
+}
 
-  final hover = cs.onSurface.withValues(alpha: light ? 0.045 : 0.06);
-  final pressed = cs.onSurface.withValues(alpha: light ? 0.08 : 0.10);
-  final focus = cs.primary.withValues(alpha: 0.14);
+/// Shared theme state every concern mixin composes onto.
+abstract class _AppThemeBase {
+  _AppThemeBase({
+    required this.brightness,
+    required this.cs,
+    required this.t,
+    required this.tt,
+    required this.hover,
+    required this.pressed,
+    required this.focus,
+    required this.disabledFg,
+    required this.disabledBg,
+  });
+
+  final Brightness brightness;
+  final ColorScheme cs;
+  final EnjoyThemeTokens t;
+  final TextTheme tt;
+  final Color hover;
+  final Color pressed;
+  final Color focus;
+  final Color disabledFg;
+  final Color disabledBg;
+
+  bool get light => brightness == Brightness.light;
 
   WidgetStateProperty<Color?> overlay({
     Color? hoverColor,
@@ -71,539 +108,95 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       return Colors.transparent;
     });
   }
+}
 
-  final buttonShape = WidgetStatePropertyAll<OutlinedBorder>(
-    enjoyShape(t.radiusMd),
-  );
-  final buttonMinSize = WidgetStatePropertyAll<Size>(Size(64, t.controlHeight));
-  final buttonPadding = WidgetStatePropertyAll<EdgeInsetsGeometry>(
-    EdgeInsets.symmetric(horizontal: t.space16 + 2),
-  );
-  final buttonText = WidgetStatePropertyAll<TextStyle?>(
-    tt.labelLarge?.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.1),
-  );
-  final disabledFg = cs.onSurface.withValues(alpha: 0.36);
-  final disabledBg = cs.onSurface.withValues(alpha: light ? 0.06 : 0.08);
+/// The shared base plus one mixin per theme concern.
+final class _AppTheme extends _AppThemeBase
+    with
+        _AppThemeButtons,
+        _AppThemeControls,
+        _AppThemeInputs,
+        _AppThemeSurfaces {
+  _AppTheme({
+    required super.brightness,
+    required super.cs,
+    required super.t,
+    required super.tt,
+    required super.hover,
+    required super.pressed,
+    required super.focus,
+    required super.disabledFg,
+    required super.disabledBg,
+  });
 
-  final filledButtonStyle = ButtonStyle(
-    elevation: const WidgetStatePropertyAll(0),
-    shape: buttonShape,
-    minimumSize: buttonMinSize,
-    padding: buttonPadding,
-    textStyle: buttonText,
-    splashFactory: NoSplash.splashFactory,
-    backgroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledBg : cs.primary,
-    ),
-    foregroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : cs.onPrimary,
-    ),
-    iconColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : cs.onPrimary,
-    ),
-    iconSize: const WidgetStatePropertyAll(17),
-    overlayColor: overlay(
-      hoverColor: Colors.white.withValues(alpha: 0.10),
-      pressedColor: Colors.black.withValues(alpha: 0.12),
-      focusColor: Colors.white.withValues(alpha: 0.14),
-    ),
-  );
+  ThemeData build() {
+    final transcriptTokens = TranscriptTypographyTokens.build(
+      useSerif: true,
+      base: tt,
+      scheme: cs,
+    );
 
-  final outlinedButtonStyle = ButtonStyle(
-    elevation: const WidgetStatePropertyAll(0),
-    shape: buttonShape,
-    minimumSize: buttonMinSize,
-    padding: buttonPadding,
-    textStyle: buttonText,
-    splashFactory: NoSplash.splashFactory,
-    backgroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? Colors.transparent : t.paper,
-    ),
-    foregroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : cs.onSurface,
-    ),
-    iconColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : cs.onSurface,
-    ),
-    iconSize: const WidgetStatePropertyAll(17),
-    side: WidgetStateProperty.resolveWith(
-      (s) => BorderSide(
-        color: s.contains(WidgetState.disabled)
-            ? cs.outlineVariant
-            : (light ? cs.outline.withValues(alpha: 0.75) : cs.outline),
-      ),
-    ),
-    overlayColor: overlay(),
-  );
-
-  final textButtonStyle = ButtonStyle(
-    elevation: const WidgetStatePropertyAll(0),
-    shape: buttonShape,
-    minimumSize: WidgetStatePropertyAll(Size(48, t.controlHeightSm + 4)),
-    padding: WidgetStatePropertyAll(
-      EdgeInsets.symmetric(horizontal: t.space12),
-    ),
-    textStyle: buttonText,
-    splashFactory: NoSplash.splashFactory,
-    foregroundColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.brandInk,
-    ),
-    iconColor: WidgetStateProperty.resolveWith(
-      (s) => s.contains(WidgetState.disabled) ? disabledFg : t.brandInk,
-    ),
-    iconSize: const WidgetStatePropertyAll(17),
-    overlayColor: overlay(
-      hoverColor: t.brandInk.withValues(alpha: 0.08),
-      pressedColor: t.brandInk.withValues(alpha: 0.14),
-    ),
-  );
-
-  final iconButtonStyle = ButtonStyle(
-    shape: WidgetStatePropertyAll(enjoyShape(t.radiusMd - 2)),
-    splashFactory: NoSplash.splashFactory,
-    iconSize: const WidgetStatePropertyAll(20),
-    foregroundColor: WidgetStateProperty.resolveWith((s) {
-      if (s.contains(WidgetState.disabled)) return disabledFg;
-      if (s.contains(WidgetState.selected)) return t.brandInk;
-      return cs.onSurfaceVariant;
-    }),
-    overlayColor: overlay(),
-  );
-
-  final inputRadius = BorderRadius.circular(t.radiusControl);
-  OutlineInputBorder inputBorder(Color color, [double width = 1]) =>
-      OutlineInputBorder(
-        borderRadius: inputRadius,
-        borderSide: BorderSide(color: color, width: width),
-      );
-
-  final menuStyle = MenuStyle(
-    backgroundColor: WidgetStatePropertyAll(t.raised),
-    surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-    elevation: const WidgetStatePropertyAll(12),
-    shadowColor: WidgetStatePropertyAll(
-      Colors.black.withValues(alpha: light ? 0.28 : 0.7),
-    ),
-    shape: WidgetStatePropertyAll(
-      enjoyShape(t.radiusMd, side: BorderSide(color: t.line)),
-    ),
-    padding: WidgetStatePropertyAll(EdgeInsets.all(t.space4 + 2)),
-  );
-
-  return ThemeData(
-    colorScheme: cs,
-    useMaterial3: true,
-    brightness: brightness,
-    visualDensity: VisualDensity.adaptivePlatformDensity,
-    splashFactory: NoSplash.splashFactory,
-    splashColor: Colors.transparent,
-    highlightColor: pressed,
-    hoverColor: hover,
-    focusColor: focus,
-    canvasColor: t.raised,
-    cardColor: t.paper,
-    dividerColor: t.line,
-    disabledColor: disabledFg,
-    extensions: <ThemeExtension<dynamic>>[t, transcriptTokens],
-    textTheme: tt,
-    scaffoldBackgroundColor: Colors.transparent,
-    cupertinoOverrideTheme: CupertinoThemeData(
+    return ThemeData(
+      colorScheme: cs,
+      useMaterial3: true,
       brightness: brightness,
-      primaryColor: cs.primary,
-    ),
-    appBarTheme: AppBarTheme(
-      centerTitle: false,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      toolbarHeight: 52,
-      backgroundColor: Colors.transparent,
-      foregroundColor: cs.onSurface,
-      surfaceTintColor: Colors.transparent,
-      iconTheme: IconThemeData(color: cs.onSurface, size: 20),
-      actionsIconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 20),
-      titleTextStyle: tt.titleLarge,
-    ),
-    cardTheme: CardThemeData(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      color: t.paper,
-      surfaceTintColor: Colors.transparent,
-      shadowColor: Colors.transparent,
-      shape: enjoyShape(t.radiusCard, side: BorderSide(color: t.line)),
-    ),
-    listTileTheme: ListTileThemeData(
-      contentPadding: EdgeInsets.symmetric(horizontal: t.space16),
-      iconColor: cs.onSurfaceVariant,
-      textColor: cs.onSurface,
-      titleTextStyle: tt.titleMedium,
-      subtitleTextStyle: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-      leadingAndTrailingTextStyle: tt.bodySmall?.copyWith(
-        color: cs.onSurfaceVariant,
-      ),
-      minVerticalPadding: 10,
-      minLeadingWidth: 24,
-      horizontalTitleGap: t.space12,
-      selectedColor: t.brandInk,
-      selectedTileColor: t.brandSoft,
-      shape: enjoyShape(t.radiusMd - 2),
-    ),
-    navigationBarTheme: NavigationBarThemeData(
-      height: t.bottomNavHeight,
-      backgroundColor: t.paper,
-      indicatorColor: t.brandSoft,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      labelTextStyle: WidgetStatePropertyAll(tt.labelSmall),
-    ),
-    navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: Colors.transparent,
-      indicatorColor: t.brandSoft,
-      selectedIconTheme: IconThemeData(color: t.brandInk, size: 20),
-      unselectedIconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 20),
-      selectedLabelTextStyle: tt.labelMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: cs.onSurface,
-      ),
-      unselectedLabelTextStyle: tt.labelMedium?.copyWith(
-        color: cs.onSurfaceVariant,
-      ),
-    ),
-    sliderTheme: SliderThemeData(
-      // ignore: deprecated_member_use
-      year2023: true,
-      trackHeight: 4,
-      thumbShape: const RoundSliderThumbShape(
-        enabledThumbRadius: 8,
-        elevation: 2,
-        pressedElevation: 3,
-      ),
-      overlayShape: SliderComponentShape.noOverlay,
-      activeTrackColor: t.original,
-      inactiveTrackColor: t.sunk,
-      thumbColor: Colors.white,
-      overlayColor: Colors.transparent,
-      valueIndicatorColor: t.ink,
-      valueIndicatorTextStyle: tt.labelSmall?.copyWith(color: t.ground),
-    ),
-    snackBarTheme: SnackBarThemeData(
-      behavior: SnackBarBehavior.floating,
-      elevation: 8,
-      shape: enjoyShape(
-        t.radiusLg,
-        side: BorderSide(color: light ? Colors.transparent : t.line),
-      ),
-      backgroundColor: t.ink,
-      contentTextStyle: tt.bodyMedium?.copyWith(color: t.ground),
-      actionTextColor: t.originalInk,
-      showCloseIcon: false,
-      closeIconColor: light ? AppColors.onSurfaceDark : cs.onSurface,
-      dismissDirection: DismissDirection.horizontal,
-      insetPadding: EdgeInsets.all(t.space16),
-    ),
-    bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: t.raised,
-      modalBackgroundColor: t.raised,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      modalElevation: 0,
-      shadowColor: Colors.transparent,
-      shape: RoundedSuperellipseBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(t.radiusSheet),
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      dragHandleColor: cs.onSurfaceVariant.withValues(alpha: 0.35),
-      dragHandleSize: const Size(36, 5),
-      showDragHandle: true,
-      constraints: const BoxConstraints(maxWidth: 640),
-    ),
-    filledButtonTheme: FilledButtonThemeData(style: filledButtonStyle),
-    elevatedButtonTheme: ElevatedButtonThemeData(style: filledButtonStyle),
-    outlinedButtonTheme: OutlinedButtonThemeData(style: outlinedButtonStyle),
-    textButtonTheme: TextButtonThemeData(style: textButtonStyle),
-    iconButtonTheme: IconButtonThemeData(style: iconButtonStyle),
-    segmentedButtonTheme: SegmentedButtonThemeData(
-      style: ButtonStyle(
-        splashFactory: NoSplash.splashFactory,
-        visualDensity: VisualDensity.compact,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: WidgetStatePropertyAll(
-          tt.labelMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        shape: WidgetStatePropertyAll(enjoyShape(t.radiusSm + 1)),
-        side: WidgetStatePropertyAll(BorderSide(color: t.line)),
-        backgroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? t.paper : t.fill,
-        ),
-        foregroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected)
-              ? cs.onSurface
-              : cs.onSurfaceVariant,
-        ),
-        iconColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected)
-              ? t.brandInk
-              : cs.onSurfaceVariant,
-        ),
-        overlayColor: overlay(),
-      ),
-      selectedIcon: const SizedBox.shrink(),
-    ),
-    toggleButtonsTheme: ToggleButtonsThemeData(
-      borderRadius: BorderRadius.circular(t.radiusSm),
-      borderColor: t.line,
-      selectedBorderColor: t.line,
-      fillColor: t.paper,
-      selectedColor: cs.onSurface,
-      color: cs.onSurfaceVariant,
-    ),
-    switchTheme: SwitchThemeData(
-      thumbIcon: const WidgetStatePropertyAll(Icon(null)),
-      thumbColor: WidgetStateProperty.resolveWith((s) {
-        if (s.contains(WidgetState.disabled)) {
-          return light ? const Color(0xFFF4F4F6) : const Color(0xFF5A5A64);
-        }
-        return Colors.white;
-      }),
-      trackColor: WidgetStateProperty.resolveWith((s) {
-        if (s.contains(WidgetState.selected)) {
-          return s.contains(WidgetState.disabled)
-              ? cs.primary.withValues(alpha: 0.4)
-              : cs.primary;
-        }
-        return light ? const Color(0xFFDCDCE3) : const Color(0xFF34343D);
-      }),
-      trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
-      trackOutlineWidth: const WidgetStatePropertyAll(0),
-      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-      splashRadius: 0,
-      padding: EdgeInsets.zero,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    ),
-    checkboxTheme: CheckboxThemeData(
-      shape: enjoyShape(5),
-      side: WidgetStateBorderSide.resolveWith(
-        (s) => s.contains(WidgetState.selected)
-            ? BorderSide(color: cs.primary, width: 1.5)
-            : BorderSide(color: cs.outline, width: 1.5),
-      ),
-      fillColor: WidgetStateProperty.resolveWith(
-        (s) =>
-            s.contains(WidgetState.selected) ? cs.primary : Colors.transparent,
-      ),
-      checkColor: const WidgetStatePropertyAll(Colors.white),
-      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-      splashRadius: 0,
-    ),
-    radioTheme: RadioThemeData(
-      fillColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? cs.primary : cs.outline,
-      ),
-      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-      splashRadius: 0,
-    ),
-    iconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 22),
-    primaryIconTheme: IconThemeData(color: cs.onPrimary, size: 22),
-    dividerTheme: DividerThemeData(color: t.line, thickness: 1, space: 1),
-    dialogTheme: DialogThemeData(
-      elevation: 16,
-      shadowColor: Colors.black.withValues(alpha: light ? 0.32 : 0.8),
-      shape: enjoyShape(
-        t.radiusDialog,
-        side: BorderSide(color: light ? Colors.transparent : t.line),
-      ),
-      backgroundColor: t.raised,
-      surfaceTintColor: Colors.transparent,
-      barrierColor: t.scrim,
-      titleTextStyle: tt.displaySmall?.copyWith(
-        fontSize: 22,
-        fontWeight: FontWeight.w500,
-        height: 1.25,
-        letterSpacing: -0.4,
-        color: cs.onSurface,
-      ),
-      contentTextStyle: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-      insetPadding: EdgeInsets.symmetric(
-        horizontal: t.space24,
-        vertical: t.space24,
-      ),
-      actionsPadding: EdgeInsets.fromLTRB(
-        t.space20,
-        t.space8,
-        t.space20,
-        t.space20,
-      ),
-    ),
-    popupMenuTheme: PopupMenuThemeData(
-      color: t.raised,
-      surfaceTintColor: Colors.transparent,
-      shadowColor: Colors.black.withValues(alpha: light ? 0.28 : 0.7),
-      shape: enjoyShape(t.radiusMd, side: BorderSide(color: t.line)),
-      elevation: 12,
-      textStyle: tt.bodyMedium,
-      labelTextStyle: WidgetStatePropertyAll(tt.bodyMedium),
-      menuPadding: EdgeInsets.all(t.space4 + 2),
-      position: PopupMenuPosition.under,
-      iconColor: cs.onSurfaceVariant,
-      iconSize: 18,
-    ),
-    menuTheme: MenuThemeData(style: menuStyle),
-    dropdownMenuTheme: DropdownMenuThemeData(
-      menuStyle: menuStyle,
-      textStyle: tt.bodyMedium,
-      inputDecorationTheme: InputDecorationThemeData(
-        filled: true,
-        fillColor: t.paper,
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: t.space12,
-          vertical: t.space8,
-        ),
-        border: inputBorder(t.line),
-        enabledBorder: inputBorder(t.line),
-        focusedBorder: inputBorder(t.original, 1.5),
-      ),
-    ),
-    tooltipTheme: TooltipThemeData(
-      decoration: ShapeDecoration(
-        color: t.ink,
-        shape: enjoyShape(t.radiusSm - 1),
-      ),
-      textStyle: tt.labelSmall?.copyWith(
-        color: t.ground,
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      waitDuration: const Duration(milliseconds: 450),
-      preferBelow: true,
-      verticalOffset: 18,
-    ),
-    inputDecorationTheme: InputDecorationThemeData(
-      filled: true,
-      fillColor: t.paper,
-      hoverColor: Colors.transparent,
-      border: inputBorder(t.line),
-      enabledBorder: inputBorder(t.line),
-      disabledBorder: inputBorder(t.line.withValues(alpha: 0.6)),
-      focusedBorder: inputBorder(t.original, 1.5),
-      errorBorder: inputBorder(cs.error.withValues(alpha: 0.7)),
-      focusedErrorBorder: inputBorder(cs.error, 1.5),
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: t.space12 + 2,
-        vertical: t.space12,
-      ),
-      isDense: false,
-      hintStyle: tt.bodyMedium?.copyWith(color: t.ink3),
-      labelStyle: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-      floatingLabelStyle: tt.labelLarge?.copyWith(
-        color: t.ink2,
-        fontWeight: FontWeight.w600,
-      ),
-      helperStyle: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-      errorStyle: tt.bodySmall?.copyWith(color: cs.error),
-      prefixIconColor: cs.onSurfaceVariant,
-      suffixIconColor: cs.onSurfaceVariant,
-      prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 36),
-      focusColor: focus,
-    ),
-    chipTheme: ChipThemeData(
-      shape: const StadiumBorder(),
-      side: BorderSide.none,
-      backgroundColor: t.sunk,
-      selectedColor: t.ink,
-      disabledColor: t.sunk.withValues(alpha: 0.5),
-      secondarySelectedColor: t.ink,
-      labelStyle: tt.labelMedium?.copyWith(color: t.ink),
-      secondaryLabelStyle: tt.labelMedium?.copyWith(color: t.ground),
-      iconTheme: IconThemeData(color: cs.onSurfaceVariant, size: 15),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-      showCheckmark: false,
-      checkmarkColor: t.ground,
-      elevation: 0,
-      pressElevation: 0,
-      surfaceTintColor: Colors.transparent,
-    ),
-    badgeTheme: BadgeThemeData(
-      backgroundColor: cs.error,
-      textColor: Colors.white,
-      smallSize: 7,
-      largeSize: 16,
-      textStyle: tt.labelSmall?.copyWith(
-        fontSize: 10.5,
-        fontWeight: FontWeight.w700,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-    ),
-    progressIndicatorTheme: ProgressIndicatorThemeData(
-      // ignore: deprecated_member_use
-      year2023: true,
-      color: cs.primary,
-      linearTrackColor: t.fill,
-      circularTrackColor: Colors.transparent,
-      linearMinHeight: 4,
-      borderRadius: BorderRadius.circular(t.radiusFull),
-      strokeCap: StrokeCap.round,
-    ),
-    tabBarTheme: TabBarThemeData(
-      labelColor: cs.onSurface,
-      unselectedLabelColor: cs.onSurfaceVariant,
-      labelStyle: tt.titleSmall,
-      unselectedLabelStyle: tt.titleSmall?.copyWith(
-        fontWeight: FontWeight.w500,
-      ),
-      indicatorSize: TabBarIndicatorSize.label,
-      indicator: UnderlineTabIndicator(
-        borderSide: BorderSide(color: cs.primary, width: 2),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
-      ),
-      dividerColor: t.line,
-      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+      visualDensity: VisualDensity.adaptivePlatformDensity,
       splashFactory: NoSplash.splashFactory,
-    ),
-    expansionTileTheme: ExpansionTileThemeData(
-      shape: const Border(),
-      collapsedShape: const Border(),
-      iconColor: cs.onSurfaceVariant,
-      collapsedIconColor: cs.onSurfaceVariant,
-      tilePadding: EdgeInsets.symmetric(horizontal: t.space16),
-    ),
-    textSelectionTheme: TextSelectionThemeData(
-      cursorColor: t.original,
-      selectionColor: t.originalSoft,
-      selectionHandleColor: t.original,
-    ),
-    pageTransitionsTheme: const PageTransitionsTheme(
-      builders: {
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.macOS: EnjoyGlidePageTransitionsBuilder(),
-        TargetPlatform.android: EnjoyGlidePageTransitionsBuilder(),
-        TargetPlatform.fuchsia: EnjoyGlidePageTransitionsBuilder(),
-        TargetPlatform.linux: EnjoyGlidePageTransitionsBuilder(),
-        TargetPlatform.windows: EnjoyGlidePageTransitionsBuilder(),
-      },
-    ),
-    scrollbarTheme: ScrollbarThemeData(
-      thickness: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.hovered) ? 8 : 5,
+      splashColor: Colors.transparent,
+      highlightColor: pressed,
+      hoverColor: hover,
+      focusColor: focus,
+      canvasColor: t.raised,
+      cardColor: t.paper,
+      dividerColor: t.line,
+      disabledColor: disabledFg,
+      extensions: <ThemeExtension<dynamic>>[t, transcriptTokens],
+      textTheme: tt,
+      scaffoldBackgroundColor: Colors.transparent,
+      cupertinoOverrideTheme: CupertinoThemeData(
+        brightness: brightness,
+        primaryColor: cs.primary,
       ),
-      radius: Radius.circular(t.radiusFull),
-      thumbColor: WidgetStateProperty.resolveWith(
-        (s) => t.ink3.withValues(
-          alpha: s.contains(WidgetState.dragged)
-              ? 0.6
-              : s.contains(WidgetState.hovered)
-              ? 0.5
-              : 0.4,
-        ),
+      appBarTheme: appBarTheme,
+      cardTheme: cardTheme,
+      listTileTheme: listTileTheme,
+      navigationBarTheme: navigationBarTheme,
+      navigationRailTheme: navigationRailTheme,
+      sliderTheme: sliderTheme,
+      snackBarTheme: snackBarTheme,
+      bottomSheetTheme: bottomSheetTheme,
+      filledButtonTheme: FilledButtonThemeData(style: filledButtonStyle),
+      elevatedButtonTheme: ElevatedButtonThemeData(style: filledButtonStyle),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: outlinedButtonStyle),
+      textButtonTheme: TextButtonThemeData(style: textButtonStyle),
+      iconButtonTheme: IconButtonThemeData(style: iconButtonStyle),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: segmentedButtonStyle,
+        selectedIcon: const SizedBox.shrink(),
       ),
-      crossAxisMargin: 3,
-      mainAxisMargin: 6,
-    ),
-  );
+      toggleButtonsTheme: toggleButtonsTheme,
+      switchTheme: switchTheme,
+      checkboxTheme: checkboxTheme,
+      radioTheme: radioTheme,
+      iconTheme: iconTheme,
+      primaryIconTheme: primaryIconTheme,
+      dividerTheme: dividerTheme,
+      dialogTheme: dialogTheme,
+      popupMenuTheme: popupMenuTheme,
+      menuTheme: menuTheme,
+      dropdownMenuTheme: dropdownMenuTheme,
+      tooltipTheme: tooltipTheme,
+      inputDecorationTheme: inputDecorationTheme,
+      chipTheme: chipTheme,
+      badgeTheme: badgeTheme,
+      progressIndicatorTheme: progressIndicatorTheme,
+      tabBarTheme: tabBarTheme,
+      expansionTileTheme: expansionTileTheme,
+      textSelectionTheme: textSelectionTheme,
+      pageTransitionsTheme: pageTransitionsTheme,
+      scrollbarTheme: scrollbarTheme,
+    );
+  }
 }
 
 /// Status / navigation bar chrome that follows porcelain vs midnight.
