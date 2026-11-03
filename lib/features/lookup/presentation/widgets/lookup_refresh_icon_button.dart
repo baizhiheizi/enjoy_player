@@ -10,21 +10,17 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Header-area refresh control for lookup sheet sections (cache bust + refetch).
 ///
-/// Shows a spinner and ignores taps while [isRefreshing] is true or immediately
+/// Shows a spinner and ignores taps while [isRetrying] is true or immediately
 /// after a tap until the parent reports loading (responsive feedback).
-class LookupRefreshIconButton extends StatefulWidget {
+class LookupRefreshIconButton extends ParentRetryWidget {
   const LookupRefreshIconButton({
     required this.l10n,
-    required this.onPressed,
-    this.isRefreshing = false,
+    required super.onRetry,
+    super.isRetrying,
     super.key,
   });
 
   final AppLocalizations l10n;
-  final VoidCallback onPressed;
-
-  /// When true (e.g. Riverpod [AsyncValue.isRefreshing]), the control stays busy.
-  final bool isRefreshing;
 
   @override
   State<LookupRefreshIconButton> createState() =>
@@ -33,15 +29,6 @@ class LookupRefreshIconButton extends StatefulWidget {
 
 class _LookupRefreshIconButtonState extends State<LookupRefreshIconButton>
     with LatchedRetryState<LookupRefreshIconButton> {
-  @override
-  bool get parentRetryBusy => widget.isRefreshing;
-
-  @override
-  bool wasParentRetryBusy(covariant LookupRefreshIconButton oldWidget) =>
-      oldWidget.isRefreshing;
-
-  void _handlePressed() => retry(widget.onPressed);
-
   @override
   Widget build(BuildContext context) {
     final busy = retryBusy;
@@ -56,7 +43,7 @@ class _LookupRefreshIconButtonState extends State<LookupRefreshIconButton>
         iconSize: 20,
       ),
       tooltip: busy ? null : widget.l10n.lookupRefresh,
-      onPressed: busy ? null : _handlePressed,
+      onPressed: busy ? null : retry,
       icon: busy
           ? LoadingIcon(size: 20, color: scheme.primary)
           : const Icon(EnjoyIcons.refresh, size: 20),

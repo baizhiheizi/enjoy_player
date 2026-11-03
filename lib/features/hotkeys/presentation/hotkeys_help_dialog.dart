@@ -12,11 +12,11 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
-import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definitions.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_description.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_filter.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_cheatsheet_open.dart';
+import 'package:enjoy_player/features/hotkeys/presentation/widgets/hotkey_row.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -29,9 +29,6 @@ class HotkeysHelpDialog extends ConsumerStatefulWidget {
   @override
   ConsumerState<HotkeysHelpDialog> createState() => _HotkeysHelpDialogState();
 }
-
-List<HotkeyDefinition> _hotkeyDefinitionsForScope(HotkeyScope scope) =>
-    hotkeyDefinitions.where((d) => d.scope == scope).toList();
 
 class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
   final _search = TextEditingController();
@@ -53,11 +50,6 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
 
     ref.watch(hotkeysCtrlProvider);
     final ctrl = ref.read(hotkeysCtrlProvider.notifier);
-
-    String effective(String id) => ctrl.effectiveKeys(id);
-
-    bool matches(HotkeyDefinition d) =>
-        hotkeyDefinitionMatchesQuery(d, _search.text, l10n, effective);
 
     return Dialog(
       backgroundColor: cs.surfaceContainerHigh,
@@ -146,7 +138,7 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
                 SizedBox(height: t.space16),
                 Expanded(
                   child: _HotkeysHelpList(
-                    matches: matches,
+                    query: _search.text,
                     ctrl: ctrl,
                     l10n: l10n,
                   ),
@@ -185,12 +177,12 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
 
 class _HotkeysHelpList extends StatelessWidget {
   const _HotkeysHelpList({
-    required this.matches,
+    required this.query,
     required this.ctrl,
     required this.l10n,
   });
 
-  final bool Function(HotkeyDefinition def) matches;
+  final String query;
   final HotkeysCtrl ctrl;
   final AppLocalizations l10n;
 
@@ -212,51 +204,14 @@ class _HotkeysHelpList extends StatelessWidget {
         final gap = t.space16;
         final colWidth = twoCol ? (listWidth - gap) / 2 : listWidth;
 
-        final children = <Widget>[];
-        var any = false;
-        for (final scope in HotkeyScope.values) {
-          final defs = _hotkeyDefinitionsForScope(
-            scope,
-          ).where(matches).toList();
-          if (defs.isEmpty) continue;
-          any = true;
-          children.add(
-            Padding(
-              padding: EdgeInsets.only(
-                top: children.isEmpty ? 0 : t.space12,
-                bottom: t.space8,
-              ),
-              child: Text(
-                hotkeysScopeLabel(l10n, scope).toUpperCase(),
-                style: tt.labelSmall?.copyWith(
-                  letterSpacing: 1.0,
-                  fontWeight: FontWeight.w600,
-                  color: cs.onSurfaceVariant,
-                ),
-              ),
-            ),
-          );
-          children.add(
-            Wrap(
-              spacing: gap,
-              runSpacing: t.space8,
-              children: [
-                for (final def in defs)
-                  SizedBox(
-                    width: colWidth,
-                    child: _HotkeyHelpRow(
-                      description: hotkeyDescription(l10n, def),
-                      customized: ctrl.hasCustomBinding(def.id),
-                      customizedLabel: l10n.hotkeysCustomizedBadge,
-                      binding: ctrl.effectiveKeys(def.id),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }
+        final groups = hotkeyScopeGroups(
+          hotkeyDefinitions,
+          query: query,
+          l10n: l10n,
+          effectiveKeys: ctrl.effectiveKeys,
+        );
 
-        if (!any) {
+        if (groups.isEmpty) {
           return Center(
             child: Text(
               l10n.hotkeysHelpEmpty,
@@ -269,7 +224,40 @@ class _HotkeysHelpList extends StatelessWidget {
           padding: EdgeInsetsDirectional.only(end: trailingPad),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: children,
+            children: [
+              for (final (index, (scope, defs)) in groups.indexed) ...[
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: index == 0 ? 0 : t.space12,
+                    bottom: t.space8,
+                  ),
+                  child: Text(
+                    hotkeysScopeLabel(l10n, scope).toUpperCase(),
+                    style: tt.labelSmall?.copyWith(
+                      letterSpacing: 1.0,
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Wrap(
+                  spacing: gap,
+                  runSpacing: t.space8,
+                  children: [
+                    for (final def in defs)
+                      SizedBox(
+                        width: colWidth,
+                        child: _HotkeyHelpRow(
+                          description: hotkeyDescription(l10n, def),
+                          customized: ctrl.hasCustomBinding(def.id),
+                          customizedLabel: l10n.hotkeysCustomizedBadge,
+                          binding: ctrl.effectiveKeys(def.id),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ],
           ),
         );
       },
@@ -293,26 +281,15 @@ class _HotkeyHelpRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final tt = Theme.of(context).textTheme;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: Wrap(
-            spacing: t.space8,
-            runSpacing: t.space4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(description, style: tt.bodyMedium),
-              if (customized)
-                Chip(
-                  label: Text(customizedLabel, style: tt.labelSmall),
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  labelPadding: EdgeInsets.symmetric(horizontal: t.space8),
-                ),
-            ],
+          child: HotkeyRowContent(
+            description: description,
+            customized: customized,
+            customizedLabel: customizedLabel,
           ),
         ),
         SizedBox(width: t.space12),

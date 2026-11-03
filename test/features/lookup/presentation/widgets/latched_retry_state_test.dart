@@ -2,11 +2,8 @@ import 'package:enjoy_player/features/lookup/presentation/widgets/latched_retry_
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class _Harness extends StatefulWidget {
-  const _Harness({required this.onRetry, this.isRetrying = false});
-
-  final VoidCallback onRetry;
-  final bool isRetrying;
+class _Harness extends ParentRetryWidget {
+  const _Harness({required super.onRetry, super.isRetrying});
 
   @override
   State<_Harness> createState() => _HarnessState();
@@ -14,15 +11,9 @@ class _Harness extends StatefulWidget {
 
 class _HarnessState extends State<_Harness> with LatchedRetryState<_Harness> {
   @override
-  bool get parentRetryBusy => widget.isRetrying;
-
-  @override
-  bool wasParentRetryBusy(covariant _Harness oldWidget) => oldWidget.isRetrying;
-
-  @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: retryBusy ? null : () => retry(widget.onRetry),
+      onPressed: retryBusy ? null : retry,
       child: Text(retryBusy ? 'busy' : 'idle'),
     );
   }
