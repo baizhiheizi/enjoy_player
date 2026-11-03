@@ -114,6 +114,115 @@ class PitchContourChart extends StatelessWidget {
   }
 }
 
+typedef PitchContourRuns = ({
+  List<List<(double, double)>> reference,
+  List<List<(double, double)>> user,
+});
+
+class _PitchRunsCache {
+  List<List<(double, double)>>? reference;
+  List<List<(double, double)>>? user;
+}
+
+final Expando<_PitchRunsCache> _pitchRunsByPoints = Expando();
+
+@visibleForTesting
+int pitchContourRunsDerivationCount = 0;
+
+/// Voiced contour runs for [points], memoized per series on the list's
+/// identity: playback progress ticks repaint the chart with the same series,
+/// so each series is derived once per list instead of once per paint. The
+/// cache entry dies with the list; lists passed here must not be mutated
+/// after construction (the merged-series memo owns the instance).
+PitchContourRuns pitchContourRuns(
+  List<EchoRegionSeriesPoint> points, {
+  required bool showReference,
+  required bool showUser,
+}) {
+  final cache = _pitchRunsByPoints[points] ??= _PitchRunsCache();
+  final reference = showReference
+      ? (cache.reference ??= _derivePitchRuns(points, (p) => p.pitchRefHz))
+      : const <List<(double, double)>>[];
+  final user = showUser
+      ? (cache.user ??= _derivePitchRuns(points, (p) => p.pitchUserHz))
+      : const <List<(double, double)>>[];
+  return (reference: reference, user: user);
+}
+
+double _pitchSemitones(double hz) => 12 * math.log(hz) / math.ln2;
+
+bool _pitchVoiced(double? hz) => hz != null && hz.isFinite && hz > 0;
+
+List<(double, double)> _medianFilterRun(List<(double, double)> run) {
+  if (run.length < 5) return run;
+  return [
+    for (var i = 0; i < run.length; i++)
+      (
+        run[i].$1,
+        (([
+          for (
+            var j = math.max(0, i - 2);
+            j <= math.min(run.length - 1, i + 2);
+            j++
+          )
+            run[j].$2,
+        ]..sort())[(math.min(run.length - 1, i + 2) - math.max(0, i - 2)) ~/
+            2]),
+      ),
+  ];
+}
+
+/// Splits a series into voiced runs: a run ends at a time gap wider than
+/// [kPitchContourMaxGapSec], so pauses never get bridged by a straight line.
+/// Runs shorter than [kPitchContourMinRunSec] are dropped, octave errors
+/// are folded toward the median pitch, and each run is median-filtered
+/// (5 points) to remove single-frame spikes.
+List<List<(double, double)>> _derivePitchRuns(
+  List<EchoRegionSeriesPoint> points,
+  double? Function(EchoRegionSeriesPoint) hz,
+) {
+  pitchContourRunsDerivationCount++;
+  final raw = <List<(double, double)>>[];
+  List<(double, double)>? current;
+  double? lastT;
+  for (final p in points) {
+    final v = hz(p);
+    if (!_pitchVoiced(v)) continue;
+    if (current == null ||
+        (lastT != null && p.t - lastT > kPitchContourMaxGapSec)) {
+      current = [];
+      raw.add(current);
+    }
+    current.add((p.t, _pitchSemitones(v!)));
+    lastT = p.t;
+  }
+  final kept = [
+    for (final run in raw)
+      if (run.last.$1 - run.first.$1 >= kPitchContourMinRunSec) run,
+  ];
+  final all = [
+    for (final run in kept)
+      for (final (_, st) in run) st,
+  ]..sort();
+  if (all.isEmpty) return const [];
+  final center = all[all.length ~/ 2];
+  double fold(double st) {
+    var v = st;
+    while (v - center > kPitchContourOctaveFoldSemitones) {
+      v -= 12;
+    }
+    while (center - v > kPitchContourOctaveFoldSemitones) {
+      v += 12;
+    }
+    return v;
+  }
+
+  return [
+    for (final run in kept)
+      _medianFilterRun([for (final (t, st) in run) (t, fold(st))]),
+  ];
+}
+
 class _PitchContourPainter extends CustomPainter {
   _PitchContourPainter({
     required this.points,
@@ -131,89 +240,18 @@ class _PitchContourPainter extends CustomPainter {
   final double? progress;
   final Color progressColor;
 
-  static double _semitones(double hz) => 12 * math.log(hz) / math.ln2;
-
-  static bool _voiced(double? hz) => hz != null && hz.isFinite && hz > 0;
-
-  /// Splits a series into voiced runs: a run ends at a time gap wider than
-  /// [kPitchContourMaxGapSec], so pauses never get bridged by a straight line.
-  /// Runs shorter than [kPitchContourMinRunSec] are dropped, octave errors
-  /// are folded toward the median pitch, and each run is median-filtered
-  /// (5 points) to remove single-frame spikes.
-  List<List<(double, double)>> _runs(
-    double? Function(EchoRegionSeriesPoint) hz,
-  ) {
-    final raw = <List<(double, double)>>[];
-    List<(double, double)>? current;
-    double? lastT;
-    for (final p in points) {
-      final v = hz(p);
-      if (!_voiced(v)) continue;
-      if (current == null ||
-          (lastT != null && p.t - lastT > kPitchContourMaxGapSec)) {
-        current = [];
-        raw.add(current);
-      }
-      current.add((p.t, _semitones(v!)));
-      lastT = p.t;
-    }
-    final kept = [
-      for (final run in raw)
-        if (run.last.$1 - run.first.$1 >= kPitchContourMinRunSec) run,
-    ];
-    final all = [
-      for (final run in kept)
-        for (final (_, st) in run) st,
-    ]..sort();
-    if (all.isEmpty) return const [];
-    final center = all[all.length ~/ 2];
-    double fold(double st) {
-      var v = st;
-      while (v - center > kPitchContourOctaveFoldSemitones) {
-        v -= 12;
-      }
-      while (center - v > kPitchContourOctaveFoldSemitones) {
-        v += 12;
-      }
-      return v;
-    }
-
-    return [
-      for (final run in kept)
-        _median([for (final (t, st) in run) (t, fold(st))]),
-    ];
-  }
-
-  static List<(double, double)> _median(List<(double, double)> run) {
-    if (run.length < 5) return run;
-    return [
-      for (var i = 0; i < run.length; i++)
-        (
-          run[i].$1,
-          (([
-            for (
-              var j = math.max(0, i - 2);
-              j <= math.min(run.length - 1, i + 2);
-              j++
-            )
-              run[j].$2,
-          ]..sort())[(math.min(run.length - 1, i + 2) - math.max(0, i - 2)) ~/
-              2]),
-        ),
-    ];
-  }
-
   @override
   void paint(Canvas canvas, Size size) {
     final maxT = points.last.t;
     if (maxT <= 0) return;
 
-    final refRuns = visibility.showReference
-        ? _runs((p) => p.pitchRefHz)
-        : const <List<(double, double)>>[];
-    final userRuns = visibility.showUser
-        ? _runs((p) => p.pitchUserHz)
-        : const <List<(double, double)>>[];
+    final runs = pitchContourRuns(
+      points,
+      showReference: visibility.showReference,
+      showUser: visibility.showUser,
+    );
+    final refRuns = runs.reference;
+    final userRuns = runs.user;
 
     var lo = double.infinity;
     var hi = double.negativeInfinity;
