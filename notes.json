@@ -1,21 +1,21 @@
 {
   "version": 1,
   "cursors": {
-    "labelling_after": 1205,
-    "investigation_after": 1205
+    "labelling_after": 1206,
+    "investigation_after": 1206
   },
   "issues": [
     {
-      "number": 1204,
-      "state": "commented",
-      "updated_at": "2026-11-02",
-      "note": "Weekly-research died at Start MCP Gateway: the three BigModel MCP servers returned empty tools/list bodies; first run on the gh-aw v1.0.1 stack from #1149. Commented: check ZAI_API_KEY first, then the mcpg bump."
-    },
-    {
       "number": 1187,
       "state": "commented",
-      "updated_at": "2026-11-02",
-      "note": "Launch crash fixed by #1189 + test build. New in-thread symptom: desktop cannot fetch YouTube subtitles. Commented the Dart-HTTP-bypasses-system-proxy hypothesis and log triage steps; suggested its own issue."
+      "updated_at": "2026-11-03",
+      "note": "Launch crash fixed by #1189 (reporter-confirmed). Remaining: desktop cannot fetch YouTube subtitles. My 2026-11-02 analysis (Dart HTTP bypasses system proxy) awaits the reporter's log. Fix candidates: honor system proxy, or route caption fetches via the worker proxy."
+    },
+    {
+      "number": 1204,
+      "state": "commented",
+      "updated_at": "2026-11-03",
+      "note": "Weekly-research died at Start MCP Gateway: all three BigModel MCP servers returned empty tools/list bodies; first run on the gh-aw v1.0.1 stack from #1149. Awaiting ZAI_API_KEY check; mcpg v0.5.0 bump is the fallback suspect."
     }
   ],
   "fixes": [
@@ -24,27 +24,33 @@
       "pr": null,
       "branch": null,
       "status": "open",
-      "updated_at": "2026-10-28",
-      "note": "Review-session vocabulary over-fetch (VocabularyReviewSessionLifecycle.start() loads repo.listAll()) still needs a maintainer decision."
+      "updated_at": "2026-11-03",
+      "note": "Review-session vocabulary over-fetch (start() loads repo.listAll()) still needs a maintainer decision; tracked on #1192 as P3-reframed."
     }
   ],
   "checks": [
     {
       "area": "tests",
-      "checked_at": "2026-11-02",
-      "result": "validate_ci_gates --fix green (format+codegen+path-deps); focused fallback file 13/13 after F5/F6 additions; full analyze+test run in progress at run time.",
+      "checked_at": "2026-11-03",
+      "result": "validate_ci_gates --all green on the deps branch: format, codegen drift (no diff under analyzer 14.7.0), analyze, full root suite, all path packages.",
       "follow_up": null
     },
     {
+      "area": "dependencies",
+      "checked_at": "2026-11-03",
+      "result": "pub outdated: 3 direct + 7 transitive moves within constraints -> lockfile-refresh PR opened. Majors need constraint widening (maintainer decisions): ai_sdk 3.x, cached_network_image 4.x, file_picker 13, flutter_secure_storage 11, go_router 18, google_fonts 9, window_manager 0.6.",
+      "follow_up": "file_picker pinning intent: comment says exact pin + ADR-0029 lists exact, but constraint is ^12.0.0. Surfaced in monthly-2026-11; do not change unilaterally."
+    },
+    {
       "area": "release",
-      "checked_at": "2026-11-02",
-      "result": "PR #1140 (v0.10.3) merged 2026-11-01 by an-lee. Still NO v0.10.3 tag/GitHub Release object; latest published release is the issue-1187-test-1 test build.",
-      "follow_up": "v0.10.3 still only needs the maintainer's tag."
+      "checked_at": "2026-11-03",
+      "result": "v0.10.3 still untagged (pubspec 0.10.3+19, #1140 merged 2026-11-01). Latest published: issue-1187-test-1 prerelease + v0.10.1. Release objects for v0.10.2, v0.10.0, v0.9.0 still missing.",
+      "follow_up": "No v0.10.4 prep until v0.10.3 is tagged; do not bump pubspec ahead of it."
     },
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-11-02",
-      "result": "All three 2026-10-31 drafts resolved by the maintainer: #1178 (recording cursor, fixes #1164) merged, #1179 (docs drift D1/D2, resolves #1168) merged, #1140 merged. Open PRs now: #1203 (perf-improver), #1189 (human, macOS compat).",
+      "checked_at": "2026-11-03",
+      "result": "0 open repo-assist PRs before this run; opened the deps refresh. Only other open PR: #1189 (an-lee, macOS compat, reporter-confirmed, awaiting merge).",
       "follow_up": null
     }
   ],
@@ -126,27 +132,32 @@
     {
       "task": 10,
       "item": "The v0.10.3 release needs the maintainer's tag",
-      "note": "PR #1140 merged 2026-11-01 with the full changelog + release notes. No v0.10.3 release object exists yet."
+      "note": "PR #1140 merged 2026-11-01; verified still untagged 2026-11-03. No v0.10.4 prep until it ships."
     },
     {
       "task": 2,
       "item": "Watch weekly-research for recurrence (#1204)",
-      "note": "First failure: BigModel MCP servers returned empty tools/list bodies on the v1.0.1 stack. If it recurs after a key check, the mcpg v0.4.31->v0.5.0 bump from #1149 is the suspect."
+      "note": "Awaiting the maintainer's ZAI_API_KEY check. If it recurs with a valid key, the mcpg bump from #1149 is the suspect."
     },
     {
       "task": 2,
       "item": "Follow up on #1187 desktop-subtitle report when the diagnostic log arrives",
-      "note": "Hypothesis on record: Dart HTTP ignores the macOS system proxy that the webview/extension use; TUN-mode test or the log's Tier 2 error discriminates. Possible fixes: honor system proxy on desktop, or route caption fetches via the worker proxy like youtube_feed_api.dart."
+      "note": "Hypothesis: Dart HTTP ignores the macOS system proxy; TUN-mode test or the log's Tier 2 error discriminates. Fixes: honor system proxy, or route caption fetches via the worker proxy."
+    },
+    {
+      "task": 6,
+      "item": "Maintain the deps lockfile-refresh PR until merged",
+      "note": "Branch repo-assist/deps-lockfile-refresh-20261103, listed in monthly-2026-11. Fix CI/conflicts if they appear."
     },
     {
       "task": 7,
       "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
-      "note": "Still missing; needs a maintainer."
+      "note": "Still missing as of 2026-11-03; needs a maintainer."
     },
     {
       "task": 8,
       "item": "The review-session vocabulary over-fetch needs a maintainer decision",
-      "note": "On issue #864: VocabularyReviewSessionLifecycle.start() loads repo.listAll() (every row + explanation blob) and filters in Dart. Only the queued rows need the blob."
+      "note": "On #1192 (P3-reframed): start() loads repo.listAll() and filters in Dart. Only the queued rows need the blob."
     },
     {
       "task": 4,
@@ -154,9 +165,14 @@
       "note": "A new dependency needs maintainer discussion; Repo Assist will not adopt it unilaterally."
     },
     {
+      "task": 4,
+      "item": "file_picker pinning intent needs a maintainer decision",
+      "note": "Comment says exact pin and ADR-0029 lists an exact pin, but the constraint is ^12.0.0. Do not change unilaterally."
+    },
+    {
       "task": 5,
       "item": "The proactive-refactor lane stays paused by the maintainer",
-      "note": "Duplicate-code issues #1171/#1173/#1174 are the detector's output - stay out without a maintainer go-ahead."
+      "note": "Duplicate-code issues #1171/#1173/#1174 are the detector's output - stay out without a go-ahead."
     },
     {
       "task": 4,
@@ -166,7 +182,7 @@
     {
       "task": 4,
       "item": "Decide where the macOS Sparkle EdDSA private key comes from",
-      "note": "ADR-0023 wants it in a release secret; the feed gate fails the publish on an unsigned enclosure; still a maintainer decision."
+      "note": "ADR-0023 wants it in a release secret; the feed gate fails the publish on an unsigned enclosure."
     },
     {
       "task": 4,
