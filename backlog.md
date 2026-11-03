@@ -1,8 +1,10 @@
 # Performance backlog — Enjoy Player
 
-**UPDATE 2026-11-02:** P17 (blur cue-id memo) shipped this run — draft PR on
-`perf-assist/cue-id-memo` (commit `6ca3e6c4`). The code-level backlog is
-**EMPTY again**; everything below P17 is a maintainer-decision item.
+**UPDATE 2026-11-03:** P17 (blur cue-id memo) MERGED as **#1203** by an-lee
+on 2026-11-03 03:23 UTC. P18 (pitch-contour runs memo) shipped this run —
+draft PR on `perf-assist/pitch-runs-memo` (commit `fffe777f`). The
+code-level backlog is **EMPTY again**; everything below is a
+maintainer-decision item.
 
 **UPDATE 2026-10-20:** Issue #968 was **CLOSED** by `@an-lee` on 2026-10-20
 10:58 UTC with all five candidates shipped as #969–#973. The "Also verified,
@@ -267,7 +269,48 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   already holds it. A test that asserts "one derivation" must use a word whose
   phone labels are unique in the file.
 
-## P17 — Blur cue identity re-derived per tile build (SHIPPED 2026-11-02, draft PR open)
+## P18 — Pitch-contour runs re-derived per repaint (SHIPPED 2026-11-03, draft PR open)
+- File: `lib/features/shadow_reading/presentation/pitch_contour_chart.dart`
+  (`_PitchContourPainter.paint` → `_runs`/`_median`).
+- Problem: every repaint re-derived the voiced runs for BOTH series — gap
+  split, short-run filter, octave fold over a FULL sort of all semitones,
+  then a 5-point median filter with a fresh sort per point. During playback
+  the chart repaints on every display-position tick (~2.5 Hz, 400 ms bucket,
+  with the section expanded — the feature's intended use), while the runs
+  depend only on the points list. Production shape: the analyzer resolves a
+  fixed 520-point envelope per region; both series per paint ≈ 0.21 ms
+  (standalone JIT).
+- Fix: `_runs`/`_median` extracted to top-level pure functions; per-series
+  results memoized on the points LIST identity in a library-private
+  `Expando<_PitchRunsCache>` (P12/P17 pattern — `EchoMergedSeriesMemo`
+  documents the merged list as identity-stable and never mutated after
+  caching; entries die with the list a new analysis replaces).
+  `showReference`/`showUser` gate each series lazily (toggle-on derives only
+  the enabled series once). Public seam: `pitchContourRuns(points,
+  showReference:, showUser:)` returning a record; painter API unchanged;
+  `@visibleForTesting pitchContourRunsDerivationCount` pins the rate.
+- Measured (one impl per fresh process, `flutter test --run-skipped`, env
+  `PITCH_RUNS_BENCH_MODE`; n=5 per arm + interleaved pair):
+  playback repaint loop (200 ticks over one 520-point series) legacy
+  54.9–61.4 → memoized 0.038–0.087 ms/pass — median **~55.4 → ~0.06 ms
+  (~900x)**, worst pairing ~640x. Fresh-series sweep (512 distinct series)
+  cold-path parity: standalone-JIT medians plain 170.4 / memo 164.5 /
+  plain 166.9 ms; under flutter_tester BOTH modes were bimodal across
+  processes (legacy 122–169, memoized 216–224 ms) — JIT tiering noise.
+  Expando insert measured 50–80 ns/list in isolation. Sinks byte-identical
+  in every process run.
+- Correctness: differential vs the unmemoized copy over a dropout/
+  octave-error/gap-boundary corpus (incl. empty, single-point, sub-min-run,
+  exact-0.25-gap, 2000-point) + 200 fuzz cases; counter pins (once per
+  series per list; fresh equal-content list re-derives; toggle-on +1 only).
+- Test file: `test/features/shadow_reading/pitch_contour_runs_perf_test.dart`
+  (env `PITCH_RUNS_BENCH_MODE=legacy|memoized`), linked from
+  `docs/perf-measurement.md`. Full suite 7056 passed / 21 skipped.
+- Status: draft PR open on `perf-assist/pitch-runs-memo`
+  (commit `fffe777f`). PR number assigned when the framework pushes the
+  bundle.
+
+## P17 — Blur cue identity re-derived per tile build (SHIPPED 2026-11-02, MERGED 2026-11-03)
 - File: `lib/features/transcript/domain/transcript_blur.dart` (`cueIdFor`).
 - Problem: the cue identity (markup plain extraction + trim + FNV-1a over all
   code units + string build) was re-derived on every call — once per
@@ -297,7 +340,21 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 - Status: draft PR open on `perf-assist/cue-id-memo` (commit `6ca3e6c4`).
   PR number assigned when the framework pushes the bundle.
 
-## Verified non-targets (2026-11-02 scan — do NOT re-report)
+## Verified non-targets (2026-11-03 scan — do NOT re-report)
+- **Post-#1201 refactor surfaces** (Explore sweep 2026-11-03): all clean.
+  `RecordingElapsedTicker` (AnimationController repaint-only, no per-tick
+  allocs; consumers setState only on 600 ms pulses); cloud repository JSON
+  parse is once per item per page load (50/page, trivial);
+  `cloudAddToLibraryProvider.isInLibrary` = one cached provider + one async
+  Drift PK lookup per tile initState (scroll-back re-queries only, off the
+  build path); `RemoteLibraryItem` has no fromJson re-parse per build;
+  `MediaCardRow`/`MediaCardTile` per-build work is standard theme
+  construction, images bounded by `memCacheWidth`/`cacheWidth`;
+  `_thumbUrl` per rebuild = Uri.tryParse + one regex, trivial.
+- **`generativeAccentForSeed`** (per tile per build in cloud/library/
+  discover): FNV-1a over a short seed + palette index — negligible.
+
+## Older non-targets (2026-11-02 scan — do NOT re-report)
 - **`attachAlignmentToLines` fallback** (`lib/data/subtitle/
   attach_alignment_to_lines.dart:120-131`, `_wordsInWindow` re-walks the whole
   alignment tree per line): DEAD in production. `alignSegments`
@@ -315,9 +372,7 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   population is small; the always-on per-build waste is only `trim()` copies
   (O(n) alloc per rebuild at 4 sites). Not worth a PR alone.
 - **Pitch-contour runs/median per repaint** (pitch_contour_chart.dart):
-  real (~2.5 Hz during playback, full sort per point) but painter-coupled;
-  memoization target is inside a `CustomPainter` with mutating fields. Held
-  for a future run — needs a structural-measurement plan first.
+  **SHIPPED as P18 on 2026-11-03** — see the P18 section.
 - **Transcript tile `_snippet`/`formatTranscriptTimestampMs` per rebuild**:
   tiny constants; cueIdFor (P17) was the only derivation with real weight.
 - **Sync `watchSnapshot` full sort per queue mutation**

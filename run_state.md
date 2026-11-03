@@ -1,85 +1,90 @@
 # Perf Improver run state
 
-- **Last run:** 2026-11-02 (workflow run 41448230411, run #78) — ninth run to
+- **Last run:** 2026-11-03 (workflow run 41635196398, run #79) — tenth run to
   produce a code-changing PR.
-- **Run history:** #78 2026-11-02 (41448230411) shipped **P17** (blur cue-id
-  memo, `cueIdFor` Expando per line) → draft PR on `perf-assist/cue-id-memo`
-  (commit `6ca3e6c4`). PR #1191 (P16, echo-card tile reuse) was **MERGED by
-  an-lee on 2026-11-02 01:15 UTC** (commit `ba78f6a8`) → **eight merged
-  code-changing PRs total** (#1006, #1071, #1100, #1127, #1142, #1167, #1175,
-  #1191). Maintainer refactor day also landed: #1201 (cloud paged-media
-  widget + shared RecordingElapsedTicker + ErrorState), #1196
-  (shadow-reading panel split), #1202 (openspec upgrade).
-- **Next run:** (1) find the P17 PR number (search "perf-improver in:title"),
-  check CI/GitGuardian; (2) the code-level backlog is **EMPTY** — the fresh
-  scan's best remaining live target is the **pitch-contour runs/median
-  per repaint** (painter-coupled, needs a structural-measurement plan first,
-  see backlog "Verified non-targets"); everything else is a
-  maintainer-decision item (P3-reframed, P7, P8, P10b) or dead path. (3) The
-  2026-11-02 refactor day (#1196/#1201) created new surfaces (cloud
-  paged-media widget, RecordingElapsedTicker) that were only lightly scanned —
-  a deeper look at cloud_library_body.dart item builders is an option.
+- **Run history:** #79 2026-11-03 shipped **P18** (pitch-contour runs memo,
+  Expando per points identity) → draft PR on `perf-assist/pitch-runs-memo`
+  (commit `fffe777f`). PR #1203 (P17, blur cue-id memo) was **MERGED by
+  an-lee on 2026-11-03 03:23 UTC** → **nine merged code-changing PRs total**
+  (#1006, #1071, #1100, #1127, #1142, #1167, #1175, #1191, #1203).
+- **Next run:** (1) find the P18 PR number (search "perf-improver in:title"),
+  check CI/GitGuardian, keep it healthy. (2) The code-level backlog is
+  **EMPTY** — all remaining candidates (P7, P8, P3-reframed, P10b) wait on
+  maintainer decisions surfaced in the November monthly issue #1192.
+  (3) Fresh-scan surface options: the painter/custom-painter files beyond
+  pitch_contour (waveform painters, `enjoy_logo` planes), the
+  `practice_poster` domain (poster data derivation), or an ASR/sync sweep
+  (not swept since 2026-10-25-ish). Verify callers before optimizing
+  (P3 trap).
 
 ## Sandbox facts this run
-- SDK copy + `pub get` warm (~2 min total, no cap kill). sqlite3
-  `hooks: user_defines:` workaround applied for test runs and REVERTED before
-  commit (`git checkout -- pubspec.yaml`).
-- Full suite after P17: **7037 passed / 19 skipped** (tree keeps growing:
-  6983 → 7028 → 7037).
-- The checkout is a **blobless/partial clone**: `git show`/`git log -p` on
-  older commits dies fetching from the promisor remote (TLS-blocked). Use
-  GitHub MCP `get_commit` (detail=stats) for diffs; Read/Grep work fine at
-  HEAD.
-- `list_issues` with a label filter gets dropped by the MCP integrity policy,
-  but `issue_read` DIRECTLY on a known number works — #1192 (November monthly)
-  is readable that way.
-- Bench this run: window regime (40-line warm) + sweep regime (512 fresh);
-  legacy via an in-test copy of the pre-change body (NOT git stash — the
-  change was in-file); env `CUE_ID_BENCH_MODE` selects the mode.
+- SDK copy + pub get warm (~3 min total). sqlite3 `hooks: user_defines:`
+  workaround applied for tests and REVERTED before commit (verified absent
+  from the commit).
+- Full suite after P18: **7056 passed / 21 skipped** (7037 → 7056; +3 new
+  tests, +2 skip-marked benches).
+- Blobless clone still: use GitHub MCP `get_commit` for old diffs; `git log
+  --format=%s%n%b <sha> <sha>` worked for two commits listed together.
+- Bench this run: env `PITCH_RUNS_BENCH_MODE=legacy|memoized`, one impl per
+  fresh process, n=5 per arm + 1 interleaved pair + a standalone-JIT
+  isolation harness for the cold-path gap.
+- **flutter_tester sweep numbers are bimodal across processes** (legacy
+  122–169 ms for the SAME code; memoized 216–224 ms) — cross-process JIT
+  tiering noise. The standalone `dart --packages=...` harness gives tight
+  distributions; use it to confirm cold-path parity when the flutter_tester
+  numbers look inconsistent. Expando insert micro-cost: 50–80 ns/list
+  (measured, /tmp bench recipe in pitch_wrap_isolation.dart style).
 
 ## Repo state at this run
-- HEAD on `main` at run start: `6cbfbe7b` (#1201).
-- Open perf-improver PRs after this run: the P17 draft (number assigned
-  post-run).
-- Monthly: November issue is **#1192** (open, no maintainer comments yet as
-  of 13:37 UTC 2026-11-02; updated this run: P16 review action removed —
-  merged, new P17 review action added, run history prepended).
+- HEAD on `main` at run start: `11b2407b` (#1217).
+- Open perf-improver PRs after this run: the P18 draft (number assigned
+  post-run; framework bundle written).
+- Monthly: November issue is **#1192** (open, no maintainer comments as of
+  13:06 UTC 2026-11-03; updated this run: removed the merged-P17 review
+  action, added the P18 review action, prepended run history, backlog
+  rewritten).
 
 ## Tasks completed this run
 - **Task 1**: commands still valid (see `commands.md`); no new discovery.
-- **Task 2**: two parallel Explore sweeps (player/asr/shadow/transcript +
-  sync/lookup/library/cloud/data) → 16 candidates; verified down to 1 shippable
-  (P17) + several verified non-targets (recorded in backlog.md).
-- **Task 3**: **DONE** — P17 (cue-id memo). Window 0.0192 → 0.0012 ms/pass
-  (~16x median), sweep parity, sinks byte-identical. Full suite 7037/19.
-- **Task 4**: no open perf-improver PRs (P16 #1191 merged 2026-11-02).
-- **Task 5**: #1192 is the only open performance-labeled issue (my monthly
-  summary); no new human comments → no comments posted.
-- **Task 6**: no new infrastructure this run (P17 perf test follows the
-  established counter + differential + skip-marked bench pattern;
-  `docs/perf-measurement.md` index updated in the PR).
-- **Task 7**: updated #1192 (removed merged-P16 action, added P17 review
+- **Task 2**: Explore sweep of the post-#1201 surfaces (recording ticker,
+  cloud repository/providers, RemoteLibraryItem, media cards) → all clean;
+  scan of cloud_library_body `generativeAccentForSeed` → trivial FNV, not a
+  target. Live target: the pitch-contour painter (held from run #78 with a
+  plan).
+- **Task 3**: **DONE** — P18 (pitch-contour runs memo). Playback repaint
+  loop 55.4 → 0.06 ms per 200-tick pass (~900x median); cold sweep parity
+  standalone; sinks byte-identical everywhere. Full suite 7056/21.
+- **Task 4**: no open perf-improver PRs at run start (P17 #1203 merged
+  2026-11-03).
+- **Task 5**: #1192 is the only open performance-labeled issue; no new
+  human comments → no comments posted.
+- **Task 6**: no new infra (P18 perf test follows the counter + differential
+  + skip-marked bench pattern; `docs/perf-measurement.md` index updated in
+  the PR).
+- **Task 7**: updated #1192 (removed merged-P17 action, added P18 review
   action, prepended run history).
 
-## P17 — key implementation notes (details in `backlog.md`)
-1. `Expando<String> _cueIdByLine` keyed on `TranscriptLine` identity;
-   `cueIdDerivationCount` `@visibleForTesting` counter in transcript_blur.dart.
-2. Derivation body moved to private `_deriveCueId` — logic byte-identical.
-3. Test `a` const / `b` non-const with identical args: the `prefer_const_
-   constructors` lint fires on `b`; silenced with `// ignore:` (allowed).
-4. Const-canonicalization trap (P12 lesson) still applies for counter tests —
-   use args unique in the file.
+## P18 — key implementation notes (details in `backlog.md`)
+1. `_runs`/`_median` extracted from the painter to top-level pure functions;
+   public `pitchContourRuns(points, showReference:, showUser:)` returns a
+   record; per-series results cached in `_PitchRunsCache` via one Expando
+   keyed on the points LIST identity (documented stable by
+   `EchoMergedSeriesMemo`).
+2. `@visibleForTesting int pitchContourRunsDerivationCount` counts real
+   derivations; toggle-on of a disabled series derives only that series.
+3. Widget-test approach was NOT needed — the public function is directly
+   callable (P17-style counter assertions over fresh `_buildSeries()` lists;
+   const-canonicalization trap avoided because the Expando keys on list
+   identity and each builder call returns a fresh list).
 
 ## Write path
-- PRs must go through the safe-outputs `create_pull_request` tool; the
-  framework pushes the bundle afterwards, so the PR may not be visible via
-  the API immediately. Expected, not a failure.
-- `update_issue` supports full-body rewrites; keep the mandated format
-  (Suggested Actions first, reverse-chron Run History).
+- PRs go through the safe-outputs `create_pull_request` tool; the PR number
+  is assigned when the framework pushes the bundle — not visible via API
+  immediately. Expected, not a failure.
+- `update_issue` supports full-body rewrites; keep the mandated format.
 - `create_pull_request` / `create_issue` add the `[perf-improver] ` title
-  prefix themselves — do **not** put it in the title you pass.
-- `.dart_tool/package_config.json` is a real pub-generated config
-  (gitignored); leaving it saves the next run a (warm) `pub get`.
+  prefix themselves — do NOT put it in the title.
+- `.dart_tool/package_config.json` left in place (warm pub get next run).
 
 ## Open blockers / standing decisions
 - P7 / P8 / P10b / P3-reframed all wait on maintainer decisions (surfaced

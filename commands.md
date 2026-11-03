@@ -1,5 +1,23 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
+## 2026-11-03 — painter-bench methodology lesson
+- **flutter_tester wall-clock numbers are bimodal across processes for
+  sweep-style regimes** (same legacy code measured 122 vs 160–169 ms across
+  5 processes; the memoized arm measured 216–224 ms in the same machine
+  state). When an A/B gap on a COLD path looks too big to be real, confirm
+  with a standalone `dart --packages=.dart_tool/package_config.json
+  <harness>.dart` process pair — that harness gave tight distributions and
+  showed parity (plain 170.4 / memo 164.5 / plain 166.9 ms medians). The
+  hot-path (memoized-lookup) numbers are so far from the legacy numbers
+  that flutter_tester noise does not matter there.
+- Expando insert/lookup micro-cost: 50–80 ns per list (standalone micro-bench;
+  ~0.03–0.04 ms per 512 fresh keys). An Expando memo on fresh lists is NOT
+  automatically a cold-path regression — measure before assuming.
+- The pitch-contour bench pattern (pure painter derivation, env-selected
+  legacy copy, counter pins) is reusable for other CustomPainter targets:
+  extract the derivation to a pure top-level function first, then bench it
+  without touching canvas code.
+
 ## 2026-11-02 — GitHub/read mechanics
 - The workspace checkout is a **blobless/partial clone**: `git show <sha>` /
   `git log -p` on non-HEAD commits fails ("could not fetch ... from promisor
