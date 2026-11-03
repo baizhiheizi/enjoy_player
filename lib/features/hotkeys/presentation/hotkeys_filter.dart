@@ -26,3 +26,21 @@ bool hotkeyDefinitionMatchesQuery(
       display.contains(q) ||
       def.id.toLowerCase().contains(q);
 }
+
+List<(HotkeyScope, List<HotkeyDefinition>)> hotkeyScopeGroups(
+  List<HotkeyDefinition> definitions, {
+  required String query,
+  required AppLocalizations l10n,
+  required String Function(String actionId) effectiveKeys,
+}) {
+  bool matches(HotkeyDefinition def) =>
+      hotkeyDefinitionMatchesQuery(def, query, l10n, effectiveKeys);
+
+  return [
+    for (final scope in HotkeyScope.values)
+      (
+        scope,
+        definitions.where((d) => d.scope == scope).where(matches).toList(),
+      ),
+  ].where((group) => group.$2.isNotEmpty).toList();
+}

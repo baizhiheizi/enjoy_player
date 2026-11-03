@@ -16,8 +16,8 @@ Widget _harness({required VoidCallback onPressed, bool isRefreshing = false}) {
       builder: (context) => Scaffold(
         body: LookupRefreshIconButton(
           l10n: AppLocalizations.of(context)!,
-          isRefreshing: isRefreshing,
-          onPressed: onPressed,
+          isRetrying: isRefreshing,
+          onRetry: onPressed,
         ),
       ),
     ),

@@ -4,9 +4,9 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
-import 'package:enjoy_player/core/presentation/loading_icon.dart';
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/latched_retry_state.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_callout.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_retry_button.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -26,19 +26,15 @@ String lookupErrorUserMessage(Object error, AppLocalizations l10n) {
   };
 }
 
-class LookupErrorRow extends StatefulWidget {
+class LookupErrorRow extends ParentRetryWidget {
   const LookupErrorRow({
     required this.message,
-    required this.onRetry,
-    this.isRetrying = false,
+    required super.onRetry,
+    super.isRetrying,
     super.key,
   });
 
   final String message;
-  final VoidCallback onRetry;
-
-  /// Parent-driven busy state (e.g. [AsyncValue.hasError] && [AsyncValue.isLoading]).
-  final bool isRetrying;
 
   @override
   State<LookupErrorRow> createState() => _LookupErrorRowState();
@@ -47,66 +43,20 @@ class LookupErrorRow extends StatefulWidget {
 class _LookupErrorRowState extends State<LookupErrorRow>
     with LatchedRetryState<LookupErrorRow> {
   @override
-  bool get parentRetryBusy => widget.isRetrying;
-
-  @override
-  bool wasParentRetryBusy(covariant LookupErrorRow oldWidget) =>
-      oldWidget.isRetrying;
-
-  void _handleRetry() => retry(widget.onRetry);
-
-  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    final t = EnjoyThemeTokens.of(context);
-    final busy = retryBusy;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        border: Border.all(color: scheme.error.withValues(alpha: 0.28)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(t.space12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(EnjoyIcons.error, color: scheme.error, size: 24),
-                SizedBox(width: t.space8),
-                Expanded(
-                  child: Text(
-                    widget.message,
-                    style: tt.bodySmall?.copyWith(
-                      color: scheme.onSurface,
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: t.space12),
-            FilledButton.tonalIcon(
-              style: FilledButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.symmetric(
-                  horizontal: t.space16,
-                  vertical: t.space8,
-                ),
-              ),
-              onPressed: busy ? null : _handleRetry,
-              icon: busy
-                  ? LoadingIcon(size: 18, color: scheme.primary)
-                  : const Icon(EnjoyIcons.refresh, size: 20),
-              label: Text(l10n.lookupErrorRetry),
-            ),
-          ],
-        ),
+    return LookupCallout(
+      icon: EnjoyIcons.error,
+      iconColor: scheme.error,
+      message: widget.message,
+      messageColor: scheme.onSurface,
+      backgroundColor: scheme.error.withValues(alpha: 0.08),
+      borderColor: scheme.error.withValues(alpha: 0.28),
+      action: LookupRetryButton(
+        busy: retryBusy,
+        onPressed: retry,
+        variant: LookupRetryButtonVariant.callout,
       ),
     );
   }

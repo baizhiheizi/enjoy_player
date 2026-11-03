@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -14,11 +13,11 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
-import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definitions.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_capture_dialog.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_description.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_filter.dart';
+import 'package:enjoy_player/features/hotkeys/presentation/widgets/hotkey_row.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_search_field.dart';
@@ -42,10 +41,6 @@ class _HotkeysSettingsSectionState
     super.dispose();
   }
 
-  List<HotkeyDefinition> _definitionsFor(HotkeyScope scope) => hotkeyDefinitions
-      .where((d) => d.customizable && d.scope == scope)
-      .toList();
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -55,11 +50,6 @@ class _HotkeysSettingsSectionState
 
     ref.watch(hotkeysCtrlProvider);
     final ctrl = ref.read(hotkeysCtrlProvider.notifier);
-
-    String effective(String id) => ctrl.effectiveKeys(id);
-
-    bool matches(HotkeyDefinition d) =>
-        hotkeyDefinitionMatchesQuery(d, _filter.text, l10n, effective);
 
     Future<void> editBinding(String id) async {
       final chord = await showEnjoyDialog<String>(
@@ -74,6 +64,13 @@ class _HotkeysSettingsSectionState
       }
     }
 
+    final groups = hotkeyScopeGroups(
+      hotkeyDefinitions.where((d) => d.customizable).toList(),
+      query: _filter.text,
+      l10n: l10n,
+      effectiveKeys: ctrl.effectiveKeys,
+    );
+
     final children = <Widget>[
       SettingsSearchInput(
         controller: _filter,
@@ -86,13 +83,8 @@ class _HotkeysSettingsSectionState
       SizedBox(height: t.space16),
     ];
 
-    var groupCount = 0;
-    for (final scope in HotkeyScope.values) {
-      final defs = _definitionsFor(scope).where(matches).toList();
-      if (defs.isEmpty) continue;
-
-      if (groupCount > 0) children.add(SizedBox(height: t.space24));
-      groupCount++;
+    for (final (index, (scope, defs)) in groups.indexed) {
+      if (index > 0) children.add(SizedBox(height: t.space24));
 
       children.add(
         Row(
@@ -167,7 +159,7 @@ class _HotkeysSettingsSectionState
       );
     }
 
-    if (groupCount == 0) {
+    if (groups.isEmpty) {
       children.add(
         Padding(
           padding: EdgeInsets.symmetric(vertical: t.space24),
@@ -215,7 +207,6 @@ class _HotkeyEditRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final tt = Theme.of(context).textTheme;
 
     return EnjoyPressable(
       onTap: onEdit,
@@ -230,15 +221,10 @@ class _HotkeyEditRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Wrap(
-                spacing: t.space8,
-                runSpacing: t.space4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(description, style: tt.bodyMedium),
-                  if (customized)
-                    EnjoyTierBadge(label: customizedLabel, muted: true),
-                ],
+              child: HotkeyRowContent(
+                description: description,
+                customized: customized,
+                customizedLabel: customizedLabel,
               ),
             ),
             SizedBox(width: t.space12),

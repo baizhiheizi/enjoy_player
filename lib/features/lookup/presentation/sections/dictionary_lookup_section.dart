@@ -77,8 +77,8 @@ class DictionaryLookupSection extends ConsumerWidget {
                   l10n: l10n,
                   refreshControl: LookupRefreshIconButton(
                     l10n: l10n,
-                    isRefreshing: async.isRefreshing,
-                    onPressed: forceRefresh,
+                    isRetrying: async.isRefreshing,
+                    onRetry: forceRefresh,
                   ),
                 );
               },

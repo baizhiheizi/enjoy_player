@@ -254,8 +254,8 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
           end: 0,
           child: LookupRefreshIconButton(
             l10n: widget.l10n,
-            isRefreshing: isRefreshing,
-            onPressed: onRefresh,
+            isRetrying: isRefreshing,
+            onRetry: onRefresh,
           ),
         ),
       ],

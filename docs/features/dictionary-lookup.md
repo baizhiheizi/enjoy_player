@@ -60,6 +60,7 @@ Sections appear in the sheet in that order: translation, then definition/diction
 | Language picker row | [`lib/features/lookup/presentation/widgets/lookup_language_picker_row.dart`](../../lib/features/lookup/presentation/widgets/lookup_language_picker_row.dart) |
 | Section async providers | [`lib/features/lookup/application/lookup_section_providers.dart`](../../lib/features/lookup/application/lookup_section_providers.dart) |
 | Auth-required callout (sign-in CTA) | [`lib/features/auth/presentation/widgets/auth_required_callout.dart`](../../lib/features/auth/presentation/widgets/auth_required_callout.dart) |
+| Status callout + retry primitives | [`lib/features/lookup/presentation/widgets/lookup_callout.dart`](../../lib/features/lookup/presentation/widgets/lookup_callout.dart) · [`lookup_retry_button.dart`](../../lib/features/lookup/presentation/widgets/lookup_retry_button.dart) · [`latched_retry_state.dart`](../../lib/features/lookup/presentation/widgets/latched_retry_state.dart) |
 | Selectable cue row | [`lib/features/transcript/presentation/transcript_line_tile.dart`](../../lib/features/transcript/presentation/transcript_line_tile.dart) |
 
 ## Related
