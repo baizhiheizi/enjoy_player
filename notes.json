@@ -1,21 +1,21 @@
 {
   "version": 1,
   "cursors": {
-    "labelling_after": 1206,
-    "investigation_after": 1206
+    "labelling_after": 1230,
+    "investigation_after": 1230
   },
   "issues": [
     {
-      "number": 1187,
-      "state": "commented",
-      "updated_at": "2026-11-03",
-      "note": "Launch crash fixed by #1189 (reporter-confirmed). Remaining: desktop cannot fetch YouTube subtitles. My 2026-11-02 analysis (Dart HTTP bypasses system proxy) awaits the reporter's log. Fix candidates: honor system proxy, or route caption fetches via the worker proxy."
-    },
-    {
       "number": 1204,
       "state": "commented",
-      "updated_at": "2026-11-03",
-      "note": "Weekly-research died at Start MCP Gateway: all three BigModel MCP servers returned empty tools/list bodies; first run on the gh-aw v1.0.1 stack from #1149. Awaiting ZAI_API_KEY check; mcpg v0.5.0 bump is the fallback suspect."
+      "updated_at": "2026-11-04",
+      "note": "Weekly-research died at Start MCP Gateway (empty tools/list from all three BigModel MCP servers). Awaiting maintainer ZAI_API_KEY check; next scheduled run ~2026-11-09 is the recurrence test. mcpg v0.5.0 bump from #1149 is the fallback suspect."
+    },
+    {
+      "number": 1229,
+      "state": "commented",
+      "updated_at": "2026-11-04",
+      "note": "Evening drift review; F1 premise wrong: /settings/network never existed (#1227 added no route), phone-hub Network row re-pushed the hub. Fixed via repo-assist/fix-issue-1229-network-settings; awaiting merge."
     }
   ],
   "fixes": [
@@ -26,32 +26,40 @@
       "status": "open",
       "updated_at": "2026-11-03",
       "note": "Review-session vocabulary over-fetch (start() loads repo.listAll()) still needs a maintainer decision; tracked on #1192 as P3-reframed."
+    },
+    {
+      "issue": 1229,
+      "pr": null,
+      "branch": "repo-assist/fix-issue-1229-network-settings",
+      "status": "open",
+      "updated_at": "2026-11-04",
+      "note": "Draft PR this run (temp id aw_pr_drift_1229): /settings/network route + kSettingsSectionRoutes map + drift guard + navigation test + settings.md/changelog/PLAN.md. Gates green. Unmerged next run -> Task 6."
     }
   ],
   "checks": [
     {
       "area": "tests",
-      "checked_at": "2026-11-03",
-      "result": "validate_ci_gates --all green on the deps branch: format, codegen drift (no diff under analyzer 14.7.0), analyze, full root suite, all path packages.",
+      "checked_at": "2026-11-04",
+      "result": "validate_ci_gates --fix green on the drift-fix branch: format, codegen drift (root + path packages), analyze, full suite. New: hub navigation test for Network + hub-route drift guard group.",
       "follow_up": null
+    },
+    {
+      "area": "repo_assist_prs",
+      "checked_at": "2026-11-04",
+      "result": "#1215 (deps lockfile refresh) merged 2026-11-03; #1189 and #1226/#1227/#1228 also merged. One open repo-assist PR now: the #1229 drift-fix/drill-in draft.",
+      "follow_up": null
+    },
+    {
+      "area": "release",
+      "checked_at": "2026-11-04",
+      "result": "v0.10.3 still untagged (latest tag v0.10.2). Release objects for v0.10.2, v0.10.0, v0.9.0 still missing. Changelog [0.10.3] now covers #1189/#1226/#1227/#1228; carry-over set left as explicit maintainer call.",
+      "follow_up": "No v0.10.4 prep until v0.10.3 is tagged; do not bump pubspec ahead of it."
     },
     {
       "area": "dependencies",
       "checked_at": "2026-11-03",
-      "result": "pub outdated: 3 direct + 7 transitive moves within constraints -> lockfile-refresh PR opened. Majors need constraint widening (maintainer decisions): ai_sdk 3.x, cached_network_image 4.x, file_picker 13, flutter_secure_storage 11, go_router 18, google_fonts 9, window_manager 0.6.",
+      "result": "Lockfile refresh #1215 merged 2026-11-03. Majors need constraint widening (maintainer decisions): ai_sdk 3.x, cached_network_image 4.x, file_picker 13, flutter_secure_storage 11, go_router 18, google_fonts 9, window_manager 0.6.",
       "follow_up": "file_picker pinning intent: comment says exact pin + ADR-0029 lists exact, but constraint is ^12.0.0. Surfaced in monthly-2026-11; do not change unilaterally."
-    },
-    {
-      "area": "release",
-      "checked_at": "2026-11-03",
-      "result": "v0.10.3 still untagged (pubspec 0.10.3+19, #1140 merged 2026-11-01). Latest published: issue-1187-test-1 prerelease + v0.10.1. Release objects for v0.10.2, v0.10.0, v0.9.0 still missing.",
-      "follow_up": "No v0.10.4 prep until v0.10.3 is tagged; do not bump pubspec ahead of it."
-    },
-    {
-      "area": "repo_assist_prs",
-      "checked_at": "2026-11-03",
-      "result": "0 open repo-assist PRs before this run; opened the deps refresh. Only other open PR: #1189 (an-lee, macOS compat, reporter-confirmed, awaiting merge).",
-      "follow_up": null
     }
   ],
   "completed_actions": [
@@ -126,33 +134,36 @@
     {
       "key": "v0103-release-prep-merged-as-1140",
       "completed_at": "2026-11-02"
+    },
+    {
+      "key": "deps-lockfile-refresh-merged-as-1215",
+      "completed_at": "2026-11-04"
+    },
+    {
+      "key": "macos-compat-dylibs-merged-as-1189-and-issue-1187-closed",
+      "completed_at": "2026-11-04"
     }
   ],
   "priorities": [
     {
       "task": 10,
       "item": "The v0.10.3 release needs the maintainer's tag",
-      "note": "PR #1140 merged 2026-11-01; verified still untagged 2026-11-03. No v0.10.4 prep until it ships."
+      "note": "PR #1140 merged 2026-11-01; verified still untagged 2026-11-04. Changelog carry-over set wants entries or a waive first (see #1229). No v0.10.4 prep until it ships."
     },
     {
       "task": 2,
       "item": "Watch weekly-research for recurrence (#1204)",
-      "note": "Awaiting the maintainer's ZAI_API_KEY check. If it recurs with a valid key, the mcpg bump from #1149 is the suspect."
-    },
-    {
-      "task": 2,
-      "item": "Follow up on #1187 desktop-subtitle report when the diagnostic log arrives",
-      "note": "Hypothesis: Dart HTTP ignores the macOS system proxy; TUN-mode test or the log's Tier 2 error discriminates. Fixes: honor system proxy, or route caption fetches via the worker proxy."
+      "note": "Awaiting the maintainer's ZAI_API_KEY check. Next scheduled run ~2026-11-09; if it fails again with a valid key, the mcpg bump from #1149 is the suspect."
     },
     {
       "task": 6,
-      "item": "Maintain the deps lockfile-refresh PR until merged",
-      "note": "Branch repo-assist/deps-lockfile-refresh-20261103, listed in monthly-2026-11. Fix CI/conflicts if they appear."
+      "item": "Maintain the #1229 drift-fix PR until merged",
+      "note": "Branch repo-assist/fix-issue-1229-network-settings. Fix CI/conflicts if they appear; do not force-push (append-only tool)."
     },
     {
       "task": 7,
       "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
-      "note": "Still missing as of 2026-11-03; needs a maintainer."
+      "note": "Re-verified missing 2026-11-04; needs a maintainer."
     },
     {
       "task": 8,
@@ -183,11 +194,6 @@
       "task": 4,
       "item": "Decide where the macOS Sparkle EdDSA private key comes from",
       "note": "ADR-0023 wants it in a release secret; the feed gate fails the publish on an unsigned enclosure."
-    },
-    {
-      "task": 4,
-      "item": "latest.json advertises one global version while its assets are per-platform",
-      "note": "evaluateUpdate has no platform awareness; a per-platform version in the feed is a schema change."
     }
   ]
 }
