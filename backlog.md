@@ -1,10 +1,16 @@
 # Performance backlog — Enjoy Player
 
+**UPDATE 2026-11-04:** P18 MERGED as **#1218** by an-lee on 2026-11-04
+00:19 UTC — **ten merged perf-improver code-changing PRs**. This run swept
+painters (all clean), poster domain (cold/clean), logo planes
+(design-decision territory), sync + ASR. Found and shipped **P19** (ASR
+timeline build join-per-step → incremental; branch
+`perf-assist/asr-timeline-incremental`). Sweep findings recorded under
+"Verified non-targets".
+
 **UPDATE 2026-11-03:** P17 (blur cue-id memo) MERGED as **#1203** by an-lee
 on 2026-11-03 03:23 UTC. P18 (pitch-contour runs memo) shipped this run —
 draft PR on `perf-assist/pitch-runs-memo` (commit `fffe777f`). The
-code-level backlog is **EMPTY again**; everything below is a
-maintainer-decision item.
 
 **UPDATE 2026-10-20:** Issue #968 was **CLOSED** by `@an-lee` on 2026-10-20
 10:58 UTC with all five candidates shipped as #969–#973. The "Also verified,
@@ -339,6 +345,89 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   `docs/perf-measurement.md`.
 - Status: draft PR open on `perf-assist/cue-id-memo` (commit `6ca3e6c4`).
   PR number assigned when the framework pushes the bundle.
+
+## P19 — ASR timeline build re-joins the line string per word step (SHIPPED 2026-11-04, draft PR open)
+- File: `lib/features/asr/domain/asr_timeline_builder.dart`
+  (`buildAsrTranscriptLines` — pure, called from
+  `asr_generation_controller.dart:318` synchronously on the main isolate
+  between the recognize and persist phases, once per ASR generation).
+- Problem: `_groupFromWords` built `'${current.text} ${next.text}'` (full
+  join via the `_Line.text` getter) AND evaluated
+  `_endsWithTerminator(current.text)` (second full join) per word step;
+  n = all transcript words (≈18k for a 2 h recording, long-form gate
+  ≥900 s). `_groupFromSegments` did the same per segment plus an O(k)
+  list spread (`...current.words`). `_distributePlainText` allocated a
+  single-char string per character (`raw[i]`).
+- Fix: the loops track the running line length + last word's terminator
+  bit incrementally (joined text's last char == last word's last char;
+  length additive with the 1-char separator); joins happen once per
+  EMITTED line in `_lineToTranscriptLine` (unchanged). Segments append to
+  the same list instead of spreading (no aliasing: emitted lines are
+  never mutated after `lines.add`). Plain-text loop reads
+  `codeUnitAt`/`writeCharCode` against a code-unit terminator set.
+  `_endsWithTerminator` compares code units (substring semantics
+  identical — all terminators are single BMP units).
+- Measured (one impl per fresh process, `flutter test --run-skipped`,
+  env `ASR_TIMELINE_BENCH_MODE=legacy|incremental`, n=3 processes per arm,
+  sequential; sink = total emitted text chars, IDENTICAL in all runs —
+  95212 / 52623 / 115751):
+  - word path (18k words ≈ 2 h audio): 9.36–10.05 → 1.62–3.14 ms/build;
+    median ~9.5 → ~1.9 ms (**~5.0x**, worst pairing ~3.2x).
+  - segment path (3k segments): 0.94–1.08 → 0.22–0.45 ms; median
+    ~0.98 → ~0.23 ms (**~4.2x**, worst pairing ~2.4x).
+  - plain text (120 KB): 7.27–7.85 → 5.57–5.86 ms (~1.3x).
+- Correctness: differential vs the legacy copy over a curated boundary
+  corpus (exact maxLineChars separator arithmetic, gap == threshold,
+  duration == cap, astral chars, whitespace-only words, empty segments,
+  single-word) × 6 param variants + 300 seeded fuzz cases over all three
+  paths, 0 mismatches (`TranscriptLine` value equality per line).
+  Existing contract tests untouched and green.
+- Test file: `test/features/asr/domain/asr_timeline_builder_perf_test.dart`
+  (env-selected bench; differential + 3 skip-marked microbenchmarks),
+  linked from `docs/perf-measurement.md`.
+
+## Verified non-targets (2026-11-04 scan — do NOT re-report)
+- **All CustomPainters** (2026-11-04 direct reads): `_AmplitudeBarsPainter`
+  (capture_stage_recording_view) O(tens-of-bars) per paint, tiny per-bar
+  cost; `_ElapsedRingPainter` delegates to a single ring draw;
+  `EchoLoopBrackets` 4 short paths, repaint only on color/arm/radius;
+  `_DashedRRectPainter` already caches its dashed path per size;
+  `_LoopBarPainter` 2 rounded rects per elapsed-driven frame; sentence-ruler
+  painters (progress/tick/thumb) deliberately RepaintBoundary-isolated,
+  2-3 draw calls each; `_GeneratedCoverPainter` short-seed FNV +
+  rect + 3 planes, shouldRepaint on seed only.
+- **`paintLogoMarkPlanes`** (enjoy_logo.dart): 3 saveLayer calls per
+  cover paint — real per-tile cost at scroll-in on large grids, but the
+  per-plane alpha compositing is the Duet design recipe (ADR-0093);
+  removing it changes how overlapping planes blend → design-decision
+  territory, do NOT unilaterally change.
+- **share_poster domain** (`practice_poster_data.dart` +
+  `practice_poster_builder.dart`): every entry point
+  (`computePracticePosterStats`, `resolvePracticePosterQuote`,
+  `joinTranscriptLineTexts`) is reachable only from
+  `buildPracticePosterData` → one-shot await in
+  `practice_poster_preview_sheet.dart:84` when the sheet opens. Cold.
+  Already uses P14's binary-search counting.
+- **sync_page_upsert / sync_download_service / recording_target_sync_service**
+  (post-#1226 refactor, Explore sweep): sound — one `WHERE id IN` bulk
+  pre-read + one drift batch upsert per page; cursor = one keyed settings
+  row per page; `runPerRowInsert` only on batch failure;
+  recording_target_sync = 5-min cooldown + 5-page cap, once per media
+  open (cold).
+- **sync_engine.dart** sortSyncQueueWork sorts once per drain (distinct
+  from the known watchSnapshot issue); per-item `MediaRegistry(_db)`
+  stateless/cheap; per-item HTTP upload network-bound.
+  **sync_upload_service**: one HTTP call + one row write per queue item —
+  inherent. **asr_long_form polling**: exponential backoff, no per-tick
+  heavy work. **asr_audio_extractor**: ffmpeg in `Isolate.run`; NOTE it
+  reads up to 500 MB into memory per generation (memory, not hot-loop;
+  out of scope). **library_repository.dart** (#1226): every method is a
+  one-shot user action — cold.
+- **sync_serializers minor** (unshipped): `mergeVocabularyItemConflict`
+  (:380) / `mergeVocabularyContextLastWriteWins` (:432) materialize
+  `serverRow` (one small jsonEncode) before the local-wins early return;
+  cost is one small encode per downloaded row — LOW, not worth a PR
+  alone; candidate only if a vocabulary-sync item is ever opened.
 
 ## Verified non-targets (2026-11-03 scan — do NOT re-report)
 - **Post-#1201 refactor surfaces** (Explore sweep 2026-11-03): all clean.

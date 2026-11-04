@@ -1,5 +1,16 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
+## 2026-11-04 — differential-test gotchas
+- **flutter_test's matcher ALSO exports `collapseWhitespace`** — a test
+  file that imports both `package:flutter_test/flutter_test.dart` and
+  `package:enjoy_player/core/utils/text_normalization.dart` hits
+  ambiguous_import. Fix:
+  `import 'package:flutter_test/flutter_test.dart' hide collapseWhitespace;`
+- Fully-const fixture trees (`const AsrResult(text: '', segments:
+  [AsrSegment(..., words: [AsrWord(...)])]`) fire prefer_const on inner
+  nodes if you keep inner `const` keywords — write the outer `const`
+  and drop the inner ones.
+
 ## 2026-11-03 — painter-bench methodology lesson
 - **flutter_tester wall-clock numbers are bimodal across processes for
   sweep-style regimes** (same legacy code measured 122 vs 160–169 ms across
