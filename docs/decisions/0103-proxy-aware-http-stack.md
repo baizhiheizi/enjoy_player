@@ -26,8 +26,7 @@ BYOK endpoints — connects directly and fails (#1220).
 - The effective proxy is logged (`network proxy: …`) at startup and on change,
   host:port only.
 
-## Deferred
-
-Manual / direct modes with a Settings → Network section, test-connection and
-the transport-failure hint on caption errors are follow-ups from the #1220
-design; the OS-proxy path here fixes the reported failure on its own.
+- Settings → Network adds System / Manual / Direct modes
+  (`network.proxyMode`, `network.proxyUrl`), an effective-proxy row, and a
+  test-connection probe. Precedence: manual → direct → system → none.
+- Transport-level caption failures append a mode-aware `Hint:` to the error.

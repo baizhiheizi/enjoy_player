@@ -4674,4 +4674,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String takeAssessmentTitle(int number) {
     return 'Take $number · Assessment';
   }
+
+  @override
+  String get settingsSectionNetwork => 'Network';
+
+  @override
+  String get settingsSectionNetworkHint => 'Proxy and VPN routing';
+
+  @override
+  String get settingsNetworkProxyModeTitle => 'Proxy mode';
+
+  @override
+  String get settingsNetworkProxyModeSystem => 'System';
+
+  @override
+  String get settingsNetworkProxyModeManual => 'Manual';
+
+  @override
+  String get settingsNetworkProxyModeDirect => 'Direct';
+
+  @override
+  String get settingsNetworkProxyModeHint =>
+      'System follows your OS proxy (Clash, sing-box and similar). Manual uses the address below. Direct bypasses every proxy.';
+
+  @override
+  String get settingsNetworkProxyUrlLabel => 'Proxy address';
+
+  @override
+  String get settingsNetworkProxyUrlHint =>
+      '127.0.0.1:7890 or http://host:port';
+
+  @override
+  String get settingsNetworkProxyUrlInvalid =>
+      'Enter an HTTP proxy as host:port. SOCKS proxies are not supported.';
+
+  @override
+  String get settingsNetworkProxySave => 'Save proxy';
+
+  @override
+  String get settingsNetworkProxySaved => 'Proxy settings saved.';
+
+  @override
+  String get settingsNetworkEffectiveTitle => 'Effective proxy';
+
+  @override
+  String get settingsNetworkEffectiveDirect => 'Direct (no proxy)';
+
+  @override
+  String settingsNetworkEffectiveProxy(String endpoint, String source) {
+    return '$endpoint ($source)';
+  }
+
+  @override
+  String get settingsNetworkTestButton => 'Test connection';
+
+  @override
+  String get settingsNetworkTestRunning => 'Testing...';
+
+  @override
+  String get settingsNetworkTestApi => 'Enjoy API';
+
+  @override
+  String get settingsNetworkTestYoutube => 'YouTube';
+
+  @override
+  String settingsNetworkTestOk(String label, int ms, String route) {
+    return '$label: reachable in $ms ms via $route';
+  }
+
+  @override
+  String settingsNetworkTestFail(String label, String route, String error) {
+    return '$label: failed via $route ($error)';
+  }
 }

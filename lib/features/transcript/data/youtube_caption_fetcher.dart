@@ -159,10 +159,15 @@ class YoutubeCaptionFetcher {
   YoutubeCaptionFetcher({
     required this.httpClient,
     this.profiles = kBuiltInClientProfiles,
+    this.transportFailureHint,
   });
 
   final http.Client httpClient;
   final List<ClientProfile> profiles;
+
+  /// Appended to the aggregated error when every profile failed at the
+  /// transport level (socket / TLS / timeout).
+  final String? Function()? transportFailureHint;
 
   /// Returns the fallback chain of profiles to try.
   ///
@@ -308,8 +313,13 @@ class YoutubeCaptionFetcher {
       'InnerTube all profiles failed for $videoId (tried: '
       '${chain.map((p) => p.name).join(', ')})',
     );
+    final hint = _isTransportFailure(failures)
+        ? transportFailureHint?.call()
+        : null;
     return AllCaptionsResult(
-      error: 'All profiles failed:\n${failures.join('\n')}',
+      error:
+          'All profiles failed:\n${failures.join('\n')}'
+          '${hint == null ? '' : '\nHint: $hint'}',
     );
   }
 
@@ -524,3 +534,13 @@ class YoutubeCaptionFetcher {
     return subtitles;
   }
 }
+
+bool _isTransportFailure(List<String> failures) =>
+    failures.isNotEmpty &&
+    failures.every(
+      (f) =>
+          f.contains('SocketException') ||
+          f.contains('TimeoutException') ||
+          f.contains('HandshakeException') ||
+          f.contains('ClientException'),
+    );

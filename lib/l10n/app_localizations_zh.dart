@@ -4461,6 +4461,77 @@ class AppLocalizationsZh extends AppLocalizations {
   String takeAssessmentTitle(int number) {
     return '第 $number 遍 · 评估';
   }
+
+  @override
+  String get settingsSectionNetwork => '网络';
+
+  @override
+  String get settingsSectionNetworkHint => '代理与 VPN 路由';
+
+  @override
+  String get settingsNetworkProxyModeTitle => '代理模式';
+
+  @override
+  String get settingsNetworkProxyModeSystem => '系统';
+
+  @override
+  String get settingsNetworkProxyModeManual => '手动';
+
+  @override
+  String get settingsNetworkProxyModeDirect => '直连';
+
+  @override
+  String get settingsNetworkProxyModeHint =>
+      '“系统”跟随操作系统代理（Clash、sing-box 等）；“手动”使用下方地址；“直连”不使用任何代理。';
+
+  @override
+  String get settingsNetworkProxyUrlLabel => '代理地址';
+
+  @override
+  String get settingsNetworkProxyUrlHint => '127.0.0.1:7890 或 http://主机:端口';
+
+  @override
+  String get settingsNetworkProxyUrlInvalid =>
+      '请输入 host:port 形式的 HTTP 代理，暂不支持 SOCKS 代理。';
+
+  @override
+  String get settingsNetworkProxySave => '保存代理';
+
+  @override
+  String get settingsNetworkProxySaved => '代理设置已保存。';
+
+  @override
+  String get settingsNetworkEffectiveTitle => '当前生效的代理';
+
+  @override
+  String get settingsNetworkEffectiveDirect => '直连（无代理）';
+
+  @override
+  String settingsNetworkEffectiveProxy(String endpoint, String source) {
+    return '$endpoint（$source）';
+  }
+
+  @override
+  String get settingsNetworkTestButton => '测试连接';
+
+  @override
+  String get settingsNetworkTestRunning => '正在测试…';
+
+  @override
+  String get settingsNetworkTestApi => 'Enjoy API';
+
+  @override
+  String get settingsNetworkTestYoutube => 'YouTube';
+
+  @override
+  String settingsNetworkTestOk(String label, int ms, String route) {
+    return '$label：可访问，耗时 $ms 毫秒，路由 $route';
+  }
+
+  @override
+  String settingsNetworkTestFail(String label, String route, String error) {
+    return '$label：失败，路由 $route（$error）';
+  }
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -8244,5 +8315,76 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   @override
   String takeAssessmentTitle(int number) {
     return '第 $number 遍 · 评估';
+  }
+
+  @override
+  String get settingsSectionNetwork => '网络';
+
+  @override
+  String get settingsSectionNetworkHint => '代理与 VPN 路由';
+
+  @override
+  String get settingsNetworkProxyModeTitle => '代理模式';
+
+  @override
+  String get settingsNetworkProxyModeSystem => '系统';
+
+  @override
+  String get settingsNetworkProxyModeManual => '手动';
+
+  @override
+  String get settingsNetworkProxyModeDirect => '直连';
+
+  @override
+  String get settingsNetworkProxyModeHint =>
+      '“系统”跟随操作系统代理（Clash、sing-box 等）；“手动”使用下方地址；“直连”不使用任何代理。';
+
+  @override
+  String get settingsNetworkProxyUrlLabel => '代理地址';
+
+  @override
+  String get settingsNetworkProxyUrlHint => '127.0.0.1:7890 或 http://主机:端口';
+
+  @override
+  String get settingsNetworkProxyUrlInvalid =>
+      '请输入 host:port 形式的 HTTP 代理，暂不支持 SOCKS 代理。';
+
+  @override
+  String get settingsNetworkProxySave => '保存代理';
+
+  @override
+  String get settingsNetworkProxySaved => '代理设置已保存。';
+
+  @override
+  String get settingsNetworkEffectiveTitle => '当前生效的代理';
+
+  @override
+  String get settingsNetworkEffectiveDirect => '直连（无代理）';
+
+  @override
+  String settingsNetworkEffectiveProxy(String endpoint, String source) {
+    return '$endpoint（$source）';
+  }
+
+  @override
+  String get settingsNetworkTestButton => '测试连接';
+
+  @override
+  String get settingsNetworkTestRunning => '正在测试…';
+
+  @override
+  String get settingsNetworkTestApi => 'Enjoy API';
+
+  @override
+  String get settingsNetworkTestYoutube => 'YouTube';
+
+  @override
+  String settingsNetworkTestOk(String label, int ms, String route) {
+    return '$label：可访问，耗时 $ms 毫秒，路由 $route';
+  }
+
+  @override
+  String settingsNetworkTestFail(String label, String route, String error) {
+    return '$label：失败，路由 $route（$error）';
   }
 }

@@ -10,6 +10,7 @@ const _knownFamilies = [
   'sync.',
   'update.',
   'diagnostics.',
+  'network.',
   'analytics.',
   'transcript.',
   'player_',

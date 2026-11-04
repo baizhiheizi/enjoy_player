@@ -24,6 +24,7 @@ import 'package:enjoy_player/features/settings/presentation/widgets/sections/app
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/cloud_sync_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/developer_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/keyboard_shortcuts_section.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/sections/network_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/recording_section.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -187,6 +188,31 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
       ),
     ],
     body: () => const AiProvidersSectionBody(),
+    collapsedByDefault: true,
+  ),
+  SettingsSectionSpec(
+    sectionId: SettingsSectionIds.network,
+    icon: EnjoyIcons.server,
+    title: (l10n) => l10n.settingsSectionNetwork,
+    hint: (l10n) => l10n.settingsSectionNetworkHint,
+    searchableText: (l10n) => [
+      l10n.settingsSectionNetworkHint,
+      'proxy',
+      'vpn',
+      '代理',
+    ],
+    rows: [
+      SettingsRowSpec(
+        rowId: 'proxyMode',
+        title: (l10n) => l10n.settingsNetworkProxyModeTitle,
+        searchableText: (l10n) => const ['proxy', 'vpn', 'clash', '代理'],
+      ),
+      SettingsRowSpec(
+        rowId: 'testConnection',
+        title: (l10n) => l10n.settingsNetworkTestButton,
+      ),
+    ],
+    body: () => const NetworkSectionBody(),
     collapsedByDefault: true,
   ),
   SettingsSectionSpec(
