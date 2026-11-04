@@ -27,7 +27,9 @@ import 'package:enjoy_player/features/pronounce/application/pronounce_playback_c
 import 'package:enjoy_player/features/shadow_reading/domain/assessment_word_timing.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-import 'assessment_result_widgets.dart';
+import 'assessment_score_indicators.dart';
+import 'assessment_word_chips.dart';
+import 'selected_word_panel.dart';
 
 final _log = logNamed('assessmentResult');
 
