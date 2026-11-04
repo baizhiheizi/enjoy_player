@@ -26,6 +26,10 @@ import 'package:enjoy_player/features/ai/domain/models/asr_result.dart';
 
 const _sentenceTerminators = <String>{'.', '?', '!', '。', '？', '！'};
 
+final Set<int> _terminatorCodeUnits = _sentenceTerminators
+    .map((t) => t.codeUnitAt(0))
+    .toSet();
+
 const int _kDefaultMinLineDurationMs = 800;
 const int _kDefaultMaxLineDurationMs = 6000;
 const int _kDefaultMaxLineChars = 140;
@@ -95,25 +99,31 @@ List<TranscriptLine> _groupFromWords({
   if (words.isEmpty) return const <TranscriptLine>[];
 
   final lines = <_Line>[];
-  var current = _Line(words: <_Word>[words.first]);
+  final first = words.first;
+  var current = _Line(words: <_Word>[first]);
+  var currentTextLength = first.text.length;
+  var currentEndsTerminated = _endsWithTerminator(first.text);
   for (var i = 1; i < words.length; i++) {
     final next = words[i];
     final gap = next.startMs - current.words.last.endMs;
-    final wouldText = '${current.text} ${next.text}';
+    final wouldTextLength = currentTextLength + 1 + next.text.length;
     final wouldDuration = next.endMs - current.words.first.startMs;
 
     final shouldBreak =
-        _endsWithTerminator(current.text) ||
+        currentEndsTerminated ||
         gap > pauseThresholdMs ||
         wouldDuration > maxLineDurationMs ||
-        wouldText.length > maxLineChars;
+        wouldTextLength > maxLineChars;
 
     if (shouldBreak && current.words.isNotEmpty) {
       lines.add(current);
       current = _Line(words: <_Word>[next]);
+      currentTextLength = next.text.length;
     } else {
       current.words.add(next);
+      currentTextLength = wouldTextLength;
     }
+    currentEndsTerminated = _endsWithTerminator(next.text);
   }
   if (current.words.isNotEmpty) lines.add(current);
 
@@ -127,6 +137,7 @@ List<TranscriptLine> _groupFromSegments({
 }) {
   final lines = <_Line>[];
   _Line? current;
+  var currentTextLength = 0;
   for (final seg in segments) {
     final startMs = (seg.start * 1000).round();
     final endMs = (seg.end * 1000).round();
@@ -137,31 +148,27 @@ List<TranscriptLine> _groupFromSegments({
       current = _Line(
         words: <_Word>[_Word(text: segText, startMs: startMs, endMs: endMs)],
       );
+      currentTextLength = segText.length;
       continue;
     }
 
-    final candidate = _Line(
-      words: <_Word>[
-        ...current.words,
-        _Word(text: segText, startMs: startMs, endMs: endMs),
-      ],
-    );
-    final candidateDuration =
-        candidate.words.last.endMs - candidate.words.first.startMs;
-    final candidateText = candidate.text;
+    final candidateDuration = endMs - current.words.first.startMs;
+    final candidateTextLength = currentTextLength + 1 + segText.length;
 
     final shouldBreak =
-        _endsWithTerminator(current.text) ||
+        _endsWithTerminator(current.words.last.text) ||
         candidateDuration >= maxLineDurationMs ||
-        candidateText.length > maxLineChars;
+        candidateTextLength > maxLineChars;
 
     if (shouldBreak) {
       lines.add(current);
       current = _Line(
         words: <_Word>[_Word(text: segText, startMs: startMs, endMs: endMs)],
       );
+      currentTextLength = segText.length;
     } else {
-      current = candidate;
+      current.words.add(_Word(text: segText, startMs: startMs, endMs: endMs));
+      currentTextLength = candidateTextLength;
     }
   }
   if (current != null) lines.add(current);
@@ -185,9 +192,9 @@ List<TranscriptLine> _distributePlainText({
   final chunks = <String>[];
   final buf = StringBuffer();
   for (var i = 0; i < raw.length; i++) {
-    final ch = raw[i];
-    buf.write(ch);
-    if (_sentenceTerminators.contains(ch) || buf.length >= maxLineChars) {
+    final unit = raw.codeUnitAt(i);
+    buf.writeCharCode(unit);
+    if (_terminatorCodeUnits.contains(unit) || buf.length >= maxLineChars) {
       chunks.add(buf.toString().trim());
       buf.clear();
     }
@@ -224,8 +231,7 @@ String _wordText(String s) {
 
 bool _endsWithTerminator(String s) {
   if (s.isEmpty) return false;
-  final last = s.substring(s.length - 1);
-  return _sentenceTerminators.contains(last);
+  return _terminatorCodeUnits.contains(s.codeUnitAt(s.length - 1));
 }
 
 class _Word {
