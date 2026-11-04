@@ -278,5 +278,44 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets('a progress tick repaints without re-deriving the runs', (
+      tester,
+    ) async {
+      final points = <EchoRegionSeriesPoint>[
+        for (var i = 0; i < 20; i++)
+          EchoRegionSeriesPoint(
+            t: i * 0.05,
+            ampRef: 0.4,
+            pitchRefHz: 200.0 + i,
+            ampUser: 0.3,
+            pitchUserHz: 198.0 + i,
+          ),
+      ];
+      final before = pitchContourRunsDerivationCount;
+      await tester.pumpWidget(
+        chartHost(
+          PitchContourChart(
+            points: points,
+            referenceColor: Colors.red,
+            userColor: Colors.blue,
+            progress: 0.1,
+          ),
+        ),
+      );
+      expect(pitchContourRunsDerivationCount, before + 2);
+
+      await tester.pumpWidget(
+        chartHost(
+          PitchContourChart(
+            points: points,
+            referenceColor: Colors.red,
+            userColor: Colors.blue,
+            progress: 0.6,
+          ),
+        ),
+      );
+      expect(pitchContourRunsDerivationCount, before + 2);
+    });
   });
 }
