@@ -29,7 +29,6 @@ class NetworkSectionBody extends ConsumerStatefulWidget {
 
 class _NetworkSectionBodyState extends ConsumerState<NetworkSectionBody> {
   final TextEditingController _urlController = TextEditingController();
-  ProxyMode? _mode;
   bool _urlSeeded = false;
   bool _showUrlError = false;
   bool _testing = false;
@@ -42,14 +41,14 @@ class _NetworkSectionBodyState extends ConsumerState<NetworkSectionBody> {
   }
 
   Future<void> _selectMode(ProxyMode mode) async {
-    setState(() {
-      _mode = mode;
-      _showUrlError = false;
-    });
-    if (mode == ProxyMode.manual) return;
+    setState(() => _showUrlError = false);
+    final saved = ref.read(networkProxySettingsProvider).asData?.value;
+    final url = saved?.url.isNotEmpty == true
+        ? saved!.url
+        : _urlController.text.trim();
     await ref
         .read(networkProxySettingsProvider.notifier)
-        .save(ProxyConfig(mode: mode, url: _urlController.text.trim()));
+        .save(ProxyConfig(mode: mode, url: url));
   }
 
   Future<void> _saveManual(AppLocalizations l10n) async {
@@ -119,7 +118,7 @@ class _NetworkSectionBodyState extends ConsumerState<NetworkSectionBody> {
       _urlSeeded = true;
       _urlController.text = saved.url;
     }
-    final mode = _mode ?? saved?.mode ?? ProxyMode.system;
+    final mode = saved?.mode ?? ProxyMode.system;
     final padding = EdgeInsets.symmetric(
       horizontal: kSettingsRowHorizontalPadding,
       vertical: t.space12,

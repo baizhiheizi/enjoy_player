@@ -36,7 +36,7 @@ Future<void> _bootstrap() async {
   }
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   GoogleFonts.config.allowRuntimeFetching = false;
-  unawaited(setupAppLogging());
+  await setupAppLogging();
   final proxyCoordinator = installSystemProxyOverrides();
   if (defaultTargetPlatform == TargetPlatform.windows) {
     unawaited(ensureWindowsWebViewEnvironment());

@@ -93,14 +93,18 @@ ProxyEndpoint? parseHostPort(String raw) {
   }
   final slash = value.indexOf('/');
   if (slash >= 0) value = value.substring(0, slash);
+  String? userInfo;
   final at = value.lastIndexOf('@');
-  if (at >= 0) value = value.substring(at + 1);
+  if (at >= 0) {
+    userInfo = value.substring(0, at);
+    value = value.substring(at + 1);
+  }
   final colon = value.lastIndexOf(':');
   if (colon <= 0) return null;
   final host = value.substring(0, colon);
   final port = int.tryParse(value.substring(colon + 1));
   if (port == null || port <= 0 || port > 65535) return null;
-  return ProxyEndpoint(host, port);
+  return ProxyEndpoint(host, port, userInfo);
 }
 
 bool _parseRegDword(String? raw) {

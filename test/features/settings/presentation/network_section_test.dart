@@ -121,4 +121,35 @@ void main() {
     );
     expect(mode, 'direct');
   });
+
+  testWidgets(
+    'switching between manual, direct, and manual preserves settings',
+    (tester) async {
+      await pump(tester);
+      await tester.tap(find.text('Manual'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), '10.1.1.1:3128');
+      await tester.tap(find.text('Save proxy'));
+      await settle(tester);
+      expect(coordinator.config.mode, ProxyMode.manual);
+
+      await tester.tap(find.text('Direct'));
+      await settle(tester);
+      final directMode = await tester.runAsync(
+        () => db.settingsDao.readSetting(SettingsKeys.networkProxyMode),
+      );
+      expect(directMode, 'direct');
+      expect(coordinator.config.mode, ProxyMode.direct);
+
+      await tester.tap(find.text('Manual'));
+      await settle(tester);
+      final manualMode = await tester.runAsync(
+        () => db.settingsDao.readSetting(SettingsKeys.networkProxyMode),
+      );
+      expect(manualMode, 'manual');
+      expect(coordinator.config.mode, ProxyMode.manual);
+      expect(find.text('10.1.1.1:3128 (manual)'), findsOneWidget);
+    },
+  );
 }

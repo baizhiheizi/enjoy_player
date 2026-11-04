@@ -75,10 +75,10 @@ HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settin
 
   group('parseHostPort', () {
     test('handles schemes, credentials and invalid input', () {
-      expect(
-        parseHostPort('http://user:pw@proxy.example:8080/'),
-        const ProxyEndpoint('proxy.example', 8080),
-      );
+      final parsed = parseHostPort('http://user:pw@proxy.example:8080/');
+      expect(parsed, const ProxyEndpoint('proxy.example', 8080, 'user:pw'));
+      expect(parsed?.toDirective(), 'user:pw@proxy.example:8080');
+      expect(parsed?.toString(), 'proxy.example:8080');
       expect(parseHostPort('socks5://127.0.0.1:1080'), isNull);
       expect(parseHostPort('nohost'), isNull);
       expect(parseHostPort('h:99999'), isNull);
@@ -95,6 +95,16 @@ HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settin
       expect(
         proxy.findProxy(Uri.parse('https://youtubei.googleapis.com/x')),
         'PROXY 127.0.0.1:7890',
+      );
+    });
+
+    test('proxies public hosts with credentials in directive', () {
+      const authProxy = ResolvedProxy(
+        http: ProxyEndpoint('127.0.0.1', 7890, 'user:pw'),
+      );
+      expect(
+        authProxy.findProxy(Uri.parse('https://youtubei.googleapis.com/x')),
+        'PROXY user:pw@127.0.0.1:7890',
       );
     });
 

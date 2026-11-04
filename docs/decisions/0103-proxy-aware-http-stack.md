@@ -22,7 +22,9 @@ BYOK endpoints — connects directly and fails (#1220).
   every `dart:io`-backed client is proxy-aware with no call-site sweep.
 - Loopback hosts and the system exception list always bypass. When no system
   proxy is found, resolution falls back to
-  `HttpClient.findProxyFromEnvironment` (Linux env vars, unchanged behavior).
+  `HttpClient.findProxyFromEnvironment` (`http_proxy` / `https_proxy` /
+  `no_proxy` env vars, unchanged behavior; note `https_proxy` is required
+  for HTTPS requests).
 - The effective proxy is logged (`network proxy: …`) at startup and on change,
   host:port only.
 

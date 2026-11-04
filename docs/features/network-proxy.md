@@ -8,7 +8,7 @@ follows the OS system proxy on desktop. See
 | --- | --- |
 | macOS | `scutil --proxy` (`HTTP*`/`HTTPS*` + `ExceptionsList`) |
 | Windows | `HKCU\…\Internet Settings` (`ProxyEnable`, `ProxyServer` single or per-protocol, `ProxyOverride`) |
-| Linux | `http(s)_proxy` / `all_proxy` env via Dart's default resolution |
+| Linux | `http_proxy` / `https_proxy` / `no_proxy` environment variables via Dart's default resolution (per-scheme: `https_proxy` must be set for HTTPS requests such as captions) |
 | Android / iOS | not readable; direct (route-level VPNs apply) |
 
 ## Settings → Network

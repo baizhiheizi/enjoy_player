@@ -1,20 +1,28 @@
 import 'dart:io';
 
 final class ProxyEndpoint {
-  const ProxyEndpoint(this.host, this.port);
+  const ProxyEndpoint(this.host, this.port, [this.userInfo]);
 
   final String host;
   final int port;
+  final String? userInfo;
+
+  String toDirective() => userInfo != null && userInfo!.isNotEmpty
+      ? '$userInfo@$host:$port'
+      : '$host:$port';
 
   @override
   String toString() => '$host:$port';
 
   @override
   bool operator ==(Object other) =>
-      other is ProxyEndpoint && other.host == host && other.port == port;
+      other is ProxyEndpoint &&
+      other.host == host &&
+      other.port == port &&
+      other.userInfo == userInfo;
 
   @override
-  int get hashCode => Object.hash(host, port);
+  int get hashCode => Object.hash(host, port, userInfo);
 }
 
 final class ResolvedProxy {
@@ -40,7 +48,7 @@ final class ResolvedProxy {
       return 'DIRECT';
     }
     final endpoint = uri.scheme == 'https' ? (https ?? http) : (http ?? https);
-    return endpoint == null ? 'DIRECT' : 'PROXY $endpoint';
+    return endpoint == null ? 'DIRECT' : 'PROXY ${endpoint.toDirective()}';
   }
 
   bool bypassesHost(String host) {
