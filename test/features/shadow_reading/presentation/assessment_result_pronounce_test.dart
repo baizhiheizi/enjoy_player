@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_widgets.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/selected_word_panel.dart';
 
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
