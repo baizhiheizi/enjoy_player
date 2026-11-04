@@ -120,4 +120,103 @@ void main() {
     expect(find.byType(SnackBar), findsOneWidget);
     expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
   });
+
+  group('purchaseErrorMessage', () {
+    test('maps typed StateError pay-url sentinels to localized messages', () {
+      expect(
+        purchaseErrorMessage(
+          StateError('missing_pay_url'),
+          l10n,
+          fallback: l10n.subscriptionPurchaseFailed,
+        ),
+        l10n.subscriptionPaymentUrlMissing,
+      );
+      expect(
+        purchaseErrorMessage(
+          StateError('invalid_pay_url'),
+          l10n,
+          fallback: l10n.subscriptionPurchaseFailed,
+        ),
+        l10n.subscriptionPaymentUrlMissing,
+      );
+      expect(
+        purchaseErrorMessage(
+          StateError('launch_failed'),
+          l10n,
+          fallback: l10n.subscriptionPurchaseFailed,
+        ),
+        l10n.subscriptionPaymentLaunchFailed,
+      );
+    });
+
+    test(
+      'does not misfire on unrelated exceptions whose toString contains sentinel text',
+      () {
+        expect(
+          purchaseErrorMessage(
+            Exception('unrelated error mentioning missing_pay_url'),
+            l10n,
+            fallback: l10n.creditsPackagePurchaseFailed,
+          ),
+          l10n.creditsPackagePurchaseFailed,
+        );
+        expect(
+          purchaseErrorMessage(
+            Exception('unrelated error mentioning launch_failed'),
+            l10n,
+            fallback: l10n.creditsPackagePurchaseFailed,
+          ),
+          l10n.creditsPackagePurchaseFailed,
+        );
+      },
+    );
+
+    test(
+      'maps CreditsFailure, SubscriptionConflictFailure, and AppFailure',
+      () {
+        expect(
+          purchaseErrorMessage(
+            const CreditsFailure('HTTP 402'),
+            l10n,
+            fallback: l10n.subscriptionPurchaseFailed,
+          ),
+          l10n.subscriptionCreditsLimitMessageWithPackages,
+        );
+        expect(
+          purchaseErrorMessage(
+            const SubscriptionConflictFailure(''),
+            l10n,
+            fallback: l10n.subscriptionPurchaseFailed,
+            conflictFallback: l10n.subscriptionAutoRenewConflict,
+          ),
+          l10n.subscriptionAutoRenewConflict,
+        );
+        expect(
+          purchaseErrorMessage(
+            const SubscriptionConflictFailure('Server conflict detail'),
+            l10n,
+            fallback: l10n.subscriptionPurchaseFailed,
+            conflictFallback: l10n.subscriptionAutoRenewConflict,
+          ),
+          'Server conflict detail',
+        );
+        expect(
+          purchaseErrorMessage(
+            const NetworkFailure('Custom network message'),
+            l10n,
+            fallback: l10n.subscriptionPurchaseFailed,
+          ),
+          'Custom network message',
+        );
+        expect(
+          purchaseErrorMessage(
+            const NetworkFailure(''),
+            l10n,
+            fallback: l10n.subscriptionPurchaseFailed,
+          ),
+          l10n.subscriptionPurchaseFailed,
+        );
+      },
+    );
+  });
 }

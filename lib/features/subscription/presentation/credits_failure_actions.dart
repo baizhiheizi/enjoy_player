@@ -59,3 +59,50 @@ void showCreditsFailureNotice(BuildContext context, CreditsFailure failure) {
     ),
   );
 }
+
+/// Maps [error] from a subscription or credits checkout/cancel flow to a
+/// localized user-facing message.
+///
+/// Handles typed [StateError] sentinels from `launchPayUrl`
+/// (`'missing_pay_url'`, `'invalid_pay_url'`, `'launch_failed'`),
+/// [CreditsFailure] via [creditsFailureMessage], [SubscriptionConflictFailure]
+/// when [conflictFallback] is supplied, non-empty [AppFailure.message], and
+/// [fallback] otherwise.
+String purchaseErrorMessage(
+  Object error,
+  AppLocalizations l10n, {
+  required String fallback,
+  String? conflictFallback,
+}) {
+  return switch (error) {
+    StateError(:final message)
+        when message == 'missing_pay_url' || message == 'invalid_pay_url' =>
+      l10n.subscriptionPaymentUrlMissing,
+    StateError(:final message) when message == 'launch_failed' =>
+      l10n.subscriptionPaymentLaunchFailed,
+    final CreditsFailure f => creditsFailureMessage(f, l10n),
+    SubscriptionConflictFailure(:final message) when conflictFallback != null =>
+      message.isNotEmpty ? message : conflictFallback,
+    AppFailure(:final message) => message.isNotEmpty ? message : fallback,
+    _ => fallback,
+  };
+}
+
+/// Shows an [AppNotice.error] snackbar for [error] using [purchaseErrorMessage].
+void showPurchaseErrorNotice(
+  BuildContext context,
+  Object error,
+  AppLocalizations l10n, {
+  required String fallback,
+  String? conflictFallback,
+}) {
+  AppNotice.error(
+    context,
+    purchaseErrorMessage(
+      error,
+      l10n,
+      fallback: fallback,
+      conflictFallback: conflictFallback,
+    ),
+  );
+}
