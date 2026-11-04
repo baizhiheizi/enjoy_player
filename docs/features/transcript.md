@@ -643,6 +643,10 @@ transcript watches re-emit the edited lines live. Rules:
 Scope: the editor edits existing cues only — no add / delete / reorder of
 lines and no secondary (translation) track editing.
 
+## Network proxy
+
+The YouTube Tier 1 (worker cache) and Tier 2 (direct InnerTube) fetches run on `dart:io` and follow the OS system proxy on desktop ([network-proxy.md](network-proxy.md), ADR-0103); behind a system-proxy VPN they no longer bypass the tunnel.
+
 ## Future
 
 - Multiple languages, cue add / delete / reorder, export — parity with web

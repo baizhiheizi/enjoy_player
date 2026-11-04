@@ -60,6 +60,10 @@ With diagnostic logging enabled, YouTube startup also records play/pause/`playOr
 
 This surfaces release-only WebView stalls without enabling verbose mode.
 
+## Network proxy line
+
+At startup and whenever the resolved system proxy changes, an INFO line `network proxy: <direct|proxy> source=<scutil|registry|none> http=host:port https=host:port` is logged (credentials never included). See [network-proxy.md](network-proxy.md).
+
 ## Related docs
 
 - [ADR-0026](../decisions/0026-local-production-diagnostics.md) — local-only default, opt-in verbose
