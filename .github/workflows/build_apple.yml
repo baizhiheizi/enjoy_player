@@ -149,6 +149,9 @@ jobs:
       - name: Install Homebrew deps (FFmpeg kit)
         run: brew bundle install --file=macos/Brewfile
 
+      - name: Build compat dylibs (macOS 12 floor)
+        run: bash macos/scripts/build_compat_dylibs.sh
+
       - name: Flutter pub get
         run: flutter pub get
 

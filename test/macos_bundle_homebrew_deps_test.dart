@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// macOS-only tools it shells out to, so the bundler's dependency walk is
 /// covered on every platform that runs the Dart test suite.
 ///
-/// See `docs/packaging.md` (macOS) and issue #1096.
+/// See `docs/packaging.md` (macOS), issue #1096 (closure), and ADR-0102 /
+/// issue #1187 (compat prefix, macOS floor, /usr/lib allowlist).
 const _scriptPath = 'macos/scripts/bundle_ffmpeg_homebrew_deps.sh';
 
 /// A dylib version no real Homebrew keg ships. The fixture load commands keep
@@ -137,6 +138,20 @@ esac
 exit 0
 ''';
 
+/// `-show-build` emits the LC_BUILD_VERSION the floor gate parses. The minos
+/// comes from `fixtures/minos/<basename>`; anything without a fixture reports
+/// the compat floor itself, the way a deployment-target-12.0 build does.
+const _vtoolStub = r'''
+#!/bin/sh
+base=$(basename "$2")
+minos="12.0"
+if [ -f "$FIXTURE_DIR/minos/$base" ]; then
+  minos=$(cat "$FIXTURE_DIR/minos/$base")
+fi
+printf 'Load command 9\n      cmd LC_BUILD_VERSION\n  cmdsize 32\n platform MACOS\n    minos %s\n      sdk 26.5\n' "$minos"
+exit 0
+''';
+
 const _codesignStub = r'''
 #!/bin/sh
 exit 0
@@ -201,6 +216,18 @@ class _Sandbox {
       ..writeAsStringSync('mach-o');
   }
 
+  void writeMinos(String binary, String minos) {
+    File('${fixtures.path}/minos/$binary')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(minos);
+  }
+
+  void writeCompatLib(String library, String content) {
+    File('${root.path}/compat-prefix/lib/$library')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(content);
+  }
+
   void writeAppFile(String relativePath, String content) {
     File('${app.path}/$relativePath')
       ..createSync(recursive: true)
@@ -222,6 +249,9 @@ class _Sandbox {
         'FAKE_PREFIX': opt.path,
         'CONFIGURATION': 'Debug',
         'CODE_SIGNING_ALLOWED': 'NO',
+        // Pinned to a sandbox path so a build machine's real compat prefix
+        // never leaks into the fixture resolution.
+        'ENJOY_MACOS_COMPAT_PREFIX': '${root.path}/compat-prefix',
       },
       workingDirectory: Directory.current.path,
     );
@@ -243,6 +273,16 @@ class _Sandbox {
     return file.readAsLinesSync().where((line) => line.isNotEmpty).length;
   }
 
+  List<String> readBrewPrefixCalls() {
+    final file = File('${state.path}/brew_prefix_calls');
+    if (!file.existsSync()) return const [];
+    return file
+        .readAsLinesSync()
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+  }
+
   void dispose() {
     root.deleteSync(recursive: true);
   }
@@ -255,7 +295,8 @@ _Sandbox _buildSandbox({bool withBrotliCommon = true}) {
     ..writeStub('install_name_tool', _installNameToolStub)
     ..writeStub('file', _fileStub)
     ..writeStub('brew', _brewStub)
-    ..writeStub('codesign', _codesignStub);
+    ..writeStub('codesign', _codesignStub)
+    ..writeStub('vtool', _vtoolStub);
 
   sandbox.writeKegLib('freetype', _freetypeKegDylib);
   sandbox.writeKegLib('brotli', _brotlidecKegDylib);
@@ -485,6 +526,92 @@ void main() {
           'A Homebrew-shaped @rpath dependency must stay unresolved even when '
           'the executable carries a /usr/lib rpath; only the OS Swift runtime '
           'is served from the dyld shared cache.',
+    );
+  }, skip: skipOnWindows);
+
+  test('fails the build when a bundled dylib exceeds the macOS floor', () {
+    final sandbox = _buildSandbox();
+    addTearDown(sandbox.dispose);
+
+    sandbox.writeMinos(_freetypeKegDylib, '26.0');
+
+    final result = sandbox.runBundler();
+
+    expect(result.exitCode, isNot(0));
+    expect(
+      result.stderr,
+      contains('built for macOS 26.0'),
+      reason:
+          'Homebrew bottles carry their bottle tag as LC_BUILD_VERSION minos; '
+          'dyld kills the app before main() on every older macOS (#1187), so '
+          'the bundler has to refuse the copy:\n${result.stdout}\n${result.stderr}',
+    );
+    expect(
+      result.stderr,
+      contains('build_compat_dylibs.sh'),
+      reason:
+          'The failure must point at the remediation, not just the '
+          'symptom.',
+    );
+  }, skip: skipOnWindows);
+
+  test('fails the build on a /usr/lib dylib missing from the allowlist', () {
+    final sandbox = _buildSandbox();
+    addTearDown(sandbox.dispose);
+
+    sandbox.writeDeps(_freetypeKegDylib, [
+      '/opt/homebrew/opt/brotli/lib/$_brotlidecKegDylib',
+      '/usr/lib/libhvf.dylib',
+      '/usr/lib/libSystem.B.dylib',
+    ]);
+
+    final result = sandbox.runBundler();
+
+    expect(result.exitCode, isNot(0));
+    expect(
+      result.stderr,
+      contains('libhvf.dylib'),
+      reason:
+          '/usr/lib/libhvf.dylib exists only on macOS 26+ (FreeType >= 2.15 '
+          'bottles link it, issue #1187); resolving it "because it is /usr/lib" '
+          'ships a launch crash.',
+    );
+    expect(
+      result.stderr,
+      contains('allowlist'),
+      reason: 'The message has to name the gate that fired.',
+    );
+  }, skip: skipOnWindows);
+
+  test('prefers the compat prefix over the Homebrew keg', () {
+    final sandbox = _buildSandbox();
+    addTearDown(sandbox.dispose);
+
+    sandbox.writeCompatLib(_freetypeKegDylib, 'compat');
+
+    final result = sandbox.runBundler();
+
+    expect(
+      result.exitCode,
+      0,
+      reason: 'bundler failed:\n${result.stdout}\n${result.stderr}',
+    );
+    expect(
+      File('${sandbox.frameworksDir}/$_freetypeKegDylib').readAsStringSync(),
+      'compat',
+      reason:
+          'The deployment-target-12.0 prefix has to win over the keg whose '
+          'bottles are built for the current bottle-tag macOS.',
+    );
+    expect(
+      sandbox
+          .readBrewPrefixCalls()
+          .where((formula) => formula == 'freetype')
+          .isEmpty,
+      isTrue,
+      reason:
+          'With the prefix satisfying the reference, the freetype keg '
+          'must not be queried at all.',
     );
   }, skip: skipOnWindows);
 }
