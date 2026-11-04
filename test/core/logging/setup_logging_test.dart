@@ -111,6 +111,26 @@ void main() {
   );
 
   test(
+    'records emitted before LogFileSink.ensureInitialized resolves are captured',
+    () async {
+      final supportGate = Completer<void>();
+      PathProviderPlatform.instance = _GatedSupportPathProvider(
+        documentsPath,
+        supportPath: supportPath,
+        gate: supportGate.future,
+      );
+      DiagnosticLogConfig.debugPrimeSessionLoad(verbose: false);
+
+      final setupFuture = setupAppLogging();
+      Logger('network.proxy').info('network proxy: mode=system direct');
+      supportGate.complete();
+      await setupFuture;
+      await debugSessionBannerFuture!;
+      await untilLogContains('network proxy: mode=system direct');
+    },
+  );
+
+  test(
     'banner awaits the persisted verbose flag before it is written',
     () async {
       await withDeviceGlobalAppDatabaseForBootstrap((db) async {
@@ -281,5 +301,21 @@ class _GatedDocumentsPathProvider extends TestPathProvider {
   Future<String?> getApplicationDocumentsPath() async {
     await gate;
     return documentsPath;
+  }
+}
+
+class _GatedSupportPathProvider extends TestPathProvider {
+  _GatedSupportPathProvider(
+    super.documentsPath, {
+    super.supportPath,
+    required this.gate,
+  });
+
+  final Future<void> gate;
+
+  @override
+  Future<String?> getApplicationSupportPath() async {
+    await gate;
+    return supportPath;
   }
 }

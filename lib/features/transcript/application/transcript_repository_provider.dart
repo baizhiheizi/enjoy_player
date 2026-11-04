@@ -3,6 +3,7 @@ library;
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/network/proxy/proxy_providers.dart';
 import '../../../data/api/services/ai/ai_api_providers.dart';
 import '../../../data/api/services/api_providers.dart';
 import '../../../data/db/app_database_provider.dart';
@@ -31,6 +32,9 @@ TranscriptRepository transcriptRepository(Ref ref) {
   final fetcher = YoutubeCaptionFetcher(
     httpClient: httpClient,
     profiles: profiles,
+    transportFailureHint: ref
+        .watch(systemProxyCoordinatorProvider)
+        .transportFailureHint,
   );
   return TranscriptRepository(
     db,

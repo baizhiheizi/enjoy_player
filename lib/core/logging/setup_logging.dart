@@ -75,10 +75,6 @@ Future<void> setupAppLogging() async {
   if (_loggingHooked) return;
   _loggingHooked = true;
 
-  await LogFileSink.ensureInitialized();
-  unawaited(DiagnosticLogConfig.loadFromDeviceGlobalSettings());
-  _scheduleSessionBanner();
-
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
   _logSubscription = Logger.root.onRecord.listen((record) {
     final mirrorToStdout =
@@ -108,6 +104,10 @@ Future<void> setupAppLogging() async {
       stackTrace: record.stackTrace,
     );
   });
+
+  await LogFileSink.ensureInitialized();
+  unawaited(DiagnosticLogConfig.loadFromDeviceGlobalSettings());
+  _scheduleSessionBanner();
 }
 
 int _sessionBannerGeneration = 0;

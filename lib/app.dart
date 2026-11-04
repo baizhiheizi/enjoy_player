@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:enjoy_player/core/network/proxy/proxy_providers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -233,6 +234,7 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     unawaited(ref.read(analyticsInitProvider.future));
+    unawaited(ref.read(networkProxySettingsProvider.future));
   }
 
   @override

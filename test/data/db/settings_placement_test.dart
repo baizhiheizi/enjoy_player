@@ -20,6 +20,8 @@ void main() {
     const expectedScopes = <String, SettingsScope>{
       'api.base_url': SettingsScope.device,
       'api.ai_base_url': SettingsScope.device,
+      'network.proxyMode': SettingsScope.device,
+      'network.proxyUrl': SettingsScope.device,
       'diagnostics.verbose_enabled': SettingsScope.device,
       'analytics.capture_enabled': SettingsScope.device,
       'transcript.karaokeHighlight': SettingsScope.device,

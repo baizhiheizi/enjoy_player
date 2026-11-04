@@ -67,6 +67,7 @@ void main() {
         SettingsSectionIds.cloudSync,
         SettingsSectionIds.appearanceLanguage,
         SettingsSectionIds.aiProviders,
+        SettingsSectionIds.network,
         SettingsSectionIds.recording,
         SettingsSectionIds.keyboardShortcuts,
         SettingsSectionIds.developer,

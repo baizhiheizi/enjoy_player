@@ -55,4 +55,4 @@ final class TranscriptRepositoryProvider
 }
 
 String _$transcriptRepositoryHash() =>
-    r'ec8e7e881dd8f60920f526a3199c1b006a0133a5';
+    r'3578a3a16e64cd5f6eb92806e7f923858cfa589b';

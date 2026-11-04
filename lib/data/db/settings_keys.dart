@@ -19,6 +19,20 @@ abstract final class SettingsKeys {
     defaultValue: kDefaultApiBaseUrl,
   );
 
+  static const networkProxyMode = SettingKey<String>(
+    name: 'network.proxyMode',
+    scope: SettingsScope.device,
+    codec: StringSettingCodec(),
+    defaultValue: 'system',
+  );
+
+  static const networkProxyUrl = SettingKey<String>(
+    name: 'network.proxyUrl',
+    scope: SettingsScope.device,
+    codec: StringSettingCodec(),
+    defaultValue: '',
+  );
+
   /// Worker-hosted AI routes (OpenAI-compatible chat, ASR, translation, etc.).
   static const apiAiBaseUrl = SettingKey<String>(
     name: 'api.ai_base_url',
@@ -305,6 +319,8 @@ abstract final class SettingsKeys {
   static final List<SettingKey<dynamic>> declaredKeys = [
     apiBaseUrl,
     apiAiBaseUrl,
+    networkProxyMode,
+    networkProxyUrl,
     diagnosticsVerboseEnabled,
     analyticsCaptureEnabled,
     transcriptKaraokeHighlight,

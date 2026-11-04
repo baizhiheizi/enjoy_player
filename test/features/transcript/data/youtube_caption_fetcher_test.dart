@@ -156,6 +156,30 @@ void main() {
       expect(result.error!.contains('All profiles failed'), isTrue);
     });
 
+    test('transport failures append the proxy hint', () async {
+      mockClient = MockClient((request) async {
+        throw http.ClientException('SocketException: Connection refused');
+      });
+      final fetcher = YoutubeCaptionFetcher(
+        httpClient: mockClient,
+        transportFailureHint: () => 'check your VPN mode',
+      );
+      final result = await fetcher.fetchSubtitles(videoId: 'test1234567');
+      expect(result.error, contains('Hint: check your VPN mode'));
+    });
+
+    test('non-transport failures carry no hint', () async {
+      mockClient = MockClient((request) async {
+        return http.Response('Forbidden', 403);
+      });
+      final fetcher = YoutubeCaptionFetcher(
+        httpClient: mockClient,
+        transportFailureHint: () => 'check your VPN mode',
+      );
+      final result = await fetcher.fetchSubtitles(videoId: 'test1234567');
+      expect(result.error, isNot(contains('Hint:')));
+    });
+
     test('fetchSubtitles returns error for unplayable video', () async {
       mockClient = MockClient((request) async {
         return http.Response(

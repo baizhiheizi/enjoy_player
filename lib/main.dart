@@ -12,6 +12,8 @@ import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'core/network/proxy/proxy_http_overrides.dart';
+import 'core/network/proxy/proxy_providers.dart';
 import 'core/platform/device_form_factor.dart';
 import 'core/platform/espeak_android_provisioner.dart';
 import 'core/recovery/widget_error_surface.dart';
@@ -34,7 +36,8 @@ Future<void> _bootstrap() async {
   }
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   GoogleFonts.config.allowRuntimeFetching = false;
-  unawaited(setupAppLogging());
+  await setupAppLogging();
+  final proxyCoordinator = installSystemProxyOverrides();
   if (defaultTargetPlatform == TargetPlatform.windows) {
     unawaited(ensureWindowsWebViewEnvironment());
   }
@@ -61,11 +64,16 @@ Future<void> _bootstrap() async {
     });
   }
 
-  const root = ProviderScope(child: EnjoyApp());
+  final root = ProviderScope(
+    overrides: [
+      systemProxyCoordinatorProvider.overrideWithValue(proxyCoordinator),
+    ],
+    child: const EnjoyApp(),
+  );
   Widget app = root;
   if (defaultTargetPlatform == TargetPlatform.windows &&
       (kDebugMode || kProfileMode)) {
-    app = const ExcludeSemantics(child: root);
+    app = ExcludeSemantics(child: root);
   }
   runApp(app);
 }

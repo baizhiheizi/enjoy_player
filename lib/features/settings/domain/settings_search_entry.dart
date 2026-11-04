@@ -16,6 +16,7 @@ abstract final class SettingsSectionIds {
   static const cloudSync = 'cloudSync';
   static const appearanceLanguage = 'appearanceLanguage';
   static const aiProviders = 'aiProviders';
+  static const network = 'network';
   static const recording = 'recording';
   static const keyboardShortcuts = 'keyboardShortcuts';
   static const developer = 'developer';
@@ -127,6 +128,18 @@ const List<SettingsEntryDescriptor> kSettingsRegistry = [
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.aiProviders,
     rowId: 'aiProviders',
+  ),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.network,
+    collapsedByDefault: true,
+  ),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.network,
+    rowId: 'proxyMode',
+  ),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.network,
+    rowId: 'testConnection',
   ),
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.recording,

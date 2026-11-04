@@ -8423,6 +8423,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Take {number} · Assessment'**
   String takeAssessmentTitle(int number);
+
+  /// No description provided for @settingsSectionNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get settingsSectionNetwork;
+
+  /// No description provided for @settingsSectionNetworkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy and VPN routing'**
+  String get settingsSectionNetworkHint;
+
+  /// No description provided for @settingsNetworkProxyModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy mode'**
+  String get settingsNetworkProxyModeTitle;
+
+  /// No description provided for @settingsNetworkProxyModeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsNetworkProxyModeSystem;
+
+  /// No description provided for @settingsNetworkProxyModeManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get settingsNetworkProxyModeManual;
+
+  /// No description provided for @settingsNetworkProxyModeDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct'**
+  String get settingsNetworkProxyModeDirect;
+
+  /// No description provided for @settingsNetworkProxyModeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'System follows your OS proxy (Clash, sing-box and similar). Manual uses the address below. Direct bypasses every proxy.'**
+  String get settingsNetworkProxyModeHint;
+
+  /// No description provided for @settingsNetworkProxyUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy address'**
+  String get settingsNetworkProxyUrlLabel;
+
+  /// No description provided for @settingsNetworkProxyUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'127.0.0.1:7890 or http://host:port'**
+  String get settingsNetworkProxyUrlHint;
+
+  /// No description provided for @settingsNetworkProxyUrlInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an HTTP proxy as host:port. SOCKS proxies are not supported.'**
+  String get settingsNetworkProxyUrlInvalid;
+
+  /// No description provided for @settingsNetworkProxySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save proxy'**
+  String get settingsNetworkProxySave;
+
+  /// No description provided for @settingsNetworkProxySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy settings saved.'**
+  String get settingsNetworkProxySaved;
+
+  /// No description provided for @settingsNetworkEffectiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective proxy'**
+  String get settingsNetworkEffectiveTitle;
+
+  /// No description provided for @settingsNetworkEffectiveDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct (no proxy)'**
+  String get settingsNetworkEffectiveDirect;
+
+  /// No description provided for @settingsNetworkEffectiveProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'{endpoint} ({source})'**
+  String settingsNetworkEffectiveProxy(String endpoint, String source);
+
+  /// No description provided for @settingsNetworkTestButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Test connection'**
+  String get settingsNetworkTestButton;
+
+  /// No description provided for @settingsNetworkTestRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing...'**
+  String get settingsNetworkTestRunning;
+
+  /// No description provided for @settingsNetworkTestApi.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoy API'**
+  String get settingsNetworkTestApi;
+
+  /// No description provided for @settingsNetworkTestYoutube.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube'**
+  String get settingsNetworkTestYoutube;
+
+  /// No description provided for @settingsNetworkTestOk.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: reachable in {ms} ms via {route}'**
+  String settingsNetworkTestOk(String label, int ms, String route);
+
+  /// No description provided for @settingsNetworkTestFail.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: failed via {route} ({error})'**
+  String settingsNetworkTestFail(String label, String route, String error);
 }
 
 class _AppLocalizationsDelegate
