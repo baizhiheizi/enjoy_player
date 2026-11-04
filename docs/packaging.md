@@ -170,7 +170,7 @@ YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-yo
 
 - **Xcode** + **CocoaPods** + Apple Developer team **`46X685R747`**
 - **Homebrew** + FFmpeg deps: `brew bundle install --file=macos/Brewfile`
-- **Compat dylibs** (see [ADR-0101](decisions/0101-macos-compat-dylibs-macos-12-floor.md)):
+- **Compat dylibs** (see [ADR-0102](decisions/0102-macos-compat-dylibs-macos-12-floor.md)):
   `bash macos/scripts/build_compat_dylibs.sh` — builds every
   Homebrew-referenced dylib from sha256-pinned sources at
   `MACOSX_DEPLOYMENT_TARGET=12.0` into
@@ -207,7 +207,7 @@ YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-yo
   the user's machine, long after the pipeline went green (see
   [#1096](https://github.com/baizhiheizi/enjoy_player/issues/1096)).
 - Two further gates cover dependencies that *resolve on the build machine but
-  not on the user's macOS* ([ADR-0101](decisions/0101-macos-compat-dylibs-macos-12-floor.md),
+  not on the user's macOS* ([ADR-0102](decisions/0102-macos-compat-dylibs-macos-12-floor.md),
   [#1187](https://github.com/baizhiheizi/enjoy_player/issues/1187)):
   - **macOS floor gate** — every dylib the bundler copies must have
     `LC_BUILD_VERSION minos ≤ 12.0` on every arch slice. Homebrew bottles

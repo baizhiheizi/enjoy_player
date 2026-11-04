@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// macOS-only tools it shells out to, so the bundler's dependency walk is
 /// covered on every platform that runs the Dart test suite.
 ///
-/// See `docs/packaging.md` (macOS), issue #1096 (closure), and ADR-0101 /
+/// See `docs/packaging.md` (macOS), issue #1096 (closure), and ADR-0102 /
 /// issue #1187 (compat prefix, macOS floor, /usr/lib allowlist).
 const _scriptPath = 'macos/scripts/bundle_ffmpeg_homebrew_deps.sh';
 

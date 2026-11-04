@@ -7,7 +7,7 @@
 # minos (26.0 for current arm64 bottles) and FreeType >= 2.15 bottles link
 # /usr/lib/libhvf.dylib (macOS 26 only), so keg copies crash dyld on every
 # older macOS. Releases resolve the dylibs from a prefix built with
-# MACOSX_DEPLOYMENT_TARGET = the app's minimum instead (ADR-0101).
+# MACOSX_DEPLOYMENT_TARGET = the app's minimum instead (ADR-0102).
 
 # The minimum macOS the direct-download app supports; must match
 # MACOSX_DEPLOYMENT_TARGET in macos/Runner.xcconfig and docs/packaging.md.

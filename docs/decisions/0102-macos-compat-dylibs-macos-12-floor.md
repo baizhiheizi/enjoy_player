@@ -1,4 +1,4 @@
-# ADR-0101: macOS compat dylibs pin the bundle to the deployment target, not the build machine
+# ADR-0102: macOS compat dylibs pin the bundle to the deployment target, not the build machine
 
 **Status**: Accepted (2026-11-01)
 **Related**: [#1187](https://github.com/baizhiheizi/enjoy_player/issues/1187),
