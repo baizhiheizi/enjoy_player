@@ -317,14 +317,27 @@ AsrResult _plainTextResult({required int chars, int seed = 13}) {
   return AsrResult(text: buf.toString(), segments: null);
 }
 
-void _expectSameLines(AsrResult result, int mediaDurationMs, String reason) {
+void _expectSameLines({
+  required AsrResult result,
+  required int mediaDurationMs,
+  required int maxLineChars,
+  required int maxLineDurationMs,
+  required int pauseThresholdMs,
+  required String reason,
+}) {
   final got = buildAsrTranscriptLines(
     result: result,
     mediaDurationMs: mediaDurationMs,
+    maxLineDurationMs: maxLineDurationMs,
+    maxLineChars: maxLineChars,
+    pauseThresholdMs: pauseThresholdMs,
   );
   final legacy = _legacyBuildAsrTranscriptLines(
     result: result,
     mediaDurationMs: mediaDurationMs,
+    maxLineDurationMs: maxLineDurationMs,
+    maxLineChars: maxLineChars,
+    pauseThresholdMs: pauseThresholdMs,
   );
   expect(got.length, legacy.length, reason: 'line count mismatch: $reason');
   for (var i = 0; i < got.length; i++) {
@@ -508,10 +521,14 @@ void main() {
       for (final result in cases) {
         for (final (maxChars, maxDur, pause) in paramVariants) {
           _expectSameLines(
-            result,
-            10000,
-            'params(maxChars=$maxChars,maxDur=$maxDur,pause=$pause), '
-            'segments=${result.segments?.length ?? 0}',
+            result: result,
+            mediaDurationMs: 10000,
+            maxLineChars: maxChars,
+            maxLineDurationMs: maxDur,
+            pauseThresholdMs: pause,
+            reason:
+                'params(maxChars=$maxChars,maxDur=$maxDur,pause=$pause), '
+                'segments=${result.segments?.length ?? 0}',
           );
         }
       }
