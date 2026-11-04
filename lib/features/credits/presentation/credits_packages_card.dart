@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -47,26 +46,14 @@ class CreditsPackagesCard extends ConsumerWidget {
           .purchaseExternal(packageId: pkg.id, expectedCredits: pkg.credits);
       if (!context.mounted) return;
       AppNotice.info(context, l10n.subscriptionRedirectingToPayment);
-    } on AppFailure catch (e) {
-      if (!context.mounted) return;
-      final msg = e is CreditsFailure
-          ? creditsFailureMessage(e, l10n)
-          : e.message.isNotEmpty
-          ? e.message
-          : l10n.creditsPackagePurchaseFailed;
-      AppNotice.error(context, msg);
     } catch (e) {
       if (!context.mounted) return;
-      final msg = switch (e.toString()) {
-        final s
-            when s.contains('missing_pay_url') ||
-                s.contains('invalid_pay_url') =>
-          l10n.subscriptionPaymentUrlMissing,
-        final s when s.contains('launch_failed') =>
-          l10n.subscriptionPaymentLaunchFailed,
-        _ => l10n.creditsPackagePurchaseFailed,
-      };
-      AppNotice.error(context, msg);
+      showPurchaseErrorNotice(
+        context,
+        e,
+        l10n,
+        fallback: l10n.creditsPackagePurchaseFailed,
+      );
     }
   }
 

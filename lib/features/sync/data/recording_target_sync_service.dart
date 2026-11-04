@@ -44,9 +44,6 @@ class RecordingTargetSyncService {
     required String targetId,
     DateTime? now,
   }) async {
-    final errors = <String>[];
-    var synced = 0;
-    var failed = 0;
     final cursorKey = SettingsKeys.syncCursorRecordingTargets.keyFor(
       '$targetType.$targetId',
     );
@@ -64,91 +61,45 @@ class RecordingTargetSyncService {
       return const SyncResult(success: true, synced: 0, failed: 0);
     }
 
-    var cursor = await _db.settingsDao.readSetting(cursorKey);
-    if (cursor != null && cursor.isEmpty) cursor = null;
-
-    var pages = 0;
-    while (pages < _kMaxPagesPerCall) {
-      pages++;
-      List<Map<String, dynamic>> batch;
-      try {
-        final raw = await _recordingApi.recordings(
-          limit: _pageSize,
-          updatedAfter: cursor,
-          targetId: targetId,
-          targetType: targetType,
-        );
-        batch = raw.map<Map<String, dynamic>>(castJsonObject).toList();
-      } catch (e) {
-        return SyncResult(
-          success: false,
-          synced: synced,
-          failed: failed + 1,
-          errors: [...errors, '$e'],
-        );
-      }
-
-      if (batch.isEmpty) break;
-
-      final pendingUpserts = <String, Map<String, dynamic>>{};
-      var duplicateIds = 0;
-      for (final m in batch) {
-        final id = m['id'] as String?;
-        if (id == null || id.isEmpty) continue;
-        if (pendingUpserts.containsKey(id)) duplicateIds++;
-        pendingUpserts[id] = m;
-      }
-      if (duplicateIds > 0) {
-        _log.warning(
-          '$duplicateIds duplicate ids in one server page '
-          '(${pendingUpserts.length} unique); keeping the last payload per id '
-          '(last-write-wins, matching the historical per-row path)',
-        );
-      }
-
-      var pageFailed = 0;
-      if (pendingUpserts.isNotEmpty) {
-        final counts = await mergeAndUpsertPage<RecordingRow>(
-          pendingUpserts,
-          getManyByIds: _db.recordingDao.getManyByIds,
-          getLocal: _db.recordingDao.getById,
-          upsertRows: _db.recordingDao.upsertRows,
-          insertRow: _db.recordingDao.insertRow,
-          merge: mergeRecordingLastWriteWins,
-        );
-        pageFailed = counts.failed;
-        synced += counts.synced;
-        failed += counts.failed;
-        errors.addAll(counts.errors);
-      }
-
-      if (pageFailed == 0) {
-        final maxIso = maxUpdatedAtIso(batch);
-        if (maxIso != null) {
-          cursor = maxIso;
-          await _db.settingsDao.writeSetting(cursorKey, maxIso);
+    var fetchFailed = false;
+    final result = await downloadPagedEntities<RecordingRow>(
+      settingsDao: _db.settingsDao,
+      cursorKey: cursorKey,
+      pageSize: _pageSize,
+      maxPages: _kMaxPagesPerCall,
+      fetchPage: ({int? limit, String? updatedAfter}) async {
+        try {
+          final raw = await _recordingApi.recordings(
+            limit: limit,
+            updatedAfter: updatedAfter,
+            targetId: targetId,
+            targetType: targetType,
+          );
+          return raw.map<Map<String, dynamic>>(castJsonObject).toList();
+        } catch (e) {
+          fetchFailed = true;
+          rethrow;
         }
-      }
-
-      if (batch.length < _pageSize) break;
-      if (pageFailed > 0) break;
-    }
-
-    if (pages >= _kMaxPagesPerCall) {
-      _log.info(
-        'pullRecordingsForTarget($targetType:$targetId): hit page cap '
-        '($_kMaxPagesPerCall × $_pageSize), will resume from cursor on '
-        'next call',
-      );
-    }
-
-    await _db.settingsDao.writeSetting(cooldownKey, clock.toUtc());
-
-    return SyncResult(
-      success: failed == 0,
-      synced: synced,
-      failed: failed,
-      errors: errors.isEmpty ? null : errors,
+      },
+      getManyByIds: _db.recordingDao.getManyByIds,
+      getLocal: _db.recordingDao.getById,
+      upsertRows: _db.recordingDao.upsertRows,
+      insertRow: _db.recordingDao.insertRow,
+      merge: mergeRecordingLastWriteWins,
+      onPageCapReached: () {
+        _log.info(
+          'pullRecordingsForTarget($targetType:$targetId): hit page cap '
+          '($_kMaxPagesPerCall × $_pageSize), will resume from cursor on '
+          'next call',
+        );
+      },
+      log: _log,
     );
+
+    if (!fetchFailed) {
+      await _db.settingsDao.writeSetting(cooldownKey, clock.toUtc());
+    }
+
+    return result;
   }
 }

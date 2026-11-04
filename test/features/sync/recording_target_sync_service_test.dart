@@ -7,6 +7,7 @@ import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/features/sync/data/recording_target_sync_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 
 class _FakeRecordingApi extends RecordingApi {
   _FakeRecordingApi(this.responses, super._);
@@ -319,6 +320,44 @@ void main() {
       );
       expect(cursor, isNotNull);
     });
+
+    test(
+      'deduplicates duplicate ids in one page with last-write-wins and warns',
+      () async {
+        final records = <LogRecord>[];
+        final sub = Logger('recordingTargetSync').onRecord.listen(records.add);
+        addTearDown(sub.cancel);
+
+        final first = {
+          ...recording(1, updatedAt: '2024-01-01T00:01:00.000Z'),
+          'durationSeconds': 10,
+        };
+        final second = {
+          ...recording(1, updatedAt: '2024-01-01T00:02:00.000Z'),
+          'durationSeconds': 20,
+        };
+        api = _FakeRecordingApi([
+          [first, second],
+        ], _NullApiClient());
+        service = RecordingTargetSyncService(db: db, recordingApi: api);
+
+        final result = await service.pullRecordingsForTarget(
+          targetType: 'audio',
+          targetId: 't1',
+          now: DateTime.utc(2024, 6, 1, 12),
+        );
+
+        expect(result.success, isTrue);
+        expect(result.synced, 1);
+        final row = await db.recordingDao.getById('r1');
+        expect(row, isNotNull);
+        expect(row!.updatedAt.toUtc(), DateTime.utc(2024, 1, 1, 0, 2));
+        expect(
+          records.where((r) => r.level == Level.WARNING).map((r) => r.message),
+          anyElement(contains('duplicate id "r1"')),
+        );
+      },
+    );
   });
 }
 

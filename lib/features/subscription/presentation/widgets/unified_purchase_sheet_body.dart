@@ -5,7 +5,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -68,32 +67,15 @@ class UnifiedPurchaseSheetBodyState
       if (!mounted) return;
       Navigator.pop(context);
       AppNotice.info(context, l10n.subscriptionRedirectingToPayment);
-    } on SubscriptionConflictFailure catch (e) {
-      if (!mounted) return;
-      AppNotice.error(
-        context,
-        e.message.isNotEmpty ? e.message : l10n.subscriptionAutoRenewConflict,
-      );
-    } on AppFailure catch (e) {
-      if (!mounted) return;
-      final msg = e is CreditsFailure
-          ? creditsFailureMessage(e, l10n)
-          : e.message.isNotEmpty
-          ? e.message
-          : l10n.subscriptionPurchaseFailed;
-      AppNotice.error(context, msg);
     } catch (e) {
       if (!mounted) return;
-      final msg = switch (e) {
-        StateError(:final message) when message == 'missing_pay_url' =>
-          l10n.subscriptionPaymentUrlMissing,
-        StateError(:final message) when message == 'launch_failed' =>
-          l10n.subscriptionPaymentLaunchFailed,
-        StateError(:final message) when message == 'invalid_pay_url' =>
-          l10n.subscriptionPaymentUrlMissing,
-        _ => l10n.subscriptionPurchaseFailed,
-      };
-      AppNotice.error(context, msg);
+      showPurchaseErrorNotice(
+        context,
+        e,
+        l10n,
+        fallback: l10n.subscriptionPurchaseFailed,
+        conflictFallback: l10n.subscriptionAutoRenewConflict,
+      );
     }
   }
 
@@ -112,17 +94,12 @@ class UnifiedPurchaseSheetBodyState
       AppNotice.info(context, l10n.subscriptionRedirectingToPayment);
     } catch (e) {
       if (!mounted) return;
-      final message = switch (e) {
-        StateError(:final message) when message == 'missing_pay_url' =>
-          l10n.subscriptionPaymentUrlMissing,
-        StateError(:final message) when message == 'launch_failed' =>
-          l10n.subscriptionPaymentLaunchFailed,
-        StateError(:final message) when message == 'invalid_pay_url' =>
-          l10n.subscriptionPaymentUrlMissing,
-        AppFailure(:final message) => message,
-        _ => l10n.subscriptionPurchaseFailed,
-      };
-      AppNotice.error(context, message);
+      showPurchaseErrorNotice(
+        context,
+        e,
+        l10n,
+        fallback: l10n.subscriptionPurchaseFailed,
+      );
     }
   }
 

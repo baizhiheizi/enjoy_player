@@ -1,14 +1,21 @@
-/// Page-level merge + batch upsert shared by the sync download services.
+/// Page-level merge + batch upsert and paged cursor download loop shared by
+/// the sync download services.
 ///
 /// Split into a pure [mergePageRows] phase (one `WHERE id IN (…)` pre-read,
 /// issue #810 D3) and a [persistMergedRows] phase (one transactional batch
 /// upsert with a per-row fallback that isolates bad rows when the batch
 /// fails), so a page's failure verdict is known before any write runs.
-/// [mergeAndUpsertPage] composes both for callers that don't need the split
-/// (per-target recording pull, issue #827 B3).
+/// [mergeAndUpsertPage] composes both, and [downloadPagedEntities] drives the
+/// cursor-persisted pagination loop for both full-entity pulls and per-target
+/// lazy recording pulls.
 library;
 
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/settings_keys.dart';
+import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
+import 'package:enjoy_player/features/sync/domain/sync_types.dart';
+import 'package:logging/logging.dart';
 
 final _log = logNamed('sync.pageUpsert');
 
@@ -127,4 +134,122 @@ Future<PageUpsertCounts> runPerRowInsert<T, E>(
     }
   }
   return (synced: synced, failed: errors.length, errors: errors);
+}
+
+/// Paginates server rows via [fetchPage], deduplicating in-page duplicate IDs
+/// (last-write-wins), handling optional tombstones, merging/persisting via
+/// [mergeAndUpsertPage], and advancing [cursorKey] only when a page completes
+/// with zero failures.
+Future<SyncResult> downloadPagedEntities<E>({
+  required SettingsDao settingsDao,
+  required SettingKey<String?> cursorKey,
+  required int pageSize,
+  required Future<List<Map<String, dynamic>>> Function({
+    int? limit,
+    String? updatedAfter,
+  })
+  fetchPage,
+  required Future<Map<String, E>> Function(List<String> ids) getManyByIds,
+  required Future<E?> Function(String id) getLocal,
+  required Future<void> Function(List<E> rows) upsertRows,
+  required Future<void> Function(E row) insertRow,
+  required E Function({required E? local, required Map<String, dynamic> server})
+  merge,
+  bool resetCursor = false,
+  int? maxPages,
+  void Function()? onPageCapReached,
+  Future<void> Function(String id)? onTombstone,
+  Logger? log,
+}) async {
+  final logger = log ?? _log;
+  final errors = <String>[];
+  var synced = 0;
+  var failed = 0;
+  if (resetCursor) {
+    await settingsDao.writeSetting(cursorKey, '');
+  }
+  var cursor = await settingsDao.readSetting(cursorKey);
+  if (cursor != null && cursor.isEmpty) cursor = null;
+
+  var pages = 0;
+  while (maxPages == null || pages < maxPages) {
+    pages++;
+    List<Map<String, dynamic>> batch;
+    try {
+      batch = await fetchPage(limit: pageSize, updatedAfter: cursor);
+    } catch (e) {
+      return SyncResult(
+        success: false,
+        synced: synced,
+        failed: failed + 1,
+        errors: [...errors, '$e'],
+      );
+    }
+
+    if (batch.isEmpty) break;
+
+    final pendingUpserts = <String, Map<String, dynamic>>{};
+    for (final m in batch) {
+      final id = m['id'] as String?;
+      if (id == null || id.isEmpty) continue;
+      final deletedAt = m['deletedAt'];
+      if (deletedAt != null &&
+          deletedAt.toString().isNotEmpty &&
+          onTombstone != null) {
+        try {
+          await onTombstone(id);
+          synced++;
+        } catch (e) {
+          failed++;
+          errors.add('$e');
+        }
+        continue;
+      }
+      if (pendingUpserts.containsKey(id)) {
+        logger.warning(
+          'duplicate id "$id" in one server page; keeping the last payload '
+          '(last-write-wins, matching the historical per-row path)',
+        );
+      }
+      pendingUpserts[id] = m;
+    }
+
+    var pageFailed = 0;
+    if (pendingUpserts.isNotEmpty) {
+      final counts = await mergeAndUpsertPage<E>(
+        pendingUpserts,
+        getManyByIds: getManyByIds,
+        getLocal: getLocal,
+        upsertRows: upsertRows,
+        insertRow: insertRow,
+        merge: merge,
+      );
+      pageFailed = counts.failed;
+      synced += counts.synced;
+      failed += counts.failed;
+      errors.addAll(counts.errors);
+    }
+
+    if (pageFailed == 0) {
+      final maxIso = maxUpdatedAtIso(batch);
+      if (maxIso != null) {
+        cursor = maxIso;
+        await settingsDao.writeSetting(cursorKey, maxIso);
+      }
+    }
+
+    if (batch.length < pageSize) break;
+    if (pageFailed > 0) break;
+  }
+
+  if (maxPages != null && pages >= maxPages) {
+    onPageCapReached?.call();
+  }
+
+  return SyncResult(
+    success: failed == 0,
+    synced: synced,
+    failed: failed,
+    errors: errors.isEmpty ? null : errors,
+  );
 }

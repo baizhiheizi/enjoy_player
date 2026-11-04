@@ -219,93 +219,20 @@ class SyncDownloadService {
     })
     merge,
     Future<void> Function(String id)? onTombstone,
-  }) async {
-    final errors = <String>[];
-    var synced = 0;
-    var failed = 0;
-    if (resetCursor) {
-      await _db.settingsDao.writeSetting(cursorKey, '');
-    }
-    var cursor = await _db.settingsDao.readSetting(cursorKey);
-    if (cursor != null && cursor.isEmpty) cursor = null;
-
-    while (true) {
-      List<Map<String, dynamic>> batch;
-      try {
-        batch = await fetchPage(limit: _pageSize, updatedAfter: cursor);
-      } catch (e) {
-        return SyncResult(
-          success: false,
-          synced: synced,
-          failed: failed + 1,
-          errors: [...errors, '$e'],
-        );
-      }
-
-      if (batch.isEmpty) break;
-
-      final pendingUpserts = <String, Map<String, dynamic>>{};
-      for (final m in batch) {
-        final id = m['id'] as String?;
-        if (id == null || id.isEmpty) continue;
-        final deletedAt = m['deletedAt'];
-        if (deletedAt != null &&
-            deletedAt.toString().isNotEmpty &&
-            onTombstone != null) {
-          try {
-            await onTombstone(id);
-            synced++;
-          } catch (e) {
-            failed++;
-            errors.add('$e');
-          }
-          continue;
-        }
-        if (pendingUpserts.containsKey(id)) {
-          _log.warning(
-            'duplicate id "$id" in one server page; keeping the last payload '
-            '(last-write-wins, matching the historical per-row path)',
-          );
-        }
-        pendingUpserts[id] = m;
-      }
-
-      var pageFailed = 0;
-      if (pendingUpserts.isNotEmpty) {
-        final merged = await mergePageRows<E>(
-          pendingUpserts,
-          getManyByIds: getManyByIds,
-          getLocal: getLocal,
-          merge: merge,
-        );
-        final counts = await persistMergedRows<E>(
-          merged.rows,
-          upsertRows: upsertRows,
-          insertRow: insertRow,
-        );
-        pageFailed = merged.failed + counts.failed;
-        synced += counts.synced;
-        failed += pageFailed;
-        errors.addAll([...merged.errors, ...counts.errors]);
-      }
-
-      if (pageFailed == 0) {
-        final maxIso = maxUpdatedAtIso(batch);
-        if (maxIso != null) {
-          cursor = maxIso;
-          await _db.settingsDao.writeSetting(cursorKey, maxIso);
-        }
-      }
-
-      if (batch.length < _pageSize) break;
-      if (pageFailed > 0) break;
-    }
-
-    return SyncResult(
-      success: failed == 0,
-      synced: synced,
-      failed: failed,
-      errors: errors.isEmpty ? null : errors,
+  }) {
+    return downloadPagedEntities<E>(
+      settingsDao: _db.settingsDao,
+      cursorKey: cursorKey,
+      pageSize: _pageSize,
+      resetCursor: resetCursor,
+      fetchPage: fetchPage,
+      getManyByIds: getManyByIds,
+      getLocal: getLocal,
+      upsertRows: upsertRows,
+      insertRow: insertRow,
+      merge: merge,
+      onTombstone: onTombstone,
+      log: _log,
     );
   }
 

@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -61,17 +60,14 @@ class SubscriptionStatusCard extends ConsumerWidget {
         context,
         l10n.subscriptionAutoRenewCancelSuccess(dateLabel),
       );
-    } on AppFailure catch (e) {
+    } catch (e) {
       if (!context.mounted) return;
-      final msg = e is CreditsFailure
-          ? creditsFailureMessage(e, l10n)
-          : e.message.isNotEmpty
-          ? e.message
-          : l10n.subscriptionAutoRenewCancelFailed;
-      AppNotice.error(context, msg);
-    } catch (_) {
-      if (!context.mounted) return;
-      AppNotice.error(context, l10n.subscriptionAutoRenewCancelFailed);
+      showPurchaseErrorNotice(
+        context,
+        e,
+        l10n,
+        fallback: l10n.subscriptionAutoRenewCancelFailed,
+      );
     }
   }
 

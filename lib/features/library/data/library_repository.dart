@@ -63,92 +63,119 @@ class MediaLibraryRepository {
       final kind = isVideoFileName(file.name)
           ? MediaKind.video
           : MediaKind.audio;
-      final now = DateTime.now();
-      final contentHash = result.contentHashHex;
-
-      if (kind == MediaKind.video) {
-        final vid = enjoyLocalVideoVid(
-          contentHashHex: contentHash,
-          userId: signedInUserId,
-        );
-        final id = enjoyVideoId(vid: vid);
-        final existing = await _registry.getVideoById(id);
-        await _registry.upsertVideo(
-          VideoRow(
-            id: id,
-            vid: vid,
-            provider: 'user',
-            title: result.title,
-            description: existing?.description,
-            thumbnailUrl: existing?.thumbnailUrl,
-            durationSeconds: existing?.durationSeconds ?? 0,
-            language: canonicalMediaLanguageTag(contentLanguage),
-            source: existing?.source,
-            localUri: result.fileUri,
-            bookmarkData: result.bookmarkData,
-            md5: contentHash,
-            size: result.fileSize,
-            localMtimeMs: result.mtimeMs,
-            mediaUrl: existing?.mediaUrl,
-            syncStatus: 'pending',
-            serverUpdatedAt: existing?.serverUpdatedAt,
-            createdAt: existing?.createdAt ?? now,
-            updatedAt: now,
-          ),
-        );
-        return await _finalizeLocalImport(
-          id: id,
-          previousUri: existing?.localUri,
-          fileUri: result.fileUri,
-          entityType: MediaRegistry.syncEntityTypeOf(kind),
-          isUpdate: existing != null,
-        );
-      }
-
-      final aid = enjoyLocalAudioAid(
-        contentHashHex: contentHash,
-        userId: signedInUserId,
-      );
-      final id = enjoyAudioId(aid: aid);
-      final existing = await _registry.getAudioById(id);
-      await _registry.upsertAudio(
-        AudioRow(
-          id: id,
-          aid: aid,
-          provider: 'user',
-          title: result.title,
-          description: existing?.description,
-          thumbnailUrl: existing?.thumbnailUrl,
-          durationSeconds: existing?.durationSeconds ?? 0,
-          language: canonicalMediaLanguageTag(contentLanguage),
-          translationKey: existing?.translationKey,
-          sourceText: existing?.sourceText,
-          voice: existing?.voice,
-          source: existing?.source,
-          localUri: result.fileUri,
-          bookmarkData: result.bookmarkData,
-          md5: contentHash,
-          size: result.fileSize,
-          localMtimeMs: result.mtimeMs,
-          mediaUrl: existing?.mediaUrl,
-          syncStatus: 'pending',
-          serverUpdatedAt: existing?.serverUpdatedAt,
-          createdAt: existing?.createdAt ?? now,
-          updatedAt: now,
-        ),
-      );
-      return await _finalizeLocalImport(
-        id: id,
-        previousUri: existing?.localUri,
-        fileUri: result.fileUri,
-        entityType: MediaRegistry.syncEntityTypeOf(kind),
-        isUpdate: existing != null,
+      return await _importLocalFile(
+        kind: kind,
+        result: result,
+        signedInUserId: signedInUserId,
+        contentLanguage: contentLanguage,
       );
     } on AppFailure {
       rethrow;
     } catch (e, st) {
       Error.throwWithStackTrace(FileFailure('Import failed: $e'), st);
     }
+  }
+
+  Future<String> _importLocalFile({
+    required MediaKind kind,
+    required FileImportResult result,
+    required String signedInUserId,
+    required String contentLanguage,
+  }) async {
+    final now = DateTime.now();
+    final contentHash = result.contentHashHex;
+    final language = canonicalMediaLanguageTag(contentLanguage);
+    final isVideo = kind == MediaKind.video;
+
+    final contentKey = isVideo
+        ? enjoyLocalVideoVid(
+            contentHashHex: contentHash,
+            userId: signedInUserId,
+          )
+        : enjoyLocalAudioAid(
+            contentHashHex: contentHash,
+            userId: signedInUserId,
+          );
+    final id = isVideo
+        ? enjoyVideoId(vid: contentKey)
+        : enjoyAudioId(aid: contentKey);
+    final existingVideo = isVideo ? await _registry.getVideoById(id) : null;
+    final existingAudio = isVideo ? null : await _registry.getAudioById(id);
+    final isUpdate = existingVideo != null || existingAudio != null;
+    final previousUri = existingVideo?.localUri ?? existingAudio?.localUri;
+    final description =
+        existingVideo?.description ?? existingAudio?.description;
+    final thumbnailUrl =
+        existingVideo?.thumbnailUrl ?? existingAudio?.thumbnailUrl;
+    final durationSeconds =
+        existingVideo?.durationSeconds ?? existingAudio?.durationSeconds ?? 0;
+    final source = existingVideo?.source ?? existingAudio?.source;
+    final mediaUrl = existingVideo?.mediaUrl ?? existingAudio?.mediaUrl;
+    final serverUpdatedAt =
+        existingVideo?.serverUpdatedAt ?? existingAudio?.serverUpdatedAt;
+    final createdAt =
+        existingVideo?.createdAt ?? existingAudio?.createdAt ?? now;
+
+    if (isVideo) {
+      await _registry.upsertVideo(
+        VideoRow(
+          id: id,
+          vid: contentKey,
+          provider: 'user',
+          title: result.title,
+          description: description,
+          thumbnailUrl: thumbnailUrl,
+          durationSeconds: durationSeconds,
+          language: language,
+          source: source,
+          localUri: result.fileUri,
+          bookmarkData: result.bookmarkData,
+          md5: contentHash,
+          size: result.fileSize,
+          localMtimeMs: result.mtimeMs,
+          mediaUrl: mediaUrl,
+          syncStatus: 'pending',
+          serverUpdatedAt: serverUpdatedAt,
+          createdAt: createdAt,
+          updatedAt: now,
+        ),
+      );
+    } else {
+      await _registry.upsertAudio(
+        AudioRow(
+          id: id,
+          aid: contentKey,
+          provider: 'user',
+          title: result.title,
+          description: description,
+          thumbnailUrl: thumbnailUrl,
+          durationSeconds: durationSeconds,
+          language: language,
+          translationKey: existingAudio?.translationKey,
+          sourceText: existingAudio?.sourceText,
+          voice: existingAudio?.voice,
+          source: source,
+          localUri: result.fileUri,
+          bookmarkData: result.bookmarkData,
+          md5: contentHash,
+          size: result.fileSize,
+          localMtimeMs: result.mtimeMs,
+          mediaUrl: mediaUrl,
+          syncStatus: 'pending',
+          serverUpdatedAt: serverUpdatedAt,
+          createdAt: createdAt,
+          updatedAt: now,
+        ),
+      );
+    }
+
+    return _finalizeLocalImport(
+      id: id,
+      previousUri: previousUri,
+      fileUri: result.fileUri,
+      entityType: MediaRegistry.syncEntityTypeOf(kind),
+      isUpdate: isUpdate,
+    );
   }
 
   /// Imports a YouTube video by pasted URL or bare video id.

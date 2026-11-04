@@ -1433,5 +1433,123 @@ void main() {
         );
       });
     });
+
+    group('importMedia re-import field preservation', () {
+      test(
+        're-importing video and audio preserves server-linked and existing fields',
+        () async {
+          final createdAt = DateTime.utc(2024, 1, 1);
+          final serverUpdatedAt = DateTime.utc(2024, 2, 1);
+
+          final videoBytes = utf8.encode('preserve-video-bytes');
+          final videoHash = sha256.convert(videoBytes).toString();
+          final vid = enjoyLocalVideoVid(
+            contentHashHex: videoHash,
+            userId: _testUserId,
+          );
+          final videoId = enjoyVideoId(vid: vid);
+          await db.videoDao.insertRow(
+            VideoRow(
+              id: videoId,
+              vid: vid,
+              provider: 'user',
+              title: 'Old Video',
+              description: 'Video desc',
+              thumbnailUrl: 'https://example.com/v.jpg',
+              durationSeconds: 180,
+              language: 'und',
+              source: 'cloud',
+              localUri: null,
+              md5: videoHash,
+              size: videoBytes.length,
+              mediaUrl: 'https://cdn.example.com/v.mp4',
+              syncStatus: 'synced',
+              serverUpdatedAt: serverUpdatedAt,
+              createdAt: createdAt,
+              updatedAt: createdAt,
+            ),
+          );
+
+          final videoFile = File(p.join(root.path, 'preserved.mp4'));
+          await videoFile.writeAsBytes(videoBytes);
+          await repo.importMedia(
+            XFile(videoFile.path, name: 'preserved.mp4'),
+            signedInUserId: _testUserId,
+            contentLanguage: 'en-US',
+          );
+
+          final updatedVideo = await db.videoDao.getById(videoId);
+          expect(updatedVideo, isNotNull);
+          expect(updatedVideo!.description, 'Video desc');
+          expect(updatedVideo.thumbnailUrl, 'https://example.com/v.jpg');
+          expect(updatedVideo.durationSeconds, 180);
+          expect(updatedVideo.source, 'cloud');
+          expect(updatedVideo.mediaUrl, 'https://cdn.example.com/v.mp4');
+          expect(
+            updatedVideo.serverUpdatedAt!.isAtSameMomentAs(serverUpdatedAt),
+            isTrue,
+          );
+          expect(updatedVideo.createdAt.isAtSameMomentAs(createdAt), isTrue);
+          expect(updatedVideo.syncStatus, 'pending');
+
+          final audioBytes = utf8.encode('preserve-audio-bytes');
+          final audioHash = sha256.convert(audioBytes).toString();
+          final aid = enjoyLocalAudioAid(
+            contentHashHex: audioHash,
+            userId: _testUserId,
+          );
+          final audioId = enjoyAudioId(aid: aid);
+          await db.audioDao.insertRow(
+            AudioRow(
+              id: audioId,
+              aid: aid,
+              provider: 'user',
+              title: 'Old Audio',
+              description: 'Audio desc',
+              thumbnailUrl: 'https://example.com/a.jpg',
+              durationSeconds: 240,
+              language: 'und',
+              translationKey: 'tk-1',
+              sourceText: 'hello world',
+              voice: 'alloy',
+              source: 'craft',
+              localUri: null,
+              md5: audioHash,
+              size: audioBytes.length,
+              mediaUrl: 'https://cdn.example.com/a.mp3',
+              syncStatus: 'synced',
+              serverUpdatedAt: serverUpdatedAt,
+              createdAt: createdAt,
+              updatedAt: createdAt,
+            ),
+          );
+
+          final audioFile = File(p.join(root.path, 'preserved.mp3'));
+          await audioFile.writeAsBytes(audioBytes);
+          await repo.importMedia(
+            XFile(audioFile.path, name: 'preserved.mp3'),
+            signedInUserId: _testUserId,
+            contentLanguage: 'en-US',
+          );
+
+          final updatedAudio = await db.audioDao.getById(audioId);
+          expect(updatedAudio, isNotNull);
+          expect(updatedAudio!.description, 'Audio desc');
+          expect(updatedAudio.thumbnailUrl, 'https://example.com/a.jpg');
+          expect(updatedAudio.durationSeconds, 240);
+          expect(updatedAudio.translationKey, 'tk-1');
+          expect(updatedAudio.sourceText, 'hello world');
+          expect(updatedAudio.voice, 'alloy');
+          expect(updatedAudio.source, 'craft');
+          expect(updatedAudio.mediaUrl, 'https://cdn.example.com/a.mp3');
+          expect(
+            updatedAudio.serverUpdatedAt!.isAtSameMomentAs(serverUpdatedAt),
+            isTrue,
+          );
+          expect(updatedAudio.createdAt.isAtSameMomentAs(createdAt), isTrue);
+          expect(updatedAudio.syncStatus, 'pending');
+        },
+      );
+    });
   });
 }
