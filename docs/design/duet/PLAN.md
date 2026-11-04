@@ -128,7 +128,7 @@ Pin it: `test/core/theme/duet_tokens_test.dart` parses `docs/design/duet/tokens.
 
 ### Material `ColorScheme`
 
-`AppColors.colorScheme` and the component themes in `app_theme.dart` map the stock widgets onto Duet:
+`AppColors.colorScheme` and the per-concern component themes in `app_theme.dart` (composition root) and its `app_theme_buttons` / `app_theme_inputs` / `app_theme_surfaces` / `app_theme_controls` part files map the stock widgets onto Duet:
 
 | Role | Light / dark | Board evidence |
 |---|---|---|
@@ -233,7 +233,7 @@ Already done: `docs/design/duet/`, ADR-0093, this plan, `STATUS.md`, the Literat
 - **Docs:** `app-ui.md` → "Design token reference" rewritten from `tokens.json`.
 
 #### D1.2 Color scheme + component themes
-- **Code:** `AppColors.colorScheme` and every `*Theme` in `lib/core/theme/app_theme.dart`.
+- **Code:** `AppColors.colorScheme` and the `*Theme` mixins in `lib/core/theme/app_theme.dart` plus its `app_theme_buttons` / `app_theme_inputs` / `app_theme_surfaces` / `app_theme_controls` part files.
 - **Change:** apply the [ColorScheme](#material-colorscheme) table.
   - Inputs: radius 12, `sunk` fill, focus border `brandInk`.
   - Switch: on-track `brandInk` app-wide; the player popover overrides to `original` in D3.10.
