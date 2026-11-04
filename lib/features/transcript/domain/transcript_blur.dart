@@ -54,6 +54,26 @@ class TapRevealHold {
 /// same id. Empty / null text maps to a deterministic sentinel id that
 /// never collides with real cue ids.
 String cueIdFor(TranscriptLine line) {
+  final memo = _cueIdMemo[line];
+  if (memo != null) return memo;
+  final id = _deriveCueId(line);
+  _cueIdMemo[line] = id;
+  cueIdDerivationCount++;
+  return id;
+}
+
+/// Cue identities memoized per line instance.
+///
+/// Weak keys: an entry dies with the line it was derived from, so no
+/// eviction policy is needed. The derived fields are final, so a cached
+/// id stays valid for the instance's lifetime.
+final Expando<String> _cueIdMemo = Expando<String>('cueIdFor');
+
+/// Number of cue ids derived rather than read from [_cueIdMemo].
+@visibleForTesting
+int cueIdDerivationCount = 0;
+
+String _deriveCueId(TranscriptLine line) {
   final start = line.startMs;
   final end = line.startMs + line.durationMs;
   final plain = plainTextFromSubtitleMarkup(line.text).trim();

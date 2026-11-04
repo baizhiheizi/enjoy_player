@@ -74,7 +74,12 @@ Two presentations share the panel (Duet, ADR-0093):
   `AnimationController`: a `ListenableBuilder` on the controller would
   rebuild the caption on every vsync, which is the cost the paint-only
   design exists to avoid. Over-target state (error ring + pulse) still
-  rebuilds discretely on the flip and at the 600 ms pulse cadence.
+  rebuilds discretely on the flip and at the 600 ms pulse cadence. This
+  timebase is shared code now ([#1199](https://github.com/baizhiheizi/enjoy_player/issues/1199)):
+  `RecordingElapsedTicker` in
+  `lib/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart`
+  also drives the transcript echo loop's recording readout, whose
+  over-target handling is intentionally caption-only.
 - All toolbar controls use **≥44×44** hit targets where possible; the
   assessment badge control is **44×44** with explicit
   `Semantics(label, button)` so VoiceOver / TalkBack see it as a
@@ -88,6 +93,7 @@ When the user opts in, the panel runs **pitch contour** analysis on the take:
 2. The byte→Float32 **decode + YIN** (`yin_pitch.dart`) both run inside **one worker isolate** (`Isolate.run`), so the multi-megabyte PCM buffer never blocks the UI thread and never crosses an isolate port — only the ~520-point analysis result is returned.
 3. `echo_pitch_analysis_service.dart` caches results per region/recording (so re-opening a region reuses the analysis) and **cancels** — not merely discards — an in-flight extraction when the region/recording changes. Exposed as the keep-alive `echoPitchAnalysisServiceProvider`.
 4. `pitch_contour_chart.dart` renders the envelope; `pitch_contour_section.dart` exposes it as a collapsible section that can be **parent-driven** (`expanded`, `showHeader: false` for chart-only body). The merged reference+user series is **memoized** (`EchoMergedSeriesMemo`) so it is built once per (reference, user) pair — identical across playback ticks — and `shouldRepaint` compares the points by content so the painter skips work when only the progress cursor moves. The live position cursor feeds the chart through a leaf `Consumer` inside the panel that watches `displayPositionProvider` **only while the contour is expanded** (issue #810 E1), so the collapsed panel never subscribes and position ticks never rebuild the panel itself — only the contour subtree.
+5. The **voiced-run derivation** (gap split, short-run filter, octave fold, 5-point median filter) is **memoized per series** on the merged list's identity through the `pitchContourRuns` seam, so a playback tick re-uses the runs instead of re-deriving them (the derivation dominated the per-tick paint cost). The legend toggles gate each series lazily, so enabling one derives only that series; the cache entry dies with the list it was derived from — the merged series is never mutated after construction, so a cached run stays valid for the list's lifetime. Pinned by `pitch_contour_runs_perf_test.dart` (derivation count per series per list, plus differential equivalence against the unmemoized derivation).
 
 ## Pronunciation assessment (Azure)
 

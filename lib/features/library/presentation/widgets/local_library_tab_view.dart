@@ -1,8 +1,6 @@
 /// Local Drift library lists (audio rows / video grid).
 library;
 
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +8,7 @@ import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/presentation/relative_day_label.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
+import 'package:enjoy_player/core/theme/widgets/error_state.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/library/application/library_media_provider.dart';
@@ -32,8 +31,6 @@ class LocalLibraryTabView extends ConsumerWidget {
     final counts = ref.watch(libraryKindCountsProvider).asData?.value;
     final query = ref.watch(librarySearchProvider);
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
 
     return listsAsync.when(
       data: (lists) {
@@ -57,27 +54,9 @@ class LocalLibraryTabView extends ConsumerWidget {
         controller: tabController,
         children: const [SkeletonMediaGrid(), SkeletonMediaList()],
       ),
-      error: (e, _) => Center(
-        child: Padding(
-          padding: EdgeInsets.all(t.space24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(EnjoyIcons.error, size: 48, color: cs.error),
-              SizedBox(height: t.space16),
-              Text(
-                '${l10n.error}: $e',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              SizedBox(height: t.space16),
-              EnjoyButton.tonal(
-                onPressed: () => ref.invalidate(libraryFilteredListsProvider),
-                child: Text(l10n.retry),
-              ),
-            ],
-          ),
-        ),
+      error: (e, _) => ErrorState(
+        message: '${l10n.error}: $e',
+        onRetry: () => ref.invalidate(libraryFilteredListsProvider),
       ),
     );
   }

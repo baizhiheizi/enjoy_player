@@ -193,6 +193,8 @@ After synthesis, `wordBoundary` events from the Azure Speech SDK produce time-al
 
 **Always-on nested word/phone spans (ADR-0073 / ADR-0076)**: every real (non-dedupe) Craft save attempts on-device `alignSegments` and may attach nested `timeline` / `phones` onto those same spec 030 lines. Blank 030 JSON, a dedupe hit, PCM extract failure, or alignment failure persist today’s line-only (or blank) transcript — never a blocking save error, never an invented cue list. Learners still hear the Azure/Craft WAV; the spoken alignment reference is not played. Karaoke / IPA display are opt-in player transcript controls (ADR-0076).
 
+The save hook runs the shared alignment pipeline ([`align_lines_to_pcm.dart`](../../lib/data/subtitle/align_lines_to_pcm.dart)) that the on-demand transcript enrich also runs: decode 16 kHz mono PCM → align one segment per line → attach the word/phone spans back onto the lines → validate the line count. Craft **fails closed** on that pipeline's outcome (today's line-only transcript survives); the CC-sheet enrich reports a typed reason instead. The pipeline is shared so the alignment contract cannot drift between the two callers.
+
 - Items with a blank transcript open in the player with an empty transcript panel and a clear **Generate** affordance, allowing the learner to create cues via the existing player ASR flow (`launchAsrGeneration`) at any time.
 - No auto-STT runs on Craft save — the learner initiates ASR explicitly.
 - The `TranscriptTimestampEstimator` (duration-based proportional estimate) is no longer used on Craft save; the segmenter exclusively consumes live Azure word boundaries.

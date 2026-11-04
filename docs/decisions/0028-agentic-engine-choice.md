@@ -78,3 +78,22 @@ Negative / open:
 - [x] Confirm fallback plan if the proxy is revoked (re-point all workflows to a different model / provider via `shared/engine-minimax.md` + `gh aw compile`)
 - [x] Date of sign-off: 2026-06-29
 - [x] Owner: @an-lee
+
+## Amendment 1 — 2026-10-30: engine switched to GLM (`open.bigmodel.cn`)
+
+[#1149](https://github.com/baizhiheizi/enjoy_player/pull/1149) moved every
+workflow from MiniMax to
+[`shared/engine-glm.md`](../../.github/workflows/shared/engine-glm.md):
+`ANTHROPIC_BASE_URL: https://open.bigmodel.cn/api/anthropic`, model
+`glm-5.3-flash` (auth `ZHIPU_API_KEY`). `shared/engine-minimax.md` and
+`shared/engine-deepseek.md` remain in `shared/` as unused fallbacks. The
+ADR's terms carry over unchanged: third-party Anthropic-compatible proxy,
+full issue/PR/source-tree egress, **medium** data-egress risk until the
+provider's zero-retention contract is re-verified (due with the next annual
+check). Sign-off trail: the switch is the maintainer's own upgrade commit.
+
+[`verify_agentic_egress.sh`](../../.github/scripts/verify_agentic_egress.sh)
+no longer hardcodes MiniMax: the sanctioned host set is derived from the
+`ANTHROPIC_BASE_URL` each `shared/engine-*.md` component declares, so an
+engine switch is an engine-file change plus an amendment here, and the gate
+follows without its own edit.

@@ -1,26 +1,35 @@
-/// Tap-latch busy state shared by the lookup retry controls.
+/// Parent-driven retry contract and tap-latch busy state for lookup widgets.
 library;
 
 import 'package:flutter/material.dart';
 
-mixin LatchedRetryState<T extends StatefulWidget> on State<T> {
+abstract class ParentRetryWidget extends StatefulWidget {
+  const ParentRetryWidget({
+    required this.onRetry,
+    this.isRetrying = false,
+    super.key,
+  });
+
+  final VoidCallback onRetry;
+
+  /// Parent-driven busy state (e.g. [AsyncValue.hasError] && [AsyncValue.isLoading]).
+  final bool isRetrying;
+}
+
+mixin LatchedRetryState<T extends ParentRetryWidget> on State<T> {
   bool _tapLatched = false;
 
-  bool get parentRetryBusy;
+  bool get retryBusy => widget.isRetrying || _tapLatched;
 
-  bool wasParentRetryBusy(covariant T oldWidget);
-
-  bool get retryBusy => parentRetryBusy || _tapLatched;
-
-  void retry(VoidCallback action) {
+  void retry() {
     setState(() => _tapLatched = true);
-    action();
+    widget.onRetry();
   }
 
   @override
   void didUpdateWidget(covariant T oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (parentRetryBusy || wasParentRetryBusy(oldWidget)) {
+    if (widget.isRetrying || oldWidget.isRetrying) {
       if (_tapLatched) setState(() => _tapLatched = false);
     }
   }

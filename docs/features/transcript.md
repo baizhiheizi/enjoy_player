@@ -475,6 +475,28 @@ language pair it was derived for and re-derives when the pair changes, so a
 target-language switch costs one derivation per line rather than one per
 rebuild.
 
+## Cue identity
+
+[`cueIdFor`](../../lib/features/transcript/domain/transcript_blur.dart) is the
+single source of truth for which `TranscriptLine` maps to which blur-reveal
+provider entry: it strips the inline markup, trims the text, and hashes the
+result together with the line's start and end. Every transcript tile derives
+that id while it builds — once for the reveal provider key, again for the
+reveal check, and again on each tap-reveal hold — and the active tile rebuilds
+at word-boundary rate during karaoke playback, so the same line was stripped,
+hashed, and stringified over and over on the UI isolate. The markup parse
+itself was already cached by content, so the repeat path paid for the trim, the
+FNV-1a walk, and the id string.
+
+The id is now memoized per line instance in an `Expando`: weak keys, so an
+entry dies with the line and no eviction policy is needed.
+
+The invariant the memo relies on: a `TranscriptLine`'s `text`, `startMs`, and
+`durationMs` are never mutated after construction (`TranscriptLine` is
+`@immutable`), so a cached id stays valid for the instance's lifetime. The
+memo is keyed by instance identity, so two value-equal lines keep their own
+entries and still derive the same id.
+
 ## Recording overlap counts
 
 [`countRecordingsPerLineIndex`](../../lib/features/transcript/domain/transcript_recording_counts.dart)
@@ -496,6 +518,43 @@ are enough to answer every cue.
 A window of non-positive length never overlaps anything, so it contributes
 nothing: a recording with a zero or negative duration contributes no window,
 and a cue with a zero or negative duration has no count.
+
+## Echo card tile reuse
+
+[`EchoRegionMergedCard`](../../lib/features/transcript/presentation/transcript_echo_region_merged_card.dart)
+is one item of the virtualized transcript list, so every list rebuild
+rebuilds it — and it used to rebuild every cue of the echo range on every
+rebuild. Nothing caps the loop length, so the cost scaled with it: a cue
+change over a 300-line loop rebuilt 300 `TranscriptLineTile`s in one frame
+(~120 ms — a dropped frame), while a typical few-line loop was free.
+
+The card now keeps one cached tile per line and reuses the **same widget
+instance** when that line's inputs are unchanged, so Flutter's
+identical-widget short-circuit skips the line's whole subtree. A cue change
+over a 300-line loop rebuilds 2 tiles — the outgoing and the incoming active
+cue — instead of 300: ~120 ms → ~15 ms per cue change.
+
+A cached tile is reused only while its inputs record is unchanged: the line,
+`isActive`, the resolved secondary text, `canRetranslate`,
+`wavyWordIndexes`, the recording count, and the loop font size. The card
+drops the whole cache when the transcript `lines` list identity changes, the
+`mediaId` changes, or the echo range moves.
+
+The invariant the cache relies on: a line's inputs fully determine how its
+tile renders, and the card never serves a tile built against a superseded
+transcript. Provider-driven rebuilds inside a tile (karaoke highlight, blur,
+tap-reveal) and inherited-driven rebuilds (theme, locale, media query) are
+unaffected — a tile subscribes to those itself, so the short-circuit only
+prunes parent-driven rebuilds.
+
+Auto-translate request scheduling stays per line per build, exactly as
+before: the policy depends on controller state read at build time, and the
+controller dedupes in-flight requests and pumps its own queue.
+
+`reuseUnchangedTiles: false` rebuilds every tile on every build — the
+pre-optimization path — so the microbenchmark in
+[`transcript_echo_region_card_rebuild_perf_test.dart`](../../test/features/transcript/transcript_echo_region_card_rebuild_perf_test.dart)
+can measure both sides in one process.
 
 ## Alignment engine (Craft save + on-demand enrich)
 
@@ -531,6 +590,17 @@ extracts the same tree from Flutter assets and must include `espeak-ng-data/lang
 fails; a missing lib on other packaged hosts still fail-closes. See
 [ADR-0071](../decisions/0071-on-device-alignment-engine.md)
 and [ADR-0072](../decisions/0072-spoken-alignment-reference.md).
+
+The Craft save hook and the on-demand enrich run **one** alignment pipeline
+([`align_lines_to_pcm.dart`](../../lib/data/subtitle/align_lines_to_pcm.dart)):
+decode 16 kHz mono PCM → align one segment per line (segment id = line index)
+→ attach the word/phone spans back onto the lines → validate that the line
+count did not change. Only the failure vocabulary differs — Craft fails closed
+and keeps today’s line timings, the CC-sheet enrich reports a typed reason
+(`audioUnavailable` / `internal` / the engine’s failure reason / `cancelled` /
+`line count changed`). The long-file path stays **per-cue** (extract + `align()`
+against a padded window) because it aligns one cue at a time rather than the
+whole file; it keeps its own segment assembly.
 
 ## Transcript editor (⋯ More → Edit transcript)
 

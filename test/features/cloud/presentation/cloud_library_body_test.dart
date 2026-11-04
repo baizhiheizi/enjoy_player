@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
+import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
@@ -39,6 +42,31 @@ class _SignedOutAuthCtrl extends AuthCtrl {
 class _NullPlayerController extends PlayerController {
   @override
   PlaybackSession? build() => null;
+}
+
+/// Membership check that never resolves until [completer] completes.
+class _PendingCloudAddToLibrary extends CloudAddToLibrary {
+  _PendingCloudAddToLibrary(super.db, this.completer);
+
+  final Completer<bool> completer;
+
+  @override
+  Future<bool> isInLibrary(RemoteLibraryItem item) => completer.future;
+}
+
+PlaybackSession _session(String mediaId) {
+  return PlaybackSession(
+    mediaId: mediaId,
+    dexieTargetType: 'Audio',
+    mediaType: 'audio',
+    mediaTitle: 'Podcast Episode 1',
+    durationSeconds: 300,
+    currentTimeSeconds: 0,
+    currentSegmentIndex: 0,
+    language: 'en',
+    startedAt: DateTime(2024, 1, 1),
+    lastActiveAt: DateTime(2024, 1, 1),
+  );
 }
 
 /// A fake [CloudIndexRepository] that returns canned items.
@@ -153,6 +181,7 @@ void main() {
   List<Override> signedInOverrides({
     List<RemoteLibraryItem> audios = const [],
     List<RemoteLibraryItem> videos = const [],
+    CloudAddToLibrary? addToLibrary,
   }) {
     return [
       appDatabaseProvider.overrideWithValue(db),
@@ -161,7 +190,9 @@ void main() {
       cloudIndexRepositoryProvider.overrideWithValue(
         _FakeCloudIndexRepository(fakeAudios: audios, fakeVideos: videos),
       ),
-      cloudAddToLibraryProvider.overrideWithValue(CloudAddToLibrary(db)),
+      cloudAddToLibraryProvider.overrideWithValue(
+        addToLibrary ?? CloudAddToLibrary(db),
+      ),
     ];
   }
 
@@ -290,6 +321,58 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('No cloud audio yet'), findsOneWidget);
+    });
+
+    testWidgets('pending membership rows skip player rebuilds until resolved', (
+      tester,
+    ) async {
+      final membership = Completer<bool>();
+      final stateKey = GlobalKey<CloudLibraryBodyState>();
+      await tester.pumpWidget(
+        _harness(
+          stateKey: stateKey,
+          initialTabIndex: 1,
+          overrides: signedInOverrides(
+            audios: [_audioItem(id: 'a1')],
+            addToLibrary: _PendingCloudAddToLibrary(db, membership),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      stateKey.currentState!.refreshActiveTab();
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CloudLibraryBody)),
+        listen: false,
+      );
+      MediaCardRow currentRow() =>
+          tester.widget<MediaCardRow>(find.byType(MediaCardRow));
+
+      final before = currentRow();
+      expect(before.heroArtworkMediaId, isNull);
+
+      container
+          .read(playerControllerProvider.notifier)
+          .publishSession(_session('a1'));
+      await tester.pump();
+      expect(
+        identical(currentRow(), before),
+        isTrue,
+        reason:
+            'a not-yet-in-library row does not subscribe to playback changes',
+      );
+
+      membership.complete(true);
+      await tester.pumpAndSettle();
+      expect(currentRow().heroArtworkMediaId, isNull);
+
+      container
+          .read(playerControllerProvider.notifier)
+          .publishSession(_session('a2'));
+      await tester.pumpAndSettle();
+      expect(currentRow().heroArtworkMediaId, 'a1');
     });
   });
 }
