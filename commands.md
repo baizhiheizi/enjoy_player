@@ -1,5 +1,28 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
+## 2026-11-05 — test-harness + riverpod gotchas
+- **`tester.state<T>(find...).setState()` triggers
+  `invalid_use_of_protected_member`.** Drive widget-test rebuilds with a
+  `ValueNotifier<int>` + `ValueListenableBuilder` inside the host
+  instead (`tick.value++; await tester.pump(); await tester.pumpAndSettle();`).
+- A widget-test host that calls a post-frame helper touching an
+  autoDispose provider's notifier must itself WATCH that provider, or
+  the notifier can be disposed before the post-frame callback writes.
+- `pumpAndSettle` diverges (timeout) if the host both watches a provider
+  AND unconditionally schedules `ref.invalidate` of it in build — an
+  invalidate→rebuild→invalidate loop. Model watcher and scheduler as
+  SEPARATE widgets to mirror real sheets (chip vs section).
+- intl DateFormat cost: fresh `DateFormat.yMMMd().add_jm().format(dt)` =
+  **6.09 µs/call** (construction cheap ~0.2 µs; first format pays pattern
+  compilation); cached instance format = **0.22 µs**. Standalone bench
+  needs `initializeDateFormatting(locale, null)` from
+  `package:intl/date_symbol_data_local.dart` (not exported from
+  `intl.dart` or `date_symbols.dart`).
+- `initializeDateFormatting` lives in `package:intl/date_symbol_data_local.dart`.
+- `background` bash cap default 10 min kills a full `flutter test` run
+  if anything else runs concurrently; use `timeout: 1800000` for full
+  suites and keep the runner exclusive.
+
 ## 2026-11-04 — differential-test gotchas
 - **flutter_test's matcher ALSO exports `collapseWhitespace`** — a test
   file that imports both `package:flutter_test/flutter_test.dart` and

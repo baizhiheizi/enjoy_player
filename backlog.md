@@ -1,5 +1,14 @@
 # Performance backlog — Enjoy Player
 
+**UPDATE 2026-11-05:** P19 MERGED as **#1228** by an-lee on 2026-11-04
+14:34 UTC — **eleven merged perf-improver code-changing PRs**. This run
+swept lookup + vocabulary presentation (Explore agent; survived a 503
+resume) and craft + discover (Explore agent). Shipped **P20** (lookup
+credits-summary refresh dedupe; branch
+`perf-assist/lookup-credits-refresh-once-per-result`). Remaining sweep
+candidates recorded in the P20 section. The ai feature and player
+non-transport surfaces remain unswept for future rounds.
+
 **UPDATE 2026-11-04:** P18 MERGED as **#1218** by an-lee on 2026-11-04
 00:19 UTC — **ten merged perf-improver code-changing PRs**. This run swept
 painters (all clean), poster domain (cold/clean), logo planes
@@ -345,6 +354,71 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   `docs/perf-measurement.md`.
 - Status: draft PR open on `perf-assist/cue-id-memo` (commit `6ca3e6c4`).
   PR number assigned when the framework pushes the bundle.
+
+## P20 — lookup credits-summary refetch per section rebuild (SHIPPED 2026-11-05, draft PR open)
+- Files: `lib/features/lookup/presentation/lookup_credits_reporting.dart`
+  (helpers), `lookup_section_error_widget.dart`, the three section files
+  (`translation_lookup_section.dart:46`, `dictionary_lookup_section.dart:70`,
+  `contextual_translation_lookup_section.dart:325`).
+- Problem: `scheduleLookupCreditsClear`/`scheduleLookupCreditsReport`
+  scheduled an unconditional `ref.invalidate(creditsSummaryProvider)` on
+  EVERY call, and the sections call them from their `data:`/`error:` build
+  branches — i.e. on every section rebuild with loaded data. The sheet
+  header chip (`lookup_credits_chip.dart:37`) watches that provider, so
+  every rebuild with data on screen ran a live `GET /credits/summary`
+  network call (theme/locale pulses, state ticks, re-shows of the same
+  cached result, re-shows of the same error through `lookupSectionErrorWidget`).
+- Fix: `_refreshCreditsSummary` now takes `(section, resultToken)` and
+  skips the invalidate when the token is `identical` to the last one
+  recorded for the section (module-level `Map<LookupSectionId, Object>`,
+  ≤3 bounded entries). Tokens = the `data` result or the `error` object.
+  Banner `clear`/`report` stay unconditional (already idempotent).
+  Cache-hit re-emissions are correctly skipped (no credits consumed);
+  force-refresh/retry produce fresh instances/errors → refresh fires.
+- Measured (structural fetch-count A/B, identical harness: host calling
+  the helper per rebuild ×6, separate widget watching the provider as
+  chip stand-in, counter override): legacy = **7 fetches** per 1 initial
+  display + 5 same-result rebuilds; deduped = **2** and flat on rebuilds.
+  After-counts pinned by the committed
+  `test/features/lookup/presentation/lookup_credits_reporting_test.dart`
+  (4 tests); before-count from a throwaway legacy replica (not committed).
+- Docs: `dictionary-lookup.md` chip contract updated; test linked from
+  `docs/perf-measurement.md`.
+- Status: draft PR on `perf-assist/lookup-credits-refresh-once-per-result`.
+- Test-writing gotchas: `tester.state<T>().setState()` =
+  invalid_use_of_protected_member — drive rebuilds with a
+  `ValueNotifier<int>` tick + `ValueListenableBuilder` in the host.
+  Host must WATCH `lookupCreditsExhaustedProvider` (autoDispose) or the
+  post-frame `notifier.clear` can hit a disposed notifier. Initial pump
+  = 2 fetches (initial watch + first-token refresh), so flat-rebuild
+  assertions expect 2, not 1.
+
+## P20b — leftover sweep candidates from the 2026-11-05 sweep (unshipped)
+- **craft history DateFormat** (`craft_history_screen.dart:155`): fresh
+  `DateFormat.yMMMd().add_jm()` per tile build; measured fresh
+  construct+format = **6.09 µs vs 0.22 µs cached** (27x, standalone
+  intl bench). Hoist to the locale-keyed module cache pattern
+  (`discover_age_label.dart:30`). Also non-builder `ListView(children:)`
+  with an inner `Column` eager-builds ALL tiles on every registry
+  emission — full virtualization changes the bordered-card design
+  (ADR-0093 territory), DateFormat hoist alone is safe.
+- **discover feed tile thumbnail** (`discover_feed_tile.dart:128`):
+  `remoteThumbnailForCard(entry.thumbnailUrl)` = Uri.tryParse + up to 3
+  regex per tile per rebuild (~2–5 µs each); the projection
+  (`projectDiscoverFeedItems`) already joins channel fields for exactly
+  this reason (issue #810 G) — add a `cardThumbnailUrl` field.
+- **normalizeCraftText per keystroke** (`rewrite_stage.dart:141`,
+  `translate_tool.dart:68`, `synthesize_tool.dart:66`): regex
+  replaceAll over ≤5000 chars per build (~tens of µs) — minor; bundle
+  with a craft touch if any.
+- **vocabulary explanation decode per flashcard rebuild**
+  (Explore finding, MEDIUM): `decodeDictionaryExplanation` /
+  `decodeContextualExplanation` / `parseContextualMarkdownDocument`
+  re-run per rebuild of the flashcard/tabs (~5–20 decodes of the same
+  multi-KB blob per card interaction). Fix = one-entry string-keyed memo
+  (blur cue-id pattern). `vocabulary_review_options.dart:56-65` also
+  recomputes languages + runs buildVocabularySessionQueue twice per tap
+  (LOW — counts derivable from existing memoized providers).
 
 ## P19 — ASR timeline build re-joins the line string per word step (SHIPPED 2026-11-04, draft PR open)
 - File: `lib/features/asr/domain/asr_timeline_builder.dart`

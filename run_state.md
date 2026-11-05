@@ -1,89 +1,88 @@
 # Perf Improver run state
 
-- **Last run:** 2026-11-04 (workflow run 41830328066, run #80) — eleventh
-  run to produce a code-changing PR. Shipped **P19** (ASR timeline build
-  join-per-step → incremental length + last-word terminator bit) → draft
-  PR on `perf-assist/asr-timeline-incremental` (commit `1219fae8`).
-  PR number assigned when the framework pushes the bundle.
-- **P18 MERGED as #1218 by an-lee on 2026-11-04 00:19 UTC → TEN merged
-  code-changing PRs total** (#1006, #1071, #1100, #1127, #1142, #1167,
-  #1175, #1191, #1203, #1218).
-- **Next run:** (1) find the P19 PR number (search "perf-improver
-  in:title"), check CI/GitGuardian, keep it healthy. (2) Code-level
-  backlog **EMPTY again** — P7 / P8 / P3-reframed / P10b all wait on
-  maintainer decisions (November monthly issue #1192). (3) Unswept
-  surfaces for round-robin: lookup + vocabulary presentation, craft
-  (non-recording), ai feature, discover, player non-transport. Verify
-  callers before optimizing (P3 trap).
+- **Last run:** 2026-11-05 (workflow run 42029725619, run #81) — twelfth
+  run to produce a code-changing PR. Shipped **P20** (lookup credits
+  summary refresh dedupe) → draft PR on
+  `perf-assist/lookup-credits-refresh-once-per-result`. PR number assigned
+  when the framework pushes the bundle.
+- **P19 MERGED as #1228 by an-lee on 2026-11-04 14:34 UTC → ELEVEN
+  merged code-changing PRs total** (#1006, #1071, #1100, #1127, #1142,
+  #1167, #1175, #1191, #1203, #1218, #1228). No open perf-improver PRs
+  existed at this run's start.
+- **Next run:** (1) find the P20 PR number, check CI, keep healthy.
+  (2) Code-level backlog: P20b leftovers ( DateFormat hoist, discover
+  thumbnail projection, vocabulary explanation decode memo) are the
+  ready-to-ship candidates — prefer the **vocabulary explanation decode
+  memo** (MEDIUM, classic pattern) or the **DateFormat hoist** (tiny,
+  trivially safe). (3) Unswept surfaces: ai feature, player
+  non-transport. P7/P8/P3-reframed/P10b still wait on maintainer
+  decisions (November monthly issue #1192).
 
 ## Sandbox facts this run
-- SDK copy + pub get warm (~4 min total incl. sqlite3 hooks override +
-  re-pub-get). Full suite after P19: **7096 passed / 24 skipped**
-  (~5 min; 7056/21 → +40 from #1226/#1227 merges + 5 new here).
-- Blobless clone still: use GitHub MCP `get_commit` (detail=stats) for
-  commit file lists.
-- Bench this run: env `ASR_TIMELINE_BENCH_MODE=legacy|incremental` in
-  `test/features/asr/domain/asr_timeline_builder_perf_test.dart`
-  (default = incremental), n=3 fresh processes per arm, sequential —
-  legacy arms were tight (9.4–10.05 ms); incremental word arm spread
-  1.6–3.1 ms across rounds (JIT tiers) — report median + worst pairing.
-- flutter_tester noise note in commands.md (2026-11-03) still applies.
+- SDK copy + pub get + analyze ~5 min. Full suite: killed at the 10-min
+  background cap on the first attempt (throwaway measurement ran
+  concurrently — avoid); restarted with timeout=1800000. Wait for its
+  result in the next section.
+- Bench this run: intl DateFormat fresh construct+format **6.09 µs**
+  vs cached format **0.22 µs** per call (standalone dart,
+  `initializeDateFormatting` from `package:intl/date_symbol_data_local.dart`
+  — NOT `date_symbols.dart`).
+- DraggableScrollableSheet does NOT rebuild its builder per drag frame:
+  the SDK passes `widget.builder(...)` as the ValueListenableBuilder's
+  `child` (flutter/widgets/draggable_scrollable_sheet.dart build()) —
+  an Explore sweep claim to the contrary was WRONG; verify in the
+  writable SDK copy before believing rebuild-storm claims.
 
 ## Repo state at this run
-- HEAD on `main` at run start: `cc3dee0e` (#1227); #1226 (sync paging
-  consolidation) also landed this run-start window.
-- Open perf-improver PRs after this run: the P19 draft (number assigned
+- HEAD on `main` at run start: `1bc67771` (#1241). Since P19: #1233
+  (assessment widgets split), #1234 (docs), #1239 (AGP9/FFmpeg/popover
+  refactor), #1240 (ai test), #1241 (deps bump).
+- Open perf-improver PRs after this run: the P20 draft (number assigned
   post-run).
-- Monthly: November issue is **#1192** (open, still no maintainer
-  comments as of 13:04 UTC 2026-11-04; updated this run: removed the
-  merged-P18 review action, added the P19 review action, prepended run
-  history, backlog rewritten).
+- Monthly: November issue is **#1192** (open, ZERO maintainer comments
+  as of this run; updated this run: removed the merged-P19 review
+  action, P20 review action added, run history prepended, backlog
+  rewritten to 11-merged state).
 
 ## Tasks completed this run
-- **Task 1**: commands revalidated (SDK copy → pub get → analyze →
-  smoke test → full suite); no new discovery (see `commands.md`).
-- **Task 2**: sweeps — all 15 CustomPainters read directly (clean);
-  share_poster domain traced to a one-shot sheet-open call (cold);
-  `paintLogoMarkPlanes` saveLayer flagged as DESIGN territory
-  (ADR-0093); Explore agent swept sync + ASR: sync post-#1226 refactor
-  clean, ASR timeline builder = live finding.
-- **Task 3**: **DONE** — P19. Word path ~9.5 → ~1.9 ms per 18k-word
-  build (~5x), segment ~4.2x, plain ~1.3x; byte-identical sinks
-  (95212/52623/115751) in all 24 process runs; curated boundary corpus
-  × 6 param variants + 300 fuzz cases, 0 mismatches.
-- **Task 4**: P18 #1218 found MERGED; no open perf-improver PRs to
-  maintain at run start.
-- **Task 5**: #1192 only open performance-labeled issue, no new human
-  comments → no comments posted.
-- **Task 6**: P19 perf test follows the differential + env-selected
-  skip-marked bench pattern; `docs/perf-measurement.md` index updated
-  in the PR.
-- **Task 7**: updated #1192 (removed merged-P18 action, added P19
+- **Task 1**: commands revalidated (pub get → analyze → targeted tests);
+  no new discovery.
+- **Task 2**: two Explore sweeps — lookup+vocabulary (found the P20
+  HIGH finding + vocabulary decode MEDIUM + options LOW) and craft+
+  discover (DateFormat, thumbnail, keystroke normalize; feed pipeline
+  verified clean). The lookup agent died with a 503 mid-sweep and was
+  resumed successfully via SendMessage.
+- **Task 3**: **DONE** — P20. Legacy 7 fetches → 2 fetches for
+  1 display + 5 same-result rebuilds; flat thereafter. 4 new structural
+  tests.
+- **Task 4**: P19 #1228 found MERGED; no open perf-improver PRs to
+  maintain.
+- **Task 5**: #1192 only open performance-labeled issue, zero new
+  human comments → no comments posted.
+- **Task 6**: P20 structural test follows the fetch-count pattern;
+  legacy-replica A/B measured via a throwaway test (deleted).
+- **Task 7**: updated #1192 (removed merged-P19 action, added P20
   review action, prepended run history).
 
-## P19 — key implementation notes (details in `backlog.md`)
-1. Equivalence argument: joined line's last char == last word's last
-   char (join adds no trailing content); length additive with the
-   1-char separator. Kept words always have non-empty text
-   (`trim().isEmpty` skip + single leading-space strip).
-2. Segment path appends to the SAME list (no aliasing: emitted `_Line`s
-   are never mutated after `lines.add`).
-3. `_endsWithTerminator` compares last code unit against a code-unit
-   set (substring semantics identical — all terminators single BMP).
-4. Differential test needs
-   `import 'package:flutter_test/flutter_test.dart' hide
-   collapseWhitespace;` — flutter_test's matcher ALSO exports a
-   `collapseWhitespace` (ambiguous-import otherwise).
-5. `AsrResult`/`AsrSegment`/`AsrWord` are `final class` with const
-   constructors — fully-const curated fixtures trigger
-   prefer_const lints on inner nodes; drop inner `const` when the
-   outer context is const.
+## P20 — key implementation notes (details in `backlog.md`)
+1. Dedupe lives in `_refreshCreditsSummary` via `identical()` on the
+   result/error token per section; `clear`/`report` post-frame calls
+   stay unconditional.
+2. The `data:`/`error:` branches run per BUILD — that is the bug; the
+   fix dedupes instead of rewiring to `ref.listen` (lower risk, keeps
+   the FutureBuilder-based contextual section untouched).
+3. Identity-based dedupe aligns with AI-result cache hits (same
+   instance = no new spend = no refresh) and force-refresh (new
+   instance = refresh).
+4. Chip refetches on its own first watch after sheet reopen (provider
+   is autoDispose), so the dedupe cannot strand a stale wallet.
+5. Committed test host must watch `lookupCreditsExhaustedProvider` to
+   keep the autoDispose notifier alive for post-frame writes.
 
 ## Write path
 - PRs via safe-outputs `create_pull_request`; PR number assigned when
   the framework pushes the bundle — not visible via API immediately.
-- `update_issue` supports full-body rewrites (target: '*' config, so
-  issue_number 1192 works).
+- `update_issue` supports full-body rewrites (target: '*' config).
 - `create_pull_request` / `create_issue` add the `[perf-improver] `
   title prefix themselves — do NOT put it in the title.
 - sqlite3 hooks override applied to `pubspec.yaml` for tests and
