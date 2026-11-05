@@ -184,7 +184,9 @@ Future<FfmpegRunResult> _finish(
   FfmpegRunResult result, {
   required String? outputPath,
 }) async {
-  if (!result.succeeded && outputPath != null) {
+  if (!result.succeeded &&
+      result.outcome != FfmpegOutcome.unavailable &&
+      outputPath != null) {
     await _deleteIfExists(outputPath);
   }
   return result;

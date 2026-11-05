@@ -222,6 +222,7 @@ Future<void> _runFfmpegExtract({
 
   await _runFfmpeg(
     args: args,
+    outputPath: outPath,
     token: token,
     timeout: timeout,
     failLabel: 'segment',
@@ -254,6 +255,7 @@ Future<void> _runFfmpegFullDecode({
 
   await _runFfmpeg(
     args: args,
+    outputPath: outPath,
     token: token,
     timeout: timeout,
     failLabel: 'full decode',
@@ -264,6 +266,7 @@ Future<void> _runFfmpegFullDecode({
 /// typed failure.
 Future<void> _runFfmpeg({
   required List<String> args,
+  required String outputPath,
   required EchoPcmCancelToken? token,
   required Duration timeout,
   required String failLabel,
@@ -275,6 +278,7 @@ Future<void> _runFfmpeg({
     kitBackend: FfmpegKitBackend.async,
     timeout: timeout,
     cancellation: token,
+    outputPath: outputPath,
   );
   switch (result.outcome) {
     case FfmpegOutcome.success:

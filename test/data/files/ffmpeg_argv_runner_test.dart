@@ -27,6 +27,7 @@ void main() {
 
     tearDown(() {
       FfmpegMediaProbe.debugExecutableOverride = null;
+      FfmpegMediaProbe.debugForceUnavailable = false;
       if (temp.existsSync()) temp.deleteSync(recursive: true);
     });
 
@@ -93,6 +94,22 @@ void main() {
       expect(result.outcome, FfmpegOutcome.success);
       expect(output.existsSync(), isTrue);
     });
+
+    test(
+      'keeps a pre-existing output file when ffmpeg is unavailable',
+      () async {
+        FfmpegMediaProbe.debugForceUnavailable = true;
+        final output = File('${temp.path}/cached.jpg')
+          ..writeAsStringSync('cached');
+        final result = await runFfmpegArgv(
+          args: <String>['-version'],
+          failLabel: 'probe',
+          outputPath: output.path,
+        );
+        expect(result.outcome, FfmpegOutcome.unavailable);
+        expect(output.existsSync(), isTrue);
+      },
+    );
 
     test(
       'cancels before spawning when the token is already cancelled',
