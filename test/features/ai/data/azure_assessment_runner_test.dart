@@ -275,8 +275,14 @@ void main() {
     test('assesses the original recording and maps the outcome', () async {
       final dir = await tempDir();
       final sourcePath = await writeGarbageWav(dir);
+      final sourceBytes = await File(sourcePath).readAsBytes();
       final json = outcomeJson();
-      handler = (_) async => jsonEncode(json);
+      Uint8List? assessedBytes;
+      handler = (call) async {
+        final callArgs = Map<String, dynamic>.from(call.arguments as Map);
+        assessedBytes = File(callArgs['audioPath'] as String).readAsBytesSync();
+        return jsonEncode(json);
+      };
 
       final result = await runAzurePronunciationAssessment(
         request: AssessmentRequest(
@@ -293,13 +299,14 @@ void main() {
       expect(invoked, hasLength(1));
       expect(invoked.single.method, 'assess');
       final args = Map<String, dynamic>.from(invoked.single.arguments as Map);
-      expect(args['audioPath'], File(sourcePath).absolute.path);
+      expect(args['audioPath'], isNotEmpty);
       expect(args['referenceText'], 'good morning world');
       expect(args['language'], 'en-US');
       expect(args['region'], 'westus2');
       expect(args['token'], 'token-1');
       expect(args.containsKey('subscriptionKey'), isFalse);
 
+      expect(assessedBytes, sourceBytes);
       expect(result.detail.primaryScores!.pronScore, 82);
       expect(result.rawJson['RecognitionStatus'], 'Success');
       expect(File(sourcePath).existsSync(), isTrue);
