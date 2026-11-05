@@ -15,21 +15,14 @@
 library;
 
 import 'dart:io';
-import 'dart:isolate';
+import 'dart:typed_data';
 
+import 'package:enjoy_player/data/files/ffmpeg_argv_runner.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/features/asr/domain/asr_audio_extraction_failure.dart';
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'package:flutter/services.dart';
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:enjoy_player/core/logging/log.dart';
-
-final Logger _log = logNamed('asr.audio_extractor');
 
 enum MediaKind { audio, video }
 
@@ -150,73 +143,29 @@ class AsrAudioExtractor {
     required String outputWav,
     required void Function(double progress)? onProgress,
   }) async {
-    if (FfmpegMediaProbe.usesFfmpegCli) {
-      final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-      if (exe == null) {
-        _log.fine('asr_audio_extractor: no ffmpeg CLI found');
+    final bool usesKit = !FfmpegMediaProbe.usesFfmpegCli;
+    if (usesKit) onProgress?.call(0.1);
+    final result = await runFfmpegArgv(
+      args: _extractArgs(input: input, outputWav: outputWav),
+      failLabel: 'asr extract',
+      cliBackend: FfmpegCliBackend.isolateRun,
+      outputPath: outputWav,
+    );
+    if (usesKit) onProgress?.call(0.9);
+    switch (result.outcome) {
+      case FfmpegOutcome.success:
+        return true;
+      case FfmpegOutcome.unavailable:
         throw AsrAudioExtractionException(
           AsrAudioExtractionFailureReason.ffmpegUnavailable,
           'ffmpeg not available',
         );
-      }
-      try {
-        final result = await Isolate.run(
-          () => _cliExtract(
-            _CliExtractArgs(
-              exe: exe,
-              inputPath: input,
-              outputWavPath: outputWav,
-            ),
-          ),
-          debugName: 'asr-extract-ffmpeg',
-        );
-        if (result.exitCode != 0) {
-          _log.fine(
-            'asr_audio_extractor: ffmpeg exit=${result.exitCode} ${result.stderr}',
-          );
-        }
-        return result.exitCode == 0;
-      } on AsrAudioExtractionException {
-        rethrow;
-      } on Object catch (e, st) {
-        _log.fine('asr_audio_extractor: isolate run failed', e, st);
+      case FfmpegOutcome.failed:
+      case FfmpegOutcome.cancelled:
+      case FfmpegOutcome.timedOut:
         return false;
-      }
-    }
-
-    try {
-      onProgress?.call(0.1);
-      final session = await FFmpegKit.executeWithArguments(
-        _extractArgs(input: input, outputWav: outputWav),
-      );
-      onProgress?.call(0.9);
-      final code = await session.getReturnCode();
-      final ok = ReturnCode.isSuccess(code);
-      if (!ok) {
-        _log.fine(
-          'asr_audio_extractor: FFmpegKit failed: ${await session.getOutput()}',
-        );
-      }
-      return ok;
-    } on MissingPluginException catch (e, st) {
-      _log.fine('asr_audio_extractor: FFmpegKit not registered', e, st);
-      throw AsrAudioExtractionException(
-        AsrAudioExtractionFailureReason.ffmpegUnavailable,
-        'ffmpeg not available',
-      );
     }
   }
-}
-
-class _CliExtractArgs {
-  const _CliExtractArgs({
-    required this.exe,
-    required this.inputPath,
-    required this.outputWavPath,
-  });
-  final String exe;
-  final String inputPath;
-  final String outputWavPath;
 }
 
 List<String> _extractArgs({required String input, required String outputWav}) =>
@@ -239,16 +188,3 @@ List<String> _extractArgs({required String input, required String outputWav}) =>
       'pcm_s16le',
       outputWav,
     ];
-
-Future<({int exitCode, String stderr})> _cliExtract(
-  _CliExtractArgs args,
-) async {
-  final r = await Process.run(
-    args.exe,
-    _extractArgs(input: args.inputPath, outputWav: args.outputWavPath),
-  );
-  return (
-    exitCode: r.exitCode,
-    stderr: r.stderr is String ? r.stderr as String : '',
-  );
-}

@@ -23,8 +23,21 @@ class FfmpegMediaProbe {
   /// FFmpegKit. The result is memoized for the process lifetime
   /// (see [_resolvedFuture]).
   static Future<String?> resolveFfmpegExecutable() {
+    if (debugForceUnavailable) return Future<String?>.value(null);
+    final override = debugExecutableOverride;
+    if (override != null) return Future<String?>.value(override);
     return _resolvedFuture ??= _resolveFfmpegExecutableUncached();
   }
+
+  /// Test seam: forces the executable every caller resolves, so a test can
+  /// point the FFmpeg runner at a stub binary.
+  @visibleForTesting
+  static String? debugExecutableOverride;
+
+  /// Test seam: makes [resolveFfmpegExecutable] report no binary, so tests can
+  /// drive the FFmpeg runner's `unavailable` outcome.
+  @visibleForTesting
+  static bool debugForceUnavailable = false;
 
   static Future<String?> _resolveFfmpegExecutableUncached() async {
     final dir = p.dirname(Platform.resolvedExecutable);

@@ -39,7 +39,7 @@ Future<void> showSubtitleTrackPicker(
     return Navigator.of(
       context,
       rootNavigator: true,
-    ).push(SubtitlesPopoverRoute(mediaId: mediaId));
+    ).push(subtitlesPopoverRoute(mediaId: mediaId));
   }
   return showEnjoySheet<void>(
     context: context,

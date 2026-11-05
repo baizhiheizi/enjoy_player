@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/anchored_popover_route.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_margin_provider.dart';
@@ -45,10 +46,45 @@ Future<void> openPlayerMargin(
     ).read(playerMarginProvider.notifier).show(entry);
     return;
   }
-  await Navigator.of(
-    context,
-    rootNavigator: true,
-  ).push(PlayerMarginRoute(entry: entry));
+  await Navigator.of(context, rootNavigator: true).push(
+    AnchoredPopoverRoute<void>(
+      barrierLabel: entry.label,
+      alignment: Alignment.centerRight,
+      transitionDuration: const Duration(milliseconds: 220),
+      reverseTransitionDuration: const Duration(milliseconds: 180),
+      slideOffset: const Offset(1, 0),
+      slideCurve: Curves.easeOutCubic,
+      builder: (context) {
+        final t = EnjoyThemeTokens.of(context);
+        return SizedBox(
+          width: t.marginWidth,
+          child: Semantics(
+            container: true,
+            explicitChildNodes: true,
+            label: entry.label,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: t.paper,
+                border: Border(left: BorderSide(color: t.line)),
+                boxShadow: t.shadowFloat,
+              ),
+              child: Material(
+                type: MaterialType.transparency,
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeLeft: true,
+                  child: entry.builder(
+                    context,
+                    () => Navigator.of(context).maybePop(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  );
 }
 
 /// Lays [child] out beside the docked margin when wide enough, and provides
@@ -157,88 +193,6 @@ class _DockedMargin extends ConsumerWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// The right-edge margin drawer under `breakpointMarginDrawer`: a
-/// `marginWidth` paper panel with a float shadow, sliding in over
-/// `motionMargin`. A [PopupRoute], so a video surface parks under it.
-class PlayerMarginRoute extends PopupRoute<void> {
-  PlayerMarginRoute({required this.entry});
-
-  final PlayerMarginEntry entry;
-
-  @override
-  bool get barrierDismissible => true;
-
-  @override
-  Color? get barrierColor => null;
-
-  @override
-  String? get barrierLabel => entry.label;
-
-  @override
-  Duration get transitionDuration => const Duration(milliseconds: 220);
-
-  @override
-  Duration get reverseTransitionDuration => const Duration(milliseconds: 180);
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    final t = EnjoyThemeTokens.of(context);
-    return Align(
-      alignment: Alignment.centerRight,
-      child: SizedBox(
-        width: t.marginWidth,
-        child: Semantics(
-          container: true,
-          explicitChildNodes: true,
-          label: entry.label,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: t.paper,
-              border: Border(left: BorderSide(color: t.line)),
-              boxShadow: t.shadowFloat,
-            ),
-            child: Material(
-              type: MaterialType.transparency,
-              child: MediaQuery.removePadding(
-                context: context,
-                removeLeft: true,
-                child: entry.builder(
-                  context,
-                  () => Navigator.of(context).maybePop(),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    final slide = Tween<Offset>(
-      begin: const Offset(1, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-    return SlideTransition(
-      position: slide,
-      child: FadeTransition(
-        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-        child: child,
       ),
     );
   }
