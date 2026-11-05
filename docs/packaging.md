@@ -140,7 +140,7 @@ flutter test
 ### Linux (Android)
 
 - **Flutter** + **Android SDK** — Java 17 is pinned as `temurin-17` in [`mise.toml`](../mise.toml) (`mise exec`/`mise install` provides `java` + `JAVA_HOME`; the system JDK is ignored inside the repo)
-- After `flutter pub get`, run [`tool/patch_agp9_pub_plugins.sh`](../tool/patch_agp9_pub_plugins.sh) (done automatically by release script)
+- After `flutter pub get`, run [`tool/patch_agp9_pub_plugins.sh`](../tool/patch_agp9_pub_plugins.sh) (done automatically by release script) — see [AGP 9 pub-cache patches](#agp-9-pub-cache-patches)
 
 ### Linux (AppImage)
 
@@ -602,8 +602,8 @@ Platform CI setup (secrets, runners):
 - **`media_kit_libs_android_video` / `Connection timed out` downloading `default-*.jar`**: the plugin fetches libmpv JARs from GitHub Releases during Gradle configuration with Java `URL.openStream()` (no retries). A timeout can leave a **0-byte** jar under `build/media_kit_libs_android_video/v1.1.7/`, which then fails MD5 and re-downloads on every evaluate. Run [`tool/prefetch_media_kit_android_libs.sh`](../tool/prefetch_media_kit_android_libs.sh) (curl + retries + MD5; also run by `release_android.sh` and Android smoke CI) before `flutter build`, or delete the empty jars and retry on a stable network. Optional mirror: `MEDIA_KIT_ANDROID_LIBS_BASE_URL`.
 - **`packageStoreReleaseBundle` OutOfMemoryError**: the Play AAB is large (~180MB with ffmpeg-kit native libs). The previous `MaxMetaspaceSize=4G` in [`android/gradle.properties`](../android/gradle.properties) let Gradle reserve up to ~12G virtual memory, which often fails after `flutter test` on 16GB Windows hosts. Release scripts stop Gradle daemons before building. If it still fails, close other heavy apps, run `./android/gradlew --stop`, and retry with `pwsh ./release.ps1 -Platform android -SkipChecks`.
 - **`lintVitalAnalyze*` / `OutOfMemoryError: Metaspace`**: Android Lint's UAST analysis of plugins (e.g. `PortCleaner.java`) can exhaust the 512m Metaspace cap. [`android/app/build.gradle.kts`](../android/app/build.gradle.kts) sets `lint.checkReleaseBuilds = false` so release AAB/APK packaging skips lintVital. Run `./android/gradlew :app:lint` when you want a dedicated lint pass.
-- **AGP 9 plugin errors**: run `tool/patch_agp9_pub_plugins.ps1` (Windows) or `tool/patch_agp9_pub_plugins.sh` (Linux/macOS) after `flutter pub get`. Android release scripts run the bash patch automatically before building.
-- **`cannot find symbol SharePlusPlugin`**: `share_plus` 13.2+ assumes AGP 9 enables built-in Kotlin and skips applying KGP. This repo keeps `android.builtInKotlin=false`, so the plugin's Kotlin never compiles. Re-run the AGP 9 patch scripts above (they force-apply KGP for `share_plus` and clear stale `build/share_plus` outputs), then rebuild. On Windows, prefer the `.ps1` patcher or a current `.sh` that resolves `%LOCALAPPDATA%/Pub/Cache`.
+- **AGP 9 plugin errors**: run `tool/patch_agp9_pub_plugins.ps1` (Windows) or `tool/patch_agp9_pub_plugins.sh` (Linux/macOS) after `flutter pub get` — both delegate to one Dart implementation (see [AGP 9 pub-cache patches](#agp-9-pub-cache-patches)). Android release scripts run the bash wrapper automatically before building.
+- **`cannot find symbol SharePlusPlugin`**: `share_plus` 13.2+ assumes AGP 9 enables built-in Kotlin and skips applying KGP. This repo keeps `android.builtInKotlin=false`, so the plugin's Kotlin never compiles. Re-run the AGP 9 patch scripts above (they force-apply KGP for `share_plus` and clear stale `build/share_plus` outputs), then rebuild.
 - **`file_picker` unresolved `FileUtils` references**: after upgrading `file_picker`, Gradle can retain an incomplete Kotlin source snapshot. The AGP 9 patch scripts clear `build/file_picker`; rerun either patch script above and rebuild.
 
 ### Windows
@@ -694,6 +694,44 @@ Identity: **`ai.enjoy.player`** everywhere ([ADR-0020](decisions/0020-android-wi
 | macOS | 12.0 | App Sandbox on; GPL FFmpeg bundled; `macos/Podfile` and `MACOSX_DEPLOYMENT_TARGET` both pin 12.0 |
 | Windows | x64 | Authenticode signing outside repo |
 | Linux | x86_64 | AppImage; bundled `libmpv` + `ffmpeg`; Ubuntu 22.04+ / Fedora 39+ / Debian 12 |
+
+### AGP 9 pub-cache patches
+
+AGP 9 ships Kotlin built in, but this repo keeps `android.builtInKotlin=false`
+in [`android/gradle.properties`](../android/gradle.properties), so a plugin
+that wires up the Kotlin Gradle plugin itself breaks the Android build. The
+patcher edits the plugin's Gradle file **inside the pub cache** after
+`flutter pub get`:
+
+| Package | Patch |
+|---|---|
+| `package_info_plus`, `wakelock_plus` | Drop the `kotlin-android` plugin, the KGP classpath, the Kotlin stdlib dependency, `ext.kotlin_version`, and the `kotlinOptions { }` block from `android/build.gradle` |
+| `url_launcher_android` | Drop the `id("kotlin-android")` plugin and the KGP classpath from `android/build.gradle.kts` |
+| `share_plus` | Force-apply KGP — 13.2+ skips it when `agpMajor >= 9`, so `SharePlusPlugin` never compiles (`cannot find symbol SharePlusPlugin`) |
+| `jni` | Drop the dead `kotlin { }` block — the Kotlin DSL is unavailable without KGP, and jni ships no Android Kotlin sources |
+| `flutter_inappwebview_android` | Point at `proguard-android-optimize.txt` |
+
+The patcher has **one implementation**:
+[`tool/patch_agp9_pub_plugins.dart`](../tool/patch_agp9_pub_plugins.dart).
+[`tool/patch_agp9_pub_plugins.sh`](../tool/patch_agp9_pub_plugins.sh) (bash) and
+[`tool/patch_agp9_pub_plugins.ps1`](../tool/patch_agp9_pub_plugins.ps1) (Windows)
+are thin wrappers around it, so the two shells cannot drift apart.
+
+Targets are matched by **package name** and globbed by version, so bumping a
+dependency never needs an edit. A wrapper locates the Dart SDK from `PATH`, or
+from the Flutter SDK that `flutter` on `PATH` points at.
+
+Run it after every `flutter pub get`:
+
+```bash
+bash tool/patch_agp9_pub_plugins.sh    # Linux / macOS / Git Bash
+pwsh tool/patch_agp9_pub_plugins.ps1   # Windows
+```
+
+Android release scripts run the bash wrapper automatically. The fixture test
+[`test/tool/patch_agp9_pub_plugins_test.dart`](../test/tool/patch_agp9_pub_plugins_test.dart)
+patches a fake pub cache and asserts every patch lands, so a regression fails
+CI on every platform.
 
 ### eSpeak-NG (alignment reference)
 

@@ -71,7 +71,10 @@ present. The media item and its state are untouched — Generate can be re-run
 after purchasing.
 
 Video extraction runs through FFmpegKit on mobile/macOS and an isolate-backed
-`Process.run` on Windows. Temporary WAV files are deleted after bytes have been
+`Process.run` on Windows. Both go through the one shared runner
+([`ffmpeg_argv_runner.dart`](../../lib/data/files/ffmpeg_argv_runner.dart)),
+which owns the CLI-vs-FFmpegKit dispatch, so FFmpeg availability is decided in
+one place. Temporary WAV files are deleted after bytes have been
 read. Short-clip budget remains ~60 seconds for a five-minute desktop file.
 Long-form jobs are asynchronous; upload/poll phases keep the UI interactive.
 

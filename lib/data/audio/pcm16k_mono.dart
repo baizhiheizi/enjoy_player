@@ -5,15 +5,12 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:forced_alignment/forced_alignment.dart';
-
 import 'package:enjoy_player/core/audio/wav_chunks.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/data/files/ffmpeg_argv_runner.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
+import 'package:flutter/foundation.dart';
+import 'package:forced_alignment/forced_alignment.dart';
 
 final _log = logNamed('audio.pcm16k');
 
@@ -216,39 +213,20 @@ Future<void> _runFfmpegToWav({
     outputPath,
   ];
 
-  if (!pcm16kUsesFfmpegKit(
-    isAndroid: Platform.isAndroid,
-    isIOS: Platform.isIOS,
-    isMacOS: Platform.isMacOS,
-  )) {
-    final ffmpeg = await FfmpegMediaProbe.resolveFfmpegExecutable();
-    if (ffmpeg == null) {
-      throw const Pcm16kDecodeException('ffmpeg unavailable');
-    }
-    final result = await Process.run(ffmpeg, args);
-    if (result.exitCode != 0 || !File(outputPath).existsSync()) {
-      _log.fine('ffmpeg $failLabel failed (exit ${result.exitCode})');
-      throw Pcm16kDecodeException(
-        'ffmpeg $failLabel failed (exit ${result.exitCode})',
-      );
-    }
-    return;
+  final result = await runFfmpegArgv(
+    args: args,
+    failLabel: failLabel,
+    outputPath: outputPath,
+  );
+  if (!result.succeeded) {
+    _log.fine('ffmpeg $failLabel failed (${result.outcome.name})');
+    throw Pcm16kDecodeException(
+      'ffmpeg $failLabel failed (${result.outcome.name})',
+    );
   }
-
-  try {
-    final session = await FFmpegKit.executeWithArguments(args);
-    final code = await session.getReturnCode();
-    if (!ReturnCode.isSuccess(code) || !File(outputPath).existsSync()) {
-      _log.fine('FFmpegKit $failLabel failed: ${await session.getOutput()}');
-      throw Pcm16kDecodeException(
-        'ffmpeg $failLabel failed (exit ${code?.getValue() ?? -1})',
-      );
-    }
-  } on Pcm16kDecodeException {
-    rethrow;
-  } on MissingPluginException catch (e, st) {
-    _log.fine('FFmpegKit not registered', e, st);
-    throw const Pcm16kDecodeException('ffmpeg unavailable');
+  if (!File(outputPath).existsSync()) {
+    _log.fine('ffmpeg $failLabel produced no output file');
+    throw Pcm16kDecodeException('ffmpeg $failLabel produced no output file');
   }
 }
 

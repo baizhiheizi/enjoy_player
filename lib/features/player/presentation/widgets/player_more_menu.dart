@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/anchored_popover_route.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
@@ -28,75 +29,24 @@ const double _menuRight = 14;
 /// Opens the More menu as a [PopupRoute] so a video surface parks under it.
 /// The chosen action runs against [context] once the menu has closed.
 Future<void> showPlayerMoreMenu(BuildContext context, String mediaId) async {
-  final choice = await Navigator.of(
-    context,
-    rootNavigator: true,
-  ).push(_PlayerMoreMenuRoute(mediaId: mediaId));
+  final choice = await Navigator.of(context, rootNavigator: true).push(
+    AnchoredPopoverRoute<PlayerMenuChoice>(
+      barrierLabel: 'More',
+      insets: (context) =>
+          const EdgeInsets.only(top: _menuTop, right: _menuRight),
+      slideOffset: const Offset(0, -0.02),
+      builder: (context) => PlayerMoreMenuPanel(
+        mediaId: mediaId,
+        onChoose: (choice) => Navigator.of(context).pop(choice),
+      ),
+    ),
+  );
   if (choice == null || !context.mounted) return;
   await choice(context);
 }
 
 /// What a More-menu row does once the menu has closed.
 typedef PlayerMenuChoice = Future<void> Function(BuildContext context);
-
-class _PlayerMoreMenuRoute extends PopupRoute<PlayerMenuChoice> {
-  _PlayerMoreMenuRoute({required this.mediaId});
-
-  final String mediaId;
-
-  @override
-  bool get barrierDismissible => true;
-
-  @override
-  Color? get barrierColor => null;
-
-  @override
-  String? get barrierLabel => 'More';
-
-  @override
-  Duration get transitionDuration => const Duration(milliseconds: 140);
-
-  @override
-  Duration get reverseTransitionDuration => const Duration(milliseconds: 100);
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return Align(
-      alignment: Alignment.topRight,
-      child: Padding(
-        padding: const EdgeInsets.only(top: _menuTop, right: _menuRight),
-        child: PlayerMoreMenuPanel(
-          mediaId: mediaId,
-          onChoose: (choice) => Navigator.of(context).pop(choice),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    final curved = CurvedAnimation(parent: animation, curve: Curves.easeOut);
-    return FadeTransition(
-      opacity: curved,
-      child: SlideTransition(
-        position: Tween(
-          begin: const Offset(0, -0.02),
-          end: Offset.zero,
-        ).animate(curved),
-        child: child,
-      ),
-    );
-  }
-}
 
 class PlayerMoreMenuPanel extends ConsumerWidget {
   const PlayerMoreMenuPanel({

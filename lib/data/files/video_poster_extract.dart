@@ -7,11 +7,10 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'ffmpeg_argv_runner.dart';
 import 'ffmpeg_media_probe.dart';
 
 final _log = logNamed('VideoPosterExtract');
@@ -114,26 +113,14 @@ Future<bool> writeVideoPosterJpeg({
   ];
 
   try {
-    if (FfmpegMediaProbe.usesFfmpegCli) {
-      final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-      if (exe == null) {
-        _log.fine('video poster: no ffmpeg CLI found');
-        return false;
-      }
-      final r = await Process.run(exe, args);
-      if (r.exitCode != 0) {
-        _log.fine('video poster ffmpeg failed: ${r.stderr}');
-        return false;
-      }
-    } else {
-      final session = await FFmpegKit.executeWithArguments(args);
-      final code = await session.getReturnCode();
-      if (!ReturnCode.isSuccess(code)) {
-        _log.fine(
-          'video poster FFmpegKit failed: ${await session.getOutput()}',
-        );
-        return false;
-      }
+    final result = await runFfmpegArgv(
+      args: args,
+      failLabel: 'video poster',
+      outputPath: outputJpegPath,
+    );
+    if (!result.succeeded) {
+      _log.fine('video poster: ffmpeg failed (${result.outcome.name})');
+      return false;
     }
 
     final f = File(outputJpegPath);

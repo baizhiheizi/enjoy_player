@@ -14,11 +14,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_session.dart';
-import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'package:flutter/services.dart';
+import 'package:enjoy_player/data/files/ffmpeg_argv_runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -63,11 +59,12 @@ class EchoPcmExtractionException implements Exception {
 /// previous extraction was still running) the live FFmpeg process/session is
 /// killed and the in-flight future completes with a `cancelled` exception —
 /// so the work is *stopped*, not merely discarded by the caller.
-class EchoPcmCancelToken {
+class EchoPcmCancelToken implements FfmpegCancellation {
   bool _cancelled = false;
   final List<void Function()> _hooks = [];
 
   /// Whether [cancel] has been called.
+  @override
   bool get isCancelled => _cancelled;
 
   /// Cancels the work. Runs any hooks registered via [onCancel] exactly once.
@@ -86,6 +83,7 @@ class EchoPcmCancelToken {
 
   /// Registers [hook] to run when [cancel] is called. If already cancelled,
   /// [hook] runs immediately.
+  @override
   void onCancel(void Function() hook) {
     if (_cancelled) {
       hook();
@@ -222,19 +220,7 @@ Future<void> _runFfmpegExtract({
     outPath,
   ];
 
-  if (FfmpegMediaProbe.usesFfmpegCli) {
-    final exe = await _resolveFfmpegOrThrow();
-    await _runFfmpegCliProcess(
-      exe: exe,
-      args: args,
-      token: token,
-      timeout: timeout,
-      failLabel: 'segment',
-    );
-    return;
-  }
-
-  await _runFfmpegKit(
+  await _runFfmpeg(
     args: args,
     token: token,
     timeout: timeout,
@@ -266,19 +252,7 @@ Future<void> _runFfmpegFullDecode({
     outPath,
   ];
 
-  if (FfmpegMediaProbe.usesFfmpegCli) {
-    final exe = await _resolveFfmpegOrThrow();
-    await _runFfmpegCliProcess(
-      exe: exe,
-      args: args,
-      token: token,
-      timeout: timeout,
-      failLabel: 'full decode',
-    );
-    return;
-  }
-
-  await _runFfmpegKit(
+  await _runFfmpeg(
     args: args,
     token: token,
     timeout: timeout,
@@ -286,153 +260,39 @@ Future<void> _runFfmpegFullDecode({
   );
 }
 
-/// Resolves the FFmpeg executable via the shared [FfmpegMediaProbe] helper
-/// (single source of truth — replaces the former private `_resolveWindowsFfmpeg`
-/// duplicate) and throws a surfaced error when it is absent.
-Future<String> _resolveFfmpegOrThrow() async {
-  final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-  if (exe == null) {
-    throw const EchoPcmExtractionException(
-      EchoPcmFailureReason.ffmpegMissing,
-      'No FFmpeg executable found',
-    );
-  }
-  return exe;
-}
-
-/// Runs FFmpeg as a child [Process] (Windows / Linux) so we can
-/// [Process.kill] it on cancellation. The process itself runs off the Dart isolate, so this never
-/// blocks the UI thread.
-Future<void> _runFfmpegCliProcess({
-  required String exe,
+/// Runs FFmpeg and maps the shared runner's outcome onto this feature's
+/// typed failure.
+Future<void> _runFfmpeg({
   required List<String> args,
   required EchoPcmCancelToken? token,
   required Duration timeout,
   required String failLabel,
 }) async {
-  if (token?.isCancelled ?? false) {
-    throw const EchoPcmExtractionException(EchoPcmFailureReason.cancelled);
-  }
-  final Process proc;
-  try {
-    proc = await Process.start(exe, args);
-  } catch (e) {
-    throw EchoPcmExtractionException(
-      EchoPcmFailureReason.ffmpegFailed,
-      'cli $failLabel spawn failed: $e',
-    );
-  }
-  final stderrBuf = <List<int>>[];
-  proc.stderr.listen(
-    stderrBuf.add,
-    onError: (Object e) => _log.fine('echo ffmpeg stderr read error: $e'),
+  final result = await runFfmpegArgv(
+    args: args,
+    failLabel: failLabel,
+    cliBackend: FfmpegCliBackend.processStart,
+    kitBackend: FfmpegKitBackend.async,
+    timeout: timeout,
+    cancellation: token,
   );
-  unawaited(proc.stdout.drain<void>());
-
-  token?.onCancel(() {
-    try {
-      proc.kill(ProcessSignal.sigterm);
-    } catch (e) {
-      _log.fine('echo ffmpeg kill failed: $e');
-    }
-  });
-
-  final int exitCode = await proc.exitCode.timeout(
-    timeout,
-    onTimeout: () {
-      try {
-        proc.kill(ProcessSignal.sigkill);
-      } catch (_) {}
-      throw const EchoPcmExtractionException(EchoPcmFailureReason.timeout);
-    },
-  );
-  if (token?.isCancelled ?? false) {
-    throw const EchoPcmExtractionException(EchoPcmFailureReason.cancelled);
-  }
-  if (exitCode != 0) {
-    final stderr = systemEncoding.decode(stderrBuf.expand((l) => l).toList());
-    _log.fine('echo ffmpeg $failLabel failed (exit $exitCode): $stderr');
-    throw EchoPcmExtractionException(
-      EchoPcmFailureReason.ffmpegFailed,
-      'cli $failLabel exit $exitCode',
-    );
-  }
-}
-
-/// Runs FFmpeg via FFmpegKit (Android / iOS / macOS). Uses
-/// [FFmpegKit.executeWithArgumentsAsync] so the argv list is passed verbatim
-/// and a session id is available for real cancellation via [FFmpegKit.cancel].
-Future<void> _runFfmpegKit({
-  required List<String> args,
-  required EchoPcmCancelToken? token,
-  required Duration timeout,
-  required String failLabel,
-}) async {
-  if (token?.isCancelled ?? false) {
-    throw const EchoPcmExtractionException(EchoPcmFailureReason.cancelled);
-  }
-  final completer = Completer<void>();
-  FFmpegSession? session;
-  try {
-    session = await FFmpegKit.executeWithArgumentsAsync(args, (s) async {
-      if (completer.isCompleted) return;
-      final code = await s.getReturnCode();
-      if (ReturnCode.isSuccess(code)) {
-        completer.complete();
-        return;
-      }
-      String? detail;
-      try {
-        detail = await s.getOutput();
-      } catch (_) {}
-      completer.completeError(
-        EchoPcmExtractionException(
-          EchoPcmFailureReason.ffmpegFailed,
-          '$failLabel${detail == null ? '' : ': $detail'}',
-        ),
+  switch (result.outcome) {
+    case FfmpegOutcome.success:
+      return;
+    case FfmpegOutcome.unavailable:
+      throw const EchoPcmExtractionException(
+        EchoPcmFailureReason.ffmpegMissing,
+        'No FFmpeg executable found',
       );
-    });
-  } on MissingPluginException {
-    throw const EchoPcmExtractionException(
-      EchoPcmFailureReason.ffmpegMissing,
-      'FFmpegKit is not registered in this environment',
-    );
-  }
-
-  final sessionId = session.getSessionId();
-  if (sessionId != null) {
-    token?.onCancel(() async {
-      if (completer.isCompleted) return;
-      try {
-        await FFmpegKit.cancel(sessionId);
-      } catch (e) {
-        _log.fine('echo FFmpegKit cancel failed: $e');
-      }
-      if (!completer.isCompleted) {
-        completer.completeError(
-          const EchoPcmExtractionException(EchoPcmFailureReason.cancelled),
-        );
-      }
-    });
-  }
-
-  try {
-    await completer.future.timeout(
-      timeout,
-      onTimeout: () {
-        if (sessionId != null) {
-          unawaited(FFmpegKit.cancel(sessionId));
-        }
-        throw const EchoPcmExtractionException(EchoPcmFailureReason.timeout);
-      },
-    );
-  } on EchoPcmExtractionException {
-    rethrow;
-  } catch (e, st) {
-    _log.fine('echo FFmpegKit $failLabel failed', e, st);
-    throw EchoPcmExtractionException(
-      EchoPcmFailureReason.ffmpegFailed,
-      '$failLabel: $e',
-    );
+    case FfmpegOutcome.cancelled:
+      throw const EchoPcmExtractionException(EchoPcmFailureReason.cancelled);
+    case FfmpegOutcome.timedOut:
+      throw const EchoPcmExtractionException(EchoPcmFailureReason.timeout);
+    case FfmpegOutcome.failed:
+      throw EchoPcmExtractionException(
+        EchoPcmFailureReason.ffmpegFailed,
+        '$failLabel exit ${result.exitCode ?? -1}'
+        '${result.stderr == null ? '' : ': ${result.stderr}'}',
+      );
   }
 }

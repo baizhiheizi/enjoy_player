@@ -10,11 +10,8 @@ import 'dart:isolate';
 
 import 'package:enjoy_player/core/audio/wav_signal_peak.dart';
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
+import 'package:enjoy_player/data/files/ffmpeg_argv_runner.dart';
 import 'package:enjoy_player/features/ai/data/azure_assessment_staging_path.dart';
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'package:flutter/services.dart';
 
 final _log = logNamed('ai.azure_assessment_wav');
 
@@ -24,24 +21,6 @@ final _log = logNamed('ai.azure_assessment_wav');
 /// the spawn the encode already needs. Returns the `exitCode` / `stderr`
 /// pair we used to capture from `Process.run` plus the input scan, so the
 /// caller can log the same way.
-Future<({int exitCode, String stderr, WavPeakScan? inputScan})>
-_runFfmpegCliInIsolate(_FfmpegCliArgs args) async {
-  final inputScan = await scanWavDataPeakFromFile(args.inputPath);
-  final r = await Process.run(
-    args.exe,
-    _normalizeArgs(
-      inputPath: args.inputPath,
-      outputWavPath: args.outputWavPath,
-      audioFilter: args.audioFilter,
-    ),
-  );
-  return (
-    exitCode: r.exitCode,
-    stderr: r.stderr is String ? r.stderr as String : '',
-    inputScan: inputScan,
-  );
-}
-
 List<String> _normalizeArgs({
   required String inputPath,
   required String outputWavPath,
@@ -61,38 +40,6 @@ List<String> _normalizeArgs({
   'pcm_s16le',
   outputWavPath,
 ];
-
-Future<bool> _runFfmpegKit({
-  required String inputPath,
-  required String outputWavPath,
-  required String audioFilter,
-}) async {
-  try {
-    final session = await FFmpegKit.executeWithArguments(
-      _normalizeArgs(
-        inputPath: inputPath,
-        outputWavPath: outputWavPath,
-        audioFilter: audioFilter,
-      ),
-    );
-    final code = await session.getReturnCode();
-    if (!ReturnCode.isSuccess(code)) {
-      _log.fine(
-        'normalizeWav: FFmpegKit failed filter="$audioFilter": '
-        '${await session.getOutput()}',
-      );
-      return false;
-    }
-    return true;
-  } on MissingPluginException catch (e, st) {
-    _log.fine(
-      'normalizeWav: FFmpegKit not registered in this environment',
-      e,
-      st,
-    );
-    return false;
-  }
-}
 
 Future<void> _deleteIfExists(String path) async {
   try {
@@ -125,9 +72,8 @@ void _logInputScan(WavPeakScan? scan) {
 /// passes a non-silent peak/RMS check (guards against empty FFmpeg decode).
 ///
 /// The peak scans and the desktop (Windows / Linux) ffmpeg CLI invocation
-/// run in worker isolates (via [Isolate.run]) so the multi-MB reads and the
-/// re-encode never block the UI thread. The input peak scan shares the
-/// desktop ffmpeg isolate;
+/// run in worker isolates so the multi-MB reads and the re-encode never block
+/// the UI thread. The input peak scan shares the desktop ffmpeg isolate;
 /// FFmpegKit platforms cannot move the encode off the main isolate
 /// (platform channel), so their input scan keeps its own isolate, and the
 /// output scan always follows the encode. Assessments are user-initiated
@@ -143,52 +89,25 @@ Future<bool> normalizeWavForAzureAssessment({
       'aresample=16000:resampler=swr,aformat=sample_fmts=s16:channel_layouts=mono';
 
   await _deleteIfExists(outputWavPath);
-  final bool encoded;
-  if (FfmpegMediaProbe.usesFfmpegCli) {
-    final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-    if (exe == null) {
-      _log.fine('normalizeWav: no ffmpeg CLI found, skipping');
-      return false;
-    }
-    try {
-      final result = await Isolate.run(
-        () => _runFfmpegCliInIsolate(
-          _FfmpegCliArgs(
-            exe: exe,
-            inputPath: inputPath,
-            outputWavPath: outputWavPath,
-            audioFilter: filter,
-          ),
-        ),
-        debugName: 'azure-wav-ffmpeg',
-      );
-      _logInputScan(result.inputScan);
-      if (result.exitCode != 0) {
-        _log.fine(
-          'normalizeWav: ffmpeg failed (exit ${result.exitCode}) '
-          'filter="$filter": ${result.stderr}',
-        );
-        return false;
-      }
-      encoded = true;
-    } catch (e, st) {
-      _log.fine('normalizeWav: isolate run failed', e, st);
-      return false;
-    }
-  } else {
-    _logInputScan(
-      await Isolate.run(
-        () => scanWavDataPeakFromFile(inputPath),
-        debugName: 'azure-wav-peak-scan',
-      ),
-    );
-    encoded = await _runFfmpegKit(
+  final result = await runFfmpegArgv(
+    args: _normalizeArgs(
       inputPath: inputPath,
       outputWavPath: outputWavPath,
       audioFilter: filter,
+    ),
+    failLabel: 'normalizeWav',
+    cliBackend: FfmpegCliBackend.isolateRun,
+    isolatePrelude: () => scanWavDataPeakFromFile(inputPath),
+    outputPath: outputWavPath,
+  );
+  _logInputScan(result.extra as WavPeakScan?);
+  if (!result.succeeded) {
+    _log.fine(
+      'normalizeWav: ffmpeg failed (${result.outcome.name}) '
+      'filter="$filter": ${result.stderr ?? ''}',
     );
+    return false;
   }
-  if (!encoded) return false;
 
   final out = File(outputWavPath);
   if (!out.existsSync() || out.lengthSync() < 100) {
@@ -241,17 +160,4 @@ Future<String?> tryCreateNormalizedAzureAssessmentWav(String inputPath) async {
     return null;
   }
   return File(out).absolute.path;
-}
-
-class _FfmpegCliArgs {
-  const _FfmpegCliArgs({
-    required this.exe,
-    required this.inputPath,
-    required this.outputWavPath,
-    required this.audioFilter,
-  });
-  final String exe;
-  final String inputPath;
-  final String outputWavPath;
-  final String audioFilter;
 }
