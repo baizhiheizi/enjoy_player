@@ -14,10 +14,7 @@ final class SystemProxyCoordinator {
   SystemProxyCoordinator({
     SystemProxyReader? reader,
     this.refreshInterval = const Duration(seconds: 60),
-  }) : _reader =
-           reader ??
-           (() =>
-               resolveSystemProxy(operatingSystem: Platform.operatingSystem));
+  }) : _reader = reader ?? defaultSystemProxyReader;
 
   final SystemProxyReader _reader;
   final Duration refreshInterval;
@@ -115,6 +112,15 @@ final class ProxyHttpOverrides extends HttpOverrides {
     client.findProxy = coordinator.findProxy;
     return client;
   }
+}
+
+const String _flutterTestEnvironmentKey = 'FLUTTER_TEST';
+
+Future<ResolvedProxy> defaultSystemProxyReader() {
+  if (Platform.environment[_flutterTestEnvironmentKey] == 'true') {
+    return Future<ResolvedProxy>.value(ResolvedProxy.none);
+  }
+  return resolveSystemProxy(operatingSystem: Platform.operatingSystem);
 }
 
 SystemProxyCoordinator installSystemProxyOverrides() {

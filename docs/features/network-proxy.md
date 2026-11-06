@@ -40,3 +40,15 @@ system proxy is re-read every 60 s. In Manual mode the bypass list is loopback o
 | --- | --- |
 | Video plays, captions unavailable | VPN in system-proxy mode before this fix; now follows the proxy. If still failing, check the log line `network proxy: …` and try TUN mode |
 | `network proxy: direct source=none` while a proxy is set | SOCKS-only or PAC proxy |
+
+## Testing
+
+The default reader resolves to no proxy under `flutter test` (`FLUTTER_TEST`
+environment variable): the macOS/Windows OS probe spawns `scutil` / `reg`, and
+a `Process.run` inside the fake-async test zone schedules process timers that
+never drain, so every app-boot widget test died on the pending-timer
+assertion. Linux reads environment variables without spawning a process, which
+is why only the process-spawning platforms regressed when the probe landed.
+Tests that need a resolved proxy construct the coordinator with an injected
+`SystemProxyReader` ([`proxy_modes_test.dart`](../../test/core/network/proxy/proxy_modes_test.dart),
+[`network_section_test.dart`](../../test/features/settings/presentation/network_section_test.dart)).

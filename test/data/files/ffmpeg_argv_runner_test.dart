@@ -13,6 +13,18 @@ esac
 exit 0
 ''';
 
+const String _stubBatchScript =
+    '@echo off\r\n'
+    'if "%~1"=="-fail" (\r\n'
+    '  echo stub failure 1>&2\r\n'
+    '  exit /b 3\r\n'
+    ')\r\n'
+    'if "%~1"=="-sleep" (\r\n'
+    '  ping -n 31 127.0.0.1 >nul\r\n'
+    '  exit /b 0\r\n'
+    ')\r\n'
+    'exit /b 0\r\n';
+
 void main() {
   group('runFfmpegArgv', () {
     late Directory temp;
@@ -20,8 +32,7 @@ void main() {
 
     setUp(() {
       temp = Directory.systemTemp.createTempSync('ffmpeg_runner_test_');
-      stub = File('${temp.path}/ffmpeg-stub')..writeAsStringSync(_stubScript);
-      Process.runSync('chmod', <String>['+x', stub.path]);
+      stub = _writeStub(temp);
       FfmpegMediaProbe.debugExecutableOverride = stub.path;
     });
 
@@ -174,4 +185,14 @@ final class _Token implements FfmpegCancellation {
     }
     _hooks.add(hook);
   }
+}
+
+File _writeStub(Directory temp) {
+  if (Platform.isWindows) {
+    return File('${temp.path}/ffmpeg-stub.cmd')
+      ..writeAsStringSync(_stubBatchScript);
+  }
+  final stub = File('${temp.path}/ffmpeg-stub')..writeAsStringSync(_stubScript);
+  Process.runSync('chmod', <String>['+x', stub.path]);
+  return stub;
 }
