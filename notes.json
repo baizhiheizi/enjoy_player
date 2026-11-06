@@ -1,18 +1,26 @@
 {
   "version": 1,
   "cursors": {
-    "labelling_after": 1230,
-    "investigation_after": 1230
+    "labelling_after": 1251,
+    "investigation_after": 1251
   },
   "issues": [
     {
-      "number": 1204,
+      "number": 1243,
       "state": "commented",
-      "updated_at": "2026-11-04",
-      "note": "Weekly-research died at Start MCP Gateway (empty tools/list from all three BigModel MCP servers). Awaiting maintainer ZAI_API_KEY check; next scheduled run ~2026-11-09 is the recurrence test. mcpg v0.5.0 bump from #1149 is the fallback suspect."
+      "updated_at": "2026-11-06",
+      "note": "Transient agent_startup_failure (memory-branch clone step, agent never started) 2026-11-05; next run succeeded. Triage comment posted; auto-expires 2026-11-12. Only re-engage if a second clone failure appears."
     }
   ],
   "fixes": [
+    {
+      "issue": 1251,
+      "pr": null,
+      "branch": "repo-assist/fix-1251-macos-texturesw-recycle",
+      "status": "open",
+      "updated_at": "2026-11-06",
+      "note": "Draft PR open (aw_fix_1251): vendored media_kit_video 2.0.1+enjoy.1 - TextureSW bgr0->bgra, pool 3->5, recycleDelay:2. Linux gates green (7144 tests). NEEDS flutter build macos before merge; upstream filing left to maintainer; drop override once upstream ships."
+    },
     {
       "issue": 864,
       "pr": null,
@@ -31,9 +39,9 @@
     },
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-11-05",
-      "result": "#1234 (drift fix) merged 2026-11-05. Two new drafts: Azure-runner test PR + lockfile refresh (posthog 5.59.0, flutter_cache_manager 3.5.0, jni 1.1.2, sqflite_common 2.5.15, sqflite_darwin 2.4.5). Maintain both under Task 6.",
-      "follow_up": null
+      "checked_at": "2026-11-06",
+      "result": "#1240 (Azure-runner tests) and #1241 (lockfile refresh) both merged 2026-11-05. New open draft: the #1251 vendored media_kit_video fork (Swift fix, untestable on Linux).",
+      "follow_up": "Maintain the #1251 draft under Task 6: fix CI/conflicts; flag for a maintainer flutter build macos."
     },
     {
       "area": "docs",
@@ -43,14 +51,14 @@
     },
     {
       "area": "release",
-      "checked_at": "2026-11-05",
-      "result": "v0.10.3 still untagged (latest v0.10.1; v0.10.2/v0.10.0/v0.9.0 Release objects missing). Changelog [0.10.3] is comprehensive - the carry-over-set question resolved via #1234's entries.",
-      "follow_up": "No v0.10.4 prep until v0.10.3 is tagged; do not bump pubspec ahead of it."
+      "checked_at": "2026-11-06",
+      "result": "v0.10.3 still untagged (latest v0.10.1) even though today's release-train PRs #1252-#1255 all merged. Changelog [0.10.3] comprehensive; only the tag decision remains.",
+      "follow_up": "No v0.10.4 prep until v0.10.3 ships."
     },
     {
       "area": "dependencies",
       "checked_at": "2026-11-05",
-      "result": "5 in-constraint upgrades moved in the lockfile-refresh draft PR. Majors stay maintainer decisions: ai_sdk 3.x, cached_network_image 4.x, file_picker 13, flutter_secure_storage 11, go_router 18, google_fonts 9, window_manager 0.6.",
+      "result": "5 in-constraint upgrades merged via #1241. Majors stay maintainer decisions: ai_sdk 3.x, cached_network_image 4.x, file_picker 13, flutter_secure_storage 11, go_router 18, google_fonts 9, window_manager 0.6.",
       "follow_up": "file_picker pinning: comment says exact pin + ADR-0029 lists exact, but constraint is ^12.0.0. Do not change unilaterally."
     }
   ],
@@ -138,28 +146,27 @@
     {
       "key": "drift-fix-1229-merged-as-1234",
       "completed_at": "2026-11-05"
+    },
+    {
+      "key": "azure-runner-test-1240-and-lockfile-refresh-1241-merged",
+      "completed_at": "2026-11-05"
     }
   ],
   "priorities": [
     {
       "task": 6,
-      "item": "Maintain the two new draft PRs until merged",
-      "note": "Azure-runner test PR and the lockfile refresh (5 in-constraint packages). Fix CI/conflicts if they appear; do not force-push (append-only tool)."
+      "item": "Maintain the #1251 vendored media_kit_video draft PR until merged",
+      "note": "repo-assist/fix-1251-macos-texturesw-recycle. Fix CI/conflicts (append-only pushes). Needs a maintainer-run flutter build macos - the Linux gates cannot compile Swift."
     },
     {
       "task": 10,
       "item": "The v0.10.3 release needs the maintainer's tag",
-      "note": "PR #1140 merged 2026-11-01; verified still untagged 2026-11-05. The carry-over changelog set is resolved (#1234 entries); only the tag decision remains. No v0.10.4 prep until it ships."
-    },
-    {
-      "task": 2,
-      "item": "Watch weekly-research for recurrence (#1204)",
-      "note": "Awaiting the maintainer's ZAI_API_KEY check. Next scheduled run ~2026-11-09; if it fails again with a valid key, the mcpg bump from #1149 is the suspect."
+      "note": "Release train #1252-#1255 merged 2026-11-06; latest release still v0.10.1 (verified 2026-11-06). No v0.10.4 prep until it ships."
     },
     {
       "task": 7,
       "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
-      "note": "Re-verified missing 2026-11-05; needs a maintainer."
+      "note": "Latest release still v0.10.1 (2026-11-06), so v0.10.2/v0.10.3 objects cannot exist yet; needs a maintainer."
     },
     {
       "task": 8,
