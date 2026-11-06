@@ -37,19 +37,25 @@ Widget lookupSectionErrorWidget({
   bool isRetrying = false,
 }) {
   if (error is AuthFailure) {
-    scheduleLookupCreditsClear(context, ref, section);
+    scheduleLookupCreditsClear(context, ref, section, resultToken: error);
     return AuthRequiredCallout(surface: surface, compact: true);
   }
   if (error is CreditsFailure) {
     final message = creditsFailureMessage(error, l10n);
-    scheduleLookupCreditsReport(context, ref, section, message);
+    scheduleLookupCreditsReport(
+      context,
+      ref,
+      section,
+      message,
+      resultToken: error,
+    );
     return LookupCreditsNotice(
       message: message,
       onRetry: onRetry,
       isRetrying: isRetrying,
     );
   }
-  scheduleLookupCreditsClear(context, ref, section);
+  scheduleLookupCreditsClear(context, ref, section, resultToken: error);
   return LookupErrorRow(
     message: lookupErrorUserMessage(error, l10n),
     onRetry: onRetry,

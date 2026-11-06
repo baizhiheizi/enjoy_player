@@ -71,6 +71,7 @@ class DictionaryLookupSection extends ConsumerWidget {
                   context,
                   ref,
                   LookupSectionId.dictionary,
+                  resultToken: d,
                 );
                 return _DictionaryBody(
                   d: d,
