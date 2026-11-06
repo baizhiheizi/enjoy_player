@@ -243,4 +243,35 @@ Stream #0:5(en): Subtitle: subrip
       );
     });
   });
+
+  group('isNetworkMediaInput', () {
+    test('identifies HTTP and HTTPS URLs', () {
+      expect(isNetworkMediaInput('http://example.com/stream.m3u8'), isTrue);
+      expect(isNetworkMediaInput('https://example.com/audio.mp3'), isTrue);
+      expect(isNetworkMediaInput('HTTP://example.com/video.mp4'), isTrue);
+      expect(isNetworkMediaInput('HTTPS://example.com/video.mp4'), isTrue);
+      expect(isNetworkMediaInput('  https://example.com/stream.m3u8'), isTrue);
+    });
+
+    test('rejects local paths and file URIs', () {
+      expect(isNetworkMediaInput('/tmp/audio.wav'), isFalse);
+      expect(isNetworkMediaInput(r'C:\media\audio.wav'), isFalse);
+      expect(isNetworkMediaInput('file:///tmp/audio.wav'), isFalse);
+      expect(isNetworkMediaInput(''), isFalse);
+      expect(isNetworkMediaInput('   '), isFalse);
+    });
+  });
+
+  group('ffmpegNetworkProtocolArgs', () {
+    test('returns whitelist args for network media', () {
+      expect(
+        ffmpegNetworkProtocolArgs('https://cdn.example.com/a.mp4'),
+        equals(['-protocol_whitelist', kFfmpegNetworkProtocolWhitelist]),
+      );
+    });
+
+    test('returns empty list for local files', () {
+      expect(ffmpegNetworkProtocolArgs('/tmp/video.mp4'), isEmpty);
+    });
+  });
 }

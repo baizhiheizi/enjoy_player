@@ -86,4 +86,75 @@ void main() {
       expect(a, isNot(b));
     });
   });
+
+  group('buildVideoPosterFfmpegArgs', () {
+    test(
+      'local input with accurate seek omits whitelist and seeks after -i',
+      () {
+        final args = buildVideoPosterFfmpegArgs(
+          input: '/local/video.mp4',
+          outputJpegPath: '/tmp/out.jpg',
+          seekSeconds: 12.3456,
+          accurate: true,
+        );
+
+        expect(args, isNot(contains('-protocol_whitelist')));
+        final inputIdx = args.indexOf('/local/video.mp4');
+        final seekIdx = args.indexOf('12.346');
+        expect(inputIdx, isPositive);
+        expect(seekIdx, greaterThan(inputIdx));
+        expect(
+          args.sublist(args.length - 5),
+          equals(['-frames:v', '1', '-q:v', '3', '/tmp/out.jpg']),
+        );
+      },
+    );
+
+    test('local input with fast seek seeks before -i', () {
+      final args = buildVideoPosterFfmpegArgs(
+        input: '/local/video.mp4',
+        outputJpegPath: '/tmp/out.jpg',
+        seekSeconds: 60.0,
+        accurate: false,
+      );
+
+      expect(args, isNot(contains('-protocol_whitelist')));
+      final inputIdx = args.indexOf('/local/video.mp4');
+      final seekIdx = args.indexOf('60.000');
+      expect(seekIdx, isPositive);
+      expect(inputIdx, greaterThan(seekIdx));
+    });
+
+    test('network input carries protocol whitelist before -i', () {
+      final args = buildVideoPosterFfmpegArgs(
+        input: 'https://cdn.example.com/video.mp4',
+        outputJpegPath: '/tmp/poster.jpg',
+        seekSeconds: 5.0,
+        accurate: true,
+      );
+
+      final protoIdx = args.indexOf('-protocol_whitelist');
+      final inputIdx = args.indexOf('https://cdn.example.com/video.mp4');
+      expect(protoIdx, isPositive);
+      expect(args[protoIdx + 1], 'file,http,https,tcp,tls,crypto');
+      expect(inputIdx, greaterThan(protoIdx));
+    });
+
+    test(
+      'network input with fast seek carries protocol whitelist before -ss',
+      () {
+        final args = buildVideoPosterFfmpegArgs(
+          input: 'https://cdn.example.com/video.mp4',
+          outputJpegPath: '/tmp/poster.jpg',
+          seekSeconds: 55.0,
+          accurate: false,
+        );
+
+        final protoIdx = args.indexOf('-protocol_whitelist');
+        final seekIdx = args.indexOf('55.000');
+        expect(protoIdx, isPositive);
+        expect(seekIdx, greaterThan(protoIdx));
+      },
+    );
+  });
 }

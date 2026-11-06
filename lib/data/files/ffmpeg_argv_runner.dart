@@ -12,6 +12,12 @@ import 'package:ffmpeg_kit_flutter_new/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:flutter/services.dart';
 
+export 'package:enjoy_player/data/files/ffmpeg_media_probe.dart'
+    show
+        ffmpegNetworkProtocolArgs,
+        isNetworkMediaInput,
+        kFfmpegNetworkProtocolWhitelist;
+
 final _log = logNamed('data.ffmpeg_argv_runner');
 
 /// The wall-clock budget a run gets when the caller does not pick one.

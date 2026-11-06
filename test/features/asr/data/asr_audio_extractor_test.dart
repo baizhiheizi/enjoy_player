@@ -34,11 +34,13 @@ void main() {
           maxBytes: 1024,
         ),
         throwsA(
-          isA<AsrAudioExtractionException>().having(
-            (e) => e.reason,
-            'reason',
-            AsrAudioExtractionFailureReason.fileTooLarge,
-          ),
+          isA<AsrAudioExtractionException>()
+              .having(
+                (e) => e.reason,
+                'reason',
+                AsrAudioExtractionFailureReason.fileTooLarge,
+              )
+              .having((e) => e.message, 'message', contains('Audio file is')),
         ),
       );
     });
@@ -136,11 +138,13 @@ void main() {
           maxBytes: 1024,
         ),
         throwsA(
-          isA<AsrAudioExtractionException>().having(
-            (e) => e.reason,
-            'reason',
-            AsrAudioExtractionFailureReason.fileTooLarge,
-          ),
+          isA<AsrAudioExtractionException>()
+              .having(
+                (e) => e.reason,
+                'reason',
+                AsrAudioExtractionFailureReason.fileTooLarge,
+              )
+              .having((e) => e.message, 'message', contains('Video file is')),
         ),
       );
     });

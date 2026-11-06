@@ -168,17 +168,6 @@ Future<String> extractEntireFileToTempF32(
   return outFile;
 }
 
-/// Whether [input] is an `http(s)` URL (cloud-streamed media) rather than a
-/// local file path.
-bool isNetworkMediaInput(String input) {
-  final lower = input.trimLeft().toLowerCase();
-  return lower.startsWith('http://') || lower.startsWith('https://');
-}
-
-List<String> _networkArgs(String input) => isNetworkMediaInput(input)
-    ? const ['-protocol_whitelist', 'file,http,https,tcp,tls,crypto']
-    : const [];
-
 Future<String> _newTempRawFile(String prefix) async {
   final tempDir = await getTemporaryDirectory();
   return p.join(
@@ -205,7 +194,7 @@ Future<void> _runFfmpegExtract({
     '-y',
     '-ss',
     ss,
-    ..._networkArgs(mediaPath),
+    ...ffmpegNetworkProtocolArgs(mediaPath),
     '-i',
     mediaPath,
     '-t',
