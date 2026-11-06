@@ -43,6 +43,8 @@ The pool sits behind a per-GB proxy (~55 GB/day of WAN traffic measured). Three 
 
 2. **China mirrors for cold dependency/SDK fetches.** `PUB_HOSTED_URL` (`https://pub.flutter-io.cn`) and `FLUTTER_STORAGE_BASE_URL` (`https://storage.flutter-io.cn`) are set as workflow-level `env:` on the six build/CI workflows, and `FLUTTER_STORAGE_BASE_URL` alone on the Apple/Windows release workflows; they are routed DIRECT by the local OpenClash rules, so a cold run (cache miss on the container pool, wiped store or new Flutter SDK on a native runner) does not fall back to paying the proxy for pub.dev or `storage.googleapis.com`. `.github/actions/setup-flutter` honors `FLUTTER_STORAGE_BASE_URL` when it has to install an SDK, defaulting to the upstream bucket when unset.
 
+   The analyze/test and codegen drift jobs retry `flutter pub get` with pub.dev when the mirror fails, and use pub.dev for the rest of that job. This covers mirror metadata that points to a missing or corrupt archive; pub still verifies package hashes.
+
    `PUB_HOSTED_URL` changes pub's default hosted source, so on the build/CI workflows `flutter pub get` re-resolves against the mirror: `pubspec.lock` is rewritten (pub.dev → mirror URLs) and versions move within their constraints (16 packages when last measured). That is a pre-existing ADR-0097 side-effect; the release workflows deliberately leave `PUB_HOSTED_URL` unset so a tag builds exactly the versions pinned in its commit, and only mirror the Flutter SDK download (`FLUTTER_STORAGE_BASE_URL`).
 
    `pubspec.lock` pins every hosted package by `sha256`, so a mirror that served different bytes fails the hash check instead of installing something else — dependency integrity does not weaken by fetching through a mirror.
