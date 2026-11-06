@@ -142,7 +142,12 @@ jobs:
         run: flutter --version
 
       - name: Flutter pub get
-        run: flutter pub get
+        run: |
+          if ! flutter pub get; then
+            echo "::warning::Mirror dependency resolution failed; retrying with pub.dev."
+            echo "PUB_HOSTED_URL=https://pub.dev" >> "$GITHUB_ENV"
+            PUB_HOSTED_URL=https://pub.dev flutter pub get
+          fi
 
       # package:sqlite3 3.x downloads its prebuilt library from
       # github.com/simolus3/sqlite3.dart/releases with Dart HttpClient (no

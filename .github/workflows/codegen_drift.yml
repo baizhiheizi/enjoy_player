@@ -98,7 +98,12 @@ jobs:
       - uses: ./.github/actions/setup-flutter
 
       - name: Flutter pub get
-        run: flutter pub get
+        run: |
+          if ! flutter pub get; then
+            echo "::warning::Mirror dependency resolution failed; retrying with pub.dev."
+            echo "PUB_HOSTED_URL=https://pub.dev" >> "$GITHUB_ENV"
+            PUB_HOSTED_URL=https://pub.dev flutter pub get
+          fi
 
       - name: Verify no codegen drift
         run: bash .github/scripts/check_codegen_drift.sh
