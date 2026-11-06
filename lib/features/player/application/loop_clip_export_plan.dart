@@ -6,6 +6,7 @@
 /// flow (save dialog / share sheet) in `presentation/loop_clip_export_flow.dart`.
 library;
 
+import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
@@ -114,20 +115,13 @@ String _formatSeconds(double seconds) {
       : rounded.toStringAsFixed(1);
 }
 
-const String _networkProtocolWhitelist = 'file,http,https,tcp,tls,crypto';
-
-/// Whether [input] is an `http(s)` media URL rather than a local file path.
-bool loopClipInputIsNetwork(String input) {
-  final lower = input.trimLeft().toLowerCase();
-  return lower.startsWith('http://') || lower.startsWith('https://');
-}
+bool loopClipInputIsNetwork(String input) => isNetworkMediaInput(input);
 
 /// The FFmpeg argv for [request] (the CLI path on Windows / Linux). The
 /// output format is pinned (`mp4` / `ipod`) so a save dialog that drops the
 /// suggested extension still encodes; the loop is re-encoded (libx264 +
 /// AAC / AAC only) so cut points are exact rather than keyframe-snapped.
 List<String> buildLoopClipFfmpegArgs(LoopClipExportRequest request) {
-  final network = loopClipInputIsNetwork(request.inputPath);
   return [
     '-nostdin',
     '-hide_banner',
@@ -136,7 +130,7 @@ List<String> buildLoopClipFfmpegArgs(LoopClipExportRequest request) {
     '-y',
     '-ss',
     request.startSeconds.toStringAsFixed(4),
-    if (network) ...['-protocol_whitelist', _networkProtocolWhitelist],
+    ...ffmpegNetworkProtocolArgs(request.inputPath),
     '-i',
     request.inputPath,
     '-t',

@@ -15,6 +15,9 @@ import 'dart:typed_data';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/files/ffmpeg_argv_runner.dart';
+
+export 'package:enjoy_player/data/files/ffmpeg_media_probe.dart'
+    show isNetworkMediaInput;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -168,17 +171,6 @@ Future<String> extractEntireFileToTempF32(
   return outFile;
 }
 
-/// Whether [input] is an `http(s)` URL (cloud-streamed media) rather than a
-/// local file path.
-bool isNetworkMediaInput(String input) {
-  final lower = input.trimLeft().toLowerCase();
-  return lower.startsWith('http://') || lower.startsWith('https://');
-}
-
-List<String> _networkArgs(String input) => isNetworkMediaInput(input)
-    ? const ['-protocol_whitelist', 'file,http,https,tcp,tls,crypto']
-    : const [];
-
 Future<String> _newTempRawFile(String prefix) async {
   final tempDir = await getTemporaryDirectory();
   return p.join(
@@ -205,7 +197,7 @@ Future<void> _runFfmpegExtract({
     '-y',
     '-ss',
     ss,
-    ..._networkArgs(mediaPath),
+    ...ffmpegNetworkProtocolArgs(mediaPath),
     '-i',
     mediaPath,
     '-t',

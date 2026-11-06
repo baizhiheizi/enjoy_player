@@ -60,21 +60,30 @@ class AsrAudioExtractor {
     );
   }
 
-  Future<Uint8List> _readAudioDirect(String input, int maxBytes) async {
+  Future<File> _validateInputFile(
+    String input,
+    int maxBytes, {
+    required String label,
+  }) async {
     final file = File(input);
     if (!file.existsSync()) {
       throw AsrAudioExtractionException(
         AsrAudioExtractionFailureReason.unsupportedSource,
-        'Audio file does not exist: $input',
+        '$label file does not exist: $input',
       );
     }
     final size = await file.length();
     if (size > maxBytes) {
       throw AsrAudioExtractionException(
         AsrAudioExtractionFailureReason.fileTooLarge,
-        'Audio file is $size bytes (max $maxBytes)',
+        '$label file is $size bytes (max $maxBytes)',
       );
     }
+    return file;
+  }
+
+  Future<Uint8List> _readAudioDirect(String input, int maxBytes) async {
+    final file = await _validateInputFile(input, maxBytes, label: 'Audio');
     return file.readAsBytes();
   }
 
@@ -83,20 +92,7 @@ class AsrAudioExtractor {
     required void Function(double progress)? onProgress,
     required int maxBytes,
   }) async {
-    final file = File(input);
-    if (!file.existsSync()) {
-      throw AsrAudioExtractionException(
-        AsrAudioExtractionFailureReason.unsupportedSource,
-        'Video file does not exist: $input',
-      );
-    }
-    final size = await file.length();
-    if (size > maxBytes) {
-      throw AsrAudioExtractionException(
-        AsrAudioExtractionFailureReason.fileTooLarge,
-        'Video file is $size bytes (max $maxBytes)',
-      );
-    }
+    await _validateInputFile(input, maxBytes, label: 'Video');
 
     onProgress?.call(0.0);
 

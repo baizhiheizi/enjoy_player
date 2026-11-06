@@ -144,6 +144,11 @@ class FfmpegMediaProbe {
         return lower;
       }).toList();
 
+  static bool isNetworkInput(String input) => isNetworkMediaInput(input);
+
+  static List<String> networkProtocolArgs(String input) =>
+      ffmpegNetworkProtocolArgs(input);
+
   static Future<String?> loadIdentifyStderr(
     String ffmpegExecutable,
     String input,
@@ -160,3 +165,15 @@ class FfmpegMediaProbe {
     }
   }
 }
+
+const String kFfmpegNetworkProtocolWhitelist = 'file,http,https,tcp,tls,crypto';
+
+bool isNetworkMediaInput(String input) {
+  final lower = input.trimLeft().toLowerCase();
+  return lower.startsWith('http://') || lower.startsWith('https://');
+}
+
+List<String> ffmpegNetworkProtocolArgs(String input) =>
+    isNetworkMediaInput(input)
+    ? const ['-protocol_whitelist', kFfmpegNetworkProtocolWhitelist]
+    : const [];

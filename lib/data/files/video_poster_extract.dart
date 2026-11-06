@@ -22,11 +22,6 @@ String posterStorageKeyHexForVideo(VideoRow row) {
   return sha256.convert(utf8.encode(row.id)).toString();
 }
 
-bool _isNetworkMediaInput(String path) {
-  final lower = path.toLowerCase();
-  return lower.startsWith('http://') || lower.startsWith('https://');
-}
-
 /// Max seconds to decode from the start when using **accurate** seek (`-i` then `-ss`).
 const _kAccurateSeekDecodeCap = 45;
 
@@ -89,11 +84,10 @@ Future<bool> writeVideoPosterJpeg({
   final seek = posterSeekSeconds(durationSeconds);
   final seekStr = seek.toStringAsFixed(3);
   final accurate = seek <= _kAccurateSeekDecodeCap;
-  final net = _isNetworkMediaInput(input);
   final args = <String>[
     '-y',
     '-hide_banner',
-    if (net) ...['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'],
+    ...ffmpegNetworkProtocolArgs(input),
     if (accurate) ...[
       '-i',
       input,

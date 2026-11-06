@@ -45,11 +45,8 @@ Future<Float32List> decodeToPcm16kMono(Uint8List bytes) async {
 ///
 /// FFmpeg must not fetch these: download with Dart HTTP first, then decode
 /// the local file (FFmpegKit TLS is unreliable across Android/iOS/macOS).
-bool pcm16kInputIsRemoteHttp(String pathOrUri) {
-  final uri = Uri.tryParse(pathOrUri);
-  if (uri == null) return false;
-  return uri.isScheme('http') || uri.isScheme('https');
-}
+bool pcm16kInputIsRemoteHttp(String pathOrUri) =>
+    isNetworkMediaInput(pathOrUri);
 
 /// Decode a local media [pathOrUri] to 16 kHz mono Float32.
 ///
