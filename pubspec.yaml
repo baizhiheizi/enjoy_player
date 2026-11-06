@@ -91,9 +91,18 @@ dependencies:
 # so with long application ids every keyring item is stored with a garbage
 # xdg:schema attribute and sessions cannot survive a restart. Remove once an
 # upstream release ships the fix.
+# Vendored fork of media_kit_video 2.0.1 (see
+# packages/media_kit_video/CHANGELOG.md): upstream's macOS software-texture
+# path declares the mpv render format as bgr0 against a 32BGRA pixel buffer
+# (garbage alpha bytes — torn white-streak frames then black) and recycles a
+# replaced current buffer into the writable pool immediately, so mpv can
+# rewrite the buffer Flutter is still compositing (#1251). Remove once an
+# upstream release ships both fixes.
 dependency_overrides:
   flutter_secure_storage_linux:
     path: packages/flutter_secure_storage_linux
+  media_kit_video:
+    path: packages/media_kit_video
 
 dev_dependencies:
   flutter_test:
