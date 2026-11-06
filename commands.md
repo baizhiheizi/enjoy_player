@@ -1,5 +1,19 @@
 # Validated build/test/perf commands (Enjoy Player, Flutter)
 
+## 2026-11-06 — full-suite invocation gotchas
+- **`flutter test 2>&1 | tail -8` masks the exit code** — the pipeline
+  exits with `tail`'s status (0) even when tests fail. Redirect full
+  output to a file and echo the status:
+  `flutter test --reporter compact > /tmp/gh-aw/agent/log 2>&1; echo exit=$?`.
+- **`test/tool/patch_agp9_pub_plugins_test.dart` (from #1239) shells out
+  to `flutter`** — run the FULL suite with the writable SDK first on
+  PATH (`PATH="/tmp/gh-aw/agent/flutter-3.47.6/flutter/bin:$PATH"`
+  prefix), or its 3 cache-patching cases die on the read-only toolcache
+  (`engine.stamp.tmp: Read-only file system`). With PATH set:
+  **7149 passed / 24 skipped, 0 failed** (2026-11-06).
+- Suite counts moved on main: 7096 (2026-11-04) → 7149+24 (2026-11-06,
+  includes #1240/#1247/#1250 test additions).
+
 ## 2026-11-05 — test-harness + riverpod gotchas
 - **`tester.state<T>(find...).setState()` triggers
   `invalid_use_of_protected_member`.** Drive widget-test rebuilds with a

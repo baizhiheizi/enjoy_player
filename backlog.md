@@ -355,7 +355,7 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 - Status: draft PR open on `perf-assist/cue-id-memo` (commit `6ca3e6c4`).
   PR number assigned when the framework pushes the bundle.
 
-## P20 — lookup credits-summary refetch per section rebuild (SHIPPED 2026-11-05, draft PR open)
+## P20 — lookup credits-summary refetch per section rebuild (SHIPPED 2026-11-06, draft PR open — REPUBLICATION; the 2026-11-05 run's bundle failed to publish, no PR ever existed from it)
 - Files: `lib/features/lookup/presentation/lookup_credits_reporting.dart`
   (helpers), `lookup_section_error_widget.dart`, the three section files
   (`translation_lookup_section.dart:46`, `dictionary_lookup_section.dart:70`,
@@ -384,7 +384,16 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   (4 tests); before-count from a throwaway legacy replica (not committed).
 - Docs: `dictionary-lookup.md` chip contract updated; test linked from
   `docs/perf-measurement.md`.
-- Status: draft PR on `perf-assist/lookup-credits-refresh-once-per-result`.
+- Status: draft PR on `perf-assist/lookup-credits-refresh-once-per-result`
+  (branch commit `51d6efec`, 2026-11-06; 5 committed structural tests).
+- Test gotchas added 2026-11-06: never re-pump a new ProviderScope
+  mid-test (the module-level token map persists across scopes; counts
+  go nondeterministic) — grow the section list across ticks in ONE
+  scope; one new token per tick (two first-time invalidates in one
+  frame may batch); `const Object()` canonicalizes — use `final`.
+- 2026-11-06 note: #1247 split the vocabulary screen into focused
+  widgets — the P20b vocabulary-decode file locations below must be
+  re-verified before implementing that item.
 - Test-writing gotchas: `tester.state<T>().setState()` =
   invalid_use_of_protected_member — drive rebuilds with a
   `ValueNotifier<int>` tick + `ValueListenableBuilder` in the host.
