@@ -1,15 +1,33 @@
 {
   "version": 1,
   "cursors": {
-    "labelling_after": 1251,
-    "investigation_after": 1251
+    "labelling_after": 1260,
+    "investigation_after": 1260
   },
   "issues": [
     {
       "number": 1243,
       "state": "commented",
       "updated_at": "2026-11-06",
-      "note": "Transient agent_startup_failure (memory-branch clone step, agent never started) 2026-11-05; next run succeeded. Triage comment posted; auto-expires 2026-11-12. Only re-engage if a second clone failure appears."
+      "note": "Transient agent_startup_failure (memory-branch clone step) 2026-11-05; next run succeeded. Triage comment posted; auto-expires 2026-11-12. Only re-engage on a second clone failure."
+    },
+    {
+      "number": 1251,
+      "state": "commented",
+      "updated_at": "2026-11-06",
+      "note": "Fix delivered as draft PR aw_fix_1251_v2 (redo of the E003-failed attempt). Comment posted linking the PR and explaining the trim. Needs maintainer flutter build macos before merge."
+    },
+    {
+      "number": 1256,
+      "state": "commented",
+      "updated_at": "2026-11-06",
+      "note": "E003 fallback issue (129 files > 100 limit) from the 2026-11-06 run whose PR never existed. Superseded by aw_fix_1251_v2 (98 files, trimmed fork). Suggested maintainer close in #1216; no Repo Assist comment posted there."
+    },
+    {
+      "number": 1259,
+      "state": "commented",
+      "updated_at": "2026-11-06",
+      "note": "All findings (F1-F6, N1) resolved in draft PR aw_docs_1259; per-finding comment posted. Every claim re-verified against the tree before editing."
     }
   ],
   "fixes": [
@@ -19,47 +37,39 @@
       "branch": "repo-assist/fix-1251-macos-texturesw-recycle",
       "status": "open",
       "updated_at": "2026-11-06",
-      "note": "Draft PR open (aw_fix_1251): vendored media_kit_video 2.0.1+enjoy.1 - TextureSW bgr0->bgra, pool 3->5, recycleDelay:2. Linux gates green (7144 tests). NEEDS flutter build macos before merge; upstream filing left to maintainer; drop override once upstream ships."
-    },
-    {
-      "issue": 864,
-      "pr": null,
-      "branch": null,
-      "status": "open",
-      "updated_at": "2026-11-03",
-      "note": "Review-session vocabulary over-fetch (start() loads repo.listAll()) still needs a maintainer decision; tracked on #1192 as P3-reframed."
+      "note": "Draft PR aw_fix_1251_v2: vendored media_kit_video 2.0.1+enjoy.1 trimmed to 98 files. bgr0->bgra, pool 3->5, recycleDelay:2. Linux gates green (7144 tests). NEEDS flutter build macos; drop override once upstream ships."
     }
   ],
   "checks": [
     {
-      "area": "tests",
-      "checked_at": "2026-11-05",
-      "result": "Coverage sweep: the Azure assessment runner was the only uncovered decision data path - fixed with a test PR (21 tests, fake MethodChannel). Remaining zero-test files are leaf widgets; youtube fetch/registry/projection covered via library tests.",
-      "follow_up": null
-    },
-    {
       "area": "repo_assist_prs",
       "checked_at": "2026-11-06",
-      "result": "#1240 (Azure-runner tests) and #1241 (lockfile refresh) both merged 2026-11-05. New open draft: the #1251 vendored media_kit_video fork (Swift fix, untestable on Linux).",
-      "follow_up": "Maintain the #1251 draft under Task 6: fix CI/conflicts; flag for a maintainer flutter build macos."
+      "result": "Two open drafts: aw_fix_1251_v2 (vendored media_kit_video fork, 98 files) and aw_docs_1259 (#1259 drift findings). #1258 is perf-improver's, not ours.",
+      "follow_up": "Maintain both drafts under Task 6: fix CI/conflicts (append-only pushes); flag that the fix PR needs a maintainer flutter build macos."
     },
     {
       "area": "docs",
+      "checked_at": "2026-11-06",
+      "result": "Drift review #1259 (F1-F6, N1) resolved in PR aw_docs_1259. create-PR file limit is 100 - keep vendored-package PRs under it by trimming (precedent set by the media_kit_video fork).",
+      "follow_up": null
+    },
+    {
+      "area": "tests",
       "checked_at": "2026-11-05",
-      "result": "No drift: packaging.md matches the #1239 patcher collapse, ADR-0018 has the popover amendment, CHANGELOG [0.10.3] covers #1239. #1215's changelog line landed post-merge (#1221) - lockfile PRs stay lockfile-only.",
+      "result": "Coverage sweep: Azure assessment runner fixed (PR merged 11-05). Remaining zero-test files are leaf widgets.",
       "follow_up": null
     },
     {
       "area": "release",
       "checked_at": "2026-11-06",
-      "result": "v0.10.3 still untagged (latest v0.10.1) even though today's release-train PRs #1252-#1255 all merged. Changelog [0.10.3] comprehensive; only the tag decision remains.",
-      "follow_up": "No v0.10.4 prep until v0.10.3 ships."
+      "result": "v0.10.3 still untagged (latest v0.10.1); release train #1252-#1257 merged. CHANGELOG [0.10.3] is still the live section (maintainer amended post-tag for #1257); the fix PR adds its entry there.",
+      "follow_up": "No v0.10.4 prep until v0.10.3 ships. Changelog PR-number backfill for the two new entries follows the #1240/#1241 precedent (maintainer pass #1252)."
     },
     {
       "area": "dependencies",
       "checked_at": "2026-11-05",
       "result": "5 in-constraint upgrades merged via #1241. Majors stay maintainer decisions: ai_sdk 3.x, cached_network_image 4.x, file_picker 13, flutter_secure_storage 11, go_router 18, google_fonts 9, window_manager 0.6.",
-      "follow_up": "file_picker pinning: comment says exact pin + ADR-0029 lists exact, but constraint is ^12.0.0. Do not change unilaterally."
+      "follow_up": "file_picker pinning intent: comment says exact pin + ADR-0029 lists exact, constraint is ^12.0.0. Maintainer decision."
     }
   ],
   "completed_actions": [
@@ -155,18 +165,18 @@
   "priorities": [
     {
       "task": 6,
-      "item": "Maintain the #1251 vendored media_kit_video draft PR until merged",
-      "note": "repo-assist/fix-1251-macos-texturesw-recycle. Fix CI/conflicts (append-only pushes). Needs a maintainer-run flutter build macos - the Linux gates cannot compile Swift."
+      "item": "Maintain the two open drafts until merged",
+      "note": "aw_fix_1251_v2 (repo-assist/fix-1251-macos-texturesw-recycle) and aw_docs_1259 (repo-assist/docs-drift-1259). Fix CI/conflicts (append-only pushes). The fix PR needs a maintainer-run flutter build macos - Linux gates cannot compile Swift."
     },
     {
       "task": 10,
       "item": "The v0.10.3 release needs the maintainer's tag",
-      "note": "Release train #1252-#1255 merged 2026-11-06; latest release still v0.10.1 (verified 2026-11-06). No v0.10.4 prep until it ships."
+      "note": "Release train #1252-#1257 merged; latest release still v0.10.1 (verified 2026-11-06). No v0.10.4 prep until it ships."
     },
     {
       "task": 7,
       "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
-      "note": "Latest release still v0.10.1 (2026-11-06), so v0.10.2/v0.10.3 objects cannot exist yet; needs a maintainer."
+      "note": "Needs a maintainer; Repo Assist cannot create Release objects."
     },
     {
       "task": 8,
@@ -196,7 +206,7 @@
     {
       "task": 4,
       "item": "Decide where the macOS Sparkle EdDSA private key comes from",
-      "note": "ADR-0023 wants it in a release secret; the feed gate fails the publish on an unsigned enclosure."
+      "note": "ADR-0023 wants it in a release secret; the feed gate fails the publish on an unsigned enclosure. #1255 wired SPARKLE_DSA_PRIV_PEM; packaging.md now documents the ladder (PR aw_docs_1259)."
     }
   ]
 }
