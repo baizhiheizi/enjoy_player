@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/db/media_registry_provider.dart';
+import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 
 /// Local file path of [mediaId] when the row has a local copy; otherwise its
 /// `http(s)` media URL (cloud-streamed library items). `null` for YouTube
@@ -44,8 +45,7 @@ Future<String?> resolveMediaAnalysisInput(
   }
   final remote = (video?.mediaUrl ?? audio?.mediaUrl)?.trim();
   if (remote == null) return null;
-  final scheme = Uri.tryParse(remote)?.scheme.toLowerCase();
-  return scheme == 'http' || scheme == 'https' ? remote : null;
+  return isNetworkMediaInput(remote) ? remote : null;
 }
 
 /// Analysis input of [mediaId] (see [resolveMediaAnalysisInput]) — gates the

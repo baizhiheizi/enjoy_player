@@ -15,9 +15,6 @@ import 'dart:typed_data';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/files/ffmpeg_argv_runner.dart';
-
-export 'package:enjoy_player/data/files/ffmpeg_media_probe.dart'
-    show isNetworkMediaInput;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 

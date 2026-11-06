@@ -65,26 +65,15 @@ double posterSeekSeconds(int? durationSeconds) {
 /// Android / iOS / macOS: [FFmpegKit.executeWithArguments] (bundled libs).
 ///
 /// Returns `true` when [outputJpegPath] exists and is non-empty after the run.
-Future<bool> writeVideoPosterJpeg({
-  required String mediaSourceUri,
+/// Pure FFmpeg argv for sampling a single video poster frame from [input].
+List<String> buildVideoPosterFfmpegArgs({
+  required String input,
   required String outputJpegPath,
-  int? durationSeconds,
-}) async {
-  final input = FfmpegMediaProbe.mediaInputForFfmpeg(mediaSourceUri);
-  if (input.isEmpty) {
-    _log.fine('video poster: empty media input');
-    return false;
-  }
-
-  final parent = Directory(p.dirname(outputJpegPath));
-  if (!await parent.exists()) {
-    await parent.create(recursive: true);
-  }
-
-  final seek = posterSeekSeconds(durationSeconds);
-  final seekStr = seek.toStringAsFixed(3);
-  final accurate = seek <= _kAccurateSeekDecodeCap;
-  final args = <String>[
+  required double seekSeconds,
+  required bool accurate,
+}) {
+  final seekStr = seekSeconds.toStringAsFixed(3);
+  return [
     '-y',
     '-hide_banner',
     ...ffmpegNetworkProtocolArgs(input),
@@ -105,6 +94,32 @@ Future<bool> writeVideoPosterJpeg({
     '3',
     outputJpegPath,
   ];
+}
+
+Future<bool> writeVideoPosterJpeg({
+  required String mediaSourceUri,
+  required String outputJpegPath,
+  int? durationSeconds,
+}) async {
+  final input = FfmpegMediaProbe.mediaInputForFfmpeg(mediaSourceUri);
+  if (input.isEmpty) {
+    _log.fine('video poster: empty media input');
+    return false;
+  }
+
+  final parent = Directory(p.dirname(outputJpegPath));
+  if (!await parent.exists()) {
+    await parent.create(recursive: true);
+  }
+
+  final seek = posterSeekSeconds(durationSeconds);
+  final accurate = seek <= _kAccurateSeekDecodeCap;
+  final args = buildVideoPosterFfmpegArgs(
+    input: input,
+    outputJpegPath: outputJpegPath,
+    seekSeconds: seek,
+    accurate: accurate,
+  );
 
   try {
     final result = await runFfmpegArgv(

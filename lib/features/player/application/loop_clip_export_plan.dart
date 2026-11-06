@@ -115,6 +115,7 @@ String _formatSeconds(double seconds) {
       : rounded.toStringAsFixed(1);
 }
 
+/// Whether [input] is an `http(s)` media URL rather than a local file path.
 bool loopClipInputIsNetwork(String input) => isNetworkMediaInput(input);
 
 /// The FFmpeg argv for [request] (the CLI path on Windows / Linux). The

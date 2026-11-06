@@ -4,7 +4,6 @@ import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/player/application/media_analysis_input_provider.dart';
-import 'package:enjoy_player/features/shadow_reading/data/echo_segment_pcm_extractor.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
@@ -92,11 +91,5 @@ void main() {
 
   test('unknown ids resolve to null', () async {
     expect(await resolveMediaAnalysisInput(registry, 'missing'), isNull);
-  });
-
-  test('isNetworkMediaInput recognises http(s) URLs only', () {
-    expect(isNetworkMediaInput('https://assets.example/a'), isTrue);
-    expect(isNetworkMediaInput('HTTP://assets.example/a'), isTrue);
-    expect(isNetworkMediaInput('/home/user/a.mp3'), isFalse);
   });
 }

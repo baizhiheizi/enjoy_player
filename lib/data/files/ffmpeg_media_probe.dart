@@ -1,4 +1,4 @@
-/// Resolve `ffmpeg` and parse its `-i` probe output (stderr).
+/// Resolve `ffmpeg`, classify media inputs, and parse probe output (stderr).
 library;
 
 import 'dart:convert';
@@ -8,7 +8,8 @@ import 'package:enjoy_player/core/utils/duration_parsing.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
-/// Shared helpers for `ffmpeg -hide_banner -i …` stderr parsing.
+/// Shared helpers for FFmpeg executable resolution, input classification, and
+/// probe output parsing.
 class FfmpegMediaProbe {
   FfmpegMediaProbe._();
 
@@ -144,11 +145,6 @@ class FfmpegMediaProbe {
         return lower;
       }).toList();
 
-  static bool isNetworkInput(String input) => isNetworkMediaInput(input);
-
-  static List<String> networkProtocolArgs(String input) =>
-      ffmpegNetworkProtocolArgs(input);
-
   static Future<String?> loadIdentifyStderr(
     String ffmpegExecutable,
     String input,
@@ -166,13 +162,18 @@ class FfmpegMediaProbe {
   }
 }
 
+/// Permitted protocols for FFmpeg when opening remote HTTP(S) media.
 const String kFfmpegNetworkProtocolWhitelist = 'file,http,https,tcp,tls,crypto';
 
+/// Whether [input] is an `http://` or `https://` URL (ignoring leading
+/// whitespace). Local file paths and `file:` URIs return `false`.
 bool isNetworkMediaInput(String input) {
   final lower = input.trimLeft().toLowerCase();
   return lower.startsWith('http://') || lower.startsWith('https://');
 }
 
+/// FFmpeg argv fragment enabling network protocols when [input] is a network
+/// URL; empty for local files.
 List<String> ffmpegNetworkProtocolArgs(String input) =>
     isNetworkMediaInput(input)
     ? const ['-protocol_whitelist', kFfmpegNetworkProtocolWhitelist]

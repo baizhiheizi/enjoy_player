@@ -60,7 +60,7 @@ class AsrAudioExtractor {
     );
   }
 
-  Future<File> _validateInputFile(
+  Future<void> _validateInputFile(
     String input,
     int maxBytes, {
     required String label,
@@ -79,12 +79,11 @@ class AsrAudioExtractor {
         '$label file is $size bytes (max $maxBytes)',
       );
     }
-    return file;
   }
 
   Future<Uint8List> _readAudioDirect(String input, int maxBytes) async {
-    final file = await _validateInputFile(input, maxBytes, label: 'Audio');
-    return file.readAsBytes();
+    await _validateInputFile(input, maxBytes, label: 'Audio');
+    return File(input).readAsBytes();
   }
 
   Future<Uint8List> _extractFromVideo({

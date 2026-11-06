@@ -260,11 +260,6 @@ Stream #0:5(en): Subtitle: subrip
       expect(isNetworkMediaInput(''), isFalse);
       expect(isNetworkMediaInput('   '), isFalse);
     });
-
-    test('FfmpegMediaProbe forwards to top-level helper', () {
-      expect(FfmpegMediaProbe.isNetworkInput('https://example.com'), isTrue);
-      expect(FfmpegMediaProbe.isNetworkInput('/local/path'), isFalse);
-    });
   });
 
   group('ffmpegNetworkProtocolArgs', () {
@@ -273,15 +268,10 @@ Stream #0:5(en): Subtitle: subrip
         ffmpegNetworkProtocolArgs('https://cdn.example.com/a.mp4'),
         equals(['-protocol_whitelist', kFfmpegNetworkProtocolWhitelist]),
       );
-      expect(
-        FfmpegMediaProbe.networkProtocolArgs('https://cdn.example.com/a.mp4'),
-        equals(['-protocol_whitelist', kFfmpegNetworkProtocolWhitelist]),
-      );
     });
 
     test('returns empty list for local files', () {
       expect(ffmpegNetworkProtocolArgs('/tmp/video.mp4'), isEmpty);
-      expect(FfmpegMediaProbe.networkProtocolArgs('/tmp/video.mp4'), isEmpty);
     });
   });
 }
