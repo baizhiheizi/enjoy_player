@@ -529,6 +529,25 @@ release_windows_installer_path() {
   echo "${root}/build/windows/installer/EnjoyPlayerSetup-v${version}.exe"
 }
 
+release_windows_iscc_path() {
+  if command -v iscc >/dev/null 2>&1; then
+    command -v iscc
+    return 0
+  fi
+  local candidate
+  for candidate in \
+    "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" \
+    "/c/Program Files/Inno Setup 6/ISCC.exe" \
+    "/c/Program Files/Inno Setup 7/ISCC.exe" \
+    "${HOME}/AppData/Local/Programs/Inno Setup 6/ISCC.exe"; do
+    if [[ -f "${candidate}" ]]; then
+      printf '%s\n' "${candidate}"
+      return 0
+    fi
+  done
+  return 1
+}
+
 release_android_aab_path() {
   local root="$1"
   local version

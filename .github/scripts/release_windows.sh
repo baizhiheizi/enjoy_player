@@ -66,7 +66,11 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
     echo ">>> Build Inno Setup installer"
     bash "${root}/.github/scripts/sync_release_version.sh"
     release_pwsh "${root}/.github/scripts/ensure_inno_setup.ps1"
-    iscc "${root}/windows/installer/enjoy_player.iss"
+    iscc_exe="$(release_windows_iscc_path)" || {
+      echo "iscc not found after ensure_inno_setup.ps1: neither on PATH nor in the Inno Setup install dirs" >&2
+      exit 1
+    }
+    "${iscc_exe}" "${root}/windows/installer/enjoy_player.iss"
   fi
 fi
 
