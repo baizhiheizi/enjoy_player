@@ -23,6 +23,9 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  GH_REPO: ${{ github.repository }}
+
 jobs:
   finalize:
     name: Update notes and finalize release
