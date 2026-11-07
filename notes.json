@@ -6,70 +6,52 @@
   },
   "issues": [
     {
-      "number": 1243,
-      "state": "commented",
-      "updated_at": "2026-11-06",
-      "note": "Transient agent_startup_failure (memory-branch clone step) 2026-11-05; next run succeeded. Triage comment posted; auto-expires 2026-11-12. Only re-engage on a second clone failure."
-    },
-    {
       "number": 1251,
       "state": "commented",
-      "updated_at": "2026-11-06",
-      "note": "Fix delivered as draft PR aw_fix_1251_v2 (redo of the E003-failed attempt). Comment posted linking the PR and explaining the trim. Needs maintainer flutter build macos before merge."
-    },
-    {
-      "number": 1256,
-      "state": "commented",
-      "updated_at": "2026-11-06",
-      "note": "E003 fallback issue (129 files > 100 limit) from the 2026-11-06 run whose PR never existed. Superseded by aw_fix_1251_v2 (98 files, trimmed fork). Suggested maintainer close in #1216; no Repo Assist comment posted there."
-    },
-    {
-      "number": 1259,
-      "state": "commented",
-      "updated_at": "2026-11-06",
-      "note": "All findings (F1-F6, N1) resolved in draft PR aw_docs_1259; per-finding comment posted. Every claim re-verified against the tree before editing."
+      "updated_at": "2026-11-07",
+      "note": "MAINTAINER DECLINED THE FIX: PR #1262 (vendored media_kit_video fork) closed unmerged 2026-11-07 00:10 and the issue got wontfix. Do not re-propose, do not re-engage."
     }
   ],
   "fixes": [
     {
       "issue": 1251,
-      "pr": null,
+      "pr": 1262,
       "branch": "repo-assist/fix-1251-macos-texturesw-recycle",
-      "status": "open",
-      "updated_at": "2026-11-06",
-      "note": "Draft PR aw_fix_1251_v2: vendored media_kit_video 2.0.1+enjoy.1 trimmed to 98 files. bgr0->bgra, pool 3->5, recycleDelay:2. Linux gates green (7144 tests). NEEDS flutter build macos; drop override once upstream ships."
+      "status": "closed",
+      "updated_at": "2026-11-07",
+      "note": "Closed unmerged by maintainer alongside the wontfix label. Kept only to prevent duplicate attempts."
     }
   ],
   "checks": [
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-11-06",
-      "result": "Two open drafts: aw_fix_1251_v2 (vendored media_kit_video fork, 98 files) and aw_docs_1259 (#1259 drift findings). #1258 is perf-improver's, not ours.",
-      "follow_up": "Maintain both drafts under Task 6: fix CI/conflicts (append-only pushes); flag that the fix PR needs a maintainer flutter build macos."
+      "checked_at": "2026-11-07",
+      "result": "One open draft: aw_housekeeping (repo-assist/post-0103-housekeeping-20261107) - [Unreleased] CHANGELOG window + lockfile refresh + riverpod rename + skeleton-loading pointer fix. aw_docs_1259 merged as #1268; aw_fix_1251_v2 (#1262) closed unmerged.",
+      "follow_up": "Maintain the housekeeping draft under Task 6 (append-only pushes) until merged."
     },
     {
       "area": "docs",
-      "checked_at": "2026-11-06",
-      "result": "Drift review #1259 (F1-F6, N1) resolved in PR aw_docs_1259. create-PR file limit is 100 - keep vendored-package PRs under it by trimming (precedent set by the media_kit_video fork).",
-      "follow_up": null
+      "checked_at": "2026-11-07",
+      "result": "[Unreleased] window opened with entries for #1258, #1268 and the deps refresh; skeleton-loading.md stale [Unreleased] pointer fixed to [0.4.0]. The deps entry still lacks its PR link - needs the release-notes backfill pass (#1240/#1241 precedent via #1252).",
+      "follow_up": "Keep the window current as post-release merges land."
     },
     {
       "area": "tests",
-      "checked_at": "2026-11-05",
-      "result": "Coverage sweep: Azure assessment runner fixed (PR merged 11-05). Remaining zero-test files are leaf widgets.",
+      "checked_at": "2026-11-07",
+      "result": "Full suite 7149 passed / 24 skipped under the refreshed resolution (riverpod 3.5.0, sqlite3 3.9.0, build 5 toolchain). Analyze clean after the exists rename. Sandbox gotcha: piped background commands die silently at the 10-min limit - run long gates unpiped with an explicit timeout.",
       "follow_up": null
     },
     {
       "area": "release",
-      "checked_at": "2026-11-06",
-      "result": "v0.10.3 still untagged (latest v0.10.1); release train #1252-#1257 merged. CHANGELOG [0.10.3] is still the live section (maintainer amended post-tag for #1257); the fix PR adds its entry there.",
-      "follow_up": "No v0.10.4 prep until v0.10.3 ships. Changelog PR-number backfill for the two new entries follows the #1240/#1241 precedent (maintainer pass #1252)."
+      "checked_at": "2026-11-07",
+      "result": "v0.10.3 published 2026-11-06 09:16 UTC (latest release). Post-release merges so far: #1258 (perf lookup), #1268 (docs) - both now carry [Unreleased] entries. Release objects for v0.10.2, v0.10.0, v0.9.0 still missing (re-verified 2026-11-07).",
+      "follow_up": "No release prep until the [Unreleased] window holds meaningful content; backfill remains maintainer-only."
     },
     {
       "area": "dependencies",
-      "checked_at": "2026-11-05",
-      "result": "5 in-constraint upgrades merged via #1241. Majors stay maintainer decisions: ai_sdk 3.x, cached_network_image 4.x, file_picker 13, flutter_secure_storage 11, go_router 18, google_fonts 9, window_manager 0.6.",
-      "follow_up": "file_picker pinning intent: comment says exact pin + ADR-0029 lists exact, constraint is ^12.0.0. Maintainer decision."
+      "checked_at": "2026-11-07",
+      "result": "Lockfile refresh PR aw_housekeeping: 4 direct + 2 dev + 11 transitive within constraints; code_builder/mockito dropped as lockfile-only entries; riverpod 3.5.0 deprecated ref.exists(provider) - three player call sites renamed to ref.read(provider.exists).",
+      "follow_up": "file_picker pinning intent still a maintainer decision (comment says exact pin, constraint is ^12.0.0)."
     }
   ],
   "completed_actions": [
@@ -160,18 +142,25 @@
     {
       "key": "azure-runner-test-1240-and-lockfile-refresh-1241-merged",
       "completed_at": "2026-11-05"
+    },
+    {
+      "key": "docs-drift-1259-merged-as-1268",
+      "completed_at": "2026-11-07"
+    },
+    {
+      "key": "v0103-published-2026-11-06",
+      "completed_at": "2026-11-07"
+    },
+    {
+      "key": "fix-1251-pr-1262-closed-wontfix-declined",
+      "completed_at": "2026-11-07"
     }
   ],
   "priorities": [
     {
       "task": 6,
-      "item": "Maintain the two open drafts until merged",
-      "note": "aw_fix_1251_v2 (repo-assist/fix-1251-macos-texturesw-recycle) and aw_docs_1259 (repo-assist/docs-drift-1259). Fix CI/conflicts (append-only pushes). The fix PR needs a maintainer-run flutter build macos - Linux gates cannot compile Swift."
-    },
-    {
-      "task": 10,
-      "item": "The v0.10.3 release needs the maintainer's tag",
-      "note": "Release train #1252-#1257 merged; latest release still v0.10.1 (verified 2026-11-06). No v0.10.4 prep until it ships."
+      "item": "Maintain the housekeeping draft until merged",
+      "note": "aw_housekeeping (repo-assist/post-0103-housekeeping-20261107): [Unreleased] window + lockfile refresh + riverpod rename + skeleton-loading pointer fix. Fix CI/conflicts via append-only pushes. The deps changelog entry needs its PR link backfilled after merge."
     },
     {
       "task": 7,
@@ -181,12 +170,7 @@
     {
       "task": 8,
       "item": "The review-session vocabulary over-fetch needs a maintainer decision",
-      "note": "On #1192 (P3-reframed): start() loads repo.listAll() and filters in Dart. Only the queued rows need the blob."
-    },
-    {
-      "task": 4,
-      "item": "ADR-0030 item 3 custom_lint still needs a maintainer decision",
-      "note": "A new dependency needs maintainer discussion; Repo Assist will not adopt it unilaterally."
+      "note": "On #1192 (P3-reframed): start() loads repo.listAll() and filters in Dart. Only the queued rows need the blob. Same for P7/P8/P10b."
     },
     {
       "task": 4,
@@ -197,16 +181,6 @@
       "task": 5,
       "item": "The proactive-refactor lane stays paused by the maintainer",
       "note": "Detector findings #1235/#1237/#1238 were resolved by the maintainer's own #1239 - keep staying out of the lane."
-    },
-    {
-      "task": 4,
-      "item": "Do not re-propose the stale first-party action pins",
-      "note": "#1050 closed not_planned 2026-10-23."
-    },
-    {
-      "task": 4,
-      "item": "Decide where the macOS Sparkle EdDSA private key comes from",
-      "note": "ADR-0023 wants it in a release secret; the feed gate fails the publish on an unsigned enclosure. #1255 wired SPARKLE_DSA_PRIV_PEM; packaging.md now documents the ladder (PR aw_docs_1259)."
     }
   ]
 }
