@@ -9,6 +9,9 @@ import 'package:enjoy_player/features/lookup/application/lookup_credits_exhauste
 final Map<LookupSectionId, Object> _lastTokenPerSection =
     <LookupSectionId, Object>{};
 
+@visibleForTesting
+void resetLookupCreditsReportingForTest() => _lastTokenPerSection.clear();
+
 void scheduleLookupCreditsReport(
   BuildContext context,
   WidgetRef ref,
