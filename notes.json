@@ -1,8 +1,8 @@
 {
   "version": 1,
   "cursors": {
-    "labelling_after": 1260,
-    "investigation_after": 1260
+    "labelling_after": 1270,
+    "investigation_after": 1270
   },
   "issues": [
     {
@@ -26,8 +26,8 @@
     {
       "area": "repo_assist_prs",
       "checked_at": "2026-11-07",
-      "result": "One open draft: aw_housekeeping (repo-assist/post-0103-housekeeping-20261107) - [Unreleased] CHANGELOG window + lockfile refresh + riverpod rename + skeleton-loading pointer fix. aw_docs_1259 merged as #1268; aw_fix_1251_v2 (#1262) closed unmerged.",
-      "follow_up": "Maintain the housekeeping draft under Task 6 (append-only pushes) until merged."
+      "result": "PR #1269 (post-0103-housekeeping) open, non-draft. Its 7 pull_request CI runs sit at action_required awaiting a maintainer approval click in the Actions tab (bot-authored PR); only GitGuardian ran. Base == main HEAD a64b0682; local gates green at creation.",
+      "follow_up": "After approval, fix any red gate via append-only pushes; after merge, backfill the deps changelog entry with its PR link."
     },
     {
       "area": "docs",
@@ -38,7 +38,7 @@
     {
       "area": "tests",
       "checked_at": "2026-11-07",
-      "result": "Full suite 7149 passed / 24 skipped under the refreshed resolution (riverpod 3.5.0, sqlite3 3.9.0, build 5 toolchain). Analyze clean after the exists rename. Sandbox gotcha: piped background commands die silently at the 10-min limit - run long gates unpiped with an explicit timeout.",
+      "result": "Full suite 7149 passed / 24 skipped under the refreshed resolution; all skips intentional (local-only microbenchmarks, media_kit native-availability). FFmpeg probe helpers well tested post-#1250. One bare skip:true lacks a reason string (transcript_echo_region_card_rebuild_perf_test) - cosmetic.",
       "follow_up": null
     },
     {
@@ -52,6 +52,12 @@
       "checked_at": "2026-11-07",
       "result": "Lockfile refresh PR aw_housekeeping: 4 direct + 2 dev + 11 transitive within constraints; code_builder/mockito dropped as lockfile-only entries; riverpod 3.5.0 deprecated ref.exists(provider) - three player call sites renamed to ref.read(provider.exists).",
       "follow_up": "file_picker pinning intent still a maintainer decision (comment says exact pin, constraint is ^12.0.0)."
+    },
+    {
+      "area": "performance",
+      "checked_at": "2026-11-07",
+      "result": "Lane owned by perf-improver (stocked P20b backlog, daily cadence); remaining #1192 items are maintainer decisions (P7/P8/P10b/P3-reframed). Repo Assist stays out to avoid PR collisions.",
+      "follow_up": null
     }
   ],
   "completed_actions": [
@@ -160,7 +166,7 @@
     {
       "task": 6,
       "item": "Maintain the housekeeping draft until merged",
-      "note": "aw_housekeeping (repo-assist/post-0103-housekeeping-20261107): [Unreleased] window + lockfile refresh + riverpod rename + skeleton-loading pointer fix. Fix CI/conflicts via append-only pushes. The deps changelog entry needs its PR link backfilled after merge."
+      "note": "Maintain PR #1269 until merged. Blocker: its 7 pull_request workflow runs need a maintainer approval click in the Actions tab; then fix red gates via append-only pushes. After merge, backfill the deps changelog entry PR link."
     },
     {
       "task": 7,
