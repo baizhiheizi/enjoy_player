@@ -416,7 +416,7 @@ Offline: full local CRUD/review. AI dictionary / contextual translation require 
 ### Vocabulary page
 
 - Compact header with back + title; centered column (`contentMaxWidth`).
-- List-first chrome: the **Due** count is a badge on the **Review** tab, and the Total / Due / status breakdown renders inline as a stats row above the tab content (`_StatsRow` in `vocabulary_screen.dart` — a Due card and a status card side by side, stacked below 856 px).
+- List-first chrome: the **Due** count is a badge on the **Review** tab, and the Total / Due / status breakdown renders inline as a stats row above the tab content (`VocabularyStatsRow` in `widgets/vocabulary_stats_cards.dart` — a Due card and a status card side by side, stacked below 856 px).
 - Equal-width segmented tabs: **Review** | **All Words** (due badge on Review).
 - **All Words table:** the first context sentence of every visible word is read in one bulk query (repository `firstContextTextsForItems`, chunked at 900 ids) — one query per visible list, not one per rendered row. Items without a context simply show no second line.
 
@@ -731,7 +731,10 @@ The flashcard and related UI were extracted from a single file into focused modu
 | [`widgets/vocabulary_practice_sheet.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_practice_sheet.dart) | `VocabularyPracticeOverlay` + `VocabularyPracticeSheet` — in-route modal overlay for clip play / echo |
 | [`widgets/vocabulary_practice_clip_body.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_practice_clip_body.dart) | `VocabularyPracticeClipBody` — clip mini-player body (video surface target) |
 | [`widgets/vocabulary_practice_echo_body.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_practice_echo_body.dart) | `VocabularyPracticeEchoBody` — recorder-only echo practice body |
-| [`vocabulary_screen.dart`](../../lib/features/vocabulary/presentation/vocabulary_screen.dart) | `_StatsRow` (Due card + status card) — inline vocabulary stats row above the tab content |
+| [`vocabulary_screen.dart`](../../lib/features/vocabulary/presentation/vocabulary_screen.dart) | `VocabularyScreen` + `_HeaderActions` — route scaffold, header actions |
+| [`widgets/vocabulary_stats_cards.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_stats_cards.dart) | `VocabularyStatsRow` (Due card + status card) — inline vocabulary stats row above the tab content |
+| [`widgets/vocabulary_review_tab.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_review_tab.dart) | `VocabularyReviewTab` — Review tab body with the Due review card |
+| [`widgets/vocabulary_review_launch.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_review_launch.dart) | `startVocabularyReview` — shared review-session launch helper |
 | [`widgets/vocabulary_empty_states.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_empty_states.dart) | `VocabularyEmptyState` — reusable empty states (no words / no due / no matches) |
 | [`widgets/flashcard_soft_error.dart`](../../lib/features/vocabulary/presentation/widgets/flashcard_soft_error.dart) | `FlashcardSoftError` — reusable error banner widget |
 

@@ -490,7 +490,7 @@ Read [player.md](../../features/player.md), [transcript.md](../../features/trans
 
 #### D3.8 Assessment in the margin + feedback on the words
 - **Boards:** `DScored`, `PScored`.
-- **Code:** `assessment_result_dialog.dart`, `assessment_result_sheet.dart`, `assessment_result_body.dart`, `assessment_result_widgets.dart`, `recording_assessment_flow.dart`, `score_level.dart`.
+- **Code:** `assessment_result_dialog.dart`, `assessment_result_sheet.dart`, `assessment_result_body.dart`, `selected_word_panel.dart`, `assessment_score_indicators.dart`, `assessment_word_chips.dart`, `recording_assessment_flow.dart`, `score_level.dart`.
 - **Change:**
   - **Take panel:**
     - `TAKE 3 · ASSESSMENT`;

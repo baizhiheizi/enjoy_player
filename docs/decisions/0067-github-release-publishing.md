@@ -85,7 +85,12 @@ transition. It:
   coordinator runs, and the dispatch branch may have moved past the tag.
   (§ 2 originally said "falls back to `## [Unreleased]` from
   `CHANGELOG.md`" — amended in #1094 when review showed that heading is
-  always gone at publish time.)
+  always gone at publish time.) The workflow also pins a workflow-level
+  `GH_REPO`: its first `gh` calls (the Resolve tag step) run *before*
+  `actions/checkout` on a hosted workspace with no git remotes, and `gh`
+  derives its repository from `--repo`, `GH_REPO` or git remotes — never
+  from `GITHUB_REPOSITORY` (amended in #1257 when the first v0.10.3
+  publish dispatch died exactly there).
 - calls `gh release edit <tag> --notes-file …` to set the body
 - optionally flips `gh release edit <tag> --draft=false` to publish
 

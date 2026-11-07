@@ -304,9 +304,18 @@ prefer a dotenv-style flow; keep them on disk only, never in git.
 `sign_sparkle_enclosure.sh` resolves the DSA private key for Windows appcast
 signing in this order:
 
-1. `SPARKLE_DSA_PRIV_PEM` env var (an absolute path to the key file)
+1. `SPARKLE_DSA_PRIV_PEM` env var — used as a **path** when it names an existing
+   file; otherwise the value is treated as **raw PEM content** and written to
+   `$RUNNER_TEMP/sparkle_dsa_priv.pem`
 2. `SPARKLE_DSA_PRIV_PEM_BASE64` env var (base64-encoded key, decoded to a temp file)
 3. `dsa_priv.pem` at the **repo root** (auto-detected — the recommended default)
+
+Before signing, the resolved key is paired against the committed
+`windows/dsa_pub.pem` with `openssl`: a mismatch fails the release
+(`::error` + exit 1) because WinSparkle clients would reject every update it
+signs; when the key or the committed public key cannot be read the check
+degrades to a warning, and it is skipped entirely when either file or
+`openssl` is missing.
 
 Because the repo-root path is auto-detected, **do not hardcode an absolute path**
 in your local env file. If the key lives elsewhere, resolve it relative to the
@@ -322,7 +331,9 @@ export SPARKLE_DSA_PRIV_PEM="$(git rev-parse --show-toplevel)/keys/dsa_priv.pem"
 $env:SPARKLE_DSA_PRIV_PEM = Join-Path (git rev-parse --show-toplevel) "keys/dsa_priv.pem"
 ```
 
-CI injects the key as base64 via `SPARKLE_DSA_PRIV_PEM_BASE64` (see
+CI passes the registered repository secret as `SPARKLE_DSA_PRIV_PEM` (raw PEM
+content — the resolver writes it to a temp file); `SPARKLE_DSA_PRIV_PEM_BASE64`
+remains a fallback for locally-provided CI runs (see
 [`sign_sparkle_enclosure.sh`](../.github/scripts/sign_sparkle_enclosure.sh)).
 
 #### Update feed gate
@@ -392,6 +403,15 @@ pwsh ./release.ps1 -SkipChecks          # faster iteration
 ```
 
 Builds: `flutter build windows --release`, fetches FFmpeg, runs Inno Setup.
+
+`ensure_inno_setup.ps1` may install Inno Setup via Chocolatey, but on CI it appends
+the install directory to `GITHUB_PATH`, which only reaches *later* workflow steps —
+a child process cannot modify its parent's environment, and the `iscc` invocation
+runs in the same step that spawned the script. `release_windows_iscc_path` therefore
+resolves the compiler itself: `command -v iscc` first, then the standard install
+directories (`C:\Program Files (x86)\Inno Setup 6`, `C:\Program Files\Inno Setup 6`,
+`C:\Program Files\Inno Setup 7`, `%LOCALAPPDATA%\Programs\Inno Setup 6`), failing
+loudly when the install came up empty.
 
 ### Android (Windows or Linux)
 
