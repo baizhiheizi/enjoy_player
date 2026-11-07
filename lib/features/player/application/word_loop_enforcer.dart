@@ -35,7 +35,7 @@ class WordLoopEnforcer {
   Future<bool> enforceTick(int positionMs) async {
     final mediaId = getSession()?.mediaId;
     if (mediaId == null) return false;
-    if (!ref.exists(wordPracticeSessionProvider(mediaId))) return false;
+    if (!ref.read(wordPracticeSessionProvider(mediaId).exists)) return false;
     final loop = ref.read(wordPracticeSessionProvider(mediaId));
     if (!loop.isLooping) return false;
 
