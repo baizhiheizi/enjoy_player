@@ -45,4 +45,5 @@ export CLOUDFLARE_ZONE_ID="<zone id for enjoy.bot>"
 # explicitly when the key is elsewhere — resolve relative to the repo root
 # (NEVER hardcode an absolute path):
 #   export SPARKLE_DSA_PRIV_PEM="$(git rev-parse --show-toplevel)/keys/dsa_priv.pem"
-# CI injects the key as base64 via SPARKLE_DSA_PRIV_PEM_BASE64 instead.
+# CI passes the registered secret as SPARKLE_DSA_PRIV_PEM (raw PEM content);
+# SPARKLE_DSA_PRIV_PEM_BASE64 remains a fallback.
