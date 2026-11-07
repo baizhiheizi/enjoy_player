@@ -47,6 +47,7 @@ class TranslationLookupSection extends ConsumerWidget {
                   context,
                   ref,
                   LookupSectionId.translation,
+                  resultToken: d,
                 );
                 if (d.translatedText.trim().isEmpty) {
                   return Text(

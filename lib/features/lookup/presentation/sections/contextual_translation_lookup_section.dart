@@ -326,6 +326,7 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
           context,
           ref,
           LookupSectionId.contextualTranslation,
+          resultToken: d,
         );
         return _resultStack(
           isRefreshing: false,
