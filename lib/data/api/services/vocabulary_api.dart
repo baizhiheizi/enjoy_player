@@ -3,7 +3,6 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
-import 'package:enjoy_player/data/api/query_params.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
 
 class VocabularyApi extends RestApi {
@@ -12,15 +11,8 @@ class VocabularyApi extends RestApi {
   static const _itemsPath = '/api/v1/mine/vocabulary_items';
   static const _contextsPath = '/api/v1/mine/vocabulary_contexts';
 
-  Future<List<JsonMap>> vocabularyItems({int? limit, String? updatedAfter}) {
-    return client.getJsonList(
-      _itemsPath,
-      queryParameters: buildQuery({
-        'limit': limit,
-        'updatedAfter': updatedAfter,
-      }),
-    );
-  }
+  Future<List<JsonMap>> vocabularyItems({int? limit, String? updatedAfter}) =>
+      listResource(_itemsPath, {'limit': limit, 'updatedAfter': updatedAfter});
 
   Future<JsonMap> vocabularyItem(String id) =>
       client.getJson('$_itemsPath/$id');
@@ -35,16 +27,11 @@ class VocabularyApi extends RestApi {
     String? vocabularyItemId,
     int? limit,
     String? updatedAfter,
-  }) {
-    return client.getJsonList(
-      _contextsPath,
-      queryParameters: buildQuery({
-        'vocabularyItemId': vocabularyItemId,
-        'limit': limit,
-        'updatedAfter': updatedAfter,
-      }),
-    );
-  }
+  }) => listResource(_contextsPath, {
+    'vocabularyItemId': vocabularyItemId,
+    'limit': limit,
+    'updatedAfter': updatedAfter,
+  });
 
   Future<JsonMap> vocabularyContext(String id) =>
       client.getJson('$_contextsPath/$id');

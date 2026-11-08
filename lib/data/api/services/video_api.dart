@@ -2,7 +2,6 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
-import 'package:enjoy_player/data/api/query_params.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
 
 class VideoApi extends RestApi {
@@ -14,16 +13,11 @@ class VideoApi extends RestApi {
     String? provider,
     int? limit,
     String? updatedAfter,
-  }) {
-    return client.getJsonList(
-      _minePath,
-      queryParameters: buildQuery({
-        'provider': provider,
-        'limit': limit,
-        'updatedAfter': updatedAfter,
-      }),
-    );
-  }
+  }) => listResource(_minePath, {
+    'provider': provider,
+    'limit': limit,
+    'updatedAfter': updatedAfter,
+  });
 
   Future<JsonMap> video(String id) => client.getJson('$_minePath/$id');
 

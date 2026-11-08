@@ -4,6 +4,7 @@ library;
 import 'package:meta/meta.dart';
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/query_params.dart';
 
 /// Every `*Api` class in `lib/data/api/services/` is a one-field wrapper
 /// around [ApiClient]: extend this instead of redeclaring the field and
@@ -18,4 +19,10 @@ abstract class RestApi {
 
   @protected
   final ApiClient client;
+
+  @protected
+  Future<List<JsonMap>> listResource(
+    String path, [
+    Map<String, Object?> params = const {},
+  ]) => client.getJsonList(path, queryParameters: buildQuery(params));
 }
