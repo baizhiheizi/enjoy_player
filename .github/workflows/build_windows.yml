@@ -90,7 +90,16 @@ jobs:
 
       - name: Flutter pub get
         working-directory: ${{ env.GITHUB_WORKSPACE }}
-        run: flutter pub get
+        run: |
+          $ErrorActionPreference = 'Continue'
+          flutter pub get
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::warning::Mirror dependency resolution failed; retrying with pub.dev."
+            "PUB_HOSTED_URL=https://pub.dev" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            $env:PUB_HOSTED_URL = "https://pub.dev"
+            flutter pub get
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
       # package:sqlite3 3.x downloads its prebuilt library from
       # github.com/simolus3/sqlite3.dart/releases with Dart HttpClient (no
