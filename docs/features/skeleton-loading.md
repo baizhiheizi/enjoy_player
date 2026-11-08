@@ -138,7 +138,7 @@ GridView.builder(
 Do **not** use a vanilla `ListView` or `SingleChildScrollView` as the top-level
 placeholder inside a sliver or unbounded `Column` — that path was the root cause
 of the "skeleton list layout crash in nested scroll views" fix; see the
-[`[Unreleased]`](../../CHANGELOG.md) entry.
+[`[0.4.0]`](../../CHANGELOG.md) entry.
 
 ## When to add a new placeholder
 

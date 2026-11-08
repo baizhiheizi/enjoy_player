@@ -88,7 +88,7 @@ class PlayerPositionTracker {
     _subscribedMediaId = null;
     if (mediaId != null &&
         ref.mounted &&
-        ref.exists(wordPracticeSessionProvider(mediaId))) {
+        ref.read(wordPracticeSessionProvider(mediaId).exists)) {
       ref.read(wordPracticeSessionProvider(mediaId).notifier).clearAll();
     }
   }

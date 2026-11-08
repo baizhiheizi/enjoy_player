@@ -100,7 +100,12 @@ jobs:
       - uses: ./.github/actions/setup-flutter
 
       - name: Flutter pub get
-        run: flutter pub get
+        run: |
+          if ! flutter pub get; then
+            echo "::warning::Mirror dependency resolution failed; retrying with pub.dev."
+            echo "PUB_HOSTED_URL=https://pub.dev" >> "$GITHUB_ENV"
+            PUB_HOSTED_URL=https://pub.dev flutter pub get
+          fi
 
       - name: CocoaPods install (iOS)
         run: cd ios && pod install
@@ -153,7 +158,12 @@ jobs:
         run: bash macos/scripts/build_compat_dylibs.sh
 
       - name: Flutter pub get
-        run: flutter pub get
+        run: |
+          if ! flutter pub get; then
+            echo "::warning::Mirror dependency resolution failed; retrying with pub.dev."
+            echo "PUB_HOSTED_URL=https://pub.dev" >> "$GITHUB_ENV"
+            PUB_HOSTED_URL=https://pub.dev flutter pub get
+          fi
 
       - name: CocoaPods install (macOS)
         run: cd macos && pod install

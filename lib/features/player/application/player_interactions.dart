@@ -142,7 +142,7 @@ class PlayerInteractions {
   void _clearWordLoop() {
     final mediaId = ref.read(playerControllerProvider)?.mediaId;
     if (mediaId == null) return;
-    if (!ref.exists(wordPracticeSessionProvider(mediaId))) return;
+    if (!ref.read(wordPracticeSessionProvider(mediaId).exists)) return;
     ref.read(wordPracticeSessionProvider(mediaId).notifier).clearLoop();
   }
 

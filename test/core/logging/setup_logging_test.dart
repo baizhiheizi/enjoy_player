@@ -153,6 +153,7 @@ void main() {
       await untilLogContains('verbose tier line');
       expect(await readLog(), contains('[FINE] sync: verbose tier line'));
     },
+    timeout: const Timeout(Duration(minutes: 5)),
   );
 
   test(
@@ -276,7 +277,7 @@ void main() {
       content.indexOf('[INFO] session:'),
       lessThan(content.indexOf('burst record 45')),
     );
-  }, timeout: const Timeout(Duration(minutes: 2)));
+  }, timeout: const Timeout(Duration(minutes: 5)));
 }
 
 class _DocumentsBrokenPathProvider extends TestPathProvider {

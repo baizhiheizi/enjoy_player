@@ -163,7 +163,11 @@ jobs:
 
       - name: Flutter pub get
         run: |
-          flutter pub get
+          if ! flutter pub get; then
+            echo "::warning::Mirror dependency resolution failed; retrying with pub.dev."
+            echo "PUB_HOSTED_URL=https://pub.dev" >> "$GITHUB_ENV"
+            PUB_HOSTED_URL=https://pub.dev flutter pub get
+          fi
           bash tool/patch_agp9_pub_plugins.sh
 
       - name: Prefetch media_kit Android native libs

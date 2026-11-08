@@ -667,6 +667,11 @@ git-ignored.
   bash tool/prefetch_sqlite3_libs.sh macos   # linux / windows / ios / android also accepted
   ```
   `build_macos_ci.sh` and `release_android.sh` already run this automatically (macOS / Android respectively); `build_ios_ci.sh` does the same for iOS, and the Linux CI workflow, `release_linux.sh` and `release_apple.sh` prefetch the slices they need (linux / macos / ios).
+- **`Hash of downloaded file libsqlite3.<arch>.<os>.so is <hash>, expected <hash>` on `package:sqlite3`**: the hook's own download (no retries) came back with the wrong bytes — usually because `github.com/…/releases/download/<tag>/<asset>` answered `504` at GitHub's edge for that asset, or the body was truncated on the way through. Run the prefetch, which retries a failed or corrupt download and falls back to the GitHub API asset endpoint (`api.github.com/repos/simolus3/sqlite3.dart/releases/assets/<id>`), which serves the same bytes when the download URL fails:
+  ```bash
+  bash tool/prefetch_sqlite3_libs.sh linux
+  ```
+  The prefetch verifies the SHA256 the installed `package:sqlite3` pins before it writes anything into the hook cache, so a wrong body can never poison it. `SQLITE3_BASE_URL` points it at a mirror; `SQLITE3_API_ROOT` (set it empty to switch the fallback off) points the fallback at another API host.
 - **Keychain / signing on new Mac**: open `macos/Runner.xcworkspace`, enable automatic signing, team `46X685R747`, build once in Xcode.
 - **Notarization fails**: check `NOTARY_PROFILE` (default `enjoy-notary`) and stored credentials; unlock the login keychain if `notarytool` reports `keychainLocked` or `errSecInternalComponent`:
   ```bash
