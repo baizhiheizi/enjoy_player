@@ -156,6 +156,10 @@ jobs:
       # cache with curl (which retries) so the hook reuses it. The Apple and
       # Android paths prefetch the same way.
       - name: Prefetch sqlite3 Linux native libs
+        env:
+          # The prefetch falls back to the GitHub API asset endpoint when the
+          # release download URL fails; a token lifts its rate limit.
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           bash tool/prefetch_sqlite3_libs.sh linux \
             || echo "::warning::prefetch_sqlite3_libs skipped; the dart_build hook will fetch on its own"

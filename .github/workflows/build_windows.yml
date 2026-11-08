@@ -113,6 +113,8 @@ jobs:
       - name: Prefetch sqlite3 Windows native libs
         shell: bash
         working-directory: ${{ env.GITHUB_WORKSPACE }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: bash tool/prefetch_sqlite3_libs.sh windows || echo "::warning::prefetch_sqlite3_libs skipped; the dart_build hook will fetch on its own"
 
       # The staged workspace is recreated (and windows\ffmpeg excluded) every
