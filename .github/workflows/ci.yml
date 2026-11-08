@@ -174,7 +174,11 @@ jobs:
         run: flutter analyze
 
       - name: Flutter test (app, with coverage)
-        run: flutter test --coverage
+        # --timeout 5m: the shared runner pool runs the whole suite far slower
+        # than a workstation, and the Drift-backed tests open a SQLite handle
+        # whose start-up latency is unbounded there — the 30s default made them
+        # fail on timing rather than on behavior.
+        run: flutter test --coverage --timeout=5m
 
       # The relative-day label counts calendar days, and the 23-hour day a DST
       # transition creates is what breaks that count. The runner's default zone
@@ -201,6 +205,6 @@ jobs:
           set -euo pipefail
           for pkg in packages/*/; do
             if [ -d "${pkg}test" ]; then
-              (cd "$pkg" && flutter pub get && flutter test)
+              (cd "$pkg" && flutter pub get && flutter test --timeout=5m)
             fi
           done
