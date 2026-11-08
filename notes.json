@@ -1,8 +1,8 @@
 {
   "version": 1,
   "cursors": {
-    "labelling_after": 1270,
-    "investigation_after": 1270
+    "labelling_after": 1276,
+    "investigation_after": 1276
   },
   "issues": [
     {
@@ -25,33 +25,27 @@
   "checks": [
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-11-07",
-      "result": "PR #1269 (post-0103-housekeeping) open, non-draft. Its 7 pull_request CI runs sit at action_required awaiting a maintainer approval click in the Actions tab (bot-authored PR); only GitGuardian ran. Base == main HEAD a64b0682; local gates green at creation.",
-      "follow_up": "After approval, fix any red gate via append-only pushes; after merge, backfill the deps changelog entry with its PR link."
+      "checked_at": "2026-11-08",
+      "result": "PR #1269 merged 2026-11-08 (commit 773d8b9f). Its changelog backfill landed inside the merge itself: every [Unreleased] entry carries its PR link, so the post-merge backfill follow-up is closed. No open repo-assist PRs.",
+      "follow_up": null
     },
     {
       "area": "docs",
-      "checked_at": "2026-11-07",
-      "result": "[Unreleased] window opened with entries for #1258, #1268 and the deps refresh; skeleton-loading.md stale [Unreleased] pointer fixed to [0.4.0]. The deps entry still lacks its PR link - needs the release-notes backfill pass (#1240/#1241 precedent via #1252).",
-      "follow_up": "Keep the window current as post-release merges land."
+      "checked_at": "2026-11-08",
+      "result": "[Unreleased] window verified complete for #1258/#1268/#1269 (all carry PR links). Gap found: merged refactor #1274 (listResource, closes #1272) had no entry - refactors DO get Changed entries marked \"(no user-visible change)\" per the #1233/#1239/#1247 precedent. Draft PR opened adding it.",
+      "follow_up": "Keep the window fed as merges land; refactors count."
     },
     {
       "area": "tests",
-      "checked_at": "2026-11-07",
-      "result": "Full suite 7149 passed / 24 skipped under the refreshed resolution; all skips intentional (local-only microbenchmarks, media_kit native-availability). FFmpeg probe helpers well tested post-#1250. One bare skip:true lacks a reason string (transcript_echo_region_card_rebuild_perf_test) - cosmetic.",
+      "checked_at": "2026-11-08",
+      "result": "Suite green 2026-11-07 (7149 passed / 24 skips). The bare bool skip in transcript_echo_region_card_rebuild_perf_test.dart is API-forced: testWidgets types skip as bool?, reason strings cannot compile. Sandbox: pub get strips committed plugin registrant files - restore before committing.",
       "follow_up": null
     },
     {
       "area": "release",
       "checked_at": "2026-11-07",
-      "result": "v0.10.3 published 2026-11-06 09:16 UTC (latest release). Post-release merges so far: #1258 (perf lookup), #1268 (docs) - both now carry [Unreleased] entries. Release objects for v0.10.2, v0.10.0, v0.9.0 still missing (re-verified 2026-11-07).",
+      "result": "v0.10.3 published 2026-11-06 (latest). Post-release merges #1258/#1268/#1269/#1274 - all changelogged once the #1274-entry draft PR lands. v0.10.2/v0.10.0/v0.9.0 Release objects still missing. 2026-11-08 sweep: no actionable CI item; Flutter bumps are maintainer cadence.",
       "follow_up": "No release prep until the [Unreleased] window holds meaningful content; backfill remains maintainer-only."
-    },
-    {
-      "area": "dependencies",
-      "checked_at": "2026-11-07",
-      "result": "Lockfile refresh PR aw_housekeeping: 4 direct + 2 dev + 11 transitive within constraints; code_builder/mockito dropped as lockfile-only entries; riverpod 3.5.0 deprecated ref.exists(provider) - three player call sites renamed to ref.read(provider.exists).",
-      "follow_up": "file_picker pinning intent still a maintainer decision (comment says exact pin, constraint is ^12.0.0)."
     },
     {
       "area": "performance",
@@ -160,14 +154,13 @@
     {
       "key": "fix-1251-pr-1262-closed-wontfix-declined",
       "completed_at": "2026-11-07"
+    },
+    {
+      "key": "review-approve-pr-1269-merged-as-773d8b9f",
+      "completed_at": "2026-11-08"
     }
   ],
   "priorities": [
-    {
-      "task": 6,
-      "item": "Maintain the housekeeping draft until merged",
-      "note": "Maintain PR #1269 until merged. Blocker: its 7 pull_request workflow runs need a maintainer approval click in the Actions tab; then fix red gates via append-only pushes. After merge, backfill the deps changelog entry PR link."
-    },
     {
       "task": 7,
       "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
@@ -186,7 +179,12 @@
     {
       "task": 5,
       "item": "The proactive-refactor lane stays paused by the maintainer",
-      "note": "Detector findings #1235/#1237/#1238 were resolved by the maintainer's own #1239 - keep staying out of the lane."
+      "note": "Detector findings #1235/#1237/#1238 were resolved by the maintainer own #1239 - keep staying out of the lane."
+    },
+    {
+      "task": 7,
+      "item": "Get the #1274 changelog-entry draft reviewed and merged",
+      "note": "Small docs-only PR recording the merged listResource refactor in [Unreleased] per the #1233/#1239/#1247 precedent."
     }
   ]
 }
