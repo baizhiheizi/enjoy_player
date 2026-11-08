@@ -2,7 +2,6 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
-import 'package:enjoy_player/data/api/query_params.dart';
 import 'dart:io' show Platform;
 
 import 'package:enjoy_player/data/api/rest_api.dart';
@@ -23,18 +22,13 @@ class RecordingApi extends RestApi {
     String? language,
     int? limit,
     String? updatedAfter,
-  }) {
-    return client.getJsonList(
-      _path,
-      queryParameters: buildQuery({
-        'targetId': targetId,
-        'targetType': targetType,
-        'language': language,
-        'limit': limit,
-        'updatedAfter': updatedAfter,
-      }),
-    );
-  }
+  }) => listResource(_path, {
+    'targetId': targetId,
+    'targetType': targetType,
+    'language': language,
+    'limit': limit,
+    'updatedAfter': updatedAfter,
+  });
 
   Future<JsonMap> recording(String id) => client.getJson('$_path/$id');
 

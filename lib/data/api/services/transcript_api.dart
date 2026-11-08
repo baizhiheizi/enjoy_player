@@ -2,7 +2,6 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
-import 'package:enjoy_player/data/api/query_params.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
 
 class TranscriptApi extends RestApi {
@@ -15,17 +14,12 @@ class TranscriptApi extends RestApi {
     String? targetType,
     String? source,
     String? language,
-  }) {
-    return client.getJsonList(
-      _path,
-      queryParameters: buildQuery({
-        'targetId': targetId,
-        'targetType': targetType,
-        'source': source,
-        'language': language,
-      }),
-    );
-  }
+  }) => listResource(_path, {
+    'targetId': targetId,
+    'targetType': targetType,
+    'source': source,
+    'language': language,
+  });
 
   Future<JsonMap> transcript(String id) => client.getJson('$_path/$id');
 

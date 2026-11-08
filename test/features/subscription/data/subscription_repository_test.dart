@@ -16,6 +16,12 @@ class _FakeSubscriptionApi implements SubscriptionApi {
   ApiClient get client => throw UnimplementedError();
 
   @override
+  Future<List<Map<String, dynamic>>> listResource(
+    String path, [
+    Map<String, Object?> params = const {},
+  ]) => throw UnimplementedError();
+
+  @override
   Future<Map<String, dynamic>> getStatus() => _handler('getStatus');
 
   @override
@@ -139,6 +145,12 @@ class _ThrowingApi implements SubscriptionApi {
 
   @override
   ApiClient get client => throw UnimplementedError();
+
+  @override
+  Future<List<Map<String, dynamic>>> listResource(
+    String path, [
+    Map<String, Object?> params = const {},
+  ]) => throw UnimplementedError();
 
   @override
   Future<Map<String, dynamic>> getStatus() => throw error;

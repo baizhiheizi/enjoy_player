@@ -2,7 +2,6 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
-import 'package:enjoy_player/data/api/query_params.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
 
 class AudioApi extends RestApi {
@@ -14,16 +13,11 @@ class AudioApi extends RestApi {
     String? provider,
     int? limit,
     String? updatedAfter,
-  }) {
-    return client.getJsonList(
-      _path,
-      queryParameters: buildQuery({
-        'provider': provider,
-        'limit': limit,
-        'updatedAfter': updatedAfter,
-      }),
-    );
-  }
+  }) => listResource(_path, {
+    'provider': provider,
+    'limit': limit,
+    'updatedAfter': updatedAfter,
+  });
 
   Future<JsonMap> audio(String id) => client.getJson('$_path/$id');
 
