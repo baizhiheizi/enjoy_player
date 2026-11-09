@@ -1,8 +1,6 @@
 /// Single transcript cue row with timestamp, markup, and tap target.
 library;
 
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -12,21 +10,20 @@ import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/data/subtitle/current_transcript_word.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/settings/application/ipa_overlay_settings.dart';
+import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_cue_reveal_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
-import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
-import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
-import 'package:enjoy_player/features/transcript/presentation/transcript_line_selection_toolbar.dart';
-import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_tile_chrome.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_tile_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_word_ipa_layer.dart';
-import 'package:enjoy_player/l10n/app_localizations.dart';
 
 @visibleForTesting
 int transcriptTileBuildCount = 0;
@@ -153,10 +150,11 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     );
   }
 
-  String _snippet(String plain) {
-    final t = plain.replaceAll('\n', ' ').trim();
-    if (t.length <= 120) return t;
-    return '${t.substring(0, 120)}…';
+  void _setHoverSafe(bool value) {
+    runOutsideMouseTrackerIfMounted(
+      () => mounted,
+      () => setValueNotifierOutsideMouseTracker(_hover, value),
+    );
   }
 
   @override
@@ -165,42 +163,12 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
     final typography = TranscriptTypographyTokens.of(context);
-    final l10n = AppLocalizations.of(context);
     final metrics = TranscriptLensMetrics.of(context);
     final loopActive = widget.groupedInEcho && widget.loopFontSize != null;
     final lensDistance = widget.lensDistance.clamp(0, 3);
     final inLens = lensDistance > 0 && !loopActive;
-    final bodyFontSize = loopActive
-        ? widget.loopFontSize!
-        : inLens
-        ? metrics.contextFontSize(lensDistance)
-        : metrics.lineFontSize(active: widget.isActive);
-    final emphasized = (loopActive || widget.isActive) && !inLens;
-    final baseBody = typography.bodyStyle.copyWith(
-      height: loopActive
-          ? metrics.loopLineHeight
-          : inLens
-          ? metrics.contextLineHeight
-          : metrics.plainLineHeight,
-      fontSize: bodyFontSize,
-      fontWeight: emphasized ? FontWeight.w500 : FontWeight.w400,
-      letterSpacing: loopActive
-          ? bodyFontSize * metrics.loopLetterSpacingEm
-          : emphasized
-          ? bodyFontSize * metrics.listenLetterSpacingEm
-          : null,
-    );
-    final secondaryTypographyStyle = typography.secondaryStyle.copyWith(
-      height: loopActive
-          ? metrics.loopSecondaryLineHeight
-          : metrics.secondaryLineHeight,
-      fontSize: loopActive
-          ? metrics.loopSecondaryFontSize
-          : metrics.secondaryFontSize(active: widget.isActive),
-    );
     final defaultFg = scheme.onSurface;
 
-    final echoCurrent = widget.isActive && widget.inEcho;
     final timestampText = formatTranscriptTimestampMs(widget.line.startMs);
     final timestampStyle = typography.timestampStyle.copyWith(
       fontSize: metrics.timeFontSize,
@@ -240,89 +208,11 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
       transcriptCueRevealProvider(widget.mediaId, cueId),
     );
 
-    String statePrefix = '';
-    if (l10n != null) {
-      if (echoCurrent) {
-        statePrefix = l10n.transcriptAccessibilityEchoCurrentLine;
-      } else if (widget.isActive) {
-        statePrefix = l10n.transcriptAccessibilityCurrentLine;
-      } else if (widget.inEcho) {
-        statePrefix = l10n.transcriptAccessibilityEchoRegion;
-      }
-    }
-    final cueLabel = l10n != null
-        ? l10n.transcriptAccessibilityCue(timestampText, _snippet(primaryPlain))
-        : '$timestampText. ${_snippet(primaryPlain)}';
-    var semanticsLabel = statePrefix.isEmpty
-        ? cueLabel
-        : '$statePrefix $cueLabel';
-    final recordingCount = widget.recordingCount;
-    if (recordingCount != null && recordingCount > 0 && l10n != null) {
-      semanticsLabel =
-          '$semanticsLabel. ${l10n.transcriptLineRecordingCount(recordingCount)}';
-    }
-
-    Widget? secondaryWidget;
-    if (widget.secondaryText != null && !inLens) {
-      final secondarySpan = transcriptMarkupToTextSpan(
-        widget.secondaryText!,
-        secondaryTypographyStyle,
-        defaultColor: scheme.onSurfaceVariant,
-        emphasize: false,
-      );
-      final retranslate = widget.onRetranslateSecondary;
-      final retranslateLabel =
-          AppLocalizations.of(context)?.subtitlesAutoTranslateRetranslateLine ??
-          'Re-translate this line';
-      final span = retranslate == null
-          ? secondarySpan
-          : TextSpan(
-              children: [
-                secondarySpan,
-                WidgetSpan(
-                  alignment: PlaceholderAlignment.middle,
-                  child: Semantics(
-                    label: retranslateLabel,
-                    button: true,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: retranslate,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 6, right: 2),
-                        child: Icon(
-                          EnjoyIcons.refresh,
-                          size: 15,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-      secondaryWidget = widget.selectable
-          ? TranscriptSelectableRichText(
-              span: span,
-              onTap: _revealHoldOnly,
-              onLookupRequested: widget.onLookupRequested,
-            )
-          : Text.rich(span);
-    }
+    final resolvedSecondaryText = inLens ? null : widget.secondaryText;
 
     return ValueListenableBuilder<bool>(
       valueListenable: _hover,
       builder: (context, hover, _) {
-        Color? bg;
-        List<BoxShadow>? cardShadow;
-        if (widget.groupedInEcho || inLens) {
-          bg = Colors.transparent;
-        } else if (widget.isActive) {
-          bg = tok.paper;
-          cardShadow = tok.shadowLift;
-        } else if (hover) {
-          bg = tok.sunk.withValues(alpha: 0.55);
-        }
-
         final isRevealed = !blurEnabled || hover || providerRevealed;
         final focused =
             !widget.dimWhenInactive ||
@@ -335,250 +225,44 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             ? defaultFg
             : tok.ink3;
 
-        Widget primaryWidget;
-        if (useAligned && isRevealed) {
-          final ipaStyle = transcriptIpaTextStyle(
-            baseBody,
-            tok.ink3,
-            fontSize: loopActive
-                ? metrics.loopIpaFontSize
-                : metrics.listenIpaFontSize,
-          );
-          final alignedBody = loopActive
-              ? baseBody
-              : baseBody.copyWith(height: metrics.alignedLineHeight);
-          primaryWidget = TranscriptAlignedWords(
-            words: words,
-            wordStyle: alignedBody,
+        return TranscriptTileChrome(
+          timestampText: timestampText,
+          timestampStyle: timestampStyle,
+          primaryPlain: primaryPlain,
+          isActive: widget.isActive,
+          inEcho: widget.inEcho,
+          groupedInEcho: widget.groupedInEcho,
+          inLens: inLens,
+          lensDistance: lensDistance,
+          selectable: widget.selectable,
+          hover: hover,
+          recordingCount: widget.recordingCount,
+          onTap: () => _handleTap(context),
+          onHoverChanged: _setHoverSafe,
+          child: TranscriptTileText(
+            line: widget.line,
+            primaryPlain: primaryPlain,
+            secondaryText: resolvedSecondaryText,
+            lineFg: lineFg,
+            isActive: widget.isActive,
+            selectable: widget.selectable,
+            useAligned: useAligned,
+            isRevealed: isRevealed,
+            loopActive: loopActive,
+            inLens: inLens,
+            lensDistance: lensDistance,
+            loopFontSize: widget.loopFontSize,
+            karaokeRange: karaokeRange,
+            karaokeFill: karaokeFill,
+            karaokeWordIndex: karaokeWordIndex,
             wavyWordIndexes: widget.wavyWordIndexes,
-            ipaStyle: ipaStyle,
-            defaultColor: lineFg,
-            emphasize: widget.isActive,
-            activeWordIndex: karaokeWordIndex,
-            activeUnderlineColor: tok.original,
-            runSpacing: loopActive
-                ? metrics.loopAlignedRowGap
-                : metrics.alignedRowGap,
             onIpaTap: _onIpaTap,
-            selectableWordBuilder: widget.selectable
-                ? (context, text, style) => TranscriptSelectableRichText(
-                    span: TextSpan(text: text, style: style),
-                    onTap: _revealHoldOnly,
-                    onLookupRequested: widget.onLookupRequested,
-                  )
-                : null,
-          );
-        } else {
-          final primarySpan = transcriptMarkupToTextSpan(
-            widget.line.text,
-            baseBody,
-            defaultColor: lineFg,
-            emphasize: false,
-            highlightRange: karaokeRange,
-            highlightFill: karaokeFill,
-            highlightUnderline: true,
-          );
-          primaryWidget = widget.selectable
-              ? TranscriptSelectableRichText(
-                  span: primarySpan,
-                  onTap: _revealHoldOnly,
-                  onLookupRequested: widget.onLookupRequested,
-                )
-              : Text.rich(primarySpan);
-        }
-
-        final blurredPrimary = TranscriptBlurText(
-          revealed: isRevealed,
-          shapeWords: primaryPlain,
-          shapeFontSize: baseBody.fontSize,
-          onShapesTap: widget.selectable ? _revealHoldOnly : null,
-          child: primaryWidget,
-        );
-        final blurredSecondary = secondaryWidget == null
-            ? null
-            : TranscriptBlurText(
-                revealed: isRevealed,
-                shapeWords: widget.secondaryText,
-                shapeFontSize: secondaryTypographyStyle.fontSize,
-                child: secondaryWidget,
-              );
-
-        final hasTakes = recordingCount != null && recordingCount > 0;
-        final showGutter = !widget.groupedInEcho;
-        final practicedDot = Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(color: tok.you, shape: BoxShape.circle),
-        );
-        final gutterTop = inLens
-            ? metrics.contextGutterTop
-            : metrics.gutterTop(active: widget.isActive);
-        final timeInGutter = showGutter && metrics.timeInGutter;
-        final textBody = Padding(
-          padding: widget.groupedInEcho
-              ? EdgeInsets.zero
-              : inLens
-              ? metrics.contextPadding
-              : metrics.linePadding(active: widget.isActive),
-          child: Row(
-            crossAxisAlignment: timeInGutter
-                ? CrossAxisAlignment.baseline
-                : CrossAxisAlignment.start,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              if (timeInGutter) ...[
-                SizedBox(
-                  width: metrics.gutterWidth,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    alignment: AlignmentDirectional.topEnd,
-                    children: [
-                      Text(timestampText, style: timestampStyle, maxLines: 1),
-                      if (hasTakes)
-                        PositionedDirectional(
-                          top: metrics.timeFontSize + metrics.practicedDotGap,
-                          end: 0,
-                          child: practicedDot,
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: metrics.gutterGap),
-              ] else if (showGutter) ...[
-                SizedBox(
-                  width: metrics.gutterWidth,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: gutterTop),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: hasTakes ? practicedDot : const SizedBox.shrink(),
-                    ),
-                  ),
-                ),
-                SizedBox(width: metrics.gutterGap),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (showGutter &&
-                        !metrics.timeInGutter &&
-                        widget.isActive &&
-                        !inLens) ...[
-                      Text(
-                        timestampText,
-                        style: timestampStyle.copyWith(color: tok.originalInk),
-                      ),
-                      SizedBox(height: metrics.timeAboveLineGap),
-                    ],
-                    blurredPrimary,
-                    if (blurredSecondary != null) ...[
-                      SizedBox(
-                        height: loopActive
-                            ? metrics.loopSecondaryTopGap
-                            : metrics.secondaryTopGap,
-                      ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [Expanded(child: blurredSecondary)],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-
-        final content = textBody;
-
-        final lineRadius = BorderRadius.circular(metrics.lineRadius);
-        Widget decorate(Widget child) => DecoratedBox(
-          decoration: ShapeDecoration(
-            color: bg ?? Colors.transparent,
-            shadows: cardShadow,
-            shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
-          ),
-          child: ClipRSuperellipse(borderRadius: lineRadius, child: child),
-        );
-
-        if (widget.selectable) {
-          return _lensFade(
-            hover,
-            child: Semantics(
-              container: true,
-              label: semanticsLabel,
-              focusable: true,
-              child: MouseRegion(
-                onEnter: (_) => _setHoverSafe(true),
-                onExit: (_) => _setHoverSafe(false),
-                child: widget.groupedInEcho
-                    ? ColoredBox(
-                        color: bg ?? Colors.transparent,
-                        child: content,
-                      )
-                    : decorate(content),
-              ),
-            ),
-          );
-        }
-
-        if (widget.groupedInEcho) {
-          return _lensFade(
-            hover,
-            child: Semantics(
-              container: true,
-              label: semanticsLabel,
-              button: true,
-              child: EnjoyPressable(
-                onTap: () => _handleTap(context),
-                borderRadius: lineRadius,
-                child: ColoredBox(
-                  color: bg ?? Colors.transparent,
-                  child: content,
-                ),
-              ),
-            ),
-          );
-        }
-
-        return _lensFade(
-          hover,
-          child: Semantics(
-            container: true,
-            label: semanticsLabel,
-            button: true,
-            child: MouseRegion(
-              onEnter: (_) => _setHoverSafe(true),
-              onExit: (_) => _setHoverSafe(false),
-              child: EnjoyPressable(
-                shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
-                onTap: () => _handleTap(context),
-                child: decorate(content),
-              ),
-            ),
+            onRevealHoldOnly: _revealHoldOnly,
+            onLookupRequested: widget.onLookupRequested,
+            onRetranslateSecondary: widget.onRetranslateSecondary,
           ),
         );
       },
-    );
-  }
-
-  void _setHoverSafe(bool value) {
-    runOutsideMouseTrackerIfMounted(
-      () => mounted,
-      () => setValueNotifierOutsideMouseTracker(_hover, value),
-    );
-  }
-
-  Widget _lensFade(bool hover, {required Widget child}) {
-    final distance = widget.lensDistance.clamp(0, 3);
-    if (distance == 0) return child;
-    final tok = EnjoyThemeTokens.of(context);
-    return AnimatedOpacity(
-      opacity: hover ? 1.0 : tok.echoLensOpacity[distance],
-      duration: tok.motionMedium,
-      curve: Curves.easeOut,
-      child: child,
     );
   }
 }
