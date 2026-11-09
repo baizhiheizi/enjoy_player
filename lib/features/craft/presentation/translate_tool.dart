@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
-import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -17,8 +16,10 @@ import 'package:enjoy_player/features/craft/presentation/craft_lang_tile.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_busy_label.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_field_border.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_paste_text_field.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/presentation/style_picker.dart';
@@ -111,24 +112,10 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
             ),
           ],
           SizedBox(height: tokens.space16),
-          TextField(
+          CraftPasteTextField(
             controller: _sourceCtrl,
-            maxLines: 5,
-            minLines: 3,
-            decoration: InputDecoration(
-              labelText: l10n.craftSourceText,
-              hintText: l10n.craftTextInputHint,
-              border: craftFieldBorder(tokens),
-              enabledBorder: craftFieldBorder(tokens),
-              focusedBorder: craftFieldBorder(tokens, focused: true),
-              suffixIcon: EnjoyIconButton(
-                icon: EnjoyIcons.paste,
-                tooltip: l10n.craftPasteFromClipboard,
-                variant: EnjoyButtonVariant.ghost,
-                size: 32,
-                onPressed: () => _paste(_sourceCtrl, controller.setSourceText),
-              ),
-            ),
+            labelText: l10n.craftSourceText,
+            hintText: l10n.craftTextInputHint,
             onChanged: controller.setSourceText,
           ),
           SizedBox(height: tokens.space16),
@@ -136,14 +123,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
             onPressed: canTranslate ? controller.translate : null,
             icon: state.isTranslating ? null : EnjoyIcons.translate,
             child: state.isTranslating
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const LoadingIcon(size: 18),
-                      const SizedBox(width: 8),
-                      Text(l10n.craftLoadingRewriting),
-                    ],
-                  )
+                ? CraftBusyLabel(label: l10n.craftLoadingRewriting)
                 : Text(
                     state.translatedText != null
                         ? l10n.craftReTranslateButton
@@ -205,18 +185,6 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
       } else {
         controller.setTargetLanguage(picked);
       }
-    }
-  }
-
-  Future<void> _paste(
-    TextEditingController ctrl,
-    void Function(String) onChanged,
-  ) async {
-    final clip = await Clipboard.getData('text/plain');
-    final t = clip?.text;
-    if (t != null && t.isNotEmpty) {
-      ctrl.text = t;
-      onChanged(t);
     }
   }
 

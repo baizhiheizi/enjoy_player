@@ -5,7 +5,6 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
@@ -18,8 +17,9 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_busy_label.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
-import 'package:enjoy_player/features/craft/presentation/widgets/craft_field_border.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_paste_text_field.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
@@ -84,24 +84,10 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
             onChanged: controller.setSelectedVoice,
           ),
           SizedBox(height: tokens.space16),
-          TextField(
+          CraftPasteTextField(
             controller: _textCtrl,
-            maxLines: 5,
-            minLines: 3,
-            decoration: InputDecoration(
-              labelText: l10n.craftSynthText,
-              hintText: l10n.craftTextInputHint,
-              border: craftFieldBorder(tokens),
-              enabledBorder: craftFieldBorder(tokens),
-              focusedBorder: craftFieldBorder(tokens, focused: true),
-              suffixIcon: EnjoyIconButton(
-                icon: EnjoyIcons.paste,
-                tooltip: l10n.craftPasteFromClipboard,
-                variant: EnjoyButtonVariant.ghost,
-                size: 32,
-                onPressed: () => _paste(controller),
-              ),
-            ),
+            labelText: l10n.craftSynthText,
+            hintText: l10n.craftTextInputHint,
             onChanged: controller.setSynthText,
           ),
           SizedBox(height: tokens.space16),
@@ -111,14 +97,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
                 : null,
             icon: state.isSynthesizing ? null : EnjoyIcons.speak,
             child: state.isSynthesizing
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const LoadingIcon(size: 18),
-                      const SizedBox(width: 8),
-                      Text(l10n.craftLoadingSynthesizing),
-                    ],
-                  )
+                ? CraftBusyLabel(label: l10n.craftLoadingSynthesizing)
                 : Text(
                     state.hasPreview
                         ? l10n.craftReSynthesizeButton
@@ -135,14 +114,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
               onPressed: state.isSaving ? null : _save,
               icon: state.isSaving ? null : EnjoyIcons.save,
               child: state.isSaving
-                  ? const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        LoadingIcon(size: 18),
-                        SizedBox(width: 8),
-                        Text('…'),
-                      ],
-                    )
+                  ? const CraftBusyLabel(label: '…')
                   : Text(l10n.craftSaveToLibrary),
             ),
           ],
@@ -161,16 +133,6 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
     );
     if (!mounted || picked == null) return;
     controller.setSynthLanguage(picked);
-  }
-
-  Future<void> _paste(CraftController controller) async {
-    final clip = await Clipboard.getData('text/plain');
-    if (!mounted) return;
-    final t = clip?.text;
-    if (t != null && t.isNotEmpty) {
-      _textCtrl.text = t;
-      controller.setSynthText(t);
-    }
   }
 
   Future<void> _synthesizeWithOverlay(AppLocalizations l10n) async {
