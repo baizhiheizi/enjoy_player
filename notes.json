@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": 1276,
-    "investigation_after": 1276
+    "investigation_after": 1288
   },
   "issues": [
     {
@@ -26,8 +26,8 @@
     {
       "area": "repo_assist_prs",
       "checked_at": "2026-11-09",
-      "result": "changelog-1274 draft merged as PR #1277 (commit 81542b46). New draft PR opened on branch repo-assist/changelog-1283-1284 recording the #1283/#1284 dedup refactors in [Unreleased].",
-      "follow_up": "Get the changelog-1283-1284 draft reviewed and merged."
+      "result": "changelog draft is PR #1285 (head 89da2f4): docs-only 2-line diff, vigil APPROVE. Awaiting maintainer review.",
+      "follow_up": "Get PR #1285 reviewed and merged."
     },
     {
       "area": "docs",
@@ -38,7 +38,7 @@
     {
       "area": "tests",
       "checked_at": "2026-11-09",
-      "result": "Suite green 2026-11-07 (7149 passed / 24 skips). The bare bool skip in transcript_echo_region_card_rebuild_perf_test.dart is API-forced: testWidgets types skip as bool?, reason strings cannot compile. Sandbox: pub get strips committed plugin registrant files - restore before committing.",
+      "result": "analyze + CI green on 7890e266. #1283/#1284 modules covered: craft widgets in craft_paste_text_field_test.dart, tile text/chrome via 15 tile test files. Suite green 2026-11-07 (7149/24 skips). pub get strips plugin registrants - restore before committing.",
       "follow_up": null
     },
     {
@@ -49,8 +49,8 @@
     },
     {
       "area": "performance",
-      "checked_at": "2026-11-07",
-      "result": "Lane owned by perf-improver (stocked P20b backlog, daily cadence); remaining #1192 items are maintainer decisions (P7/P8/P10b/P3-reframed). Repo Assist stays out to avoid PR collisions.",
+      "checked_at": "2026-11-09",
+      "result": "Lane owned by perf-improver (stocked P20b backlog, daily cadence); remaining #1192 items are maintainer decisions (P7/P8/P10b/P3-reframed). Repo Assist stays out to avoid PR collisions. Re-confirmed 2026-11-09: #1192 tracker unchanged, nothing new.",
       "follow_up": null
     }
   ],
@@ -187,8 +187,8 @@
     },
     {
       "task": 7,
-      "item": "Get the changelog-1283-1284 draft reviewed and merged",
-      "note": "Small docs-only PR recording the merged #1283/#1284 dedup refactors in [Unreleased] per the refactor-entry precedent."
+      "item": "Get PR #1285 (changelog for #1283/#1284) reviewed and merged",
+      "note": "Docs-only, vigil APPROVE on head 89da2f4; just needs the maintainer click."
     },
     {
       "task": 10,
