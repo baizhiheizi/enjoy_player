@@ -25,27 +25,27 @@
   "checks": [
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-11-08",
-      "result": "PR #1269 merged 2026-11-08 (commit 773d8b9f). Its changelog backfill landed inside the merge itself: every [Unreleased] entry carries its PR link, so the post-merge backfill follow-up is closed. No open repo-assist PRs.",
-      "follow_up": null
+      "checked_at": "2026-11-09",
+      "result": "changelog-1274 draft merged as PR #1277 (commit 81542b46). New draft PR opened on branch repo-assist/changelog-1283-1284 recording the #1283/#1284 dedup refactors in [Unreleased].",
+      "follow_up": "Get the changelog-1283-1284 draft reviewed and merged."
     },
     {
       "area": "docs",
-      "checked_at": "2026-11-08",
-      "result": "[Unreleased] window verified complete for #1258/#1268/#1269 (all carry PR links). Gap found: merged refactor #1274 (listResource, closes #1272) had no entry - refactors DO get Changed entries marked \"(no user-visible change)\" per the #1233/#1239/#1247 precedent. Draft PR opened adding it.",
+      "checked_at": "2026-11-09",
+      "result": "[Unreleased] window current as of 2026-11-09: entries now cover #1269, #1258, #1274, #1283, #1284. craft.md and transcript.md carry key-files maps (not exhaustive), so the two refactors needed no feature-doc updates beyond the changelog.",
       "follow_up": "Keep the window fed as merges land; refactors count."
     },
     {
       "area": "tests",
-      "checked_at": "2026-11-08",
+      "checked_at": "2026-11-09",
       "result": "Suite green 2026-11-07 (7149 passed / 24 skips). The bare bool skip in transcript_echo_region_card_rebuild_perf_test.dart is API-forced: testWidgets types skip as bool?, reason strings cannot compile. Sandbox: pub get strips committed plugin registrant files - restore before committing.",
       "follow_up": null
     },
     {
       "area": "release",
-      "checked_at": "2026-11-07",
-      "result": "v0.10.3 published 2026-11-06 (latest). Post-release merges #1258/#1268/#1269/#1274 - all changelogged once the #1274-entry draft PR lands. v0.10.2/v0.10.0/v0.9.0 Release objects still missing. 2026-11-08 sweep: no actionable CI item; Flutter bumps are maintainer cadence.",
-      "follow_up": "No release prep until the [Unreleased] window holds meaningful content; backfill remains maintainer-only."
+      "checked_at": "2026-11-09",
+      "result": "v0.10.3 published 2026-11-06 (latest). [Unreleased] holds CI/build fixes (#1269), the #1258 credits dedup, and three refactor entries - still thin on user-facing product changes, so no release prep yet. v0.10.2/v0.10.0/v0.9.0 Release objects still missing.",
+      "follow_up": "No release prep until the window holds user-facing product changes; backfill remains maintainer-only."
     },
     {
       "area": "performance",
@@ -158,6 +158,10 @@
     {
       "key": "review-approve-pr-1269-merged-as-773d8b9f",
       "completed_at": "2026-11-08"
+    },
+    {
+      "key": "changelog-1274-pr-merged-as-1277",
+      "completed_at": "2026-11-09"
     }
   ],
   "priorities": [
@@ -177,14 +181,24 @@
       "note": "Comment says exact pin and ADR-0029 lists an exact pin, but the constraint is ^12.0.0. Do not change unilaterally."
     },
     {
-      "task": 5,
-      "item": "The proactive-refactor lane stays paused by the maintainer",
-      "note": "Detector findings #1235/#1237/#1238 were resolved by the maintainer own #1239 - keep staying out of the lane."
+      "task": 4,
+      "item": "Fold drift 2.35.4 / sqlite3 3.9.1 / drift_dev 2.35.3 into the next scheduled lockfile refresh",
+      "note": "Published after #1269 and resolvable within constraints. Do not open a duplicate refresh within a few days of the maintainer's own."
     },
     {
       "task": 7,
-      "item": "Get the #1274 changelog-entry draft reviewed and merged",
-      "note": "Small docs-only PR recording the merged listResource refactor in [Unreleased] per the #1233/#1239/#1247 precedent."
+      "item": "Get the changelog-1283-1284 draft reviewed and merged",
+      "note": "Small docs-only PR recording the merged #1283/#1284 dedup refactors in [Unreleased] per the refactor-entry precedent."
+    },
+    {
+      "task": 10,
+      "item": "Duet tracker (STATUS.md 53/64): no actionable Repo Assist work",
+      "note": "Remaining rows are maintainer-driven design with board compares, hardware-gated QA (D5.4/D5.5 need Windows WebView2/macOS/phones), or open product decisions. Re-check only if STATUS.md changes."
+    },
+    {
+      "task": 5,
+      "item": "The proactive-refactor lane stays paused by the maintainer",
+      "note": "Detector findings #1279/#1282 were rejected by the maintainer as intentional patterns; #1281 the maintainer fixed themselves. Keep staying out of the lane."
     }
   ]
 }
