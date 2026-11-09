@@ -1,5 +1,19 @@
 # Performance backlog — Enjoy Player
 
+**UPDATE 2026-11-09:** **P20 MERGED as #1258** by an-lee on 2026-11-07
+01:29 UTC — the 11-06 re-ship DID publish; the framework pushes the
+branch under a SUFFIXED name
+(`perf-assist/lookup-credits-refresh-once-per-result-acd53a97...`), so
+publication checks must search the `[perf-improver]` title prefix or
+list recent PRs, never match the exact local branch name.
+**TWELVE merged perf-improver PRs** (#1006, #1071, #1100, #1127, #1142,
+#1167, #1175, #1191, #1203, #1218, #1228, #1258). This run shipped
+**P21** (locale-keyed DateFormat construction cache: craft-history
+tiles + `relativeDayLabel` rows; branch
+`perf-assist/date-format-cache`). Follow-up DateFormat sites (credits
+usage log, sync status, home header) recorded in the P21 section; the
+craft-history non-virtualized ListView stays open (ADR-0093 territory).
+
 **UPDATE 2026-11-05:** P19 MERGED as **#1228** by an-lee on 2026-11-04
 14:34 UTC — **eleven merged perf-improver code-changing PRs**. This run
 swept lookup + vocabulary presentation (Explore agent; survived a 503
@@ -355,7 +369,7 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
 - Status: draft PR open on `perf-assist/cue-id-memo` (commit `6ca3e6c4`).
   PR number assigned when the framework pushes the bundle.
 
-## P20 — lookup credits-summary refetch per section rebuild (SHIPPED 2026-11-06, draft PR open — REPUBLICATION; the 2026-11-05 run's bundle failed to publish, no PR ever existed from it)
+## P20 — lookup credits-summary refetch per section rebuild (SHIPPED 2026-11-06 — **MERGED as #1258 by an-lee on 2026-11-07 01:29 UTC**; the 11-06 bundle published fine, the 11-05 one did not)
 - Files: `lib/features/lookup/presentation/lookup_credits_reporting.dart`
   (helpers), `lookup_section_error_widget.dart`, the three section files
   (`translation_lookup_section.dart:46`, `dictionary_lookup_section.dart:70`,
@@ -403,14 +417,12 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   assertions expect 2, not 1.
 
 ## P20b — leftover sweep candidates from the 2026-11-05 sweep (unshipped)
-- **craft history DateFormat** (`craft_history_screen.dart:155`): fresh
-  `DateFormat.yMMMd().add_jm()` per tile build; measured fresh
-  construct+format = **6.09 µs vs 0.22 µs cached** (27x, standalone
-  intl bench). Hoist to the locale-keyed module cache pattern
-  (`discover_age_label.dart:30`). Also non-builder `ListView(children:)`
-  with an inner `Column` eager-builds ALL tiles on every registry
-  emission — full virtualization changes the bordered-card design
-  (ADR-0093 territory), DateFormat hoist alone is safe.
+- ~~**craft history DateFormat**~~ — **SHIPPED 2026-11-09 as P21**
+  (see the P21 section; the PR also covers `relative_day_label.dart`,
+  which the original item did not list). The craft screen's
+  non-builder `ListView(children:)` eager-build remains open — full
+  virtualization changes the bordered-card design (ADR-0093
+  territory).
 - **discover feed tile thumbnail** (`discover_feed_tile.dart:128`):
   `remoteThumbnailForCard(entry.thumbnailUrl)` = Uri.tryParse + up to 3
   regex per tile per rebuild (~2–5 µs each); the projection
@@ -428,6 +440,44 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   (blur cue-id pattern). `vocabulary_review_options.dart:56-65` also
   recomputes languages + runs buildVocabularySessionQueue twice per tap
   (LOW — counts derivable from existing memoized providers).
+
+## P21 — DateFormat constructed per row build (SHIPPED 2026-11-09, draft PR open)
+- Files: `lib/features/craft/presentation/craft_history_screen.dart`
+  (tile `build` ran `DateFormat.yMMMd().add_jm()` fresh per tile) and
+  `lib/core/presentation/relative_day_label.dart` (short-date branch ran
+  `DateFormat.MMMd(locale)` fresh per call; called per row from
+  `home_screen.dart:530` and twice from `local_library_tab_view.dart`).
+- Fix: module-level locale-keyed `Map<String, DateFormat>` caches with
+  `putIfAbsent` — the established `discover_age_label.dart` pattern.
+  Craft keys on `Intl.getCurrentLocale()` (exactly what intl's no-arg
+  DateFormat resolves at construction, so a future defaultLocale change
+  makes a new key, never a stale formatter — verified in intl 0.20.3
+  source: locale captured at construction).
+- Measured (502-row pass, median of round-medians, 2 fresh processes per
+  mode, sequential, sinks identical across modes):
+  MMMd fresh 0.602–0.651 ms/pass → cached 0.066–0.068 (**~9.5x**);
+  yMMMd().add_jm() fresh ~2.83 ms/pass → cached ~0.128 (**~22x**,
+  ~5.6 → ~0.25 µs/row). Matches the 2026-11-05 standalone intl bench
+  (6.09 → 0.22 µs, 27x).
+- Tests: `test/core/presentation/relative_day_label_perf_test.dart`
+  (differential vs fresh `DateFormat` constructions across en/de/ja ×
+  502 dates, per-locale cache-key check — three locales must produce
+  distinct labels so a single cached formatter would fail, craft-shape
+  fresh-vs-cached differential, 4 skip-marked benches);
+  `craft_history_test.dart` gained formatted-subtitle oracle
+  assertions; linked from `docs/perf-measurement.md`.
+- Follow-up candidates found this run (same per-build pattern, NOT in
+  the P21 PR to keep it focused): `credits_usage_log_views.dart:146`
+  (`DateFormat.Hm()` per build) and `:262`
+  (`DateFormat.yMMMd(localeName).add_jm()`), `sync_status_screen.dart:132`
+  + `:157-158` (per build), `home_screen.dart:224`
+  (`DateFormat.MMMMEEEEd(locale)` per home build). Cold/one-shot sites
+  (`credits_failure_actions.dart:35`) are not worth touching.
+- P20b re-verification this run: the discover thumbnail projection call
+  sites (`remoteThumbnailForCard` in `discover_feed_tile.dart:128` +
+  4 avatar sites + `discover_feed_join.dart:139`) are unchanged on
+  current main; the vocabulary-decode item still needs its post-#1247
+  re-verify.
 
 ## P19 — ASR timeline build re-joins the line string per word step (SHIPPED 2026-11-04, draft PR open)
 - File: `lib/features/asr/domain/asr_timeline_builder.dart`
