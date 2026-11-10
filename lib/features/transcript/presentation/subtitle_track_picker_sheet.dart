@@ -17,6 +17,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 import '../application/active_transcript_provider.dart';
 import '../application/all_transcripts_provider.dart';
 import '../application/auto_translate_controller.dart';
+import '../application/auto_translate_selection_providers.dart';
 import '../application/transcript_display_readiness_provider.dart';
 import '../application/transcript_fetch_controller.dart';
 import '../application/transcript_repository_provider.dart';

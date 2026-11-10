@@ -2,7 +2,6 @@
 library;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
@@ -15,14 +14,13 @@ import '../../../core/application/app_preferences_provider.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/logging/log.dart';
 import '../../../core/riverpod/async_value_x.dart';
-import '../../../data/db/media_target_resolver.dart';
-import '../../../data/db/app_database_provider.dart';
 import '../../../data/subtitle/subtitle_markup_parser.dart';
 import '../../ai/application/ai_services.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/auth_state.dart';
 import '../domain/auto_translate.dart';
 import 'active_transcript_provider.dart';
+import 'auto_translate_line_queue.dart';
 import 'transcript_playback_highlight_provider.dart';
 import 'transcript_repository_provider.dart';
 
@@ -32,11 +30,20 @@ final Logger _log = logNamed('auto_translate');
 
 @riverpod
 class AutoTranslateCtrl extends _$AutoTranslateCtrl {
-  final _inFlight = <int>{};
-  final _waiting = ListQueue<int>();
-  final _forceRefreshLines = <int>{};
   var _hydrateRunId = 0;
   final _flushHookRepos = <TranscriptRepository>[];
+
+  late final AutoTranslateLineQueue _queue = AutoTranslateLineQueue(
+    isLineFailed: (lineIndex) => state.isLineFailed(lineIndex),
+    startTranslate: (lineIndex, {required bool forceRefresh}) =>
+        unawaited(_translateLine(lineIndex, forceRefresh: forceRefresh)),
+    currentCueAnchor: () =>
+        ref.read(transcriptPlaybackHighlightProvider(mediaId)).cueIndex,
+    publishInFlight: (inFlightIndexes) {
+      if (!ref.mounted) return;
+      state = state.copyWith(inFlightIndexes: inFlightIndexes);
+    },
+  );
 
   /// Repository access for this controller. Every distinct instance read
   /// here is registered for the disposal flush of its pending writes (issue
@@ -96,7 +103,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
       (prev, next) {
         if (prev == next) return;
         if (state.status != AutoTranslateStatus.active) return;
-        _reprioritizeWaiting(anchor: next);
+        _queue.reprioritize(anchor: next);
       },
     );
 
@@ -206,7 +213,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     await repo.setSecondaryTranscript(mediaId, aiId);
     if (!ref.mounted) return;
 
-    _waiting.clear();
+    _queue.clearWaiting();
     _hydrateRunId++;
     state = state.copyWith(
       status: AutoTranslateStatus.active,
@@ -241,15 +248,15 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
       return;
     }
     if (state.isLineFailed(lineIndex)) return;
-    if (_inFlight.contains(lineIndex) || state.isLineInFlight(lineIndex)) {
+    if (_queue.isInFlight(lineIndex) || state.isLineInFlight(lineIndex)) {
       return;
     }
-    if (_waiting.contains(lineIndex)) return;
+    if (_queue.isWaiting(lineIndex)) return;
 
     final secondaryId = ref.read(secondaryTranscriptIdProvider(mediaId)).value;
     if (secondaryId != null && secondaryId != state.aiTranscriptId) return;
 
-    if (_inFlight.length >= kAutoTranslateMaxConcurrency) {
+    if (!_queue.hasFreeSlot) {
       _enqueueWaiting(lineIndex);
       return;
     }
@@ -280,12 +287,12 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
 
     final nextFailed = Set<int>.from(state.failedLineIndexes)
       ..remove(lineIndex);
-    _waiting.remove(lineIndex);
-    _forceRefreshLines.add(lineIndex);
+    _queue.removeWaiting(lineIndex);
+    _queue.markForceRefresh(lineIndex);
     state = state.copyWith(failedLineIndexes: nextFailed);
 
-    if (_inFlight.contains(lineIndex)) return;
-    if (_inFlight.length >= kAutoTranslateMaxConcurrency) {
+    if (_queue.isInFlight(lineIndex)) return;
+    if (!_queue.hasFreeSlot) {
       _enqueueWaiting(lineIndex, preferFront: true);
       return;
     }
@@ -338,9 +345,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     final targetLang = state.targetLanguage;
     if (aiId == null || primaryId == null || targetLang == null) return;
 
-    _inFlight.add(lineIndex);
-    _publishInFlight();
-
+    _queue.markInFlight(lineIndex);
     try {
       for (
         var attempt = 1;
@@ -389,7 +394,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
           targetLanguage: targetLang,
         );
 
-        final useForce = forceRefresh || _forceRefreshLines.remove(lineIndex);
+        final useForce = forceRefresh || _queue.consumeForceRefresh(lineIndex);
         if (!useForce) {
           final existing = resolveAutoTranslateSecondaryText(
             primaryLines: primaryLines,
@@ -472,105 +477,21 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
         }
       }
     } finally {
-      _inFlight.remove(lineIndex);
+      _queue.releaseInFlight(lineIndex);
       if (ref.mounted) {
-        _publishInFlight();
-        _drainWaiting();
+        _queue.drain();
       }
     }
   }
 
-  void _drainWaiting() {
-    _reprioritizeWaiting();
-    while (_waiting.isNotEmpty &&
-        _inFlight.length < kAutoTranslateMaxConcurrency) {
-      final next = _waiting.removeFirst();
-      if (_inFlight.contains(next) || state.isLineFailed(next)) continue;
-      unawaited(
-        _translateLine(next, forceRefresh: _forceRefreshLines.contains(next)),
-      );
-    }
-  }
-
+  /// Queues [lineIndex] and reorders the waiting lines around the playback
+  /// anchor, dropping the ones the user seeked away from.
   void _enqueueWaiting(int lineIndex, {bool preferFront = false}) {
-    if (_waiting.contains(lineIndex)) {
-      _reprioritizeWaiting();
-      return;
-    }
-    if (preferFront) {
-      _waiting.addFirst(lineIndex);
-    } else {
-      _waiting.add(lineIndex);
-    }
-    _reprioritizeWaiting();
-  }
-
-  /// Keep waiting work near the playback cue so seek jumps the queue ahead
-  /// of earlier cache-extent requests.
-  void _reprioritizeWaiting({int? anchor}) {
-    if (_waiting.isEmpty) return;
-    final int raw =
-        anchor ??
-        ref.read(transcriptPlaybackHighlightProvider(mediaId)).cueIndex;
-    final focus = raw < 0 ? 0 : raw;
-    final nearby = _waiting
-        .where((i) => (i - focus).abs() <= kAutoTranslateViewportWindow)
-        .toList();
-    final ordered = orderPendingLineIndexes(
-      anchorIndex: focus,
-      pending: nearby,
-    );
-    _waiting
-      ..clear()
-      ..addAll(ordered);
-  }
-
-  void _publishInFlight() {
-    state = state.copyWith(inFlightIndexes: Set<int>.from(_inFlight));
+    _queue.enqueue(lineIndex, preferFront: preferFront);
+    _queue.reprioritize();
   }
 
   void _clearInFlightTracking() {
-    _waiting.clear();
-    _forceRefreshLines.clear();
-    _inFlight.clear();
-    if (ref.mounted) {
-      state = state.copyWith(inFlightIndexes: const {});
-    }
+    _queue.clear();
   }
-}
-
-/// Whether [secondaryId] is the auto-translate AI track for [mediaId].
-@riverpod
-Future<bool> isAutoTranslateSecondary(
-  Ref ref,
-  String mediaId,
-  String? secondaryId,
-) async {
-  if (secondaryId == null) return false;
-  final row = await ref
-      .read(transcriptRepositoryProvider)
-      .transcriptRowById(secondaryId);
-  return row?.source == 'ai';
-}
-
-/// Predicted AI track id for picker radio value (may not exist in DB yet).
-@riverpod
-Future<String?> autoTranslateSelectionId(Ref ref, String mediaId) async {
-  final auth = ref.watch(authCtrlProvider).valueOrNull;
-  if (auth is! AuthSignedIn) return null;
-  final native = ref
-      .watch(appPreferencesCtrlProvider)
-      .valueOrNull
-      ?.effectiveNativeLanguage;
-  if (native == null || native.isEmpty) return null;
-
-  final db = ref.read(appDatabaseProvider);
-  final tt = await dexieTargetTypeForId(db, mediaId);
-  if (tt == null) return null;
-
-  return autoTranslateAiTrackId(
-    targetType: tt,
-    mediaId: mediaId,
-    targetLanguage: native,
-  );
 }
