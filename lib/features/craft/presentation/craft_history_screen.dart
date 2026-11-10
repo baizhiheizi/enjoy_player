@@ -152,7 +152,10 @@ class _CraftHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final dateFmt = DateFormat.yMMMd().add_jm();
+    final dateFmt = _subtitleDateCache.putIfAbsent(
+      Intl.getCurrentLocale(),
+      () => DateFormat.yMMMd().add_jm(),
+    );
 
     return SettingsRow(
       leadingIcon: EnjoyIcons.sparkle,
@@ -170,3 +173,5 @@ class _CraftHistoryTile extends StatelessWidget {
     );
   }
 }
+
+final Map<String, DateFormat> _subtitleDateCache = {};

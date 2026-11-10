@@ -13,8 +13,12 @@ String relativeDayLabel(
   final days = _calendarDaysBefore(reference, at);
   if (days == 0) return l10n.mediaRelativeToday;
   if (days == 1) return l10n.mediaRelativeYesterday;
-  return DateFormat.MMMd(locale).format(at);
+  return _shortDateCache
+      .putIfAbsent(locale, () => DateFormat.MMMd(locale))
+      .format(at);
 }
+
+final Map<String, DateFormat> _shortDateCache = {};
 
 /// Calendar days between two local calendar dates, counted between UTC
 /// midnights so a DST transition cannot shorten a day to 23 hours.
