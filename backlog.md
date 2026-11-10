@@ -1,5 +1,22 @@
 # Performance backlog — Enjoy Player
 
+**UPDATE 2026-11-10:** The 11-09 writes failed to publish (no P21 PR in
+any state; #1192 update never landed) — **P21 RE-SHIPPED this run**:
+commit `33b82bdc` on `perf-assist/date-format-cache` (bundle recorded,
+patch 13.7 KB / 300 lines; #1192 rewrite recorded). Fresh measurements
+this box: craft `yMMMd().add_jm()` fresh 3.026–4.555 → cached
+0.130–0.169 ms/502-row pass (~26x median, worst ~18x); relativeDayLabel
+`MMMd` fresh 0.701–0.757 → cached 0.075–0.130 (~6.2x, worst ~5.4x);
+sinks identical in all 8 process runs. **P21b follow-up sites
+re-confirmed on main today:** `credits_usage_log_views.dart:146`
+(`DateFormat.Hm()` per table build) + `:262`
+(`DateFormat.yMMMd(localeName).add_jm()` per row),
+`sync_status_screen.dart:132` (`DateFormat.Hm(locale)` per build) +
+`:158` (inline `MMMd/yMMMd(locale).add_Hm()` per lastSync text),
+`home_screen.dart:224` (`DateFormat.MMMMEEEEd(locale)` per home build).
+**TWELVE merged perf-improver PRs** (#1006, #1071, #1100, #1127, #1142,
+#1167, #1175, #1191, #1203, #1218, #1228, #1258).
+
 **UPDATE 2026-11-09:** **P20 MERGED as #1258** by an-lee on 2026-11-07
 01:29 UTC — the 11-06 re-ship DID publish; the framework pushes the
 branch under a SUFFIXED name
@@ -441,7 +458,7 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   recomputes languages + runs buildVocabularySessionQueue twice per tap
   (LOW — counts derivable from existing memoized providers).
 
-## P21 — DateFormat constructed per row build (SHIPPED 2026-11-09, draft PR open)
+## P21 — DateFormat constructed per row build (SHIPPED 2026-11-09, publication failed; RE-SHIPPED 2026-11-10 on `perf-assist/date-format-cache`, commit `33b82bdc`)
 - Files: `lib/features/craft/presentation/craft_history_screen.dart`
   (tile `build` ran `DateFormat.yMMMd().add_jm()` fresh per tile) and
   `lib/core/presentation/relative_day_label.dart` (short-date branch ran
@@ -466,6 +483,14 @@ Code-changing perf PRs can be authored and measured from this sandbox. P9
   fresh-vs-cached differential, 4 skip-marked benches);
   `craft_history_test.dart` gained formatted-subtitle oracle
   assertions; linked from `docs/perf-measurement.md`.
+- 2026-11-10 re-ship notes: fresh A/B on a new box (502-row pass, 8
+  sequential single-mode processes, sinks identical) gave craft ~26x /
+  relative-day ~6.2x — cross-box JIT spread vs the 11-09 ~22x / ~9.5x,
+  so quote each box's pairing; benches need NO env vars when each arm
+  is its own skip-marked `--plain-name` test; do NOT name the row-count
+  int and the rows list the same identifier (`_kRows` twice → duplicate
+  definition, loops iterate the int); suite on main now 7198 passed /
+  28 skipped (~22 min).
 - Follow-up candidates found this run (same per-build pattern, NOT in
   the P21 PR to keep it focused): `credits_usage_log_views.dart:146`
   (`DateFormat.Hm()` per build) and `:262`
