@@ -20,6 +20,7 @@ import 'package:enjoy_player/features/craft/presentation/widgets/craft_busy_labe
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_field_border.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_paste_text_field.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_synced_text_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/presentation/style_picker.dart';
@@ -34,20 +35,20 @@ class TranslateTool extends ConsumerStatefulWidget {
 }
 
 class _TranslateToolState extends ConsumerState<TranslateTool> {
-  late final TextEditingController _sourceCtrl;
-  late final TextEditingController _resultCtrl;
+  late final CraftSyncedTextController _source;
+  late final CraftSyncedTextController _result;
 
   @override
   void initState() {
     super.initState();
-    _sourceCtrl = TextEditingController();
-    _resultCtrl = TextEditingController();
+    _source = CraftSyncedTextController();
+    _result = CraftSyncedTextController();
   }
 
   @override
   void dispose() {
-    _sourceCtrl.dispose();
-    _resultCtrl.dispose();
+    _source.dispose();
+    _result.dispose();
     super.dispose();
   }
 
@@ -57,11 +58,8 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
     final state = ref.watch(craftControllerProvider);
     final controller = ref.read(craftControllerProvider.notifier);
 
-    if (state.translatedText != null &&
-        _resultCtrl.text != state.translatedText &&
-        !_resultCtrl.selection.isValid) {
-      _resultCtrl.text = state.translatedText!;
-    }
+    _source.sync(state.sourceText);
+    _result.sync(state.translatedText ?? '');
 
     final tokens = EnjoyThemeTokens.of(context);
     final canTranslate =
@@ -113,7 +111,8 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
           ],
           SizedBox(height: tokens.space16),
           CraftPasteTextField(
-            controller: _sourceCtrl,
+            controller: _source.controller,
+            focusNode: _source.focusNode,
             labelText: l10n.craftSourceText,
             hintText: l10n.craftTextInputHint,
             onChanged: controller.setSourceText,
@@ -135,7 +134,8 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
             EnjoySectionHeader(title: l10n.craftTranslatedText),
             SizedBox(height: tokens.space8),
             TextField(
-              controller: _resultCtrl,
+              controller: _result.controller,
+              focusNode: _result.focusNode,
               maxLines: 6,
               minLines: 3,
               decoration: InputDecoration(border: craftFieldBorder(tokens)),
@@ -178,13 +178,12 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
       ref: ref,
       selectedValue: current,
     );
-    if (picked != null) {
-      final controller = ref.read(craftControllerProvider.notifier);
-      if (isSource) {
-        controller.setSourceLanguage(picked);
-      } else {
-        controller.setTargetLanguage(picked);
-      }
+    if (!mounted || picked == null) return;
+    final controller = ref.read(craftControllerProvider.notifier);
+    if (isSource) {
+      controller.setSourceLanguage(picked);
+    } else {
+      controller.setTargetLanguage(picked);
     }
   }
 

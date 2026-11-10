@@ -24,6 +24,7 @@ import 'package:enjoy_player/features/craft/presentation/style_picker.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_loading_view.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_synced_text_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Rewrite stage for the Express flow.
@@ -35,33 +36,23 @@ class RewriteStage extends ConsumerStatefulWidget {
 }
 
 class _RewriteStageState extends ConsumerState<RewriteStage> {
-  late final TextEditingController _targetCtrl;
-  late final FocusNode _targetFocus;
-  late final TextEditingController _nativeCtrl;
-  late final FocusNode _nativeFocus;
+  late final CraftSyncedTextController _target;
+  late final CraftSyncedTextController _native;
   bool _controllersInitialized = false;
-  String? _lastSyncedTarget;
-  String? _lastSyncedNative;
 
   @override
   void dispose() {
     if (_controllersInitialized) {
-      _targetCtrl.dispose();
-      _targetFocus.dispose();
-      _nativeCtrl.dispose();
-      _nativeFocus.dispose();
+      _target.dispose();
+      _native.dispose();
     }
     super.dispose();
   }
 
   void _ensureControllers(CraftJobState state) {
     if (_controllersInitialized) return;
-    _targetCtrl = TextEditingController(text: state.translatedText ?? '');
-    _targetFocus = FocusNode();
-    _nativeCtrl = TextEditingController(text: state.rawTranscript ?? '');
-    _nativeFocus = FocusNode();
-    _lastSyncedTarget = state.translatedText;
-    _lastSyncedNative = state.rawTranscript;
+    _target = CraftSyncedTextController(state.translatedText ?? '');
+    _native = CraftSyncedTextController(state.rawTranscript ?? '');
     _controllersInitialized = true;
   }
 
@@ -89,7 +80,7 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
     if (!_controllersInitialized) return;
     ref
         .read(craftControllerProvider.notifier)
-        .setRawTranscript(_nativeCtrl.text);
+        .setRawTranscript(_native.controller.text);
   }
 
   Future<void> _regenerate() async {
@@ -106,17 +97,8 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
 
     _ensureControllers(state);
 
-    final currentTranslated = state.translatedText ?? '';
-    if (_lastSyncedTarget != currentTranslated && !_targetFocus.hasFocus) {
-      _targetCtrl.text = currentTranslated;
-      _lastSyncedTarget = currentTranslated;
-    }
-
-    final currentNative = state.rawTranscript ?? '';
-    if (_lastSyncedNative != currentNative && !_nativeFocus.hasFocus) {
-      _nativeCtrl.text = currentNative;
-      _lastSyncedNative = currentNative;
-    }
+    _target.sync(state.translatedText ?? '');
+    _native.sync(state.rawTranscript ?? '');
 
     if (state.isTranslating && !state.hasTranslation) {
       return CraftLoadingView(message: l10n.craftLoadingRewriting);
@@ -148,17 +130,15 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
       children: [
         if (hasRaw) ...[
           _NativeTextCard(
-            controller: _nativeCtrl,
-            focusNode: _nativeFocus,
+            controller: _native.controller,
+            focusNode: _native.focusNode,
             l10n: l10n,
             theme: theme,
             enabled: !state.isBusy,
             showReTranslate: showReTranslate,
             isRetranslating: isRetranslating,
-            onChanged: (v) {
-              _lastSyncedNative = v;
-              ref.read(craftControllerProvider.notifier).setRawTranscript(v);
-            },
+            onChanged: (v) =>
+                ref.read(craftControllerProvider.notifier).setRawTranscript(v),
             onReTranslate: canRegenerate
                 ? () => unawaited(_regenerate())
                 : null,
@@ -166,16 +146,14 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
           SizedBox(height: t.space16),
         ],
         _TargetTextCard(
-          controller: _targetCtrl,
-          focusNode: _targetFocus,
+          controller: _target.controller,
+          focusNode: _target.focusNode,
           targetLabel: l10n.craftRewriteTargetLabel,
           targetBase: targetBase,
           theme: theme,
           enabled: !state.isBusy,
-          onChanged: (v) {
-            _lastSyncedTarget = v;
-            ref.read(craftControllerProvider.notifier).setTranslatedText(v);
-          },
+          onChanged: (v) =>
+              ref.read(craftControllerProvider.notifier).setTranslatedText(v),
         ),
         SizedBox(height: t.space16),
         EnjoyCard(

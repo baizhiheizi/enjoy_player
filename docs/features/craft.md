@@ -142,6 +142,8 @@ Retained for users who already have prepared text. Uses `EnjoyPageKind.hub` (sam
 - **Same-language guard**: selecting the same source and target language surfaces a localized hint to switch to Speak directly
 - Inline non-blocking failures render through the shared `CraftInlineFailure` — a `scoreBad` caption plus the action the failure names (see [Failure handling in Express stages](#failure-handling-in-express-stages))
 
+Advanced source, translated result, and synthesis fields share the Express rewrite fields' state-to-text binding: a focused field keeps the learner's draft and caret during controller changes; after it loses focus, the latest controller value replaces the draft. A subsequent translation can therefore update a previously edited result, and loading an Advanced edit restores source and synthesis text into the visible fields. Language picker results are ignored after the Translate tool unmounts.
+
 ### Synthesize tool (`SynthesizeTool`)
 
 - **Text** input (either the translated result or pasted learning-language text), with a ghost `EnjoyIconButton` paste affordance

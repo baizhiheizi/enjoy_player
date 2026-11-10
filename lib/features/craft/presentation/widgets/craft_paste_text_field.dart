@@ -13,6 +13,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 class CraftPasteTextField extends StatelessWidget {
   const CraftPasteTextField({
     required this.controller,
+    this.focusNode,
     required this.labelText,
     this.hintText,
     this.onChanged,
@@ -22,6 +23,7 @@ class CraftPasteTextField extends StatelessWidget {
   });
 
   final TextEditingController controller;
+  final FocusNode? focusNode;
   final String labelText;
   final String? hintText;
   final ValueChanged<String>? onChanged;
@@ -45,6 +47,7 @@ class CraftPasteTextField extends StatelessWidget {
 
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       maxLines: maxLines,
       minLines: minLines,
       decoration: InputDecoration(

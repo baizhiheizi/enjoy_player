@@ -190,6 +190,92 @@ void main() {
       expect(find.text('translated result'), findsOneWidget);
     });
 
+    testWidgets('new translation reaches an unfocused edited result field', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(overrides: _baseOverrides(), child: const TranslateTool()),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TranslateTool)),
+      );
+      final controller = container.read(craftControllerProvider.notifier);
+      controller.setTranslatedText('old translation');
+      await tester.pumpAndSettle();
+
+      final result = find.byType(TextField).last;
+      await tester.enterText(result, 'edited translation');
+      await tester.pumpAndSettle();
+      controller.setTranslatedText('new translation');
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(result).controller!.text,
+        'edited translation',
+      );
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(result).controller!.text,
+        'new translation',
+      );
+    });
+
+    testWidgets('source input follows an external state restore', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(overrides: _baseOverrides(), child: const TranslateTool()),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TranslateTool)),
+      );
+      container
+          .read(craftControllerProvider.notifier)
+          .setSourceText('restored source');
+      await tester.pumpAndSettle();
+      expect(find.text('restored source'), findsOneWidget);
+    });
+
+    testWidgets('language picker ignores selection after tool unmounts', (
+      tester,
+    ) async {
+      final showTool = ValueNotifier<bool>(true);
+      addTearDown(showTool.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _baseOverrides(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ValueListenableBuilder<bool>(
+                valueListenable: showTool,
+                builder: (context, visible, _) =>
+                    visible ? const TranslateTool() : const SizedBox.shrink(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TranslateTool)),
+      );
+      final original = container.read(craftControllerProvider).sourceLanguage;
+      await tester.tap(find.text('Source language'));
+      await tester.pumpAndSettle();
+      showTool.value = false;
+      await tester.pump();
+      await tester.ensureVisible(find.text('Spanish (Spain)'));
+      await tester.tap(find.text('Spanish (Spain)'));
+      await tester.pumpAndSettle();
+      expect(container.read(craftControllerProvider).sourceLanguage, original);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('custom style shows custom prompt field', (tester) async {
       await tester.pumpWidget(
         _harness(overrides: _baseOverrides(), child: const TranslateTool()),
@@ -331,6 +417,30 @@ void main() {
       final button = find.widgetWithIcon(FilledButton, EnjoyIcons.speak);
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNotNull);
+    });
+
+    testWidgets('external synth text waits until editing loses focus', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(overrides: _baseOverrides(), child: const SynthesizeTool()),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SynthesizeTool)),
+      );
+      final field = find.byType(TextField).first;
+      await tester.enterText(field, 'my draft');
+      await tester.pumpAndSettle();
+      container
+          .read(craftControllerProvider.notifier)
+          .setSynthText('new script');
+      await tester.pump();
+      expect(tester.widget<TextField>(field).controller!.text, 'my draft');
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(field).controller!.text, 'new script');
     });
 
     testWidgets('shows preview and save button after synthesis', (
