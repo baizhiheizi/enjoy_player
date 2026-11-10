@@ -20,6 +20,7 @@ import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_busy_label.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_paste_text_field.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_synced_text_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
@@ -35,17 +36,17 @@ class SynthesizeTool extends ConsumerStatefulWidget {
 }
 
 class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
-  late final TextEditingController _textCtrl;
+  late final CraftSyncedTextController _text;
 
   @override
   void initState() {
     super.initState();
-    _textCtrl = TextEditingController();
+    _text = CraftSyncedTextController();
   }
 
   @override
   void dispose() {
-    _textCtrl.dispose();
+    _text.dispose();
     super.dispose();
   }
 
@@ -55,9 +56,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
     final state = ref.watch(craftControllerProvider);
     final controller = ref.read(craftControllerProvider.notifier);
 
-    if (_textCtrl.text != state.synthText) {
-      _textCtrl.text = state.synthText;
-    }
+    _text.sync(state.synthText);
 
     final tokens = EnjoyThemeTokens.of(context);
     final canSynthesize =
@@ -85,7 +84,8 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
           ),
           SizedBox(height: tokens.space16),
           CraftPasteTextField(
-            controller: _textCtrl,
+            controller: _text.controller,
+            focusNode: _text.focusNode,
             labelText: l10n.craftSynthText,
             hintText: l10n.craftTextInputHint,
             onChanged: controller.setSynthText,

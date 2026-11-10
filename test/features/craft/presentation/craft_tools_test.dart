@@ -55,6 +55,19 @@ class _FakeTranslator implements CraftTranslator {
   }) async => 'translated result';
 }
 
+class _SequentialTranslator extends _FakeTranslator {
+  int calls = 0;
+
+  @override
+  Future<String> translate({
+    required String text,
+    required String sourceLanguage,
+    required String targetLanguage,
+    TranslationStyle style = TranslationStyle.natural,
+    String? customPrompt,
+  }) async => 'translation ${++calls}';
+}
+
 class _FakeSynthesizer implements CraftSynthesizer {
   @override
   Future<CraftSynthesisResult> synthesize({
@@ -85,10 +98,13 @@ Widget _harness({required List<Override> overrides, required Widget child}) {
   );
 }
 
-List<Override> _baseOverrides({AuthCtrl Function()? auth}) => [
+List<Override> _baseOverrides({
+  AuthCtrl Function()? auth,
+  CraftTranslator? translator,
+}) => [
   authCtrlProvider.overrideWith(auth ?? _AuthSignedInCtrl.new),
   appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
-  craftTranslatorProvider.overrideWithValue(_FakeTranslator()),
+  craftTranslatorProvider.overrideWithValue(translator ?? _FakeTranslator()),
   craftSynthesizerProvider.overrideWithValue(_FakeSynthesizer()),
   craftLibraryRepositoryProvider.overrideWithValue(_FakeLibraryRepository()),
 ];
@@ -188,6 +204,134 @@ void main() {
       expect(find.text('Use translated text'), findsOneWidget);
 
       expect(find.text('translated result'), findsOneWidget);
+    });
+
+    testWidgets('new translation reaches an unfocused edited result field', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(overrides: _baseOverrides(), child: const TranslateTool()),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TranslateTool)),
+      );
+      final controller = container.read(craftControllerProvider.notifier);
+      controller.setTranslatedText('old translation');
+      await tester.pumpAndSettle();
+
+      final result = find.byType(TextField).last;
+      await tester.enterText(result, 'edited translation');
+      await tester.pumpAndSettle();
+      controller.setTranslatedText('new translation');
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(result).controller!.text,
+        'edited translation',
+      );
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(result).controller!.text,
+        'new translation',
+      );
+    });
+
+    testWidgets('Re-translate replaces a focused edited result', (
+      tester,
+    ) async {
+      final translator = _SequentialTranslator();
+      await tester.pumpWidget(
+        _harness(
+          overrides: _baseOverrides(translator: translator),
+          child: const TranslateTool(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TranslateTool)),
+      );
+      final controller = container.read(craftControllerProvider.notifier);
+      controller
+        ..setSourceLanguage('zh-CN')
+        ..setTargetLanguage('en-US')
+        ..setSourceText('Some source text to translate')
+        ..setTranslatedText('first translation');
+      await tester.pumpAndSettle();
+
+      final result = find.byType(TextField).last;
+      await tester.enterText(result, 'my edited translation');
+      await tester.pumpAndSettle();
+      expect(FocusManager.instance.primaryFocus!.hasFocus, isTrue);
+      tester
+          .widget<EnjoyButton>(find.widgetWithText(EnjoyButton, 'Re-translate'))
+          .onPressed!();
+      await tester.pumpAndSettle();
+
+      expect(translator.calls, 1);
+      expect(
+        container.read(craftControllerProvider).translatedText,
+        'translation 1',
+      );
+      expect(
+        tester.widget<TextField>(result).controller!.text,
+        'translation 1',
+      );
+    });
+
+    testWidgets('source input follows an external state restore', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(overrides: _baseOverrides(), child: const TranslateTool()),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TranslateTool)),
+      );
+      container
+          .read(craftControllerProvider.notifier)
+          .setSourceText('restored source');
+      await tester.pumpAndSettle();
+      expect(find.text('restored source'), findsOneWidget);
+    });
+
+    testWidgets('language picker ignores selection after tool unmounts', (
+      tester,
+    ) async {
+      final showTool = ValueNotifier<bool>(true);
+      addTearDown(showTool.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _baseOverrides(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ValueListenableBuilder<bool>(
+                valueListenable: showTool,
+                builder: (context, visible, _) =>
+                    visible ? const TranslateTool() : const SizedBox.shrink(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TranslateTool)),
+      );
+      final original = container.read(craftControllerProvider).sourceLanguage;
+      await tester.tap(find.text('Source language'));
+      await tester.pumpAndSettle();
+      showTool.value = false;
+      await tester.pump();
+      await tester.ensureVisible(find.text('Spanish (Spain)'));
+      await tester.tap(find.text('Spanish (Spain)'));
+      await tester.pumpAndSettle();
+      expect(container.read(craftControllerProvider).sourceLanguage, original);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('custom style shows custom prompt field', (tester) async {
@@ -331,6 +475,71 @@ void main() {
       final button = find.widgetWithIcon(FilledButton, EnjoyIcons.speak);
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNotNull);
+    });
+
+    testWidgets('external synth text waits until editing loses focus', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(overrides: _baseOverrides(), child: const SynthesizeTool()),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SynthesizeTool)),
+      );
+      final field = find.byType(TextField).first;
+      await tester.enterText(field, 'my draft');
+      await tester.pumpAndSettle();
+      container
+          .read(craftControllerProvider.notifier)
+          .setSynthText('new script');
+      await tester.pump();
+      expect(tester.widget<TextField>(field).controller!.text, 'my draft');
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(field).controller!.text, 'new script');
+    });
+
+    testWidgets('Use translated text replaces focused synthesis draft', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(
+          overrides: _baseOverrides(),
+          child: const Column(children: [TranslateTool(), SynthesizeTool()]),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SynthesizeTool)),
+      );
+      final controller = container.read(craftControllerProvider.notifier);
+      controller.setTranslatedText('translated result');
+      await tester.pumpAndSettle();
+      final synthField = find
+          .descendant(
+            of: find.byType(SynthesizeTool),
+            matching: find.byType(TextField),
+          )
+          .first;
+      await tester.enterText(synthField, 'my draft');
+      await tester.pumpAndSettle();
+
+      tester
+          .widget<EnjoyButton>(
+            find.widgetWithText(EnjoyButton, 'Use translated text'),
+          )
+          .onPressed!();
+      await tester.pumpAndSettle();
+      expect(
+        container.read(craftControllerProvider).synthText,
+        'translated result',
+      );
+      expect(
+        tester.widget<TextField>(synthField).controller!.text,
+        'translated result',
+      );
     });
 
     testWidgets('shows preview and save button after synthesis', (

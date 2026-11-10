@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -119,6 +120,92 @@ void main() {
       expect(find.byType(DropdownButton<TranslationStyle>), findsOneWidget);
     },
   );
+
+  testWidgets('RewriteStage defers external text while editing until blur', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(overrides: _baseOverrides(), child: const RewriteStage()),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RewriteStage)),
+    );
+    final controller = container.read(craftControllerProvider.notifier);
+    await controller.useTextInput('I had a wonderful day today.');
+    await tester.pumpAndSettle();
+
+    final nativeField = find.byType(TextField).first;
+    await tester.enterText(nativeField, 'my native edit');
+    await tester.pumpAndSettle();
+    controller.setRawTranscript('new native input');
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(nativeField).controller!.text,
+      'my native edit',
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(nativeField).controller!.text,
+      'new native input',
+    );
+
+    final targetField = find.byType(TextField).last;
+    await tester.enterText(targetField, 'my target edit');
+    await tester.pumpAndSettle();
+    controller.setTranslatedText('new target output');
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(targetField).controller!.text,
+      'my target edit',
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(targetField).controller!.text,
+      'new target output',
+    );
+  });
+
+  testWidgets('Regenerate replaces a focused target draft', (tester) async {
+    final translator = _CountingTranslator();
+    await tester.pumpWidget(
+      _harness(
+        overrides: [
+          authCtrlProvider.overrideWith(_AuthSignedInCtrl.new),
+          appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
+          craftTranslatorProvider.overrideWithValue(translator),
+          craftSynthesizerProvider.overrideWithValue(_FakeSynthesizer()),
+          craftTranscriberProvider.overrideWithValue(_FakeTranscriber()),
+          craftLibraryRepositoryProvider.overrideWithValue(
+            _FakeLibraryRepository(),
+          ),
+        ],
+        child: const RewriteStage(),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RewriteStage)),
+    );
+    await container
+        .read(craftControllerProvider.notifier)
+        .useTextInput('I had a wonderful day today.');
+    await tester.pumpAndSettle();
+    final targetField = find.byType(TextField).last;
+    await tester.enterText(targetField, 'my target edit');
+    await tester.pumpAndSettle();
+
+    tester
+        .widget<EnjoyButton>(find.widgetWithText(EnjoyButton, 'Regenerate'))
+        .onPressed!();
+    await tester.pumpAndSettle();
+
+    expect(translator.callCount, 2);
+    expect(
+      tester.widget<TextField>(targetField).controller!.text,
+      'Rewritten text in target language rewrite #2.',
+    );
+  });
 
   testWidgets('RewriteStage shows action buttons', (tester) async {
     await tester.pumpWidget(
