@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": 1276,
-    "investigation_after": 1288
+    "investigation_after": 1300
   },
   "issues": [
     {
@@ -25,32 +25,32 @@
   "checks": [
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-11-09",
-      "result": "changelog draft is PR #1285 (head 89da2f4): docs-only 2-line diff, vigil APPROVE. Awaiting maintainer review.",
-      "follow_up": "Get PR #1285 reviewed and merged."
+      "checked_at": "2026-11-10",
+      "result": "PR #1285 (changelog for #1283/#1284) merged as 84008529 on 2026-11-10. No open Repo Assist PRs; nothing awaiting review.",
+      "follow_up": null
     },
     {
       "area": "docs",
-      "checked_at": "2026-11-09",
-      "result": "[Unreleased] window current as of 2026-11-09: entries now cover #1269, #1258, #1274, #1283, #1284. craft.md and transcript.md carry key-files maps (not exhaustive), so the two refactors needed no feature-doc updates beyond the changelog.",
+      "checked_at": "2026-11-10",
+      "result": "[Unreleased] window current through #1297: #1296's entry landed in PR #1296 itself; #1297 amended the #1295 entry in place (477-line count, _block collapse). transcript.md carries the new #1295 modules; craft.md carries the #1296 focus-sync behavior. No drift in the three post-#1285 merges.",
       "follow_up": "Keep the window fed as merges land; refactors count."
     },
     {
       "area": "tests",
       "checked_at": "2026-11-09",
-      "result": "analyze + CI green on 7890e266. #1283/#1284 modules covered: craft widgets in craft_paste_text_field_test.dart, tile text/chrome via 15 tile test files. Suite green 2026-11-07 (7149/24 skips). pub get strips plugin registrants - restore before committing.",
+      "result": "analyze + CI green on 7890e266; main CI green at 969e25ac per the 2026-11-10 daily report (suite ~7198 passing / 28 skips). #1283/#1284/#1295 modules all carry their own tests. pub get strips plugin registrants - restore before committing.",
       "follow_up": null
     },
     {
       "area": "release",
-      "checked_at": "2026-11-09",
-      "result": "v0.10.3 published 2026-11-06 (latest). [Unreleased] holds CI/build fixes (#1269), the #1258 credits dedup, and three refactor entries - still thin on user-facing product changes, so no release prep yet. v0.10.2/v0.10.0/v0.9.0 Release objects still missing.",
-      "follow_up": "No release prep until the window holds user-facing product changes; backfill remains maintainer-only."
+      "checked_at": "2026-11-10",
+      "result": "Re-assessed: since v0.10.3 (2026-11-06) the [Unreleased] window holds exactly one user-facing fix (#1294/#1296 craft focus-sync) plus one perf fix (#1258) and refactors - still thin; holding release prep. v0.10.2/v0.10.0/v0.9.0 Release objects still missing.",
+      "follow_up": "Prep v0.10.4 when a second user-facing change lands or ~a week passes; backfill remains maintainer-only."
     },
     {
       "area": "performance",
-      "checked_at": "2026-11-09",
-      "result": "Lane owned by perf-improver (stocked P20b backlog, daily cadence); remaining #1192 items are maintainer decisions (P7/P8/P10b/P3-reframed). Repo Assist stays out to avoid PR collisions. Re-confirmed 2026-11-09: #1192 tracker unchanged, nothing new.",
+      "checked_at": "2026-11-10",
+      "result": "perf-improver shipped draft PR #1299 (per-locale DateFormat cache, ~26x craft subtitle / ~6.2x relative day, suite green) on 2026-11-10 - awaiting maintainer review. #1192 decision items unchanged. Lane stays theirs.",
       "follow_up": null
     }
   ],
@@ -162,6 +162,10 @@
     {
       "key": "changelog-1274-pr-merged-as-1277",
       "completed_at": "2026-11-09"
+    },
+    {
+      "key": "changelog-1285-merged-as-84008529",
+      "completed_at": "2026-11-10"
     }
   ],
   "priorities": [
@@ -183,17 +187,12 @@
     {
       "task": 4,
       "item": "Fold drift 2.35.4 / sqlite3 3.9.1 / drift_dev 2.35.3 into the next scheduled lockfile refresh",
-      "note": "Published after #1269 and resolvable within constraints. Do not open a duplicate refresh within a few days of the maintainer's own."
-    },
-    {
-      "task": 7,
-      "item": "Get PR #1285 (changelog for #1283/#1284) reviewed and merged",
-      "note": "Docs-only, vigil APPROVE on head 89da2f4; just needs the maintainer click."
+      "note": "Published after #1269 and resolvable within constraints. Maintainer's own refresh #1269 merged 2026-11-08; do not open a duplicate within a few days."
     },
     {
       "task": 10,
       "item": "Duet tracker (STATUS.md 53/64): no actionable Repo Assist work",
-      "note": "Remaining rows are maintainer-driven design with board compares, hardware-gated QA (D5.4/D5.5 need Windows WebView2/macOS/phones), or open product decisions. Re-check only if STATUS.md changes."
+      "note": "STATUS.md unchanged since b6572e04 (re-verified 2026-11-10). Remaining rows are maintainer-driven design with board compares, hardware-gated QA, or open product decisions. Re-check only if STATUS.md changes."
     },
     {
       "task": 5,
