@@ -148,10 +148,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
   Future<void> selectAutoTranslate() async {
     final auth = ref.read(authCtrlProvider).valueOrNull;
     if (auth is! AuthSignedIn) {
-      state = state.copyWith(
-        status: AutoTranslateStatus.blocked,
-        blockReason: AutoTranslateBlockReason.signedOut,
-      );
+      _block(AutoTranslateBlockReason.signedOut);
       return;
     }
 
@@ -160,39 +157,27 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
         .valueOrNull
         ?.effectiveNativeLanguage;
     if (native == null || native.isEmpty) {
-      state = state.copyWith(
-        status: AutoTranslateStatus.blocked,
-        blockReason: AutoTranslateBlockReason.noPrimary,
-      );
+      _block(AutoTranslateBlockReason.noPrimary);
       return;
     }
 
     final repo = _repo();
     final primaryRow = await repo.primaryTranscriptRowForMedia(mediaId);
     if (primaryRow == null) {
-      state = state.copyWith(
-        status: AutoTranslateStatus.blocked,
-        blockReason: AutoTranslateBlockReason.noPrimary,
-      );
+      _block(AutoTranslateBlockReason.noPrimary);
       return;
     }
 
     final primaryLines = repo.linesForRow(primaryRow);
     if (primaryLines.isEmpty) {
-      state = state.copyWith(
-        status: AutoTranslateStatus.blocked,
-        blockReason: AutoTranslateBlockReason.noPrimary,
-      );
+      _block(AutoTranslateBlockReason.noPrimary);
       return;
     }
 
     final sourceBase = workerLanguageBase(primaryRow.language);
     final targetBase = workerLanguageBase(native);
     if (sourceBase == targetBase) {
-      state = state.copyWith(
-        status: AutoTranslateStatus.blocked,
-        blockReason: AutoTranslateBlockReason.sameLanguage,
-      );
+      _block(AutoTranslateBlockReason.sameLanguage);
       return;
     }
 
@@ -203,10 +188,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
       primaryLines: primaryLines,
     );
     if (aiId == null) {
-      state = state.copyWith(
-        status: AutoTranslateStatus.blocked,
-        blockReason: AutoTranslateBlockReason.noPrimary,
-      );
+      _block(AutoTranslateBlockReason.noPrimary);
       return;
     }
 
@@ -308,10 +290,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     final primaryRow = await repo.primaryTranscriptRowForMedia(mediaId);
     if (primaryRow == null) {
       if (!ref.mounted) return;
-      state = state.copyWith(
-        status: AutoTranslateStatus.blocked,
-        blockReason: AutoTranslateBlockReason.noPrimary,
-      );
+      _block(AutoTranslateBlockReason.noPrimary);
       return;
     }
 
@@ -373,10 +352,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
           aiLines: ai.lines,
         )) {
           if (!ref.mounted) return;
-          state = state.copyWith(
-            status: AutoTranslateStatus.blocked,
-            blockReason: AutoTranslateBlockReason.stalePrimary,
-          );
+          _block(AutoTranslateBlockReason.stalePrimary);
           return;
         }
 
@@ -445,18 +421,11 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
           return;
         } on AuthFailure {
           if (!ref.mounted) return;
-          state = state.copyWith(
-            status: AutoTranslateStatus.blocked,
-            blockReason: AutoTranslateBlockReason.auth,
-          );
+          _block(AutoTranslateBlockReason.auth);
           return;
         } on CreditsFailure catch (failure) {
           if (!ref.mounted) return;
-          state = state.copyWith(
-            status: AutoTranslateStatus.blocked,
-            blockReason: AutoTranslateBlockReason.credits,
-            creditsFailure: failure,
-          );
+          _block(AutoTranslateBlockReason.credits, creditsFailure: failure);
           return;
         } catch (e, st) {
           if (attempt >= kAutoTranslateMaxLineAttempts) {
@@ -493,5 +462,16 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
 
   void _clearInFlightTracking() {
     _queue.clear();
+  }
+
+  void _block(
+    AutoTranslateBlockReason reason, {
+    CreditsFailure? creditsFailure,
+  }) {
+    state = state.copyWith(
+      status: AutoTranslateStatus.blocked,
+      blockReason: reason,
+      creditsFailure: creditsFailure,
+    );
   }
 }
