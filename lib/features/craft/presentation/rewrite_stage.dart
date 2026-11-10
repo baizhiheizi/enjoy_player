@@ -84,6 +84,7 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
   }
 
   Future<void> _regenerate() async {
+    _target.focusNode.unfocus();
     _flushNativeToController();
     await ref.read(craftControllerProvider.notifier).regenerate();
   }

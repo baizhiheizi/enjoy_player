@@ -79,10 +79,16 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
             sourceValue: state.sourceLanguage ?? '—',
             targetValue: state.targetLanguage,
             onSwap: controller.swapLanguages,
-            onPickSource: () =>
-                _pickLanguage(isSource: true, current: state.sourceLanguage),
-            onPickTarget: () =>
-                _pickLanguage(isSource: false, current: state.targetLanguage),
+            onPickSource: () => _pickLanguage(
+              isSource: true,
+              current: state.sourceLanguage,
+              controller: controller,
+            ),
+            onPickTarget: () => _pickLanguage(
+              isSource: false,
+              current: state.targetLanguage,
+              controller: controller,
+            ),
           ),
           SizedBox(height: tokens.space16),
           StylePicker(value: state.style, onChanged: controller.setStyle),
@@ -119,7 +125,12 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
           ),
           SizedBox(height: tokens.space16),
           EnjoyButton.brand(
-            onPressed: canTranslate ? controller.translate : null,
+            onPressed: canTranslate
+                ? () {
+                    _result.focusNode.unfocus();
+                    unawaited(controller.translate());
+                  }
+                : null,
             icon: state.isTranslating ? null : EnjoyIcons.translate,
             child: state.isTranslating
                 ? CraftBusyLabel(label: l10n.craftLoadingRewriting)
@@ -154,7 +165,10 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
                 SizedBox(width: tokens.space8),
                 Expanded(
                   child: EnjoyButton.secondary(
-                    onPressed: controller.useTranslatedText,
+                    onPressed: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      controller.useTranslatedText();
+                    },
                     icon: EnjoyIcons.arrowDown,
                     child: Text(l10n.craftUseTranslatedText),
                   ),
@@ -172,6 +186,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
   Future<void> _pickLanguage({
     required bool isSource,
     required String? current,
+    required CraftController controller,
   }) async {
     final picked = await showContentLanguagePicker(
       context: context,
@@ -179,7 +194,6 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
       selectedValue: current,
     );
     if (!mounted || picked == null) return;
-    final controller = ref.read(craftControllerProvider.notifier);
     if (isSource) {
       controller.setSourceLanguage(picked);
     } else {

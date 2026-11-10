@@ -91,7 +91,7 @@ A linear three-stage pipeline (`CraftStage` enum: `capture` → `rewrite` → `a
 ### Rewrite stage (`RewriteStage`)
 
 - **Editable native transcript card** (labelled "Your words") — an `EnjoyCard` with a quote glyph header, a hairline Re-translate action, and a recessed `TextField` so learners can correct recognition errors; edits write to `rawTranscript` (+ synced `sourceText`). When the native text differs from the last successful rewrite input (`isRawTranscriptDirty`), a **Re-translate** action appears on the card (`craftReTranslateButton`)
-- **Editable target text card** (labelled "In [target]…") — a mono `accentInk`/`accentSoft` language badge plus `TextEditingController` synced to `state.translatedText` only when the field is not focused, so user edits are preserved across regenerations; field is height-capped (`maxLines: 10`) to avoid layout overflow
+- **Editable target text card** (labelled "In [target]…") — a mono `accentInk`/`accentSoft` language badge plus `TextEditingController` that defers background state changes while focused; an explicit Re-translate or Regenerate unfocuses the field before replacing it with the new result. The field is height-capped (`maxLines: 10`) to avoid layout overflow
 - **Options panel** — an `EnjoyCard` holding the always-visible `StylePicker` + Azure Neural `VoicePicker`, split by a hairline divider; style starts from the remembered Express style (**Auto** on first run); voice from the remembered per-language pick, falling back via `defaultVoiceForLanguage` when unset
 - Re-translate / Regenerate keep the form visible with inline progress when a target already exists (full-screen "Crafting…" spinner only for the first rewrite)
 - Three action buttons (all `EnjoyButton`):
@@ -142,7 +142,7 @@ Retained for users who already have prepared text. Uses `EnjoyPageKind.hub` (sam
 - **Same-language guard**: selecting the same source and target language surfaces a localized hint to switch to Speak directly
 - Inline non-blocking failures render through the shared `CraftInlineFailure` — a `scoreBad` caption plus the action the failure names (see [Failure handling in Express stages](#failure-handling-in-express-stages))
 
-Advanced source, translated result, and synthesis fields share the Express rewrite fields' state-to-text binding: a focused field keeps the learner's draft and caret during controller changes; after it loses focus, the latest controller value replaces the draft. A subsequent translation can therefore update a previously edited result, and loading an Advanced edit restores source and synthesis text into the visible fields. Language picker results are ignored after the Translate tool unmounts.
+Advanced source, translated result, and synthesis fields share the Express rewrite fields' state-to-text binding: a focused field keeps the learner's draft and caret during unrelated controller changes; after it loses focus, the latest controller value replaces the draft. Explicit Re-translate, Regenerate, and Use translated text actions release focus before applying their new values, including on touch devices where tapping a button alone does not blur a text field. A subsequent translation can therefore update a previously edited result, and loading an Advanced edit restores source and synthesis text into the visible fields. Language picker results are ignored after the Translate tool unmounts.
 
 ### Synthesize tool (`SynthesizeTool`)
 
