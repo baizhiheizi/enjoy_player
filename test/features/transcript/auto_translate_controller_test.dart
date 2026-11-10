@@ -762,6 +762,7 @@ void main() {
       final state = container.read(autoTranslateCtrlProvider(mediaId));
       expect(state.status, AutoTranslateStatus.blocked);
       expect(state.blockReason, AutoTranslateBlockReason.credits);
+      expect(state.creditsFailure?.message, 'no credits');
     });
 
     test('generic error retries then marks line as failed', () async {
