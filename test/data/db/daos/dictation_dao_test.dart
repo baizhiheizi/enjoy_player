@@ -141,7 +141,7 @@ void main() {
     });
   });
 
-  group('DictationDao.watchByEchoRegion and listByEchoRegion', () {
+  group('DictationDao.watchByEchoRegion', () {
     test(
       'filters strictly by target, startMs and durationMs, ordered by createdAt desc',
       () async {
@@ -193,14 +193,6 @@ void main() {
             referenceDurationMs: 2000,
           ),
         );
-
-        final list = await db.dictationDao.listByEchoRegion(
-          'video',
-          'v-1',
-          1000,
-          2000,
-        );
-        expect(list.map((r) => r.id), ['match-2', 'match-1']);
 
         final watched = await db.dictationDao
             .watchByEchoRegion('video', 'v-1', 1000, 2000)

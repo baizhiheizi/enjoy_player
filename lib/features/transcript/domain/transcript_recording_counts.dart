@@ -72,6 +72,14 @@ Map<int, int> countRecordingsPerLineIndex(
   }
   for (final d in dictations) {
     if (d.referenceDurationMs <= 0) continue;
+    final isVoiceDuplicate = recordings.any(
+      (r) =>
+          r.referenceStart == d.referenceStartMs &&
+          r.referenceDuration == d.referenceDurationMs &&
+          r.createdAt.difference(d.createdAt).abs().inSeconds <= 60,
+    );
+    if (isVoiceDuplicate) continue;
+
     starts.add(d.referenceStartMs);
     ends.add(d.referenceStartMs + d.referenceDurationMs);
   }

@@ -3,7 +3,13 @@ import 'package:enjoy_player/data/db/app_database.dart';
 
 enum DictationInputMode { voice, text }
 
-enum DictationAttemptStatus { idle, recordingVoice, transcribingVoice, checked }
+enum DictationAttemptStatus {
+  idle,
+  recordingVoice,
+  transcribingVoice,
+  checked,
+  failed,
+}
 
 enum DictationWordDiffOp { correct, missed, extra }
 

@@ -9,9 +9,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'dictation_providers.g.dart';
 
-final dictationEchoRegionHistoryProvider =
-    Provider.family<
-      Stream<List<DictationRow>>,
+final dictationEchoRegionHistoryProvider = StreamProvider.autoDispose
+    .family<
+      List<DictationRow>,
       ({String targetType, String targetId, int startMs, int durationMs})
     >((ref, arg) {
       final db = ref.watch(appDatabaseProvider);
@@ -34,6 +34,7 @@ class DictationSessionCtrl extends _$DictationSessionCtrl {
     String referenceText,
     String language,
   ) {
+    ref.onDispose(_controller.dispose);
     return const DictationSessionState();
   }
 

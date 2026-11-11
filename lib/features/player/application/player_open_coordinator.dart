@@ -12,6 +12,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
@@ -29,6 +30,7 @@ import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/domain/youtube_playback_unavailable_exception.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
+import 'package:enjoy_player/features/transcript/data/transcript_timeline_codec.dart';
 
 final _openLog = logNamed('PlayerOpenCoordinator');
 
@@ -374,21 +376,44 @@ Future<void> runPlayerOpen(
     }
     final echoRestored =
         options.restoreEcho && persisted != null && persisted.echoActive;
-    final blurToRestore = options.restoreEcho
+    final blurToRestore = options.restoreEcho && !echoRestored
         ? (persisted?.blurActive ?? false)
         : false;
     deps.blurMode().restoreFromSession(blurToRestore);
-    if (blurToRestore && !echoRestored && options.restoreEcho) {
-      final startLine = persisted?.echoStartLine ?? 0;
-      final endLine = persisted?.echoEndLine ?? startLine;
-      final echoStartMs = persisted?.echoStartMs ?? 0;
-      final echoEndMs = persisted?.echoEndMs ?? 0;
-      deps.echoMode().restoreFromSession(
-        startLine: startLine,
-        endLine: endLine,
-        echoStartMs: echoStartMs,
-        echoEndMs: echoEndMs,
-      );
+    if (blurToRestore && options.restoreEcho) {
+      final validPersistedEcho =
+          persisted != null &&
+          persisted.echoStartLine >= 0 &&
+          persisted.echoEndLine >= persisted.echoStartLine &&
+          (persisted.echoEndMs ?? 0) > (persisted.echoStartMs ?? 0);
+      if (validPersistedEcho) {
+        deps.echoMode().restoreFromSession(
+          startLine: persisted.echoStartLine,
+          endLine: persisted.echoEndLine,
+          echoStartMs: persisted.echoStartMs ?? 0,
+          echoEndMs: persisted.echoEndMs ?? 0,
+        );
+      } else {
+        final rows = await deps.db().transcriptDao.listForTarget(
+          dexie,
+          mediaId,
+        );
+        final lines = rows.isNotEmpty
+            ? decodeTimelineJson(rows.first.timelineJson)
+            : const <TranscriptLine>[];
+        if (lines.isNotEmpty) {
+          final posSec = posMs / 1000.0;
+          final idx = indexOfActiveLine(lines, posSec);
+          final safeIdx = idx >= 0 ? idx : 0;
+          final line = lines[safeIdx];
+          deps.echoMode().restoreFromSession(
+            startLine: safeIdx,
+            endLine: safeIdx,
+            echoStartMs: line.startMs,
+            echoEndMs: line.startMs + line.durationMs,
+          );
+        }
+      }
     }
 
     final now = DateTime.now();

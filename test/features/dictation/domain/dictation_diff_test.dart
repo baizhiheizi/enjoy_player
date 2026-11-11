@@ -41,10 +41,9 @@ void main() {
 
     test('handles missed and extra tokens correctly', () {
       final res = computeDictationDiff('the quick brown fox', 'the fast fox');
-      expect(res.correctWords, 2); // the, fox
-      expect(res.missedWords, 2); // quick, brown
-      expect(res.extraWords, 1); // fast
-      // accuracy: round(2 / (4 + 1) * 100) = round(2 / 5 * 100) = 40%
+      expect(res.correctWords, 2);
+      expect(res.missedWords, 2);
+      expect(res.extraWords, 1);
       expect(res.accuracy, 40);
 
       expect(
@@ -89,5 +88,17 @@ void main() {
       expect(resMissed.missedWords, 2);
       expect(resMissed.correctWords, 0);
     });
+
+    test(
+      'ignores standalone dashes and punctuation in accuracy calculation',
+      () {
+        final res = computeDictationDiff('Hello — world', 'hello world');
+        expect(res.accuracy, 100);
+        expect(res.correctWords, 2);
+        expect(res.missedWords, 0);
+        expect(res.extraWords, 0);
+        expect(res.tokens.map((t) => t.word), ['Hello', 'world']);
+      },
+    );
   });
 }

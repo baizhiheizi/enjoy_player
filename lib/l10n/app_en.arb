@@ -2400,5 +2400,10 @@
   "playerDictationPreviousAttempts": "Previous dictations ({count})",
   "@playerDictationPreviousAttempts": {"placeholders": {"count": {"type": "int"}}},
   "playerDictationAttemptAccuracy": "{accuracy}% accuracy",
-  "@playerDictationAttemptAccuracy": {"placeholders": {"accuracy": {"type": "int"}}}
+  "@playerDictationAttemptAccuracy": {"placeholders": {"accuracy": {"type": "int"}}},
+  "playerDictationRecordAgain": "Record again",
+  "playerDictationRecordRetelling": "Record retelling (R)",
+  "playerDictationHeaderListen": "DICTATION — LISTEN & RETELL",
+  "playerDictationHeaderChecked": "DICTATION — CHECKED",
+  "playerDictationNoSpeechDetected": "No speech detected"
 }

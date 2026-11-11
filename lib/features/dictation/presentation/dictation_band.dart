@@ -37,7 +37,6 @@ class DictationBand extends StatelessWidget {
         fallbackReferenceText: fallbackReferenceText,
         regionStartMs: regionStartMs,
         regionDurationMs: regionDurationMs,
-        currentPlaybackMs: currentPlaybackMs,
       );
       final activeIndex = findActiveDictationWordIndex(
         words: bandWords,

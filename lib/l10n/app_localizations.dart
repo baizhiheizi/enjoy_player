@@ -8657,6 +8657,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{accuracy}% accuracy'**
   String playerDictationAttemptAccuracy(int accuracy);
+
+  /// No description provided for @playerDictationRecordAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Record again'**
+  String get playerDictationRecordAgain;
+
+  /// No description provided for @playerDictationRecordRetelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Record retelling (R)'**
+  String get playerDictationRecordRetelling;
+
+  /// No description provided for @playerDictationHeaderListen.
+  ///
+  /// In en, this message translates to:
+  /// **'DICTATION — LISTEN & RETELL'**
+  String get playerDictationHeaderListen;
+
+  /// No description provided for @playerDictationHeaderChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'DICTATION — CHECKED'**
+  String get playerDictationHeaderChecked;
+
+  /// No description provided for @playerDictationNoSpeechDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'No speech detected'**
+  String get playerDictationNoSpeechDetected;
 }
 
 class _AppLocalizationsDelegate

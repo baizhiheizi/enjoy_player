@@ -8,7 +8,6 @@ List<DictationBandWord> buildDictationBandWords({
   required String fallbackReferenceText,
   required int regionStartMs,
   required int regionDurationMs,
-  required int currentPlaybackMs,
 }) {
   final bandWords = <DictationBandWord>[];
 
@@ -21,6 +20,9 @@ List<DictationBandWord> buildDictationBandWords({
       if (lineTimeline != null && lineTimeline.isNotEmpty) {
         for (final word in lineTimeline) {
           final letters = dictationWordOf(word.text);
+          if (letters.isEmpty) {
+            continue;
+          }
           final width = (math.max(3, letters.length) * 9.5).round().toDouble();
           final start = line.startMs + (word.startMs ?? 0);
           final end = start + (word.durationMs ?? 0);

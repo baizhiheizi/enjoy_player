@@ -115,7 +115,8 @@ class _DictationListState extends State<DictationList> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    '$accuracy%',
+                    l10n?.playerDictationAttemptAccuracy(accuracy) ??
+                        '$accuracy%',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -140,17 +141,20 @@ class _DictationListState extends State<DictationList> {
             Row(
               children: [
                 Text(
-                  '${attempt.correctWords} correct',
+                  l10n?.playerDictationStatsCorrect(attempt.correctWords) ??
+                      '${attempt.correctWords} correct',
                   style: TextStyle(fontSize: 11, color: t.originalInk),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${attempt.missedWords} missed',
+                  l10n?.playerDictationStatsMissed(attempt.missedWords) ??
+                      '${attempt.missedWords} missed',
                   style: TextStyle(fontSize: 11, color: t.danger),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${attempt.extraWords} extra',
+                  l10n?.playerDictationStatsExtra(attempt.extraWords) ??
+                      '${attempt.extraWords} extra',
                   style: TextStyle(fontSize: 11, color: t.youInk),
                 ),
               ],
@@ -162,8 +166,10 @@ class _DictationListState extends State<DictationList> {
   }
 
   String _formatDate(DateTime dt) {
+    final month = dt.month.toString().padLeft(2, '0');
+    final day = dt.day.toString().padLeft(2, '0');
     final hour = dt.hour.toString().padLeft(2, '0');
     final minute = dt.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    return '$month-$day $hour:$minute';
   }
 }

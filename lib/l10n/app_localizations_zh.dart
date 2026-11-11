@@ -4598,6 +4598,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String playerDictationAttemptAccuracy(int accuracy) {
     return '$accuracy% 正确率';
   }
+
+  @override
+  String get playerDictationRecordAgain => '重新录音';
+
+  @override
+  String get playerDictationRecordRetelling => '录音复述 (R)';
+
+  @override
+  String get playerDictationHeaderListen => '听写 — 聆听并复述';
+
+  @override
+  String get playerDictationHeaderChecked => '听写 — 已核对';
+
+  @override
+  String get playerDictationNoSpeechDetected => '未检测到语音';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).

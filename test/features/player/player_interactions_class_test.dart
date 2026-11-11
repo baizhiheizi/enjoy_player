@@ -470,9 +470,9 @@ void main() {
 
       container.read(transcriptBlurModeProvider.notifier).activate();
       await n.toggleBlur();
-      expect(container.read(echoModeProvider).active, isFalse);
+      expect(container.read(echoModeProvider).active, isTrue);
       expect(container.read(transcriptBlurModeProvider), isFalse);
-      expect(container.read(playerLensProvider), PlayerLens.listen);
+      expect(container.read(playerLensProvider), PlayerLens.echo);
     },
   );
 

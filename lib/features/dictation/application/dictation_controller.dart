@@ -23,30 +23,42 @@ class DictationController {
   final void Function(DictationSessionState next) setState;
 
   static const _uuid = Uuid();
+  bool _disposed = false;
+  int _transcriptionGeneration = 0;
+  bool _isCheckingText = false;
+
+  void dispose() {
+    _disposed = true;
+  }
 
   void setInputMode(DictationInputMode mode) {
+    if (_disposed) return;
     final current = getState();
     if (current.mode == mode) return;
     setState(current.copyWith(mode: mode));
   }
 
   void updateTextDraft(String text) {
+    if (_disposed) return;
     final current = getState();
     setState(current.copyWith(textDraft: text));
   }
 
   void tryAgain() {
+    if (_disposed) return;
     final current = getState();
     setState(
       current.copyWith(
         status: DictationAttemptStatus.idle,
         activeDiff: () => null,
+        selectedHistoricalAttempt: () => null,
         errorMessage: () => null,
       ),
     );
   }
 
   void selectHistoricalAttempt(DictationRow? attempt) {
+    if (_disposed) return;
     final current = getState();
     if (attempt == null) {
       setState(current.copyWith(selectedHistoricalAttempt: () => null));
@@ -65,45 +77,63 @@ class DictationController {
   }
 
   Future<void> checkTextAnswer() async {
+    if (_disposed || _isCheckingText) return;
     final current = getState();
     final text = current.textDraft.trim();
     if (text.isEmpty) return;
 
-    final diff = computeDictationDiff(scope.referenceText, text);
-    final now = DateTime.now();
-    final row = DictationRow(
-      id: _uuid.v4(),
-      targetType: scope.targetType,
-      targetId: scope.targetId,
-      referenceStartMs: scope.referenceStartMs,
-      referenceDurationMs: scope.referenceDurationMs,
-      referenceText: scope.referenceText,
-      language: scope.language,
-      userInput: text,
-      accuracy: diff.accuracy,
-      correctWords: diff.correctWords,
-      missedWords: diff.missedWords,
-      extraWords: diff.extraWords,
-      createdAt: now,
-      updatedAt: now,
-      serverUpdatedAt: null,
-      syncStatus: 'local',
-    );
+    _isCheckingText = true;
+    try {
+      final diff = computeDictationDiff(scope.referenceText, text);
+      final now = DateTime.now();
+      final row = DictationRow(
+        id: _uuid.v4(),
+        targetType: scope.targetType,
+        targetId: scope.targetId,
+        referenceStartMs: scope.referenceStartMs,
+        referenceDurationMs: scope.referenceDurationMs,
+        referenceText: scope.referenceText,
+        language: scope.language,
+        userInput: text,
+        accuracy: diff.accuracy,
+        correctWords: diff.correctWords,
+        missedWords: diff.missedWords,
+        extraWords: diff.extraWords,
+        createdAt: now,
+        updatedAt: now,
+        serverUpdatedAt: null,
+        syncStatus: 'local',
+      );
 
-    final db = ref.read(appDatabaseProvider);
-    await db.dictationDao.insertRow(row);
+      final db = ref.read(appDatabaseProvider);
+      await db.dictationDao.insertRow(row);
 
-    setState(
-      current.copyWith(
-        status: DictationAttemptStatus.checked,
-        activeDiff: () => diff,
-        selectedHistoricalAttempt: () => row,
-        errorMessage: () => null,
-      ),
-    );
+      if (_disposed) return;
+      setState(
+        getState().copyWith(
+          status: DictationAttemptStatus.checked,
+          activeDiff: () => diff,
+          selectedHistoricalAttempt: () => row,
+          errorMessage: () => null,
+        ),
+      );
+    } catch (e, st) {
+      logNamed('DictationController').warning('checkTextAnswer failed', e, st);
+      if (!_disposed) {
+        setState(
+          getState().copyWith(
+            status: DictationAttemptStatus.failed,
+            errorMessage: () => e.toString(),
+          ),
+        );
+      }
+    } finally {
+      _isCheckingText = false;
+    }
   }
 
   Future<void> onVoiceTakeRecorded(RecordingRow take) async {
+    if (_disposed) return;
     final current = getState();
     setState(
       current.copyWith(
@@ -118,6 +148,7 @@ class DictationController {
   }
 
   Future<void> retryVoiceTranscription() async {
+    if (_disposed) return;
     final current = getState();
     final take = current.lastVoiceRecording;
     if (take == null) return;
@@ -133,6 +164,7 @@ class DictationController {
   }
 
   Future<void> _transcribeTake(RecordingRow take) async {
+    final generation = ++_transcriptionGeneration;
     try {
       final localPath = take.localPath;
       if (localPath == null || localPath.isEmpty) {
@@ -143,6 +175,8 @@ class DictationController {
         throw Exception('Audio file not found: $localPath');
       }
       final bytes = await file.readAsBytes();
+      if (_disposed || generation != _transcriptionGeneration) return;
+
       final asr = ref.read(asrServiceProvider);
       final asrResult = await asr.transcribe(
         AsrRequest(
@@ -155,7 +189,20 @@ class DictationController {
         ),
       );
 
+      if (_disposed || generation != _transcriptionGeneration) return;
+
       final recognizedText = asrResult.text.trim();
+      if (recognizedText.isEmpty) {
+        final current = getState();
+        setState(
+          current.copyWith(
+            status: DictationAttemptStatus.failed,
+            errorMessage: () => 'No speech detected',
+          ),
+        );
+        return;
+      }
+
       final diff = computeDictationDiff(scope.referenceText, recognizedText);
       final now = DateTime.now();
       final row = DictationRow(
@@ -180,6 +227,8 @@ class DictationController {
       final db = ref.read(appDatabaseProvider);
       await db.dictationDao.insertRow(row);
 
+      if (_disposed || generation != _transcriptionGeneration) return;
+
       final current = getState();
       setState(
         current.copyWith(
@@ -193,13 +242,16 @@ class DictationController {
       logNamed(
         'DictationController',
       ).warning('ASR transcription failed', e, st);
-      final current = getState();
-      setState(
-        current.copyWith(
-          status: DictationAttemptStatus.idle,
-          errorMessage: () => e.toString(),
-        ),
-      );
+      if (_disposed || generation != _transcriptionGeneration) return;
+      try {
+        final current = getState();
+        setState(
+          current.copyWith(
+            status: DictationAttemptStatus.failed,
+            errorMessage: () => e.toString(),
+          ),
+        );
+      } catch (_) {}
     }
   }
 }

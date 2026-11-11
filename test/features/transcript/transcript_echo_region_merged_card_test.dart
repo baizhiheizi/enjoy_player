@@ -379,4 +379,118 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     },
   );
+
+  testWidgets(
+    'Dictate mode renders DictationList with seeded history and updates on new row',
+    (tester) async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+
+      final now = DateTime.utc(2026, 1, 1, 12, 0, 0);
+      await db.dictationDao.insertRow(
+        DictationRow(
+          id: 'dict-1',
+          targetType: 'Audio',
+          targetId: 'media-1',
+          referenceStartMs: 0,
+          referenceDurationMs: 1000,
+          referenceText: 'First dictation line',
+          language: 'en',
+          userInput: 'first dictation line',
+          accuracy: 100,
+          correctWords: 3,
+          missedWords: 0,
+          extraWords: 0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      const lines = [
+        TranscriptLine(
+          text: 'First dictation line',
+          startMs: 0,
+          durationMs: 1000,
+        ),
+      ];
+      const echo = EchoState(
+        active: true,
+        startLineIndex: 0,
+        endLineIndex: 0,
+        startTimeSeconds: 0,
+        endTimeSeconds: 1,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
+          transcriptLineRecordingCountsProvider(
+            'media-1',
+          ).overrideWithValue(const {}),
+          transcriptBlurModeProvider.overrideWith(_BlurModeOn.new),
+          karaokeHighlightSettingsProvider.overrideWith(
+            _KaraokeHighlightOff.new,
+          ),
+          ...transcriptWordPracticeOffOverrides(),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ListView(
+                children: const [
+                  EchoRegionMergedCard(
+                    mediaId: 'media-1',
+                    lines: lines,
+                    echo: echo,
+                    activeCueIndex: 0,
+                    secondaryLines: [],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Previous dictations (1)'), findsOneWidget);
+
+      await db.dictationDao.insertRow(
+        DictationRow(
+          id: 'dict-2',
+          targetType: 'Audio',
+          targetId: 'media-1',
+          referenceStartMs: 0,
+          referenceDurationMs: 1000,
+          referenceText: 'First dictation line',
+          language: 'en',
+          userInput: 'first line',
+          accuracy: 67,
+          correctWords: 2,
+          missedWords: 1,
+          extraWords: 0,
+          createdAt: now.add(const Duration(minutes: 5)),
+          updatedAt: now.add(const Duration(minutes: 5)),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Previous dictations (2)'), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 }

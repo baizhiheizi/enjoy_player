@@ -9,7 +9,11 @@ String dictationWordOf(String word) {
 }
 
 List<String> tokenizeDictationWords(String text) {
-  return text.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+  return text
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((w) => w.isNotEmpty && dictationWordOf(w).isNotEmpty)
+      .toList();
 }
 
 DictationDiffResult computeDictationDiff(

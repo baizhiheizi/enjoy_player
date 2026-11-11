@@ -4813,4 +4813,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String playerDictationAttemptAccuracy(int accuracy) {
     return '$accuracy% accuracy';
   }
+
+  @override
+  String get playerDictationRecordAgain => 'Record again';
+
+  @override
+  String get playerDictationRecordRetelling => 'Record retelling (R)';
+
+  @override
+  String get playerDictationHeaderListen => 'DICTATION — LISTEN & RETELL';
+
+  @override
+  String get playerDictationHeaderChecked => 'DICTATION — CHECKED';
+
+  @override
+  String get playerDictationNoSpeechDetected => 'No speech detected';
 }

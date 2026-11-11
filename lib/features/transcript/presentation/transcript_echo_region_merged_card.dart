@@ -309,31 +309,10 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
             ).notifier,
           )
         : null;
-    final dictationHistoryStream = blurMode
-        ? ref.watch(
-            dictationEchoRegionHistoryProvider((
-              targetType: targetType,
-              targetId: mediaId,
-              startMs: startMs,
-              durationMs: durationMs,
-            )),
-          )
-        : null;
-    final dictationHistory = dictationHistoryStream != null
+    final dictationHistory = blurMode
         ? (ref
                   .watch(
-                    StreamProvider.autoDispose.family<
-                      List<DictationRow>,
-                      ({
-                        String targetType,
-                        String targetId,
-                        int startMs,
-                        int durationMs,
-                      })
-                    >(
-                      (r, arg) =>
-                          r.watch(dictationEchoRegionHistoryProvider(arg)),
-                    )((
+                    dictationEchoRegionHistoryProvider((
                       targetType: targetType,
                       targetId: mediaId,
                       startMs: startMs,
@@ -360,8 +339,8 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
 
     final loopLabel = blurMode
         ? (dictationSession?.status == DictationAttemptStatus.checked
-              ? 'DICTATION — CHECKED'
-              : 'DICTATION — LISTEN & RETELL')
+              ? l10n.playerDictationHeaderChecked
+              : l10n.playerDictationHeaderListen)
         : recording
         ? l10n.echoLoopCaptionRecording(maxTakeNumber + 1)
         : loopLines > 1

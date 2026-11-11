@@ -59,7 +59,7 @@ final class DictationSessionCtrlProvider
 }
 
 String _$dictationSessionCtrlHash() =>
-    r'f9ed2e2927f1263b688a468ac305ee9d463a0a19';
+    r'bc1c5aa8366973d9ca2e25fcb737ad0a3010ece4';
 
 final class DictationSessionCtrlFamily extends $Family
     with

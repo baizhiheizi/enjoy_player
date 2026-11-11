@@ -1814,5 +1814,10 @@
   "playerDictationPreviousAttempts": "历史听写记录（{count}）",
   "@playerDictationPreviousAttempts": {"placeholders": {"count": {"type": "int"}}},
   "playerDictationAttemptAccuracy": "{accuracy}% 正确率",
-  "@playerDictationAttemptAccuracy": {"placeholders": {"accuracy": {"type": "int"}}}
+  "@playerDictationAttemptAccuracy": {"placeholders": {"accuracy": {"type": "int"}}},
+  "playerDictationRecordAgain": "重新录音",
+  "playerDictationRecordRetelling": "录音复述 (R)",
+  "playerDictationHeaderListen": "听写 — 聆听并复述",
+  "playerDictationHeaderChecked": "听写 — 已核对",
+  "playerDictationNoSpeechDetected": "未检测到语音"
 }

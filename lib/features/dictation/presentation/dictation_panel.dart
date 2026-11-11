@@ -31,6 +31,7 @@ class DictationPanel extends StatefulWidget {
 
 class _DictationPanelState extends State<DictationPanel> {
   late final TextEditingController _textEditingController;
+  late final FocusNode _textFocusNode;
 
   @override
   void initState() {
@@ -38,6 +39,23 @@ class _DictationPanelState extends State<DictationPanel> {
     _textEditingController = TextEditingController(
       text: widget.state.textDraft,
     );
+    _textFocusNode = FocusNode(onKeyEvent: _handleTextKeyEvent);
+  }
+
+  KeyEventResult _handleTextKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+      if (HardwareKeyboard.instance.isShiftPressed) {
+        return KeyEventResult.ignored;
+      }
+      if (_textEditingController.value.composing.isValid) {
+        return KeyEventResult.ignored;
+      }
+      if (widget.state.textDraft.trim().isNotEmpty) {
+        unawaited(widget.controller.checkTextAnswer());
+      }
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -51,6 +69,7 @@ class _DictationPanelState extends State<DictationPanel> {
 
   @override
   void dispose() {
+    _textFocusNode.dispose();
     _textEditingController.dispose();
     super.dispose();
   }
@@ -164,7 +183,9 @@ class _DictationPanelState extends State<DictationPanel> {
                                 .pulseRecording();
                           },
                           icon: EnjoyIcons.mic,
-                          child: const Text('Record again'),
+                          child: Text(
+                            l10n?.playerDictationRecordAgain ?? 'Record again',
+                          ),
                         );
                       },
                     ),
@@ -182,7 +203,10 @@ class _DictationPanelState extends State<DictationPanel> {
                         .pulseRecording();
                   },
                   icon: EnjoyIcons.mic,
-                  child: const Text('Record retelling (R)'),
+                  child: Text(
+                    l10n?.playerDictationRecordRetelling ??
+                        'Record retelling (R)',
+                  ),
                 );
               },
             ),
@@ -206,27 +230,18 @@ class _DictationPanelState extends State<DictationPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          KeyboardListener(
-            focusNode: FocusNode(),
-            onKeyEvent: (event) {
-              if (event is KeyDownEvent &&
-                  event.logicalKey == LogicalKeyboardKey.enter &&
-                  !HardwareKeyboard.instance.isShiftPressed) {
-                unawaited(widget.controller.checkTextAnswer());
-              }
-            },
-            child: TextField(
-              controller: _textEditingController,
-              onChanged: (val) => widget.controller.updateTextDraft(val),
-              maxLines: 3,
-              minLines: 2,
-              decoration: InputDecoration(
-                hintText:
-                    l10n?.playerDictationTextPlaceholder ??
-                    'Type what you hear...',
-                border: InputBorder.none,
-                isDense: true,
-              ),
+          TextField(
+            controller: _textEditingController,
+            focusNode: _textFocusNode,
+            onChanged: (val) => widget.controller.updateTextDraft(val),
+            maxLines: 3,
+            minLines: 2,
+            decoration: InputDecoration(
+              hintText:
+                  l10n?.playerDictationTextPlaceholder ??
+                  'Type what you hear...',
+              border: InputBorder.none,
+              isDense: true,
             ),
           ),
           const SizedBox(height: 8),
