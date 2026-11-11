@@ -20,8 +20,6 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading_panel.dart';
-import 'package:enjoy_player/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart';
-import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_recording_caption.dart';
 import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
@@ -31,6 +29,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_line_rec
 import 'package:enjoy_player/features/transcript/application/take_assessment_notes_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
+import 'package:enjoy_player/features/transcript/presentation/echo_loop_recording_progress.dart';
 import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
@@ -432,7 +431,7 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
                   ...lineWidgets,
                 if (recording && loopSeconds > 0) ...[
                   SizedBox(height: metrics.loopRecordingTopGap),
-                  _LoopRecordingProgress(targetSec: loopSeconds),
+                  EchoLoopRecordingProgress(targetSec: loopSeconds),
                 ],
               ],
             ),
@@ -512,109 +511,6 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
       ],
     );
   }
-}
-
-class _LoopRecordingProgress extends StatefulWidget {
-  const _LoopRecordingProgress({required this.targetSec});
-
-  final double targetSec;
-
-  @override
-  State<_LoopRecordingProgress> createState() => _LoopRecordingProgressState();
-}
-
-class _LoopRecordingProgressState extends State<_LoopRecordingProgress>
-    with
-        TickerProviderStateMixin,
-        RecordingElapsedTicker<_LoopRecordingProgress> {
-  @override
-  Widget build(BuildContext context) {
-    final tok = EnjoyThemeTokens.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context)!;
-
-    return Row(
-      children: [
-        Flexible(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: LayoutBuilder(
-              builder: (context, constraints) => SizedBox(
-                height: 4,
-                width: constraints.maxWidth,
-                child: CustomPaint(
-                  painter: _LoopBarPainter(
-                    elapsed: elapsedController,
-                    targetSec: widget.targetSec,
-                    track: tok.youSoft,
-                    fill: tok.you,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        ValueListenableBuilder<int>(
-          valueListenable: elapsedTenths,
-          builder: (context, tenths, _) {
-            final elapsedSec = tenths / 10;
-            final overTarget =
-                widget.targetSec > 0 && elapsedSec > widget.targetSec;
-            return ShadowRecordingCaptionRow(
-              elapsedSec: elapsedSec,
-              targetSec: widget.targetSec,
-              overTarget: overTarget,
-              overBySec: overTarget ? elapsedSec - widget.targetSec : 0.0,
-              l10n: l10n,
-              tt: tt,
-              scheme: scheme,
-              tok: tok,
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class _LoopBarPainter extends CustomPainter {
-  _LoopBarPainter({
-    required this.elapsed,
-    required this.targetSec,
-    required this.track,
-    required this.fill,
-  }) : super(repaint: elapsed);
-
-  final Animation<double> elapsed;
-  final double targetSec;
-  final Color track;
-  final Color fill;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = track;
-    final rect = Offset.zero & size;
-    final radius = Radius.circular(size.height / 2);
-    canvas.drawRRect(RRect.fromRectAndRadius(rect, radius), paint);
-
-    final fraction = targetSec > 0
-        ? (elapsed.value / targetSec).clamp(0.0, 1.0)
-        : 1.0;
-    if (fraction <= 0) return;
-    paint.color = fill;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.width * fraction, size.height),
-        radius,
-      ),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_LoopBarPainter oldDelegate) => false;
 }
 
 EchoRegionRecordingsQuery _regionQueryFor(String mediaId, EchoState echo) =>
