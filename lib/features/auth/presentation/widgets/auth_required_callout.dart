@@ -94,6 +94,24 @@ class AuthRequiredCallout extends ConsumerWidget {
     unawaited(context.push('/sign-in?from=${surface.fromQueryParam}'));
   }
 
+  Widget _buildPlaceholder(BuildContext context, AppLocalizations l10n) {
+    final (title, body) = surface.messages(l10n);
+    if (compact) {
+      return _CompactCallout(
+        title: title,
+        body: body,
+        buttonLabel: l10n.syncScreenGoSignIn,
+        onSignIn: () => _openSignIn(context),
+      );
+    }
+    return EmptyState(
+      title: title,
+      subtitle: body,
+      action: () => _openSignIn(context),
+      actionLabel: l10n.syncScreenGoSignIn,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -104,21 +122,7 @@ class AuthRequiredCallout extends ConsumerWidget {
         if (state is AuthSignedIn) {
           return const SizedBox.shrink();
         }
-        final (title, body) = surface.messages(l10n);
-        if (compact) {
-          return _CompactCallout(
-            title: title,
-            body: body,
-            buttonLabel: l10n.syncScreenGoSignIn,
-            onSignIn: () => _openSignIn(context),
-          );
-        }
-        return EmptyState(
-          title: title,
-          subtitle: body,
-          action: () => _openSignIn(context),
-          actionLabel: l10n.syncScreenGoSignIn,
-        );
+        return _buildPlaceholder(context, l10n);
       },
       loading: () => compact
           ? Padding(
@@ -135,24 +139,7 @@ class AuthRequiredCallout extends ConsumerWidget {
               ),
             )
           : const SkeletonMediaList(),
-      error: (Object error, StackTrace stackTrace) {
-        Object.hash(error.hashCode, stackTrace.hashCode);
-        final (title, body) = surface.messages(l10n);
-        if (compact) {
-          return _CompactCallout(
-            title: title,
-            body: body,
-            buttonLabel: l10n.syncScreenGoSignIn,
-            onSignIn: () => _openSignIn(context),
-          );
-        }
-        return EmptyState(
-          title: title,
-          subtitle: body,
-          action: () => _openSignIn(context),
-          actionLabel: l10n.syncScreenGoSignIn,
-        );
-      },
+      error: (_, _) => _buildPlaceholder(context, l10n),
     );
   }
 }

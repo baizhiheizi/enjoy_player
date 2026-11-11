@@ -384,6 +384,42 @@ class SkeletonSettingsList extends StatelessWidget {
   }
 }
 
+/// A single transcript line placeholder row.
+class SkeletonTranscriptRow extends StatelessWidget {
+  const SkeletonTranscriptRow({super.key, this.index = 0});
+
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Skeleton.box(
+          width: 44,
+          height: 14,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        SizedBox(width: t.space12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Skeleton.line(width: double.infinity, height: 14),
+              SizedBox(height: t.space8),
+              Skeleton.line(
+                width: index % 2 == 0 ? double.infinity : 200.0,
+                height: 14,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Transcript cue list placeholder.
 class SkeletonTranscript extends StatelessWidget {
   const SkeletonTranscript({
@@ -410,32 +446,7 @@ class SkeletonTranscript extends StatelessWidget {
         ),
         itemCount: lineCount,
         separatorBuilder: (context, index) => SizedBox(height: t.space12),
-        itemBuilder: (context, i) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Skeleton.box(
-                width: 44,
-                height: 14,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              SizedBox(width: t.space12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Skeleton.line(width: double.infinity, height: 14),
-                    SizedBox(height: t.space8),
-                    Skeleton.line(
-                      width: i % 2 == 0 ? double.infinity : 200.0,
-                      height: 14,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
+        itemBuilder: (context, i) => SkeletonTranscriptRow(index: i),
       ),
     );
   }

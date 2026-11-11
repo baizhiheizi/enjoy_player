@@ -26,6 +26,11 @@ class _AuthSignedInCtrl extends AuthCtrl {
   );
 }
 
+class _AuthErrorCtrl extends AuthCtrl {
+  @override
+  Future<AuthState> build() async => throw Exception('auth error');
+}
+
 Widget _appWithRouter({
   required Widget child,
   required List<Override> overrides,
@@ -138,5 +143,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('from-test-override'), findsOneWidget);
+  });
+
+  testWidgets('AuthRequiredCallout non-compact renders EmptyState on error', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _appWithRouter(
+        overrides: [authCtrlProvider.overrideWith(_AuthErrorCtrl.new)],
+        child: const Center(
+          child: AuthRequiredCallout(
+            surface: AuthRequiredSurface.lookupTranslation,
+            compact: false,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final ctx = tester.element(find.byType(AuthRequiredCallout));
+    final loc = AppLocalizations.of(ctx)!;
+    expect(find.text(loc.syncScreenGoSignIn), findsOneWidget);
+    expect(find.text(loc.authRequiredCloudFeaturesTitle), findsOneWidget);
   });
 }
