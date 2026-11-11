@@ -1,3 +1,5 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -39,7 +41,7 @@ class _DictationListState extends State<DictationList> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          InkWell(
+          EnjoyPressable(
             borderRadius: BorderRadius.circular(10),
             onTap: () => setState(() => _expanded = !_expanded),
             child: Padding(
@@ -57,7 +59,7 @@ class _DictationListState extends State<DictationList> {
                     ),
                   ),
                   Icon(
-                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    _expanded ? EnjoyIcons.chevronUp : EnjoyIcons.chevronDown,
                     size: 18,
                     color: t.ink2,
                   ),
@@ -88,7 +90,7 @@ class _DictationListState extends State<DictationList> {
     final isSelected = widget.selectedAttempt?.id == attempt.id;
     final accuracy = attempt.accuracy;
 
-    return InkWell(
+    return EnjoyPressable(
       onTap: () => widget.onSelectAttempt(isSelected ? null : attempt),
       borderRadius: BorderRadius.circular(6),
       child: Container(
