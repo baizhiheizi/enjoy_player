@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -91,6 +92,40 @@ void main() {
     expect(find.text('Newer craft line'), findsOneWidget);
     expect(find.text('Older craft line'), findsOneWidget);
   });
+
+  testWidgets(
+    'CraftHistoryScreen subtitles each row with the tile date format',
+    (tester) async {
+      final times = [
+        DateTime.utc(2026, 7, 23, 12, 30),
+        DateTime.utc(2025, 1, 5, 8, 5),
+      ];
+      await tester.pumpWidget(
+        _harness(
+          items: [
+            _craftMedia(
+              id: 'a',
+              title: 'Subtitle oracle one',
+              updatedAt: times[0],
+            ),
+            _craftMedia(
+              id: 'b',
+              title: 'Subtitle oracle two',
+              updatedAt: times[1],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final subtitles = [
+        for (final time in times)
+          DateFormat.yMMMd().add_jm().format(time.toLocal()),
+      ];
+      expect(find.text(subtitles[0]), findsOneWidget);
+      expect(find.text(subtitles[1]), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'CraftHistoryScreen groups rows in one inset card under a header',
