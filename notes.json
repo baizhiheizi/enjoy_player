@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": 1276,
-    "investigation_after": 1300
+    "investigation_after": 1312
   },
   "issues": [
     {
@@ -10,6 +10,12 @@
       "state": "commented",
       "updated_at": "2026-11-07",
       "note": "MAINTAINER DECLINED THE FIX: PR #1262 (vendored media_kit_video fork) closed unmerged 2026-11-07 00:10 and the issue got wontfix. Do not re-propose, do not re-engage."
+    },
+    {
+      "number": 1311,
+      "state": "commented",
+      "updated_at": "2026-11-11",
+      "note": "2026-11-11 docs drift review: all three findings fixed in draft PR on branch repo-assist/docs-1311-dictation-drift, real number pending. Commented on the issue. Closes #1311 on merge."
     }
   ],
   "fixes": [
@@ -25,32 +31,32 @@
   "checks": [
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-11-10",
-      "result": "PR #1285 (changelog for #1283/#1284) merged as 84008529 on 2026-11-10. No open Repo Assist PRs; nothing awaiting review.",
-      "follow_up": null
+      "checked_at": "2026-11-11",
+      "result": "Two drafts: docs-drift PR on repo-assist/docs-1311-dictation-drift and v0.10.4 prep on repo-assist/release-v0.10.4-prep, stacked second. PR #1299 merged as 3090fb1e 2026-11-11. Real PR numbers pending; verify next run.",
+      "follow_up": "Resolve the two branch PRs to real numbers, verify CI, record in memory."
     },
     {
       "area": "docs",
-      "checked_at": "2026-11-10",
-      "result": "[Unreleased] window current through #1297: #1296's entry landed in PR #1296 itself; #1297 amended the #1295 entry in place (477-line count, _block collapse). transcript.md carries the new #1295 modules; craft.md carries the #1296 focus-sync behavior. No drift in the three post-#1285 merges.",
-      "follow_up": "Keep the window fed as merges land; refactors count."
+      "checked_at": "2026-11-11",
+      "result": "Drift review 1311 resolved in draft: dictation.md created, toggle sentences in player.md and transcript.md, README rows and echo-mode cross-link. The 0.10.4 changelog window is cut on the stacked branch with a fresh empty Unreleased above.",
+      "follow_up": "Keep feeding the Unreleased window as merges land after the cut."
     },
     {
       "area": "tests",
-      "checked_at": "2026-11-09",
-      "result": "analyze + CI green on 7890e266; main CI green at 969e25ac per the 2026-11-10 daily report (suite ~7198 passing / 28 skips). #1283/#1284/#1295 modules all carry their own tests. pub get strips plugin registrants - restore before committing.",
+      "checked_at": "2026-11-11",
+      "result": "validate_ci_gates.sh passed on the stacked branch at e2a9f02b; release_version_consistency_test 4 of 4. Docs and version-only changes, no Dart behavior change.",
       "follow_up": null
     },
     {
       "area": "release",
-      "checked_at": "2026-11-10",
-      "result": "Re-assessed: since v0.10.3 (2026-11-06) the [Unreleased] window holds exactly one user-facing fix (#1294/#1296 craft focus-sync) plus one perf fix (#1258) and refactors - still thin; holding release prep. v0.10.2/v0.10.0/v0.9.0 Release objects still missing.",
-      "follow_up": "Prep v0.10.4 when a second user-facing change lands or ~a week passes; backfill remains maintainer-only."
+      "checked_at": "2026-11-11",
+      "result": "v0.10.4 prep drafted, stacked: trigger met since dictation 1308 is the second user-facing change after v0.10.3. Window cut with provisional date 2026-11-11, correct at publish. v0.10.2, v0.10.0, v0.9.0 Release objects still missing.",
+      "follow_up": "Extend the 0.10.4 section if more fixes land before the maintainer tags."
     },
     {
       "area": "performance",
       "checked_at": "2026-11-10",
-      "result": "perf-improver shipped draft PR #1299 (per-locale DateFormat cache, ~26x craft subtitle / ~6.2x relative day, suite green) on 2026-11-10 - awaiting maintainer review. #1192 decision items unchanged. Lane stays theirs.",
+      "result": "perf-improver PR #1299 merged as 3090fb1e on 2026-11-11. The 1192 decision items are unchanged. Lane stays theirs.",
       "follow_up": null
     }
   ],
@@ -166,6 +172,10 @@
     {
       "key": "changelog-1285-merged-as-84008529",
       "completed_at": "2026-11-10"
+    },
+    {
+      "key": "pr-1299-merged-as-3090fb1e",
+      "completed_at": "2026-11-11"
     }
   ],
   "priorities": [
@@ -198,6 +208,11 @@
       "task": 5,
       "item": "The proactive-refactor lane stays paused by the maintainer",
       "note": "Detector findings #1279/#1282 were rejected by the maintainer as intentional patterns; #1281 the maintainer fixed themselves. Keep staying out of the lane."
+    },
+    {
+      "task": 6,
+      "item": "Verify the two new draft PRs once created and watch their CI",
+      "note": "Branches repo-assist/docs-1311-dictation-drift and repo-assist/release-v0.10.4-prep, stacked. Resolve real PR numbers, check CI, fix if red."
     }
   ]
 }
