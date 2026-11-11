@@ -15,7 +15,7 @@
       "number": 1311,
       "state": "commented",
       "updated_at": "2026-11-11",
-      "note": "2026-11-11 docs drift review: all three findings fixed in draft PR on branch repo-assist/docs-1311-dictation-drift, real number pending. Commented on the issue. Closes #1311 on merge."
+      "note": "All three drift findings resolved in PR #1313 (real number confirmed 2026-11-11); vigil finding fixed in a7719c0a (changelog now 'Every checked attempt persists' — empty ASR retells return before the DAO write). Closes #1311 on merge."
     }
   ],
   "fixes": [
@@ -32,31 +32,31 @@
     {
       "area": "repo_assist_prs",
       "checked_at": "2026-11-11",
-      "result": "Two drafts: docs-drift PR on repo-assist/docs-1311-dictation-drift and v0.10.4 prep on repo-assist/release-v0.10.4-prep, stacked second. PR #1299 merged as 3090fb1e 2026-11-11. Real PR numbers pending; verify next run.",
-      "follow_up": "Resolve the two branch PRs to real numbers, verify CI, record in memory."
+      "result": "PR numbers resolved: #1313 (docs drift) and #1314 (v0.10.4 prep, stacked). Vigil findings fixed: a7719c0a / f16432e4. Route+GitGuardian green; bot-PR CI approval-gated (as on #1269). main unchanged at 11e38395.",
+      "follow_up": "Watch both PRs for vigil re-review and maintainer response; merge #1313 then #1314 then tag."
     },
     {
       "area": "docs",
       "checked_at": "2026-11-11",
-      "result": "Drift review 1311 resolved in draft: dictation.md created, toggle sentences in player.md and transcript.md, README rows and echo-mode cross-link. The 0.10.4 changelog window is cut on the stacked branch with a fresh empty Unreleased above.",
-      "follow_up": "Keep feeding the Unreleased window as merges land after the cut."
+      "result": "Vigil corrections landed: dictation line reads Every-checked-attempt on both the [Unreleased] copy (#1313) and the cut [0.10.4] copy (#1314); the #1299 entry and 0.10.4.md drop the per-locale craft claim.",
+      "follow_up": "Keep feeding the [Unreleased] window as merges land after the cut."
     },
     {
       "area": "tests",
       "checked_at": "2026-11-11",
-      "result": "validate_ci_gates.sh passed on the stacked branch at e2a9f02b; release_version_consistency_test 4 of 4. Docs and version-only changes, no Dart behavior change.",
+      "result": "validate_ci_gates.sh green on both branches (cold codegen rebuild after the env pub cache needed flutter pub get); changelog/link suites 9/9 on each. Docs-only edits, no Dart behavior change.",
       "follow_up": null
     },
     {
       "area": "release",
       "checked_at": "2026-11-11",
-      "result": "v0.10.4 prep drafted, stacked: trigger met since dictation 1308 is the second user-facing change after v0.10.3. Window cut with provisional date 2026-11-11, correct at publish. v0.10.2, v0.10.0, v0.9.0 Release objects still missing.",
+      "result": "v0.10.4 prep on #1314 updated with the two wording corrections. Window cut with provisional date 2026-11-11, correct at publish. v0.10.2, v0.10.0, v0.9.0 Release objects still missing.",
       "follow_up": "Extend the 0.10.4 section if more fixes land before the maintainer tags."
     },
     {
       "area": "performance",
-      "checked_at": "2026-11-10",
-      "result": "perf-improver PR #1299 merged as 3090fb1e on 2026-11-11. The 1192 decision items are unchanged. Lane stays theirs.",
+      "checked_at": "2026-11-11",
+      "result": "Vigil claim verified: craft_history_screen.dart:155-158 builds DateFormat.yMMMd() with no locale and no Intl.defaultLocale is set, so craft keeps intl-default output; relative_day_label is locale-aware. Lane theirs (#1310 open).",
       "follow_up": null
     }
   ],
@@ -176,9 +176,18 @@
     {
       "key": "pr-1299-merged-as-3090fb1e",
       "completed_at": "2026-11-11"
+    },
+    {
+      "key": "pr-numbers-resolved-1313-1314-vigil-fixes-pushed",
+      "completed_at": "2026-11-11"
     }
   ],
   "priorities": [
+    {
+      "task": 6,
+      "item": "Watch PRs #1313/#1314 for vigil re-review and maintainer response",
+      "note": "Vigil corrections pushed (a7719c0a / f16432e4); bot-PR CI is approval-gated so only route+GitGuardian run until the maintainer approves in the Actions tab."
+    },
     {
       "task": 7,
       "item": "Backfill the GitHub Release objects for v0.10.2, v0.10.0 and v0.9.0",
@@ -202,17 +211,12 @@
     {
       "task": 10,
       "item": "Duet tracker (STATUS.md 53/64): no actionable Repo Assist work",
-      "note": "STATUS.md unchanged since b6572e04 (re-verified 2026-11-10). Remaining rows are maintainer-driven design with board compares, hardware-gated QA, or open product decisions. Re-check only if STATUS.md changes."
+      "note": "STATUS.md unchanged since b6572e04 (re-verified 2026-11-11). Remaining rows are maintainer-driven design with board compares, hardware-gated QA, or open product decisions. Re-check only if STATUS.md changes."
     },
     {
       "task": 5,
       "item": "The proactive-refactor lane stays paused by the maintainer",
       "note": "Detector findings #1279/#1282 were rejected by the maintainer as intentional patterns; #1281 the maintainer fixed themselves. Keep staying out of the lane."
-    },
-    {
-      "task": 6,
-      "item": "Verify the two new draft PRs once created and watch their CI",
-      "note": "Branches repo-assist/docs-1311-dictation-drift and repo-assist/release-v0.10.4-prep, stacked. Resolve real PR numbers, check CI, fix if red."
     }
   ]
 }
