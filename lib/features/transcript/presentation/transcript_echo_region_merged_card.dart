@@ -3,8 +3,6 @@
 /// (the row above is the list's own slot for that line).
 library;
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,19 +18,16 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading_panel.dart';
-import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
-import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
-import 'package:enjoy_player/features/transcript/application/auto_translate_line_request_policy.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/take_assessment_notes_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_recording_progress.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_echo_region_tile_builder.dart';
 import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
-import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -75,18 +70,8 @@ class EchoRegionMergedCard extends ConsumerStatefulWidget {
       _EchoRegionMergedCardState();
 }
 
-typedef _EchoTileInputs = ({
-  TranscriptLine line,
-  bool isActive,
-  String? secondaryText,
-  bool canRetranslate,
-  Set<int>? wavyWordIndexes,
-  int? recordingCount,
-  double loopFontSize,
-});
-
 class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
-  final Map<int, ({_EchoTileInputs inputs, Widget tile})> _tiles = {};
+  final EchoRegionTileCache _tiles = EchoRegionTileCache();
 
   @override
   void didUpdateWidget(EchoRegionMergedCard oldWidget) {
@@ -169,107 +154,25 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
       }
     }
 
-    final lineWidgets = <Widget>[];
-    for (var i = echo.startLineIndex; i <= echo.endLineIndex; i++) {
-      final line = lines[i];
-      final isActive = i == activeCueIndex;
-      final resolved = resolveAutoTranslateTextForDisplay(
-        autoTranslateActive: autoTranslateActive,
-        primaryLines: lines,
-        aiLines: secondaryLines,
-        lineIndex: i,
-        sourceLanguage: autoTranslateMode.sourceLanguage,
-        targetLanguage: autoTranslateMode.targetLanguage,
-        matcher: matcher,
-        line: line,
-        isLineFailed: (i) =>
-            ref.read(autoTranslateCtrlProvider(mediaId)).isLineFailed(i),
-        isLineInFlight: (i) =>
-            ref.read(autoTranslateCtrlProvider(mediaId)).isLineInFlight(i),
-        l10nLineFailed: AppLocalizations.of(
-          context,
-        )?.subtitlesAutoTranslateLineFailed,
-        l10nLinePending: AppLocalizations.of(
-          context,
-        )?.subtitlesAutoTranslatePendingLine,
-      );
-      final secondaryText = resolved.secondaryText;
-      final canRetranslate = resolved.canRetranslate;
-      final lineFailed = resolved.isFailed;
-
-      if (shouldRequestAutoTranslateLine(
-        lineIndex: i,
-        anchorLineIndex: 0,
-        scope: AutoTranslateRequestScope.block,
-        isAutoTranslateActive: autoTranslateActive,
-        hasSecondaryText:
-            secondaryText != null && secondaryText.trim().isNotEmpty,
-        isLineFailed: lineFailed,
-      )) {
-        scheduleAutoTranslateLineRequest(
-          isMounted: () => ref.context.mounted,
-          request: () => ref
-              .read(autoTranslateCtrlProvider(mediaId).notifier)
-              .requestTranslateLine(i),
-        );
-      }
-
-      final inputs = (
-        line: line,
-        isActive: isActive,
-        secondaryText: secondaryText,
-        canRetranslate: canRetranslate,
-        wavyWordIndexes: wavyByLine?[i],
-        recordingCount: lineRecordingCounts?[i],
-        loopFontSize: loopFontSize,
-      );
-      final cached = widget.reuseUnchangedTiles ? _tiles[i] : null;
-      if (cached != null && cached.inputs == inputs) {
-        lineWidgets.add(cached.tile);
-        continue;
-      }
-
-      final tile = TranscriptLineTile(
-        key: ValueKey<String>('echo-line-$i'),
-        wavyWordIndexes: inputs.wavyWordIndexes,
-        line: line,
-        lineIndex: i,
-        mediaId: mediaId,
-        secondaryText: secondaryText,
-        isActive: isActive,
-        inEcho: true,
-        groupedInEcho: true,
-        selectable: true,
-        recordingCount: inputs.recordingCount,
-        loopFontSize: loopFontSize,
-        onLookupRequested: (t) => openTranscriptLookup(
-          ref: ref,
-          context: context,
-          selectedText: t,
-          lines: lines,
-          lineIndex: i,
-        ),
-        onRetranslateSecondary: canRetranslate
-            ? () => unawaited(
-                ref
-                    .read(autoTranslateCtrlProvider(mediaId).notifier)
-                    .retranslateLine(i),
-              )
-            : null,
-        onTap: () => ref.read(playerInteractionsProvider).seekToLine(line, i),
-      );
-
-      final entry = i == echo.endLineIndex
-          ? tile
-          : Padding(
-              padding: EdgeInsets.only(bottom: metrics.loopLineGap),
-              child: tile,
-            );
-      if (widget.reuseUnchangedTiles) {
-        _tiles[i] = (inputs: inputs, tile: entry);
-      }
-      lineWidgets.add(entry);
-    }
+    final lineWidgets = buildEchoRegionTiles(
+      ref: ref,
+      context: context,
+      mediaId: mediaId,
+      lines: lines,
+      secondaryLines: secondaryLines,
+      matcher: matcher,
+      echo: echo,
+      activeCueIndex: activeCueIndex,
+      autoTranslateActive: autoTranslateActive,
+      autoTranslateSourceLanguage: autoTranslateMode.sourceLanguage,
+      autoTranslateTargetLanguage: autoTranslateMode.targetLanguage,
+      wavyByLine: wavyByLine,
+      lineRecordingCounts: lineRecordingCounts,
+      loopFontSize: loopFontSize,
+      loopLineGap: metrics.loopLineGap,
+      reuseUnchangedTiles: widget.reuseUnchangedTiles,
+      cache: _tiles,
+    );
 
     final loopSeconds = (echo.endTimeSeconds - echo.startTimeSeconds).clamp(
       0.0,
