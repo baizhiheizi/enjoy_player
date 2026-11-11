@@ -1,5 +1,28 @@
 # Performance backlog — Enjoy Player
 
+**UPDATE 2026-11-11:** **P21 = #1299 MERGED by an-lee on 2026-11-11 —
+THIRTEEN merged perf-improver PRs** (…#1258, #1299); the 11-05/11-09
+silent publication failures did NOT recur. **P21b SHIPPED this run:**
+commit `037695e8` on `perf-assist/dateformat-once-per-locale-2`
+(bundle 26.1 KB / 644 lines; #1192 replace recorded) — per-locale
+caches for the credits usage table (`Hm` + `decimalPattern` per
+build) and card (`yMMMd(locale).add_jm()` per row), sync last-sync
+stamps (`Hm(locale)`, composed `MMMd/yMMMd(locale)+Hm` cached at miss
+time — intl `addPattern` mutates!), home overline (`MMMMEEEEd`).
+Measured: card fresh 2.778–2.884 → cached 0.115–0.122 ms/502-row pass
+(~23–24x); table per-build ~1.1x; sinks identical. New tests:
+`test/core/presentation/date_format_caches_shapes_test.dart`
+(differential en/de/ja × 7 shapes, add-pattern-mutation stability,
+per-locale keys, 4 skip-marked benches) + exact-string widget oracles
+in the credits/sync/home screen tests (sync oracles are single-pump —
+provider-override swaps on a mounted ProviderScope keep the stale
+future). Residual DateFormat site: subscription `_formatDate` (≤6
+`yMMMMd` per card build; quiet screen — optional follow-up). Full
+suite 7239 / 32 skipped. **Next candidates:** discover feed-tile
+thumbnail projection, vocabulary explanation-decode memo (post-#1247
+re-verify pending), `normalizeCraftText` (LOW); unswept: ai feature,
+player non-transport.
+
 **UPDATE 2026-11-10:** The 11-09 writes failed to publish (no P21 PR in
 any state; #1192 update never landed) — **P21 RE-SHIPPED this run**:
 commit `33b82bdc` on `perf-assist/date-format-cache` (bundle recorded,
