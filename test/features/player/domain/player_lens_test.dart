@@ -17,8 +17,31 @@ void main() {
     );
   });
 
-  test('Echo wins when a legacy session restored both flags', () {
-    expect(playerLensFrom(echoActive: true, hideText: true), PlayerLens.echo);
-    expect(playerLensFrom(echoActive: true, hideText: false), PlayerLens.echo);
+  test(
+    'Dictate takes precedence when both echoActive and hideText are active',
+    () {
+      expect(
+        playerLensFrom(echoActive: true, hideText: true),
+        PlayerLens.dictate,
+      );
+      expect(
+        playerLensFrom(echoActive: true, hideText: false),
+        PlayerLens.echo,
+      );
+    },
+  );
+
+  test('PlayerLens helpers report correct mode flags', () {
+    expect(PlayerLens.listen.loopMode, isFalse);
+    expect(PlayerLens.listen.dictationMode, isFalse);
+    expect(PlayerLens.listen.blurMode, isFalse);
+
+    expect(PlayerLens.echo.loopMode, isTrue);
+    expect(PlayerLens.echo.dictationMode, isFalse);
+    expect(PlayerLens.echo.blurMode, isFalse);
+
+    expect(PlayerLens.dictate.loopMode, isTrue);
+    expect(PlayerLens.dictate.dictationMode, isTrue);
+    expect(PlayerLens.dictate.blurMode, isTrue);
   });
 }

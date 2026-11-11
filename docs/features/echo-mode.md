@@ -43,8 +43,11 @@ violet “+” chip and the line's text, which adds that line to the loop
 (`[` / `]`, `expandEchoBackward` / `expandEchoForward`), and a “−” button
 beside it that drops the loop's first / last line (`{` / `}`,
 `shrinkEchoBackward` / `shrinkEchoForward`; disabled on a one-line
-loop). Order is: + row above, loop, + row below, takes. The rows hide
-while a take records. They replaced the Earlier / Later pill handles on
+loop). Order is: + row above, loop, + row below, takes. In Dictate mode,
+adjacent “+ line” preview text is masked via `TranscriptBlurText`, the loop's
+reference words are masked via `DictationBand` (revealing an inline word-level diff
+once checked), and recordings are captured and shared through `ShadowReadingPanel`.
+The rows hide while a take records. They replaced the Earlier / Later pill handles on
 the bracket edges. Neighbour lines fade by distance through `echoLensOpacity`
 (0.65 / 0.35 / 0.2) at the board's lens sizes (16 / 15 / 14
 desktop, 14.5 / 13.5 in the video column and on phones) and restore to full ink on hover. While a take is recording,

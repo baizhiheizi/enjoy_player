@@ -8549,6 +8549,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{label}: failed via {route} ({error})'**
   String settingsNetworkTestFail(String label, String route, String error);
+
+  /// No description provided for @playerDictationVoiceMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get playerDictationVoiceMode;
+
+  /// No description provided for @playerDictationTextMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get playerDictationTextMode;
+
+  /// No description provided for @playerDictationVoiceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen and retell by voice. Tap Record or press R when ready.'**
+  String get playerDictationVoiceHint;
+
+  /// No description provided for @playerDictationTextPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Type what you hear...'**
+  String get playerDictationTextPlaceholder;
+
+  /// No description provided for @playerDictationWordCountProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{typed} of about {total} words'**
+  String playerDictationWordCountProgress(int typed, int total);
+
+  /// No description provided for @playerDictationCheckAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Check answer'**
+  String get playerDictationCheckAnswer;
+
+  /// No description provided for @playerDictationCheckingVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribing speech...'**
+  String get playerDictationCheckingVoice;
+
+  /// No description provided for @playerDictationTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get playerDictationTryAgain;
+
+  /// No description provided for @playerDictationNextLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Next line'**
+  String get playerDictationNextLine;
+
+  /// No description provided for @playerDictationRetryTranscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry transcription'**
+  String get playerDictationRetryTranscription;
+
+  /// No description provided for @playerDictationLegendCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct'**
+  String get playerDictationLegendCorrect;
+
+  /// No description provided for @playerDictationLegendMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get playerDictationLegendMissed;
+
+  /// No description provided for @playerDictationLegendExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra'**
+  String get playerDictationLegendExtra;
+
+  /// No description provided for @playerDictationStatsCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} correct'**
+  String playerDictationStatsCorrect(int count);
+
+  /// No description provided for @playerDictationStatsMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} missed'**
+  String playerDictationStatsMissed(int count);
+
+  /// No description provided for @playerDictationStatsExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} extra'**
+  String playerDictationStatsExtra(int count);
+
+  /// No description provided for @playerDictationPreviousAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous dictations ({count})'**
+  String playerDictationPreviousAttempts(int count);
+
+  /// No description provided for @playerDictationAttemptAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'{accuracy}% accuracy'**
+  String playerDictationAttemptAccuracy(int accuracy);
+
+  /// No description provided for @playerDictationRecordAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Record again'**
+  String get playerDictationRecordAgain;
+
+  /// No description provided for @playerDictationRecordRetelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Record retelling (R)'**
+  String get playerDictationRecordRetelling;
+
+  /// No description provided for @playerDictationHeaderListen.
+  ///
+  /// In en, this message translates to:
+  /// **'DICTATION — LISTEN & RETELL'**
+  String get playerDictationHeaderListen;
+
+  /// No description provided for @playerDictationHeaderChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'DICTATION — CHECKED'**
+  String get playerDictationHeaderChecked;
+
+  /// No description provided for @playerDictationNoSpeechDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'No speech detected'**
+  String get playerDictationNoSpeechDetected;
 }
 
 class _AppLocalizationsDelegate

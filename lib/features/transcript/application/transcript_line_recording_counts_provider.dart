@@ -6,11 +6,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/dexie_target_type_provider.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/sync/application/recordings_for_target_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_recording_counts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 part 'transcript_line_recording_counts_provider.g.dart';
 
@@ -25,6 +27,7 @@ Map<int, int>? resolveTranscriptLineRecordingCounts({
   required AsyncValue<String?> targetTypeAsync,
   required AsyncValue<List<RecordingRow>> recordingsAsync,
   required String mediaId,
+  List<DictationRow> dictations = const [],
   Logger? log,
 }) {
   final logger = log ?? _log;
@@ -65,7 +68,11 @@ Map<int, int>? resolveTranscriptLineRecordingCounts({
     return const {};
   }
 
-  return countRecordingsPerLineIndex(lines, recordingsAsync.requireValue);
+  return countRecordingsPerLineIndex(
+    lines,
+    recordingsAsync.requireValue,
+    dictations: dictations,
+  );
 }
 
 /// Map of transcript line index → overlapping recording count for [mediaId].
@@ -77,15 +84,22 @@ Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
   final targetTypeAsync = ref.watch(dexieTargetTypeForMediaProvider(mediaId));
 
   final AsyncValue<List<RecordingRow>> recordingsAsync;
+  final List<DictationRow> dictations;
   final tt = targetTypeAsync.value;
   if (tt != null) {
     recordingsAsync = ref.watch(
       recordingsForTargetProvider((targetType: tt, targetId: mediaId)),
     );
+    final dictationsAsync = ref.watch(
+      _dictationsForTargetProvider((targetType: tt, targetId: mediaId)),
+    );
+    dictations = dictationsAsync.value ?? const [];
   } else if (targetTypeAsync.isLoading) {
     recordingsAsync = const AsyncLoading();
+    dictations = const [];
   } else {
     recordingsAsync = const AsyncData([]);
+    dictations = const [];
   }
 
   return resolveTranscriptLineRecordingCounts(
@@ -93,5 +107,15 @@ Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
     targetTypeAsync: targetTypeAsync,
     recordingsAsync: recordingsAsync,
     mediaId: mediaId,
+    dictations: dictations,
   );
 }
+
+final _dictationsForTargetProvider = StreamProvider.autoDispose
+    .family<List<DictationRow>, ({String targetType, String targetId})>((
+      ref,
+      target,
+    ) {
+      final db = ref.watch(appDatabaseProvider);
+      return db.dictationDao.watchByTarget(target.targetType, target.targetId);
+    });

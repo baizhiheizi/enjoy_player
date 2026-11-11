@@ -175,27 +175,46 @@ class PlayerInteractions {
     await ref.read(playerControllerProvider.notifier).play();
   }
 
-  /// Toggles the Echo lens; turning it on leaves Dictate.
   Future<void> toggleEcho() async {
-    final lines = await _lines();
     final session = ref.read(playerControllerProvider);
-    if (session == null || lines.isEmpty) return;
+    if (session == null) return;
+    final blur = ref.read(transcriptBlurModeProvider);
     final echo = ref.read(echoModeProvider);
-    if (echo.active) {
-      ref.read(echoModeProvider.notifier).deactivate();
-      if (ref.read(transcriptBlurModeProvider)) {
-        ref.read(transcriptBlurModeProvider.notifier).deactivate();
+
+    if (blur) {
+      ref.read(transcriptBlurModeProvider.notifier).deactivate();
+      if (!echo.active) {
+        final lines = await _lines();
+        if (lines.isNotEmpty) {
+          final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
+          if (idx >= 0) {
+            final line = lines[idx];
+            ref
+                .read(echoModeProvider.notifier)
+                .activate(
+                  startLineIndex: idx,
+                  endLineIndex: idx,
+                  startTimeSeconds: line.startSeconds,
+                  endTimeSeconds: line.endSeconds,
+                );
+          }
+        }
       }
       await _persistSession(session);
       return;
     }
+
+    if (echo.active) {
+      ref.read(echoModeProvider.notifier).deactivate();
+      await _persistSession(session);
+      return;
+    }
+
+    final lines = await _lines();
+    if (lines.isEmpty) return;
     final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
     if (idx < 0) return;
     final line = lines[idx];
-    if (ref.read(transcriptBlurModeProvider)) {
-      ref.read(transcriptBlurModeProvider.notifier).deactivate();
-      await _persistSession(session);
-    }
     ref
         .read(echoModeProvider.notifier)
         .activate(
@@ -204,45 +223,96 @@ class PlayerInteractions {
           startTimeSeconds: line.startSeconds,
           endTimeSeconds: line.endSeconds,
         );
+    await _persistSession(session);
   }
 
   /// Toggles the Dictate lens (hide text) for the open media; turning it on
-  /// leaves Echo.
-  ///
-  /// Allows turning blur off even when there are no transcript lines so the
-  /// user can always exit the mode (same enable rule as the transport button).
+  /// activates or preserves the Echo loop region.
   Future<void> toggleBlur() async {
     final session = ref.read(playerControllerProvider);
     if (session == null) return;
     final blur = ref.read(transcriptBlurModeProvider);
     if (blur) {
       ref.read(transcriptBlurModeProvider.notifier).deactivate();
-      if (ref.read(echoModeProvider).active) {
-        ref.read(echoModeProvider.notifier).deactivate();
-      }
     } else {
       final lines = await _lines();
       if (lines.isEmpty) return;
-      if (ref.read(echoModeProvider).active) {
-        ref.read(echoModeProvider.notifier).deactivate();
+      if (!ref.read(echoModeProvider).active) {
+        final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
+        final safeIdx = idx >= 0 ? idx : 0;
+        final line = lines[safeIdx];
+        ref
+            .read(echoModeProvider.notifier)
+            .activate(
+              startLineIndex: safeIdx,
+              endLineIndex: safeIdx,
+              startTimeSeconds: line.startSeconds,
+              endTimeSeconds: line.endSeconds,
+            );
       }
       ref.read(transcriptBlurModeProvider.notifier).activate();
     }
     await _persistSession(session);
   }
 
-  /// Switches to [lens]; the lenses are exclusive (Dictate leaves Echo and
-  /// Echo leaves Dictate). A no-op when [lens] is already active.
+  /// Switches to [lens]; the lenses are exclusive.
   Future<void> selectLens(PlayerLens lens) async {
     final current = ref.read(playerLensProvider);
     if (current == lens) return;
+    final session = ref.read(playerControllerProvider);
+    if (session == null) return;
+
     switch (lens) {
       case PlayerLens.listen:
-        await (current == PlayerLens.echo ? toggleEcho() : toggleBlur());
+        if (ref.read(transcriptBlurModeProvider)) {
+          ref.read(transcriptBlurModeProvider.notifier).deactivate();
+        }
+        if (ref.read(echoModeProvider).active) {
+          ref.read(echoModeProvider.notifier).deactivate();
+        }
+        await _persistSession(session);
       case PlayerLens.echo:
-        await toggleEcho();
+        if (ref.read(transcriptBlurModeProvider)) {
+          ref.read(transcriptBlurModeProvider.notifier).deactivate();
+        }
+        if (!ref.read(echoModeProvider).active) {
+          final lines = await _lines();
+          if (lines.isNotEmpty) {
+            final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
+            final safeIdx = idx >= 0 ? idx : 0;
+            final line = lines[safeIdx];
+            ref
+                .read(echoModeProvider.notifier)
+                .activate(
+                  startLineIndex: safeIdx,
+                  endLineIndex: safeIdx,
+                  startTimeSeconds: line.startSeconds,
+                  endTimeSeconds: line.endSeconds,
+                );
+          }
+        }
+        await _persistSession(session);
       case PlayerLens.dictate:
-        await toggleBlur();
+        if (!ref.read(echoModeProvider).active) {
+          final lines = await _lines();
+          if (lines.isNotEmpty) {
+            final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
+            final safeIdx = idx >= 0 ? idx : 0;
+            final line = lines[safeIdx];
+            ref
+                .read(echoModeProvider.notifier)
+                .activate(
+                  startLineIndex: safeIdx,
+                  endLineIndex: safeIdx,
+                  startTimeSeconds: line.startSeconds,
+                  endTimeSeconds: line.endSeconds,
+                );
+          }
+        }
+        if (!ref.read(transcriptBlurModeProvider)) {
+          ref.read(transcriptBlurModeProvider.notifier).activate();
+        }
+        await _persistSession(session);
     }
   }
 

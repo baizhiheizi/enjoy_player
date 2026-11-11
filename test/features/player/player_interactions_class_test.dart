@@ -442,7 +442,7 @@ void main() {
 
     await n.toggleBlur();
     expect(container.read(transcriptBlurModeProvider), isTrue);
-    expect(container.read(echoModeProvider).active, isFalse);
+    expect(container.read(echoModeProvider).active, isTrue);
     expect(container.read(playerLensProvider), PlayerLens.dictate);
   });
 
@@ -464,23 +464,15 @@ void main() {
       final n = container.read(playerInteractionsProvider);
 
       await n.toggleEcho();
-      expect(container.read(echoModeProvider).active, isFalse);
+      expect(container.read(echoModeProvider).active, isTrue);
       expect(container.read(transcriptBlurModeProvider), isFalse);
-      expect(container.read(playerLensProvider), PlayerLens.listen);
+      expect(container.read(playerLensProvider), PlayerLens.echo);
 
-      container
-          .read(echoModeProvider.notifier)
-          .activate(
-            startLineIndex: 1,
-            endLineIndex: 1,
-            startTimeSeconds: 2,
-            endTimeSeconds: 4,
-          );
       container.read(transcriptBlurModeProvider.notifier).activate();
       await n.toggleBlur();
-      expect(container.read(echoModeProvider).active, isFalse);
+      expect(container.read(echoModeProvider).active, isTrue);
       expect(container.read(transcriptBlurModeProvider), isFalse);
-      expect(container.read(playerLensProvider), PlayerLens.listen);
+      expect(container.read(playerLensProvider), PlayerLens.echo);
     },
   );
 

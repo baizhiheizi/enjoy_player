@@ -246,6 +246,65 @@ void main() {
     );
 
     test(
+      'migrates legacy blur-only session by deriving loop from active transcript line',
+      () async {
+        final now = DateTime.now();
+        await db.transcriptDao.upsert(
+          TranscriptRow(
+            id: 'tr-1',
+            targetType: 'Audio',
+            targetId: 'hang-1',
+            language: 'en',
+            source: 'official',
+            label: 'English',
+            timelineJson:
+                '[{"start":0,"duration":2000,"text":"Line 1"},{"start":2000,"duration":3000,"text":"Line 2"}]',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        await db.echoSessionDao.upsert(
+          EchoSessionRow(
+            id: 'es-legacy-blur',
+            targetType: 'Audio',
+            targetId: 'hang-1',
+            language: 'en',
+            currentTimeMs: 2500,
+            playbackRate: 1,
+            volume: 1,
+            recordingsCount: 0,
+            recordingsDurationMs: 0,
+            currentSegmentIndex: -1,
+            echoActive: false,
+            echoStartLine: -1,
+            echoEndLine: -1,
+            echoStartMs: null,
+            echoEndMs: null,
+            blurActive: true,
+            createdAt: now,
+            updatedAt: now,
+            startedAt: now,
+            lastActiveAt: now,
+          ),
+        );
+
+        await runPlayerOpen(
+          container.read(playerControllerProvider.notifier),
+          'hang-1',
+        );
+
+        expect(container.read(transcriptBlurModeProvider), isTrue);
+        final echo = container.read(echoModeProvider);
+        expect(echo.active, isTrue);
+        expect(echo.startLineIndex, 1);
+        expect(echo.endLineIndex, 1);
+        expect(echo.startTimeSeconds, 2.0);
+        expect(echo.endTimeSeconds, 5.0);
+      },
+    );
+
+    test(
       'a wedged post-open command degrades instead of hanging the open',
       () async {
         final now = DateTime.now();
