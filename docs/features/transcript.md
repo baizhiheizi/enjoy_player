@@ -261,7 +261,11 @@ mode is deliberately hearing-focused:
   [player dock](player.md) and
   [Duet presentation](#presentation--the-listen-lens-duet-adr-0093)),
   and the `H` hotkey (`player.toggleBlurPractice`) fires the same action
-  via `PlayerInteractions.toggleBlur()`. There is **no** Hide-text switch in
+  via `PlayerInteractions.toggleBlur()`. Entering Dictate also **arms (or
+  reuses) a single-line Echo loop region on the active cue** — the loop is
+  what hosts the dictation practice card and the looping transport
+  behavior ([dictation.md](dictation.md)) — and leaving Dictate via `E`
+  lands in Echo with that line looped (`toggleEcho`). There is **no** Hide-text switch in
   the CC display card and **no** blur button on the player dock — the
   Dictate lens owns the mode (ADR-0093 decision 6).
 - On macOS and Windows, **hovering a cue unblurs it**; pointer-out
