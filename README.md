@@ -37,7 +37,7 @@ Every line of your media, three ways through it. Switch any time — the line st
 | --- | --- |
 | 🔵 **Listen** | Every line in time with your media. Tap to seek, loop a line, slow it down, and read the translation and IPA when you need them. |
 | 🟣 **Echo** | Shadow one line at a time. Record over the original, replay both, compare the pitch, and get a score for every take. |
-| 🟣 **Dictate** | Hide the text. Words turn into shapes, so you listen first — then hover or hold a line to peek and check yourself. |
+| 🟣 **Dictate** | Hide the text. Words turn into shapes, so you listen first — then retell by voice or type what you hear and get every word checked. |
 
 ## See it in action
 
@@ -69,7 +69,7 @@ Every line of your media, three ways through it. Switch any time — the line st
 - **Interactive transcripts** — `.srt` / `.vtt` imports, YouTube captions, or AI transcription aligned line by line. Tap a line to seek; select a word to look it up. Per-line translations and IPA when you want them.
 - **Echo (shadow reading)** — Line-bounded loops that pause and rewind at the end of the line, so you can drill it without breaking flow. Every take is kept.
 - **Pronunciation assessment** — Azure speech scoring per take: overall, accuracy, completeness, fluency and prosody, with per-word detail and your pitch contour laid over the original's.
-- **Dictate** — Every line's text becomes shape bars (`H`); listen first, then hover or press-and-hold a line to peek.
+- **Dictate** — Every line's text becomes shape bars (`H`); listen first, then hover or press-and-hold a line to peek. Or prove it: retell the line by voice or type what you hear, and every word is checked against the original.
 - **Lookup in context** — Translation, a dictionary entry, and an AI explanation of what the phrase means in this scene, in 15 lookup languages.
 - **Spaced-repetition vocabulary** — Three-button flashcards on an SM-2 schedule, several contexts per word, Anki CSV export on paid plans.
 - **Craft** — Say or type something in your own language; Craft rewrites it the way a native speaker would, reads it aloud, and sends it to the player to shadow.

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Dictation practice arrives under the Dictate lens** ([#1308](https://github.com/baizhiheizi/enjoy_player/pull/1308)): the Dictate lens grows from hide-and-peek into a full listen-and-prove practice loop with two answer modes. **Voice retell** records with `R` through the shared shadow-reading recorder — the take transcribes through ASR and diffs word-by-word against the loop's reference text (an empty transcription surfaces a "No speech detected" failure with a retry, and retell takes persist as regular shadow-reading takes). **Text** is type-what-you-hear with a live "{typed} of about {total} words" progress line and a Check answer action. After checking, the loop's masked reference words reveal an inline word-level diff — Correct / Missed / Extra legend plus per-attempt accuracy — with Try again to reset and Next line to advance. Every checked attempt persists to the sync-ready `dictations` table keyed by media target + reference window, and "Previous dictations (n)" re-opens a historical attempt's stored diff. Entering Dictate arms (or reuses) a single-line Echo loop region on the active cue, which is what hosts the dictation card. See [docs/features/dictation.md](docs/features/dictation.md).
+
 ### Fixed
 - **Craft text fields keep in-progress edits during unrelated state updates** (closes [#1294](https://github.com/baizhiheizi/enjoy_player/issues/1294)): Advanced and Express text fields now share focus-aware controller sync. External updates wait until blur instead of replacing the draft and cursor mid-edit; explicit Re-translate, Regenerate, and Use translated text actions release focus so their new value appears immediately even on touch devices. Advanced source restores render, and dismissing the Translate language picker after unmount no longer reads a disposed Riverpod ref.
 
