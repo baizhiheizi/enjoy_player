@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -145,6 +146,49 @@ void main() {
 
       expect(find.text(l10n.syncScreenLastSyncNever), findsNothing);
       expect(find.textContaining('2025'), findsOneWidget);
+      expect(
+        find.text(
+          DateFormat.yMMMd('en').add_Hm().format(
+            DateTime.tryParse('2025-01-15T10:30:00.000Z')!.toLocal(),
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('shows the same-year last sync stamp without the year', (
+      tester,
+    ) async {
+      final sameYearIso = '${DateTime.now().year}-03-15T10:30:00.000Z';
+      await tester.pumpWidget(
+        _harness(
+          overrides: [
+            authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
+            syncQueueSnapshotProvider.overrideWith(
+              (ref) => Stream.value(
+                const SyncQueueSnapshot(
+                  retryablePending: 0,
+                  permanentlyFailed: 0,
+                  detailRows: [],
+                ),
+              ),
+            ),
+            syncLastFullSyncAtProvider.overrideWith((ref) async => sameYearIso),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          DateFormat.MMMd(
+            'en',
+          ).add_Hm().format(DateTime.tryParse(sameYearIso)!.toLocal()),
+        ),
+        findsOneWidget,
+      );
 
       expect(tester.takeException(), isNull);
     });

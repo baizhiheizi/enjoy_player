@@ -17,6 +17,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/library/application/continue_practice_provider.dart';
 import 'package:enjoy_player/features/library/domain/practice_resume.dart';
@@ -122,6 +124,32 @@ void main() {
         expect(find.text(l10n.communityToday.toUpperCase()), findsOneWidget);
       },
     );
+
+    testWidgets('header overline renders the fresh long-date format', (
+      tester,
+    ) async {
+      final before = DateTime.now();
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+        ],
+      );
+      await tester.pumpWidget(
+        _themedHomeWithRouter(router, overrides: _homeOverrides()),
+      );
+      await tester.pumpAndSettle();
+      final after = DateTime.now();
+
+      final header = tester.widget<EditorialHeader>(
+        find.byType(EditorialHeader),
+      );
+      final candidates = {
+        DateFormat.MMMMEEEEd('en').format(before),
+        DateFormat.MMMMEEEEd('en').format(after),
+      };
+      expect(candidates, contains(header.overline));
+    });
 
     testWidgets('Craft action navigates to /craft', (tester) async {
       final router = GoRouter(

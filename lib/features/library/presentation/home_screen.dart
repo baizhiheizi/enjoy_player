@@ -39,6 +39,8 @@ import '../domain/media.dart';
 import 'library_actions.dart';
 import 'widgets/library_media_card.dart';
 
+final Map<String, DateFormat> _homeDateOverlineCache = {};
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -221,7 +223,9 @@ class _HomeHeader extends ConsumerWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     return EditorialHeader(
       widthMode: EditorialHeaderWidthMode.browse,
-      overline: DateFormat.MMMMEEEEd(locale).format(now),
+      overline: _homeDateOverlineCache
+          .putIfAbsent(locale, () => DateFormat.MMMMEEEEd(locale))
+          .format(now),
       title: firstName == null
           ? greeting
           : l10n.homeGreetingNamed(greeting, firstName),

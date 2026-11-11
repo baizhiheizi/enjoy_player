@@ -22,6 +22,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:intl/intl.dart';
 
 /// A controllable [CreditsApi] stub. Constructed with a [MockClient] so the
 /// real REST stack doesn't run; we override the methods that the screen
@@ -195,6 +196,60 @@ void main() {
     expect(find.text('110'), findsOneWidget);
     expect(find.text('LLM'), findsOneWidget);
     expect(find.text('Allowed'), findsOneWidget);
+  });
+
+  testWidgets('usage rows render fresh-formatter-identical dates', (
+    tester,
+  ) async {
+    final when = DateTime.utc(2024, 1, 15, 13, 45);
+    final log = CreditsUsageLog(
+      id: 'l1',
+      userId: 'u1',
+      date: '2024-01-15',
+      timestampMs: when.millisecondsSinceEpoch,
+      serviceType: 'llm',
+      tier: 'pro',
+      creditsRequired: 10,
+      usedBefore: 100,
+      usedAfter: 110,
+      allowed: true,
+    );
+    final local = DateTime.fromMillisecondsSinceEpoch(
+      when.millisecondsSinceEpoch,
+      isUtc: true,
+    ).toLocal();
+
+    tester.view.physicalSize = const Size(420, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final stub = _StubCreditsApi(_fakeApiClient())
+      ..nextPage = CreditsUsagePage(logs: [log], hasMore: false);
+    await tester.pumpWidget(
+      _wrap(
+        stub: stub,
+        auth: AuthSignedIn(profile: _stubProfile()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(UsageLogCard), findsOneWidget);
+    expect(
+      find.text(DateFormat.yMMMd('en').add_jm().format(local)),
+      findsOneWidget,
+    );
+
+    tester.view.physicalSize = const Size(1100, 1400);
+    await tester.pumpWidget(
+      _wrap(
+        stub: stub,
+        auth: AuthSignedIn(profile: _stubProfile()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(UsageTable), findsOneWidget);
+    expect(find.text(DateFormat.Hm().format(local)), findsOneWidget);
   });
 
   testWidgets('a wide viewport renders the usage table, not the cards', (
