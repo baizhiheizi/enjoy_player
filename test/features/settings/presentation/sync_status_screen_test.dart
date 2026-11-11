@@ -161,7 +161,7 @@ void main() {
     testWidgets('shows the same-year last sync stamp without the year', (
       tester,
     ) async {
-      final sameYearIso = '${DateTime.now().year}-03-15T10:30:00.000Z';
+      final sameYearIso = _sameYearLastSyncIso(DateTime.now());
       await tester.pumpWidget(
         _harness(
           overrides: [
@@ -181,14 +181,22 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(
-        find.text(
-          DateFormat.MMMd(
-            'en',
-          ).add_Hm().format(DateTime.tryParse(sameYearIso)!.toLocal()),
-        ),
-        findsOneWidget,
-      );
+      final parsed = DateTime.tryParse(sameYearIso)!;
+      final shortStamp = DateFormat.MMMd('en').add_Hm().format(parsed);
+      final yearStamp = DateFormat.yMMMd('en').add_Hm().format(parsed);
+      if (parsed.year == DateTime.now().year) {
+        expect(find.text(shortStamp), findsOneWidget);
+        expect(find.text(yearStamp), findsNothing);
+      } else {
+        expect(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is Text &&
+                (widget.data == shortStamp || widget.data == yearStamp),
+          ),
+          findsOneWidget,
+        );
+      }
 
       expect(tester.takeException(), isNull);
     });
@@ -335,4 +343,18 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+}
+
+String _sameYearLastSyncIso(DateTime now) {
+  final ahead = now.add(const Duration(days: 3));
+  final awayFromToday = ahead.year == now.year
+      ? ahead
+      : now.subtract(const Duration(days: 3));
+  return DateTime(
+    awayFromToday.year,
+    awayFromToday.month,
+    awayFromToday.day,
+    10,
+    30,
+  ).toIso8601String();
 }
