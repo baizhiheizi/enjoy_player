@@ -96,5 +96,32 @@ void main() {
       expect(counts.containsKey(0), isFalse);
       expect(counts[1], 1);
     });
+
+    test('combines recordings and dictations into per-line counts', () {
+      final d = DictationRow(
+        id: 'd-1',
+        targetType: 'Audio',
+        targetId: 'media-1',
+        referenceStartMs: 0,
+        referenceDurationMs: 1000,
+        referenceText: 'ref',
+        language: 'en',
+        userInput: 'input',
+        accuracy: 100,
+        correctWords: 1,
+        missedWords: 0,
+        extraWords: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final counts = countRecordingsPerLineIndex(
+        const [_lineA, _lineB],
+        [_recording(start: 2000, duration: 1000)],
+        dictations: [d],
+      );
+      expect(counts[0], 1);
+      expect(counts[1], 1);
+    });
   });
 }

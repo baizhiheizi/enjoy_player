@@ -17,6 +17,40 @@ class DictationDao extends DatabaseAccessor<AppDatabase>
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .watch();
 
+  Stream<List<DictationRow>> watchByEchoRegion(
+    String targetType,
+    String targetId,
+    int referenceStartMs,
+    int referenceDurationMs,
+  ) =>
+      (select(dictations)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) &
+                  t.targetId.equals(targetId) &
+                  t.referenceStartMs.equals(referenceStartMs) &
+                  t.referenceDurationMs.equals(referenceDurationMs),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
+  Future<List<DictationRow>> listByEchoRegion(
+    String targetType,
+    String targetId,
+    int referenceStartMs,
+    int referenceDurationMs,
+  ) =>
+      (select(dictations)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) &
+                  t.targetId.equals(targetId) &
+                  t.referenceStartMs.equals(referenceStartMs) &
+                  t.referenceDurationMs.equals(referenceDurationMs),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
   Future<void> insertRow(DictationRow row) =>
       into(dictations).insert(row, mode: InsertMode.insertOrReplace);
 

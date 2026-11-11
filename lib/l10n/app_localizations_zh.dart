@@ -4532,6 +4532,72 @@ class AppLocalizationsZh extends AppLocalizations {
   String settingsNetworkTestFail(String label, String route, String error) {
     return '$label：失败，路由 $route（$error）';
   }
+
+  @override
+  String get playerDictationVoiceMode => '语音复述';
+
+  @override
+  String get playerDictationTextMode => '文字输入';
+
+  @override
+  String get playerDictationVoiceHint => '仔细聆听并用语音复述。准备好后点录音或按 R。';
+
+  @override
+  String get playerDictationTextPlaceholder => '输入你听到的内容…';
+
+  @override
+  String playerDictationWordCountProgress(int typed, int total) {
+    return '已输入 $typed / 约 $total 词';
+  }
+
+  @override
+  String get playerDictationCheckAnswer => '核对答案';
+
+  @override
+  String get playerDictationCheckingVoice => '正在识别语音…';
+
+  @override
+  String get playerDictationTryAgain => '再试一次';
+
+  @override
+  String get playerDictationNextLine => '下一句';
+
+  @override
+  String get playerDictationRetryTranscription => '重试识别';
+
+  @override
+  String get playerDictationLegendCorrect => '正确';
+
+  @override
+  String get playerDictationLegendMissed => '遗漏';
+
+  @override
+  String get playerDictationLegendExtra => '多余';
+
+  @override
+  String playerDictationStatsCorrect(int count) {
+    return '$count 个正确';
+  }
+
+  @override
+  String playerDictationStatsMissed(int count) {
+    return '$count 个遗漏';
+  }
+
+  @override
+  String playerDictationStatsExtra(int count) {
+    return '$count 个多余';
+  }
+
+  @override
+  String playerDictationPreviousAttempts(int count) {
+    return '历史听写记录（$count）';
+  }
+
+  @override
+  String playerDictationAttemptAccuracy(int accuracy) {
+    return '$accuracy% 正确率';
+  }
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).

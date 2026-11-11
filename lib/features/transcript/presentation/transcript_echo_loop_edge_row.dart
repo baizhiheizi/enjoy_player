@@ -15,6 +15,8 @@ import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'transcript_markup.dart';
 
 enum EchoLoopEdge { above, below }
@@ -41,6 +43,7 @@ class EchoLoopEdgeRow extends ConsumerWidget {
     final typography = TranscriptTypographyTokens.of(context);
     final above = edge == EchoLoopEdge.above;
     final interactions = ref.read(playerInteractionsProvider);
+    final blurMode = ref.watch(transcriptBlurModeProvider);
 
     final addLabel = above
         ? l10n.hotkeysDescExpandEchoBackward
@@ -89,14 +92,19 @@ class EchoLoopEdgeRow extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      line.text,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: typography.bodyStyle.copyWith(
-                        fontSize: metrics.isPhone ? 15 : 16,
-                        height: 1.3,
-                        color: t.ink3,
+                    child: TranscriptBlurText(
+                      revealed: !blurMode,
+                      shapeWords: line.text,
+                      shapeFontSize: metrics.isPhone ? 15 : 16,
+                      child: Text(
+                        line.text,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: typography.bodyStyle.copyWith(
+                          fontSize: metrics.isPhone ? 15 : 16,
+                          height: 1.3,
+                          color: t.ink3,
+                        ),
                       ),
                     ),
                   ),

@@ -4746,4 +4746,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String settingsNetworkTestFail(String label, String route, String error) {
     return '$label: failed via $route ($error)';
   }
+
+  @override
+  String get playerDictationVoiceMode => 'Voice';
+
+  @override
+  String get playerDictationTextMode => 'Text';
+
+  @override
+  String get playerDictationVoiceHint =>
+      'Listen and retell by voice. Tap Record or press R when ready.';
+
+  @override
+  String get playerDictationTextPlaceholder => 'Type what you hear...';
+
+  @override
+  String playerDictationWordCountProgress(int typed, int total) {
+    return '$typed of about $total words';
+  }
+
+  @override
+  String get playerDictationCheckAnswer => 'Check answer';
+
+  @override
+  String get playerDictationCheckingVoice => 'Transcribing speech...';
+
+  @override
+  String get playerDictationTryAgain => 'Try again';
+
+  @override
+  String get playerDictationNextLine => 'Next line';
+
+  @override
+  String get playerDictationRetryTranscription => 'Retry transcription';
+
+  @override
+  String get playerDictationLegendCorrect => 'Correct';
+
+  @override
+  String get playerDictationLegendMissed => 'Missed';
+
+  @override
+  String get playerDictationLegendExtra => 'Extra';
+
+  @override
+  String playerDictationStatsCorrect(int count) {
+    return '$count correct';
+  }
+
+  @override
+  String playerDictationStatsMissed(int count) {
+    return '$count missed';
+  }
+
+  @override
+  String playerDictationStatsExtra(int count) {
+    return '$count extra';
+  }
+
+  @override
+  String playerDictationPreviousAttempts(int count) {
+    return 'Previous dictations ($count)';
+  }
+
+  @override
+  String playerDictationAttemptAccuracy(int accuracy) {
+    return '$accuracy% accuracy';
+  }
 }

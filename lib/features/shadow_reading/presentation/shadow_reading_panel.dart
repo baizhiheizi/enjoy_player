@@ -79,6 +79,7 @@ class ShadowReadingPanel extends ConsumerStatefulWidget {
     this.showLiveProgress = false,
     this.takesRowInLoop = false,
     this.analyticsSurface = AnalyticsEvents.surfaceShadowReading,
+    this.onTakePersisted,
     super.key,
   });
 
@@ -89,6 +90,9 @@ class ShadowReadingPanel extends ConsumerStatefulWidget {
   final double endSec;
   final String referenceText;
   final bool echoActive;
+
+  /// Optional callback invoked whenever a recorded take is persisted.
+  final ValueChanged<RecordingRow>? onTakePersisted;
 
   /// Whether the pitch contour tracks the live player position. The
   /// player-transcript embed sets this; the vocabulary recorder embed has no

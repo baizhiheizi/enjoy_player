@@ -56,9 +56,12 @@ int _countLessThanOrEqual(List<int> sorted, int bound) {
 /// scan.
 Map<int, int> countRecordingsPerLineIndex(
   List<TranscriptLine> lines,
-  List<RecordingRow> recordings,
-) {
-  if (lines.isEmpty || recordings.isEmpty) return const {};
+  List<RecordingRow> recordings, {
+  List<DictationRow> dictations = const [],
+}) {
+  if (lines.isEmpty || (recordings.isEmpty && dictations.isEmpty)) {
+    return const {};
+  }
 
   final starts = <int>[];
   final ends = <int>[];
@@ -66,6 +69,11 @@ Map<int, int> countRecordingsPerLineIndex(
     if (r.referenceDuration <= 0) continue;
     starts.add(r.referenceStart);
     ends.add(r.referenceStart + r.referenceDuration);
+  }
+  for (final d in dictations) {
+    if (d.referenceDurationMs <= 0) continue;
+    starts.add(d.referenceStartMs);
+    ends.add(d.referenceStartMs + d.referenceDurationMs);
   }
 
   final counts = <int, int>{};

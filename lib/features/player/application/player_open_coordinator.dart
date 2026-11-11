@@ -374,11 +374,22 @@ Future<void> runPlayerOpen(
     }
     final echoRestored =
         options.restoreEcho && persisted != null && persisted.echoActive;
-    deps.blurMode().restoreFromSession(
-      options.restoreEcho && !echoRestored
-          ? (persisted?.blurActive ?? false)
-          : false,
-    );
+    final blurToRestore = options.restoreEcho
+        ? (persisted?.blurActive ?? false)
+        : false;
+    deps.blurMode().restoreFromSession(blurToRestore);
+    if (blurToRestore && !echoRestored && options.restoreEcho) {
+      final startLine = persisted?.echoStartLine ?? 0;
+      final endLine = persisted?.echoEndLine ?? startLine;
+      final echoStartMs = persisted?.echoStartMs ?? 0;
+      final echoEndMs = persisted?.echoEndMs ?? 0;
+      deps.echoMode().restoreFromSession(
+        startLine: startLine,
+        endLine: endLine,
+        echoStartMs: echoStartMs,
+        echoEndMs: echoEndMs,
+      );
+    }
 
     final now = DateTime.now();
     scope.publishSession(

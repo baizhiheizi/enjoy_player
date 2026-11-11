@@ -140,6 +140,75 @@ void main() {
       expect(ids, contains('second'));
     });
   });
+
+  group('DictationDao.watchByEchoRegion and listByEchoRegion', () {
+    test(
+      'filters strictly by target, startMs and durationMs, ordered by createdAt desc',
+      () async {
+        final t1 = DateTime.utc(2026, 1, 1);
+        final t2 = DateTime.utc(2026, 1, 2);
+
+        await db.dictationDao.insertRow(
+          row(
+            id: 'match-1',
+            targetType: 'video',
+            targetId: 'v-1',
+            referenceStartMs: 1000,
+            referenceDurationMs: 2000,
+          ).copyWith(createdAt: t1),
+        );
+        await db.dictationDao.insertRow(
+          row(
+            id: 'match-2',
+            targetType: 'video',
+            targetId: 'v-1',
+            referenceStartMs: 1000,
+            referenceDurationMs: 2000,
+          ).copyWith(createdAt: t2),
+        );
+        await db.dictationDao.insertRow(
+          row(
+            id: 'other-start',
+            targetType: 'video',
+            targetId: 'v-1',
+            referenceStartMs: 3000,
+            referenceDurationMs: 2000,
+          ),
+        );
+        await db.dictationDao.insertRow(
+          row(
+            id: 'other-duration',
+            targetType: 'video',
+            targetId: 'v-1',
+            referenceStartMs: 1000,
+            referenceDurationMs: 5000,
+          ),
+        );
+        await db.dictationDao.insertRow(
+          row(
+            id: 'other-target',
+            targetType: 'video',
+            targetId: 'v-2',
+            referenceStartMs: 1000,
+            referenceDurationMs: 2000,
+          ),
+        );
+
+        final list = await db.dictationDao.listByEchoRegion(
+          'video',
+          'v-1',
+          1000,
+          2000,
+        );
+        expect(list.map((r) => r.id), ['match-2', 'match-1']);
+
+        final watched = await db.dictationDao
+            .watchByEchoRegion('video', 'v-1', 1000, 2000)
+            .first;
+        expect(watched.map((r) => r.id), ['match-2', 'match-1']);
+      },
+    );
+  });
 }
 
 extension on DictationRow {

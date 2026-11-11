@@ -67,6 +67,7 @@ mixin ShadowReadingPanelRecording on ShadowReadingPanelBase {
         AppNotice.warning(context, l10n.shadowRecordingSilentWarning);
       }
       _selectTake(outcome.row.id);
+      widget.onTakePersisted?.call(outcome.row);
       ref
           .read(analyticsProvider)
           .capture(
