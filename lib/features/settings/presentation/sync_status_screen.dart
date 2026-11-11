@@ -25,6 +25,10 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+final Map<String, DateFormat> _lastSyncTimeCache = {};
+final Map<String, DateFormat> _lastSyncShortDateCache = {};
+final Map<String, DateFormat> _lastSyncYearDateCache = {};
+
 class SyncStatusScreen extends ConsumerStatefulWidget {
   const SyncStatusScreen({super.key});
 
@@ -129,7 +133,10 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
     final lastSyncAsync = ref.watch(syncLastFullSyncAtProvider);
 
     final locale = Localizations.localeOf(context).toString();
-    final timeFmt = DateFormat.Hm(locale);
+    final timeFmt = _lastSyncTimeCache.putIfAbsent(
+      locale,
+      () => DateFormat.Hm(locale),
+    );
 
     Widget lastSyncText(AppLocalizations l10n, String? iso) {
       if (iso == null || iso.isEmpty) {
@@ -154,9 +161,14 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
         sameDay
             ? l10n.syncLastSyncToday(timeFmt.format(parsed))
             : (parsed.year == now.year
-                      ? DateFormat.MMMd(locale)
-                      : DateFormat.yMMMd(locale))
-                  .add_Hm()
+                      ? _lastSyncShortDateCache.putIfAbsent(
+                          locale,
+                          () => DateFormat.MMMd(locale).add_Hm(),
+                        )
+                      : _lastSyncYearDateCache.putIfAbsent(
+                          locale,
+                          () => DateFormat.yMMMd(locale).add_Hm(),
+                        ))
                   .format(parsed),
         style: enjoyDisplayStyle(context, size: 24, color: t.ink),
       );
