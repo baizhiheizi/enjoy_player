@@ -226,7 +226,17 @@ void main() {
     );
     expect(find.byType(SkeletonTranscript), findsOneWidget);
     expect(find.byType(ListView), findsOneWidget);
+    expect(find.byType(SkeletonTranscriptRow), findsWidgets);
   });
+
+  testWidgets(
+    'SkeletonTranscriptRow renders leading box and line placeholders',
+    (tester) async {
+      await tester.pumpWidget(_wrap(const SkeletonTranscriptRow(index: 0)));
+      expect(find.byType(SkeletonTranscriptRow), findsOneWidget);
+      expect(find.byType(Skeleton), findsNWidgets(3));
+    },
+  );
 
   testWidgets(
     'SkeletonTranscript respects the supplied ScrollController and physics',
