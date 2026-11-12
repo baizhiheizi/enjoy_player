@@ -3,8 +3,6 @@
 /// (the row above is the list's own slot for that line).
 library;
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,30 +18,21 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading_panel.dart';
-import 'package:enjoy_player/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart';
-import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_recording_caption.dart';
-import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
-import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
-import 'package:enjoy_player/features/transcript/application/auto_translate_line_request_policy.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/take_assessment_notes_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
+import 'package:enjoy_player/features/transcript/presentation/echo_loop_recording_progress.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_echo_region_dictation.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_echo_region_tile_builder.dart';
 import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
-import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
-import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 
-import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
-import 'package:enjoy_player/features/dictation/application/dictation_providers.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
-import 'package:enjoy_player/features/dictation/presentation/dictation_band.dart';
-import 'package:enjoy_player/features/dictation/presentation/dictation_list.dart';
-import 'package:enjoy_player/features/dictation/presentation/dictation_panel.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class EchoRegionMergedCard extends ConsumerStatefulWidget {
@@ -76,18 +65,8 @@ class EchoRegionMergedCard extends ConsumerStatefulWidget {
       _EchoRegionMergedCardState();
 }
 
-typedef _EchoTileInputs = ({
-  TranscriptLine line,
-  bool isActive,
-  String? secondaryText,
-  bool canRetranslate,
-  Set<int>? wavyWordIndexes,
-  int? recordingCount,
-  double loopFontSize,
-});
-
 class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
-  final Map<int, ({_EchoTileInputs inputs, Widget tile})> _tiles = {};
+  final EchoRegionTileCache _tiles = EchoRegionTileCache();
 
   @override
   void didUpdateWidget(EchoRegionMergedCard oldWidget) {
@@ -170,107 +149,25 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
       }
     }
 
-    final lineWidgets = <Widget>[];
-    for (var i = echo.startLineIndex; i <= echo.endLineIndex; i++) {
-      final line = lines[i];
-      final isActive = i == activeCueIndex;
-      final resolved = resolveAutoTranslateTextForDisplay(
-        autoTranslateActive: autoTranslateActive,
-        primaryLines: lines,
-        aiLines: secondaryLines,
-        lineIndex: i,
-        sourceLanguage: autoTranslateMode.sourceLanguage,
-        targetLanguage: autoTranslateMode.targetLanguage,
-        matcher: matcher,
-        line: line,
-        isLineFailed: (i) =>
-            ref.read(autoTranslateCtrlProvider(mediaId)).isLineFailed(i),
-        isLineInFlight: (i) =>
-            ref.read(autoTranslateCtrlProvider(mediaId)).isLineInFlight(i),
-        l10nLineFailed: AppLocalizations.of(
-          context,
-        )?.subtitlesAutoTranslateLineFailed,
-        l10nLinePending: AppLocalizations.of(
-          context,
-        )?.subtitlesAutoTranslatePendingLine,
-      );
-      final secondaryText = resolved.secondaryText;
-      final canRetranslate = resolved.canRetranslate;
-      final lineFailed = resolved.isFailed;
-
-      if (shouldRequestAutoTranslateLine(
-        lineIndex: i,
-        anchorLineIndex: 0,
-        scope: AutoTranslateRequestScope.block,
-        isAutoTranslateActive: autoTranslateActive,
-        hasSecondaryText:
-            secondaryText != null && secondaryText.trim().isNotEmpty,
-        isLineFailed: lineFailed,
-      )) {
-        scheduleAutoTranslateLineRequest(
-          isMounted: () => ref.context.mounted,
-          request: () => ref
-              .read(autoTranslateCtrlProvider(mediaId).notifier)
-              .requestTranslateLine(i),
-        );
-      }
-
-      final inputs = (
-        line: line,
-        isActive: isActive,
-        secondaryText: secondaryText,
-        canRetranslate: canRetranslate,
-        wavyWordIndexes: wavyByLine?[i],
-        recordingCount: lineRecordingCounts?[i],
-        loopFontSize: loopFontSize,
-      );
-      final cached = widget.reuseUnchangedTiles ? _tiles[i] : null;
-      if (cached != null && cached.inputs == inputs) {
-        lineWidgets.add(cached.tile);
-        continue;
-      }
-
-      final tile = TranscriptLineTile(
-        key: ValueKey<String>('echo-line-$i'),
-        wavyWordIndexes: inputs.wavyWordIndexes,
-        line: line,
-        lineIndex: i,
-        mediaId: mediaId,
-        secondaryText: secondaryText,
-        isActive: isActive,
-        inEcho: true,
-        groupedInEcho: true,
-        selectable: true,
-        recordingCount: inputs.recordingCount,
-        loopFontSize: loopFontSize,
-        onLookupRequested: (t) => openTranscriptLookup(
-          ref: ref,
-          context: context,
-          selectedText: t,
-          lines: lines,
-          lineIndex: i,
-        ),
-        onRetranslateSecondary: canRetranslate
-            ? () => unawaited(
-                ref
-                    .read(autoTranslateCtrlProvider(mediaId).notifier)
-                    .retranslateLine(i),
-              )
-            : null,
-        onTap: () => ref.read(playerInteractionsProvider).seekToLine(line, i),
-      );
-
-      final entry = i == echo.endLineIndex
-          ? tile
-          : Padding(
-              padding: EdgeInsets.only(bottom: metrics.loopLineGap),
-              child: tile,
-            );
-      if (widget.reuseUnchangedTiles) {
-        _tiles[i] = (inputs: inputs, tile: entry);
-      }
-      lineWidgets.add(entry);
-    }
+    final lineWidgets = buildEchoRegionTiles(
+      ref: ref,
+      context: context,
+      mediaId: mediaId,
+      lines: lines,
+      secondaryLines: secondaryLines,
+      matcher: matcher,
+      echo: echo,
+      activeCueIndex: activeCueIndex,
+      autoTranslateActive: autoTranslateActive,
+      autoTranslateSourceLanguage: autoTranslateMode.sourceLanguage,
+      autoTranslateTargetLanguage: autoTranslateMode.targetLanguage,
+      wavyByLine: wavyByLine,
+      lineRecordingCounts: lineRecordingCounts,
+      loopFontSize: loopFontSize,
+      loopLineGap: metrics.loopLineGap,
+      reuseUnchangedTiles: widget.reuseUnchangedTiles,
+      cache: _tiles,
+    );
 
     final loopSeconds = (echo.endTimeSeconds - echo.startTimeSeconds).clamp(
       0.0,
@@ -278,67 +175,25 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
     );
     final secondsLabel = loopSeconds.toStringAsFixed(1);
     final l10n = AppLocalizations.of(context)!;
-    final targetType = chrome?.dexieTargetType ?? 'Audio';
-    final language = chrome?.language ?? 'en';
-    final startMs = (echo.startTimeSeconds * 1000).round();
-    final durationMs = ((echo.endTimeSeconds - echo.startTimeSeconds) * 1000)
-        .round();
-    final referenceText = echoReferencePlainText(lines, echo);
-
-    final dictationSession = blurMode
-        ? ref.watch(
-            dictationSessionCtrlProvider(
-              targetType,
-              mediaId,
-              startMs,
-              durationMs,
-              referenceText,
-              language,
-            ),
-          )
-        : null;
-    final dictationCtrl = blurMode
-        ? ref.read(
-            dictationSessionCtrlProvider(
-              targetType,
-              mediaId,
-              startMs,
-              durationMs,
-              referenceText,
-              language,
-            ).notifier,
-          )
-        : null;
-    final dictationHistory = blurMode
-        ? (ref
-                  .watch(
-                    dictationEchoRegionHistoryProvider((
-                      targetType: targetType,
-                      targetId: mediaId,
-                      startMs: startMs,
-                      durationMs: durationMs,
-                    )),
-                  )
-                  .value ??
-              const <DictationRow>[])
-        : const <DictationRow>[];
-
-    final posAsync = ref.watch(displayPositionProvider);
-    final currentPlaybackMs = switch (posAsync) {
-      AsyncData(:final value) => value.inMilliseconds,
-      _ => 0,
-    };
-    final selectedLines = [
-      for (
-        var i = echo.startLineIndex;
-        i <= echo.endLineIndex && i < lines.length;
-        i++
-      )
-        lines[i],
-    ];
+    final region = (
+      targetType: chrome?.dexieTargetType ?? 'Audio',
+      mediaId: mediaId,
+      startMs: (echo.startTimeSeconds * 1000).round(),
+      durationMs: ((echo.endTimeSeconds - echo.startTimeSeconds) * 1000)
+          .round(),
+      referenceText: echoReferencePlainText(lines, echo),
+      language: chrome?.language ?? 'en',
+    );
+    final dictationChecked =
+        blurMode &&
+        ref.watch(
+          echoRegionSessionCtrl(
+            region,
+          ).select((s) => s.status == DictationAttemptStatus.checked),
+        );
 
     final loopLabel = blurMode
-        ? (dictationSession?.status == DictationAttemptStatus.checked
+        ? (dictationChecked
               ? l10n.playerDictationHeaderChecked
               : l10n.playerDictationHeaderListen)
         : recording
@@ -415,24 +270,18 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (blurMode)
-                  DictationBand(
-                    lines: selectedLines,
-                    fallbackReferenceText: referenceText,
-                    regionStartMs: startMs,
-                    regionDurationMs: durationMs,
-                    currentPlaybackMs: currentPlaybackMs,
-                    diffResult: dictationSession?.activeDiff,
-                    textStyle: TextStyle(
-                      fontSize: loopFontSize,
-                      fontWeight: FontWeight.w500,
-                      color: tok.ink,
-                    ),
+                  EchoRegionDictationBand(
+                    region: region,
+                    lines: lines,
+                    echoStartLineIndex: echo.startLineIndex,
+                    echoEndLineIndex: echo.endLineIndex,
+                    loopFontSize: loopFontSize,
                   )
                 else
                   ...lineWidgets,
                 if (recording && loopSeconds > 0) ...[
                   SizedBox(height: metrics.loopRecordingTopGap),
-                  _LoopRecordingProgress(targetSec: loopSeconds),
+                  EchoLoopRecordingProgress(targetSec: loopSeconds),
                 ],
               ],
             ),
@@ -477,27 +326,15 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
           ),
         if (showShadow) ...[
           SizedBox(height: density.echoBottomPanelGap),
-          if (blurMode &&
-              dictationSession != null &&
-              dictationCtrl != null) ...[
-            DictationPanel(
-              state: dictationSession,
-              controller: dictationCtrl.controller,
+          if (blurMode)
+            EchoRegionDictationAttempts(
+              region: region,
               onNextLine: () => ref.read(playerInteractionsProvider).nextLine(),
             ),
-            if (dictationHistory.isNotEmpty)
-              DictationList(
-                attempts: dictationHistory,
-                selectedAttempt: dictationSession.selectedHistoricalAttempt,
-                onSelectAttempt: (attempt) =>
-                    dictationCtrl.selectHistoricalAttempt(attempt),
-              ),
-            const SizedBox(height: 8),
-          ],
           ShadowReadingPanel(
             mediaId: mediaId,
-            targetType: chrome?.dexieTargetType ?? 'Audio',
-            language: chrome?.language ?? 'en',
+            targetType: region.targetType,
+            language: region.language,
             startSec: echo.startTimeSeconds,
             endSec: echo.endTimeSeconds,
             referenceText: echoReferencePlainText(lines, echo),
@@ -505,116 +342,15 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
             showLiveProgress: true,
             takesRowInLoop: true,
             onTakePersisted: blurMode
-                ? (row) => dictationCtrl?.onVoiceTakeRecorded(row)
+                ? (row) => ref
+                      .read(echoRegionSessionCtrl(region).notifier)
+                      .onVoiceTakeRecorded(row)
                 : null,
           ),
         ],
       ],
     );
   }
-}
-
-class _LoopRecordingProgress extends StatefulWidget {
-  const _LoopRecordingProgress({required this.targetSec});
-
-  final double targetSec;
-
-  @override
-  State<_LoopRecordingProgress> createState() => _LoopRecordingProgressState();
-}
-
-class _LoopRecordingProgressState extends State<_LoopRecordingProgress>
-    with
-        TickerProviderStateMixin,
-        RecordingElapsedTicker<_LoopRecordingProgress> {
-  @override
-  Widget build(BuildContext context) {
-    final tok = EnjoyThemeTokens.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context)!;
-
-    return Row(
-      children: [
-        Flexible(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: LayoutBuilder(
-              builder: (context, constraints) => SizedBox(
-                height: 4,
-                width: constraints.maxWidth,
-                child: CustomPaint(
-                  painter: _LoopBarPainter(
-                    elapsed: elapsedController,
-                    targetSec: widget.targetSec,
-                    track: tok.youSoft,
-                    fill: tok.you,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        ValueListenableBuilder<int>(
-          valueListenable: elapsedTenths,
-          builder: (context, tenths, _) {
-            final elapsedSec = tenths / 10;
-            final overTarget =
-                widget.targetSec > 0 && elapsedSec > widget.targetSec;
-            return ShadowRecordingCaptionRow(
-              elapsedSec: elapsedSec,
-              targetSec: widget.targetSec,
-              overTarget: overTarget,
-              overBySec: overTarget ? elapsedSec - widget.targetSec : 0.0,
-              l10n: l10n,
-              tt: tt,
-              scheme: scheme,
-              tok: tok,
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class _LoopBarPainter extends CustomPainter {
-  _LoopBarPainter({
-    required this.elapsed,
-    required this.targetSec,
-    required this.track,
-    required this.fill,
-  }) : super(repaint: elapsed);
-
-  final Animation<double> elapsed;
-  final double targetSec;
-  final Color track;
-  final Color fill;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = track;
-    final rect = Offset.zero & size;
-    final radius = Radius.circular(size.height / 2);
-    canvas.drawRRect(RRect.fromRectAndRadius(rect, radius), paint);
-
-    final fraction = targetSec > 0
-        ? (elapsed.value / targetSec).clamp(0.0, 1.0)
-        : 1.0;
-    if (fraction <= 0) return;
-    paint.color = fill;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.width * fraction, size.height),
-        radius,
-      ),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_LoopBarPainter oldDelegate) => false;
 }
 
 EchoRegionRecordingsQuery _regionQueryFor(String mediaId, EchoState echo) =>
