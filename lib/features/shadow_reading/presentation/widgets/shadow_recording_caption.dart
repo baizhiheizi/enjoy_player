@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -84,6 +85,46 @@ class ShadowRecordingCaptionRow extends StatelessWidget {
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
+    );
+  }
+}
+
+/// Live elapsed caption driven by the shared ticker's tenths: the
+/// tenths-to-seconds conversion and the over-target evaluation happen once
+/// here, so every recording surface renders from a single formula
+/// (issue #1320).
+class ShadowRecordingElapsedCaption extends StatelessWidget {
+  const ShadowRecordingElapsedCaption({
+    required this.elapsedTenths,
+    required this.targetSec,
+    super.key,
+  });
+
+  final ValueListenable<int> elapsedTenths;
+  final double targetSec;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final tt = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final tok = EnjoyThemeTokens.of(context);
+    return ValueListenableBuilder<int>(
+      valueListenable: elapsedTenths,
+      builder: (context, tenths, _) {
+        final elapsedSec = tenths / 10;
+        final overTarget = targetSec > 0 && elapsedSec > targetSec;
+        return ShadowRecordingCaptionRow(
+          elapsedSec: elapsedSec,
+          targetSec: targetSec,
+          overTarget: overTarget,
+          overBySec: overTarget ? elapsedSec - targetSec : 0.0,
+          l10n: l10n,
+          tt: tt,
+          scheme: scheme,
+          tok: tok,
+        );
+      },
     );
   }
 }

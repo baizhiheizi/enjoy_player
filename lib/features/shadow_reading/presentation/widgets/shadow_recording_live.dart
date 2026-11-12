@@ -6,12 +6,10 @@
 /// pulse evaluation and the ring/caption rendering.
 library;
 
-import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart';
-import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'shadow_record_fab.dart';
 import 'shadow_recording_caption.dart';
@@ -22,8 +20,6 @@ class ShadowRecordingLive extends StatefulWidget {
     required this.echoActive,
     required this.stopTooltip,
     required this.onStop,
-    required this.l10n,
-    required this.tt,
     required this.scheme,
     required this.tok,
     super.key,
@@ -34,8 +30,6 @@ class ShadowRecordingLive extends StatefulWidget {
   final bool echoActive;
   final String stopTooltip;
   final VoidCallback onStop;
-  final AppLocalizations l10n;
-  final TextTheme tt;
   final ColorScheme scheme;
   final EnjoyThemeTokens tok;
 
@@ -91,54 +85,11 @@ class _ShadowRecordingLiveState extends State<ShadowRecordingLive>
           ),
         ),
         SizedBox(height: widget.tok.space4),
-        _ShadowRecordingCaption(
+        ShadowRecordingElapsedCaption(
           elapsedTenths: elapsedTenths,
           targetSec: widget.targetSec,
-          l10n: widget.l10n,
-          tt: widget.tt,
-          scheme: widget.scheme,
-          tok: widget.tok,
         ),
       ],
-    );
-  }
-}
-
-class _ShadowRecordingCaption extends StatelessWidget {
-  const _ShadowRecordingCaption({
-    required this.elapsedTenths,
-    required this.targetSec,
-    required this.l10n,
-    required this.tt,
-    required this.scheme,
-    required this.tok,
-  });
-
-  final ValueListenable<int> elapsedTenths;
-  final double targetSec;
-  final AppLocalizations l10n;
-  final TextTheme tt;
-  final ColorScheme scheme;
-  final EnjoyThemeTokens tok;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: elapsedTenths,
-      builder: (context, tenths, _) {
-        final elapsedSec = tenths / 10;
-        final overTarget = targetSec > 0 && elapsedSec > targetSec;
-        return ShadowRecordingCaptionRow(
-          elapsedSec: elapsedSec,
-          targetSec: targetSec,
-          overTarget: overTarget,
-          overBySec: overTarget ? elapsedSec - targetSec : 0.0,
-          l10n: l10n,
-          tt: tt,
-          scheme: scheme,
-          tok: tok,
-        );
-      },
     );
   }
 }

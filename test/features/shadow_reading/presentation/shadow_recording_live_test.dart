@@ -29,8 +29,6 @@ Future<AppLocalizations> _pumpLive(
               echoActive: true,
               stopTooltip: 'stop',
               onStop: () {},
-              l10n: l10n,
-              tt: Theme.of(context).textTheme,
               scheme: Theme.of(context).colorScheme,
               tok: EnjoyThemeTokens.of(context),
             );

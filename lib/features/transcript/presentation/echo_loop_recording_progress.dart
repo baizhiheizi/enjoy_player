@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_recording_caption.dart';
-import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class EchoLoopRecordingProgress extends StatefulWidget {
   const EchoLoopRecordingProgress({required this.targetSec, super.key});
@@ -26,9 +25,6 @@ class _EchoLoopRecordingProgressState extends State<EchoLoopRecordingProgress>
   @override
   Widget build(BuildContext context) {
     final tok = EnjoyThemeTokens.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context)!;
 
     return Row(
       children: [
@@ -52,23 +48,9 @@ class _EchoLoopRecordingProgressState extends State<EchoLoopRecordingProgress>
           ),
         ),
         const SizedBox(width: 12),
-        ValueListenableBuilder<int>(
-          valueListenable: elapsedTenths,
-          builder: (context, tenths, _) {
-            final elapsedSec = tenths / 10;
-            final overTarget =
-                widget.targetSec > 0 && elapsedSec > widget.targetSec;
-            return ShadowRecordingCaptionRow(
-              elapsedSec: elapsedSec,
-              targetSec: widget.targetSec,
-              overTarget: overTarget,
-              overBySec: overTarget ? elapsedSec - widget.targetSec : 0.0,
-              l10n: l10n,
-              tt: tt,
-              scheme: scheme,
-              tok: tok,
-            );
-          },
+        ShadowRecordingElapsedCaption(
+          elapsedTenths: elapsedTenths,
+          targetSec: widget.targetSec,
         ),
       ],
     );
