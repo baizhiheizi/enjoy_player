@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 # Pre-commit secret scanner.
 #
-# Blocks commits that introduce leaked publish credentials into the working
-# tree — AWS / Cloudflare R2 access keys, 64-char R2 secrets, and the local
-# credential files themselves. Intentionally simple: no dependencies beyond
-# git + grep so it works in Git Bash, macOS, and Linux.
+# Blocks commits that ADD publish credentials: AWS / R2 access keys, secret
+# assignments, R2 endpoint tokens, a bare 64-hex secret-shaped string outside
+# known digest contexts, and the local credential / signing-key files.
+#
+# Only added lines are scanned. Deleted and context lines cannot leak a new
+# secret; scanning them caused most historical false positives (a commit that
+# merely removed a sha256 checksum was blocked). No dependencies beyond git +
+# grep + sed, so this works in Git Bash, macOS bash 3.2, and Linux.
+#
+# See ADR-0104 for why this gate stays local and why CI needs its own scan.
 #
 # Install once per clone:
 #   git config core.hooksPath .githooks
-#
-# Bypass for a known-good commit (e.g. a hex fixture in tests):
+# Bypass for a known-good commit:
 #   git commit --no-verify
-#
-# See docs/packaging.md → "Publish credentials" for the secret-loading flow.
+# See docs/packaging.md -> "Publish credentials" for the secret-loading flow.
 set -euo pipefail
 
-# Files that must never be committed (publish_env.local.* are the plaintext
-# credential loaders).
 forbidden_files=(
   ".github/scripts/publish_env.local.ps1"
   ".github/scripts/publish_env.local.sh"
@@ -24,66 +26,84 @@ forbidden_files=(
   "dsa_pub.pem"
 )
 
-# Patterns that look like real credentials. We match on the long, low-entropy
-# shapes that are essentially never legitimate source: AWS/R2 access key ids
-# (historically AKIA…, but R2 uses 32-hex), 64-hex R2 secret access keys, and
-# the env-var assignment lines that carry them.
-patterns=(
+quote='["'"'"']'
+
+# High-confidence credential shapes. These block any file, including tests.
+blocking_patterns=(
   'AKIA[0-9A-Z]{16}'
-  '[0-9a-f]{64}'
-  'AWS_SECRET_ACCESS_KEY[[:space:]]*=[[:space:]]*"[0-9a-f]{40,}"'
-  'AWS_ACCESS_KEY_ID[[:space:]]*=[[:space:]]*"[0-9a-f]{32}"'
+  "AWS_SECRET_ACCESS_KEY[[:space:]]*=[[:space:]]*${quote}?[0-9a-f]{40,}"
+  "AWS_ACCESS_KEY_ID[[:space:]]*=[[:space:]]*${quote}?[0-9a-f]{32}"
+  "(R2_SECRET_ACCESS_KEY|PUBLISH_[A-Z0-9_]*SECRET[A-Z0-9_]*)[[:space:]]*=[[:space:]]*${quote}?[0-9a-f]{40,}"
+  "SPARKLE_DSA_PRIV_PEM_BASE64[[:space:]]*=[[:space:]]*${quote}?[A-Za-z0-9+/=]{80,}"
   'r2\.cloudflarestorage\.com/[0-9a-f]{20,}'
 )
 
-status=0
+# A bare 64-hex value is indistinguishable from a public digest by shape, so
+# it only blocks outside test fixtures and known digest contexts.
+shape_patterns=(
+  '[0-9a-f]{64}'
+)
 
-# 1. Block forbidden local credential / key files outright.
-while read -r file; do
-  for forbidden in "${forbidden_files[@]}"; do
-    if [[ "$file" == "$forbidden" ]]; then
-      echo "ERROR: refusing to commit tracked credential / key file: $file" >&2
-      echo "       These files must stay local (see .gitignore)." >&2
-      status=1
+scan_staged() {
+  local status=0 file added masked forbidden pat
+  while IFS= read -r -d '' file; do
+    for forbidden in "${forbidden_files[@]}"; do
+      if [[ "$file" == "$forbidden" ]]; then
+        echo "ERROR: refusing to commit tracked credential / key file: $file" >&2
+        echo "       These files must stay local (see .gitignore)." >&2
+        status=1
+      fi
+    done
+
+    # Binaries, lockfiles and the example templates carry the literal patterns
+    # as placeholders or content hashes, never live credentials.
+    case "$file" in
+      *.png|*.jpg|*.jpeg|*.gif|*.webp|*.icns|*.ico|*.zip|*.gz|*.lock) continue ;;
+      ".github/scripts/publish_env.example.ps1") continue ;;
+      ".github/scripts/publish_env.example.sh") continue ;;
+      ".githooks/pre-commit") continue ;;
+    esac
+
+    added=$(git diff --cached --unified=0 -- "$file" 2>/dev/null \
+      | grep -E '^[+][^+]' || true)
+    if [[ -z "$added" ]]; then
+      continue
     fi
-  done
-done < <(git diff --cached --name-only --diff-filter=ACMR)
 
-# 2. Scan staged file content for credential-shaped strings.
-# Skip binary files and the example templates (they contain the literal
-# patterns as placeholders, e.g. "<R2 access key id>").
-while read -r file; do
-  case "$file" in
-    *.png|*.jpg|*.jpeg|*.gif|*.webp|*.icns|*.ico|*.zip|*.gz|*.lock) continue ;;
-    ".github/scripts/publish_env.example.ps1") continue ;;
-    ".github/scripts/publish_env.example.sh") continue ;;
-    ".githooks/pre-commit") continue ;;
-  esac
+    for pat in "${blocking_patterns[@]}"; do
+      if printf '%s\n' "$added" | grep -Eq "$pat"; then
+        echo "ERROR: possible leaked credential in $file matches /$pat/" >&2
+        status=1
+        break
+      fi
+    done
 
-  content=$(git diff --cached -- "$file" 2>/dev/null) || continue
-  # OCI content digests (sha256:<64 hex>) are image pins, not credentials.
-  # Masking them keeps container-pinning commits committable; a bare 64-hex
-  # secret on the same line still matches the scan below.
-  content=$(printf '%s' "$content" | sed -E 's/sha256:[0-9a-f]{64}/sha256:<digest>/g')
-  # gh-aw lock metadata carries content hashes (frontmatter_hash/body_hash),
-  # not credentials; mask those values so workflow edits stay committable.
-  content=$(printf '%s' "$content" | sed -E 's/"(frontmatter_hash|body_hash)":"[0-9a-f]{64}"/"\1":"<hash>"/g')
-  for pat in "${patterns[@]}"; do
-    if printf '%s' "$content" | grep -Eq "$pat"; then
-      echo "ERROR: possible leaked credential in $file matches /$pat/" >&2
-      echo "       If this is a false positive (e.g. a test fixture), use" >&2
-      echo "       'git commit --no-verify' and leave a note in the message." >&2
-      status=1
-      break
+    if [[ "$file" == test/* ]]; then
+      continue
     fi
+
+    # OCI pins, gh-aw lock metadata, and checksum lines are public digests.
+    masked=$(printf '%s\n' "$added" \
+      | sed -E 's/sha256:[0-9a-f]{64}/sha256:<digest>/g' \
+      | sed -E 's/"(frontmatter_hash|body_hash)":"[0-9a-f]{64}"/"\1":"<hash>"/g' \
+      | sed -E '/[Ss][Hh][Aa]-?256|[Cc]hecksum|[Dd]igest|[Ff]ixture|[Hh]ash[ =:]/d')
+    for pat in "${shape_patterns[@]}"; do
+      if printf '%s\n' "$masked" | grep -Eq "$pat"; then
+        echo "ERROR: bare 64-hex string added in $file (secret-shaped)." >&2
+        echo "       Public digest? Add a sha256: prefix or a checksum/sha256" >&2
+        echo "       hint on that line, or move the fixture under test/." >&2
+        status=1
+        break
+      fi
+    done
   done
-done < <(git diff --cached --name-only --diff-filter=ACMR)
 
-if [[ $status -ne 0 ]]; then
-  echo "" >&2
-  echo "Commit blocked by secret scanner. Rotate any exposed keys and load" >&2
-  echo "credentials from a secure store (see docs/packaging.md)." >&2
-  exit 1
-fi
+  if [[ "$status" -ne 0 ]]; then
+    echo "" >&2
+    echo "Commit blocked by secret scanner. Rotate any exposed keys and load" >&2
+    echo "credentials from a secure store (see docs/packaging.md)." >&2
+  fi
+  return "$status"
+}
 
-exit 0
+git diff --cached --name-only -z --diff-filter=ACMR | scan_staged

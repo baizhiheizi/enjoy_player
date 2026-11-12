@@ -281,9 +281,13 @@ Credentials are loaded into the shell environment from a **local, gitignored** f
 (`publish_env.local.ps1` on Windows, `publish_env.local.sh` elsewhere) or, in CI,
 from GitHub Actions secrets. **Never commit real AWS/R2 access keys or secret keys** —
 the pre-commit hook ([`.githooks/pre-commit`](../.githooks/pre-commit)) blocks
-credential-shaped strings (`AKIA…`, 64-hex R2 secrets) and the local credential
-files themselves. If you have ever pasted real keys into a working-tree file,
-**rotate them in Cloudflare R2** and start from a clean local copy.
+credential assignments (`AKIA…`, `AWS_SECRET_ACCESS_KEY=`, R2 endpoint tokens),
+bare 64-hex values outside digest contexts, and the local credential files
+themselves. It scans only added lines; public `sha256:` digests, checksum lines
+and `test/` fixtures are exempt. See
+[ADR-0104](decisions/0104-git-hook-gate-layering.md). If you have ever pasted
+real keys into a working-tree file, **rotate them in Cloudflare R2** and start
+from a clean local copy.
 
 #### Recommended secret sources
 
@@ -373,10 +377,10 @@ cp .github/scripts/publish_env.example.sh .github/scripts/publish_env.local.sh
 bash .github/scripts/release.sh --platform apple --publish
 ```
 
-#### Git hooks (secrets + CI gates)
+#### Git hooks (secrets + format)
 
-After cloning, point Git at the repo hooks so credential-shaped strings cannot
-be committed and format / codegen drift cannot be pushed:
+After cloning, point Git at the repo hooks so credentials cannot be committed
+and unformatted Dart cannot be pushed:
 
 ```bash
 git config core.hooksPath .githooks
@@ -384,12 +388,20 @@ git config core.hooksPath .githooks
 
 | Hook | What it blocks |
 |------|----------------|
-| [`.githooks/pre-commit`](../.githooks/pre-commit) | AWS/R2 credential patterns and forbidden local credential / key files |
-| [`.githooks/pre-push`](../.githooks/pre-push) | Unformatted Dart and stale `build_runner` outputs (same checks as CI) |
+| [`.githooks/pre-commit`](../.githooks/pre-commit) | Credential assignments, R2 endpoint tokens, bare 64-hex values outside digest contexts, and the forbidden local credential / key files |
+| [`.githooks/pre-push`](../.githooks/pre-push) | Unformatted Dart (skipped for docs/workflow-only pushes) |
 
-Bypass with `git commit --no-verify` / `git push --no-verify` only for a known-good
-false positive, and note it in the commit message. Prefer fixing with
-`bash .github/scripts/validate_ci_gates.sh --fix` instead.
+Codegen drift and `flutter analyze` are **not** local push gates: both run
+in CI on every PR (`ci.yml` / `codegen_drift.yml`), and running `build_runner`
+on every push rewrote the working tree and could stall for 240s. See
+[ADR-0104](decisions/0104-git-hook-gate-layering.md). Run
+`bash .github/scripts/validate_ci_gates.sh --fix` for the full local mirror,
+and `bash .github/scripts/test_git_hooks.sh` for the hook regression suite.
+
+Bypass with `git commit --no-verify` / `git push --no-verify` only for a
+known-good false positive, and note it in the commit message. For a public
+digest, prefer adding a `sha256:` prefix or a `checksum` hint on the line, or
+moving the fixture under `test/` — the scanner exempts all three.
 
 ---
 
