@@ -561,6 +561,29 @@ pre-optimization path — so the microbenchmark in
 [`transcript_echo_region_card_rebuild_perf_test.dart`](../../test/features/transcript/transcript_echo_region_card_rebuild_perf_test.dart)
 can measure both sides in one process.
 
+### Playback position ticks
+
+The card does **not** subscribe to `displayPositionProvider`.
+[`EchoRegionDictationBand`](../../lib/features/transcript/presentation/transcript_echo_region_dictation.dart)
+owns that watch in blur (dictation) mode and feeds `currentPlaybackMs` into
+`DictationBand`, so a position tick rebuilds only the band subtree — the
+masked word blocks and their active-word highlight. Before the split the card
+watched the position itself and rebuilt the whole echo card, including the
+tile-cache lookup and the entire tile list, on every tick even outside blur
+mode. The loop label reads dictation status through a narrow `.select`, not a
+full session watch, for the same reason.
+
+The contract has two halves: a tick must not rebuild the card or any cached
+line tile, and it must move the band's active word. Moving the watch back into
+the card restores a per-tick rebuild of a potentially 300-line loop; dropping
+it from the band pins `currentPlaybackMs` at 0, which disables played-word
+dimming and the active-word highlight. The regression test
+[`transcript_echo_region_dictation_position_tick_test.dart`](../../test/features/transcript/transcript_echo_region_dictation_position_tick_test.dart)
+pins both halves — it pushes two ticks in blur mode and asserts that the card's
+loop-brackets painter identity (the card constructs a fresh painter on every
+build) and `transcriptTileBuildCount` stay unchanged, while
+`DictationBand.currentPlaybackMs` and the highlighted word index advance.
+
 ## Alignment engine (Craft save + on-demand enrich)
 
 `packages/forced_alignment` maps known text + 16 kHz extractable PCM to
