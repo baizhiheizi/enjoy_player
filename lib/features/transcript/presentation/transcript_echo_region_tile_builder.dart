@@ -89,7 +89,8 @@ List<Widget> buildEchoRegionTiles({
       anchorLineIndex: 0,
       scope: AutoTranslateRequestScope.block,
       isAutoTranslateActive: autoTranslateActive,
-      hasSecondaryText: secondaryText != null && secondaryText.trim().isNotEmpty,
+      hasSecondaryText:
+          secondaryText != null && secondaryText.trim().isNotEmpty,
       isLineFailed: lineFailed,
     )) {
       scheduleAutoTranslateLineRequest(

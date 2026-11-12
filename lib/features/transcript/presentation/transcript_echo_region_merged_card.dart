@@ -25,19 +25,14 @@ import 'package:enjoy_player/features/transcript/application/take_assessment_not
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_recording_progress.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_echo_region_dictation.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_region_tile_builder.dart';
 import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
-import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 
-import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
-import 'package:enjoy_player/features/dictation/application/dictation_providers.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
-import 'package:enjoy_player/features/dictation/presentation/dictation_band.dart';
-import 'package:enjoy_player/features/dictation/presentation/dictation_list.dart';
-import 'package:enjoy_player/features/dictation/presentation/dictation_panel.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class EchoRegionMergedCard extends ConsumerStatefulWidget {
@@ -180,67 +175,25 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
     );
     final secondsLabel = loopSeconds.toStringAsFixed(1);
     final l10n = AppLocalizations.of(context)!;
-    final targetType = chrome?.dexieTargetType ?? 'Audio';
-    final language = chrome?.language ?? 'en';
-    final startMs = (echo.startTimeSeconds * 1000).round();
-    final durationMs = ((echo.endTimeSeconds - echo.startTimeSeconds) * 1000)
-        .round();
-    final referenceText = echoReferencePlainText(lines, echo);
-
-    final dictationSession = blurMode
-        ? ref.watch(
-            dictationSessionCtrlProvider(
-              targetType,
-              mediaId,
-              startMs,
-              durationMs,
-              referenceText,
-              language,
-            ),
-          )
-        : null;
-    final dictationCtrl = blurMode
-        ? ref.read(
-            dictationSessionCtrlProvider(
-              targetType,
-              mediaId,
-              startMs,
-              durationMs,
-              referenceText,
-              language,
-            ).notifier,
-          )
-        : null;
-    final dictationHistory = blurMode
-        ? (ref
-                  .watch(
-                    dictationEchoRegionHistoryProvider((
-                      targetType: targetType,
-                      targetId: mediaId,
-                      startMs: startMs,
-                      durationMs: durationMs,
-                    )),
-                  )
-                  .value ??
-              const <DictationRow>[])
-        : const <DictationRow>[];
-
-    final posAsync = ref.watch(displayPositionProvider);
-    final currentPlaybackMs = switch (posAsync) {
-      AsyncData(:final value) => value.inMilliseconds,
-      _ => 0,
-    };
-    final selectedLines = [
-      for (
-        var i = echo.startLineIndex;
-        i <= echo.endLineIndex && i < lines.length;
-        i++
-      )
-        lines[i],
-    ];
+    final region = (
+      targetType: chrome?.dexieTargetType ?? 'Audio',
+      mediaId: mediaId,
+      startMs: (echo.startTimeSeconds * 1000).round(),
+      durationMs: ((echo.endTimeSeconds - echo.startTimeSeconds) * 1000)
+          .round(),
+      referenceText: echoReferencePlainText(lines, echo),
+      language: chrome?.language ?? 'en',
+    );
+    final dictationChecked =
+        blurMode &&
+        ref.watch(
+          echoRegionSessionCtrl(
+            region,
+          ).select((s) => s.status == DictationAttemptStatus.checked),
+        );
 
     final loopLabel = blurMode
-        ? (dictationSession?.status == DictationAttemptStatus.checked
+        ? (dictationChecked
               ? l10n.playerDictationHeaderChecked
               : l10n.playerDictationHeaderListen)
         : recording
@@ -317,18 +270,12 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (blurMode)
-                  DictationBand(
-                    lines: selectedLines,
-                    fallbackReferenceText: referenceText,
-                    regionStartMs: startMs,
-                    regionDurationMs: durationMs,
-                    currentPlaybackMs: currentPlaybackMs,
-                    diffResult: dictationSession?.activeDiff,
-                    textStyle: TextStyle(
-                      fontSize: loopFontSize,
-                      fontWeight: FontWeight.w500,
-                      color: tok.ink,
-                    ),
+                  EchoRegionDictationBand(
+                    region: region,
+                    lines: lines,
+                    echoStartLineIndex: echo.startLineIndex,
+                    echoEndLineIndex: echo.endLineIndex,
+                    loopFontSize: loopFontSize,
                   )
                 else
                   ...lineWidgets,
@@ -379,27 +326,15 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
           ),
         if (showShadow) ...[
           SizedBox(height: density.echoBottomPanelGap),
-          if (blurMode &&
-              dictationSession != null &&
-              dictationCtrl != null) ...[
-            DictationPanel(
-              state: dictationSession,
-              controller: dictationCtrl.controller,
+          if (blurMode)
+            EchoRegionDictationAttempts(
+              region: region,
               onNextLine: () => ref.read(playerInteractionsProvider).nextLine(),
             ),
-            if (dictationHistory.isNotEmpty)
-              DictationList(
-                attempts: dictationHistory,
-                selectedAttempt: dictationSession.selectedHistoricalAttempt,
-                onSelectAttempt: (attempt) =>
-                    dictationCtrl.selectHistoricalAttempt(attempt),
-              ),
-            const SizedBox(height: 8),
-          ],
           ShadowReadingPanel(
             mediaId: mediaId,
-            targetType: chrome?.dexieTargetType ?? 'Audio',
-            language: chrome?.language ?? 'en',
+            targetType: region.targetType,
+            language: region.language,
             startSec: echo.startTimeSeconds,
             endSec: echo.endTimeSeconds,
             referenceText: echoReferencePlainText(lines, echo),
@@ -407,7 +342,9 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
             showLiveProgress: true,
             takesRowInLoop: true,
             onTakePersisted: blurMode
-                ? (row) => dictationCtrl?.onVoiceTakeRecorded(row)
+                ? (row) => ref
+                      .read(echoRegionSessionCtrl(region).notifier)
+                      .onVoiceTakeRecorded(row)
                 : null,
           ),
         ],
