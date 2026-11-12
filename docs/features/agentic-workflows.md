@@ -107,12 +107,16 @@ the shape of an OCI content digest — so a `gh aw update` refreshing the contai
 pins in `.github/aw/actions-lock.json` used to be blocked as a leaked credential.
 
 The scanner now reads only added lines (`^[+][^+]`), so **removing** a digest line
-no longer trips it. It masks `sha256:<64 hex>`, gh-aw
-`frontmatter_hash` / `body_hash` values, and lines carrying a
-`sha256` / `checksum` / `digest` / `fixture` hint before the shape scan; a real
-secret in a credential assignment is still caught by the high-confidence rules,
-which run on the unmasked added lines. `test/` fixtures are exempt from the
-shape rule. See [ADR-0104](../decisions/0104-git-hook-gate-layering.md) and
+no longer trips it. Before the shape scan it masks **only the hex that a digest
+context describes**, never the whole line: `sha256:<64 hex>`, any `*hash` JSON key
+(`frontmatter_hash`, `body_hash`, `computedHash`), path-keyed JSON digest mappings
+(`.specify/integrations/*.manifest.json`), and `checksum=` / `digest=`
+assignments. A bare 64-hex secret sharing a line with a real digest still matches,
+and generic keywords such as `fixture` are not exemptions. High-confidence
+credential rules run on the unmasked added lines and block in every file,
+including `test/`. `test/`, `skills-lock.json` and the integration manifests are
+exempt from the shape rule as whole files. See
+[ADR-0104](../decisions/0104-git-hook-gate-layering.md) and
 `bash .github/scripts/test_git_hooks.sh` for the pinned cases.
 
 A second benign 64-hex shape got the same treatment: gh-aw lock files carry
@@ -126,10 +130,15 @@ Manually verified against the staged diff after each change:
 |---|---|
 | `sha256:` + 64 hex only | passes (the fix) |
 | `"frontmatter_hash":"<64 hex>"` only | passes (#1085) |
+| `"computedHash": "<64 hex>"` (`skills-lock.json`) | passes |
+| regenerated `.specify/integrations/*.manifest.json` | passes |
+| `test/` fixture with a bare 64-hex | passes |
 | bare 64-hex secret | blocked |
 | `AKIA…` key id | blocked |
 | `AWS_SECRET_ACCESS_KEY="…"` | blocked |
 | `r2.cloudflarestorage.com/<hex>` | blocked |
+| `AKIA…` or `AWS_SECRET_ACCESS_KEY="…"` inside `test/` | blocked |
+| `fixtureSecret = "<64 hex>"` (generic keyword) | blocked |
 | digest and bare secret on one line | blocked |
 | gh-aw hash and bare secret on one line | blocked |
 

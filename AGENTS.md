@@ -85,7 +85,7 @@ Install once per clone so credentials cannot be committed and unformatted Dart c
 git config core.hooksPath .githooks
 ```
 
-- [`.githooks/pre-commit`](.githooks/pre-commit) — secret scanner over **added lines only**; high-confidence credential assignments block in any file, a bare 64-hex value blocks only outside `test/` and known digest contexts ([ADR-0104](docs/decisions/0104-git-hook-gate-layering.md))
+- [`.githooks/pre-commit`](.githooks/pre-commit) — secret scanner over **added lines only**; high-confidence credentials block in any file (including `test/`), while the shape-only 64-hex rule masks just the hex a digest context describes (`sha256:`, `*hash` JSON keys, path-keyed JSON digests, `checksum=`/`digest=`) — another bare hex on the same line still blocks. `test/` and tool-generated digest manifests (`skills-lock.json`, `.specify/integrations/*.manifest.json`) are shape-exempt ([ADR-0104](docs/decisions/0104-git-hook-gate-layering.md))
 - [`.githooks/pre-push`](.githooks/pre-push) — `check_dart_format` only (~3s), skipped for docs/workflow-only pushes. Codegen drift and `flutter analyze` run in CI on every PR, not as local push gates.
 
 Run the hook regression suite before changing either hook:

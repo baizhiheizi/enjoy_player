@@ -114,6 +114,54 @@ setup_lockfile() {
   git add -A
 }
 
+setup_test_credential() {
+  mkdir -p test
+  printf 'const key = "AKIA%s";\n' "1234567890ABCDEF" > test/keys_test.dart
+  git add -A
+}
+
+setup_test_secret_assignment() {
+  mkdir -p test
+  printf 'export AWS_SECRET_ACCESS_KEY="%s"\n' "$HEX64" > test/env_test.dart
+  git add -A
+}
+
+setup_digest_and_secret() {
+  printf 'const pin = "sha256:%s"; const secret = "%s";\n' "$HEX64" "$HEX64" > pins.dart
+  git add -A
+}
+
+setup_hash_and_secret() {
+  printf '{"frontmatter_hash":"%s","secret":"%s"}\n' "$HEX64" "$HEX64" > workflow.lock.yml
+  git add -A
+}
+
+setup_fixture_secret() {
+  printf 'const fixtureSecret = "%s";\n' "$HEX64" > notes.md
+  git add -A
+}
+
+setup_computed_hash() {
+  printf '{"computedHash": "%s"}\n' "$HEX64" > notes.json
+  git add -A
+}
+
+setup_path_key_digest() {
+  printf '{".specify/scripts/bash/check.sh": "%s"}\n' "$HEX64" > notes.json
+  git add -A
+}
+
+setup_skills_lock() {
+  printf '{"skills":{"demo":{"computedHash": "%s"}}}\n' "$HEX64" > skills-lock.json
+  git add -A
+}
+
+setup_digest_manifest() {
+  mkdir -p .specify/integrations
+  printf '{"files":{"common.sh": "%s"}}\n' "$HEX64" > .specify/integrations/demo.manifest.json
+  git add -A
+}
+
 run_case() {
   local label="$1" expect="$2" setup_fn="$3"
   local dir out actual
@@ -150,6 +198,15 @@ run_case "allows deleting a line that held a 64-hex digest" pass setup_delete_he
 run_case "allows ordinary Dart source" pass setup_ordinary_source
 run_case "allows the example credential template" pass setup_example_template
 run_case "allows a lockfile content hash" pass setup_lockfile
+run_case "blocks an AKIA key id inside test/" block setup_test_credential
+run_case "blocks an AWS_SECRET_ACCESS_KEY inside test/" block setup_test_secret_assignment
+run_case "blocks a bare secret sharing a line with a sha256 digest" block setup_digest_and_secret
+run_case "blocks a bare secret sharing a line with a gh-aw hash" block setup_hash_and_secret
+run_case "blocks a fixture-named variable holding a bare secret" block setup_fixture_secret
+run_case "allows a computedHash JSON value" pass setup_computed_hash
+run_case "allows a path-keyed JSON digest mapping" pass setup_path_key_digest
+run_case "allows regenerated skills-lock.json hashes" pass setup_skills_lock
+run_case "allows a regenerated integration manifest" pass setup_digest_manifest
 
 run_pre_push_case() {
   local label="$1" changed_path="$2" expected_calls="$3"
@@ -193,6 +250,37 @@ run_pre_push_case "pre-push runs only the format gate for Dart changes" \
   "lib/foo.dart" "format"
 run_pre_push_case "pre-push skips all Dart gates for docs-only changes" \
   "docs/note.md" ""
+
+check_ci_pattern() {
+  local label="ci changes PATTERN matches hook-only and Dart paths"
+  local pattern missing=0 detail=""
+  pattern="$(sed -n "s/^[[:space:]]*PATTERN: '\(.*\)'[[:space:]]*$/\1/p" \
+    "$root/.github/workflows/ci.yml" | head -1)"
+  if [[ -z "$pattern" ]]; then
+    printf '[FAIL] %s (could not read PATTERN from ci.yml)\n' "$label"
+    failed=$((failed + 1))
+    return
+  fi
+  for p in ".githooks/pre-commit" ".githooks/pre-push" "lib/foo.dart"; do
+    if ! printf '%s\n' "$p" | grep -Eq "$pattern"; then
+      missing=1
+      detail="${detail} no-match:${p}"
+    fi
+  done
+  if printf '%s\n' "docs/note.md" | grep -Eq "$pattern"; then
+    missing=1
+    detail="${detail} unexpected-match:docs/note.md"
+  fi
+  if [[ "$missing" -eq 0 ]]; then
+    printf '[ok]   %s\n' "$label"
+    passed=$((passed + 1))
+  else
+    printf '[FAIL] %s (%s)\n' "$label" "$detail"
+    failed=$((failed + 1))
+  fi
+}
+
+check_ci_pattern
 
 printf '\n%s passed, %s failed\n' "$passed" "$failed"
 if [[ "$failed" -ne 0 ]]; then

@@ -283,8 +283,11 @@ from GitHub Actions secrets. **Never commit real AWS/R2 access keys or secret ke
 the pre-commit hook ([`.githooks/pre-commit`](../.githooks/pre-commit)) blocks
 credential assignments (`AKIA…`, `AWS_SECRET_ACCESS_KEY=`, R2 endpoint tokens),
 bare 64-hex values outside digest contexts, and the local credential files
-themselves. It scans only added lines; public `sha256:` digests, checksum lines
-and `test/` fixtures are exempt. See
+themselves. It scans only added lines. Digest contexts are masked **value by
+value, not line by line**, so regenerating `skills-lock.json` or
+`.specify/integrations/*.manifest.json` needs no `--no-verify`, while a bare
+secret sharing a line with a digest is still blocked. `test/` fixtures and
+tool-generated digest manifests are exempt from the shape rule. See
 [ADR-0104](decisions/0104-git-hook-gate-layering.md). If you have ever pasted
 real keys into a working-tree file, **rotate them in Cloudflare R2** and start
 from a clean local copy.
@@ -400,8 +403,11 @@ and `bash .github/scripts/test_git_hooks.sh` for the hook regression suite.
 
 Bypass with `git commit --no-verify` / `git push --no-verify` only for a
 known-good false positive, and note it in the commit message. For a public
-digest, prefer adding a `sha256:` prefix or a `checksum` hint on the line, or
-moving the fixture under `test/` — the scanner exempts all three.
+digest, prefer a `sha256:` prefix, a `*hash` JSON key, a path-keyed JSON
+mapping, or a `checksum=` / `digest=` assignment; tool-generated manifests
+(`skills-lock.json`, `.specify/integrations/*.manifest.json`) and `test/`
+fixtures are exempt as whole files. The scanner masks only the digest's own
+hex — a second bare 64-hex on the same line is still blocked.
 
 ---
 

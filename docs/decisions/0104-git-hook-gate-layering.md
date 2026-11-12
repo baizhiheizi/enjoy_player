@@ -50,24 +50,33 @@ control.
    block in **any** file, including tests, and run against the unmasked lines.
    The shape-only bare 64-hex rule blocks only outside `test/` and outside known
    digest contexts.
-3. **Centralize the exemptions** instead of adding one mask per incident:
-   binaries / `*.lock` / example templates / the hook itself are skipped;
-   `sha256:<64 hex>`, `"frontmatter_hash":"…"` / `"body_hash":"…"`, and lines
-   carrying a `sha256` / `checksum` / `digest` / `fixture` hint are masked or
-   dropped before the shape scan; `test/` is treated as fixture territory.
-   A public digest therefore has a fix that does **not** require `--no-verify`.
+3. **Centralize the exemptions** instead of adding one mask per incident — and
+   mask **the digest's hex value, never the whole line**: binaries / `*.lock` /
+   example templates / the hook itself are skipped; `sha256:<64 hex>`, any
+   `*hash` JSON key (`frontmatter_hash`, `body_hash`, `computedHash`),
+   path-keyed JSON digest mappings, and `checksum=` / `digest=` assignments each
+   mask only the hex they qualify. Generic keywords such as `fixture` are **not**
+   exemptions, so `fixtureSecret = "<hex>"` stays blocked, and a bare 64-hex
+   sharing a line with a real digest is still caught. `test/`, `skills-lock.json`
+   and `.specify/integrations/*.manifest.json` are exempt from the shape rule as
+   whole files (the high-confidence rules still run on them). A public digest
+   therefore has a fix that does **not** require `--no-verify`.
 4. **Reduce `pre-push` to `check_dart_format.sh` only** (~3 s), still skipped for
    docs/workflow-only pushes. CI runs codegen drift and analyze on every PR, so
    the local duplication buys only a few minutes of earlier feedback at the
    cost of working-tree rewrites and multi-minute stalls. `bash
    .github/scripts/validate_ci_gates.sh --fix` remains the full local mirror
    for anyone who wants the complete run before pushing.
-5. **Add `.github/scripts/test_git_hooks.sh`**: 17 cases in throwaway git
-   repositories covering blocked credentials, exempted digests and fixtures,
-   the deleted-line regression, and stubs proving `pre-push` invokes only the
-   format gate. Run it as a step in `ci.yml`'s `Analyze & test` job, and add
-   `.githooks/` to that job's `changes` path pattern so hook-only PRs trigger
-   it.
+5. **Add `.github/scripts/test_git_hooks.sh`**: 27 cases in throwaway git
+   repositories covering blocked credentials (including inside `test/`),
+   exempted digests and tool-generated manifests, the deleted-line regression,
+   digest-plus-secret same-line regressions, stubs proving `pre-push` invokes
+   only the format gate, and an assertion that the `changes` job's PATTERN
+   matches `.githooks/pre-commit`, `.githooks/pre-push` and `lib/foo.dart`.
+   Run it as a step in `ci.yml`'s `Analyze & test` job, and add `.githooks/` to
+   that job's `changes` path pattern so hook-only PRs trigger it. The prefix
+   branches of that pattern are deliberately left unanchored at the end; only
+   the fully-named file branches carry `$`.
 
 ## Consequences
 
@@ -77,7 +86,9 @@ control.
   build_runner.
 - The shape-only rule can still meet a new digest form. Extend the centralized
   exemption list, do not reach for `--no-verify`; the regression suite pins the
-  known forms.
+  known forms. Masks are value-scoped: never "simplify" one back into a
+  whole-line deletion, which would let a bare secret hide next to a digest
+  (two regression cases pin this).
 - Because the `main: required checks` ruleset is currently disabled, a red CI
   check does not block a merge. Enabling it is the follow-up that makes "CI
   owns the heavy gates" load-bearing; until then `validate_ci_gates.sh --fix`

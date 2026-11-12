@@ -58,6 +58,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          # Prefix branches (lib/, test/, packages/, .githooks/) are left
+          # unanchored at the end on purpose: only the fully-named file
+          # branches carry $. Wrapping the whole group in ^(...)$ would make
+          # every prefix branch match just its literal directory name.
+          # .github/scripts/test_git_hooks.sh pins this behavior.
           PATTERN: '^(lib/|test/|packages/|\.githooks/|tool/prefetch_sqlite3_libs\.sh$|pubspec\.(yaml|lock)$|analysis_options\.yaml$|mise\.toml$|\.github/scripts/(ensure_linux_tooling|check_no_new_path_deps|check_dart_format|check_coverage_gate|test_git_hooks|validate_ci_gates)\.sh$|\.github/workflows/(ci|release_publish)\.yml$)'
         run: |
           if ! files="$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')"; then

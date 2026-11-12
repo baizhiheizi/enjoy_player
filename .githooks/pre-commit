@@ -78,20 +78,25 @@ scan_staged() {
       fi
     done
 
-    if [[ "$file" == test/* ]]; then
-      continue
-    fi
+    # Fixture directories and tool-generated digest manifests contain nothing
+    # but bare 64-hex values. The high-confidence rules above already ran.
+    case "$file" in
+      test/*|skills-lock.json|.specify/integrations/*.manifest.json) continue ;;
+    esac
 
-    # OCI pins, gh-aw lock metadata, and checksum lines are public digests.
+    # Mask only the hex a digest context actually describes — never drop the
+    # whole line. A second, bare 64-hex secret on the same line must stay
+    # visible to the shape rule. Order matters: sha256: is masked first.
     masked=$(printf '%s\n' "$added" \
       | sed -E 's/sha256:[0-9a-f]{64}/sha256:<digest>/g' \
-      | sed -E 's/"(frontmatter_hash|body_hash)":"[0-9a-f]{64}"/"\1":"<hash>"/g' \
-      | sed -E '/[Ss][Hh][Aa]-?256|[Cc]hecksum|[Dd]igest|[Ff]ixture|[Hh]ash[ =:]/d')
+      | sed -E 's/("[^"]*[Hh]ash"[[:space:]]*:[[:space:]]*")[0-9a-f]{64}(")/\1<digest>\2/g' \
+      | sed -E 's/("[^"]*[/][^"]*"[[:space:]]*:[[:space:]]*")[0-9a-f]{64}(")/\1<digest>\2/g' \
+      | sed -E "s/([Cc]hecksum|[Dd]igest|[Ss][Hh][Aa]-?256|[Hh]ash)[[:space:]]*[:=][[:space:]]*${quote}?[0-9a-f]{64}/\\1=<digest>/g")
     for pat in "${shape_patterns[@]}"; do
       if printf '%s\n' "$masked" | grep -Eq "$pat"; then
         echo "ERROR: bare 64-hex string added in $file (secret-shaped)." >&2
-        echo "       Public digest? Add a sha256: prefix or a checksum/sha256" >&2
-        echo "       hint on that line, or move the fixture under test/." >&2
+        echo "       Public digest? Use a sha256: prefix, a *hash JSON key, a" >&2
+        echo "       checksum=/digest= assignment, or a tool-generated manifest." >&2
         status=1
         break
       fi
