@@ -3,8 +3,11 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/settings/application/karaoke_highlight_settings.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
+import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_loop_brackets.dart';
@@ -488,6 +491,92 @@ void main() {
 
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump(const Duration(milliseconds: 50));
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
+
+  testWidgets(
+    'scored-take lookup uses the chrome-derived target type and language',
+    (tester) async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final queries = <EchoRegionRecordingsQuery>[];
+      const lines = [
+        TranscriptLine(text: 'First echo line', startMs: 0, durationMs: 1000),
+      ];
+      const echo = EchoState(
+        active: true,
+        startLineIndex: 0,
+        endLineIndex: 0,
+        startTimeSeconds: 1,
+        endTimeSeconds: 3,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
+          transcriptLineRecordingCountsProvider(
+            'media-1',
+          ).overrideWithValue(const {}),
+          karaokeHighlightSettingsProvider.overrideWith(
+            _KaraokeHighlightOff.new,
+          ),
+          ...transcriptWordPracticeOffOverrides(),
+          echoRegionRecordingsOnceProvider.overrideWith((ref, query) {
+            queries.add(query);
+            return Future.value([]);
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      container
+          .read(playerControllerProvider.notifier)
+          .publishSession(
+            PlaybackSession(
+              mediaId: 'media-1',
+              dexieTargetType: 'Video',
+              mediaType: 'video',
+              mediaTitle: 'Video media',
+              durationSeconds: 100,
+              currentTimeSeconds: 1,
+              currentSegmentIndex: 0,
+              language: 'ja',
+              startedAt: DateTime.utc(2026, 1, 1),
+              lastActiveAt: DateTime.utc(2026, 1, 1),
+            ),
+          );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ListView(
+                children: const [
+                  EchoRegionMergedCard(
+                    mediaId: 'media-1',
+                    lines: lines,
+                    echo: echo,
+                    activeCueIndex: 0,
+                    secondaryLines: [],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(queries.single.targetType, 'Video');
+      expect(queries.single.language, 'ja');
+      expect(queries.single.echoStartMs, 1000);
+      expect(queries.single.echoEndMs, 3000);
 
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));
