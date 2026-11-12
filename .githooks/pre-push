@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
-# Pre-push gate: block pushes that would fail CI Dart format, Codegen drift,
-# or flutter analyze. Budget: ~15s warm (format ~3s, codegen ~2s warm /
-# ~40s cold, analyze ~7s). The full test suite runs in CI on every PR.
+# Pre-push gate: block pushes whose Dart sources are not formatted the way CI
+# expects. Budget: ~3s.
+#
+# Codegen drift and flutter analyze are deliberately NOT run here. Both already
+# run in CI on every PR (ci.yml "Analyze & test", codegen_drift.yml), and
+# running build_runner on every push rewrites the working tree, can stall for
+# up to 240s on a poisoned incremental cache, and in an agent worktree can
+# delete checked-in generated files. See ADR-0104.
 #
 # Install once per clone:
 #   git config core.hooksPath .githooks
-#
-# Bypass (not recommended):
+# Full local mirror (format + codegen + analyze + tests):
+#   bash .github/scripts/validate_ci_gates.sh --fix
+# Bypass:
 #   git push --no-verify
 
 set -euo pipefail
@@ -14,8 +20,8 @@ set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
 
-# Codegen + analyze only when Dart/lib/package sources or lockfiles are among
-# the commits being pushed. Docs/workflow-only pushes skip straight through.
+# Skip the format check when no Dart / lib / package source is in the push
+# range. Docs- and workflow-only pushes go straight through.
 need_dart=0
 while read -r local_ref local_sha remote_ref remote_sha; do
   if [[ "$local_sha" =~ ^0+$ ]]; then
@@ -24,8 +30,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   if [[ "$remote_sha" =~ ^0+$ ]]; then
     # New branch: diff against where it forked from main. (A bare
     # `git diff <sha>` compares against the working tree, which is usually
-    # clean right after committing — that silently skipped codegen on the
-    # first push of most PR branches.) No merge-base → run the gates.
+    # clean right after committing.) No merge-base -> run the check.
     base="$(git merge-base "$local_sha" origin/main 2>/dev/null || true)"
     if [[ -z "$base" ]]; then
       need_dart=1
@@ -43,19 +48,9 @@ while read -r local_ref local_sha remote_ref remote_sha; do
 done
 
 if [[ "$need_dart" -eq 0 ]]; then
-  echo "pre-push: no Dart/lib/package changes in push range — skipping Dart gates"
+  echo "pre-push: no Dart/lib/package changes in push range — skipping Dart format"
   exit 0
 fi
 
-start=$SECONDS
-
 echo "pre-push: checking Dart format..."
 bash .github/scripts/check_dart_format.sh
-
-echo "pre-push: checking codegen drift (build_runner)..."
-bash .github/scripts/check_codegen_drift.sh
-
-echo "pre-push: flutter analyze..."
-flutter analyze </dev/null
-
-echo "pre-push: ok ($((SECONDS - start))s)"

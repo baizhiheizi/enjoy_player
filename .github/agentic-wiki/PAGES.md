@@ -81,13 +81,16 @@ If install fails with `INSTALL_FAILED_VERSION_DOWNGRADE`, uninstall the existing
 
 ## Verify
 
-Install git hooks once per clone so pushes cannot skip the format/codegen gates:
+Install git hooks once per clone so credentials cannot be committed and pushes
+cannot skip the Dart format gate:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Then run the shared gate script:
+The `pre-push` hook checks **Dart format only** (~3s). Codegen drift and
+`flutter analyze` run in CI on every PR, not locally before a push, so run the
+shared gate script when you change annotated Dart sources:
 
 ```bash
 bash .github/scripts/validate_ci_gates.sh        # format + codegen drift

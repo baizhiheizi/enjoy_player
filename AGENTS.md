@@ -79,15 +79,21 @@ flutter test
 
 ### Git hooks
 
-Install once per clone so pushes cannot skip the format / codegen gates:
+Install once per clone so credentials cannot be committed and unformatted Dart cannot be pushed:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-- [`.githooks/pre-commit`](.githooks/pre-commit) — secret scanner
-- [`.githooks/pre-push`](.githooks/pre-push) — `check_dart_format` + `check_codegen_drift` + `flutter analyze` when Dart sources are in the push range (diffed from the merge-base with `origin/main` on a branch's first push); ~15s warm
+- [`.githooks/pre-commit`](.githooks/pre-commit) — secret scanner over **added lines only**; high-confidence credentials block in any file (including `test/`), while the shape-only 64-hex rule masks just the hex a digest context describes (`sha256:`, `*hash` JSON keys, path-keyed JSON digests, `checksum=`/`digest=`) — another bare hex on the same line still blocks. `test/` and tool-generated digest manifests (`skills-lock.json`, `.specify/integrations/*.manifest.json`) are shape-exempt ([ADR-0104](docs/decisions/0104-git-hook-gate-layering.md))
+- [`.githooks/pre-push`](.githooks/pre-push) — `check_dart_format` only (~3s), skipped for docs/workflow-only pushes. Codegen drift and `flutter analyze` run in CI on every PR, not as local push gates.
 
-If `build_runner` ever stalls (0% CPU, no output), the incremental cache in `.dart_tool/build` is poisoned: `check_codegen_drift.sh` now bounds each run (`CODEGEN_TIMEOUT`, default 240s), kills that checkout's build daemon, drops the cache, and retries once cold (~40s).
+Run the hook regression suite before changing either hook:
+
+```bash
+bash .github/scripts/test_git_hooks.sh
+```
+
+`bash .github/scripts/validate_ci_gates.sh --fix` remains the full local mirror (format + codegen + analyze + tests). If `build_runner` ever stalls (0% CPU, no output), the incremental cache in `.dart_tool/build` is poisoned: `check_codegen_drift.sh` bounds each run (`CODEGEN_TIMEOUT`, default 240s), kills that checkout's build daemon, drops the cache, and retries once cold (~40s). Regenerate in the main checkout, not an agent worktree.
 
 Release packaging (Android signing, AAB/APK, Windows installer, FFmpeg, **iOS TestFlight**, **macOS notarization**): [docs/packaging.md](docs/packaging.md) and [ADR-0020](docs/decisions/0020-android-windows-release-identity.md).

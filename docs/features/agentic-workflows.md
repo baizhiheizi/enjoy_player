@@ -100,15 +100,24 @@ review: the approval that the gate is really asking for is the review plus the c
 
 ## Pre-commit secret scanner and OCI digests
 
-[`.githooks/pre-commit`](../../.githooks/pre-commit) blocks commits that introduce
-publish credentials (AWS / R2 keys, 64-hex R2 secret access keys, the local credential
-files). It matches any 64-char lowercase-hex run, which is also the shape of an OCI
-content digest — so a `gh aw update` that refreshes the container pins in
-`.github/aw/actions-lock.json` used to be blocked as a leaked credential.
+[`.githooks/pre-commit`](../../.githooks/pre-commit) blocks commits that **add**
+publish credentials (AWS / R2 keys, secret assignments, the local credential
+files). Its shape-only rule also matches any 64-char lowercase-hex run, which is
+the shape of an OCI content digest — so a `gh aw update` refreshing the container
+pins in `.github/aw/actions-lock.json` used to be blocked as a leaked credential.
 
-The scanner now masks `sha256:<64 hex>` before the scan, which keeps digest-pinning
-commits committable without weakening the credential check: a real 64-hex secret is not
-`sha256:`-prefixed, and a secret sharing a line with a digest is still matched.
+The scanner now reads only added lines (`^[+][^+]`), so **removing** a digest line
+no longer trips it. Before the shape scan it masks **only the hex that a digest
+context describes**, never the whole line: `sha256:<64 hex>`, any `*hash` JSON key
+(`frontmatter_hash`, `body_hash`, `computedHash`), path-keyed JSON digest mappings
+(`.specify/integrations/*.manifest.json`), and `checksum=` / `digest=`
+assignments. A bare 64-hex secret sharing a line with a real digest still matches,
+and generic keywords such as `fixture` are not exemptions. High-confidence
+credential rules run on the unmasked added lines and block in every file,
+including `test/`. `test/`, `skills-lock.json` and the integration manifests are
+exempt from the shape rule as whole files. See
+[ADR-0104](../decisions/0104-git-hook-gate-layering.md) and
+`bash .github/scripts/test_git_hooks.sh` for the pinned cases.
 
 A second benign 64-hex shape got the same treatment: gh-aw lock files carry
 `"frontmatter_hash"` / `"body_hash"` content hashes in their metadata header, so editing
@@ -121,10 +130,15 @@ Manually verified against the staged diff after each change:
 |---|---|
 | `sha256:` + 64 hex only | passes (the fix) |
 | `"frontmatter_hash":"<64 hex>"` only | passes (#1085) |
+| `"computedHash": "<64 hex>"` (`skills-lock.json`) | passes |
+| regenerated `.specify/integrations/*.manifest.json` | passes |
+| `test/` fixture with a bare 64-hex | passes |
 | bare 64-hex secret | blocked |
 | `AKIA…` key id | blocked |
 | `AWS_SECRET_ACCESS_KEY="…"` | blocked |
 | `r2.cloudflarestorage.com/<hex>` | blocked |
+| `AKIA…` or `AWS_SECRET_ACCESS_KEY="…"` inside `test/` | blocked |
+| `fixtureSecret = "<64 hex>"` (generic keyword) | blocked |
 | digest and bare secret on one line | blocked |
 | gh-aw hash and bare secret on one line | blocked |
 
