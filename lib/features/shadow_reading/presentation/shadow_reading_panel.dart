@@ -258,8 +258,6 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
               l10n.shadowRecordingStop,
             ),
             onStop: () => _toggleRecord(l10n),
-            l10n: l10n,
-            tt: Theme.of(context).textTheme,
             scheme: Theme.of(context).colorScheme,
             tok: EnjoyThemeTokens.of(context),
           );

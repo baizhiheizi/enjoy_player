@@ -206,4 +206,39 @@ void main() {
 
     expect(find.text('1.2 s / 3.0 s'), findsOneWidget);
   });
+
+  testWidgets('elapsed caption is not over at exactly the target boundary', (
+    tester,
+  ) async {
+    final tenths = ValueNotifier<int>(12);
+    await _pump(
+      tester,
+      ShadowRecordingElapsedCaption(elapsedTenths: tenths, targetSec: 1.2),
+    );
+
+    expect(find.text('1.2 s / 1.2 s'), findsOneWidget);
+    expect(find.text('+0.1s over target'), findsNothing);
+    expect(find.byIcon(EnjoyIcons.dot), findsNothing);
+
+    tenths.value = 13;
+    await tester.pump();
+
+    expect(find.text('1.3 s / 1.2 s'), findsOneWidget);
+    expect(find.text('+0.1s over target'), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.dot), findsOneWidget);
+  });
+
+  testWidgets('elapsed caption never goes over when target is zero', (
+    tester,
+  ) async {
+    final tenths = ValueNotifier<int>(50);
+    await _pump(
+      tester,
+      ShadowRecordingElapsedCaption(elapsedTenths: tenths, targetSec: 0),
+    );
+
+    expect(find.text('5.0 s'), findsOneWidget);
+    expect(find.text('5.0 s / 0.0 s'), findsNothing);
+    expect(find.byIcon(EnjoyIcons.dot), findsNothing);
+  });
 }

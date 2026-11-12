@@ -124,8 +124,27 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
       mediaWidth: MediaQuery.sizeOf(context).width,
     );
 
+    final region = (
+      targetType: chrome?.dexieTargetType ?? 'Audio',
+      mediaId: mediaId,
+      startMs: (echo.startTimeSeconds * 1000).round(),
+      durationMs: ((echo.endTimeSeconds - echo.startTimeSeconds) * 1000)
+          .round(),
+      referenceText: echoReferencePlainText(lines, echo),
+      language: chrome?.language ?? 'en',
+    );
     final scoredTake = ref
-        .watch(echoRegionRecordingsOnceProvider(_regionQueryFor(mediaId, echo)))
+        .watch(
+          echoRegionRecordingsOnceProvider(
+            EchoRegionRecordingsQuery(
+              targetType: region.targetType,
+              targetId: region.mediaId,
+              language: region.language,
+              echoStartMs: region.startMs,
+              echoEndMs: region.startMs + region.durationMs,
+            ),
+          ),
+        )
         .value
         ?.where((r) => r.assessmentJson?.trim().isNotEmpty == true)
         .firstOrNull;
@@ -175,15 +194,6 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
     );
     final secondsLabel = loopSeconds.toStringAsFixed(1);
     final l10n = AppLocalizations.of(context)!;
-    final region = (
-      targetType: chrome?.dexieTargetType ?? 'Audio',
-      mediaId: mediaId,
-      startMs: (echo.startTimeSeconds * 1000).round(),
-      durationMs: ((echo.endTimeSeconds - echo.startTimeSeconds) * 1000)
-          .round(),
-      referenceText: echoReferencePlainText(lines, echo),
-      language: chrome?.language ?? 'en',
-    );
     final dictationChecked =
         blurMode &&
         ref.watch(
@@ -237,7 +247,7 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
                       lines[echo.startLineIndex].startMs,
                     ),
                     style: gutterStyle,
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.end,
                   ),
                 ),
                 SizedBox(width: metrics.gutterGap),
@@ -352,12 +362,3 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
     );
   }
 }
-
-EchoRegionRecordingsQuery _regionQueryFor(String mediaId, EchoState echo) =>
-    EchoRegionRecordingsQuery(
-      targetType: 'Audio',
-      targetId: mediaId,
-      language: 'en',
-      echoStartMs: (echo.startTimeSeconds * 1000).round(),
-      echoEndMs: (echo.endTimeSeconds * 1000).round(),
-    );
