@@ -152,7 +152,7 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
     final label = (json['label'] as String?) ?? '';
     final referenceId = json['referenceId'] as String?;
 
-    return TranscriptRow(
+    return buildTranscriptRow(
       id: id,
       targetType: targetType,
       targetId: targetId,
@@ -161,7 +161,6 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
       timelineJson: timelineJson,
       referenceId: referenceId,
       label: label,
-      trackIndex: null,
       syncStatus: 'synced',
       serverUpdatedAt: updatedAt,
       createdAt: createdAt,

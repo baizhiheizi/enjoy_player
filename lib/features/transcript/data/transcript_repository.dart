@@ -29,6 +29,7 @@ import '../../../core/utils/youtube_video_identity.dart';
 import '../../../data/api/services/ai/youtube_transcripts_api.dart';
 import '../../../data/api/services/transcript_api.dart';
 import '../../../data/db/app_database.dart';
+import '../../../data/db/transcript_row.dart';
 import '../../../data/db/media_registry.dart';
 import '../../../data/db/media_target_resolver.dart';
 import '../../../data/subtitle/embedded_subtitle_service.dart';

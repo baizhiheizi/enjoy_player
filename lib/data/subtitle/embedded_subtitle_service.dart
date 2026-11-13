@@ -15,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/ids/enjoy_ids.dart';
 import '../../core/logging/log.dart';
 import '../db/app_database.dart';
+import '../db/transcript_row.dart';
 import '../files/ffmpeg_media_probe.dart';
 import 'subtitle_parser.dart';
 import 'transcript_line.dart';
@@ -333,7 +334,7 @@ class EmbeddedSubtitleService {
       language: language,
       source: source,
     );
-    return TranscriptRow(
+    return buildTranscriptRow(
       id: id,
       targetType: targetTypeDexie,
       targetId: targetId,
@@ -343,10 +344,7 @@ class EmbeddedSubtitleService {
       referenceId: 'embedded:$trackIndex',
       label: label,
       trackIndex: trackIndex,
-      syncStatus: 'local',
-      serverUpdatedAt: null,
       createdAt: now,
-      updatedAt: now,
     );
   }
 

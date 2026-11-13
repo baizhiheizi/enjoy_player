@@ -74,4 +74,29 @@ DateTime _parseServerDate(dynamic v, DateTime fallback) {
   return fallback;
 }
 
+Future<void> _assignPrimaryTranscriptIfAbsent(
+  AppDatabase db,
+  String targetType,
+  String targetId,
+  String transcriptId,
+) async {
+  final session = await db.echoSessionDao.getLatestForTarget(
+    targetType,
+    targetId,
+  );
+  if (session?.transcriptId != null) return;
+  await db.echoSessionDao.updatePrimaryTranscriptForTarget(
+    targetType,
+    targetId,
+    transcriptId,
+  );
+}
+
+bool _primaryTranscriptStillResolved(
+  String? transcriptId,
+  List<TranscriptRow> rows,
+) {
+  return transcriptId != null && rows.any((r) => r.id == transcriptId);
+}
+
 final Logger _log = logNamed('TranscriptRepository');
