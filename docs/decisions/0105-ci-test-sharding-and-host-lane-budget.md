@@ -123,6 +123,18 @@ first pool run carried exactly 1,088). The sharding that helps must partition
   their then-60-second budgets under the same load — evidence that did not
   survive the day: the rerun's attempt 2 stalled one of them past 60s (see
   decision 6), which is why the budget is now 180 seconds.
+- **Runner starvation is a distinct failure shape on this pool.** Run
+  43381445516's first wave lost both `Test (shard n/4)` legs to GitHub's
+  "The self-hosted runner lost communication with the server" annotation —
+  no test output at all — while the gh-sr runner containers on x1 were
+  recreated mid-run (~07:21 UTC, 2026-11-13) under `/proc/pressure/io`
+  avg300 ≈ 27, with no OOM traces. Both legs passed on rerun. The workflow
+  semantics held under it: the aggregate stayed red on the starved shards
+  while `Coverage & DST gates` still union-evaluated the artifacts that
+  landed — nothing was silently skipped, and the failure was attributable to
+  the host, not the tests. A future "lost communication" on this pool
+  should be read the same way: retry the failed legs and check the host's
+  pressure counters before suspecting the suite.
 - The union merge makes the gate number exact: on the first pool run's four
   artifacts the old concatenation arithmetic reported 55.91% while the
   union is 73.33% (`LF` 243,224 → 61,185). The gate floor (32%) hid the
