@@ -74,8 +74,7 @@ extension _TranscriptRepositoryResolve on TranscriptRepository {
     _sortTranscriptRows(rows);
     if (rows.isEmpty) return false;
 
-    final currentId = session?.transcriptId;
-    if (currentId != null && rows.any((r) => r.id == currentId)) {
+    if (_primaryTranscriptStillResolved(session?.transcriptId, rows)) {
       return false;
     }
 

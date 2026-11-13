@@ -142,20 +142,15 @@ extension _TranscriptRepositoryYoutubeFetch on TranscriptRepository {
       final timelineJson = await encodeTimelineJsonGated(trackResult.subtitles);
 
       await _db.transcriptDao.upsert(
-        TranscriptRow(
+        buildTranscriptRow(
           id: id,
           targetType: 'Video',
           targetId: mediaId,
           language: trackResult.language,
           source: source,
           timelineJson: timelineJson,
-          referenceId: null,
           label: 'YouTube captions (${trackResult.language})',
-          trackIndex: null,
-          syncStatus: 'local',
-          serverUpdatedAt: null,
           createdAt: now,
-          updatedAt: now,
         ),
       );
       storedCount++;
@@ -215,8 +210,7 @@ extension _TranscriptRepositoryYoutubeFetch on TranscriptRepository {
       'Video',
       mediaId,
     );
-    final currentId = session?.transcriptId;
-    if (currentId != null && rows.any((r) => r.id == currentId)) return;
+    if (_primaryTranscriptStillResolved(session?.transcriptId, rows)) return;
 
     final videoMatch = _bestByLanguage(rows, videoLanguage);
     final learningMatch = videoMatch == null
