@@ -33,20 +33,15 @@ extension _TranscriptRepositoryTracks on TranscriptRepository {
     final timelineJson = await encodeTimelineJsonGated(lines);
 
     await _db.transcriptDao.upsert(
-      TranscriptRow(
+      buildTranscriptRow(
         id: id,
         targetType: tt,
         targetId: mediaId,
         language: language,
         source: source,
         timelineJson: timelineJson,
-        referenceId: null,
         label: resolvedLabel,
-        trackIndex: null,
-        syncStatus: 'local',
-        serverUpdatedAt: null,
         createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
       ),
     );
     _linesCache.remove(id);

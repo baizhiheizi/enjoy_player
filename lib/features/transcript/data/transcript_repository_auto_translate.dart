@@ -39,7 +39,7 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
     final now = DateTime.now();
 
     await _db.transcriptDao.upsert(
-      TranscriptRow(
+      buildTranscriptRow(
         id: id,
         targetType: tt,
         targetId: mediaId,
@@ -50,11 +50,7 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
         label: existing?.label.isNotEmpty == true
             ? existing!.label
             : 'Auto translate ($targetLanguage)',
-        trackIndex: null,
-        syncStatus: 'local',
-        serverUpdatedAt: null,
         createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
       ),
     );
     _linesCache.remove(id);

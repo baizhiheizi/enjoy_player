@@ -27,7 +27,7 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
     final updated = DateTime.now();
 
     await _db.transcriptDao.upsert(
-      TranscriptRow(
+      buildTranscriptRow(
         id: id,
         targetType: 'Video',
         targetId: mediaId,
@@ -36,7 +36,6 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
         timelineJson: timelineJson,
         referenceId: response['rawUrl'] as String?,
         label: 'YouTube captions ($language)',
-        trackIndex: null,
         syncStatus: 'synced',
         serverUpdatedAt: updated,
         createdAt: fallbackNow,

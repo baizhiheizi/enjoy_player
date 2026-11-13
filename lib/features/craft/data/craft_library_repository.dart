@@ -11,6 +11,7 @@ import 'package:drift/drift.dart';
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/transcript_row.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/files/app_managed_media_gc.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
@@ -162,20 +163,14 @@ class CraftLibraryRepository {
       await MediaRegistry(_db).upsertAudio(audioRow);
 
       if (primaryTimelineJson != null) {
-        final primaryRow = TranscriptRow(
+        final primaryRow = buildTranscriptRow(
           id: primaryTranscriptId,
           targetType: 'Audio',
           targetId: id,
           language: canonicalLearning,
           source: 'ai',
           timelineJson: primaryTimelineJson,
-          referenceId: null,
-          label: '',
-          trackIndex: null,
-          syncStatus: 'local',
-          serverUpdatedAt: null,
           createdAt: now,
-          updatedAt: now,
         );
         await _db.transcriptDao.upsert(primaryRow);
       }
@@ -286,20 +281,14 @@ class CraftLibraryRepository {
 
       if (primaryTimelineJson != null) {
         await _db.transcriptDao.upsert(
-          TranscriptRow(
+          buildTranscriptRow(
             id: primaryTranscriptId,
             targetType: 'Audio',
             targetId: mediaId,
             language: canonicalLearning,
             source: 'ai',
             timelineJson: primaryTimelineJson,
-            referenceId: null,
-            label: '',
-            trackIndex: null,
-            syncStatus: 'local',
-            serverUpdatedAt: null,
             createdAt: now,
-            updatedAt: now,
           ),
         );
       }

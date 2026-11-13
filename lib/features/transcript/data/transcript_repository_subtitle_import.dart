@@ -65,30 +65,18 @@ extension _TranscriptRepositorySubtitleImport on TranscriptRepository {
     );
     final now = DateTime.now();
     await _db.transcriptDao.upsert(
-      TranscriptRow(
+      buildTranscriptRow(
         id: id,
         targetType: tt,
         targetId: mediaId,
         language: language,
         source: source,
         timelineJson: json,
-        referenceId: null,
         label: label ?? p.basenameWithoutExtension(file.name),
-        trackIndex: null,
-        syncStatus: 'local',
-        serverUpdatedAt: null,
         createdAt: now,
-        updatedAt: now,
       ),
     );
-    final session = await _db.echoSessionDao.getLatestForTarget(tt, mediaId);
-    if (session?.transcriptId == null) {
-      await _db.echoSessionDao.updatePrimaryTranscriptForTarget(
-        tt,
-        mediaId,
-        id,
-      );
-    }
+    await _assignPrimaryTranscriptIfAbsent(_db, tt, mediaId, id);
   }
 
   Future<int> _extractEmbeddedTracks({
@@ -119,14 +107,12 @@ extension _TranscriptRepositorySubtitleImport on TranscriptRepository {
       await _db.transcriptDao.upsert(row);
     }
 
-    final session = await _db.echoSessionDao.getLatestForTarget(tt, mediaId);
-    if (session?.transcriptId == null) {
-      await _db.echoSessionDao.updatePrimaryTranscriptForTarget(
-        tt,
-        mediaId,
-        extracted.first.id,
-      );
-    }
+    await _assignPrimaryTranscriptIfAbsent(
+      _db,
+      tt,
+      mediaId,
+      extracted.first.id,
+    );
 
     return extracted.length;
   }
