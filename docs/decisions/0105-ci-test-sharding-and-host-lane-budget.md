@@ -29,11 +29,15 @@ instances share one host, so any two legs running at once see each other.
 The solo 12-lane run sustains 13.1 minutes; 24 lanes collapse into swap.
 Splitting the suite into more, faster shards cannot beat that arithmetic on
 this host — it can only avoid *exceeding* the budget and isolate failures.
-A control run also shows the budget is the invariant, not the shard count:
-on a 32-core workstation, shard 0/4 at `--concurrency=6` took 437s against
-435s for the full suite at 12 lanes — kernel compiles want roughly two cores
-each, so halving the lanes doubles per-file wall time and a shard's wall time
-at 6 lanes equals the full suite's at 12.
+Two control runs sharpen the picture. On a 32-core workstation, a
+`--total-shards` shard at `--concurrency=6` took 437s against 435s for the
+full suite at 12 lanes — no faster, because `flutter test`'s
+`--total-shards` / `--shard-index` slice **by test case inside every file**:
+each shard still compiles all 793 files and runs a quarter of the cases, so
+the compile work — the dominant cost — is duplicated per shard, and every
+shard's lcov records the same ~1,100 `SF` files (all four artifacts of the
+first pool run carried exactly 1,088). The sharding that helps must partition
+**files**, which is what `split_test_shards.sh` now does.
 
 ## Decision
 
@@ -41,26 +45,44 @@ at 6 lanes equals the full suite's at 12.
    PRs put at most two legs on the host at once, so the worst case is the
    same 12 tester processes a solo run already sustains. No test process
    count on this host is left to `cores / 2` defaults again.
-2. **The app suite shards 4 ways** (`--total-shards=4 --shard-index=N`,
-   `fail-fast: false`), one shard per job. Shards are file-partitions, so
-   they are also the unit the pool scales with — **per host**: two instances
-   per host keep that host at the 12-lane budget, so adding a second host
-   (two `ci` instances each) drops the matrix into a single wave. Scaling
-   instances on the *same* host does not: four shards at 6 lanes on one
-   24-core host is the 24-lane collapse this ADR exists to prevent. On
-   today's single host the matrix runs as two waves.
+2. **The app suite shards 4 ways by explicit, disjoint file lists**
+   (`split_test_shards.sh` round-robins the `LC_ALL=C`-sorted
+   `test/**_test.dart` list; each shard runs `flutter test <its files>`;
+   `fail-fast: false`), one shard per job. A test file executes in exactly
+   one shard, so each shard compiles and runs only its quarter instead of
+   four copies of the whole suite. The shards stay the unit the pool scales
+   with — **per host**: two instances per host keep that host at the 12-lane
+   budget, so adding a second host (two `ci` instances each) drops the matrix
+   into a single wave. Scaling instances on the *same* host does not: four
+   shards at 6 lanes on one 24-core host is the 24-lane collapse this ADR
+   exists to prevent. On today's single host the matrix runs as two waves.
 3. **`Analyze` splits out of the tests.** Format / analyze / the hook
    regression suite and the governance checks run once, in a fast job; the
-   shard matrix repeats only the Flutter setup it needs. The
-   `ci-approval` environment stays on the `analyze` job alone — every other
-   job `needs:` it, so outside-PR code still cannot execute on the pool
-   before the reviewer approves, without one pending approval per matrix leg.
+   shard matrix repeats only the Flutter setup it needs. The fast path is
+   ~2 minutes, but the job keeps a 40-minute timeout (the analyze, path and
+   gates jobs all do): it gates every test job, and a cold pub cache or a
+   host busy with another PR's shards must not skip the whole matrix with
+   zero test signal. The `ci-approval` environment stays on the `analyze`
+   job alone — every other job `needs:` it, so outside-PR code still cannot
+   execute on the pool before the reviewer approves, without one pending
+   approval per matrix leg.
 4. **Coverage baseline, Codecov and the DST calendar-label case move to a
    `gates` job** that runs whenever the shards have finished — including on a
    shard failure. Each shard uploads its partial lcov as an artifact; the
-   gates job concatenates them (disjoint `SF` records, the gate script sums
-   `LF:`/`LH:` across the file) and evaluates the baseline on the union.
-   A timed-out test can no longer skip the gates silently.
+   gates job **union-merges** them (`merge_shard_lcov.sh`: per `SF` record,
+   `DA` hits take the max across shards, `LF` is emitted once, `LH` is
+   recomputed) and evaluates the baseline on the union. A concatenation would
+   multiply `LF` by the shard count while `LH` grows by something else
+   entirely — on the first pool run it reported 55.91% where the true union
+   is 73.33% (and a single full-suite run measures 73.41%, within the 0.5pt
+   the review required) — so the merge must be exact, not lucky. The gates
+   job carries the same sqlite3 prefetch as the shard jobs: the DST case is
+   a root-package `flutter test`, and every job that runs one builds
+   `package:sqlite3`'s native asset — without the prefetch its no-retry
+   download is a random red. A timed-out test can no longer skip the gates
+   silently. `test/ci_workflow_lane_budget_test.dart` pins the lane cap, the
+   four-leg split, the union merge (with a two-shard overlapping-file
+   fixture) and the aggregate semantics so they cannot silently regress.
 5. **The required check keeps its name via an aggregate.** `Analyze & test`
    is now a zero-step job that succeeds when every job behind it succeeded
    or was skipped (an irrelevant PR skips the whole chain) and fails when any
@@ -81,18 +103,22 @@ at 6 lanes equals the full suite's at 12.
   when.
 - One flaky shard reds its own check while the other three, the path-package
   suite and the coverage baseline all still report.
-- On today's single-host pool the matrix runs as two waves, so an
-  uncontended PR lands around the same wall clock as the old solo job (~15–20
-  minutes) instead of improving; the win arrives with pool scaling (see
-  below) and on every collision. The scaling — a second host with two `ci`
-  instances, keeping the 12-lane-per-host budget — is a gh-sr-side change
-  (`runners.yml`), not a repo change. First pool run (2026-11-13 05:14–06:16
-  UTC, run 43370711369): every job green — shards ≈ 27 min each — on a
-  daytime host whose `/proc/pressure/io` avg300 read 22.7 during the run
-  (the 13.1-minute solo reference came from 03:00 quiet-host runs); re-check
-  the wall clock on a quiet host before tuning shard count or concurrency.
-  The two 60-second Drift-backed logging budgets passed **on that loaded
-  host**, which is the #1335 acceptance signal working early.
+- On today's single-host pool the matrix runs as two waves; the wall clock
+  there is owned by compile throughput, and the file partition is what makes
+  each wave a quarter-compile instead of a full one. The scaling — a second
+  host with two `ci` instances, keeping the 12-lane-per-host budget — is a
+  gh-sr-side change (`runners.yml`), not a repo change. First pool run
+  (2026-11-13 05:14–06:16 UTC, run 43370711369, case-sharded draft): every
+  job green — shards ≈ 27 min each — on a daytime host whose
+  `/proc/pressure/io` avg300 read 22.7 during the run (the 13.1-minute solo
+  reference came from 03:00 quiet-host runs); re-check the wall clock on a
+  quiet host under the file-partition scheme before tuning shard count or
+  concurrency. The two 60-second Drift-backed logging budgets passed **on
+  that loaded host**, which is the #1335 acceptance signal working early.
+- The union merge makes the gate number exact: on the first pool run's four
+  artifacts the old concatenation arithmetic reported 55.91% while the
+  union is 73.33% (`LF` 243,224 → 61,185). The gate floor (32%) hid the
+  dilution; the Codecov upload would not have.
 - Per-shard coverage artifacts cost a few MB of proxy traffic per PR
   (`retention-days: 1`); everything else in the job's dependency path already
   rides the LAN cache.
@@ -118,9 +144,20 @@ at 6 lanes equals the full suite's at 12.
   `main` only** (the #1335 suggestion). Rejected for now: it removes the
   line-baseline gate from PRs, which is a real regression in gating strength;
   kept as the first follow-up lever instead.
+- **`flutter test --total-shards` / `--shard-index`** (a first draft of this
+  ADR; caught in review on #1335). Rejected: the flags slice by test case
+  inside every file, so every shard compiles all 793 files — four full
+  compiles instead of one — and every shard's lcov records the whole file
+  set, which is also why the merge has to union by `SF` record.
+- **Concatenate the shard lcov files with `cat`.** Rejected: `LF` would be
+  counted once per shard while `LH` grows by the hits each shard adds —
+  measured at 55.91% against a true union of 73.33% on the first pool run's
+  artifacts. `merge_shard_lcov.sh` emits each `SF` once with merged `DA`
+  hits.
 - **Issue's `--shard=${{ matrix.shard }}/4` syntax.** Not valid for
   `flutter test` — it only accepts the separate `--total-shards` /
   `--shard-index` pair.
 - **Parallelize the path-package loop** (the #1335 `xargs -P` suggestion).
   Measured at 22 seconds for both packages; parallelizing buys nothing and
-  adds lanes.
+  adds lanes. The loop keeps its `--concurrency=6` cap like every other test
+  leg.

@@ -16,6 +16,8 @@ on:
       - ".github/scripts/check_no_new_path_deps.sh"
       - ".github/scripts/check_dart_format.sh"
       - ".github/scripts/check_coverage_gate.sh"
+      - ".github/scripts/merge_shard_lcov.sh"
+      - ".github/scripts/split_test_shards.sh"
       - ".github/scripts/test_git_hooks.sh"
       - ".github/scripts/validate_ci_gates.sh"
       - ".githooks/**"
@@ -63,7 +65,7 @@ jobs:
           # branches carry $. Wrapping the whole group in ^(...)$ would make
           # every prefix branch match just its literal directory name.
           # .github/scripts/test_git_hooks.sh pins this behavior.
-          PATTERN: '^(lib/|test/|packages/|\.githooks/|tool/prefetch_sqlite3_libs\.sh$|pubspec\.(yaml|lock)$|analysis_options\.yaml$|mise\.toml$|\.github/scripts/(ensure_linux_tooling|check_no_new_path_deps|check_dart_format|check_coverage_gate|test_git_hooks|validate_ci_gates)\.sh$|\.github/workflows/(ci|release_publish)\.yml$)'
+          PATTERN: '^(lib/|test/|packages/|\.githooks/|tool/prefetch_sqlite3_libs\.sh$|pubspec\.(yaml|lock)$|analysis_options\.yaml$|mise\.toml$|\.github/scripts/(ensure_linux_tooling|check_no_new_path_deps|check_dart_format|check_coverage_gate|merge_shard_lcov|split_test_shards|test_git_hooks|validate_ci_gates)\.sh$|\.github/workflows/(ci|release_publish)\.yml$)'
         run: |
           if ! files="$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')"; then
             echo "::warning::Could not list PR files; running the checks."
@@ -92,7 +94,12 @@ jobs:
     environment:
       name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux, ci]
-    timeout-minutes: 20
+    # The job's fast path is ~2 minutes, but it gates every test job: a cold
+    # pub cache (1.3 GB over the LAN cache or the proxy) or a host busy with
+    # another PR's shards can stretch setup, and a timeout here would skip
+    # the whole matrix with zero test signal. 40 min keeps the old single
+    # job's headroom; the aggregate still reports which leg actually hung.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
 
@@ -190,6 +197,11 @@ jobs:
   #    single job, one timed-out test silently skipped the calendar-label,
   #    coverage-gate, codecov and path-package steps behind it.
   #
+  # The shards are explicit disjoint file lists (split_test_shards.sh), not
+  # flutter test's --total-shards: that flag slices by case inside every file,
+  # which still makes each shard compile the whole suite. With the file
+  # partition each shard compiles and runs only its quarter.
+  #
   # Two shards per wave land on the pool's single host; scaling gh-sr to two
   # instances per host across a second host drops the whole matrix into one
   # wave at the same 12-lane-per-host budget (see ADR-0105).
@@ -267,14 +279,30 @@ jobs:
       # budgets: with the concurrency capped there is no 24-process I/O storm
       # left to hide behind, and a 60s timeout failing again is the signal
       # that the host is saturated for real (#1335 acceptance check).
-      - name: Flutter test (app, shard ${{ matrix.shard-index }}/4, with coverage)
-        run: flutter test --coverage --timeout=5m --concurrency=6 --total-shards=4 --shard-index=${{ matrix.shard-index }}
+      #
+      # The shard is an explicit, disjoint file list (not flutter test's
+      # --total-shards, which slices by case inside every file and still makes
+      # each shard compile the whole suite). split_test_shards.sh round-robins
+      # the LC_ALL=C-sorted list, so the four shards partition all files with
+      # no overlap — four quarter-compiles instead of four full compiles.
+      - name: Split test files for this shard
+        run: |
+          bash .github/scripts/split_test_shards.sh "${{ matrix.shard-index }}" 4 > shard_files.txt
+          count="$(wc -l < shard_files.txt)"
+          echo "shard ${{ matrix.shard-index }}/4 owns $count files"
+          if [ ! -s shard_files.txt ]; then
+            echo "::error::empty shard list; the split and matrix disagree"
+            exit 1
+          fi
 
-      # flutter test only writes coverage for the suites this shard ran, and
-      # the shards partition the file set — so the four partial tracefiles
-      # concatenate into a complete one (disjoint SF records; the gate script
-      # sums LF:/LH: across the whole file). Renamed per shard so the gates
-      # job's merge-multiple download cannot collide on lcov.info.
+      - name: Flutter test (app, shard ${{ matrix.shard-index }}/4, with coverage)
+        run: flutter test $(cat shard_files.txt) --coverage --timeout=5m --concurrency=6
+
+      # Each test file runs in exactly one shard, so a lib file's coverage
+      # comes from the shards whose test files exercise it — records overlap
+      # only for shared libs. The gates job union-merges these partials (see
+      # merge_shard_lcov.sh); renamed per shard so the merge-multiple
+      # download cannot collide on lcov.info.
       - name: Stage shard coverage
         if: always()
         run: |
@@ -302,7 +330,7 @@ jobs:
     needs: [changes, analyze]
     if: ${{ !cancelled() && needs.analyze.result == 'success' && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.relevant == 'true') }}
     runs-on: [self-hosted, Linux, ci]
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
 
@@ -342,7 +370,7 @@ jobs:
           status=0
           for pkg in packages/*/; do
             if [ -d "${pkg}test" ]; then
-              (cd "$pkg" && flutter pub get && flutter test --timeout=5m) || status=1
+              (cd "$pkg" && flutter pub get && flutter test --timeout=5m --concurrency=6) || status=1
             fi
           done
           exit "$status"
@@ -357,7 +385,7 @@ jobs:
     needs: [changes, analyze, test]
     if: ${{ !cancelled() && needs.analyze.result == 'success' && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.relevant == 'true') }}
     runs-on: [self-hosted, Linux, ci]
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
 
@@ -399,6 +427,16 @@ jobs:
             PUB_HOSTED_URL=https://pub.dev flutter pub get
           fi
 
+      # Same reason as the test job: the DST case below is a root-package
+      # flutter test, which builds package:sqlite3's native asset — without
+      # the prefetch its no-retry download is a random red on this pool.
+      - name: Prefetch sqlite3 Linux native libs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          bash tool/prefetch_sqlite3_libs.sh linux \
+            || echo "::warning::prefetch_sqlite3_libs skipped; the dart_build hook will fetch on its own"
+
       - name: Download shard coverage
         if: always()
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -417,7 +455,7 @@ jobs:
             echo "::error::no shard coverage artifacts landed; cannot evaluate the baseline"
             exit 1
           fi
-          cat "${shards[@]}" > coverage/lcov.info
+          bash .github/scripts/merge_shard_lcov.sh coverage/lcov.info "${shards[@]}"
 
       # The relative-day label counts calendar days, and the 23-hour day a DST
       # transition creates is what breaks that count. The runner's default zone
@@ -429,7 +467,7 @@ jobs:
         env:
           TZ: America/New_York
           REQUIRE_DST_TIMEZONE: '1'
-        run: flutter test test/core/presentation/relative_day_label_test.dart
+        run: flutter test test/core/presentation/relative_day_label_test.dart --concurrency=6
 
       - name: Coverage gate (line baseline)
         if: always()
