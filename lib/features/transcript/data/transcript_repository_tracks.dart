@@ -42,6 +42,7 @@ extension _TranscriptRepositoryTracks on TranscriptRepository {
         timelineJson: timelineJson,
         label: resolvedLabel,
         createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
       ),
     );
     _linesCache.remove(id);

@@ -51,6 +51,7 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
             ? existing!.label
             : 'Auto translate ($targetLanguage)',
         createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
       ),
     );
     _linesCache.remove(id);
