@@ -405,7 +405,7 @@ Cursor pagination: `updatedAfter` ISO timestamp.
 | `vocabularyContext` | Yes | Last-write-wins on `updatedAt` |
 | `vocabularyReview` | **Never** | Device-local undo history |
 
-Unlike audio/video/recording, vocabulary **auto-pulls on every signed-in `fullSync`** (paged `updatedAfter` cursors) — a documented, narrow exception to [ADR-0013](../decisions/0013-local-first-sync.md)'s no-auto-mirror policy, since a word book is a cross-device dataset rather than local-path media.
+Unlike audio/video/recording, vocabulary **auto-pulls on every signed-in `fullSync`** (paged `updatedAfter` cursors) — a documented, narrow exception to [ADR-0013](../decisions/0013-local-first-sync.md)'s no-auto-mirror policy, since a word book is a cross-device dataset rather than local-path media. Words added on another device reach the phone without a cold restart: the periodic 5-minute sync carries the pull, and the Vocabulary board is pull-to-refresh (header refresh button on desktop, issue #1328).
 
 Offline: full local CRUD/review. AI dictionary / contextual translation require network when cache empty.
 

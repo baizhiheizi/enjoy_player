@@ -44,6 +44,14 @@ class SyncCtrl extends _$SyncCtrl {
       }
     });
 
+    if (ref.read(authCtrlProvider).valueOrNull is AuthSignedIn) {
+      unawaited(
+        Future<void>.delayed(Duration.zero, () {
+          unawaited(_onSignedIn());
+        }),
+      );
+    }
+
     return 0;
   }
 
@@ -74,9 +82,37 @@ class SyncCtrl extends _$SyncCtrl {
       return;
     }
     try {
-      await ref.read(syncEngineProvider).processQueue(const SyncOptions());
+      final result = await ref
+          .read(syncEngineProvider)
+          .fullSync(const SyncOptions());
+      await _persistLastFullSyncTimestamp(result);
     } catch (e, st) {
       _log.warning('periodic sync drain failed', e, st);
+    }
+  }
+
+  /// Pulls vocabulary items + contexts from the server without draining the
+  /// upload queue. Signed-out callers get a failed result instead of a
+  /// network call; a thrown pull is reported as one failed unit.
+  Future<SyncResult> pullVocabulary() async {
+    if (ref.read(authCtrlProvider).valueOrNull is! AuthSignedIn) {
+      return const SyncResult(
+        success: false,
+        synced: 0,
+        failed: 0,
+        errors: ['Signed out'],
+      );
+    }
+    try {
+      return await ref.read(syncEngineProvider).pullVocabulary();
+    } catch (e, st) {
+      _log.warning('pullVocabulary failed', e, st);
+      return const SyncResult(
+        success: false,
+        synced: 0,
+        failed: 1,
+        errors: ['vocabulary pull failed'],
+      );
     }
   }
 

@@ -21,6 +21,7 @@ class EmptyState extends StatelessWidget {
     this.actionLabel,
     this.secondaryAction,
     this.secondaryActionLabel,
+    this.physics,
   });
 
   final String title;
@@ -29,6 +30,11 @@ class EmptyState extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? secondaryAction;
   final String? secondaryActionLabel;
+
+  /// Overrides the wrapper scroll view's physics. Pass bouncing physics when
+  /// hosted under a pull-to-refresh scroll view so the drag hand-off
+  /// overscrolls to it instead of being swallowed here.
+  final ScrollPhysics? physics;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +48,7 @@ class EmptyState extends StatelessWidget {
 
     return Center(
       child: SingleChildScrollView(
+        physics: physics,
         padding: EdgeInsets.symmetric(
           horizontal: t.space32,
           vertical: t.space40,

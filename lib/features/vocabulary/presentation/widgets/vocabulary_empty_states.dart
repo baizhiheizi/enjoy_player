@@ -15,11 +15,13 @@ class VocabularyEmptyState extends StatelessWidget {
     required this.kind,
     this.action,
     this.actionLabel,
+    this.physics,
   });
 
   final VocabularyEmptyKind kind;
   final VoidCallback? action;
   final String? actionLabel;
+  final ScrollPhysics? physics;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +50,7 @@ class VocabularyEmptyState extends StatelessWidget {
       subtitle: body,
       action: action,
       actionLabel: actionLabel,
+      physics: physics,
     );
   }
 }
