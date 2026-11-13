@@ -8,7 +8,6 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart' hide RepeatMode;
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
@@ -21,6 +20,7 @@ import 'package:enjoy_player/features/player/application/player_lens_provider.da
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/domain/player_lens.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
@@ -140,25 +140,9 @@ class DockRecordingProgress extends ConsumerStatefulWidget {
 }
 
 class _DockRecordingProgressState extends ConsumerState<DockRecordingProgress>
-    with SingleTickerProviderStateMixin {
-  late final Ticker _ticker;
-  int _tenths = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _ticker = createTicker((elapsed) {
-      final tenths = elapsed.inMilliseconds ~/ 100;
-      if (tenths != _tenths) setState(() => _tenths = tenths);
-    })..start();
-  }
-
-  @override
-  void dispose() {
-    _ticker.dispose();
-    super.dispose();
-  }
-
+    with
+        TickerProviderStateMixin,
+        RecordingElapsedTicker<DockRecordingProgress> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -167,15 +151,20 @@ class _DockRecordingProgressState extends ConsumerState<DockRecordingProgress>
       0.0,
       double.infinity,
     );
-    if (target <= 0) {
-      return Text((_tenths / 10).toStringAsFixed(1));
-    }
-    final elapsed = (_tenths / 10).clamp(0.0, target);
-    return Text(
-      l10n.playerDockRecordingProgress(
-        elapsed.toStringAsFixed(1),
-        target.toStringAsFixed(1),
-      ),
+    return ValueListenableBuilder<int>(
+      valueListenable: elapsedTenths,
+      builder: (context, tenths, _) {
+        if (target <= 0) {
+          return Text((tenths / 10).toStringAsFixed(1));
+        }
+        final elapsed = (tenths / 10).clamp(0.0, target);
+        return Text(
+          l10n.playerDockRecordingProgress(
+            elapsed.toStringAsFixed(1),
+            target.toStringAsFixed(1),
+          ),
+        );
+      },
     );
   }
 }
