@@ -88,13 +88,19 @@ first pool run carried exactly 1,088). The sharding that helps must partition
    or was skipped (an irrelevant PR skips the whole chain) and fails when any
    leg failed — so re-enabling the `main: required checks` ruleset keeps
    working without re-deriving its check list.
-6. **The two Drift-backed `setup_logging` budgets drop from 5 minutes back
-   to 60 seconds** (#1335 acceptance check): with the lane cap there is no
-   24-process I/O storm to hide behind, and a 60-second failure returning is
-   the signal that the host is saturated for real. The global `--timeout=5m`
-   stays as the stall-detection budget for the rest of the suite, and the
-   `migration_pre_v6_guard` case keeps its 5-minute budget — it runs real
-   pre-v6 migrations, not a handle open.
+6. **The two Drift-backed `setup_logging` budgets drop from 5 minutes to
+   180 seconds.** The first draft of this ADR restored #1335's 60-second
+   target; the pool falsified it on the first loaded run (run 43381445516
+   attempt 2: `pre-banner buffer drops the oldest records beyond capacity`
+   hit `TimeoutException after 0:01:00` while two shard legs ran on the
+   daytime host with `/proc/pressure/io` avg300 ≈ 27) — a 60-second wall is
+   not stable on a saturating shared host even with lanes capped. 180 seconds
+   is 3× the longest observed stall and 10× tighter than #1269's 5-minute
+   mask, and the `TimeoutException` still names the budget, so a failure
+   reads as "host stalled 3 minutes", not "feature broken". The global
+   `--timeout=5m` stays as the stall-detection budget for the rest of the
+   suite, and the `migration_pre_v6_guard` case keeps its 5-minute budget —
+   it runs real pre-v6 migrations, not a handle open.
 
 ## Consequences
 
@@ -113,8 +119,10 @@ first pool run carried exactly 1,088). The sharding that helps must partition
   `/proc/pressure/io` avg300 read 22.7 during the run (the 13.1-minute solo
   reference came from 03:00 quiet-host runs); re-check the wall clock on a
   quiet host under the file-partition scheme before tuning shard count or
-  concurrency. The two 60-second Drift-backed logging budgets passed **on
-  that loaded host**, which is the #1335 acceptance signal working early.
+  concurrency. In that run the two Drift-backed logging cases also passed at
+  their then-60-second budgets under the same load — evidence that did not
+  survive the day: the rerun's attempt 2 stalled one of them past 60s (see
+  decision 6), which is why the budget is now 180 seconds.
 - The union merge makes the gate number exact: on the first pool run's four
   artifacts the old concatenation arithmetic reported 55.91% while the
   union is 73.33% (`LF` 243,224 → 61,185). The gate floor (32%) hid the
