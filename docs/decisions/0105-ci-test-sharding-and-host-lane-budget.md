@@ -86,7 +86,13 @@ at 6 lanes equals the full suite's at 12.
   minutes) instead of improving; the win arrives with pool scaling (see
   below) and on every collision. The scaling — a second host with two `ci`
   instances, keeping the 12-lane-per-host budget — is a gh-sr-side change
-  (`runners.yml`), not a repo change.
+  (`runners.yml`), not a repo change. First pool run (2026-11-13 05:14–06:16
+  UTC, run 43370711369): every job green — shards ≈ 27 min each — on a
+  daytime host whose `/proc/pressure/io` avg300 read 22.7 during the run
+  (the 13.1-minute solo reference came from 03:00 quiet-host runs); re-check
+  the wall clock on a quiet host before tuning shard count or concurrency.
+  The two 60-second Drift-backed logging budgets passed **on that loaded
+  host**, which is the #1335 acceptance signal working early.
 - Per-shard coverage artifacts cost a few MB of proxy traffic per PR
   (`retention-days: 1`); everything else in the job's dependency path already
   rides the LAN cache.
