@@ -77,21 +77,22 @@ jobs:
             echo "relevant=false" >> "$GITHUB_OUTPUT"
           fi
 
-  analyze-test:
-    name: Analyze & test
+  # Format/analyze/hook gates first, alone: the test shards below repeat the
+  # Flutter setup but not these, and a format or analyze failure skips the
+  # shards instead of burning ten minutes of runner time to rediscover it.
+  analyze:
+    name: Analyze
     needs: changes
     if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.relevant == 'true') }}
-    # PRs from outside the org (bots, Copilot, contributors) pause in
-    # ci-approval until a required reviewer approves; org-member PRs, push and
-    # workflow_dispatch resolve to the unprotected ci-direct and run freely.
+    # The environment (and with it the ci-approval reviewer gate for PRs from
+    # outside the org) lives only here. The test, path-package and gates jobs
+    # `need:` this one, so nothing self-hosted executes until this job — and
+    # therefore the approval — has cleared; carrying the environment on every
+    # job would instead ask for one approval per matrix leg.
     environment:
       name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux, ci]
-    # Format/analyze run in minutes; the covered app suite plus path-package
-    # suites land well under half an hour. 60 min only bites when a hung
-    # network or test process stalls the job (self-hosted has no default
-    # timeout).
-    timeout-minutes: 60
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -111,8 +112,12 @@ jobs:
 
       # Re-uploading ~1.3 GB on every exact hit would defeat the point, so only
       # a miss (or a prefix-restore that filled in new packages) writes back.
+      # The shard matrix races this step with an identical key on a cold cache;
+      # the cache API lets exactly one writer win, so a lost race must not red
+      # the leg — the winner's entry serves every later run.
       - name: Save pub cache
         if: steps.pub-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.pub-cache
@@ -156,6 +161,91 @@ jobs:
             PUB_HOSTED_URL=https://pub.dev flutter pub get
           fi
 
+      - name: Forbid new local-path packages
+        run: bash .github/scripts/check_no_new_path_deps.sh
+
+      - name: Git hook regression suite
+        run: bash .github/scripts/test_git_hooks.sh
+
+      - name: Dart format
+        run: bash .github/scripts/check_dart_format.sh
+
+      - name: Flutter analyze
+        run: flutter analyze
+
+  # The app suite split across four shards. Two reasons, both measured on the
+  # shared pool (2026-11-13, x1 — two `ci` runners, both on one 24-core host):
+  #
+  # 1. Collision safety. Two overlapping PR runs each launched flutter test at
+  #    the default concurrency (cores/2 = 12), and 24 flutter_tester processes
+  #    plus two frontend servers drove the host into swap — the suite doubled
+  #    from 13 to 28.5 minutes and two Drift-backed tests failed on timing.
+  #    --concurrency=6 caps every leg at 6 tester processes, so even a
+  #    two-PR collision stays at the 12-process load a solo run already
+  #    sustains. It also keeps tests honest on a loaded machine instead of
+  #    masking the slowdown behind --timeout.
+  # 2. Failure isolation. fail-fast: false plus a per-shard job means one
+  #    flaky shard reports red while the other three still report results, and
+  #    the gates job below still runs the coverage baseline — under the old
+  #    single job, one timed-out test silently skipped the calendar-label,
+  #    coverage-gate, codecov and path-package steps behind it.
+  #
+  # Two shards per wave land on the pool's single host; scaling gh-sr to two
+  # instances per host across a second host drops the whole matrix into one
+  # wave at the same 12-lane-per-host budget (see ADR-0105).
+  test:
+    name: Test (shard ${{ matrix.shard-index }}/4)
+    needs: [changes, analyze]
+    if: ${{ !cancelled() && needs.analyze.result == 'success' && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.relevant == 'true') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard-index: [0, 1, 2, 3]
+    runs-on: [self-hosted, Linux, ci]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Restore pub cache
+        id: pub-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      # See the analyze job: the four legs race the same key on a cold cache
+      # and exactly one save wins, so losing the race is not a failure.
+      - name: Save pub cache
+        if: steps.pub-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
+
+      - name: Ensure Linux tooling
+        run: bash .github/scripts/ensure_linux_tooling.sh --skip-wpe
+
+      - name: Setup Flutter (mise)
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+        with:
+          version: 2026.9.1
+          github_token: ${{ github.token }}
+          cache: false
+
+      - name: Flutter version probe
+        run: flutter --version
+
+      - name: Flutter pub get
+        run: |
+          if ! flutter pub get; then
+            echo "::warning::Mirror dependency resolution failed; retrying with pub.dev."
+            echo "PUB_HOSTED_URL=https://pub.dev" >> "$GITHUB_ENV"
+            PUB_HOSTED_URL=https://pub.dev flutter pub get
+          fi
+
       # package:sqlite3 3.x downloads its prebuilt library from
       # github.com/simolus3/sqlite3.dart/releases with Dart HttpClient (no
       # retries), so a dropped TLS handshake fails the whole test run with
@@ -171,24 +261,163 @@ jobs:
           bash tool/prefetch_sqlite3_libs.sh linux \
             || echo "::warning::prefetch_sqlite3_libs skipped; the dart_build hook will fetch on its own"
 
-      - name: Forbid new local-path packages
-        run: bash .github/scripts/check_no_new_path_deps.sh
+      # --timeout 5m stays the stall-detection budget for the whole suite (a
+      # hung test should red its shard, not eat the 60-minute job timeout).
+      # The two Drift-backed setup_logging cases now carry explicit 60-second
+      # budgets: with the concurrency capped there is no 24-process I/O storm
+      # left to hide behind, and a 60s timeout failing again is the signal
+      # that the host is saturated for real (#1335 acceptance check).
+      - name: Flutter test (app, shard ${{ matrix.shard-index }}/4, with coverage)
+        run: flutter test --coverage --timeout=5m --concurrency=6 --total-shards=4 --shard-index=${{ matrix.shard-index }}
 
-      - name: Git hook regression suite
-        run: bash .github/scripts/test_git_hooks.sh
+      # flutter test only writes coverage for the suites this shard ran, and
+      # the shards partition the file set — so the four partial tracefiles
+      # concatenate into a complete one (disjoint SF records; the gate script
+      # sums LF:/LH: across the whole file). Renamed per shard so the gates
+      # job's merge-multiple download cannot collide on lcov.info.
+      - name: Stage shard coverage
+        if: always()
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            cp coverage/lcov.info "coverage/lcov-shard-${{ matrix.shard-index }}.info"
+          else
+            echo "::warning::shard produced no coverage; the gates job will fail the baseline"
+          fi
 
-      - name: Dart format
-        run: bash .github/scripts/check_dart_format.sh
+      - name: Upload shard coverage
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lcov-shard-${{ matrix.shard-index }}
+          path: coverage/lcov-shard-*.info
+          if-no-files-found: warn
+          retention-days: 1
 
-      - name: Flutter analyze
-        run: flutter analyze
+  # Two path packages (azure_speech, forced_alignment) with suites; the loop
+  # stays serial on purpose — both together ran 22s in the 2026-11-13 job, so
+  # parallelizing them buys nothing and would only add tester processes to a
+  # host whose lane budget the shard matrix already manages.
+  path-packages:
+    name: Path-package tests
+    needs: [changes, analyze]
+    if: ${{ !cancelled() && needs.analyze.result == 'success' && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.relevant == 'true') }}
+    runs-on: [self-hosted, Linux, ci]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
 
-      - name: Flutter test (app, with coverage)
-        # --timeout 5m: the shared runner pool runs the whole suite far slower
-        # than a workstation, and the Drift-backed tests open a SQLite handle
-        # whose start-up latency is unbounded there — the 30s default made them
-        # fail on timing rather than on behavior.
-        run: flutter test --coverage --timeout=5m
+      - name: Restore pub cache
+        id: pub-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Save pub cache
+        if: steps.pub-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
+
+      - name: Ensure Linux tooling
+        run: bash .github/scripts/ensure_linux_tooling.sh --skip-wpe
+
+      - name: Setup Flutter (mise)
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+        with:
+          version: 2026.9.1
+          github_token: ${{ github.token }}
+          cache: false
+
+      - name: Flutter version probe
+        run: flutter --version
+
+      - name: Flutter test (path packages)
+        run: |
+          set -uo pipefail
+          status=0
+          for pkg in packages/*/; do
+            if [ -d "${pkg}test" ]; then
+              (cd "$pkg" && flutter pub get && flutter test --timeout=5m) || status=1
+            fi
+          done
+          exit "$status"
+
+  # Coverage baseline, codecov and the DST-zone calendar-label case, merged
+  # out of the old inline steps: they run whenever the shards have finished
+  # (even on a shard failure — the merge uses whatever tracefiles landed and
+  # the baseline reports against it), so a flaky shard can no longer skip
+  # them silently the way step 15 used to.
+  gates:
+    name: Coverage & DST gates
+    needs: [changes, analyze, test]
+    if: ${{ !cancelled() && needs.analyze.result == 'success' && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.relevant == 'true') }}
+    runs-on: [self-hosted, Linux, ci]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Restore pub cache
+        id: pub-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Save pub cache
+        if: steps.pub-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ steps.pub-cache.outputs.cache-primary-key }}
+
+      - name: Ensure Linux tooling
+        run: bash .github/scripts/ensure_linux_tooling.sh --skip-wpe
+
+      - name: Setup Flutter (mise)
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+        with:
+          version: 2026.9.1
+          github_token: ${{ github.token }}
+          cache: false
+
+      - name: Flutter version probe
+        run: flutter --version
+
+      - name: Flutter pub get
+        run: |
+          if ! flutter pub get; then
+            echo "::warning::Mirror dependency resolution failed; retrying with pub.dev."
+            echo "PUB_HOSTED_URL=https://pub.dev" >> "$GITHUB_ENV"
+            PUB_HOSTED_URL=https://pub.dev flutter pub get
+          fi
+
+      - name: Download shard coverage
+        if: always()
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: lcov-shard-*
+          merge-multiple: true
+          path: coverage/
+
+      - name: Merge shard coverage
+        if: always()
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          shards=(coverage/lcov-shard-*.info)
+          if [ "${#shards[@]}" -eq 0 ]; then
+            echo "::error::no shard coverage artifacts landed; cannot evaluate the baseline"
+            exit 1
+          fi
+          cat "${shards[@]}" > coverage/lcov.info
 
       # The relative-day label counts calendar days, and the 23-hour day a DST
       # transition creates is what breaks that count. The runner's default zone
@@ -196,25 +425,43 @@ jobs:
       # DST zone, and REQUIRE_DST_TIMEZONE turns that skip into a failure so a
       # runner without tzdata cannot silently skip the case.
       - name: Flutter test (calendar labels under a DST timezone)
+        if: always()
         env:
           TZ: America/New_York
           REQUIRE_DST_TIMEZONE: '1'
         run: flutter test test/core/presentation/relative_day_label_test.dart
 
       - name: Coverage gate (line baseline)
+        if: always()
         run: bash .github/scripts/check_coverage_gate.sh coverage/lcov.info
 
       - name: Upload coverage to Codecov
+        if: always()
         uses: codecov/codecov-action@v5
         with:
           files: coverage/lcov.info
           fail_ci_if_error: false
 
-      - name: Flutter test (path packages)
+  # The check the main ruleset requires, reported as one name. It carries no
+  # work of its own: it succeeds when every job behind it succeeded or was
+  # skipped (an irrelevant PR skips the whole chain — a skipped job counts as
+  # passing), and fails as soon as any of them failed or was cancelled.
+  analyze-test:
+    name: Analyze & test
+    needs: [analyze, test, path-packages, gates]
+    if: always()
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: Aggregate job results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          set -euo pipefail
-          for pkg in packages/*/; do
-            if [ -d "${pkg}test" ]; then
-              (cd "$pkg" && flutter pub get && flutter test --timeout=5m)
+          status=0
+          for result in $RESULTS; do
+            if [ "$result" != success ] && [ "$result" != skipped ]; then
+              echo "::error::Analyze & test aggregate: $RESULTS"
+              status=1
             fi
           done
+          exit "$status"
