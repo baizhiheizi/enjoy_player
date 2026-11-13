@@ -275,10 +275,13 @@ jobs:
 
       # --timeout 5m stays the stall-detection budget for the whole suite (a
       # hung test should red its shard, not eat the 60-minute job timeout).
-      # The two Drift-backed setup_logging cases now carry explicit 60-second
-      # budgets: with the concurrency capped there is no 24-process I/O storm
-      # left to hide behind, and a 60s timeout failing again is the signal
-      # that the host is saturated for real (#1335 acceptance check).
+      # The two Drift-backed setup_logging cases carry explicit 180-second
+      # budgets: bounded stall detection, 3x the longest stall observed on
+      # this pool (a 60s budget timed out once under two-shard daytime load,
+      # run 43381445516 attempt 2) and 10x tighter than the old 5-minute
+      # masks-everything value (#1269). A TimeoutException still names the
+      # budget, so a future failure reads as "host stalled 3 minutes", not
+      # "feature broken".
       #
       # The shard is an explicit, disjoint file list (not flutter test's
       # --total-shards, which slices by case inside every file and still makes
