@@ -41,14 +41,15 @@ Local file fingerprints use the same **partial SHA-256** strategy as the Enjoy w
 
 - Streams live counts from the local `sync_queue` table (**waiting to upload** vs **failed permanently** after hitting the [`SyncRetryPolicy`](../../lib/features/sync/domain/sync_retry_policy.dart) threshold).
 - Shows **last successful full sync** time (stored in settings KV as `sync.last_full_sync_at` after a successful `fullSync`).
-- Offers **Sync now** (queue processing only) and **Retry failed items** (resets exhausted rows then runs `fullSync`).
+- Offers **Sync now** (`triggerSync` → `fullSync`: queue drain + vocabulary pull) and **Retry failed items** (resets exhausted rows then runs `fullSync`).
 
 When signed out, the sync screen explains that sign-in is required and links to the sign-in flow.
 
 ## Triggers
 
-- Signing in schedules [`SyncEngine.fullSync`](../../lib/features/sync/application/sync_engine.dart) via [`SyncCtrl`](../../lib/features/sync/application/sync_controller.dart) on the **first frame after** auth transitions to signed-in (`addPostFrameCallback`).
-- While signed in, queue drain repeats on a **5-minute** timer — gated on the app being in the foreground (issue #810 G, same `WidgetsBinding.lifecycleState` check as the Discover refresh scheduler: ticks while paused/inactive are skipped instead of burning battery in the background) — and every enqueue through the [typed seam](#typed-enqueue-seam-issues-718--749) also schedules an **immediate** drain (the signed-in `scheduleSyncQueueDrain` tail), so freshly enqueued work starts without waiting for the timer (issue #749).
+- Signing in schedules [`SyncEngine.fullSync`](../../lib/features/sync/application/sync_engine.dart) via [`SyncCtrl`](../../lib/features/sync/application/sync_controller.dart) on the **first frame after** auth transitions to signed-in (`addPostFrameCallback`). If `SyncCtrl` first instantiates **after** auth has already settled on signed-in (the listener then never fires — Riverpod listeners don't replay the current state), the controller's `build` bootstraps the same `fullSync` from the settled state directly.
+- While signed in, a **5-minute** timer repeats a `fullSync` (queue drain **+ vocabulary pull**, issue #1328 — the periodic tick is no longer upload-only) and persists `sync.last_full_sync_at` on success — gated on the app being in the foreground (issue #810 G, same `WidgetsBinding.lifecycleState` check as the Discover refresh scheduler: ticks while paused/inactive are skipped instead of burning battery in the background) — and every enqueue through the [typed seam](#typed-enqueue-seam-issues-718--749) also schedules an **immediate** drain (the signed-in `scheduleSyncQueueDrain` tail), so freshly enqueued work starts without waiting for the timer (issue #749).
+- The **vocabulary board** adds two user-facing pull entries (issue #1328): the word book page is pull-to-refresh (and carries a header refresh button on desktop) running `SyncCtrl.pullVocabulary` — a signed-in-gated, queue-free `SyncEngine.pullVocabulary` so a refresh never blocks on unrelated media uploads; a failed pull surfaces the sync-issues notice, and signed-out pulls are silent no-ops. The empty states hand drags to the page scroll view via `EmptyState.physics` so the pull works on the empty word book too.
 - Library import/delete and shadow-reading recording save/delete call [`syncEnqueueProvider`](../../lib/features/sync/application/sync_providers.dart); the transcript repository's durable YouTube worker-upload retry calls [`syncEnqueueJobProvider`](../../lib/features/sync/application/sync_providers.dart) (see below).
 
 ## Retry policy (issue #752)

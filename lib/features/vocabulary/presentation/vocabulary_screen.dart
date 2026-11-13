@@ -3,10 +3,14 @@
 /// (search, filters, word table) or Review (due card + custom review).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -14,6 +18,10 @@ import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
+import 'package:enjoy_player/core/window/desktop_window.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_session_selection.dart';
@@ -38,6 +46,25 @@ class VocabularyScreen extends ConsumerStatefulWidget {
 
 class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
   _VocabularyTab _tab = _VocabularyTab.words;
+  bool _syncing = false;
+
+  Future<void> _onRefresh() async {
+    if (ref.read(authCtrlProvider).valueOrNull is! AuthSignedIn) return;
+    setState(() => _syncing = true);
+    try {
+      final result = await ref.read(syncCtrlProvider.notifier).pullVocabulary();
+      if (!mounted) return;
+      if (!result.success) {
+        final l10n = AppLocalizations.of(context)!;
+        AppNotice.warning(
+          context,
+          l10n.syncSnackIssues(result.synced, result.failed),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +91,10 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
           content = const [
             SliverFillRemaining(
               hasScrollBody: false,
-              child: VocabularyEmptyState(kind: VocabularyEmptyKind.noWords),
+              child: VocabularyEmptyState(
+                kind: VocabularyEmptyKind.noWords,
+                physics: BouncingScrollPhysics(),
+              ),
             ),
           ];
         } else {
@@ -116,19 +146,29 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
           ];
         }
 
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: EditorialHeader(
-                widthMode: EditorialHeaderWidthMode.browse,
-                overline: l10n.vocabularyOverline,
-                title: l10n.vocabularyTitle,
-                trailing: _HeaderActions(due: stats.due, compact: phone),
+        return RefreshIndicator(
+          onRefresh: _onRefresh,
+          notificationPredicate: (notification) => notification.depth <= 1,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: EditorialHeader(
+                  widthMode: EditorialHeaderWidthMode.browse,
+                  overline: l10n.vocabularyOverline,
+                  title: l10n.vocabularyTitle,
+                  trailing: _HeaderActions(
+                    due: stats.due,
+                    compact: phone,
+                    syncing: _syncing,
+                    onRefresh: () => unawaited(_onRefresh()),
+                  ),
+                ),
               ),
-            ),
-            ...content,
-            const SliverToBoxAdapter(child: SizedBox(height: 72)),
-          ],
+              ...content,
+              const SliverToBoxAdapter(child: SizedBox(height: 72)),
+            ],
+          ),
         );
       },
     );
@@ -140,7 +180,10 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
         SliverToBoxAdapter(
           child: SizedBox(
             height: 320,
-            child: VocabularyEmptyState(kind: VocabularyEmptyKind.noMatches),
+            child: VocabularyEmptyState(
+              kind: VocabularyEmptyKind.noMatches,
+              physics: BouncingScrollPhysics(),
+            ),
           ),
         ),
       ];
@@ -172,18 +215,41 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
 }
 
 class _HeaderActions extends ConsumerWidget {
-  const _HeaderActions({required this.due, required this.compact});
+  const _HeaderActions({
+    required this.due,
+    required this.compact,
+    required this.syncing,
+    required this.onRefresh,
+  });
 
   final int due;
   final bool compact;
+  final bool syncing;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (isDesktop) ...[
+          if (syncing)
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: Center(child: LoadingIcon(size: 18, color: cs.primary)),
+            )
+          else
+            EnjoyIconButton(
+              icon: EnjoyIcons.refresh,
+              tooltip: l10n.lookupRefresh,
+              onPressed: onRefresh,
+            ),
+          const SizedBox(width: 8),
+        ],
         if (!compact) ...[
           EnjoyButton.secondary(
             icon: EnjoyIcons.download,
