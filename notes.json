@@ -10,12 +10,6 @@
       "state": "commented",
       "updated_at": "2026-11-07",
       "note": "MAINTAINER DECLINED THE FIX: PR #1262 (vendored media_kit_video fork) closed unmerged 2026-11-07 00:10 and the issue got wontfix. Do not re-propose, do not re-engage."
-    },
-    {
-      "number": 1311,
-      "state": "commented",
-      "updated_at": "2026-11-11",
-      "note": "All three drift findings resolved in PR #1313 (real number confirmed 2026-11-11); vigil finding fixed in a7719c0a (changelog now 'Every checked attempt persists' — empty ASR retells return before the DAO write). Closes #1311 on merge."
     }
   ],
   "fixes": [
@@ -31,33 +25,33 @@
   "checks": [
     {
       "area": "repo_assist_prs",
-      "checked_at": "2026-11-11",
-      "result": "PR numbers resolved: #1313 (docs drift) and #1314 (v0.10.4 prep, stacked). Vigil findings fixed: a7719c0a / f16432e4. Route+GitGuardian green; bot-PR CI approval-gated (as on #1269). main unchanged at 11e38395.",
-      "follow_up": "Watch both PRs for vigil re-review and maintainer response; merge #1313 then #1314 then tag."
+      "checked_at": "2026-11-14",
+      "result": "#1313 merged by an-lee 2026-11-11. #1314 unmergeable (5 post-cut PRs conflict in CHANGELOG); the 11-13 base-merge push hit the workflow-scope guard. Built the merge on repo-assist/release-v0.10.4-refresh (c6a9e3e6), gates green; PR created with base=the #1314 branch.",
+      "follow_up": "Resolve the refresh PR number next run; landing order refresh -> #1314 -> tag."
     },
     {
       "area": "docs",
-      "checked_at": "2026-11-11",
-      "result": "Vigil corrections landed: dictation line reads Every-checked-attempt on both the [Unreleased] copy (#1313) and the cut [0.10.4] copy (#1314); the #1299 entry and 0.10.4.md drop the per-locale craft claim.",
-      "follow_up": "Keep feeding the [Unreleased] window as merges land after the cut."
+      "checked_at": "2026-11-14",
+      "result": "Refresh merge: [0.10.4] gains #1333/#1334x3/#1349x2/#1336/#1317 plus newly recorded #1323/#1316/#1310; 0.10.4.md states measured ~26x/~6x (vigil lows resolved) with new #1333/#1323 sections; [Unreleased] empty. Corrective comment on #1314 re the rejected 11-13 push.",
+      "follow_up": "After 0.10.4 tags, resume feeding a fresh [Unreleased] window."
     },
     {
       "area": "tests",
-      "checked_at": "2026-11-11",
-      "result": "validate_ci_gates.sh green on both branches (cold codegen rebuild after the env pub cache needed flutter pub get); changelog/link suites 9/9 on each. Docs-only edits, no Dart behavior change.",
+      "checked_at": "2026-11-14",
+      "result": "Refresh branch: format clean, analyze clean, validate_ci_gates passed, release/docs suites 9/9. Main green at 8f241d2d; a1fd8a7e's failure was fixed by dc201950. Lane healthy - no flake evidence left.",
+      "follow_up": null
+    },
+    {
+      "area": "performance",
+      "checked_at": "2026-11-14",
+      "result": "Perf-improver owns the lane; its P21b (#1310) merged 2026-11-12. Remaining: its queue plus 4 maintainer-gated items on #1192. Repo Assist stays out.",
       "follow_up": null
     },
     {
       "area": "release",
-      "checked_at": "2026-11-11",
-      "result": "v0.10.4 prep on #1314 updated with the two wording corrections. Window cut with provisional date 2026-11-11, correct at publish. v0.10.2, v0.10.0, v0.9.0 Release objects still missing.",
-      "follow_up": "Extend the 0.10.4 section if more fixes land before the maintainer tags."
-    },
-    {
-      "area": "performance",
-      "checked_at": "2026-11-11",
-      "result": "Vigil claim verified: craft_history_screen.dart:155-158 builds DateFormat.yMMMd() with no locale and no Intl.defaultLocale is set, so craft keeps intl-default output; relative_day_label is locale-aware. Lane theirs (#1310 open).",
-      "follow_up": null
+      "checked_at": "2026-11-14",
+      "result": "0.10.4 window current through 8f241d2d on the refresh branch; maintainer's c92f0dbc (mid-run push) joins with one changelog line after. v0.10.2/v0.10.0/v0.9.0 Release objects still missing (maintainer-only).",
+      "follow_up": "Verify the refresh PR applied; watch #1314 merge and tag."
     }
   ],
   "completed_actions": [
@@ -180,13 +174,17 @@
     {
       "key": "pr-numbers-resolved-1313-1314-vigil-fixes-pushed",
       "completed_at": "2026-11-11"
+    },
+    {
+      "key": "pr-1313-merged-1314-refresh-branch-pr-created",
+      "completed_at": "2026-11-14"
     }
   ],
   "priorities": [
     {
       "task": 6,
-      "item": "Watch PRs #1313/#1314 for vigil re-review and maintainer response",
-      "note": "Vigil corrections pushed (a7719c0a / f16432e4); bot-PR CI is approval-gated so only route+GitGuardian run until the maintainer approves in the Actions tab."
+      "item": "Resolve the refresh PR number and watch it + #1314 for maintainer response",
+      "note": "Refresh PR (branch repo-assist/release-v0.10.4-refresh, base=the #1314 branch) recorded 2026-11-14; landing order refresh -> #1314 -> tag; c92f0dbc merges after with one changelog line."
     },
     {
       "task": 7,
@@ -211,12 +209,12 @@
     {
       "task": 10,
       "item": "Duet tracker (STATUS.md 53/64): no actionable Repo Assist work",
-      "note": "STATUS.md unchanged since b6572e04 (re-verified 2026-11-11). Remaining rows are maintainer-driven design with board compares, hardware-gated QA, or open product decisions. Re-check only if STATUS.md changes."
+      "note": "STATUS.md unchanged since b6572e04 (re-verified 2026-11-14). Re-check only if STATUS.md changes."
     },
     {
       "task": 5,
       "item": "The proactive-refactor lane stays paused by the maintainer",
-      "note": "Detector findings #1279/#1282 were rejected by the maintainer as intentional patterns; #1281 the maintainer fixed themselves. Keep staying out of the lane."
+      "note": "Detector findings #1279/#1282 were rejected; #1281 fixed by the maintainer. #1343 (large-file-simplifier, ai_playground_screen split) is in that lane - leave for maintainer."
     }
   ]
 }
