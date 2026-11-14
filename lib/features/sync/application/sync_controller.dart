@@ -94,7 +94,18 @@ class SyncCtrl extends _$SyncCtrl {
   /// Pulls vocabulary items + contexts from the server without draining the
   /// upload queue. Signed-out callers get a failed result instead of a
   /// network call; a thrown pull is reported as one failed unit.
-  Future<SyncResult> pullVocabulary() async {
+  Future<SyncResult> pullVocabulary() =>
+      _runVocabularyPull(() => ref.read(syncEngineProvider).pullVocabulary());
+
+  /// Resets vocabulary cursors and pulls the full server word book without
+  /// draining the upload queue or mirroring remote media.
+  Future<SyncResult> pullVocabularyFresh() => _runVocabularyPull(
+    () => ref.read(syncEngineProvider).pullVocabularyFresh(),
+  );
+
+  Future<SyncResult> _runVocabularyPull(
+    Future<SyncResult> Function() run,
+  ) async {
     if (ref.read(authCtrlProvider).valueOrNull is! AuthSignedIn) {
       return const SyncResult(
         success: false,
@@ -104,7 +115,7 @@ class SyncCtrl extends _$SyncCtrl {
       );
     }
     try {
-      return await ref.read(syncEngineProvider).pullVocabulary();
+      return await run();
     } catch (e, st) {
       _log.warning('pullVocabulary failed', e, st);
       return const SyncResult(

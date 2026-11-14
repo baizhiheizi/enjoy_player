@@ -2123,6 +2123,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncScreenRetryFailed => 'Retry failed items';
 
   @override
+  String get syncScreenRepullVocabulary => 'Re-pull vocabulary';
+
+  @override
   String get syncScreenSignedOutBody =>
       'Sign in with your Enjoy account to sync metadata across devices.';
 

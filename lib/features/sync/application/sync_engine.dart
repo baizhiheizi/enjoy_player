@@ -79,6 +79,11 @@ class SyncEngine {
     return results[0].merge(results[1]);
   }
 
+  /// Resets vocabulary cursors and re-pulls the full server word book without
+  /// mirroring remote media rows (ADR-0054).
+  Future<SyncResult> pullVocabularyFresh() =>
+      _download.downloadVocabularyFresh();
+
   /// Drains the outbound sync queue.
   ///
   /// Concurrent callers coalesce onto one in-flight drain (plus one follow-up

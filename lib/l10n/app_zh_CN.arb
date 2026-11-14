@@ -726,6 +726,7 @@
   "syncScreenStatFailed": "永久失败",
   "syncScreenSyncNow": "立即同步",
   "syncScreenRetryFailed": "重试失败项",
+  "syncScreenRepullVocabulary": "全量重拉生词本",
   "syncScreenSignedOutBody": "使用 Enjoy 账号登录，在设备间同步元数据。",
   "syncScreenGoSignIn": "登录",
   "syncPendingRekeyLabel": "导入待关联账号",

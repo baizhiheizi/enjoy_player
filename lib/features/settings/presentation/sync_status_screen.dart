@@ -23,11 +23,14 @@ import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
+import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 final Map<String, DateFormat> _lastSyncTimeCache = {};
 final Map<String, DateFormat> _lastSyncShortDateCache = {};
 final Map<String, DateFormat> _lastSyncYearDateCache = {};
+
+enum _SyncAction { sync, retry, repullVocabulary }
 
 class SyncStatusScreen extends ConsumerStatefulWidget {
   const SyncStatusScreen({super.key});
@@ -37,8 +40,7 @@ class SyncStatusScreen extends ConsumerStatefulWidget {
 }
 
 class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
-  bool _busySync = false;
-  bool _busyRetry = false;
+  _SyncAction? _busyAction;
 
   @override
   Widget build(BuildContext context) {
@@ -53,42 +55,41 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
         loading: const SkeletonSettingsList(rowCount: 6),
         builder: (context, _) => _SignedInBody(
           metrics: metrics,
-          busyRetry: _busyRetry,
-          busySync: _busySync,
-          onRetryFailed: () => _runRetryFailed(context, l10n),
-          onSyncNow: () => _runSyncNow(context, l10n),
+          busyAction: _busyAction,
+          onSyncNow: () => _runAction(
+            context,
+            l10n,
+            _SyncAction.sync,
+            () => ref.read(syncCtrlProvider.notifier).triggerSync(),
+          ),
+          onRetryFailed: () => _runAction(
+            context,
+            l10n,
+            _SyncAction.retry,
+            () => ref
+                .read(syncCtrlProvider.notifier)
+                .triggerSync(resetFailed: true),
+          ),
+          onRepullVocabulary: () => _runAction(
+            context,
+            l10n,
+            _SyncAction.repullVocabulary,
+            () => ref.read(syncCtrlProvider.notifier).pullVocabularyFresh(),
+          ),
         ),
       ),
     );
   }
 
-  Future<void> _runSyncNow(BuildContext context, AppLocalizations l10n) async {
-    setState(() => _busySync = true);
-    try {
-      final result = await ref.read(syncCtrlProvider.notifier).triggerSync();
-      if (!context.mounted) return;
-      if (result.success) {
-        AppNotice.success(context, l10n.syncSnackSuccess);
-      } else {
-        AppNotice.warning(
-          context,
-          l10n.syncSnackIssues(result.synced, result.failed),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _busySync = false);
-    }
-  }
-
-  Future<void> _runRetryFailed(
+  Future<void> _runAction(
     BuildContext context,
     AppLocalizations l10n,
+    _SyncAction action,
+    Future<SyncResult> Function() run,
   ) async {
-    setState(() => _busyRetry = true);
+    setState(() => _busyAction = action);
     try {
-      final result = await ref
-          .read(syncCtrlProvider.notifier)
-          .triggerSync(resetFailed: true);
+      final result = await run();
       if (!context.mounted) return;
       if (result.success) {
         AppNotice.success(context, l10n.syncSnackSuccess);
@@ -99,7 +100,7 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _busyRetry = false);
+      if (mounted) setState(() => _busyAction = null);
     }
   }
 }
@@ -107,17 +108,17 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
 class _SignedInBody extends ConsumerStatefulWidget {
   const _SignedInBody({
     required this.metrics,
-    required this.busySync,
-    required this.busyRetry,
+    required this.busyAction,
     required this.onSyncNow,
     required this.onRetryFailed,
+    required this.onRepullVocabulary,
   });
 
   final EnjoyPageMetrics metrics;
-  final bool busySync;
-  final bool busyRetry;
+  final _SyncAction? busyAction;
   final VoidCallback onSyncNow;
   final VoidCallback onRetryFailed;
+  final VoidCallback onRepullVocabulary;
 
   @override
   ConsumerState<_SignedInBody> createState() => _SignedInBodyState();
@@ -311,31 +312,40 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
           runSpacing: 8,
           children: [
             EnjoyButton.brand(
-              onPressed: widget.busySync ? null : widget.onSyncNow,
-              child: widget.busySync
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: LoadingIcon(size: 16),
-                    )
-                  : Text(l10n.syncScreenSyncNow),
+              onPressed: widget.busyAction != null ? null : widget.onSyncNow,
+              child: _buttonLabel(
+                busy: widget.busyAction == _SyncAction.sync,
+                label: l10n.syncScreenSyncNow,
+              ),
             ),
             EnjoyButton.secondary(
-              onPressed: (widget.busyRetry || snap.permanentlyFailed == 0)
+              onPressed:
+                  (widget.busyAction != null || snap.permanentlyFailed == 0)
                   ? null
                   : widget.onRetryFailed,
-              child: widget.busyRetry
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: LoadingIcon(size: 16),
-                    )
-                  : Text(l10n.syncScreenRetryFailed),
+              child: _buttonLabel(
+                busy: widget.busyAction == _SyncAction.retry,
+                label: l10n.syncScreenRetryFailed,
+              ),
+            ),
+            EnjoyButton.secondary(
+              onPressed: widget.busyAction != null
+                  ? null
+                  : widget.onRepullVocabulary,
+              child: _buttonLabel(
+                busy: widget.busyAction == _SyncAction.repullVocabulary,
+                label: l10n.syncScreenRepullVocabulary,
+              ),
             ),
           ],
         ),
       ],
     );
+  }
+
+  Widget _buttonLabel({required bool busy, required String label}) {
+    if (!busy) return Text(label);
+    return const SizedBox(width: 16, height: 16, child: LoadingIcon(size: 16));
   }
 
   Widget _queueCard(

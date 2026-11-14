@@ -69,16 +69,24 @@ class SyncDownloadService {
     return _downloadVocabularyContextsInternal(resetCursor: false);
   }
 
-  /// Vocabulary pulls shipped (v0.8.x–v0.9.0) advancing the `updatedAfter`
-  /// cursor even when every page row failed to merge — the server jsonb
-  /// `explanation` cast bug — leaving installs with an empty word book and a
-  /// cursor past the rows that never applied. Clears both vocabulary cursors
-  /// exactly once so the next pull re-fetches the full server word book.
+  /// Resets both vocabulary cursors and pulls the full server word book.
+  Future<SyncResult> downloadVocabularyFresh() async {
+    await _repairVocabularyCursorsOnce();
+    final results = await Future.wait([
+      _downloadVocabularyItemsInternal(resetCursor: true),
+      _downloadVocabularyContextsInternal(resetCursor: true),
+    ]);
+    return results[0].merge(results[1]);
+  }
+
+  /// Clears both vocabulary cursors once per user so affected installs re-pull
+  /// the full server word book (v1: dropped rows; v2: legacy server DESC
+  /// pagination stranding older web SRS updates).
   Future<void> _repairVocabularyCursorsOnce() async {
     if (_vocabCursorRepairDone) return;
     final cleared = await _db.transaction(() async {
       final repaired = await _db.settingsDao.readSetting(
-        SettingsKeys.syncVocabularyCursorRepairV1,
+        SettingsKeys.syncVocabularyCursorRepairV2,
       );
       if (repaired != null) return false;
       await _db.settingsDao.deleteSetting(
@@ -88,7 +96,7 @@ class SyncDownloadService {
         SettingsKeys.syncCursorVocabularyContext,
       );
       await _db.settingsDao.writeSetting(
-        SettingsKeys.syncVocabularyCursorRepairV1,
+        SettingsKeys.syncVocabularyCursorRepairV2,
         '1',
       );
       return true;
@@ -96,7 +104,7 @@ class SyncDownloadService {
     _vocabCursorRepairDone = true;
     if (cleared) {
       _log.info(
-        'vocabulary cursor repair v1: cursors cleared for full re-pull',
+        'vocabulary cursor repair v2: cursors cleared for full re-pull',
       );
     }
   }

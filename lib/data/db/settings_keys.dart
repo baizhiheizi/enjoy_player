@@ -199,6 +199,15 @@ abstract final class SettingsKeys {
     defaultValue: null,
   );
 
+  /// One-time repair flag: legacy server DESC pagination pinned vocabulary
+  /// cursors at the global max `updatedAt`, stranding older web SRS updates.
+  static const syncVocabularyCursorRepairV2 = SettingKey<String?>(
+    name: 'sync.repair.vocab_cursor_desc_backlog.v2',
+    scope: SettingsScope.user,
+    codec: StringSettingCodec(),
+    defaultValue: null,
+  );
+
   /// ISO-8601 UTC timestamp of last fully successful full sync (downloads +
   /// queue). Kept a raw string: the sync status UI parses it for display.
   static const syncLastFullSyncAt = SettingKey<String?>(
@@ -340,6 +349,7 @@ abstract final class SettingsKeys {
     syncCursorVocabularyItem,
     syncCursorVocabularyContext,
     syncVocabularyCursorRepairV1,
+    syncVocabularyCursorRepairV2,
     syncLastFullSyncAt,
     playerPreferencesV1,
     craftPreferencesV1,
