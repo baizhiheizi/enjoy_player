@@ -41,7 +41,7 @@ Local file fingerprints use the same **partial SHA-256** strategy as the Enjoy w
 
 - Streams live counts from the local `sync_queue` table (**waiting to upload** vs **failed permanently** after hitting the [`SyncRetryPolicy`](../../lib/features/sync/domain/sync_retry_policy.dart) threshold).
 - Shows **last successful full sync** time (stored in settings KV as `sync.last_full_sync_at` after a successful `fullSync`).
-- Offers **Sync now** (`triggerSync` → `fullSync`: queue drain + vocabulary pull) and **Retry failed items** (resets exhausted rows then runs `fullSync`).
+- Offers **Sync now** (`triggerSync` → `fullSync`: queue drain + vocabulary pull), **Retry failed items** (resets exhausted rows then runs `fullSync`), and **Re-pull vocabulary** (`pullVocabularyFresh` → `SyncDownloadService.downloadVocabularyFresh`: resets both vocabulary cursors and pulls the full server word book without touching media opt-in policy).
 
 When signed out, the sync screen explains that sign-in is required and links to the sign-in flow.
 

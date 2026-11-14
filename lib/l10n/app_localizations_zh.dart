@@ -2031,6 +2031,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get syncScreenRetryFailed => '重试失败项';
 
   @override
+  String get syncScreenRepullVocabulary => '全量重拉生词本';
+
+  @override
   String get syncScreenSignedOutBody => '使用 Enjoy 账号登录以在设备间同步元数据。';
 
   @override
@@ -6172,6 +6175,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get syncScreenRetryFailed => '重试失败项';
+
+  @override
+  String get syncScreenRepullVocabulary => '全量重拉生词本';
 
   @override
   String get syncScreenSignedOutBody => '使用 Enjoy 账号登录，在设备间同步元数据。';

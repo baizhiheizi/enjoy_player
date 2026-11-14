@@ -12,8 +12,10 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
+import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
+import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class _SignedInAuthCtrl extends AuthCtrl {
@@ -26,6 +28,19 @@ class _SignedInAuthCtrl extends AuthCtrl {
 class _SignedOutAuthCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedOut();
+}
+
+class _FakeSyncCtrl extends SyncCtrl {
+  int pullFreshCalls = 0;
+
+  @override
+  int build() => 0;
+
+  @override
+  Future<SyncResult> pullVocabularyFresh() async {
+    pullFreshCalls++;
+    return const SyncResult(success: true, synced: 2, failed: 0);
+  }
 }
 
 Widget _harness({required List<Override> overrides}) {
@@ -114,6 +129,7 @@ void main() {
       expect(find.text(l10n.syncScreenSyncNow), findsOneWidget);
 
       expect(find.text(l10n.syncScreenRetryFailed), findsOneWidget);
+      expect(find.text(l10n.syncScreenRepullVocabulary), findsOneWidget);
 
       expect(tester.takeException(), isNull);
     });
@@ -340,6 +356,39 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
       expect(find.text(l10n.errorGenericLoadFailed), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('re-pull vocabulary button triggers pullVocabularyFresh', (
+      tester,
+    ) async {
+      final fakeSyncCtrl = _FakeSyncCtrl();
+      await tester.pumpWidget(
+        _harness(
+          overrides: [
+            authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
+            syncCtrlProvider.overrideWith(() => fakeSyncCtrl),
+            syncQueueSnapshotProvider.overrideWith(
+              (ref) => Stream.value(
+                const SyncQueueSnapshot(
+                  retryablePending: 0,
+                  permanentlyFailed: 0,
+                  detailRows: [],
+                ),
+              ),
+            ),
+            syncLastFullSyncAtProvider.overrideWith((ref) async => null),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await tester.tap(find.text(l10n.syncScreenRepullVocabulary));
+      await tester.pumpAndSettle();
+
+      expect(fakeSyncCtrl.pullFreshCalls, 1);
+      expect(find.text(l10n.syncSnackSuccess), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

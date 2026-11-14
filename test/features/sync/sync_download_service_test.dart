@@ -760,6 +760,42 @@ void main() {
     });
   });
 
+  group('SyncDownloadService.downloadVocabularyFresh', () {
+    test('resets vocabulary cursors and pulls items + contexts', () async {
+      await db.settingsDao.writeSetting(
+        SettingsKeys.syncVocabularyCursorRepairV2,
+        '1',
+      );
+      await db.settingsDao.writeSetting(
+        SettingsKeys.syncCursorVocabularyItem,
+        '2026-10-12T06:15:25.871Z',
+      );
+      await db.settingsDao.writeSetting(
+        SettingsKeys.syncCursorVocabularyContext,
+        '2026-10-12T06:13:17.747Z',
+      );
+      final api = _FakeVocabularyApi(
+        itemPages: [
+          [_vocabItemJson('vi1')],
+        ],
+        contextPages: [
+          [_vocabContextJson('vc1')],
+        ],
+      );
+
+      final result = await buildService(
+        vocabularyApi: api,
+      ).downloadVocabularyFresh();
+
+      expect(result.success, isTrue);
+      expect(result.synced, 2);
+      expect(api.itemUpdatedAfterCalls.single, isNull);
+      expect(api.contextUpdatedAfterCalls.single, isNull);
+      expect(await db.vocabularyItemDao.getById('vi1'), isNotNull);
+      expect(await db.vocabularyContextDao.getById('vc1'), isNotNull);
+    });
+  });
+
   group('SyncDownloadService.downloadAllEntitiesFresh', () {
     test('resets cursors and downloads all entity types', () async {
       await db.settingsDao.setValue(SettingsKeys.syncCursorAudio.name, 'old');

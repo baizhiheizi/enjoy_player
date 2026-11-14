@@ -263,6 +263,17 @@ void main() {
     });
   });
 
+  group('SyncEngine.pullVocabularyFresh', () {
+    test('returns merged result from fresh vocabulary download', () async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final engine = _buildEngine(db, _permissiveMock());
+
+      final result = await engine.pullVocabularyFresh();
+      expect(result.success, isTrue);
+    });
+  });
+
   group('SyncEngine._drainOnce resetFailed', () {
     test('resets permanently failed rows before processing', () async {
       final db = AppDatabase(executor: NativeDatabase.memory());

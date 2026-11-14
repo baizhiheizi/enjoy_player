@@ -1168,6 +1168,7 @@
   "syncScreenStatFailed": "Failed permanently",
   "syncScreenSyncNow": "Sync now",
   "syncScreenRetryFailed": "Retry failed items",
+  "syncScreenRepullVocabulary": "Re-pull vocabulary",
   "syncScreenSignedOutBody": "Sign in with your Enjoy account to sync metadata across devices.",
   "syncScreenGoSignIn": "Sign in",
   "cloudScreenTitle": "Cloud",

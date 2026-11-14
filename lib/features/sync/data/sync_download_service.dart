@@ -69,6 +69,16 @@ class SyncDownloadService {
     return _downloadVocabularyContextsInternal(resetCursor: false);
   }
 
+  /// Resets both vocabulary cursors and pulls the full server word book.
+  Future<SyncResult> downloadVocabularyFresh() async {
+    await _repairVocabularyCursorsOnce();
+    final results = await Future.wait([
+      _downloadVocabularyItemsInternal(resetCursor: true),
+      _downloadVocabularyContextsInternal(resetCursor: true),
+    ]);
+    return results[0].merge(results[1]);
+  }
+
   /// Clears both vocabulary cursors once per user so affected installs re-pull
   /// the full server word book (v1: dropped rows; v2: legacy server DESC
   /// pagination stranding older web SRS updates).

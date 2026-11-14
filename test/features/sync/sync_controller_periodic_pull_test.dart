@@ -88,6 +88,7 @@ class _CountingEngine extends SyncEngine {
 
   int fullSyncCalls = 0;
   int pullCalls = 0;
+  int pullFreshCalls = 0;
   int processQueueCalls = 0;
   bool throwOnPull = false;
 
@@ -100,6 +101,15 @@ class _CountingEngine extends SyncEngine {
   @override
   Future<SyncResult> pullVocabulary() async {
     pullCalls++;
+    if (throwOnPull) {
+      throw StateError('pull failed');
+    }
+    return const SyncResult(success: true, synced: 0, failed: 0);
+  }
+
+  @override
+  Future<SyncResult> pullVocabularyFresh() async {
+    pullFreshCalls++;
     if (throwOnPull) {
       throw StateError('pull failed');
     }
@@ -269,5 +279,31 @@ void main() {
     expect(result.failed, 1);
     expect(result.synced, 0);
     expect(engine.pullCalls, 1);
+  });
+
+  test('pullVocabularyFresh delegates to the engine when signed in', () async {
+    final c = container(signedIn: true);
+    addTearDown(c.dispose);
+    await c.read(authCtrlProvider.future);
+
+    final result = await c
+        .read(syncCtrlProvider.notifier)
+        .pullVocabularyFresh();
+    expect(result.success, isTrue);
+    expect(engine.pullFreshCalls, 1);
+    expect(engine.processQueueCalls, 0);
+  });
+
+  test('pullVocabularyFresh returns failed result when signed out', () async {
+    final c = container(signedIn: false);
+    addTearDown(c.dispose);
+    await c.read(authCtrlProvider.future);
+
+    final result = await c
+        .read(syncCtrlProvider.notifier)
+        .pullVocabularyFresh();
+    expect(result.success, isFalse);
+    expect(result.errors, contains('Signed out'));
+    expect(engine.pullFreshCalls, 0);
   });
 }

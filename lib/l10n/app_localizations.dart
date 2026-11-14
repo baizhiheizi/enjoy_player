@@ -3933,6 +3933,12 @@ abstract class AppLocalizations {
   /// **'Retry failed items'**
   String get syncScreenRetryFailed;
 
+  /// No description provided for @syncScreenRepullVocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-pull vocabulary'**
+  String get syncScreenRepullVocabulary;
+
   /// No description provided for @syncScreenSignedOutBody.
   ///
   /// In en, this message translates to:
