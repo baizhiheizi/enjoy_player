@@ -12,7 +12,6 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
@@ -20,35 +19,11 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/subscription_tier_label.dart';
 import 'package:enjoy_player/features/credits/application/todays_credits_provider.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/profile_identity.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/features/subscription/application/daily_credits_limit_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-
-/// Logo-ring avatar shared by the account surfaces (settings pane, hub card).
-class AccountAvatar extends StatelessWidget {
-  const AccountAvatar({super.key, required this.name});
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    return Container(
-      width: 46,
-      height: 46,
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(shape: BoxShape.circle, gradient: t.logo),
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: t.paper, width: 2),
-        ),
-        child: EnjoyAvatar(name: name, size: 38),
-      ),
-    );
-  }
-}
 
 class AccountSection extends ConsumerWidget {
   const AccountSection({super.key});
@@ -99,56 +74,27 @@ class AccountSection extends ConsumerWidget {
                   horizontal: kSettingsRowHorizontalPadding,
                   vertical: 16,
                 ),
-                child: Row(
-                  children: [
-                    AccountAvatar(name: profile.name),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            profile.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: tt.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: t.ink,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            profile.email,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: tt.bodySmall?.copyWith(
-                              fontSize: 13,
-                              color: t.ink3,
-                            ),
-                          ),
-                        ],
+                child: SettingsProfileIdentityRow(
+                  name: profile.name,
+                  secondaryText: profile.email,
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: ShapeDecoration(
+                      color: t.sunk,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Text(
+                      tierLabel,
+                      style: tt.labelSmall?.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: t.ink2,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: ShapeDecoration(
-                        color: t.sunk,
-                        shape: const StadiumBorder(),
-                      ),
-                      child: Text(
-                        tierLabel,
-                        style: tt.labelSmall?.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: t.ink2,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               const SettingsRowDivider(insetForLeading: false),

@@ -59,6 +59,9 @@ int prevLineNavigationIndex({
   return idx > 0 ? idx - 1 : 0;
 }
 
+/// Transcript line Echo anchors to, with its index in the timeline.
+typedef _EchoAnchor = ({TranscriptLine line, int index});
+
 /// Line-level controls service: prev / next / replay / echo toggle (maps web
 /// `usePlayerControls`).
 ///
@@ -146,33 +149,70 @@ class PlayerInteractions {
     ref.read(wordPracticeSessionProvider(mediaId).notifier).clearLoop();
   }
 
-  Future<void> _seekLine(TranscriptLine line, int index) async {
-    _clearWordLoop();
+  /// Resolves the transcript line the playhead sits on, for Echo activation.
+  ///
+  /// Returns `null` when there is no line to anchor Echo to: no transcript at
+  /// all, or a playhead outside every line while [fallbackToFirstLine] is off.
+  /// [fallbackToFirstLine] is the explicit no-active-line policy — the lens
+  /// switches anchor Echo to the first line, [toggleEcho] leaves it off.
+  Future<_EchoAnchor?> _resolveEchoAnchor(
+    PlaybackSession session, {
+    required bool fallbackToFirstLine,
+  }) async {
+    final lines = await _lines();
+    if (lines.isEmpty) return null;
+    final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
+    if (idx < 0) {
+      if (!fallbackToFirstLine) return null;
+      return (line: lines.first, index: 0);
+    }
+    return (line: lines[idx], index: idx);
+  }
+
+  /// Anchors Echo to a single line.
+  void _activateEchoOnLine({required TranscriptLine line, required int index}) {
+    ref
+        .read(echoModeProvider.notifier)
+        .activate(
+          startLineIndex: index,
+          endLineIndex: index,
+          startTimeSeconds: line.startSeconds,
+          endTimeSeconds: line.endSeconds,
+        );
+  }
+
+  /// Seeks to [seconds] and resumes playback, retargeting Echo onto [line]
+  /// when Echo is already active.
+  Future<void> _seekWithEchoRetarget({
+    required double seconds,
+    required TranscriptLine line,
+    required int lineIndex,
+  }) async {
     final echo = ref.read(echoModeProvider);
     if (echo.active) {
-      ref
-          .read(echoModeProvider.notifier)
-          .activate(
-            startLineIndex: index,
-            endLineIndex: index,
-            startTimeSeconds: line.startSeconds,
-            endTimeSeconds: line.endSeconds,
-          );
+      _activateEchoOnLine(line: line, index: lineIndex);
       await ref
           .read(playerControllerProvider.notifier)
           .seekToSeconds(
-            line.startSeconds,
+            seconds,
             echoWindowForSeekClamp: (
               start: line.startSeconds,
               end: line.endSeconds,
             ),
           );
     } else {
-      await ref
-          .read(playerControllerProvider.notifier)
-          .seekToSeconds(line.startSeconds);
+      await ref.read(playerControllerProvider.notifier).seekToSeconds(seconds);
     }
     await ref.read(playerControllerProvider.notifier).play();
+  }
+
+  Future<void> _seekLine(TranscriptLine line, int index) async {
+    _clearWordLoop();
+    await _seekWithEchoRetarget(
+      seconds: line.startSeconds,
+      line: line,
+      lineIndex: index,
+    );
   }
 
   Future<void> toggleEcho() async {
@@ -184,20 +224,12 @@ class PlayerInteractions {
     if (blur) {
       ref.read(transcriptBlurModeProvider.notifier).deactivate();
       if (!echo.active) {
-        final lines = await _lines();
-        if (lines.isNotEmpty) {
-          final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
-          if (idx >= 0) {
-            final line = lines[idx];
-            ref
-                .read(echoModeProvider.notifier)
-                .activate(
-                  startLineIndex: idx,
-                  endLineIndex: idx,
-                  startTimeSeconds: line.startSeconds,
-                  endTimeSeconds: line.endSeconds,
-                );
-          }
+        final anchor = await _resolveEchoAnchor(
+          session,
+          fallbackToFirstLine: false,
+        );
+        if (anchor != null) {
+          _activateEchoOnLine(line: anchor.line, index: anchor.index);
         }
       }
       await _persistSession(session);
@@ -210,19 +242,12 @@ class PlayerInteractions {
       return;
     }
 
-    final lines = await _lines();
-    if (lines.isEmpty) return;
-    final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
-    if (idx < 0) return;
-    final line = lines[idx];
-    ref
-        .read(echoModeProvider.notifier)
-        .activate(
-          startLineIndex: idx,
-          endLineIndex: idx,
-          startTimeSeconds: line.startSeconds,
-          endTimeSeconds: line.endSeconds,
-        );
+    final anchor = await _resolveEchoAnchor(
+      session,
+      fallbackToFirstLine: false,
+    );
+    if (anchor == null) return;
+    _activateEchoOnLine(line: anchor.line, index: anchor.index);
     await _persistSession(session);
   }
 
@@ -235,20 +260,13 @@ class PlayerInteractions {
     if (blur) {
       ref.read(transcriptBlurModeProvider.notifier).deactivate();
     } else {
-      final lines = await _lines();
-      if (lines.isEmpty) return;
+      final anchor = await _resolveEchoAnchor(
+        session,
+        fallbackToFirstLine: true,
+      );
+      if (anchor == null) return;
       if (!ref.read(echoModeProvider).active) {
-        final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
-        final safeIdx = idx >= 0 ? idx : 0;
-        final line = lines[safeIdx];
-        ref
-            .read(echoModeProvider.notifier)
-            .activate(
-              startLineIndex: safeIdx,
-              endLineIndex: safeIdx,
-              startTimeSeconds: line.startSeconds,
-              endTimeSeconds: line.endSeconds,
-            );
+        _activateEchoOnLine(line: anchor.line, index: anchor.index);
       }
       ref.read(transcriptBlurModeProvider.notifier).activate();
     }
@@ -276,37 +294,23 @@ class PlayerInteractions {
           ref.read(transcriptBlurModeProvider.notifier).deactivate();
         }
         if (!ref.read(echoModeProvider).active) {
-          final lines = await _lines();
-          if (lines.isNotEmpty) {
-            final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
-            final safeIdx = idx >= 0 ? idx : 0;
-            final line = lines[safeIdx];
-            ref
-                .read(echoModeProvider.notifier)
-                .activate(
-                  startLineIndex: safeIdx,
-                  endLineIndex: safeIdx,
-                  startTimeSeconds: line.startSeconds,
-                  endTimeSeconds: line.endSeconds,
-                );
+          final anchor = await _resolveEchoAnchor(
+            session,
+            fallbackToFirstLine: true,
+          );
+          if (anchor != null) {
+            _activateEchoOnLine(line: anchor.line, index: anchor.index);
           }
         }
         await _persistSession(session);
       case PlayerLens.dictate:
         if (!ref.read(echoModeProvider).active) {
-          final lines = await _lines();
-          if (lines.isNotEmpty) {
-            final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
-            final safeIdx = idx >= 0 ? idx : 0;
-            final line = lines[safeIdx];
-            ref
-                .read(echoModeProvider.notifier)
-                .activate(
-                  startLineIndex: safeIdx,
-                  endLineIndex: safeIdx,
-                  startTimeSeconds: line.startSeconds,
-                  endTimeSeconds: line.endSeconds,
-                );
+          final anchor = await _resolveEchoAnchor(
+            session,
+            fallbackToFirstLine: true,
+          );
+          if (anchor != null) {
+            _activateEchoOnLine(line: anchor.line, index: anchor.index);
           }
         }
         if (!ref.read(transcriptBlurModeProvider)) {
@@ -394,28 +398,10 @@ class PlayerInteractions {
     if (!keepLoop) practice.clearLoop();
     practice.chooseWord(lineIndex: lineIndex, wordIndex: wordIndex);
     final seconds = window.startMs / 1000.0;
-    final echo = ref.read(echoModeProvider);
-    if (echo.active) {
-      ref
-          .read(echoModeProvider.notifier)
-          .activate(
-            startLineIndex: lineIndex,
-            endLineIndex: lineIndex,
-            startTimeSeconds: line.startSeconds,
-            endTimeSeconds: line.endSeconds,
-          );
-      await ref
-          .read(playerControllerProvider.notifier)
-          .seekToSeconds(
-            seconds,
-            echoWindowForSeekClamp: (
-              start: line.startSeconds,
-              end: line.endSeconds,
-            ),
-          );
-    } else {
-      await ref.read(playerControllerProvider.notifier).seekToSeconds(seconds);
-    }
-    await ref.read(playerControllerProvider.notifier).play();
+    await _seekWithEchoRetarget(
+      seconds: seconds,
+      line: line,
+      lineIndex: lineIndex,
+    );
   }
 }

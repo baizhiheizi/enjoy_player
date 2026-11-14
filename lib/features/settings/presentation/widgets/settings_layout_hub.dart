@@ -26,6 +26,7 @@ import 'package:enjoy_player/features/auth/presentation/subscription_tier_label.
 import 'package:enjoy_player/features/settings/application/settings_search_query_provider.dart';
 import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_section_spec.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/profile_identity.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/account_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/appearance_language_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/cloud_sync_section.dart';
@@ -105,7 +106,6 @@ class _AccountCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = EnjoyThemeTokens.of(context);
-    final tt = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
     final tier = subscriptionTierLabel(l10n, ref.watch(currentTierProvider));
 
@@ -114,37 +114,10 @@ class _AccountCard extends ConsumerWidget {
       borderRadius: BorderRadius.circular(t.radiusCard),
       child: EnjoyCard(
         padding: EdgeInsets.all(t.space16),
-        child: Row(
-          children: [
-            AccountAvatar(name: profile.name),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    profile.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tt.titleMedium?.copyWith(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: t.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '$tier · ${profile.email}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tt.bodySmall?.copyWith(fontSize: 13, color: t.ink3),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Icon(EnjoyIcons.chevronRight, size: 16, color: t.ink3),
-          ],
+        child: SettingsProfileIdentityRow(
+          name: profile.name,
+          secondaryText: '$tier · ${profile.email}',
+          trailing: Icon(EnjoyIcons.chevronRight, size: 16, color: t.ink3),
         ),
       ),
     );
