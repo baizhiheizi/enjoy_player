@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": 1276,
-    "investigation_after": 1312
+    "investigation_after": 1354
   },
   "issues": [
     {
@@ -26,32 +26,32 @@
     {
       "area": "repo_assist_prs",
       "checked_at": "2026-11-14",
-      "result": "#1313 merged by an-lee 2026-11-11. #1314 unmergeable (5 post-cut PRs conflict in CHANGELOG); the 11-13 base-merge push hit the workflow-scope guard. Built the merge on repo-assist/release-v0.10.4-refresh (c6a9e3e6), gates green; PR created with base=the #1314 branch.",
-      "follow_up": "Resolve the refresh PR number next run; landing order refresh -> #1314 -> tag."
-    },
-    {
-      "area": "docs",
-      "checked_at": "2026-11-14",
-      "result": "Refresh merge: [0.10.4] gains #1333/#1334x3/#1349x2/#1336/#1317 plus newly recorded #1323/#1316/#1310; 0.10.4.md states measured ~26x/~6x (vigil lows resolved) with new #1333/#1323 sections; [Unreleased] empty. Corrective comment on #1314 re the rejected 11-13 push.",
-      "follow_up": "After 0.10.4 tags, resume feeding a fresh [Unreleased] window."
+      "result": "CORRECTION: the 11-13/14 refresh PR never existed — create_pull_request was rejected twice (base-branch overrides not allowed) and the branch never reached the remote. #1314 is still at 24a7a93, unmergeable with post-cut main (c92f0dbc, #1350, #1352).",
+      "follow_up": "Blocked on maintainer: set allowed-base-branches in repo-assist.md, or merge main into the release branch manually. Do not re-comment on #1314 (anti-spam)."
     },
     {
       "area": "tests",
       "checked_at": "2026-11-14",
-      "result": "Refresh branch: format clean, analyze clean, validate_ci_gates passed, release/docs suites 9/9. Main green at 8f241d2d; a1fd8a7e's failure was fixed by dc201950. Lane healthy - no flake evidence left.",
-      "follow_up": null
+      "result": "Gap PRd: #1350 ai_playground_actions.dart had no coverage (BYOK navigation, AppFailure/Azure error mapping, dict/assessment formatting, guards). Branch repo-assist/improve-playground-actions-tests (PR aw_ai_tests): 12/12, analyze + gates green.",
+      "follow_up": "Harness insight: setBusy must setState or AppNotice postFrame never runs under test. Resolve PR number next run."
     },
     {
       "area": "performance",
       "checked_at": "2026-11-14",
-      "result": "Perf-improver owns the lane; its P21b (#1310) merged 2026-11-12. Remaining: its queue plus 4 maintainer-gated items on #1192. Repo Assist stays out.",
+      "result": "Perf-improver owns the lane; remaining items are maintainer-gated on #1192. Repo Assist stays out. No new measurable opportunity this run.",
       "follow_up": null
     },
     {
       "area": "release",
       "checked_at": "2026-11-14",
-      "result": "0.10.4 window current through 8f241d2d on the refresh branch; maintainer's c92f0dbc (mid-run push) joins with one changelog line after. v0.10.2/v0.10.0/v0.9.0 Release objects still missing (maintainer-only).",
-      "follow_up": "Verify the refresh PR applied; watch #1314 merge and tag."
+      "result": "The 0.10.4 window current through 8f241d2d exists only in the dead refresh sandbox; live #1314 (24a7a93) predates #1336..#1352. Refresh delivery blocked pending maintainer config or manual merge.",
+      "follow_up": "If unblocked, a refreshed merge must also record c92f0dbc, #1350, #1352 in [0.10.4]."
+    },
+    {
+      "area": "qa",
+      "checked_at": "2026-11-14",
+      "result": "Cursor advanced to #1354 (all 7 open issues reviewed). #1354: aw repo-status startup flake (agent never started; auto-expires 11-21) — infra-side. #1286: bot-maintained tracker, no human activity. No comments posted (anti-spam).",
+      "follow_up": null
     }
   ],
   "completed_actions": [
@@ -176,15 +176,20 @@
       "completed_at": "2026-11-11"
     },
     {
-      "key": "pr-1313-merged-1314-refresh-branch-pr-created",
+      "key": "pr-1313-merged-1314-refresh-pr-never-existed-created-blocked",
       "completed_at": "2026-11-14"
     }
   ],
   "priorities": [
     {
       "task": 6,
-      "item": "Resolve the refresh PR number and watch it + #1314 for maintainer response",
-      "note": "Refresh PR (branch repo-assist/release-v0.10.4-refresh, base=the #1314 branch) recorded 2026-11-14; landing order refresh -> #1314 -> tag; c92f0dbc merges after with one changelog line."
+      "item": "Watch #1314 + the blocked 0.10.4 refresh for maintainer response",
+      "note": "Blocked on maintainer: allowed-base-branches config in repo-assist.md, or manual merge of main into the release branch. Do not re-comment (anti-spam). Landing order refresh-merge -> #1314 -> tag; a refresh must also record c92f0dbc/#1350/#1352 when it happens."
+    },
+    {
+      "task": 9,
+      "item": "Resolve the playground-actions test PR number and watch CI/review",
+      "note": "Branch repo-assist/improve-playground-actions-tests, created 2026-11-14 as #1355 (12/12 green)."
     },
     {
       "task": 7,
