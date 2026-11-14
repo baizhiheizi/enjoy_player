@@ -34,6 +34,11 @@ void main() {
     const TranscriptLine(text: 'line 4', startMs: 6000, durationMs: 2000),
   ];
 
+  final futureLines = <TranscriptLine>[
+    const TranscriptLine(text: 'a', startMs: 20000, durationMs: 2000),
+    const TranscriptLine(text: 'b', startMs: 22000, durationMs: 2000),
+  ];
+
   final timelineJson = jsonEncode(
     lines
         .map(
@@ -120,6 +125,42 @@ void main() {
     );
     await db.echoSessionDao.upsert(
       existing!.copyWith(lastActiveAt: now, updatedAt: now),
+    );
+  }
+
+  /// Seeds the primary transcript with [transcriptLines] as its timeline.
+  Future<void> seedTranscriptLines(List<TranscriptLine> transcriptLines) async {
+    await db.transcriptDao.upsert(
+      TranscriptRow(
+        id: transcriptId,
+        targetType: 'Audio',
+        targetId: mediaId,
+        language: 'en',
+        source: 'official',
+        timelineJson: jsonEncode(
+          transcriptLines
+              .map(
+                (l) => {
+                  'text': l.text,
+                  'start': l.startMs,
+                  'duration': l.durationMs,
+                },
+              )
+              .toList(),
+        ),
+        referenceId: null,
+        label: '',
+        trackIndex: null,
+        syncStatus: null,
+        serverUpdatedAt: null,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    await db.echoSessionDao.updatePrimaryTranscriptForTarget(
+      'Audio',
+      mediaId,
+      transcriptId,
     );
   }
 
@@ -357,47 +398,74 @@ void main() {
 
   test('toggleEcho bails out when currentTime is not in any line', () async {
     await insertAudioRow(mediaId);
-    final futureLines = <TranscriptLine>[
-      const TranscriptLine(text: 'a', startMs: 20000, durationMs: 2000),
-      const TranscriptLine(text: 'b', startMs: 22000, durationMs: 2000),
-    ];
-    await db.transcriptDao.upsert(
-      TranscriptRow(
-        id: 't-future',
-        targetType: 'Audio',
-        targetId: mediaId,
-        language: 'en',
-        source: 'official',
-        timelineJson: jsonEncode(
-          futureLines
-              .map(
-                (l) => {
-                  'text': l.text,
-                  'start': l.startMs,
-                  'duration': l.durationMs,
-                },
-              )
-              .toList(),
-        ),
-        referenceId: null,
-        label: '',
-        trackIndex: null,
-        syncStatus: null,
-        serverUpdatedAt: null,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    );
-    await db.echoSessionDao.updatePrimaryTranscriptForTarget(
-      'Audio',
-      mediaId,
-      't-future',
-    );
+    await seedTranscriptLines(futureLines);
     setUpSession(currentTime: 1.0);
 
     final n = container.read(playerInteractionsProvider);
     await n.toggleEcho();
     expect(container.read(echoModeProvider).active, isFalse);
+  });
+
+  test('toggleEcho leaves Echo off when the playhead precedes the transcript '
+      'and Dictate is on', () async {
+    await insertAudioRow(mediaId);
+    await seedTranscriptLines(futureLines);
+    setUpSession(currentTime: 1.0);
+    container.read(transcriptBlurModeProvider.notifier).activate();
+
+    final n = container.read(playerInteractionsProvider);
+    await n.toggleEcho();
+
+    expect(container.read(echoModeProvider).active, isFalse);
+    expect(container.read(transcriptBlurModeProvider), isFalse);
+  });
+
+  test('toggleBlur anchors Echo to the first line when the playhead precedes '
+      'the transcript', () async {
+    await insertAudioRow(mediaId);
+    await seedTranscriptLines(futureLines);
+    setUpSession(currentTime: 1.0);
+
+    final n = container.read(playerInteractionsProvider);
+    await n.toggleBlur();
+
+    final echo = container.read(echoModeProvider);
+    expect(echo.active, isTrue);
+    expect(echo.startLineIndex, 0);
+    expect(echo.endLineIndex, 0);
+    expect(container.read(transcriptBlurModeProvider), isTrue);
+  });
+
+  test('selectLens(echo) anchors Echo to the first line when the playhead '
+      'precedes the transcript', () async {
+    await insertAudioRow(mediaId);
+    await seedTranscriptLines(futureLines);
+    setUpSession(currentTime: 1.0);
+
+    final n = container.read(playerInteractionsProvider);
+    await n.selectLens(PlayerLens.echo);
+
+    final echo = container.read(echoModeProvider);
+    expect(echo.active, isTrue);
+    expect(echo.startLineIndex, 0);
+    expect(echo.endLineIndex, 0);
+    expect(container.read(playerLensProvider), PlayerLens.echo);
+  });
+
+  test('selectLens(dictate) anchors Echo to the first line when the playhead '
+      'precedes the transcript', () async {
+    await insertAudioRow(mediaId);
+    await seedTranscriptLines(futureLines);
+    setUpSession(currentTime: 1.0);
+
+    final n = container.read(playerInteractionsProvider);
+    await n.selectLens(PlayerLens.dictate);
+
+    final echo = container.read(echoModeProvider);
+    expect(echo.active, isTrue);
+    expect(echo.startLineIndex, 0);
+    expect(echo.endLineIndex, 0);
+    expect(container.read(playerLensProvider), PlayerLens.dictate);
   });
 
   test('toggleBlur activates when there are lines', () async {

@@ -74,24 +74,10 @@ Widget _themedApp({required overrides, required Widget home}) {
   );
 }
 
-/// Two-pane detail pane only builds the *selected* section's body, so a
-/// signed-in auth + prefs + stats override is enough — no DB required.
-Widget _twoPaneHarness() {
-  return _themedApp(
-    overrides: [
-      authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
-      appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
-      profilePracticeStatsProvider.overrideWith(
-        (ref) async => LearningStatistics.empty(),
-      ),
-    ],
-    home: const SettingsScreen(),
-  );
-}
-
-/// Single-column renders every section's body eagerly, so it needs the full
-/// override set (DB, sync, recording) that [settings_screen_test.dart] uses.
-Widget _singleColumnHarness(AppDatabase db) {
+/// One harness for both layouts: the width picks the layout (two-pane rail at
+/// ≥900px, phone hub below it), and the override set is identical for both so
+/// a test can compare the two surfaces in one run.
+Widget _settingsHarness(AppDatabase db) {
   return _themedApp(
     overrides: [
       deviceGlobalAppDatabaseProvider.overrideWithValue(db),
@@ -136,12 +122,15 @@ void main() {
     'the two-pane Account tab renders the profile inline (no navigation, '
     'no AccountHeroSection push-button)',
     (tester) async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+
       tester.view.physicalSize = const Size(1200, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(_twoPaneHarness());
+      await tester.pumpWidget(_settingsHarness(db));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -175,13 +164,50 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(_singleColumnHarness(db));
+      await tester.pumpWidget(_settingsHarness(db));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(SettingsLayoutHub), findsOneWidget);
       expect(find.text(_fakeProfile.name), findsOneWidget);
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'the profile name renders with the same style in the Account section and '
+    'in the hub account card',
+    (tester) async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(_settingsHarness(db));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.text('Account'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text(_fakeProfile.name), findsOneWidget);
+      final sectionStyle = tester
+          .widget<Text>(find.text(_fakeProfile.name))
+          .style;
+
+      tester.view.physicalSize = const Size(700, 1400);
+      await tester.pumpWidget(_settingsHarness(db));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text(_fakeProfile.name), findsOneWidget);
+      final hubStyle = tester.widget<Text>(find.text(_fakeProfile.name)).style;
+
+      expect(hubStyle, sectionStyle);
     },
   );
 }
