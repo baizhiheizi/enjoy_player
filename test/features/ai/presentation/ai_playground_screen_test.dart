@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
@@ -47,6 +49,7 @@ class _FakeAsr implements AsrCapability {
 class _FakeLlm implements LlmCapability {
   int calls = 0;
   bool throwOnComplete = false;
+  Completer<String>? gate;
 
   @override
   Future<String> generateChatCompletion({
@@ -56,6 +59,8 @@ class _FakeLlm implements LlmCapability {
     Map<String, dynamic>? responseFormat,
   }) async {
     calls++;
+    final pending = gate;
+    if (pending != null) await pending.future;
     if (throwOnComplete) {
       throw StateError('chat boom');
     }
@@ -362,6 +367,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('chat boom'), findsOneWidget);
+    });
+
+    testWidgets('runs one modality at a time and marks the busy action', (
+      tester,
+    ) async {
+      final l10n = await settle(tester, surface: fullPageSurface);
+      final gate = Completer<String>();
+      fakeLlm.gate = gate;
+
+      final chatButton = find.widgetWithText(
+        EnjoyButton,
+        l10n.aiPlaygroundSendChat,
+      );
+      final translateButton = find.widgetWithText(
+        EnjoyButton,
+        l10n.aiPlaygroundTranslate,
+      );
+
+      await tester.tap(chatButton);
+      await tester.pump();
+
+      expect(find.byType(LoadingIcon), findsOneWidget);
+      expect(tester.widget<EnjoyButton>(translateButton).onPressed, isNull);
+
+      gate.complete('fake chat reply');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoadingIcon), findsNothing);
+      expect(tester.widget<EnjoyButton>(translateButton).onPressed, isNotNull);
     });
 
     testWidgets('keeps every section reachable by scrolling at phone size', (

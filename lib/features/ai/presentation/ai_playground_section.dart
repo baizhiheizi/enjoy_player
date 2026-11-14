@@ -1,4 +1,5 @@
-/// Section card, run-button label, and picked-file chip for the AI playground.
+/// Section card, form section, run-button label, and picked-file chip for the AI
+/// playground.
 library;
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 
 class PlaygroundSection extends StatelessWidget {
@@ -41,6 +43,47 @@ class PlaygroundSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class PlaygroundFormSection extends StatelessWidget {
+  const PlaygroundFormSection({
+    required this.title,
+    required this.providerLabel,
+    required this.runLabel,
+    required this.isEnabled,
+    required this.isRunning,
+    required this.onRun,
+    required this.children,
+    super.key,
+  });
+
+  final String title;
+  final String providerLabel;
+  final String runLabel;
+  final bool isEnabled;
+  final bool isRunning;
+  final VoidCallback onRun;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return PlaygroundSection(
+      title: title,
+      providerLabel: providerLabel,
+      children: [
+        ...children,
+        SizedBox(height: t.space12),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: EnjoyButton.brand(
+            onPressed: isEnabled ? onRun : null,
+            child: PlaygroundRunLabel(busy: isRunning, label: runLabel),
+          ),
+        ),
+      ],
     );
   }
 }
