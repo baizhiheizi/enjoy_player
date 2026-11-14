@@ -126,7 +126,7 @@ jobs:
     pre-steps:
       - name: Download outputs for PR capacity check
         if: github.event_name == 'schedule'
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: "{agent,agent-output-fallback}"
           merge-multiple: true
@@ -289,7 +289,7 @@ steps:
 - name: Ensure Linux tooling
   run: bash .github/scripts/ensure_linux_tooling.sh
 - name: Setup Flutter (mise)
-  uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550
+  uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785  # v5.2.8
   with:
     cache: false
     github_token: ${{ github.token }}
