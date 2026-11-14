@@ -288,7 +288,10 @@ mode is deliberately hearing-focused:
   the tap. The handler rides `EnjoyPressable.onLongPress` on the tile
   and the shape bars' `GestureDetector` (`TranscriptBlurText`), so
   holding anywhere on a hidden cue works, including the hidden
-  secondary (translation) line of a selectable cue.
+  secondary (translation) line of a selectable cue. Under the Dictate
+  lens the loop cues' text is replaced by the masked dictation band
+  (`DictationBand`); long-pressing that band peeks the reference words
+  for the same hold (see [dictation.md](dictation.md)).
 
 ### Persistence
 

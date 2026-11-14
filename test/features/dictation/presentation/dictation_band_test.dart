@@ -30,6 +30,59 @@ void main() {
     expect(find.text('world'), findsNothing);
   });
 
+  testWidgets('long-press peeks the reference words, then re-masks', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: DictationBand(
+            lines: [
+              TranscriptLine(startMs: 0, durationMs: 1000, text: 'Hello world'),
+            ],
+            fallbackReferenceText: '',
+            regionStartMs: 0,
+            regionDurationMs: 1000,
+            currentPlaybackMs: 0,
+            diffResult: null,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Hello'), findsNothing);
+
+    await tester.longPress(find.byType(DictationBand));
+    await tester.pump();
+    expect(find.textContaining('Hello world'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 4));
+    expect(find.textContaining('Hello world'), findsNothing);
+  });
+
+  testWidgets('tap does not peek the reference words', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: DictationBand(
+            lines: [
+              TranscriptLine(startMs: 0, durationMs: 1000, text: 'Hello world'),
+            ],
+            fallbackReferenceText: '',
+            regionStartMs: 0,
+            regionDurationMs: 1000,
+            currentPlaybackMs: 0,
+            diffResult: null,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(DictationBand));
+    await tester.pump();
+    expect(find.textContaining('Hello world'), findsNothing);
+  });
+
   testWidgets('DictationBand displays diff spans and legend when checked', (
     tester,
   ) async {
