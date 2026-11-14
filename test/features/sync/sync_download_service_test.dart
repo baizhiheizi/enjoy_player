@@ -617,6 +617,10 @@ void main() {
   group('SyncDownloadService vocabulary cursor repair', () {
     test('clears poisoned cursors once, then leaves them alone', () async {
       await db.settingsDao.writeSetting(
+        SettingsKeys.syncVocabularyCursorRepairV1,
+        '1',
+      );
+      await db.settingsDao.writeSetting(
         SettingsKeys.syncCursorVocabularyItem,
         '2026-10-12T06:15:25.871Z',
       );
@@ -646,7 +650,7 @@ void main() {
       );
       expect(
         await db.settingsDao.readSetting(
-          SettingsKeys.syncVocabularyCursorRepairV1,
+          SettingsKeys.syncVocabularyCursorRepairV2,
         ),
         '1',
       );

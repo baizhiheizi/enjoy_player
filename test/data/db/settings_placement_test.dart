@@ -41,6 +41,7 @@ void main() {
       'sync.cursor.vocabulary_item': SettingsScope.user,
       'sync.cursor.vocabulary_context': SettingsScope.user,
       'sync.repair.vocab_cursor_dropped_rows.v1': SettingsScope.user,
+      'sync.repair.vocab_cursor_desc_backlog.v2': SettingsScope.user,
       'sync.last_full_sync_at': SettingsScope.user,
       'player_preferences_v1': SettingsScope.user,
       'craft.preferences_v1': SettingsScope.user,
