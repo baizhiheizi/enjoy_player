@@ -1,11 +1,15 @@
+import 'dart:async';
+
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_band_words.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
+import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-class DictationBand extends StatelessWidget {
+class DictationBand extends StatefulWidget {
   const DictationBand({
     super.key,
     required this.lines,
@@ -26,44 +30,96 @@ class DictationBand extends StatelessWidget {
   final TextStyle? textStyle;
 
   @override
+  State<DictationBand> createState() => _DictationBandState();
+}
+
+class _DictationBandState extends State<DictationBand> {
+  Timer? _peekTimer;
+
+  @override
+  void dispose() {
+    _peekTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startPeek() {
+    Haptics.impactMedium(context);
+    _peekTimer?.cancel();
+    setState(() {
+      _peekTimer = Timer(const Duration(seconds: kTapRevealHoldSeconds), () {
+        if (!mounted) return;
+        setState(() => _peekTimer = null);
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context);
-    final diff = diffResult;
+    final diff = widget.diffResult;
 
     if (diff == null) {
       final bandWords = buildDictationBandWords(
-        lines: lines,
-        fallbackReferenceText: fallbackReferenceText,
-        regionStartMs: regionStartMs,
-        regionDurationMs: regionDurationMs,
+        lines: widget.lines,
+        fallbackReferenceText: widget.fallbackReferenceText,
+        regionStartMs: widget.regionStartMs,
+        regionDurationMs: widget.regionDurationMs,
       );
       final activeIndex = findActiveDictationWordIndex(
         words: bandWords,
-        currentPlaybackMs: currentPlaybackMs,
+        currentPlaybackMs: widget.currentPlaybackMs,
       );
+
+      if (_peekTimer != null) {
+        final peekStyle =
+            widget.textStyle ??
+            Theme.of(context).textTheme.titleMedium ??
+            const TextStyle(fontSize: 18);
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onLongPress: _startPeek,
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  for (var i = 0; i < bandWords.length; i++) ...[
+                    if (i > 0) const TextSpan(text: ' '),
+                    TextSpan(text: bandWords[i].text, style: peekStyle),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      }
 
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Wrap(
-          spacing: 6,
-          runSpacing: 10,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            for (var i = 0; i < bandWords.length; i++)
-              _buildMaskedWordBlock(
-                word: bandWords[i],
-                isActive: i == activeIndex,
-                isPast: activeIndex != null && i < activeIndex,
-                t: t,
-              ),
-          ],
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onLongPress: _startPeek,
+          child: Wrap(
+            spacing: 6,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (var i = 0; i < bandWords.length; i++)
+                _buildMaskedWordBlock(
+                  word: bandWords[i],
+                  isActive: i == activeIndex,
+                  isPast: activeIndex != null && i < activeIndex,
+                  t: t,
+                ),
+            ],
+          ),
         ),
       );
     }
 
     final effectiveStyle =
-        textStyle ??
+        widget.textStyle ??
         Theme.of(context).textTheme.titleMedium ??
         const TextStyle(fontSize: 18);
 

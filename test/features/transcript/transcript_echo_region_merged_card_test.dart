@@ -376,7 +376,7 @@ void main() {
 
       expect(find.text('DICTATION — LISTEN & RETELL'), findsOneWidget);
       expect(find.text('First dictation line'), findsNothing);
-      expect(find.text('Record retelling (R)'), findsOneWidget);
+      expect(find.text('Record retelling'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));

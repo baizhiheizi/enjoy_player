@@ -4,6 +4,7 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
+import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/dictation/application/dictation_controller.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_diff.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
@@ -131,8 +132,11 @@ class _DictationPanelState extends State<DictationPanel> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l10n?.playerDictationVoiceHint ??
-                'Listen and retell by voice. Tap Record or press R when ready.',
+            isDesktop
+                ? l10n?.playerDictationVoiceHintHotkey ??
+                      'Listen and retell by voice. Tap Record or press R when ready.'
+                : l10n?.playerDictationVoiceHint ??
+                      'Listen and retell by voice. Tap Record when ready.',
             style: TextStyle(fontSize: 13, color: t.ink2),
           ),
           const SizedBox(height: 12),
@@ -204,8 +208,11 @@ class _DictationPanelState extends State<DictationPanel> {
                   },
                   icon: EnjoyIcons.mic,
                   child: Text(
-                    l10n?.playerDictationRecordRetelling ??
-                        'Record retelling (R)',
+                    isDesktop
+                        ? l10n?.playerDictationRecordRetellingHotkey ??
+                              'Record retelling (R)'
+                        : l10n?.playerDictationRecordRetelling ??
+                              'Record retelling',
                   ),
                 );
               },

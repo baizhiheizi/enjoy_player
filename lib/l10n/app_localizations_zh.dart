@@ -4362,7 +4362,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDictateHintHover => '听写 · 先听，再把鼠标移到一行上偷看';
 
   @override
-  String get playerDictateHintHold => '听写 · 先听，再长按一行偷看';
+  String get playerDictateHintHold => '长按可显示';
 
   @override
   String playerDockPractisedLines(int count) {
@@ -4404,7 +4404,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDockDictateHover => '把鼠标移到一行上偷看';
 
   @override
-  String get playerDockDictateHold => '长按一行偷看';
+  String get playerDockDictateHold => '长按可显示';
 
   @override
   String get playerRepeatOff => '重复：关';
@@ -4543,7 +4543,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDictationTextMode => '文字输入';
 
   @override
-  String get playerDictationVoiceHint => '仔细聆听并用语音复述。准备好后点录音或按 R。';
+  String get playerDictationVoiceHint => '仔细聆听并用语音复述。准备好后点录音。';
+
+  @override
+  String get playerDictationVoiceHintHotkey => '仔细聆听并用语音复述。准备好后点录音或按 R。';
 
   @override
   String get playerDictationTextPlaceholder => '输入你听到的内容…';
@@ -4606,7 +4609,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDictationRecordAgain => '重新录音';
 
   @override
-  String get playerDictationRecordRetelling => '录音复述 (R)';
+  String get playerDictationRecordRetelling => '录音复述';
+
+  @override
+  String get playerDictationRecordRetellingHotkey => '录音复述 (R)';
 
   @override
   String get playerDictationHeaderListen => '听写 — 聆听并复述';
@@ -8301,7 +8307,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get playerDictateHintHover => '听写 · 先听，再把鼠标移到一行上偷看';
 
   @override
-  String get playerDictateHintHold => '听写 · 先听，再长按一行偷看';
+  String get playerDictateHintHold => '长按可显示';
 
   @override
   String playerDockPractisedLines(int count) {
@@ -8343,7 +8349,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get playerDockDictateHover => '把鼠标移到一行上偷看';
 
   @override
-  String get playerDockDictateHold => '长按一行偷看';
+  String get playerDockDictateHold => '长按可显示';
 
   @override
   String get playerRepeatOff => '重复：关';

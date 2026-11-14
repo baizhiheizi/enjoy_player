@@ -4572,8 +4572,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Dictate · listen, then hover a line to peek';
 
   @override
-  String get playerDictateHintHold =>
-      'Dictate · listen, then press and hold a line to peek';
+  String get playerDictateHintHold => 'Press and hold to show';
 
   @override
   String playerDockPractisedLines(int count) {
@@ -4616,7 +4615,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerDockDictateHover => 'Hover a line to peek';
 
   @override
-  String get playerDockDictateHold => 'Hold a line to peek';
+  String get playerDockDictateHold => 'Hold to show';
 
   @override
   String get playerRepeatOff => 'Repeat: off';
@@ -4758,6 +4757,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerDictationVoiceHint =>
+      'Listen and retell by voice. Tap Record when ready.';
+
+  @override
+  String get playerDictationVoiceHintHotkey =>
       'Listen and retell by voice. Tap Record or press R when ready.';
 
   @override
@@ -4821,7 +4824,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerDictationRecordAgain => 'Record again';
 
   @override
-  String get playerDictationRecordRetelling => 'Record retelling (R)';
+  String get playerDictationRecordRetelling => 'Record retelling';
+
+  @override
+  String get playerDictationRecordRetellingHotkey => 'Record retelling (R)';
 
   @override
   String get playerDictationHeaderListen => 'DICTATION — LISTEN & RETELL';

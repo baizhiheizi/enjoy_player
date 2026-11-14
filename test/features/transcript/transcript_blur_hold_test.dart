@@ -4,6 +4,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_blur_mod
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -151,6 +152,191 @@ void main() {
           .revealed,
       isTrue,
     );
+  });
+
+  testWidgets('long-press reveals without seeking; expiry re-blurs', (
+    tester,
+  ) async {
+    const line = TranscriptLine(text: 'Hold me', startMs: 0, durationMs: 2000);
+    var tapped = 0;
+    await tester.pumpWidget(
+      harness(line: line, blurActive: true, onTap: () => tapped++),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byType(EnjoyPressable));
+    await tester.pump();
+    expect(tapped, 0);
+    expect(
+      tester
+          .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+          .revealed,
+      isTrue,
+    );
+
+    await tester.pump(const Duration(seconds: 4));
+    expect(
+      tester
+          .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+          .revealed,
+      isFalse,
+    );
+  });
+
+  testWidgets('long-press on hidden shapes of a selectable cue reveals', (
+    tester,
+  ) async {
+    const line = TranscriptLine(
+      text: 'Loop line',
+      startMs: 0,
+      durationMs: 2000,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          transcriptBlurModeProvider.overrideWith(() => _BlurMode(true)),
+          ...transcriptWordPracticeOffOverrides(),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TranscriptLineTile(
+              line: line,
+              mediaId: 'm1',
+              secondaryText: null,
+              isActive: true,
+              inEcho: false,
+              groupedInEcho: false,
+              selectable: true,
+              onTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+          .revealed,
+      isFalse,
+    );
+
+    await tester.longPress(find.byType(TranscriptBlurText));
+    await tester.pump();
+    expect(
+      tester
+          .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+          .revealed,
+      isTrue,
+    );
+  });
+
+  testWidgets('desktop press-release keeps tap seek when blur off', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      const line = TranscriptLine(
+        text: 'Slow click',
+        startMs: 0,
+        durationMs: 2000,
+      );
+      var tapped = 0;
+      await tester.pumpWidget(
+        harness(line: line, blurActive: false, onTap: () => tapped++),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.byType(EnjoyPressable));
+      await tester.pump();
+      expect(tapped, 1);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('desktop press-release keeps tap seek + reveal when blur on', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      const line = TranscriptLine(
+        text: 'Slow click',
+        startMs: 0,
+        durationMs: 2000,
+      );
+      var tapped = 0;
+      await tester.pumpWidget(
+        harness(line: line, blurActive: true, onTap: () => tapped++),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.byType(EnjoyPressable));
+      await tester.pump();
+      expect(tapped, 1);
+      expect(
+        tester
+            .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+            .revealed,
+        isTrue,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('hidden secondary line shapes reveal on tap and long-press', (
+    tester,
+  ) async {
+    const line = TranscriptLine(
+      text: 'Loop line',
+      startMs: 0,
+      durationMs: 2000,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          transcriptBlurModeProvider.overrideWith(() => _BlurMode(true)),
+          ...transcriptWordPracticeOffOverrides(),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TranscriptLineTile(
+              line: line,
+              mediaId: 'm1',
+              secondaryText: '译文行',
+              isActive: true,
+              inEcho: false,
+              groupedInEcho: false,
+              selectable: true,
+              onTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final blurs = find.byType(TranscriptBlurText);
+    expect(blurs, findsNWidgets(2));
+    bool revealed() => tester.widget<TranscriptBlurText>(blurs.first).revealed;
+    expect(revealed(), isFalse);
+
+    await tester.tap(blurs.last);
+    await tester.pump();
+    expect(revealed(), isTrue);
+
+    await tester.pump(const Duration(seconds: 4));
+    expect(revealed(), isFalse);
+
+    await tester.longPress(blurs.last);
+    await tester.pump();
+    expect(revealed(), isTrue);
   });
 }
 

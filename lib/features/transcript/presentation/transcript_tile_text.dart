@@ -154,6 +154,7 @@ class TranscriptTileText extends StatelessWidget {
       shapeWords: primaryPlain,
       shapeFontSize: baseBody.fontSize,
       onShapesTap: selectable ? onRevealHoldOnly : null,
+      onShapesLongPress: selectable ? onRevealHoldOnly : null,
       child: primaryWidget,
     );
 
@@ -210,6 +211,8 @@ class TranscriptTileText extends StatelessWidget {
             revealed: isRevealed,
             shapeWords: secondaryText,
             shapeFontSize: secondaryTypographyStyle.fontSize,
+            onShapesTap: selectable ? onRevealHoldOnly : null,
+            onShapesLongPress: selectable ? onRevealHoldOnly : null,
             child: secondaryWidget,
           );
 
