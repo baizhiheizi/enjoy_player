@@ -4572,8 +4572,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Dictate · listen, then hover a line to peek';
 
   @override
-  String get playerDictateHintHold =>
-      'Dictate · listen, then press and hold a line to peek';
+  String get playerDictateHintHold => 'Press and hold to show';
 
   @override
   String playerDockPractisedLines(int count) {
@@ -4616,7 +4615,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerDockDictateHover => 'Hover a line to peek';
 
   @override
-  String get playerDockDictateHold => 'Hold a line to peek';
+  String get playerDockDictateHold => 'Hold to show';
 
   @override
   String get playerRepeatOff => 'Repeat: off';

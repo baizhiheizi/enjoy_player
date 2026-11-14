@@ -8295,7 +8295,7 @@ abstract class AppLocalizations {
   /// Hint pill over the transcript in the Dictate lens (touch).
   ///
   /// In en, this message translates to:
-  /// **'Dictate · listen, then press and hold a line to peek'**
+  /// **'Press and hold to show'**
   String get playerDictateHintHold;
 
   /// Dock readout under the line position in Listen.
@@ -8343,7 +8343,7 @@ abstract class AppLocalizations {
   /// Dock hint in the Dictate lens (touch).
   ///
   /// In en, this message translates to:
-  /// **'Hold a line to peek'**
+  /// **'Hold to show'**
   String get playerDockDictateHold;
 
   /// Repeat button tooltip when repeat is off.

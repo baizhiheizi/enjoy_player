@@ -283,7 +283,7 @@ mode is deliberately hearing-focused:
   user-configurable.
 - **Press-and-holding a blurred cue starts the same 3-second hold
   without seeking** — the gesture the phone hint pill and dock readout
-  advertise ("hold a line to peek"). On plain cues the long-press
+  advertise ("长按可显示" / "press and hold to show"). On plain cues the long-press
   reveals only (no seek); on selectable (active / echo) cues it matches
   the tap. The handler rides `EnjoyPressable.onLongPress` on the tile
   and the shape bars' `GestureDetector` (`TranscriptBlurText`), so

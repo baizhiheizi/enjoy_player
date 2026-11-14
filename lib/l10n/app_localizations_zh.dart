@@ -4362,7 +4362,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDictateHintHover => '听写 · 先听，再把鼠标移到一行上偷看';
 
   @override
-  String get playerDictateHintHold => '听写 · 先听，再长按一行偷看';
+  String get playerDictateHintHold => '长按可显示';
 
   @override
   String playerDockPractisedLines(int count) {
@@ -4404,7 +4404,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDockDictateHover => '把鼠标移到一行上偷看';
 
   @override
-  String get playerDockDictateHold => '长按一行偷看';
+  String get playerDockDictateHold => '长按可显示';
 
   @override
   String get playerRepeatOff => '重复：关';
@@ -8307,7 +8307,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get playerDictateHintHover => '听写 · 先听，再把鼠标移到一行上偷看';
 
   @override
-  String get playerDictateHintHold => '听写 · 先听，再长按一行偷看';
+  String get playerDictateHintHold => '长按可显示';
 
   @override
   String playerDockPractisedLines(int count) {
@@ -8349,7 +8349,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get playerDockDictateHover => '把鼠标移到一行上偷看';
 
   @override
-  String get playerDockDictateHold => '长按一行偷看';
+  String get playerDockDictateHold => '长按可显示';
 
   @override
   String get playerRepeatOff => '重复：关';
