@@ -4758,6 +4758,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerDictationVoiceHint =>
+      'Listen and retell by voice. Tap Record when ready.';
+
+  @override
+  String get playerDictationVoiceHintHotkey =>
       'Listen and retell by voice. Tap Record or press R when ready.';
 
   @override
@@ -4821,7 +4825,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerDictationRecordAgain => 'Record again';
 
   @override
-  String get playerDictationRecordRetelling => 'Record retelling (R)';
+  String get playerDictationRecordRetelling => 'Record retelling';
+
+  @override
+  String get playerDictationRecordRetellingHotkey => 'Record retelling (R)';
 
   @override
   String get playerDictationHeaderListen => 'DICTATION — LISTEN & RETELL';

@@ -1,6 +1,7 @@
 import 'package:enjoy_player/features/dictation/application/dictation_controller.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
 import 'package:enjoy_player/features/dictation/presentation/dictation_panel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,7 +58,12 @@ void main() {
         ),
       );
 
-      expect(find.text('Record retelling (R)'), findsOneWidget);
+      expect(find.text('Record retelling'), findsOneWidget);
+      expect(find.text('Record retelling (R)'), findsNothing);
+      expect(
+        find.text('Listen and retell by voice. Tap Record when ready.'),
+        findsOneWidget,
+      );
 
       state = state.copyWith(
         status: DictationAttemptStatus.checked,
@@ -99,6 +105,53 @@ void main() {
       expect(nextLineCalled, isTrue);
     },
   );
+
+  testWidgets('desktop shows the R hotkey variants of the voice copy', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final state = const DictationSessionState(
+        mode: DictationInputMode.voice,
+        status: DictationAttemptStatus.idle,
+      );
+
+      final ctrl = DictationController(
+        ref: container.read(Provider((ref) => ref)),
+        scope: scope,
+        getState: () => state,
+        setState: (_) {},
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: DictationPanel(
+                state: state,
+                controller: ctrl,
+                onNextLine: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Record retelling (R)'), findsOneWidget);
+      expect(
+        find.text(
+          'Listen and retell by voice. Tap Record or press R when ready.',
+        ),
+        findsOneWidget,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
 
   testWidgets(
     'TextInput mode handles Enter, Shift+Enter, and IME composing correctly',

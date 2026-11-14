@@ -8568,11 +8568,17 @@ abstract class AppLocalizations {
   /// **'Text'**
   String get playerDictationTextMode;
 
-  /// No description provided for @playerDictationVoiceHint.
+  /// Voice-mode hint in the Dictation panel (touch platforms have no keyboard shortcuts).
+  ///
+  /// In en, this message translates to:
+  /// **'Listen and retell by voice. Tap Record when ready.'**
+  String get playerDictationVoiceHint;
+
+  /// Voice-mode hint in the Dictation panel on desktop, where the R hotkey works.
   ///
   /// In en, this message translates to:
   /// **'Listen and retell by voice. Tap Record or press R when ready.'**
-  String get playerDictationVoiceHint;
+  String get playerDictationVoiceHintHotkey;
 
   /// No description provided for @playerDictationTextPlaceholder.
   ///
@@ -8670,11 +8676,17 @@ abstract class AppLocalizations {
   /// **'Record again'**
   String get playerDictationRecordAgain;
 
-  /// No description provided for @playerDictationRecordRetelling.
+  /// Voice-mode CTA in the Dictation panel (touch platforms have no keyboard shortcuts).
+  ///
+  /// In en, this message translates to:
+  /// **'Record retelling'**
+  String get playerDictationRecordRetelling;
+
+  /// Voice-mode CTA in the Dictation panel on desktop, where the R hotkey works.
   ///
   /// In en, this message translates to:
   /// **'Record retelling (R)'**
-  String get playerDictationRecordRetelling;
+  String get playerDictationRecordRetellingHotkey;
 
   /// No description provided for @playerDictationHeaderListen.
   ///

@@ -53,6 +53,7 @@ class TranscriptBlurText extends StatelessWidget {
     this.shapeFontSize,
     this.shapeColor,
     this.onShapesTap,
+    this.onShapesLongPress,
   });
 
   /// When `true` the child is rendered unchanged.
@@ -75,6 +76,10 @@ class TranscriptBlurText extends StatelessWidget {
   /// Tap on the hidden shapes — same reveal rules as the blurred text it
   /// replaces (hold-to-peek on selectable cues).
   final VoidCallback? onShapesTap;
+
+  /// Long-press on the hidden shapes — starts the same reveal hold as
+  /// [onShapesTap] without any seek (the touch peek gesture).
+  final VoidCallback? onShapesLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +106,7 @@ class TranscriptBlurText extends StatelessWidget {
           ),
       ],
     );
-    if (onShapesTap == null) {
+    if (onShapesTap == null && onShapesLongPress == null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 3),
         child: bars,
@@ -112,6 +117,7 @@ class TranscriptBlurText extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onShapesTap,
+        onLongPress: onShapesLongPress,
         child: bars,
       ),
     );

@@ -152,6 +152,86 @@ void main() {
       isTrue,
     );
   });
+
+  testWidgets('long-press reveals without seeking; expiry re-blurs', (
+    tester,
+  ) async {
+    const line = TranscriptLine(text: 'Hold me', startMs: 0, durationMs: 2000);
+    var tapped = 0;
+    await tester.pumpWidget(
+      harness(line: line, blurActive: true, onTap: () => tapped++),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byType(EnjoyPressable));
+    await tester.pump();
+    expect(tapped, 0);
+    expect(
+      tester
+          .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+          .revealed,
+      isTrue,
+    );
+
+    await tester.pump(const Duration(seconds: 4));
+    expect(
+      tester
+          .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+          .revealed,
+      isFalse,
+    );
+  });
+
+  testWidgets('long-press on hidden shapes of a selectable cue reveals', (
+    tester,
+  ) async {
+    const line = TranscriptLine(
+      text: 'Loop line',
+      startMs: 0,
+      durationMs: 2000,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          transcriptBlurModeProvider.overrideWith(() => _BlurMode(true)),
+          ...transcriptWordPracticeOffOverrides(),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TranscriptLineTile(
+              line: line,
+              mediaId: 'm1',
+              secondaryText: null,
+              isActive: true,
+              inEcho: false,
+              groupedInEcho: false,
+              selectable: true,
+              onTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+          .revealed,
+      isFalse,
+    );
+
+    await tester.longPress(find.byType(TranscriptBlurText));
+    await tester.pump();
+    expect(
+      tester
+          .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
+          .revealed,
+      isTrue,
+    );
+  });
 }
 
 class _BlurMode extends TranscriptBlurMode {

@@ -4543,7 +4543,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDictationTextMode => '文字输入';
 
   @override
-  String get playerDictationVoiceHint => '仔细聆听并用语音复述。准备好后点录音或按 R。';
+  String get playerDictationVoiceHint => '仔细聆听并用语音复述。准备好后点录音。';
+
+  @override
+  String get playerDictationVoiceHintHotkey => '仔细聆听并用语音复述。准备好后点录音或按 R。';
 
   @override
   String get playerDictationTextPlaceholder => '输入你听到的内容…';
@@ -4606,7 +4609,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerDictationRecordAgain => '重新录音';
 
   @override
-  String get playerDictationRecordRetelling => '录音复述 (R)';
+  String get playerDictationRecordRetelling => '录音复述';
+
+  @override
+  String get playerDictationRecordRetellingHotkey => '录音复述 (R)';
 
   @override
   String get playerDictationHeaderListen => '听写 — 聆听并复述';

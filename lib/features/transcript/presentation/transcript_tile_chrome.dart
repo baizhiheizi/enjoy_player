@@ -23,6 +23,7 @@ class TranscriptTileChrome extends StatelessWidget {
     required this.hover,
     required this.recordingCount,
     required this.onTap,
+    this.onLongPress,
     required this.onHoverChanged,
     super.key,
   });
@@ -40,6 +41,7 @@ class TranscriptTileChrome extends StatelessWidget {
   final bool hover;
   final int? recordingCount;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final ValueChanged<bool> onHoverChanged;
 
   String _snippet(String plain) {
@@ -201,6 +203,7 @@ class TranscriptTileChrome extends StatelessWidget {
           button: true,
           child: EnjoyPressable(
             onTap: onTap,
+            onLongPress: onLongPress,
             borderRadius: lineRadius,
             child: ColoredBox(color: bg ?? Colors.transparent, child: content),
           ),
@@ -220,6 +223,7 @@ class TranscriptTileChrome extends StatelessWidget {
           child: EnjoyPressable(
             shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
             onTap: onTap,
+            onLongPress: onLongPress,
             child: decorate(content),
           ),
         ),

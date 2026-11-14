@@ -244,8 +244,8 @@ mode is deliberately hearing-focused:
   § Clarifications (Session 2026-07-08) for the user-facing rationale
   and the rule.
 - The only ways to see a cue's text while the Dictate lens is on are
-  pointer hover (macOS, Windows) or a tap that starts a hold
-  (every platform).
+  pointer hover (macOS, Windows) or a tap / press-and-hold that starts
+  a hold (every platform).
 - While the Dictate lens is on, the transcript list's off-screen pre-build
   window shrinks from 1400 px to 200 px (issue #810 G —
   `kTranscriptScrollCacheExtentPx` / `kTranscriptBlurPracticeCacheExtentPx`
@@ -281,6 +281,14 @@ mode is deliberately hearing-focused:
   it re-blurs. Tapping a different cue replaces the hold (the prior cue
   re-blurs immediately, the new cue reveals). Hold duration is **not**
   user-configurable.
+- **Press-and-holding a blurred cue starts the same 3-second hold
+  without seeking** — the gesture the phone hint pill and dock readout
+  advertise ("hold a line to peek"). On plain cues the long-press
+  reveals only (no seek); on selectable (active / echo) cues it matches
+  the tap. The handler rides `EnjoyPressable.onLongPress` on the tile
+  and the shape bars' `GestureDetector` (`TranscriptBlurText`), so
+  holding anywhere on a hidden cue works, including the hidden
+  secondary (translation) line of a selectable cue.
 
 ### Persistence
 
@@ -325,8 +333,9 @@ the panel holds only what you see and read:
 Duet renders hidden lines as **rounded shape bars** sized from the
 hidden words' text boxes (measured once per line layout and cached) —
 no `ImageFilter.blur` anywhere in the player. The reveal rules are
-unchanged (hover / press-and-hold, active cue), and tapping the shapes
-on a selectable cue starts the same hold-to-peek.
+unchanged (hover / press-and-hold, active cue), and tapping or
+press-and-holding the shapes on a selectable cue starts the same
+hold-to-peek.
 
 The hidden text is painted via `TranscriptBlurText`
 ([`lib/features/transcript/presentation/transcript_blur_text.dart`](../../lib/features/transcript/presentation/transcript_blur_text.dart))
@@ -354,7 +363,8 @@ exactly like every other cue.
 The Dictate lens continues to apply to cues rendered inside the
 echo region, including the active echo cue. Hover and tap-reveal work
 the same way as plain cues: the echo tiles carry a `MouseRegion`
-(hover reveal) and tapping the cue text starts the reveal hold. Only
+(hover reveal) and tapping or press-and-holding the cue text starts
+the reveal hold. Only
 the cue body text is hidden — the echo card chrome and the
 shadow-reading panel are not.
 
@@ -380,8 +390,10 @@ Coverage lives under
   pointer-out re-blurs; toggle-off bypass.
 - `transcript_blur_selectable_reveal_test.dart` — the active / echo
   (selectable) cue reveals on hover and tap-reveal, matching plain cues.
-- `transcript_blur_hold_test.dart` — tap seeks + reveals; expiry
-  re-blurs; second tap replaces the hold; toggle-off bypass.
+- `transcript_blur_hold_test.dart` — tap seeks + reveals; long-press
+  reveals without seeking; expiry re-blurs; second tap replaces the
+  hold; toggle-off bypass; long-press on a selectable cue's hidden
+  shapes reveals.
 - `transcript_blur_active_line_stays_blurred_test.dart` — drives the
   active cue through several indices while blur is on and asserts the
   active cue never auto-reveals (the spec's hard rule). Karaoke on does

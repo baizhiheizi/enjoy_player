@@ -238,6 +238,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           hover: hover,
           recordingCount: widget.recordingCount,
           onTap: () => _handleTap(context),
+          onLongPress: _revealHoldOnly,
           onHoverChanged: _setHoverSafe,
           child: TranscriptTileText(
             line: widget.line,
