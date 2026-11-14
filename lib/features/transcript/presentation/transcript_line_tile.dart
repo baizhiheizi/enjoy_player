@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
@@ -238,7 +239,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           hover: hover,
           recordingCount: widget.recordingCount,
           onTap: () => _handleTap(context),
-          onLongPress: _revealHoldOnly,
+          onLongPress: isMobilePlatform ? _revealHoldOnly : null,
           onHoverChanged: _setHoverSafe,
           child: TranscriptTileText(
             line: widget.line,

@@ -283,15 +283,17 @@ mode is deliberately hearing-focused:
   user-configurable.
 - **Press-and-holding a blurred cue starts the same 3-second hold
   without seeking** — the gesture the phone hint pill and dock readout
-  advertise ("长按可显示" / "press and hold to show"). On plain cues the long-press
-  reveals only (no seek); on selectable (active / echo) cues it matches
-  the tap. The handler rides `EnjoyPressable.onLongPress` on the tile
-  and the shape bars' `GestureDetector` (`TranscriptBlurText`), so
-  holding anywhere on a hidden cue works, including the hidden
-  secondary (translation) line of a selectable cue. Under the Dictate
-  lens the loop cues' text is replaced by the masked dictation band
-  (`DictationBand`); long-pressing that band peeks the reference words
-  for the same hold (see [dictation.md](dictation.md)).
+  advertise ("长按可显示" / "press and hold to show"). On plain cues the
+  long-press reveals only (no seek); on selectable (active / echo) cues
+  it matches the tap. The tile-level handler is a touch-gated
+  `EnjoyPressable.onLongPress` (`isMobilePlatform` — desktop keeps
+  click-to-seek semantics, where hover already peeks), and the shape
+  bars' `GestureDetector` (`TranscriptBlurText`) carries the same
+  reveal hold, so holding anywhere on a hidden cue works, including the
+  hidden secondary (translation) line of a selectable cue. Under the
+  Dictate lens the loop cues' text is replaced by the masked dictation
+  band (`DictationBand`); long-pressing that band peeks the reference
+  words for the same hold (see [dictation.md](dictation.md)).
 
 ### Persistence
 
