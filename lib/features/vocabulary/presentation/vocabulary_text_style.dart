@@ -1,6 +1,7 @@
 /// Shared text helpers for vocabulary flashcard presentation.
 library;
 
+import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:flutter/material.dart';
 
 /// Case-insensitive highlight of [word] within [text].
@@ -77,8 +78,24 @@ final class ContextualMarkdownDocument {
   bool get isEmpty => preamble.trim().isEmpty && sections.isEmpty;
 }
 
+final L1Store<String, ContextualMarkdownDocument> _markdownParses = L1Store(
+  capacity: 8,
+);
+
+@visibleForTesting
+int contextualMarkdownParseCount = 0;
+
 /// Splits prepared markdown into a preamble and titled sections.
 ContextualMarkdownDocument parseContextualMarkdownDocument(String markdown) {
+  final cached = _markdownParses.peek(markdown);
+  if (cached != null) return cached;
+  contextualMarkdownParseCount++;
+  final doc = _parseMarkdownDocument(markdown);
+  _markdownParses.put(markdown, doc);
+  return doc;
+}
+
+ContextualMarkdownDocument _parseMarkdownDocument(String markdown) {
   final prepared = stripRedundantContextualHeading(markdown);
   if (prepared.trim().isEmpty) {
     return const ContextualMarkdownDocument(preamble: '', sections: []);
