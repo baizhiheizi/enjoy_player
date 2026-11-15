@@ -13,7 +13,6 @@ import 'package:enjoy_player/core/analytics/analytics_provider.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/lookup_markdown_style.dart';
-import 'package:enjoy_player/features/ai/application/ai_cache_fingerprint.dart';
 import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
@@ -21,6 +20,8 @@ import 'package:enjoy_player/features/ai/domain/models/contextual_translation_re
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_params.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart'
+    show lookupContextualTranslationCacheKey;
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
 import 'package:enjoy_player/features/lookup/presentation/lookup_section_error_widget.dart';
@@ -151,15 +152,7 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
 
     final p = widget.params;
     final cache = ref.read(aiContextualTranslationCacheProvider);
-    final key = AiCacheFingerprint.fingerprint(
-      kind: AiKind.contextualTranslation.wire,
-      payload: {
-        'text': p.text,
-        'sourceLanguage': p.sourceLanguage,
-        'targetLanguage': p.targetLanguage,
-        'context': p.context ?? '',
-      },
-    );
+    final key = lookupContextualTranslationCacheKey(p);
 
     _log.info(
       'contextual translation request '
