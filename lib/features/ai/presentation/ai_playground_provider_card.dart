@@ -4,20 +4,13 @@ library;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:enjoy_player/features/ai/application/ai_byok_error_mapping.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-
-const double _rowLeadingSize = 30;
-const double _rowLeadingGap = 12;
-const double _rowHorizontalPadding = 12;
-const double _rowLeadingOffset =
-    _rowHorizontalPadding + _rowLeadingSize + _rowLeadingGap;
 
 class AiPlaygroundProvidersCard extends StatelessWidget {
   const AiPlaygroundProvidersCard({
@@ -46,33 +39,38 @@ class AiPlaygroundProvidersCard extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: t.space4),
           child: Column(
             children: [
-              PlaygroundGroupRow(
-                icon: EnjoyIcons.robot,
-                label: l10n.settingsAiProvidersModalityLlm,
-                value: llmLabel,
+              SettingsRow(
+                responsive: false,
+                leadingIcon: EnjoyIcons.robot,
+                title: l10n.settingsAiProvidersModalityLlm,
+                trailing: _providerValue(context, llmLabel),
               ),
-              const PlaygroundRowDivider(),
-              PlaygroundGroupRow(
-                icon: EnjoyIcons.mic,
-                label: l10n.settingsAiProvidersModalityAsr,
-                value: asrLabel,
+              const SettingsRowDivider(),
+              SettingsRow(
+                responsive: false,
+                leadingIcon: EnjoyIcons.mic,
+                title: l10n.settingsAiProvidersModalityAsr,
+                trailing: _providerValue(context, asrLabel),
               ),
-              const PlaygroundRowDivider(),
-              PlaygroundGroupRow(
-                icon: EnjoyIcons.speak,
-                label: l10n.settingsAiProvidersModalityTts,
-                value: ttsLabel,
+              const SettingsRowDivider(),
+              SettingsRow(
+                responsive: false,
+                leadingIcon: EnjoyIcons.speak,
+                title: l10n.settingsAiProvidersModalityTts,
+                trailing: _providerValue(context, ttsLabel),
               ),
-              const PlaygroundRowDivider(),
-              PlaygroundGroupRow(
-                icon: EnjoyIcons.insights,
-                label: l10n.settingsAiProvidersModalityAssessment,
-                value: assessmentLabel,
+              const SettingsRowDivider(),
+              SettingsRow(
+                responsive: false,
+                leadingIcon: EnjoyIcons.insights,
+                title: l10n.settingsAiProvidersModalityAssessment,
+                trailing: _providerValue(context, assessmentLabel),
               ),
-              const PlaygroundRowDivider(),
-              PlaygroundGroupRow(
-                icon: EnjoyIcons.tune,
-                label: l10n.settingsAiProvidersTileTitle,
+              const SettingsRowDivider(),
+              SettingsRow(
+                responsive: false,
+                leadingIcon: EnjoyIcons.tune,
+                title: l10n.settingsAiProvidersTileTitle,
                 onTap: () => context.push(aiProvidersSettingsPath),
               ),
             ],
@@ -83,85 +81,17 @@ class AiPlaygroundProvidersCard extends StatelessWidget {
   }
 }
 
-class PlaygroundGroupRow extends StatelessWidget {
-  const PlaygroundGroupRow({
-    required this.icon,
-    required this.label,
-    this.value,
-    this.onTap,
-    super.key,
-  });
-
-  final IconData icon;
-  final String label;
-  final String? value;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    final value = this.value;
-
-    final body = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 52),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: _rowHorizontalPadding,
-          vertical: t.space8,
-        ),
-        child: Row(
-          children: [
-            EnjoyIconTile(icon: icon, size: _rowLeadingSize),
-            const SizedBox(width: _rowLeadingGap),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: tt.bodyMedium,
-              ),
-            ),
-            if (value != null) ...[
-              SizedBox(width: t.space8),
-              Flexible(
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                ),
-              ),
-            ] else
-              Icon(EnjoyIcons.chevronRight, size: 15, color: t.ink3),
-          ],
-        ),
-      ),
-    );
-
-    if (onTap == null) return body;
-    return EnjoyPressable(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(t.radiusMd),
-      pressedScale: 0.995,
-      child: body,
-    );
-  }
-}
-
-class PlaygroundRowDivider extends StatelessWidget {
-  const PlaygroundRowDivider({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      indent: _rowLeadingOffset,
-      endIndent: _rowHorizontalPadding,
-      color: EnjoyThemeTokens.of(context).hairline,
-    );
-  }
+Widget _providerValue(BuildContext context, String value) {
+  final t = EnjoyThemeTokens.of(context);
+  final tt = Theme.of(context).textTheme;
+  return ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: kSettingsRowValueTextMaxWidth),
+    child: Text(
+      value,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.end,
+      style: tt.bodySmall?.copyWith(fontSize: 13, color: t.ink3),
+    ),
+  );
 }

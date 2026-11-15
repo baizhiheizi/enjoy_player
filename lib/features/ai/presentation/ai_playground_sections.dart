@@ -140,26 +140,11 @@ class TranslationPlaygroundSection extends StatelessWidget {
       isRunning: busy == PlaygroundAction.translate,
       onRun: onRun,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: sourceController,
-                decoration: InputDecoration(
-                  labelText: l10n.aiPlaygroundTranslateSource,
-                ),
-              ),
-            ),
-            SizedBox(width: t.space12),
-            Expanded(
-              child: TextField(
-                controller: targetController,
-                decoration: InputDecoration(
-                  labelText: l10n.aiPlaygroundTranslateTarget,
-                ),
-              ),
-            ),
-          ],
+        _LanguagePairFieldRow(
+          sourceController: sourceController,
+          targetController: targetController,
+          sourceLabel: l10n.aiPlaygroundTranslateSource,
+          targetLabel: l10n.aiPlaygroundTranslateTarget,
         ),
         SizedBox(height: t.space12),
         TextField(
@@ -210,26 +195,11 @@ class DictionaryPlaygroundSection extends StatelessWidget {
           decoration: InputDecoration(labelText: l10n.aiPlaygroundDictWord),
         ),
         SizedBox(height: t.space12),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: sourceController,
-                decoration: InputDecoration(
-                  labelText: l10n.aiPlaygroundDictSource,
-                ),
-              ),
-            ),
-            SizedBox(width: t.space12),
-            Expanded(
-              child: TextField(
-                controller: targetController,
-                decoration: InputDecoration(
-                  labelText: l10n.aiPlaygroundDictTarget,
-                ),
-              ),
-            ),
-          ],
+        _LanguagePairFieldRow(
+          sourceController: sourceController,
+          targetController: targetController,
+          sourceLabel: l10n.aiPlaygroundDictSource,
+          targetLabel: l10n.aiPlaygroundDictTarget,
         ),
       ],
     );
@@ -287,6 +257,42 @@ class AssessmentPlaygroundSection extends StatelessWidget {
           controller: languageController,
           decoration: InputDecoration(
             labelText: l10n.aiPlaygroundAssessmentLanguage,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LanguagePairFieldRow extends StatelessWidget {
+  const _LanguagePairFieldRow({
+    required this.sourceController,
+    required this.targetController,
+    required this.sourceLabel,
+    required this.targetLabel,
+  });
+
+  final TextEditingController sourceController;
+  final TextEditingController targetController;
+  final String sourceLabel;
+  final String targetLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: sourceController,
+            decoration: InputDecoration(labelText: sourceLabel),
+          ),
+        ),
+        SizedBox(width: t.space12),
+        Expanded(
+          child: TextField(
+            controller: targetController,
+            decoration: InputDecoration(labelText: targetLabel),
           ),
         ),
       ],

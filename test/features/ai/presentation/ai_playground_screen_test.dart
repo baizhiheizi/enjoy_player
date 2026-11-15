@@ -240,7 +240,7 @@ void main() {
       expect(find.byType(EnjoySectionHeader), findsNWidgets(7));
       expect(find.byType(EnjoyIconTile), findsNWidgets(5));
       expect(find.byType(EnjoyButton), findsNWidgets(7));
-      expect(find.byType(EnjoyPressable), findsOneWidget);
+      expect(find.byType(EnjoyPressable), findsNWidgets(5));
       expect(find.byType(Card), findsNothing);
     });
 

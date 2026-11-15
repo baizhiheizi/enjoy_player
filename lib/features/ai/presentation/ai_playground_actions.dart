@@ -88,20 +88,17 @@ class AiPlaygroundActions {
       output('${l10n.error}: pick an audio file first.', isError: true);
       return;
     }
-    try {
+    await _guard('ASR', () async {
       final result = await asr.transcribe(
         AsrRequest(audioBytes: bytes, filename: inputs.pickedName),
       );
       output('ASR text:\n${result.text}');
-    } catch (e, st) {
-      _log.warning('ASR failed', e, st);
-      _maybePromptByokSettings(e);
-      output('ASR ${_err(e)}', isError: true);
-    }
+    });
   });
 
-  Future<void> runChat() => _run(PlaygroundAction.chat, () async {
-    try {
+  Future<void> runChat() => _run(
+    PlaygroundAction.chat,
+    () => _guard('Chat', () async {
       final system = inputs.systemPrompt.text.trim();
       final messages = <ChatMessage>[
         if (system.isNotEmpty)
@@ -113,30 +110,24 @@ class AiPlaygroundActions {
       ];
       final reply = await chat.complete(messages: messages);
       output('Chat reply:\n$reply');
-    } catch (e, st) {
-      _log.warning('Chat failed', e, st);
-      _maybePromptByokSettings(e);
-      output('Chat ${_err(e)}', isError: true);
-    }
-  });
+    }),
+  );
 
-  Future<void> runTranslate() => _run(PlaygroundAction.translate, () async {
-    try {
+  Future<void> runTranslate() => _run(
+    PlaygroundAction.translate,
+    () => _guard('Translate', () async {
       final r = await translation.translate(
         text: inputs.translateText.text.trim(),
         sourceLanguage: inputs.translateSource.text.trim(),
         targetLanguage: inputs.translateTarget.text.trim(),
       );
       output('Translation:\n${r.translatedText}');
-    } catch (e, st) {
-      _log.warning('Translate failed', e, st);
-      _maybePromptByokSettings(e);
-      output('Translate ${_err(e)}', isError: true);
-    }
-  });
+    }),
+  );
 
-  Future<void> runDictionary() => _run(PlaygroundAction.dictionary, () async {
-    try {
+  Future<void> runDictionary() => _run(
+    PlaygroundAction.dictionary,
+    () => _guard('Dictionary', () async {
       final r = await dictionary.lookup(
         word: inputs.dictionaryWord.text.trim(),
         sourceLanguage: inputs.dictionarySource.text.trim(),
@@ -155,12 +146,8 @@ class AiPlaygroundActions {
         if (s.translation != null) buf.writeln('⇄ ${s.translation}');
       }
       output(buf.toString());
-    } catch (e, st) {
-      _log.warning('Dictionary failed', e, st);
-      _maybePromptByokSettings(e);
-      output('Dictionary ${_err(e)}', isError: true);
-    }
-  });
+    }),
+  );
 
   Future<void> runAssessment() => _run(PlaygroundAction.assessment, () async {
     final l10n = AppLocalizations.of(context)!;
@@ -177,51 +164,63 @@ class AiPlaygroundActions {
       output('${l10n.error}: enter reference text.', isError: true);
       return;
     }
-    try {
-      final r = await assessment.assess(
-        AssessmentRequest(
-          audioBytes: bytes,
-          referenceText: refText,
-          language: inputs.assessmentLanguage.text.trim(),
-        ),
-      );
-      final scores = r.detail.primaryScores;
-      final buf = StringBuffer()..writeln('Pronunciation assessment');
-      if (scores != null) {
-        buf.writeln(
-          'PronScore: ${scores.pronScore.toStringAsFixed(1)} · '
-          'Accuracy: ${scores.accuracyScore.toStringAsFixed(1)} · '
-          'Fluency: ${scores.fluencyScore.toStringAsFixed(1)} · '
-          'Completeness: ${scores.completenessScore.toStringAsFixed(1)}',
+    await _guard(
+      'Assessment',
+      () async {
+        final r = await assessment.assess(
+          AssessmentRequest(
+            audioBytes: bytes,
+            referenceText: refText,
+            language: inputs.assessmentLanguage.text.trim(),
+          ),
         );
-        if (scores.prosodyScore != null) {
-          buf.writeln('Prosody: ${scores.prosodyScore!.toStringAsFixed(1)}');
-        }
-      }
-      buf.writeln('Display: ${r.detail.displayText}');
-      final words = r.detail.primaryNBest?.words;
-      if (words != null && words.isNotEmpty) {
-        buf
-          ..writeln()
-          ..writeln('Words:');
-        for (final w in words) {
+        final scores = r.detail.primaryScores;
+        final buf = StringBuffer()..writeln('Pronunciation assessment');
+        if (scores != null) {
           buf.writeln(
-            '  · ${w.word}  acc=${w.pronunciationAssessment.accuracyScore.toStringAsFixed(0)}  '
-            '${w.pronunciationAssessment.errorType}',
+            'PronScore: ${scores.pronScore.toStringAsFixed(1)} · '
+            'Accuracy: ${scores.accuracyScore.toStringAsFixed(1)} · '
+            'Fluency: ${scores.fluencyScore.toStringAsFixed(1)} · '
+            'Completeness: ${scores.completenessScore.toStringAsFixed(1)}',
           );
+          if (scores.prosodyScore != null) {
+            buf.writeln('Prosody: ${scores.prosodyScore!.toStringAsFixed(1)}');
+          }
         }
-      }
-      output(buf.toString());
-    } catch (e, st) {
-      _log.warning('Assessment failed', e, st);
-      _maybePromptByokSettings(e);
-      if (isAzureSpeechException(e)) {
-        output('Assessment ${formatAzureSpeechError(e)}', isError: true);
-      } else {
-        output('Assessment ${_err(e)}', isError: true);
-      }
-    }
+        buf.writeln('Display: ${r.detail.displayText}');
+        final words = r.detail.primaryNBest?.words;
+        if (words != null && words.isNotEmpty) {
+          buf
+            ..writeln()
+            ..writeln('Words:');
+          for (final w in words) {
+            buf.writeln(
+              '  · ${w.word}  acc=${w.pronunciationAssessment.accuracyScore.toStringAsFixed(0)}  '
+              '${w.pronunciationAssessment.errorType}',
+            );
+          }
+        }
+        output(buf.toString());
+      },
+      formatError: (e) =>
+          isAzureSpeechException(e) ? formatAzureSpeechError(e) : _err(e),
+    );
   });
+
+  Future<void> _guard(
+    String label,
+    Future<void> Function() body, {
+    String? Function(Object error)? formatError,
+  }) async {
+    try {
+      await body();
+    } catch (e, st) {
+      _log.warning('$label failed', e, st);
+      _maybePromptByokSettings(e);
+      final detail = formatError?.call(e) ?? _err(e);
+      output('$label $detail', isError: true);
+    }
+  }
 
   Future<void> _run(
     PlaygroundAction action,
