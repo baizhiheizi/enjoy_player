@@ -647,6 +647,32 @@ and keeps today’s line timings, the CC-sheet enrich reports a typed reason
 against a padded window) because it aligns one cue at a time rather than the
 whole file; it keeps its own segment assembly.
 
+The on-demand enrich is split into focused modules under
+[`lib/features/transcript/application/`](../../lib/features/transcript/application/).
+The public API is unchanged: `TranscriptEnricher`, `transcriptEnricherProvider`,
+`TranscriptEnrichmentController`, and every state / outcome type stay exported
+from
+[`transcript_enrichment_controller.dart`](../../lib/features/transcript/application/transcript_enrichment_controller.dart),
+so the CC sheet, the player's ⋯ More menu, and the enrichment tests import
+them from the same path as before.
+
+| File | Responsibility |
+|------|----------------|
+| [`transcript_enrichment_state.dart`](../../lib/features/transcript/application/transcript_enrichment_state.dart) | The enrich run's vocabulary: `TranscriptEnrichmentPhase`, `TranscriptEnrichmentState`, the `EnrichProgressFn` / `ReplaceTimelineFn` typedefs, the public `TranscriptEnrichmentOutcome` (`Ok` / `Err`), and the shared `EnrichAttachment` result both engines return. No I/O. |
+| [`transcript_owned_alignment.dart`](../../lib/features/transcript/application/transcript_owned_alignment.dart) | The owned-media engine: `alignOwnedMedia` runs the whole-file strategy for clips up to `kMaxWholeClipSeconds` and the per-cue windowed strategy for longer ones, and returns the attached lines or a typed rejection reason. It does not persist. |
+| [`transcript_enricher_phonemize.dart`](../../lib/features/transcript/application/transcript_enricher_phonemize.dart) | The YouTube engine: `phonemizeTranscriptLines` phonemizes the cue text and attaches the IPA labels. It does not persist. |
+| [`transcript_enricher.dart`](../../lib/features/transcript/application/transcript_enricher.dart) | `TranscriptEnricher` — the worker: it maps the language, downloads remote media, picks the engine, and persists through the `_persistIfChanged` guard. |
+| [`transcript_enrichment_controller.dart`](../../lib/features/transcript/application/transcript_enrichment_controller.dart) | The Riverpod surface: the `transcriptEnricher` provider and the `TranscriptEnrichmentController` notifier. |
+
+The dependency direction stays one-way: `state` ← `owned_alignment` /
+`enricher_phonemize` ← `enricher` ← `enrichment_controller`. Nothing imports
+the controller back.
+
+One asymmetry is deliberate: the YouTube path wraps its persist in a `try`
+that reports `internal`, while the owned path lets a persist failure
+propagate. Do not "fix" that by moving the guard — the two paths fail
+differently on purpose.
+
 ## Transcript editor (⋯ More → Edit transcript)
 
 The player's ⋯ More menu and the phone Subtitles & display sheet list
