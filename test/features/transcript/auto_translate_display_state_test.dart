@@ -6,34 +6,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('active AI track matching the live secondary derives active=true', () async {
-    final container = ProviderContainer(
-      overrides: [
-        autoTranslateCtrlProvider('m-1').overrideWithValue(
-          const AutoTranslateUiState(
-            status: AutoTranslateStatus.active,
-            aiTranscriptId: 'ai-1',
-            sourceLanguage: 'en',
-            targetLanguage: 'zh',
+  test(
+    'active AI track matching the live secondary derives active=true',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          autoTranslateCtrlProvider('m-1').overrideWithValue(
+            const AutoTranslateUiState(
+              status: AutoTranslateStatus.active,
+              aiTranscriptId: 'ai-1',
+              sourceLanguage: 'en',
+              targetLanguage: 'zh',
+            ),
           ),
-        ),
-        secondaryTranscriptIdProvider(
-          'm-1',
-        ).overrideWith((ref) => Stream<String?>.value('ai-1')),
-      ],
-    );
-    addTearDown(container.dispose);
+          secondaryTranscriptIdProvider(
+            'm-1',
+          ).overrideWith((ref) => Stream<String?>.value('ai-1')),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    container.listen(secondaryTranscriptIdProvider('m-1'), (_, _) {});
-    await container.read(secondaryTranscriptIdProvider('m-1').future);
-    final state = container.read(autoTranslateDisplayStateProvider('m-1'));
+      container.listen(secondaryTranscriptIdProvider('m-1'), (_, _) {});
+      await container.read(secondaryTranscriptIdProvider('m-1').future);
+      final state = container.read(autoTranslateDisplayStateProvider('m-1'));
 
-    expect(state.active, isTrue);
-    expect(state.sourceLanguage, 'en');
-    expect(state.targetLanguage, 'zh');
-  });
+      expect(state.active, isTrue);
+      expect(state.sourceLanguage, 'en');
+      expect(state.targetLanguage, 'zh');
+    },
+  );
 
-  test('a secondary that is not the AI track keeps active=false', () {
+  test('a secondary that is not the AI track keeps active=false', () async {
     final container = ProviderContainer(
       overrides: [
         autoTranslateCtrlProvider('m-1').overrideWithValue(
@@ -49,6 +52,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
+    container.listen(secondaryTranscriptIdProvider('m-1'), (_, _) {});
+    await container.read(secondaryTranscriptIdProvider('m-1').future);
+
     expect(
       container.read(autoTranslateDisplayStateProvider('m-1')).active,
       isFalse,
@@ -57,7 +63,7 @@ void main() {
 
   test(
     'an inactive controller keeps active=false even on a matching secondary',
-    () {
+    () async {
       final container = ProviderContainer(
         overrides: [
           autoTranslateCtrlProvider('m-1').overrideWithValue(
@@ -69,6 +75,9 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
+
+      container.listen(secondaryTranscriptIdProvider('m-1'), (_, _) {});
+      await container.read(secondaryTranscriptIdProvider('m-1').future);
 
       expect(
         container.read(autoTranslateDisplayStateProvider('m-1')).active,
