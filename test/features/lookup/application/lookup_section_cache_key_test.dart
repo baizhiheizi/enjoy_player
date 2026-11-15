@@ -72,7 +72,7 @@ void main() {
     );
   });
 
-  test('contextual keys distinguish the empty context from omitted', () {
+  test('contextual keys equate the omitted context with the empty context', () {
     final omitted = lookupContextualTranslationCacheKey(
       const LookupContextualParams(
         text: 'hello',
