@@ -20,7 +20,7 @@ void main() {
     'en',
   );
 
-  Widget panel(ProviderContainer container) {
+  Widget panel(ProviderContainer container, {VoidCallback? onNextLine}) {
     return UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
@@ -32,7 +32,7 @@ void main() {
               return DictationPanel(
                 state: state,
                 controller: ctrl,
-                onNextLine: () {},
+                onNextLine: onNextLine ?? () {},
               );
             },
           ),
@@ -51,8 +51,11 @@ void main() {
       );
       addTearDown(container.dispose);
       container.listen(provider, (_, _) {});
+      var nextLineCalls = 0;
 
-      await tester.pumpWidget(panel(container));
+      await tester.pumpWidget(
+        panel(container, onNextLine: () => nextLineCalls++),
+      );
 
       expect(find.text('Record retelling'), findsOneWidget);
       expect(find.text('Record retelling (R)'), findsNothing);
@@ -74,6 +77,9 @@ void main() {
       expect(find.text('0 extra'), findsOneWidget);
       expect(find.text('Try again'), findsOneWidget);
       expect(find.text('Next line'), findsOneWidget);
+      await tester.tap(find.text('Next line'));
+      await tester.pump();
+      expect(nextLineCalls, 1);
     },
   );
 
@@ -84,33 +90,10 @@ void main() {
     try {
       final container = ProviderContainer();
       addTearDown(container.dispose);
+      container.listen(provider, (_, _) {});
 
-      final state = const DictationSessionState(
-        mode: DictationInputMode.voice,
-        status: DictationAttemptStatus.idle,
-      );
-
-      final ctrl = DictationController(
-        ref: container.read(Provider((ref) => ref)),
-        scope: scope,
-        getState: () => state,
-        setState: (_) {},
-      );
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: DictationPanel(
-                state: state,
-                controller: ctrl,
-                onNextLine: () {},
-              ),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(panel(container));
+      await tester.pump();
 
       expect(find.text('Record retelling (R)'), findsOneWidget);
       expect(
