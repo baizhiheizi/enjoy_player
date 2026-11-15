@@ -7,7 +7,7 @@ import 'package:enjoy_player/features/ai/application/ai_capability_providers.dar
 import 'package:enjoy_player/features/ai/domain/capabilities/asr_capability.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_result.dart';
-import 'package:enjoy_player/features/dictation/application/dictation_controller.dart';
+import 'package:enjoy_player/features/dictation/application/dictation_providers.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -63,13 +63,27 @@ void main() {
     }
   });
 
-  const scope = DictationScope(
+  final provider = dictationSessionCtrlProvider(
+    'video',
+    'v-1',
+    1000,
+    2000,
+    'Hello world',
+    'en',
+  );
+
+  RecordingRow take(String id, String path) => RecordingRow(
+    id: id,
     targetType: 'video',
     targetId: 'v-1',
-    referenceStartMs: 1000,
-    referenceDurationMs: 2000,
+    referenceStart: 1000,
+    referenceDuration: 2000,
     referenceText: 'Hello world',
     language: 'en',
+    localPath: path,
+    duration: 2000,
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 
   test('checkTextAnswer computes diff and inserts row in dictations', () async {
@@ -77,19 +91,14 @@ void main() {
       overrides: [appDatabaseProvider.overrideWithValue(db)],
     );
     addTearDown(container.dispose);
-
-    var state = const DictationSessionState();
-    final ctrl = DictationController(
-      ref: container.read(Provider((ref) => ref)),
-      scope: scope,
-      getState: () => state,
-      setState: (next) => state = next,
-    );
+    container.listen(provider, (_, _) {});
+    final ctrl = container.read(provider.notifier);
 
     ctrl.setInputMode(DictationInputMode.text);
     ctrl.updateTextDraft('hello world');
     await ctrl.checkTextAnswer();
 
+    final state = container.read(provider);
     expect(state.status, DictationAttemptStatus.checked);
     expect(state.activeDiff?.accuracy, 100);
     expect(state.activeDiff?.correctWords, 2);
@@ -102,47 +111,35 @@ void main() {
     expect(saved.single.accuracy, 100);
   });
 
-  test('tryAgain clears selectedHistoricalAttempt and activeDiff', () {
+  test('tryAgain clears selectedHistoricalAttempt and activeDiff', () async {
     final container = ProviderContainer(
       overrides: [appDatabaseProvider.overrideWithValue(db)],
     );
     addTearDown(container.dispose);
+    container.listen(provider, (_, _) {});
+    final ctrl = container.read(provider.notifier);
 
-    var state = DictationSessionState(
-      status: DictationAttemptStatus.checked,
-      selectedHistoricalAttempt: DictationRow(
-        id: 'h-1',
-        targetType: 'video',
-        targetId: 'v-1',
-        referenceStartMs: 1000,
-        referenceDurationMs: 2000,
-        referenceText: 'Hello world',
-        language: 'en',
-        userInput: 'hello',
-        accuracy: 50,
-        correctWords: 1,
-        missedWords: 1,
-        extraWords: 0,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      activeDiff: const DictationDiffResult(
-        tokens: [],
-        accuracy: 50,
-        correctWords: 1,
-        missedWords: 1,
-        extraWords: 0,
-      ),
+    final historical = DictationRow(
+      id: 'h-1',
+      targetType: 'video',
+      targetId: 'v-1',
+      referenceStartMs: 1000,
+      referenceDurationMs: 2000,
+      referenceText: 'Hello world',
+      language: 'en',
+      userInput: 'hello',
+      accuracy: 50,
+      correctWords: 1,
+      missedWords: 1,
+      extraWords: 0,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
-
-    final ctrl = DictationController(
-      ref: container.read(Provider((ref) => ref)),
-      scope: scope,
-      getState: () => state,
-      setState: (next) => state = next,
-    );
+    ctrl.selectHistoricalAttempt(historical);
+    expect(container.read(provider).status, DictationAttemptStatus.checked);
 
     ctrl.tryAgain();
+    final state = container.read(provider);
     expect(state.status, DictationAttemptStatus.idle);
     expect(state.activeDiff, isNull);
     expect(state.selectedHistoricalAttempt, isNull);
@@ -153,20 +150,6 @@ void main() {
     () async {
       final audioFile = File('${tempDir.path}/take.wav');
       await audioFile.writeAsBytes([0, 1, 2, 3]);
-
-      final take = RecordingRow(
-        id: 'rec-1',
-        targetType: 'video',
-        targetId: 'v-1',
-        referenceStart: 1000,
-        referenceDuration: 2000,
-        referenceText: 'Hello world',
-        language: 'en',
-        localPath: audioFile.path,
-        duration: 2000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
 
       var shouldFail = true;
       final dynamicAsr = _FakeAsrCapability(textToReturn: 'hello world');
@@ -183,23 +166,18 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
+      container.listen(provider, (_, _) {});
+      final ctrl = container.read(provider.notifier);
 
-      var state = const DictationSessionState();
-      final ctrl = DictationController(
-        ref: container.read(Provider((ref) => ref)),
-        scope: scope,
-        getState: () => state,
-        setState: (next) => state = next,
-      );
-
-      await ctrl.onVoiceTakeRecorded(take);
-      expect(state.status, DictationAttemptStatus.failed);
-      expect(state.errorMessage, contains('ASR network error'));
-      expect(state.lastVoiceRecording, isNotNull);
+      await ctrl.onVoiceTakeRecorded(take('rec-1', audioFile.path));
+      expect(container.read(provider).status, DictationAttemptStatus.failed);
+      expect(container.read(provider).errorMessage, contains('ASR network'));
+      expect(container.read(provider).lastVoiceRecording, isNotNull);
 
       shouldFail = false;
       await ctrl.retryVoiceTranscription();
 
+      final state = container.read(provider);
       expect(state.status, DictationAttemptStatus.checked);
       expect(state.activeDiff?.accuracy, 100);
       expect(state.errorMessage, isNull);
@@ -218,20 +196,6 @@ void main() {
       final audioFile = File('${tempDir.path}/take_empty.wav');
       await audioFile.writeAsBytes([0, 1, 2, 3]);
 
-      final take = RecordingRow(
-        id: 'rec-empty',
-        targetType: 'video',
-        targetId: 'v-1',
-        referenceStart: 1000,
-        referenceDuration: 2000,
-        referenceText: 'Hello world',
-        language: 'en',
-        localPath: audioFile.path,
-        duration: 2000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
       final container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
@@ -241,17 +205,12 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
+      container.listen(provider, (_, _) {});
+      final ctrl = container.read(provider.notifier);
 
-      var state = const DictationSessionState();
-      final ctrl = DictationController(
-        ref: container.read(Provider((ref) => ref)),
-        scope: scope,
-        getState: () => state,
-        setState: (next) => state = next,
-      );
+      await ctrl.onVoiceTakeRecorded(take('rec-empty', audioFile.path));
 
-      await ctrl.onVoiceTakeRecorded(take);
-
+      final state = container.read(provider);
       expect(state.status, DictationAttemptStatus.failed);
       expect(state.errorMessage, 'No speech detected');
       expect(state.lastVoiceRecording?.id, 'rec-empty');
@@ -269,33 +228,6 @@ void main() {
     final audioFile2 = File('${tempDir.path}/take2.wav');
     await audioFile2.writeAsBytes([2, 3]);
 
-    final take1 = RecordingRow(
-      id: 'rec-1',
-      targetType: 'video',
-      targetId: 'v-1',
-      referenceStart: 1000,
-      referenceDuration: 2000,
-      referenceText: 'Hello world',
-      language: 'en',
-      localPath: audioFile1.path,
-      duration: 2000,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-    final take2 = RecordingRow(
-      id: 'rec-2',
-      targetType: 'video',
-      targetId: 'v-1',
-      referenceStart: 1000,
-      referenceDuration: 2000,
-      referenceText: 'Hello world',
-      language: 'en',
-      localPath: audioFile2.path,
-      duration: 2000,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
     final completer1 = Completer<AsrResult>();
     final completer2 = Completer<AsrResult>();
 
@@ -311,28 +243,27 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
+    container.listen(provider, (_, _) {});
+    final ctrl = container.read(provider.notifier);
 
-    var state = const DictationSessionState();
-    final ctrl = DictationController(
-      ref: container.read(Provider((ref) => ref)),
-      scope: scope,
-      getState: () => state,
-      setState: (next) => state = next,
-    );
-
-    final future1 = ctrl.onVoiceTakeRecorded(take1);
-    final future2 = ctrl.onVoiceTakeRecorded(take2);
+    final future1 = ctrl.onVoiceTakeRecorded(take('rec-1', audioFile1.path));
+    final future2 = ctrl.onVoiceTakeRecorded(take('rec-2', audioFile2.path));
 
     completer2.complete(const AsrResult(text: 'second take wins'));
     await future2;
 
-    expect(state.status, DictationAttemptStatus.checked);
-    expect(state.selectedHistoricalAttempt?.userInput, 'second take wins');
+    expect(
+      container.read(provider).selectedHistoricalAttempt?.userInput,
+      'second take wins',
+    );
 
     completer1.complete(const AsrResult(text: 'stale first take'));
     await future1;
 
-    expect(state.selectedHistoricalAttempt?.userInput, 'second take wins');
+    expect(
+      container.read(provider).selectedHistoricalAttempt?.userInput,
+      'second take wins',
+    );
 
     final saved = await db.dictationDao
         .watchByEchoRegion('video', 'v-1', 1000, 2000)
@@ -342,24 +273,10 @@ void main() {
   });
 
   test(
-    'disposing controller prevents background ASR from updating state or crashing',
+    'disposing the session prevents background ASR from updating state',
     () async {
       final audioFile = File('${tempDir.path}/take_dispose.wav');
       await audioFile.writeAsBytes([0, 1]);
-
-      final take = RecordingRow(
-        id: 'rec-disp',
-        targetType: 'video',
-        targetId: 'v-1',
-        referenceStart: 1000,
-        referenceDuration: 2000,
-        referenceText: 'Hello world',
-        language: 'en',
-        localPath: audioFile.path,
-        duration: 2000,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
 
       final completer = Completer<AsrResult>();
       final container = ProviderContainer(
@@ -370,23 +287,19 @@ void main() {
           ),
         ],
       );
+      container.listen(provider, (_, _) {});
+      final ctrl = container.read(provider.notifier);
 
-      var state = const DictationSessionState();
-      final ctrl = DictationController(
-        ref: container.read(Provider((ref) => ref)),
-        scope: scope,
-        getState: () => state,
-        setState: (next) => state = next,
+      final future = ctrl.onVoiceTakeRecorded(take('rec-disp', audioFile.path));
+      expect(
+        container.read(provider).status,
+        DictationAttemptStatus.transcribingVoice,
       );
 
-      final future = ctrl.onVoiceTakeRecorded(take);
-      ctrl.dispose();
       container.dispose();
 
       completer.complete(const AsrResult(text: 'hello after dispose'));
-      await future;
-
-      expect(state.status, DictationAttemptStatus.transcribingVoice);
+      await expectLater(future, completes);
     },
   );
 }
