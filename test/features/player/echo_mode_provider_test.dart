@@ -381,5 +381,35 @@ void main() {
       expect(EchoState.inactive.startLineIndex, -1);
       expect(EchoState.inactive.endLineIndex, -1);
     });
+
+    test('activateAtLine anchors a single-line region on the line', () {
+      notifier.activateAtLine(lines[2], 2);
+
+      expect(lastState.active, isTrue);
+      expect(lastState.startLineIndex, 2);
+      expect(lastState.endLineIndex, 2);
+      expect(lastState.startTimeSeconds, lines[2].startSeconds);
+      expect(lastState.endTimeSeconds, lines[2].endSeconds);
+    });
+
+    test('activateAtLine replaces an existing region with the new line', () {
+      notifier.activateAtLine(lines[1], 1);
+      notifier.activateAtLine(lines[4], 4);
+
+      expect(lastState.startLineIndex, 4);
+      expect(lastState.endLineIndex, 4);
+      expect(lastState.startTimeSeconds, lines[4].startSeconds);
+      expect(lastState.endTimeSeconds, lines[4].endSeconds);
+    });
+
+    test('activateClipWindow activates without transcript line indices', () {
+      notifier.activateClipWindow(startSeconds: 1.5, endSeconds: 4.25);
+
+      expect(lastState.active, isTrue);
+      expect(lastState.startLineIndex, -1);
+      expect(lastState.endLineIndex, -1);
+      expect(lastState.startTimeSeconds, 1.5);
+      expect(lastState.endTimeSeconds, 4.25);
+    });
   });
 }

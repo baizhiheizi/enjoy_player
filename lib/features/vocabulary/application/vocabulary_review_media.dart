@@ -43,12 +43,7 @@ Future<void> openVocabularyClipWindow({
 
   await player.seekToSeconds(startSec);
 
-  echo.activate(
-    startLineIndex: -1,
-    endLineIndex: -1,
-    startTimeSeconds: startSec,
-    endTimeSeconds: endSec,
-  );
+  echo.activateClipWindow(startSeconds: startSec, endSeconds: endSec);
 
   if (playAfter) {
     await player.play();

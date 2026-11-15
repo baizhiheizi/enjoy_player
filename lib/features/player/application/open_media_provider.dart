@@ -49,12 +49,7 @@ final openMediaLaunchProvider = FutureProvider.autoDispose
 
       final end = request.endSec;
       if (request.activateClipWindow && start != null && end != null) {
-        echo.activate(
-          startLineIndex: -1,
-          endLineIndex: -1,
-          startTimeSeconds: start,
-          endTimeSeconds: end,
-        );
+        echo.activateClipWindow(startSeconds: start, endSeconds: end);
       }
 
       if (request.autoplay) {
