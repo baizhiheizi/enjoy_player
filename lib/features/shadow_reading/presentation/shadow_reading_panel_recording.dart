@@ -131,14 +131,7 @@ mixin ShadowReadingPanelRecording on ShadowReadingPanelBase {
         );
   }
 
-  TakeRegion get _takeRegion => TakeRegion(
-    targetType: widget.targetType,
-    targetId: widget.mediaId,
-    language: widget.language,
-    referenceText: widget.referenceText,
-    startSec: widget.startSec,
-    endSec: widget.endSec,
-  );
+  EchoRegionKey get _takeRegion => _regionKey;
 
   Future<void> _playOrPauseTake(String path) async {
     try {

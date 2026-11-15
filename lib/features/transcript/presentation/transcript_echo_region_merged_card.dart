@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_loop_edge_row.dart';
 
+import 'package:enjoy_player/core/echo/echo_region_key.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
@@ -124,25 +125,18 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
       mediaWidth: MediaQuery.sizeOf(context).width,
     );
 
-    final region = (
+    final region = EchoRegionKey.fromSeconds(
       targetType: chrome?.dexieTargetType ?? 'Audio',
-      mediaId: mediaId,
-      startMs: (echo.startTimeSeconds * 1000).round(),
-      durationMs: ((echo.endTimeSeconds - echo.startTimeSeconds) * 1000)
-          .round(),
+      targetId: mediaId,
+      startSec: echo.startTimeSeconds,
+      endSec: echo.endTimeSeconds,
       referenceText: echoReferencePlainText(lines, echo),
       language: chrome?.language ?? 'en',
     );
     final scoredTake = ref
         .watch(
           echoRegionRecordingsOnceProvider(
-            EchoRegionRecordingsQuery(
-              targetType: region.targetType,
-              targetId: region.mediaId,
-              language: region.language,
-              echoStartMs: region.startMs,
-              echoEndMs: region.startMs + region.durationMs,
-            ),
+            EchoRegionRecordingsQuery.of(region),
           ),
         )
         .value
@@ -347,7 +341,7 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
             language: region.language,
             startSec: echo.startTimeSeconds,
             endSec: echo.endTimeSeconds,
-            referenceText: echoReferencePlainText(lines, echo),
+            referenceText: region.referenceText,
             echoActive: echo.active,
             showLiveProgress: true,
             takesRowInLoop: true,

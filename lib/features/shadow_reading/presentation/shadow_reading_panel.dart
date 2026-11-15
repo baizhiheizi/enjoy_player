@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
 import 'package:enjoy_player/core/analytics/analytics_provider.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
+import 'package:enjoy_player/core/echo/echo_region_key.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
@@ -119,15 +120,20 @@ class ShadowReadingPanel extends ConsumerStatefulWidget {
 mixin ShadowReadingPanelBase on ConsumerState<ShadowReadingPanel> {
   ShadowTakeStore? _takeStoreInstance;
 
-  /// The take window this panel renders and acts on, as an application-layer
-  /// query key so no call site rebuilds the five-field shape by hand.
-  EchoRegionRecordingsQuery get _regionQuery => EchoRegionRecordingsQuery(
+  /// The take window this panel renders and acts on, as one region key so
+  /// every consumer (recordings query, take persistence) derives from the
+  /// same identity.
+  EchoRegionKey get _regionKey => EchoRegionKey.fromSeconds(
     targetType: widget.targetType,
     targetId: widget.mediaId,
+    referenceText: widget.referenceText,
     language: widget.language,
-    echoStartMs: (widget.startSec * 1000).round(),
-    echoEndMs: (widget.endSec * 1000).round(),
+    startSec: widget.startSec,
+    endSec: widget.endSec,
   );
+
+  EchoRegionRecordingsQuery get _regionQuery =>
+      EchoRegionRecordingsQuery.of(_regionKey);
 
   ShadowTakeStore get _takeStore =>
       _takeStoreInstance ??= ref.read(shadowTakeStoreFactoryProvider)();

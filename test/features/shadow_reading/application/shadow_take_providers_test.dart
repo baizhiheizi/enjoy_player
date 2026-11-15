@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:record/record.dart';
 
+import 'package:enjoy_player/core/echo/echo_region_key.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
@@ -117,7 +118,7 @@ void main() {
       recorder.armedPath = path;
 
       final result = await store.stopAndPersist(
-        region: const TakeRegion(
+        region: EchoRegionKey.fromSeconds(
           targetType: 'transcript',
           targetId: 'media-1',
           language: 'en',

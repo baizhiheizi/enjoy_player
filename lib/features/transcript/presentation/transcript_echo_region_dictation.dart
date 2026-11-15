@@ -5,6 +5,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/echo/echo_region_key.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
@@ -14,25 +15,15 @@ import 'package:enjoy_player/features/dictation/presentation/dictation_list.dart
 import 'package:enjoy_player/features/dictation/presentation/dictation_panel.dart';
 import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 
-typedef EchoDictationRegionKey = ({
-  String targetType,
-  String mediaId,
-  int startMs,
-  int durationMs,
-  String referenceText,
-  String language,
-});
-
-DictationSessionCtrlProvider echoRegionSessionCtrl(
-  EchoDictationRegionKey key,
-) => dictationSessionCtrlProvider(
-  key.targetType,
-  key.mediaId,
-  key.startMs,
-  key.durationMs,
-  key.referenceText,
-  key.language,
-);
+DictationSessionCtrlProvider echoRegionSessionCtrl(EchoRegionKey key) =>
+    dictationSessionCtrlProvider(
+      key.targetType,
+      key.targetId,
+      key.startMs,
+      key.durationMs,
+      key.referenceText,
+      key.language,
+    );
 
 class EchoRegionDictationBand extends ConsumerWidget {
   const EchoRegionDictationBand({
@@ -44,7 +35,7 @@ class EchoRegionDictationBand extends ConsumerWidget {
     super.key,
   });
 
-  final EchoDictationRegionKey region;
+  final EchoRegionKey region;
   final List<TranscriptLine> lines;
   final int echoStartLineIndex;
   final int echoEndLineIndex;
@@ -91,7 +82,7 @@ class EchoRegionDictationAttempts extends ConsumerWidget {
     super.key,
   });
 
-  final EchoDictationRegionKey region;
+  final EchoRegionKey region;
   final VoidCallback onNextLine;
 
   @override
@@ -103,7 +94,7 @@ class EchoRegionDictationAttempts extends ConsumerWidget {
             .watch(
               dictationEchoRegionHistoryProvider((
                 targetType: region.targetType,
-                targetId: region.mediaId,
+                targetId: region.targetId,
                 startMs: region.startMs,
                 durationMs: region.durationMs,
               )),
