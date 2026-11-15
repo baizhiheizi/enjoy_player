@@ -42,6 +42,7 @@ runs-on-slim:
 - self-hosted
 - linux
 - slim
+timeout-minutes: 30
 
 imports:
 - shared/engine-glm.md
