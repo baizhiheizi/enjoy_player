@@ -1,6 +1,12 @@
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/player_lens_provider.dart';
+import 'package:enjoy_player/features/player/domain/player_lens.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_dock_primitives.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -63,7 +69,116 @@ Widget _recordingHost(EchoState echo) {
   );
 }
 
+final _readoutCueProvider = NotifierProvider<_ReadoutCueNotifier, int>(
+  _ReadoutCueNotifier.new,
+);
+
+class _ReadoutCueNotifier extends Notifier<int> {
+  @override
+  int build() => 2;
+}
+
+final _readoutWordProvider = NotifierProvider<_ReadoutWordNotifier, int?>(
+  _ReadoutWordNotifier.new,
+);
+
+class _ReadoutWordNotifier extends Notifier<int?> {
+  @override
+  int? build() => null;
+}
+
 void main() {
+  group('DockReadout', () {
+    const mediaId = 'readout-media';
+
+    Future<ProviderContainer> pumpReadout(WidgetTester tester) async {
+      final scheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+      final container = ProviderContainer(
+        overrides: [
+          playerLensProvider.overrideWithValue(PlayerLens.listen),
+          transcriptLinesForMediaProvider(mediaId).overrideWith(
+            (ref) => Stream.value(
+              List.generate(
+                5,
+                (i) => TranscriptLine(
+                  text: 'Line $i',
+                  startMs: i * 1000,
+                  durationMs: 1000,
+                ),
+              ),
+            ),
+          ),
+          transcriptPlaybackHighlightProvider(mediaId).overrideWith(
+            (ref) => (
+              cueIndex: ref.watch(_readoutCueProvider),
+              wordIndex: ref.watch(_readoutWordProvider),
+            ),
+          ),
+          transcriptLineRecordingCountsProvider(
+            mediaId,
+          ).overrideWith((ref) => const <int, int>{0: 2}),
+        ],
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: ThemeData(
+              colorScheme: scheme,
+              useMaterial3: true,
+              extensions: [EnjoyThemeTokens.build(scheme)],
+            ),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: Center(
+                child: DockReadout(mediaId: mediaId, recording: false),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return container;
+    }
+
+    testWidgets('shows the listen-mode line position and practised count', (
+      tester,
+    ) async {
+      await pumpReadout(tester);
+
+      expect(find.text('Line 3 of 5'), findsOneWidget);
+      expect(find.text('1 line practised'), findsOneWidget);
+    });
+
+    testWidgets('updates the line position when the cue changes', (
+      tester,
+    ) async {
+      final container = await pumpReadout(tester);
+
+      container.read(_readoutCueProvider.notifier).state = 3;
+      await tester.pump();
+
+      expect(find.text('Line 4 of 5'), findsOneWidget);
+    });
+
+    testWidgets('does not rebuild on karaoke word ticks', (tester) async {
+      final container = await pumpReadout(tester);
+      final before = tester.widget<Text>(find.text('Line 3 of 5'));
+
+      container.read(_readoutWordProvider.notifier).state = 4;
+      await tester.pump();
+
+      expect(tester.widget<Text>(find.text('Line 3 of 5')), same(before));
+    });
+  });
+
   group('DockRecordRing', () {
     testWidgets('paints the "you" disk with the theme shadow', (tester) async {
       final t = EnjoyThemeTokens.build(
