@@ -57,52 +57,46 @@ Future<String?> showLanguageChoiceSheet({
                   ),
                 ),
                 Flexible(
-                  child: ListView(
+                  child: ListView.builder(
                     shrinkWrap: true,
-                    children: [
-                      for (final opt in options) ...[
-                        Builder(
-                          builder: (itemCtx) {
-                            final selected = opt.value == selectedValue;
-                            return EnjoyPressable(
-                              borderRadius: BorderRadius.circular(t.radiusMd),
-                              onTap: Haptics.wrapTap(itemCtx, () {
-                                Navigator.of(itemCtx).pop(opt.value);
-                              }),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: t.space20,
-                                  vertical: t.space12,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        opt.label,
-                                        style: Theme.of(itemCtx)
-                                            .textTheme
-                                            .bodyLarge
-                                            ?.copyWith(
-                                              fontWeight: selected
-                                                  ? FontWeight.w600
-                                                  : FontWeight.w400,
-                                            ),
+                    itemCount: options.length,
+                    itemBuilder: (itemCtx, index) {
+                      final opt = options[index];
+                      final selected = opt.value == selectedValue;
+                      return EnjoyPressable(
+                        borderRadius: BorderRadius.circular(t.radiusMd),
+                        onTap: Haptics.wrapTap(itemCtx, () {
+                          Navigator.of(itemCtx).pop(opt.value);
+                        }),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: t.space20,
+                            vertical: t.space12,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  opt.label,
+                                  style: Theme.of(itemCtx).textTheme.bodyLarge
+                                      ?.copyWith(
+                                        fontWeight: selected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
                                       ),
-                                    ),
-                                    if (selected)
-                                      EnjoyChromeIcon(
-                                        EnjoyChromeGlyph.check,
-                                        color: cs.primary,
-                                        size: 22,
-                                      ),
-                                  ],
                                 ),
                               ),
-                            );
-                          },
+                              if (selected)
+                                EnjoyChromeIcon(
+                                  EnjoyChromeGlyph.check,
+                                  color: cs.primary,
+                                  size: 22,
+                                ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ],
+                      );
+                    },
                   ),
                 ),
               ],

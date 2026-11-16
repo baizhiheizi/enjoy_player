@@ -92,9 +92,20 @@ void main() {
       await tester.pump();
 
       final image = tester.widget<Image>(
-        find.byWidgetPredicate((w) => w is Image && w.image is FileImage),
+        find.byWidgetPredicate((w) {
+          if (w is! Image) return false;
+          final provider = w.image;
+          return provider is FileImage ||
+              (provider is ResizeImage && provider.imageProvider is FileImage);
+        }),
       );
-      expect((image.image as FileImage).file.path, thumb.path);
+      final provider = image.image;
+      final fileImage = provider is ResizeImage
+          ? provider.imageProvider as FileImage
+          : provider as FileImage;
+      expect(fileImage.file.path, thumb.path);
+      expect(provider, isA<ResizeImage>());
+      expect((provider as ResizeImage).width, 912);
       expect(ready, isTrue);
     },
   );
@@ -126,7 +137,12 @@ void main() {
       await tester.pump();
 
       expect(
-        find.byWidgetPredicate((w) => w is Image && w.image is FileImage),
+        find.byWidgetPredicate((w) {
+          if (w is! Image) return false;
+          final provider = w.image;
+          return provider is FileImage ||
+              (provider is ResizeImage && provider.imageProvider is FileImage);
+        }),
         findsNothing,
       );
       expect(ready, isTrue);

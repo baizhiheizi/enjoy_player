@@ -4,11 +4,11 @@ library;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/player/application/local_thumbnail_provider.dart';
@@ -172,8 +172,13 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
   final PracticePosterQuote quote;
   final Color accent;
 
+  static final _anyWhitespaceRegExp = RegExp(r'\s');
+  static final _nonWhitespaceRegExp = RegExp(r'\S+');
+
   static TextStyle _quoteMarkStyle(Color accent, {required double fontSize}) {
-    return GoogleFonts.literata(
+    return TextStyle(
+      fontFamily: kLiterataFamily,
+      fontFamilyFallback: kCjkSerifFallbacks,
       fontSize: fontSize,
       height: 1.0,
       fontWeight: FontWeight.w600,
@@ -186,7 +191,9 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
     required double fontSize,
     FontWeight fontWeight = FontWeight.w600,
   }) {
-    return GoogleFonts.literata(
+    return TextStyle(
+      fontFamily: kLiterataFamily,
+      fontFamilyFallback: kCjkSerifFallbacks,
       fontSize: fontSize,
       height: 1.35,
       fontWeight: fontWeight,
@@ -231,7 +238,7 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return ('', '');
 
-    if (!RegExp(r'\s').hasMatch(trimmed)) {
+    if (!_anyWhitespaceRegExp.hasMatch(trimmed)) {
       if (trimmed.length <= cjkCharCount) return (trimmed, '');
       return (
         trimmed.substring(0, cjkCharCount),
@@ -239,7 +246,7 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
       );
     }
 
-    final matches = RegExp(r'\S+').allMatches(trimmed).toList();
+    final matches = _nonWhitespaceRegExp.allMatches(trimmed).toList();
     if (matches.isEmpty) return (trimmed, '');
     if (matches.length <= wordCount) return (trimmed, '');
 
@@ -360,12 +367,17 @@ class _PracticePosterCoverState extends State<PracticePosterCover> {
 
   @override
   Widget build(BuildContext context) {
+    const coverDecodeWidth = 912;
     final echoBytes = widget.data.echoCoverBytes;
     if (echoBytes != null && echoBytes.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _notifyReadyOnce();
       });
-      return Image.memory(echoBytes, fit: BoxFit.cover);
+      return Image.memory(
+        echoBytes,
+        fit: BoxFit.cover,
+        cacheWidth: coverDecodeWidth,
+      );
     }
 
     return Consumer(
@@ -384,7 +396,11 @@ class _PracticePosterCoverState extends State<PracticePosterCover> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _notifyReadyOnce();
           });
-          return Image.file(file, fit: BoxFit.cover);
+          return Image.file(
+            file,
+            fit: BoxFit.cover,
+            cacheWidth: coverDecodeWidth,
+          );
         }
 
         final url = widget.data.networkThumbnailUrl;
@@ -392,6 +408,7 @@ class _PracticePosterCoverState extends State<PracticePosterCover> {
           return CachedNetworkImage(
             imageUrl: url,
             fit: BoxFit.cover,
+            memCacheWidth: coverDecodeWidth,
             placeholder: (_, _) => GenerativeMediaCover(
               seed: widget.data.coverSeed,
               isVideo: widget.data.isVideo,
@@ -455,7 +472,9 @@ class _StatTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: GoogleFonts.literata(
+              style: const TextStyle(
+                fontFamily: kLiterataFamily,
+                fontFamilyFallback: kCjkSerifFallbacks,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 height: 1.1,

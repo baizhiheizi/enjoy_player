@@ -11,6 +11,7 @@ import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/error_state.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
+import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/features/library/application/library_media_provider.dart';
 import 'package:enjoy_player/features/library/application/library_search_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
@@ -93,11 +94,30 @@ class LocalAudioLibraryBody extends StatelessWidget {
               side: BorderSide(color: t.line),
             ),
           ),
-          sliver: SliverList.separated(
-            itemCount: items.length,
-            separatorBuilder: (context, _) =>
-                Divider(height: 1, thickness: 1, color: t.line),
-            itemBuilder: (context, index) => LocalAudioRow(media: items[index]),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index.isOdd) {
+                  return Divider(height: 1, thickness: 1, color: t.line);
+                }
+                final itemIndex = index ~/ 2;
+                final media = items[itemIndex];
+                return LocalAudioRow(
+                  key: ValueKey<String>('$_kLocalAudioKeyPrefix${media.id}'),
+                  media: media,
+                );
+              },
+              childCount: items.isEmpty ? 0 : items.length * 2 - 1,
+              findChildIndexCallback: (key) {
+                final itemIndex = findSliverIndexByPrefixedId(
+                  items: items,
+                  key: key,
+                  prefix: _kLocalAudioKeyPrefix,
+                  idOf: (m) => m.id,
+                );
+                return itemIndex == null ? null : itemIndex * 2;
+              },
+            ),
           ),
         );
       },
@@ -225,8 +245,8 @@ class LocalAudioRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final playingId = ref.watch(
-      playerControllerProvider.select((s) => s?.mediaId),
+    final isPlaying = ref.watch(
+      playerControllerProvider.select((s) => s?.mediaId == media.id),
     );
     final locale = Localizations.localeOf(context).toLanguageTag();
 
@@ -235,7 +255,7 @@ class LocalAudioRow extends ConsumerWidget {
       subtitle: l10n.libraryTileAdded(
         relativeDayLabel(l10n, locale, media.createdAt),
       ),
-      heroArtworkMediaId: playingId == media.id ? null : media.id,
+      heroArtworkMediaId: isPlaying ? null : media.id,
     );
   }
 }
@@ -272,10 +292,17 @@ class LocalVideoLibraryBody extends StatelessWidget {
           ),
           delegate: SliverChildBuilderDelegate(
             (context, index) => Align(
+              key: ValueKey<String>('$_kLocalVideoKeyPrefix${items[index].id}'),
               alignment: Alignment.topCenter,
               child: LocalVideoTile(media: items[index]),
             ),
             childCount: items.length,
+            findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
+              items: items,
+              key: key,
+              prefix: _kLocalVideoKeyPrefix,
+              idOf: (m) => m.id,
+            ),
           ),
         );
       },
@@ -284,6 +311,8 @@ class LocalVideoLibraryBody extends StatelessWidget {
 }
 
 const double _kLibraryTileMinWidth = 210;
+const String _kLocalAudioKeyPrefix = 'local-audio-';
+const String _kLocalVideoKeyPrefix = 'local-video-';
 
 class LocalVideoTile extends ConsumerWidget {
   const LocalVideoTile({required this.media, super.key});
@@ -293,8 +322,8 @@ class LocalVideoTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final playingId = ref.watch(
-      playerControllerProvider.select((s) => s?.mediaId),
+    final isPlaying = ref.watch(
+      playerControllerProvider.select((s) => s?.mediaId == media.id),
     );
     final locale = Localizations.localeOf(context).toLanguageTag();
 
@@ -305,7 +334,7 @@ class LocalVideoTile extends ConsumerWidget {
       ),
       isVideo: true,
       languagePlacement: MediaCardLanguagePlacement.title,
-      heroArtworkMediaId: playingId == media.id ? null : media.id,
+      heroArtworkMediaId: isPlaying ? null : media.id,
     );
   }
 }

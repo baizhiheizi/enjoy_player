@@ -255,19 +255,36 @@ class _DiscoverFeedSliver extends StatelessWidget {
               sliver: SliverLayoutBuilder(
                 builder: (context, constraints) {
                   if (constraints.crossAxisExtent < 320) {
-                    return SliverList.separated(
-                      itemCount: entries.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 28),
-                      itemBuilder: (context, index) => KeyedSubtree(
-                        key: ValueKey<String>(
-                          'discover-feed-${entries[index].entry.videoId}',
-                        ),
-                        child: DiscoverFeedTile(
-                          entry: entries[index].entry,
-                          inLibrary: entries[index].inLibrary,
-                          channelName: entries[index].channelName,
-                          channelAvatarUrl: entries[index].channelAvatarUrl,
-                        ),
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index.isOdd) return const SizedBox(height: 28);
+                          final itemIndex = index ~/ 2;
+                          final item = entries[itemIndex];
+                          return KeyedSubtree(
+                            key: ValueKey<String>(
+                              'discover-feed-${item.entry.videoId}',
+                            ),
+                            child: DiscoverFeedTile(
+                              entry: item.entry,
+                              inLibrary: item.inLibrary,
+                              channelName: item.channelName,
+                              channelAvatarUrl: item.channelAvatarUrl,
+                            ),
+                          );
+                        },
+                        childCount: entries.isEmpty
+                            ? 0
+                            : entries.length * 2 - 1,
+                        findChildIndexCallback: (key) {
+                          final itemIndex = findSliverIndexByPrefixedId(
+                            items: entries,
+                            key: key,
+                            prefix: 'discover-feed-',
+                            idOf: (e) => e.entry.videoId,
+                          );
+                          return itemIndex == null ? null : itemIndex * 2;
+                        },
                       ),
                     );
                   }

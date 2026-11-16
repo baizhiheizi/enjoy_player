@@ -48,14 +48,14 @@ class DiscoverChannelAvatar extends StatelessWidget {
         width: size,
         height: size,
         child: url != null
-            ? Image(
-                image: CachedNetworkImageProvider(url!),
+            ? CachedNetworkImage(
+                imageUrl: url!,
+                width: size,
+                height: size,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => fallback(),
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return fallback();
-                },
+                memCacheWidth: (size * 3).round(),
+                errorWidget: (_, _, _) => fallback(),
+                placeholder: (_, _) => fallback(),
               )
             : fallback(),
       ),

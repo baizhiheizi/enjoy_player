@@ -203,6 +203,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
                           coverSeed: widget.coverSeed,
                           isVideo: widget.isVideo,
                           cs: cs,
+                          width: 56,
                         ),
                       ),
                       IgnorePointer(
