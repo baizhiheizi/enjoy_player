@@ -189,4 +189,30 @@ void main() {
       expect(result, [200.0, null, null, null, null]);
     });
   });
+
+  group('estimatePitchAtEnvelopeTimes', () {
+    test('accurately tracks 220 Hz sine at 44.1 kHz without full hop grid', () {
+      const sampleRate = 44100.0;
+      const freq = 220.0;
+      final samples = Float32List(sampleRate.toInt());
+      for (var i = 0; i < samples.length; i++) {
+        samples[i] = math.sin(2 * math.pi * freq * i / sampleRate);
+      }
+      final envelope = List<WaveformPoint>.generate(
+        20,
+        (i) => WaveformPoint(t: i * 0.04, amp: 0.8),
+      );
+      final hzList = estimatePitchAtEnvelopeTimes(
+        samples: samples,
+        sampleRate: sampleRate,
+        envelope: envelope,
+      );
+      expect(hzList, hasLength(envelope.length));
+      final voiced = hzList.whereType<double>().toList();
+      expect(voiced, isNotEmpty);
+      for (final hz in voiced) {
+        expect(hz, closeTo(freq, freq * 0.05));
+      }
+    });
+  });
 }

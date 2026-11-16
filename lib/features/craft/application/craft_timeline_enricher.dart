@@ -3,6 +3,7 @@ library;
 
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forced_alignment/forced_alignment.dart';
 
@@ -46,7 +47,13 @@ final class CraftTimelineEnricher {
     if (!enabled) return timelineJson;
     if (timelineJson == null) return null;
 
-    final lines = tryDecodeTimelineJson(timelineJson);
+    final lines = timelineJson.length > 64 * 1024
+        ? await compute(
+            tryDecodeTimelineJson,
+            timelineJson,
+            debugLabel: 'craft-timeline-decode',
+          )
+        : tryDecodeTimelineJson(timelineJson);
     if (lines == null) {
       return _fallback(timelineJson, 'invalid timeline JSON');
     }

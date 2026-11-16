@@ -40,14 +40,26 @@ final class ByokAsrAzureCapability extends ByokAzureSpeechCapability
       );
     }
 
-    final wavPath = await newAzureAssessmentStagingWavPath();
-    await File(wavPath).writeAsBytes(request.audioBytes, flush: true);
+    final reqPath = request.audioPath;
+    String? tempWavPath;
+    late final String sourceWavPath;
+    if (reqPath != null && reqPath.isNotEmpty) {
+      sourceWavPath = reqPath;
+    } else {
+      tempWavPath = await newAzureAssessmentStagingWavPath();
+      await File(
+        tempWavPath,
+      ).writeAsBytes(request.audioBytes ?? const [], flush: true);
+      sourceWavPath = tempWavPath;
+    }
 
     String? normalizedPath;
     String? stagedPath;
     try {
-      normalizedPath = await tryCreateNormalizedAzureAssessmentWav(wavPath);
-      final candidate = normalizedPath ?? wavPath;
+      normalizedPath = await tryCreateNormalizedAzureAssessmentWav(
+        sourceWavPath,
+      );
+      final candidate = normalizedPath ?? sourceWavPath;
       final staged = await stageWavForAzureAssessment(candidate);
       stagedPath = staged.$2 ? staged.$1 : null;
       final audioPath = staged.$1;
@@ -66,7 +78,7 @@ final class ByokAsrAzureCapability extends ByokAzureSpeechCapability
     } on AzureSpeechException catch (e) {
       throw ApiException(message: e.message, statusCode: 502, body: e.code);
     } finally {
-      for (final path in <String?>[stagedPath, normalizedPath, wavPath]) {
+      for (final path in <String?>[stagedPath, normalizedPath, tempWavPath]) {
         if (path == null) continue;
         try {
           await File(path).delete();

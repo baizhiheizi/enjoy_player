@@ -68,15 +68,17 @@ class TakePlayGlyph extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final preview = ref.watch(recordingPreviewPlayerProvider);
     final path = row.localPath;
+    final absolutePath = path != null && path.isNotEmpty
+        ? File(path).absolute.path
+        : null;
     return StreamBuilder<bool>(
       stream: preview.playing,
       initialData: false,
       builder: (context, snap) {
         final playingThis =
             (snap.data ?? false) &&
-            path != null &&
-            path.isNotEmpty &&
-            preview.loadedPath == File(path).absolute.path;
+            absolutePath != null &&
+            preview.loadedPath == absolutePath;
         return Icon(
           playingThis ? EnjoyIcons.pause : EnjoyIcons.play,
           size: size,

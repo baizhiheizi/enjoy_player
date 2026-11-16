@@ -245,7 +245,8 @@ _ParsedWav? _parseWav(Uint8List bytes) {
   if (channels <= 0 || rate <= 0 || align <= 0) return null;
 
   final end = math.min(chunks.dataStart + chunks.dataSize, bytes.length);
-  final data = bytes.sublist(chunks.dataStart, end);
+  if (end <= chunks.dataStart) return null;
+  final data = Uint8List.sublistView(bytes, chunks.dataStart, end);
   final frames = data.length ~/ align;
   if (frames <= 0) return null;
 

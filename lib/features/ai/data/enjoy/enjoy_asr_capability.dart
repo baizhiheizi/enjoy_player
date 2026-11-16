@@ -53,6 +53,7 @@ final class EnjoyAsrCapability implements AsrCapability {
 
       final map = await _api.transcribe(
         audioBytes: request.audioBytes,
+        audioPath: request.audioPath,
         filename: request.filename,
         model: request.model,
         language: baseLanguage,
@@ -99,13 +100,15 @@ final class EnjoyAsrCapability implements AsrCapability {
             : kLongFormDefaultAudioContentType;
 
         _log.info(
-          'Long-form upload start bytes=${request.audioBytes.length} '
+          'Long-form upload start bytes=${request.audioBytes?.length ?? 0} '
+          'path=${request.audioPath ?? ''} '
           'duration=$durationSeconds ref=$candidateRef',
         );
 
         final uploaded = await uploadClient.upload(
           mediaReference: candidateRef,
           bytes: request.audioBytes,
+          filePath: request.audioPath,
           contentType: contentType,
         );
         mediaReference = uploaded.mediaReference;

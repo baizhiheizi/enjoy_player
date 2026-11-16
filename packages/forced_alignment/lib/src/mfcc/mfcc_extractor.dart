@@ -91,21 +91,31 @@ MfccFrames extractMfccFrames(Float32List signal, MfccPreset preset) {
   } else {
     samples = signal;
   }
-  final frames = <List<double>>[];
   final stride = preset.windowStride;
-  for (var i = 0; i + window <= samples.length; i += stride) {
-    final frame = Float64List(fftSize);
-    frame.setRange(0, window, samples, i);
-    frames.add(frame);
-  }
-  if (frames.isEmpty) {
-    frames.add(Float64List(fftSize));
-  }
+  final rawCount = ((samples.length - window) ~/ stride) + 1;
+  final frameCount = rawCount < 1 ? 1 : rawCount;
+  const numCoefs = 13;
   final processor = MFCC(
     sampleRate: kAlignmentSampleRate,
     fftSize: fftSize,
     numFilters: 26,
-    numCoefs: 13,
+    numCoefs: numCoefs,
   );
-  return MfccFrames.fromBoxed(processor.processFrames(frames));
+  final scratch = Float64List(fftSize);
+  final singleFrame = <List<double>>[scratch];
+  if (samples.length < window || rawCount < 1) {
+    final coefs = processor.processFrames(singleFrame).first;
+    final flat = Float64List(numCoefs)..setRange(0, numCoefs, coefs);
+    return MfccFrames(data: flat, stride: numCoefs, frameCount: 1);
+  }
+
+  final flat = Float64List(frameCount * numCoefs);
+  var outOffset = 0;
+  for (var i = 0; i + window <= samples.length; i += stride) {
+    scratch.setRange(0, window, samples, i);
+    final coefs = processor.processFrames(singleFrame).first;
+    flat.setRange(outOffset, outOffset + numCoefs, coefs);
+    outOffset += numCoefs;
+  }
+  return MfccFrames(data: flat, stride: numCoefs, frameCount: frameCount);
 }

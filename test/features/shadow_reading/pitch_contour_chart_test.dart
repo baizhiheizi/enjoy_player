@@ -317,5 +317,37 @@ void main() {
       );
       expect(pitchContourRunsDerivationCount, before + 2);
     });
+
+    testWidgets('progressListenable updates cursor overlay without rebuilds', (
+      tester,
+    ) async {
+      final points = <EchoRegionSeriesPoint>[
+        for (var i = 0; i < 20; i++)
+          EchoRegionSeriesPoint(
+            t: i * 0.05,
+            ampRef: 0.4,
+            pitchRefHz: 200.0 + i,
+          ),
+      ];
+      final progress = ValueNotifier<double?>(0.1);
+      addTearDown(progress.dispose);
+      final before = pitchContourRunsDerivationCount;
+
+      await tester.pumpWidget(
+        chartHost(
+          PitchContourChart(
+            points: points,
+            referenceColor: Colors.red,
+            userColor: Colors.blue,
+            progressListenable: progress,
+          ),
+        ),
+      );
+      expect(pitchContourRunsDerivationCount, before + 2);
+
+      progress.value = 0.7;
+      await tester.pump();
+      expect(pitchContourRunsDerivationCount, before + 2);
+    });
   });
 }

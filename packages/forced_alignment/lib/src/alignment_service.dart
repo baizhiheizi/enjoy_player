@@ -5,7 +5,6 @@ import 'package:meta/meta.dart';
 
 import 'alignment_isolate.dart';
 import 'constants.dart';
-import 'cue_window.dart';
 import 'failures.dart';
 import 'language_map.dart';
 import 'outcome.dart';
@@ -208,7 +207,7 @@ Future<AlignmentOutcome> alignSegments({
   }
 
   final cueTimeout = timeout ?? kDefaultPerCueTimeout;
-  final successes = <TimelineEntry>[];
+  final cues = <AlignCueSpec>[];
   AlignmentFailureReason? lastCueFailure;
 
   for (final segment in segments) {
@@ -238,7 +237,6 @@ Future<AlignmentOutcome> alignSegments({
       lastCueFailure = AlignmentFailureReason.tooShort;
       continue;
     }
-    final slice = Float32List.sublistView(sourcePcm16k, startSample, endSample);
     if (synthesizer == null &&
         tokenizeWords(text).isNotEmpty &&
         !espeakFfiIsAvailable()) {
@@ -277,41 +275,68 @@ Future<AlignmentOutcome> alignSegments({
         ),
       );
     }
-    final outcome = await _runJob(
-      job: AlignIsolateJob(
-        sourcePcm: Float32List.fromList(slice),
+    cues.add(
+      AlignCueSpec(
+        id: segment.id,
+        startTime: segment.startTime,
+        endTime: segment.endTime,
+        startSample: startSample,
+        endSample: endSample,
         transcript: text,
-        language: language,
-        timeOffset: segment.startTime,
         reference: reference,
       ),
-      timeout: cueTimeout,
-      cancel: cancel,
     );
-    switch (outcome) {
-      case AlignmentSuccess(:final result):
-        for (final entry in result.timeline) {
-          successes.add(
-            withSegmentId(
-              clampTimelineToCueWindow(
-                entry,
-                startTime: segment.startTime,
-                endTime: segment.endTime,
-              ),
-              segment.id,
-            ),
-          );
-        }
-      case AlignmentFailed(:final failure):
-        if (failure.reason == AlignmentFailureReason.cancelled ||
-            failure.reason == AlignmentFailureReason.timedOut ||
-            failure.reason == AlignmentFailureReason.unsupportedLanguage ||
-            failure.reason == AlignmentFailureReason.audioUnavailable ||
-            failure.reason ==
-                AlignmentFailureReason.spokenReferenceUnavailable) {
-          return outcome;
-        }
-        lastCueFailure = failure.reason;
+  }
+
+  final successes = <TimelineEntry>[];
+  if (cues.isNotEmpty) {
+    final batchTimeout = Duration(
+      milliseconds: cueTimeout.inMilliseconds * cues.length,
+    );
+    try {
+      final raw = await runAlignSegmentsJobInIsolate(
+        job: AlignSegmentsIsolateJob(
+          sourcePcm: sourcePcm16k,
+          language: language,
+          cues: cues,
+        ),
+        cancel: cancel,
+        timeout: batchTimeout,
+      );
+      if (cancel?.isCancelled ?? false) {
+        return const AlignmentFailed(
+          AlignmentFailure(reason: AlignmentFailureReason.cancelled),
+        );
+      }
+      if (raw is! AlignSegmentsIsolateResult) {
+        return AlignmentFailed(
+          AlignmentFailure(
+            reason: AlignmentFailureReason.internal,
+            message: 'unexpected isolate payload ${raw.runtimeType}',
+          ),
+        );
+      }
+      if (raw.criticalFailure != null) {
+        return AlignmentFailed(raw.criticalFailure!);
+      }
+      successes.addAll(raw.timeline);
+      lastCueFailure = raw.lastCueFailure ?? lastCueFailure;
+    } on IsolateTimeout {
+      return const AlignmentFailed(
+        AlignmentFailure(reason: AlignmentFailureReason.timedOut),
+      );
+    } on IsolateCancelled {
+      return const AlignmentFailed(
+        AlignmentFailure(reason: AlignmentFailureReason.cancelled),
+      );
+    } catch (e, st) {
+      _log.warning('alignment segments job failed', e, st);
+      return AlignmentFailed(
+        AlignmentFailure(
+          reason: AlignmentFailureReason.internal,
+          message: e.toString(),
+        ),
+      );
     }
   }
 

@@ -69,6 +69,7 @@ class PitchContourChart extends StatelessWidget {
     required this.userColor,
     this.visibility = const PitchContourVisibility(),
     this.progress,
+    this.progressListenable,
     this.progressColor,
     super.key,
   });
@@ -80,6 +81,9 @@ class PitchContourChart extends StatelessWidget {
 
   /// Optional playback progress within segment `0..1`.
   final double? progress;
+
+  /// Reactive playback progress `0..1` that repaints only the cursor overlay.
+  final ValueListenable<double?>? progressListenable;
 
   /// When null, resolved from [ThemeData.colorScheme] in [build].
   final Color? progressColor;
@@ -98,14 +102,19 @@ class PitchContourChart extends StatelessWidget {
         return SizedBox(
           height: h,
           width: double.infinity,
-          child: CustomPaint(
-            painter: _PitchContourPainter(
-              points: points,
-              referenceColor: referenceColor,
-              userColor: userColor,
-              visibility: visibility,
-              progress: progress,
-              progressColor: resolvedProgressColor,
+          child: RepaintBoundary(
+            child: CustomPaint(
+              painter: _StaticPitchContourPainter(
+                points: points,
+                referenceColor: referenceColor,
+                userColor: userColor,
+                visibility: visibility,
+              ),
+              foregroundPainter: _PitchProgressPainter(
+                progress: progress,
+                progressListenable: progressListenable,
+                progressColor: resolvedProgressColor,
+              ),
             ),
           ),
         );
@@ -232,27 +241,53 @@ List<List<(double, double)>> _derivePitchRuns(
   ];
 }
 
-class _PitchContourPainter extends CustomPainter {
-  _PitchContourPainter({
+class _StaticPitchContourPainter extends CustomPainter {
+  _StaticPitchContourPainter({
     required this.points,
     required this.referenceColor,
     required this.userColor,
     required this.visibility,
-    required this.progress,
-    required this.progressColor,
-  });
+  }) : _waveformPaint = Paint()..color = referenceColor.withValues(alpha: 0.12),
+       _refPaint = Paint()
+         ..color = referenceColor
+         ..strokeWidth = 9
+         ..style = PaintingStyle.stroke
+         ..strokeCap = StrokeCap.round
+         ..strokeJoin = StrokeJoin.round,
+       _userPaint = Paint()
+         ..color = userColor
+         ..strokeWidth = 3
+         ..style = PaintingStyle.stroke
+         ..strokeCap = StrokeCap.round
+         ..strokeJoin = StrokeJoin.round;
 
   final List<EchoRegionSeriesPoint> points;
   final Color referenceColor;
   final Color userColor;
   final PitchContourVisibility visibility;
-  final double? progress;
-  final Color progressColor;
+  final Paint _waveformPaint;
+  final Paint _refPaint;
+  final Paint _userPaint;
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  Size? _cachedSize;
+  Path? _cachedEnvelopePath;
+  List<Path>? _cachedRefPaths;
+  List<Path>? _cachedUserPaths;
+
+  void _ensureGeometry(Size size) {
+    if (_cachedSize == size &&
+        _cachedRefPaths != null &&
+        _cachedUserPaths != null) {
+      return;
+    }
+    _cachedSize = size;
     final maxT = points.last.t;
-    if (maxT <= 0) return;
+    if (maxT <= 0) {
+      _cachedEnvelopePath = null;
+      _cachedRefPaths = const [];
+      _cachedUserPaths = const [];
+      return;
+    }
 
     final runs = pitchContourRuns(
       points,
@@ -264,10 +299,16 @@ class _PitchContourPainter extends CustomPainter {
 
     var lo = double.infinity;
     var hi = double.negativeInfinity;
-    for (final run in [...refRuns, ...userRuns]) {
+    for (final run in refRuns) {
       for (final (_, st) in run) {
-        lo = math.min(lo, st);
-        hi = math.max(hi, st);
+        if (st < lo) lo = st;
+        if (st > hi) hi = st;
+      }
+    }
+    for (final run in userRuns) {
+      for (final (_, st) in run) {
+        if (st < lo) lo = st;
+        if (st > hi) hi = st;
       }
     }
     if (!lo.isFinite) {
@@ -278,11 +319,12 @@ class _PitchContourPainter extends CustomPainter {
     final mid = (lo + hi) / 2;
     lo = mid - span * 0.6;
     hi = mid + span * 0.6;
+    final stSpan = hi - lo;
 
     final chart = Rect.fromLTWH(0, 10, size.width, size.height - 20);
     double x(double t) => chart.left + (t / maxT) * chart.width;
     double y(double st) =>
-        chart.bottom - ((st - lo) / (hi - lo)).clamp(0.0, 1.0) * chart.height;
+        chart.bottom - ((st - lo) / stSpan).clamp(0.0, 1.0) * chart.height;
 
     if (visibility.showWaveform) {
       final envelope = Path()..moveTo(chart.left, chart.bottom);
@@ -296,64 +338,87 @@ class _PitchContourPainter extends CustomPainter {
       envelope
         ..lineTo(chart.right, chart.bottom)
         ..close();
-      canvas.drawPath(
-        envelope,
-        Paint()..color = referenceColor.withValues(alpha: 0.12),
-      );
+      _cachedEnvelopePath = envelope;
+    } else {
+      _cachedEnvelopePath = null;
     }
 
-    void stroke(List<List<(double, double)>> runs, Paint paint) {
-      for (final run in runs) {
-        final path = Path()..moveTo(x(run.first.$1), y(run.first.$2));
-        if (run.length == 1) {
-          path.lineTo(x(run.first.$1) + 0.5, y(run.first.$2));
-        }
-        for (final (t, st) in run.skip(1)) {
-          path.lineTo(x(t), y(st));
-        }
-        canvas.drawPath(path, paint);
-      }
+    List<Path> buildPaths(List<List<(double, double)>> list) {
+      return [
+        for (final run in list)
+          () {
+            final path = Path()..moveTo(x(run.first.$1), y(run.first.$2));
+            if (run.length == 1) {
+              path.lineTo(x(run.first.$1) + 0.5, y(run.first.$2));
+            }
+            for (var i = 1; i < run.length; i++) {
+              final (t, st) = run[i];
+              path.lineTo(x(t), y(st));
+            }
+            return path;
+          }(),
+      ];
     }
 
-    stroke(
-      refRuns,
-      Paint()
-        ..color = referenceColor
-        ..strokeWidth = 9
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-    stroke(
-      userRuns,
-      Paint()
-        ..color = userColor
-        ..strokeWidth = 3
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
+    _cachedRefPaths = buildPaths(refRuns);
+    _cachedUserPaths = buildPaths(userRuns);
+  }
 
-    final prog = progress;
-    if (prog != null && prog >= 0 && prog <= 1) {
-      final px = chart.left + prog * chart.width;
-      canvas.drawLine(
-        Offset(px, chart.top),
-        Offset(px, chart.bottom),
-        Paint()
-          ..color = progressColor
-          ..strokeWidth = 1.2,
-      );
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty) return;
+    _ensureGeometry(size);
+    final envelope = _cachedEnvelopePath;
+    if (envelope != null) {
+      canvas.drawPath(envelope, _waveformPaint);
+    }
+    for (final path in _cachedRefPaths!) {
+      canvas.drawPath(path, _refPaint);
+    }
+    for (final path in _cachedUserPaths!) {
+      canvas.drawPath(path, _userPaint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _PitchContourPainter oldDelegate) {
+  bool shouldRepaint(covariant _StaticPitchContourPainter oldDelegate) {
     return !listEquals(oldDelegate.points, points) ||
-        oldDelegate.progress != progress ||
-        oldDelegate.progressColor != progressColor ||
         oldDelegate.visibility != visibility ||
         oldDelegate.referenceColor != referenceColor ||
         oldDelegate.userColor != userColor;
+  }
+}
+
+class _PitchProgressPainter extends CustomPainter {
+  _PitchProgressPainter({
+    required this.progress,
+    required this.progressListenable,
+    required this.progressColor,
+  }) : _paint = Paint()
+         ..color = progressColor
+         ..strokeWidth = 1.2,
+       super(repaint: progressListenable);
+
+  final double? progress;
+  final ValueListenable<double?>? progressListenable;
+  final Color progressColor;
+  final Paint _paint;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final prog = progressListenable?.value ?? progress;
+    if (prog == null || prog < 0 || prog > 1) return;
+    final chartTop = 10.0;
+    final chartBottom = size.height - 10.0;
+    if (chartBottom <= chartTop) return;
+    final px = prog * size.width;
+    canvas.drawLine(Offset(px, chartTop), Offset(px, chartBottom), _paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PitchProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.progressListenable != progressListenable ||
+        oldDelegate.progressColor != progressColor;
   }
 }

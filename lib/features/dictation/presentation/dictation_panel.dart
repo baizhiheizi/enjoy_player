@@ -33,6 +33,7 @@ class DictationPanel extends StatefulWidget {
 class _DictationPanelState extends State<DictationPanel> {
   late final TextEditingController _textEditingController;
   late final FocusNode _textFocusNode;
+  late int _totalWordCount;
 
   @override
   void initState() {
@@ -41,6 +42,9 @@ class _DictationPanelState extends State<DictationPanel> {
       text: widget.state.textDraft,
     );
     _textFocusNode = FocusNode(onKeyEvent: _handleTextKeyEvent);
+    _totalWordCount = countDictationWords(
+      widget.controller.scope.referenceText,
+    );
   }
 
   KeyEventResult _handleTextKeyEvent(FocusNode node, KeyEvent event) {
@@ -62,6 +66,12 @@ class _DictationPanelState extends State<DictationPanel> {
   @override
   void didUpdateWidget(DictationPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller.scope.referenceText !=
+        widget.controller.scope.referenceText) {
+      _totalWordCount = countDictationWords(
+        widget.controller.scope.referenceText,
+      );
+    }
     if (oldWidget.state.textDraft != widget.state.textDraft &&
         _textEditingController.text != widget.state.textDraft) {
       _textEditingController.text = widget.state.textDraft;
@@ -223,10 +233,8 @@ class _DictationPanelState extends State<DictationPanel> {
   }
 
   Widget _buildTextInputView(EnjoyThemeTokens t, AppLocalizations? l10n) {
-    final typedCount = tokenizeDictationWords(widget.state.textDraft).length;
-    final totalCount = tokenizeDictationWords(
-      widget.controller.scope.referenceText,
-    ).length;
+    final typedCount = countDictationWords(widget.state.textDraft);
+    final totalCount = _totalWordCount;
 
     return Container(
       padding: const EdgeInsets.all(12),

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:enjoy_player/core/audio/wav_signal_peak.dart';
@@ -167,4 +168,24 @@ void main() {
     expect(r.rmsNormalized, 0);
     expect(r.nonZeroRatio, 0);
   });
+
+  test(
+    'scanWavDataPeakFromFile matches scanWavDataPeakFromBytes across chunks',
+    () async {
+      final samples = List<int>.generate(50000, (i) => (i % 7000) - 3500);
+      final bytes = _pcm16MonoWav(16000, samples);
+      final tmp = Directory.systemTemp.createTempSync('wav_peak_stream_');
+      addTearDown(() => tmp.delete(recursive: true));
+      final file = File('${tmp.path}/big.wav')..writeAsBytesSync(bytes);
+
+      final fromBytes = scanWavDataPeakFromBytes(bytes);
+      final fromFile = await scanWavDataPeakFromFile(file.path);
+
+      expect(fromFile, isNotNull);
+      expect(fromFile!.totalSamples, fromBytes!.totalSamples);
+      expect(fromFile.peakNormalized, closeTo(fromBytes.peakNormalized, 1e-9));
+      expect(fromFile.rmsNormalized, closeTo(fromBytes.rmsNormalized, 1e-9));
+      expect(fromFile.nonZeroRatio, closeTo(fromBytes.nonZeroRatio, 1e-9));
+    },
+  );
 }

@@ -40,7 +40,18 @@ final class WavChunks {
 ///
 /// Returns `null` when [bytes] is not RIFF/WAVE, a required chunk is missing
 /// or truncated, or the `fmt ` chunk is shorter than the 16-byte PCM layout.
-WavChunks? readWavChunks(Uint8List bytes) {
+WavChunks? readWavChunks(Uint8List bytes) =>
+    _readWavChunks(bytes, requireFullDataChunk: true);
+
+/// Parses `fmt ` and the `data` header offset from a partial file prefix
+/// without requiring all of `data` to fit inside [bytes].
+WavChunks? readWavChunksFromHeaderPrefix(Uint8List bytes) =>
+    _readWavChunks(bytes, requireFullDataChunk: false);
+
+WavChunks? _readWavChunks(
+  Uint8List bytes, {
+  required bool requireFullDataChunk,
+}) {
   if (bytes.length < 44) return null;
   if (!_fourCc(bytes, 0, 'RIFF') || !_fourCc(bytes, 8, 'WAVE')) return null;
 
@@ -50,12 +61,15 @@ WavChunks? readWavChunks(Uint8List bytes) {
 
   var offset = 12;
   while (offset + 8 <= bytes.length) {
-    final chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
     final chunkSize = _u32(bytes, offset + 4);
     final chunkData = offset + 8;
-    if (chunkData + chunkSize > bytes.length) return null;
+    final isData = _fourCc(bytes, offset, 'data');
+    if (chunkData + chunkSize > bytes.length &&
+        !(isData && !requireFullDataChunk)) {
+      return null;
+    }
 
-    if (chunkId == 'fmt ') {
+    if (_fourCc(bytes, offset, 'fmt ')) {
       if (chunkSize < 16) return null;
       fmt = WavFmtLayout(
         audioFormat: _u16(bytes, chunkData),
@@ -65,7 +79,7 @@ WavChunks? readWavChunks(Uint8List bytes) {
         blockAlign: _u16(bytes, chunkData + 12),
         bitsPerSample: _u16(bytes, chunkData + 14),
       );
-    } else if (chunkId == 'data') {
+    } else if (isData) {
       dataStart = chunkData;
       dataSize = chunkSize;
     }

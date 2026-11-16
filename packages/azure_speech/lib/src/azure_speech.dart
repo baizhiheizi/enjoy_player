@@ -104,13 +104,13 @@ final class AzureSpeech {
         );
       }).toList();
       return AzureSpeechSynthesisOutcome(
-        audioBytes: Uint8List.fromList(bytes),
+        audioBytes: bytes,
         wordBoundaries: wordBoundaries,
       );
     }
 
     final bytes = base64Decode(raw);
-    return AzureSpeechSynthesisOutcome(audioBytes: Uint8List.fromList(bytes));
+    return AzureSpeechSynthesisOutcome(audioBytes: bytes);
   });
 
   /// Maps platform errors onto [AzureSpeechException] with the original
