@@ -154,7 +154,17 @@ class _ElapsedRingPainter extends CustomPainter {
     required this.trackColor,
     required this.progressColor,
     required this.strokeWidth,
-  }) : super(repaint: elapsedSec);
+  }) : _trackPaint = Paint()
+         ..color = trackColor
+         ..style = PaintingStyle.stroke
+         ..strokeWidth = strokeWidth
+         ..strokeCap = StrokeCap.round,
+       _arcPaint = Paint()
+         ..color = progressColor
+         ..style = PaintingStyle.stroke
+         ..strokeWidth = strokeWidth
+         ..strokeCap = StrokeCap.round,
+       super(repaint: elapsedSec);
 
   final Animation<double> elapsedSec;
   final double targetSec;
@@ -162,18 +172,23 @@ class _ElapsedRingPainter extends CustomPainter {
   final Color trackColor;
   final Color progressColor;
   final double strokeWidth;
+  final Paint _trackPaint;
+  final Paint _arcPaint;
 
   @override
   void paint(Canvas canvas, Size size) {
     final arcProgress = overTarget || targetSec <= 0
         ? 1.0
         : 1.0 - (elapsedSec.value / targetSec).clamp(0.0, 1.0);
-    EnjoyProgressRingPainter(
+    EnjoyProgressRingPainter.paintRing(
+      canvas,
+      size,
       progress: arcProgress,
-      trackColor: trackColor,
-      progressColor: progressColor,
       strokeWidth: strokeWidth,
-    ).paint(canvas, size);
+      trackPaint: _trackPaint,
+      arcPaint: _arcPaint,
+      progressColor: progressColor,
+    );
   }
 
   @override

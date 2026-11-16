@@ -225,10 +225,12 @@ class _SentenceRulerState extends ConsumerState<SentenceRuler> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        CustomPaint(
-                          painter: _RulerProgressPainter(
-                            tokens: t,
-                            fraction: _fraction,
+                        RepaintBoundary(
+                          child: CustomPaint(
+                            painter: _RulerProgressPainter(
+                              tokens: t,
+                              fraction: _fraction,
+                            ),
                           ),
                         ),
                         RepaintBoundary(
@@ -239,11 +241,13 @@ class _SentenceRulerState extends ConsumerState<SentenceRuler> {
                             ),
                           ),
                         ),
-                        CustomPaint(
-                          painter: _RulerThumbPainter(
-                            tokens: t,
-                            fraction: _fraction,
-                            hovered: _hovered,
+                        RepaintBoundary(
+                          child: CustomPaint(
+                            painter: _RulerThumbPainter(
+                              tokens: t,
+                              fraction: _fraction,
+                              hovered: _hovered,
+                            ),
                           ),
                         ),
                       ],
@@ -311,10 +315,14 @@ class _SentenceRulerState extends ConsumerState<SentenceRuler> {
 /// playhead step, so it draws nothing that depends on the transcript.
 class _RulerProgressPainter extends CustomPainter {
   _RulerProgressPainter({required this.tokens, required this.fraction})
-    : super(repaint: fraction);
+    : _trackPaint = Paint()..color = tokens.sunk,
+      _playedPaint = Paint()..color = tokens.original,
+      super(repaint: fraction);
 
   final EnjoyThemeTokens tokens;
   final ValueListenable<double> fraction;
+  final Paint _trackPaint;
+  final Paint _playedPaint;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -325,7 +333,7 @@ class _RulerProgressPainter extends CustomPainter {
         Rect.fromLTWH(0, trackTop, size.width, t.strokeRulerTrack),
         const Radius.circular(2),
       ),
-      Paint()..color = t.sunk,
+      _trackPaint,
     );
 
     final playedWidth = size.width * fraction.value.clamp(0.0, 1.0);
@@ -334,7 +342,7 @@ class _RulerProgressPainter extends CustomPainter {
         Rect.fromLTWH(0, trackTop, playedWidth, t.strokeRulerTrack),
         const Radius.circular(2),
       ),
-      Paint()..color = t.original,
+      _playedPaint,
     );
   }
 
@@ -414,27 +422,26 @@ class _RulerThumbPainter extends CustomPainter {
     required this.tokens,
     required this.fraction,
     required this.hovered,
-  }) : super(repaint: Listenable.merge([fraction, hovered]));
+  }) : _fillPaint = Paint()..color = tokens.paper,
+       _strokePaint = Paint()
+         ..color = tokens.original
+         ..style = PaintingStyle.stroke
+         ..strokeWidth = 2,
+       super(repaint: Listenable.merge([fraction, hovered]));
 
   final EnjoyThemeTokens tokens;
   final ValueListenable<double> fraction;
   final ValueListenable<bool> hovered;
+  final Paint _fillPaint;
+  final Paint _strokePaint;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final t = tokens;
     final playedWidth = size.width * fraction.value.clamp(0.0, 1.0);
     final thumbRadius = hovered.value ? 8.0 : 6.0;
     final thumbCenter = Offset(playedWidth, size.height / 2);
-    canvas.drawCircle(thumbCenter, thumbRadius, Paint()..color = t.paper);
-    canvas.drawCircle(
-      thumbCenter,
-      thumbRadius,
-      Paint()
-        ..color = t.original
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
+    canvas.drawCircle(thumbCenter, thumbRadius, _fillPaint);
+    canvas.drawCircle(thumbCenter, thumbRadius, _strokePaint);
   }
 
   @override

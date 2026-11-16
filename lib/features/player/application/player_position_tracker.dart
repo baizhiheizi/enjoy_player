@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_enforcer.dart';
+import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/word_loop_enforcer.dart';
 import 'package:enjoy_player/features/player/application/position_buckets.dart';
@@ -109,17 +110,23 @@ class PlayerPositionTracker {
         if (_subscribedGeneration != currentOpenGeneration()) return;
         final seconds = pos.inMilliseconds / 1000.0;
 
-        unawaited(() async {
-          try {
-            final skipEcho = await _wordLoopEnforcer.enforceTick(
-              pos.inMilliseconds,
-            );
-            if (skipEcho) return;
-            await _echoEnforcer.enforceTick(seconds);
-          } catch (e, st) {
-            _positionLog.warning('loop/echo enforcement tick failed', e, st);
-          }
-        }());
+        final echoActive = ref.read(echoModeProvider).active;
+        final wordLoopActive =
+            ref.read(wordPracticeSessionProvider(mediaId).exists) &&
+            ref.read(wordPracticeSessionProvider(mediaId)).isLooping;
+        if (echoActive || wordLoopActive) {
+          unawaited(() async {
+            try {
+              final skipEcho = await _wordLoopEnforcer.enforceTick(
+                pos.inMilliseconds,
+              );
+              if (skipEcho) return;
+              await _echoEnforcer.enforceTick(seconds);
+            } catch (e, st) {
+              _positionLog.warning('loop/echo enforcement tick failed', e, st);
+            }
+          }());
+        }
 
         final bucket = pos.inMilliseconds ~/ positionBucketMs;
         final prevSec = getSession()?.currentTimeSeconds;

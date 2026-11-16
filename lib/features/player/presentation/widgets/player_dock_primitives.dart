@@ -55,23 +55,22 @@ class DockReadout extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
     final tt = Theme.of(context).textTheme;
-    final total = ref
-        .watch(transcriptLinesForMediaProvider(mediaId))
-        .value
-        ?.length;
+    final total = ref.watch(
+      transcriptLinesForMediaProvider(mediaId).select((a) => a.value?.length),
+    );
     final lens = ref.watch(playerLensProvider);
     final hasLines = total != null && total > 0;
     if (!hasLines) return const SizedBox.shrink();
-    final echo = ref.watch(echoModeProvider);
-    final cue = ref
-        .watch(transcriptPlaybackHighlightProvider(mediaId))
-        .cueIndex;
+    final cue = ref.watch(
+      transcriptPlaybackHighlightProvider(mediaId).select((h) => h.cueIndex),
+    );
     final line = cue >= 0 ? cue + 1 : 1;
 
     final String meta;
     Widget? hint;
     switch (lens) {
       case PlayerLens.echo:
+        final echo = ref.watch(echoModeProvider);
         final loopSeconds = (echo.endTimeSeconds - echo.startTimeSeconds).clamp(
           0.0,
           double.infinity,

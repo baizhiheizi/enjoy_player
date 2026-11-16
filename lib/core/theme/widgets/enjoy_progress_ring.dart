@@ -31,53 +31,70 @@ class EnjoyProgressRingPainter extends CustomPainter {
   }) : assert(
          (progressColor == null) != (gradientColors == null),
          'Provide exactly one of progressColor or gradientColors.',
-       );
+       ),
+       _trackPaint = Paint()
+         ..color = trackColor
+         ..style = PaintingStyle.stroke
+         ..strokeWidth = strokeWidth
+         ..strokeCap = StrokeCap.round,
+       _arcPaint = Paint()
+         ..style = PaintingStyle.stroke
+         ..strokeWidth = strokeWidth
+         ..strokeCap = StrokeCap.round;
 
-  /// Fraction of the ring the arc covers, clamped to 0–1. Zero paints the
-  /// track alone.
   final double progress;
-
   final Color trackColor;
-
   final double strokeWidth;
-
-  /// Solid arc color (no gradient).
   final Color? progressColor;
-
-  /// Sweep-gradient arc colors (e.g. `[t.auroraStart, t.auroraEnd]`).
   final List<Color>? gradientColors;
+  final Paint _trackPaint;
+  final Paint _arcPaint;
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  static void paintRing(
+    Canvas canvas,
+    Size size, {
+    required double progress,
+    required double strokeWidth,
+    required Paint trackPaint,
+    required Paint arcPaint,
+    Color? progressColor,
+    List<Color>? gradientColors,
+  }) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (math.min(size.width, size.height) - strokeWidth) / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
     canvas.drawCircle(center, radius, trackPaint);
 
     final fraction = progress.clamp(0.0, 1.0);
     if (fraction <= 0) return;
     final sweep = 2 * math.pi * fraction;
-    final arcPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    final gradient = gradientColors;
-    if (gradient != null) {
+    if (gradientColors != null) {
+      arcPaint.color = const Color(0xFFFFFFFF);
       arcPaint.shader = SweepGradient(
-        colors: gradient,
+        colors: gradientColors,
         stops: [0, math.max(fraction, _kMinArcGradientStop)],
         transform: const GradientRotation(-math.pi / 2),
       ).createShader(rect);
     } else {
+      arcPaint.shader = null;
       arcPaint.color = progressColor!;
     }
     canvas.drawArc(rect, -math.pi / 2, sweep, false, arcPaint);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    paintRing(
+      canvas,
+      size,
+      progress: progress,
+      strokeWidth: strokeWidth,
+      trackPaint: _trackPaint,
+      arcPaint: _arcPaint,
+      progressColor: progressColor,
+      gradientColors: gradientColors,
+    );
   }
 
   @override

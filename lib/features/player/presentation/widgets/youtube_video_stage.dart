@@ -7,7 +7,7 @@ import 'dart:ui' show ImageByteFormat;
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, visibleForTesting;
+    show ValueListenable, defaultTargetPlatform, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -125,17 +125,41 @@ class _FrameWatchdogLayer extends StatefulWidget {
 class _FrameWatchdogLayerState extends State<_FrameWatchdogLayer> {
   final GlobalKey _boundaryKey = GlobalKey();
   YoutubeFrameWatchdog? _watchdog;
+  ValueListenable<bool>? _firstPlayingListenable;
 
   @override
   void initState() {
     super.initState();
+    _attachFirstPlayingListener();
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
   }
 
   @override
   void didUpdateWidget(_FrameWatchdogLayer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.engine.session != widget.engine.session) {
+      _detachFirstPlayingListener();
+      _attachFirstPlayingListener();
+    }
     if (_watchdog == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
+    }
+  }
+
+  void _attachFirstPlayingListener() {
+    final listenable = widget.engine.session.loggedFirstPlayingListenable;
+    _firstPlayingListenable = listenable;
+    listenable.addListener(_onFirstPlayingChanged);
+  }
+
+  void _detachFirstPlayingListener() {
+    _firstPlayingListenable?.removeListener(_onFirstPlayingChanged);
+    _firstPlayingListenable = null;
+  }
+
+  void _onFirstPlayingChanged() {
+    if (!mounted || _watchdog != null) return;
+    if (widget.engine.session.loggedFirstPlaying) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
     }
   }
@@ -145,9 +169,9 @@ class _FrameWatchdogLayerState extends State<_FrameWatchdogLayer> {
     if (!YoutubeFrameWatchdog.supportedOn(defaultTargetPlatform)) return;
     if (!widget.engine.availability.canPlay) return;
     if (!widget.engine.session.loggedFirstPlaying) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
       return;
     }
+    _detachFirstPlayingListener();
     _watchdog = YoutubeFrameWatchdog(
       sampleProvider: _takeSample,
       playingCheck: () => widget.engine.session.playing,
@@ -193,6 +217,7 @@ class _FrameWatchdogLayerState extends State<_FrameWatchdogLayer> {
 
   @override
   void dispose() {
+    _detachFirstPlayingListener();
     _watchdog?.dispose();
     super.dispose();
   }
