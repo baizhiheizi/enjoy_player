@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -20,9 +21,13 @@ final Logger _activeUsersLog = logNamed('community');
 
 @riverpod
 Future<ActiveUsersResponse?> activeUsers(Ref ref) async {
-  final authState = ref.watch(authCtrlProvider);
-  final auth = authState.valueOrNull;
-  if (auth is! AuthSignedIn) return null;
+  final signedInUserId = ref.watch(
+    authCtrlProvider.select((a) {
+      final v = a.valueOrNull;
+      return v is AuthSignedIn ? v.profile.id : null;
+    }),
+  );
+  if (signedInUserId == null) return null;
 
   final api = ref.watch(userApiProvider);
   final sw = Stopwatch()..start();

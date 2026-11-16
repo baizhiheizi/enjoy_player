@@ -68,8 +68,13 @@ Future<void> _pump() async {
 
 class _SettingsSelectCounter extends drift.QueryInterceptor {
   int selectCount = 0;
+  int writeCount = 0;
 
   static final _settingsTable = RegExp(r'FROM\s+"?settings"?');
+  static final _settingsWrite = RegExp(
+    r'(?:INSERT|UPDATE)\b.*\bsettings\b',
+    caseSensitive: false,
+  );
 
   @override
   Future<List<Map<String, Object?>>> runSelect(
@@ -79,6 +84,26 @@ class _SettingsSelectCounter extends drift.QueryInterceptor {
   ) {
     if (_settingsTable.hasMatch(statement)) selectCount++;
     return executor.runSelect(statement, args);
+  }
+
+  @override
+  Future<int> runInsert(
+    drift.QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) {
+    if (_settingsWrite.hasMatch(statement)) writeCount++;
+    return executor.runInsert(statement, args);
+  }
+
+  @override
+  Future<int> runUpdate(
+    drift.QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) {
+    if (_settingsWrite.hasMatch(statement)) writeCount++;
+    return executor.runUpdate(statement, args);
   }
 }
 
@@ -1095,6 +1120,112 @@ void main() {
         final state = container.read(appPreferencesCtrlProvider).valueOrNull;
         expect(state!.nativeLanguage, 'zh-CN');
       });
+    });
+
+    group('value equality & cold-start no-op', () {
+      test('AppPreferencesState implements value equality and hashCode', () {
+        const a = AppPreferencesState(
+          locale: Locale('en', 'US'),
+          learningLanguage: 'ja-JP',
+          nativeLanguage: 'zh-CN',
+          themeMode: ThemeMode.dark,
+        );
+        const b = AppPreferencesState(
+          locale: Locale('en', 'US'),
+          learningLanguage: 'ja-JP',
+          nativeLanguage: 'zh-CN',
+          themeMode: ThemeMode.dark,
+        );
+        const c = AppPreferencesState(
+          locale: Locale('zh', 'CN'),
+          learningLanguage: 'ja-JP',
+          nativeLanguage: 'zh-CN',
+          themeMode: ThemeMode.dark,
+        );
+        expect(a, equals(b));
+        expect(a.hashCode, equals(b.hashCode));
+        expect(a, isNot(equals(c)));
+      });
+
+      test(
+        'cold-start applyFromUserProfile skips SQLite writes when stored prefs match profile',
+        () async {
+          final counter = _SettingsSelectCounter();
+          final countedDb = AppDatabase(
+            executor: NativeDatabase.memory().interceptWith(counter),
+          );
+          addTearDown(countedDb.close);
+
+          await countedDb.settingsDao.setValue(
+            SettingsKeys.prefsLocale.name,
+            'en-US',
+          );
+          await countedDb.settingsDao.setValue(
+            SettingsKeys.prefsLearningLanguage.name,
+            'ja-JP',
+          );
+          await countedDb.settingsDao.setValue(
+            SettingsKeys.prefsNativeLanguage.name,
+            'zh-CN',
+          );
+          counter.writeCount = 0;
+
+          final container = await signedInContainer(database: countedDb);
+          addTearDown(container.dispose);
+
+          var emissions = 0;
+          final sub = container.listen(
+            appPreferencesCtrlProvider,
+            (_, _) => emissions++,
+          );
+          addTearDown(sub.close);
+
+          await container.read(appPreferencesCtrlProvider.future);
+          await _pump();
+
+          expect(counter.writeCount, 0);
+          expect(emissions, lessThanOrEqualTo(1));
+        },
+      );
+
+      test(
+        'unrelated UserProfile updates do not rebuild AppPreferencesCtrl',
+        () async {
+          final counter = _SettingsSelectCounter();
+          final countedDb = AppDatabase(
+            executor: NativeDatabase.memory().interceptWith(counter),
+          );
+          addTearDown(countedDb.close);
+
+          await countedDb.settingsDao.setValue(
+            SettingsKeys.prefsLocale.name,
+            'en-US',
+          );
+          await countedDb.settingsDao.setValue(
+            SettingsKeys.prefsLearningLanguage.name,
+            'ja-JP',
+          );
+          await countedDb.settingsDao.setValue(
+            SettingsKeys.prefsNativeLanguage.name,
+            'zh-CN',
+          );
+
+          final container = await signedInContainer(database: countedDb);
+          addTearDown(container.dispose);
+          await container.read(appPreferencesCtrlProvider.future);
+          await _pump();
+
+          final selectsBefore = counter.selectCount;
+          final authCtrl =
+              container.read(authCtrlProvider.notifier) as _SignedInAuthCtrl;
+          authCtrl.state = AsyncData(
+            AuthSignedIn(profile: _kProfile.copyWith(name: 'Renamed')),
+          );
+          await _pump();
+
+          expect(counter.selectCount, selectsBefore);
+        },
+      );
     });
   });
 }

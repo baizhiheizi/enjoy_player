@@ -56,12 +56,7 @@ Future<void> _bootstrap() async {
   if (defaultTargetPlatform == TargetPlatform.windows ||
       defaultTargetPlatform == TargetPlatform.macOS ||
       defaultTargetPlatform == TargetPlatform.linux) {
-    await windowManager.ensureInitialized();
-    await windowManager.setMinimumSize(const Size(880, 560));
-    await windowManager.waitUntilReadyToShow(const WindowOptions(), () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
+    unawaited(_configureDesktopWindow());
   }
 
   final root = ProviderScope(
@@ -76,6 +71,19 @@ Future<void> _bootstrap() async {
     app = ExcludeSemantics(child: root);
   }
   runApp(app);
+}
+
+Future<void> _configureDesktopWindow() async {
+  try {
+    await windowManager.ensureInitialized();
+    await windowManager.setMinimumSize(const Size(880, 560));
+    await windowManager.waitUntilReadyToShow(const WindowOptions(), () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  } on Object catch (e, st) {
+    _bootstrapLog.warning('desktop window setup failed', e, st);
+  }
 }
 
 /// eSpeak-NG provisioning runs off the startup critical path; alignment

@@ -9,7 +9,6 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/lookup_markdown_style.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_media.dart';
@@ -72,11 +71,7 @@ class FlashcardContextTab extends ConsumerWidget {
     final translation = decodeContextualExplanation(ctx.explanation);
     final canMedia = vocabularyContextSupportsMediaActions(ctx);
     final locator = ctx.locator;
-    final auth = ref.watch(authCtrlProvider);
-    final signedIn = auth.maybeWhen(
-      data: (s) => s is AuthSignedIn,
-      orElse: () => false,
-    );
+    final signedIn = ref.watch(authIsSignedInProvider);
     final titleAsync = ref.watch(vocabularySourceTitleProvider(ctx.sourceId));
     final sourceTitle =
         titleAsync.asData?.value ??

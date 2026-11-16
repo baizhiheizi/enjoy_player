@@ -59,11 +59,13 @@ class _FlashcardDictionaryTabState
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final result = decodeDictionaryExplanation(widget.explanation);
-    final auth = ref.watch(authCtrlProvider);
-    final authLoading = auth.isLoading;
-    final signedIn = auth.maybeWhen(
-      data: (s) => s is AuthSignedIn,
-      orElse: () => false,
+    final (authLoading, signedIn) = ref.watch(
+      authCtrlProvider.select(
+        (auth) => (
+          auth.isLoading,
+          auth.maybeWhen(data: (s) => s is AuthSignedIn, orElse: () => false),
+        ),
+      ),
     );
 
     if (result != null) {
