@@ -92,12 +92,7 @@ class DictationSessionCtrl extends _$DictationSessionCtrl {
     }
 
     final diff = computeDictationDiff(attempt.referenceText, attempt.userInput);
-    state = state.copyWith(
-      status: DictationAttemptStatus.checked,
-      selectedHistoricalAttempt: () => attempt,
-      activeDiff: () => diff,
-      errorMessage: () => null,
-    );
+    _applyChecked(attempt, diff);
   }
 
   Future<void> checkTextAnswer() async {
@@ -109,17 +104,7 @@ class DictationSessionCtrl extends _$DictationSessionCtrl {
     try {
       final diff = computeDictationDiff(referenceText, text);
       final row = _dictationRow(userInput: text, diff: diff);
-
-      final db = ref.read(appDatabaseProvider);
-      await db.dictationDao.insertRow(row);
-
-      if (_disposed) return;
-      state = state.copyWith(
-        status: DictationAttemptStatus.checked,
-        activeDiff: () => diff,
-        selectedHistoricalAttempt: () => row,
-        errorMessage: () => null,
-      );
+      await _persistAndApplyChecked(row, diff, () => !_disposed);
     } catch (e, st) {
       logNamed('DictationSessionCtrl').warning('checkTextAnswer failed', e, st);
       if (!_disposed) {
@@ -183,6 +168,27 @@ class DictationSessionCtrl extends _$DictationSessionCtrl {
     );
   }
 
+  void _applyChecked(DictationRow row, DictationDiffResult diff) {
+    state = state.copyWith(
+      status: DictationAttemptStatus.checked,
+      activeDiff: () => diff,
+      selectedHistoricalAttempt: () => row,
+      errorMessage: () => null,
+    );
+  }
+
+  Future<void> _persistAndApplyChecked(
+    DictationRow row,
+    DictationDiffResult diff,
+    bool Function() stillCurrent,
+  ) async {
+    final db = ref.read(appDatabaseProvider);
+    await db.dictationDao.insertRow(row);
+
+    if (!stillCurrent()) return;
+    _applyChecked(row, diff);
+  }
+
   Future<void> _transcribeTake(RecordingRow take) async {
     final generation = ++_transcriptionGeneration;
     try {
@@ -222,17 +228,10 @@ class DictationSessionCtrl extends _$DictationSessionCtrl {
 
       final diff = computeDictationDiff(referenceText, recognizedText);
       final row = _dictationRow(userInput: recognizedText, diff: diff);
-
-      final db = ref.read(appDatabaseProvider);
-      await db.dictationDao.insertRow(row);
-
-      if (_disposed || generation != _transcriptionGeneration) return;
-
-      state = state.copyWith(
-        status: DictationAttemptStatus.checked,
-        activeDiff: () => diff,
-        selectedHistoricalAttempt: () => row,
-        errorMessage: () => null,
+      await _persistAndApplyChecked(
+        row,
+        diff,
+        () => !_disposed && generation == _transcriptionGeneration,
       );
     } catch (e, st) {
       logNamed(

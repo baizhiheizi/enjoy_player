@@ -12,29 +12,36 @@ String _shortSaveError(Object e) {
 /// start/stop/persist, cancel, playback, deletion, the takes sheet/margin,
 /// and the four hotkey pulse handlers.
 mixin ShadowReadingPanelRecording on ShadowReadingPanelBase {
+  void _clearRecordingFlags({bool deferBusReset = false}) {
+    _recording = false;
+    _recordingPending = false;
+    if (deferBusReset) {
+      final bus = _hotkeyBusInstance;
+      if (bus != null) {
+        unawaited(Future(() => bus.setRecordingActive(false)));
+      }
+    } else {
+      _setRecordingActiveOnBus(false);
+    }
+  }
+
   /// Discard in-progress capture (Escape); does not persist to the library.
   Future<void> _cancelRecording() async {
     if (!_recording && !_recordingPending) return;
     if (_recordingPending && !_recording) {
-      _recordingPending = false;
-      _setRecordingActiveOnBus(false);
+      _clearRecordingFlags();
       if (mounted) setState(() {});
       return;
     }
     await _takeStore.cancel();
-    _recording = false;
-    _recordingPending = false;
-    _setRecordingActiveOnBus(false);
+    _clearRecordingFlags();
     if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    final bus = _hotkeyBusInstance;
-    if ((_recording || _recordingPending) && bus != null) {
-      _recording = false;
-      _recordingPending = false;
-      unawaited(Future(() => bus.setRecordingActive(false)));
+    if (_recording || _recordingPending) {
+      _clearRecordingFlags(deferBusReset: true);
     }
     final store = _takeStoreInstance;
     if (store != null) {
@@ -46,9 +53,7 @@ mixin ShadowReadingPanelRecording on ShadowReadingPanelBase {
   Future<void> _toggleRecord(AppLocalizations l10n) async {
     if (!widget.echoActive) return;
     if (_recording) {
-      _recording = false;
-      _recordingPending = false;
-      _setRecordingActiveOnBus(false);
+      _clearRecordingFlags();
       setState(() {});
       TakePersistResult outcome;
       try {
@@ -93,16 +98,14 @@ mixin ShadowReadingPanelRecording on ShadowReadingPanelBase {
     try {
       await _takeStore.start(device: selectedDevice);
     } on MicPermissionDeniedException {
-      _recordingPending = false;
-      _setRecordingActiveOnBus(false);
+      _clearRecordingFlags();
       if (mounted) {
         AppNotice.warning(context, l10n.shadowRecordingMicDenied);
       }
       return;
     } catch (e, st) {
       _log.warning('take start failed', e, st);
-      _recordingPending = false;
-      _setRecordingActiveOnBus(false);
+      _clearRecordingFlags();
       if (mounted) setState(() {});
       if (mounted) {
         AppNotice.error(
@@ -198,14 +201,18 @@ mixin ShadowReadingPanelRecording on ShadowReadingPanelBase {
     await _toggleRecord(l10n);
   }
 
-  Future<void> _onHotkeyPlaybackPulse() async {
-    if (!widget.echoActive) return;
+  Future<RecordingRow?> _fetchSelectedTake() async {
     final list = await ref.read(
       echoRegionRecordingsOnceProvider(_regionQuery).future,
     );
-    if (!mounted) return;
-    if (list.isEmpty) return;
-    final sel = _resolvedSelectedRow(list, _selectedRecordingId);
+    if (!mounted) return null;
+    if (list.isEmpty) return null;
+    return _resolvedSelectedRow(list, _selectedRecordingId);
+  }
+
+  Future<void> _onHotkeyPlaybackPulse() async {
+    if (!widget.echoActive) return;
+    final sel = await _fetchSelectedTake();
     final path = sel?.localPath;
     if (path != null && path.isNotEmpty) {
       await _playOrPauseTake(path);
@@ -220,13 +227,8 @@ mixin ShadowReadingPanelRecording on ShadowReadingPanelBase {
 
   Future<void> _onHotkeyAssessmentRun(AppLocalizations l10n) async {
     if (!widget.echoActive) return;
-    final list = await ref.read(
-      echoRegionRecordingsOnceProvider(_regionQuery).future,
-    );
-    if (!mounted) return;
-    if (list.isEmpty) return;
-    final sel = _resolvedSelectedRow(list, _selectedRecordingId);
-    if (sel == null) return;
+    final sel = await _fetchSelectedTake();
+    if (!mounted || sel == null) return;
     await triggerRecordingAssessment(
       context: context,
       ref: ref,

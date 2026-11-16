@@ -25,25 +25,36 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
           .watch()
           .distinctBy(listEquals);
 
+  SimpleSelectStatement<$RecordingsTable, RecordingRow> _selectByEchoRegion({
+    required String targetType,
+    required String targetId,
+    required String language,
+    required int echoStartMs,
+    required int echoEndMs,
+  }) => select(recordings)
+    ..where((t) {
+      final recordingEnd = t.referenceStart + t.referenceDuration;
+      return t.targetType.equals(targetType) &
+          t.targetId.equals(targetId) &
+          t.language.equals(language) &
+          t.referenceStart.isSmallerThanValue(echoEndMs) &
+          recordingEnd.isBiggerThanValue(echoStartMs);
+    })
+    ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]);
+
   Stream<List<RecordingRow>> watchByEchoRegion({
     required String targetType,
     required String targetId,
     required String language,
     required int echoStartMs,
     required int echoEndMs,
-  }) =>
-      (select(recordings)
-            ..where((t) {
-              final recordingEnd = t.referenceStart + t.referenceDuration;
-              return t.targetType.equals(targetType) &
-                  t.targetId.equals(targetId) &
-                  t.language.equals(language) &
-                  t.referenceStart.isSmallerThanValue(echoEndMs) &
-                  recordingEnd.isBiggerThanValue(echoStartMs);
-            })
-            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-          .watch()
-          .distinctBy(listEquals);
+  }) => _selectByEchoRegion(
+    targetType: targetType,
+    targetId: targetId,
+    language: language,
+    echoStartMs: echoStartMs,
+    echoEndMs: echoEndMs,
+  ).watch().distinctBy(listEquals);
 
   Future<List<RecordingRow>> listByEchoRegion({
     required String targetType,
@@ -51,19 +62,13 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
     required String language,
     required int echoStartMs,
     required int echoEndMs,
-  }) async {
-    return (select(recordings)
-          ..where((t) {
-            final recordingEnd = t.referenceStart + t.referenceDuration;
-            return t.targetType.equals(targetType) &
-                t.targetId.equals(targetId) &
-                t.language.equals(language) &
-                t.referenceStart.isSmallerThanValue(echoEndMs) &
-                recordingEnd.isBiggerThanValue(echoStartMs);
-          })
-          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-        .get();
-  }
+  }) => _selectByEchoRegion(
+    targetType: targetType,
+    targetId: targetId,
+    language: language,
+    echoStartMs: echoStartMs,
+    echoEndMs: echoEndMs,
+  ).get();
 
   Future<RecordingRow?> getById(String id) =>
       (select(recordings)..where((t) => t.id.equals(id))).getSingleOrNull();
