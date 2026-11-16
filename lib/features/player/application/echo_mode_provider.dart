@@ -86,6 +86,35 @@ class EchoMode extends _$EchoMode {
     );
   }
 
+  /// Activates a single-line echo region anchored on [line] at [index] — the
+  /// "activate echo here" every line-level control (line tap, lens switch,
+  /// blur toggle, word seek) repeats.
+  void activateAtLine(TranscriptLine line, int index) {
+    state = EchoState(
+      active: true,
+      startLineIndex: index,
+      endLineIndex: index,
+      startTimeSeconds: line.startSeconds,
+      endTimeSeconds: line.endSeconds,
+    );
+  }
+
+  /// Activates a line-less clip window (launch clip, vocabulary review): the
+  /// line indices stay at the inactive sentinel because no transcript anchors
+  /// the window.
+  void activateClipWindow({
+    required double startSeconds,
+    required double endSeconds,
+  }) {
+    state = EchoState(
+      active: true,
+      startLineIndex: -1,
+      endLineIndex: -1,
+      startTimeSeconds: startSeconds,
+      endTimeSeconds: endSeconds,
+    );
+  }
+
   void deactivate() {
     state = EchoState.inactive;
   }

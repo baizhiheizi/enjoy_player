@@ -171,14 +171,7 @@ class PlayerInteractions {
 
   /// Anchors Echo to a single line.
   void _activateEchoOnLine({required TranscriptLine line, required int index}) {
-    ref
-        .read(echoModeProvider.notifier)
-        .activate(
-          startLineIndex: index,
-          endLineIndex: index,
-          startTimeSeconds: line.startSeconds,
-          endTimeSeconds: line.endSeconds,
-        );
+    ref.read(echoModeProvider.notifier).activateAtLine(line, index);
   }
 
   /// Seeks to [seconds] and resumes playback, retargeting Echo onto [line]
