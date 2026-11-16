@@ -5,7 +5,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
-import 'package:enjoy_player/features/dictation/application/dictation_controller.dart';
+import 'package:enjoy_player/features/dictation/application/dictation_providers.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_diff.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
@@ -23,7 +23,7 @@ class DictationPanel extends StatefulWidget {
   });
 
   final DictationSessionState state;
-  final DictationController controller;
+  final DictationSessionCtrl controller;
   final VoidCallback onNextLine;
 
   @override

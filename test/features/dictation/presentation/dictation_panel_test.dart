@@ -1,4 +1,7 @@
-import 'package:enjoy_player/features/dictation/application/dictation_controller.dart';
+import 'package:drift/native.dart';
+import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/features/dictation/application/dictation_providers.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
 import 'package:enjoy_player/features/dictation/presentation/dictation_panel.dart';
 import 'package:flutter/foundation.dart';
@@ -8,54 +11,50 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const scope = DictationScope(
-    targetType: 'video',
-    targetId: 'v-1',
-    referenceStartMs: 0,
-    referenceDurationMs: 1000,
-    referenceText: 'Hello world',
-    language: 'en',
+  final provider = dictationSessionCtrlProvider(
+    'video',
+    'v-1',
+    0,
+    1000,
+    'Hello world',
+    'en',
   );
 
-  testWidgets(
-    'DictationPanel renders Voice mode CTA and NextLine action when checked',
-    (tester) async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-
-      var state = const DictationSessionState(
-        mode: DictationInputMode.voice,
-        status: DictationAttemptStatus.idle,
-      );
-
-      final ctrl = DictationController(
-        ref: container.read(Provider((ref) => ref)),
-        scope: scope,
-        getState: () => state,
-        setState: (next) => state = next,
-      );
-
-      var nextLineCalled = false;
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: StatefulBuilder(
-                builder: (context, setState) {
-                  return DictationPanel(
-                    state: state,
-                    controller: ctrl,
-                    onNextLine: () {
-                      nextLineCalled = true;
-                    },
-                  );
-                },
-              ),
-            ),
+  Widget panel(ProviderContainer container, {VoidCallback? onNextLine}) {
+    return UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        home: Scaffold(
+          body: Consumer(
+            builder: (context, ref, _) {
+              final state = ref.watch(provider);
+              final ctrl = ref.read(provider.notifier);
+              return DictationPanel(
+                state: state,
+                controller: ctrl,
+                onNextLine: onNextLine ?? () {},
+              );
+            },
           ),
         ),
+      ),
+    );
+  }
+
+  testWidgets(
+    'DictationPanel renders Voice mode CTA and the checked summary after an answer',
+    (tester) async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final container = ProviderContainer(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+      );
+      addTearDown(container.dispose);
+      container.listen(provider, (_, _) {});
+      var nextLineCalls = 0;
+
+      await tester.pumpWidget(
+        panel(container, onNextLine: () => nextLineCalls++),
       );
 
       expect(find.text('Record retelling'), findsOneWidget);
@@ -65,44 +64,22 @@ void main() {
         findsOneWidget,
       );
 
-      state = state.copyWith(
-        status: DictationAttemptStatus.checked,
-        activeDiff: () => const DictationDiffResult(
-          tokens: [],
-          accuracy: 90,
-          correctWords: 2,
-          missedWords: 0,
-          extraWords: 0,
-        ),
-      );
+      final ctrl = container.read(provider.notifier);
+      ctrl.setInputMode(DictationInputMode.text);
+      ctrl.updateTextDraft('hello world');
+      await tester.pump();
+      await ctrl.checkTextAnswer();
+      await tester.pump();
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: StatefulBuilder(
-                builder: (context, setState) {
-                  return DictationPanel(
-                    state: state,
-                    controller: ctrl,
-                    onNextLine: () {
-                      nextLineCalled = true;
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('90%'), findsOneWidget);
+      expect(find.text('100%'), findsOneWidget);
+      expect(find.text('2 correct'), findsOneWidget);
+      expect(find.text('0 missed'), findsOneWidget);
+      expect(find.text('0 extra'), findsOneWidget);
       expect(find.text('Try again'), findsOneWidget);
       expect(find.text('Next line'), findsOneWidget);
-
       await tester.tap(find.text('Next line'));
-      expect(nextLineCalled, isTrue);
+      await tester.pump();
+      expect(nextLineCalls, 1);
     },
   );
 
@@ -113,33 +90,10 @@ void main() {
     try {
       final container = ProviderContainer();
       addTearDown(container.dispose);
+      container.listen(provider, (_, _) {});
 
-      final state = const DictationSessionState(
-        mode: DictationInputMode.voice,
-        status: DictationAttemptStatus.idle,
-      );
-
-      final ctrl = DictationController(
-        ref: container.read(Provider((ref) => ref)),
-        scope: scope,
-        getState: () => state,
-        setState: (_) {},
-      );
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: DictationPanel(
-                state: state,
-                controller: ctrl,
-                onNextLine: () {},
-              ),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(panel(container));
+      await tester.pump();
 
       expect(find.text('Record retelling (R)'), findsOneWidget);
       expect(
@@ -156,40 +110,21 @@ void main() {
   testWidgets(
     'TextInput mode handles Enter, Shift+Enter, and IME composing correctly',
     (tester) async {
-      final container = ProviderContainer();
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final container = ProviderContainer(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+      );
       addTearDown(container.dispose);
+      container.listen(provider, (_, _) {});
+      final ctrl = container.read(provider.notifier);
+      ctrl.setInputMode(DictationInputMode.text);
+      ctrl.updateTextDraft('hello world');
 
-      var state = const DictationSessionState(
-        mode: DictationInputMode.text,
-        status: DictationAttemptStatus.idle,
-        textDraft: 'hello world',
-      );
+      await tester.pumpWidget(panel(container));
+      await tester.pump();
 
-      final ctrl = DictationController(
-        ref: container.read(Provider((ref) => ref)),
-        scope: scope,
-        getState: () => state,
-        setState: (next) => state = next,
-      );
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: StatefulBuilder(
-                builder: (context, setState) {
-                  return DictationPanel(
-                    state: state,
-                    controller: ctrl,
-                    onNextLine: () {},
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
+      expect(container.read(provider).status, DictationAttemptStatus.idle);
 
       await tester.tap(find.byType(TextField));
       await tester.pump();
@@ -203,20 +138,24 @@ void main() {
 
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pump();
-      expect(state.status, DictationAttemptStatus.idle);
+      expect(container.read(provider).status, DictationAttemptStatus.idle);
 
       editable.controller.value = const TextEditingValue(
         text: 'hello world',
         composing: TextRange.empty,
       );
-      state = state.copyWith(textDraft: 'hello world');
+      ctrl.updateTextDraft('hello world');
       await tester.pump();
 
       await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
       await tester.pump();
-      expect(state.status, DictationAttemptStatus.idle);
+      expect(container.read(provider).status, DictationAttemptStatus.idle);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(container.read(provider).status, DictationAttemptStatus.checked);
     },
   );
 }

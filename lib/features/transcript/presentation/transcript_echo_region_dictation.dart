@@ -117,7 +117,7 @@ class EchoRegionDictationAttempts extends ConsumerWidget {
       children: [
         DictationPanel(
           state: session,
-          controller: ctrl.controller,
+          controller: ctrl,
           onNextLine: onNextLine,
         ),
         if (history.isNotEmpty)
