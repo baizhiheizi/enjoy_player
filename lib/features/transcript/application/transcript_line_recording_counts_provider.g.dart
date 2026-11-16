@@ -73,7 +73,7 @@ final class TranscriptLineRecordingCountsProvider
 }
 
 String _$transcriptLineRecordingCountsHash() =>
-    r'b373af621ea70e5322e69940c121e838ba2b05de';
+    r'8cc0df54425921e6d5da8b2cd4f7df2e817ed065';
 
 /// Map of transcript line index → overlapping recording count for [mediaId].
 

@@ -17,49 +17,36 @@ String? _thumbUrl(RemoteLibraryItem item) {
 /// Shared "is in library / add to library" state for cloud list/grid tiles.
 mixin _CloudItemMembershipMixin<W extends ConsumerStatefulWidget>
     on ConsumerState<W> {
-  bool? _inLibrary;
   bool _busy = false;
 
   RemoteLibraryItem get cloudItem;
 
-  @override
-  void initState() {
-    super.initState();
-    unawaited(loadMembership());
-  }
+  bool? get inLibrary => ref.watch(
+    cloudLocalMediaIdsProvider(
+      cloudItem.isVideo,
+    ).select((asyncIds) => asyncIds.asData?.value.contains(cloudItem.id)),
+  );
 
   String? get playingMediaId =>
       ref.watch(playerControllerProvider.select((s) => s?.mediaId));
 
   String? get heroArtworkMediaId {
-    if (_inLibrary != true) return null;
+    if (inLibrary != true) return null;
     return playingMediaId == cloudItem.id ? null : cloudItem.id;
   }
 
   void openInPlayer(BuildContext context) {
-    if (_inLibrary == true) openPlayerRoute(context, cloudItem.id);
-  }
-
-  Future<void> loadMembership() async {
-    final v = await ref.read(cloudAddToLibraryProvider).isInLibrary(cloudItem);
-    if (mounted) setState(() => _inLibrary = v);
+    if (inLibrary == true) openPlayerRoute(context, cloudItem.id);
   }
 
   Future<void> addToLibrary() async {
     final l10n = AppLocalizations.of(context)!;
     final add = ref.read(cloudAddToLibraryProvider);
-    final container = ProviderScope.containerOf(context, listen: false);
     setState(() => _busy = true);
     try {
       await add.add(cloudItem);
-      container.invalidate(libraryMediaProvider);
-      container.invalidate(libraryHomeRecentsProvider);
-      container.invalidate(libraryFilteredListsProvider);
       if (!mounted) return;
-      setState(() {
-        _inLibrary = true;
-        _busy = false;
-      });
+      setState(() => _busy = false);
       AppNotice.success(context, l10n.cloudAddedToLibrary);
     } catch (_) {
       if (mounted) setState(() => _busy = false);
@@ -93,7 +80,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
     Widget? trailing;
     if (_busy) {
       trailing = const LoadingIcon(size: 22);
-    } else if (_inLibrary == true) {
+    } else if (inLibrary == true) {
       trailing = Icon(EnjoyIcons.checkCircleFill, color: cs.primary, size: 22);
     } else {
       trailing = IconButton(
@@ -162,7 +149,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile>
     Widget overlay;
     if (_busy) {
       overlay = cornerChip(LoadingIcon(size: 20, color: cs.onSurfaceVariant));
-    } else if (_inLibrary == true) {
+    } else if (inLibrary == true) {
       overlay = cornerChip(
         Icon(EnjoyIcons.checkCircleFill, color: cs.primary, size: 22),
       );

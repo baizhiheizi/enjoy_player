@@ -18,6 +18,7 @@ import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
+import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -135,7 +136,7 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
               ),
             ),
             if (_tab == _VocabularyTab.words)
-              ..._wordSlivers(visible, inset)
+              ..._wordSlivers(visible, inset, compact: phone)
             else
               SliverPadding(
                 padding: EdgeInsets.symmetric(horizontal: inset),
@@ -174,7 +175,11 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
     );
   }
 
-  List<Widget> _wordSlivers(List<VocabularyItem> visible, double inset) {
+  List<Widget> _wordSlivers(
+    List<VocabularyItem> visible,
+    double inset, {
+    required bool compact,
+  }) {
     if (visible.isEmpty) {
       return const [
         SliverToBoxAdapter(
@@ -202,9 +207,16 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
           ),
           sliver: SliverList.builder(
             itemCount: visible.length,
+            findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
+              key: key,
+              items: visible,
+              prefix: 'vocab-',
+              idOf: (item) => item.id,
+            ),
             itemBuilder: (context, index) => VocabularyWordRow(
               key: ValueKey<String>('vocab-${visible[index].id}'),
               item: visible[index],
+              compact: compact,
               last: index == visible.length - 1,
             ),
           ),

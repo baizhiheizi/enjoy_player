@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
+import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_cta_state.dart';
@@ -399,7 +400,19 @@ class VocabularyRepository {
 
   Stream<List<VocabularyItem>> watchAll() => _db.vocabularyItemDao
       .watchAll()
-      .map((rows) => rows.map(_itemFromRow).toList());
+      .map((rows) => rows.map(_itemFromRow).toList())
+      .distinctBy(_itemListEquals);
+
+  Stream<int> watchDueCount() => _db.vocabularyItemDao.watchDueCount();
+
+  static bool _itemListEquals(List<VocabularyItem> a, List<VocabularyItem> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 
   /// Resolves lookup CTA kind for [word] + language pair + media locator.
   Future<({VocabularyCtaKind kind, VocabularyItem? item})> resolveCtaState({

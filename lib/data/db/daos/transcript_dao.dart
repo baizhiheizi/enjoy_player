@@ -106,7 +106,7 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
         Variable.withString(targetId),
       ],
       readsFrom: {transcripts},
-    ).watch().map((rows) => rows.first.read<int>('e') != 0);
+    ).watch().map((rows) => rows.first.read<int>('e') != 0).distinct();
   }
 
   /// Change tick for one row: `(updated_at, length(timeline_json))` without

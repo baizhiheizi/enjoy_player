@@ -27,6 +27,12 @@ mixin MediaRegistryStreams {
         .distinctBy(_setEquals);
   }
 
+  /// Primary-key set (`id`) for all library rows of [kind], projected without blobs.
+  Stream<Set<String>> watchAllIds(MediaKind kind) {
+    final dao = kind == MediaKind.video ? _db.videoDao : _db.audioDao;
+    return dao.watchAllIds().distinctBy(_setEquals);
+  }
+
   /// The merged `videos` + `audios` library as one stream of [Media],
   /// `createdAt`-descending (issue #753).
   ///

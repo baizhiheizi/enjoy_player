@@ -20,3 +20,10 @@ final cloudIndexRepositoryProvider = Provider<CloudIndexRepository>((ref) {
 final cloudAddToLibraryProvider = Provider<CloudAddToLibrary>((ref) {
   return CloudAddToLibrary(ref.watch(appDatabaseProvider));
 });
+
+final cloudLocalMediaIdsProvider = StreamProvider.autoDispose
+    .family<Set<String>, bool>((ref, isVideo) {
+      return ref
+          .watch(cloudAddToLibraryProvider)
+          .watchLibraryIds(isVideo: isVideo);
+    });

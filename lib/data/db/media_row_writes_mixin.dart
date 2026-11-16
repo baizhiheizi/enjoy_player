@@ -36,6 +36,28 @@ mixin MediaRowWritesMixin<DB extends GeneratedDatabase, R extends Insertable<R>>
   late final GeneratedColumn<int> _durationSeconds =
       mediaRowTable.columnsByName['duration_seconds']! as GeneratedColumn<int>;
 
+  Future<bool> existsById(String id) async {
+    final row =
+        await (selectOnly(mediaRowTable)
+              ..addColumns([mediaRowId])
+              ..where(mediaRowId.equals(id))
+              ..limit(1))
+            .map((r) => r.read(mediaRowId))
+            .getSingleOrNull();
+    return row != null;
+  }
+
+  Future<({bool exists, String? localUri})> readLocalUriById(String id) async {
+    final row =
+        await (selectOnly(mediaRowTable)
+              ..addColumns([_localUri])
+              ..where(mediaRowId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (row == null) return (exists: false, localUri: null);
+    return (exists: true, localUri: row.read(_localUri));
+  }
+
   Future<R?> getById(String id) => (select(
     mediaRowTable,
   )..where((_) => mediaRowId.equals(id))).getSingleOrNull();
@@ -43,14 +65,14 @@ mixin MediaRowWritesMixin<DB extends GeneratedDatabase, R extends Insertable<R>>
   Future<void> insertRow(R row) =>
       into(mediaRowTable).insert(row, mode: InsertMode.insertOrReplace);
 
-  Future<void> updateLanguage({required String id, required String language}) =>
+  Future<int> updateLanguage({required String id, required String language}) =>
       _write(id, {_language.name: Variable<String>(language)});
 
-  Future<void> updateTitle({required String id, required String title}) =>
+  Future<int> updateTitle({required String id, required String title}) =>
       _write(id, {_title.name: Variable<String>(title)});
 
   /// Bumps `updated_at` so Home "Recent media" can resurface the row.
-  Future<void> touchUpdatedAt(String id) =>
+  Future<int> touchUpdatedAt(String id) =>
       _write(id, const <String, Expression>{});
 
   /// Conditionally writes [durationSeconds] (bumping `updated_at`) **only when
@@ -76,7 +98,7 @@ mixin MediaRowWritesMixin<DB extends GeneratedDatabase, R extends Insertable<R>>
     return affected == 1;
   }
 
-  Future<void> deleteId(String id) =>
+  Future<int> deleteId(String id) =>
       (delete(mediaRowTable)..where((_) => mediaRowId.equals(id))).go();
 
   /// Whether any row's `local_uri` equals [localUri] (exact match).
@@ -95,8 +117,8 @@ mixin MediaRowWritesMixin<DB extends GeneratedDatabase, R extends Insertable<R>>
     return row != null;
   }
 
-  Future<void> _write(String id, Map<String, Expression> fields) async {
-    await (update(mediaRowTable)..where((_) => mediaRowId.equals(id))).write(
+  Future<int> _write(String id, Map<String, Expression> fields) {
+    return (update(mediaRowTable)..where((_) => mediaRowId.equals(id))).write(
       RawValuesInsertable({
         ...fields,
         _updatedAt.name: Variable<DateTime>(DateTime.now()),

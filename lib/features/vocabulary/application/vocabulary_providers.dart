@@ -25,6 +25,12 @@ Stream<List<VocabularyItem>> vocabularyItems(Ref ref) {
   return ref.watch(vocabularyRepositoryProvider).watchAll();
 }
 
+/// Live count of items currently due for review.
+@riverpod
+Stream<int> vocabularyDueCount(Ref ref) {
+  return ref.watch(vocabularyRepositoryProvider).watchDueCount();
+}
+
 /// Aggregated stats for the Vocabulary stats strip.
 @riverpod
 VocabularyStats vocabularyStats(Ref ref) {
@@ -65,7 +71,9 @@ List<VocabularyItem> vocabularyVisibleItems(Ref ref) {
 /// scrolled back into view.
 @riverpod
 Future<Map<String, String>> vocabularyFirstContexts(Ref ref) async {
-  final items = ref.watch(vocabularyVisibleItemsProvider);
+  final items =
+      ref.watch(vocabularyItemsProvider).valueOrNull ??
+      const <VocabularyItem>[];
   if (items.isEmpty) return const {};
   return ref
       .watch(vocabularyRepositoryProvider)

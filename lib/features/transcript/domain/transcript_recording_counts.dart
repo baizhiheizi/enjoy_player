@@ -58,8 +58,10 @@ Map<int, int> countRecordingsPerLineIndex(
   List<TranscriptLine> lines,
   List<RecordingRow> recordings, {
   List<DictationRow> dictations = const [],
+  List<DictationTiming> dictationTimings = const [],
 }) {
-  if (lines.isEmpty || (recordings.isEmpty && dictations.isEmpty)) {
+  if (lines.isEmpty ||
+      (recordings.isEmpty && dictations.isEmpty && dictationTimings.isEmpty)) {
     return const {};
   }
 
@@ -70,18 +72,25 @@ Map<int, int> countRecordingsPerLineIndex(
     starts.add(r.referenceStart);
     ends.add(r.referenceStart + r.referenceDuration);
   }
-  for (final d in dictations) {
-    if (d.referenceDurationMs <= 0) continue;
+  void addTiming(int startMs, int durationMs, DateTime createdAt) {
+    if (durationMs <= 0) return;
     final isVoiceDuplicate = recordings.any(
       (r) =>
-          r.referenceStart == d.referenceStartMs &&
-          r.referenceDuration == d.referenceDurationMs &&
-          r.createdAt.difference(d.createdAt).abs().inSeconds <= 60,
+          r.referenceStart == startMs &&
+          r.referenceDuration == durationMs &&
+          r.createdAt.difference(createdAt).abs().inSeconds <= 60,
     );
-    if (isVoiceDuplicate) continue;
+    if (isVoiceDuplicate) return;
 
-    starts.add(d.referenceStartMs);
-    ends.add(d.referenceStartMs + d.referenceDurationMs);
+    starts.add(startMs);
+    ends.add(startMs + durationMs);
+  }
+
+  for (final d in dictations) {
+    addTiming(d.referenceStartMs, d.referenceDurationMs, d.createdAt);
+  }
+  for (final d in dictationTimings) {
+    addTiming(d.referenceStartMs, d.referenceDurationMs, d.createdAt);
   }
 
   final counts = <int, int>{};

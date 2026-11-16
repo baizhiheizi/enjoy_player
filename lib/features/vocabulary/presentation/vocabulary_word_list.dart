@@ -101,9 +101,15 @@ class VocabularyWordToolbar extends ConsumerWidget {
 }
 
 class VocabularyWordRow extends ConsumerWidget {
-  const VocabularyWordRow({super.key, required this.item, this.last = false});
+  const VocabularyWordRow({
+    super.key,
+    required this.item,
+    this.compact,
+    this.last = false,
+  });
 
   final VocabularyItem item;
+  final bool? compact;
   final bool last;
 
   @override
@@ -111,9 +117,9 @@ class VocabularyWordRow extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-    final context0 = ref
-        .watch(vocabularyFirstContextsProvider)
-        .valueOrNull?[item.id];
+    final context0 = ref.watch(
+      vocabularyFirstContextsProvider.select((v) => v.valueOrNull?[item.id]),
+    );
     final relative = relativeNextReviewLabel(
       nextReviewAt: item.nextReviewAt,
       now: DateTime.now(),
@@ -172,55 +178,53 @@ class VocabularyWordRow extends ConsumerWidget {
       ),
     );
 
+    final isCompact =
+        compact ?? (MediaQuery.sizeOf(context).width < _kCompactRowBelow);
+
     return DecoratedBox(
       decoration: BoxDecoration(
         border: last ? null : Border(bottom: BorderSide(color: t.line)),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(22, 14, 16, 14),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < _kCompactRowBelow) {
-              return Row(
+        child: isCompact
+            ? Row(
                 children: [
                   Expanded(child: word),
                   const SizedBox(width: 16),
                   due,
                   delete,
                 ],
-              );
-            }
-            return Row(
-              children: [
-                Expanded(child: word),
-                const SizedBox(width: 16),
-                SizedBox(
-                  width: 120,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _StatusChip(status: item.status),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                SizedBox(width: 110, child: due),
-                const SizedBox(width: 16),
-                SizedBox(
-                  width: 54,
-                  child: Text(
-                    languageCodeLabel(item.language),
-                    style: enjoyMonoStyle(
-                      context,
-                      size: 11,
-                      weight: FontWeight.w600,
-                      color: t.ink3,
+              )
+            : Row(
+                children: [
+                  Expanded(child: word),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    width: 120,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: _StatusChip(status: item.status),
                     ),
                   ),
-                ),
-                delete,
-              ],
-            );
-          },
-        ),
+                  const SizedBox(width: 16),
+                  SizedBox(width: 110, child: due),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    width: 54,
+                    child: Text(
+                      languageCodeLabel(item.language),
+                      style: enjoyMonoStyle(
+                        context,
+                        size: 11,
+                        weight: FontWeight.w600,
+                        color: t.ink3,
+                      ),
+                    ),
+                  ),
+                  delete,
+                ],
+              ),
       ),
     );
   }

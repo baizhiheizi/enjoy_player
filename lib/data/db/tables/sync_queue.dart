@@ -8,6 +8,10 @@ import 'package:drift/drift.dart';
   columns: {#retryCount, #createdAt},
 )
 @TableIndex(name: 'idx_sync_queue_created_at', columns: {#createdAt})
+@TableIndex(
+  name: 'idx_sync_queue_entity_action',
+  columns: {#entityType, #entityId, #action},
+)
 @DataClassName('SyncQueueRow')
 class SyncQueue extends Table {
   @override

@@ -105,7 +105,7 @@ class EchoSessionDao extends DatabaseAccessor<AppDatabase>
         transcriptId: row.read(echoSessions.transcriptId),
         secondaryTranscriptId: row.read(echoSessions.secondaryTranscriptId),
       );
-    });
+    }).distinct();
   }
 
   Future<void> upsert(EchoSessionRow row) =>
@@ -174,7 +174,8 @@ class EchoSessionDao extends DatabaseAccessor<AppDatabase>
     return (select(echoSessions)
           ..orderBy([(t) => OrderingTerm.desc(t.lastActiveAt)])
           ..limit(limit))
-        .watch();
+        .watch()
+        .distinctBy(listEquals);
   }
 
   Future<({int sessionCount, int recordingsDurationMs})> practiceTotals() {

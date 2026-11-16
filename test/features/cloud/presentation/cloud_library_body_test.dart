@@ -52,6 +52,14 @@ class _PendingCloudAddToLibrary extends CloudAddToLibrary {
 
   @override
   Future<bool> isInLibrary(RemoteLibraryItem item) => completer.future;
+
+  @override
+  Stream<Set<String>> watchLibraryIds({required bool isVideo}) =>
+      Stream.fromFuture(
+        completer.future.then(
+          (inLib) => inLib ? const {'a1'} : const <String>{},
+        ),
+      );
 }
 
 PlaybackSession _session(String mediaId) {
@@ -231,6 +239,8 @@ void main() {
 
       expect(find.text('Lecture 1'), findsOneWidget);
       expect(find.text('Lecture 2'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 50));
     });
 
     testWidgets('shows audio list on second tab', (tester) async {
@@ -254,6 +264,8 @@ void main() {
 
       expect(find.text('Podcast Episode 1'), findsOneWidget);
       expect(find.text('Podcast Episode 2'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 50));
     });
 
     testWidgets(
@@ -287,6 +299,8 @@ void main() {
         expect(find.text('0:00'), findsNothing);
         expect(find.text('EN'), findsOneWidget);
         expect(find.text('5:00'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(milliseconds: 50));
       },
     );
 

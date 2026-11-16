@@ -31,9 +31,8 @@ mixin MediaRegistryReads {
 
   /// Which table holds [id], or `null` when neither does.
   Future<MediaKind?> kindOf(String id) async {
-    final hit = await _probe(id);
-    if (hit.video != null) return MediaKind.video;
-    if (hit.audio != null) return MediaKind.audio;
+    if (await _db.videoDao.existsById(id)) return MediaKind.video;
+    if (await _db.audioDao.existsById(id)) return MediaKind.audio;
     return null;
   }
 
@@ -44,9 +43,15 @@ mixin MediaRegistryReads {
   /// The on-disk `localUri` of the row holding [id], or `null` when the row
   /// is missing or has no local file reference.
   Future<String?> localUriOf(String id) async {
-    final hit = await _probe(id);
-    return hit.video?.localUri ?? hit.audio?.localUri;
+    final videoHit = await _db.videoDao.readLocalUriById(id);
+    if (videoHit.exists) return videoHit.localUri;
+    final audioHit = await _db.audioDao.readLocalUriById(id);
+    return audioHit.localUri;
   }
+
+  Future<bool> existsVideoById(String id) => _db.videoDao.existsById(id);
+
+  Future<bool> existsAudioById(String id) => _db.audioDao.existsById(id);
 
   /// Kind-known single-table read: the raw [VideoRow] with [id], or `null`.
   ///

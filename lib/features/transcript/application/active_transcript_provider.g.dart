@@ -59,7 +59,7 @@ final class ActiveTranscriptIdProvider
 }
 
 String _$activeTranscriptIdHash() =>
-    r'5283a08e0b81fc077d7b5975e2a3073be26b8469';
+    r'8aec48fe39baa042b4c7b3dfebaeab35a50e9e8a';
 
 final class ActiveTranscriptIdFamily extends $Family
     with $FunctionalFamilyOverride<Stream<String?>, String> {
@@ -129,7 +129,7 @@ final class SecondaryTranscriptIdProvider
 }
 
 String _$secondaryTranscriptIdHash() =>
-    r'86f6cba609842ae894502fae59cb18216eb70959';
+    r'8e1a187eb91eb9764d439f49b42349fa14a8575b';
 
 final class SecondaryTranscriptIdFamily extends $Family
     with $FunctionalFamilyOverride<Stream<String?>, String> {
