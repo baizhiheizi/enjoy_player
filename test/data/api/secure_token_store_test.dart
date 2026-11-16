@@ -218,4 +218,85 @@ void main() {
       );
     });
   });
+
+  group('SecureTokenStore in-memory access token cache', () {
+    test(
+      'readAccessToken serves subsequent reads from memory and invalidates on write/clear',
+      () async {
+        final storage = _CountingAccessStorage({
+          'enjoy_player.access_token': 'initial',
+        });
+        final store = SecureTokenStore(storage);
+
+        expect(await store.readAccessToken(), 'initial');
+        expect(await store.readAccessToken(), 'initial');
+        expect(storage.readCalls, 1);
+
+        await store.writeAccessToken('updated');
+        expect(await store.readAccessToken(), 'updated');
+        expect(storage.readCalls, 1);
+
+        await store.clearAccessToken();
+        expect(await store.readAccessToken(), isNull);
+        expect(storage.readCalls, 1);
+
+        await store.writeAccessToken('rehydrated');
+        await store.clearAllAuthSecrets();
+        expect(await store.readAccessToken(), isNull);
+        expect(storage.readCalls, 1);
+      },
+    );
+  });
+}
+
+class _CountingAccessStorage extends FlutterSecureStorage {
+  _CountingAccessStorage(this._values);
+
+  final Map<String, String> _values;
+  int readCalls = 0;
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    readCalls++;
+    return _values[key];
+  }
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    if (value == null) {
+      _values.remove(key);
+    } else {
+      _values[key] = value;
+    }
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    _values.remove(key);
+  }
 }

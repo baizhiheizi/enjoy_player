@@ -20,7 +20,6 @@ library;
 
 import 'dart:convert';
 
-import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/core/json/gated_json_decode.dart';
 import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';

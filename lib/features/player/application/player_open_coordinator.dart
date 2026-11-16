@@ -399,8 +399,11 @@ Future<void> runPlayerOpen(
           mediaId,
         );
         final lines = rows.isNotEmpty
-            ? decodeTimelineJson(rows.first.timelineJson)
+            ? await decodeTimelineJsonGated(rows.first.timelineJson)
             : const <TranscriptLine>[];
+        if (scope.isOpenStale(gen)) {
+          throw const OpenSupersededException('decode blur echo timeline');
+        }
         if (lines.isNotEmpty) {
           final posSec = posMs / 1000.0;
           final idx = indexOfActiveLine(lines, posSec);

@@ -39,15 +39,28 @@ class SecureTokenStore {
 
   final FlutterSecureStorage _storage;
   final SecureStorageOpLock _opLock;
+  String? _cachedAccessToken;
+  bool _accessTokenLoaded = false;
 
   @visibleForTesting
   FlutterSecureStorage get storage => _storage;
 
-  Future<String?> readAccessToken() =>
-      _serialized(() => _storage.read(key: _kAccessTokenKey));
+  Future<String?> readAccessToken() async {
+    if (_accessTokenLoaded) return _cachedAccessToken;
+    return _serialized(() async {
+      if (_accessTokenLoaded) return _cachedAccessToken;
+      final token = await _storage.read(key: _kAccessTokenKey);
+      _cachedAccessToken = token;
+      _accessTokenLoaded = true;
+      return token;
+    });
+  }
 
-  Future<void> writeAccessToken(String token) =>
-      _serialized(() => _writeResilient(_kAccessTokenKey, token));
+  Future<void> writeAccessToken(String token) => _serialized(() async {
+    await _writeResilient(_kAccessTokenKey, token);
+    _cachedAccessToken = token;
+    _accessTokenLoaded = true;
+  });
 
   Future<String?> readRefreshToken() =>
       _serialized(() => _storage.read(key: _kRefreshTokenKey));
@@ -55,8 +68,11 @@ class SecureTokenStore {
   Future<void> writeRefreshToken(String token) =>
       _serialized(() => _writeResilient(_kRefreshTokenKey, token));
 
-  Future<void> clearAccessToken() =>
-      _serialized(() => _deleteBestEffort(_kAccessTokenKey));
+  Future<void> clearAccessToken() => _serialized(() async {
+    await _deleteBestEffort(_kAccessTokenKey);
+    _cachedAccessToken = null;
+    _accessTokenLoaded = true;
+  });
 
   Future<void> clearRefreshToken() =>
       _serialized(() => _deleteBestEffort(_kRefreshTokenKey));
@@ -87,6 +103,8 @@ class SecureTokenStore {
   /// the UI to signed-out right after), so each delete failure is logged and
   /// the remaining keys are still attempted instead of aborting on the first.
   Future<void> clearAllAuthSecrets() => _serialized(() async {
+    _cachedAccessToken = null;
+    _accessTokenLoaded = true;
     for (final key in const [
       _kAccessTokenKey,
       _kRefreshTokenKey,

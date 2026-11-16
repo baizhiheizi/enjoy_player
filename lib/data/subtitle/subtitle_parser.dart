@@ -1,10 +1,13 @@
 /// Strategy interface + dispatcher for subtitle formats.
 library;
 
-import 'package:enjoy_player/core/utils/duration_parsing.dart';
+import 'package:flutter/foundation.dart' show compute;
+
 import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart'
     show tagStripRegExp;
 import 'transcript_line.dart';
+
+const int kParseSubtitleComputeBytes = 16 * 1024;
 
 /// Splits [content] into lines, normalizing CRLF and lone CR separators.
 List<String> _splitLines(String content) {
@@ -62,9 +65,31 @@ class SubtitleParserFacade {
   static const SrtParser srt = SrtParser();
   static const VttParser vtt = VttParser();
 
+  static final RegExp _assTagRegExp = RegExp(r'\{[^}]*\}');
+
   /// Strips ASS/SSA override tags like {\an8}, {\pos(...)}, {\c&H...&}, etc.
   static String stripAssTags(String text) =>
-      text.replaceAll(RegExp(r'\{[^}]*\}'), '').trim();
+      text.replaceAll(_assTagRegExp, '').trim();
+
+  static List<TranscriptLine> _parseWithHintArg(
+    ({String content, String? fileName}) arg,
+  ) => const SubtitleParserFacade().parseWithHint(
+    arg.content,
+    fileName: arg.fileName,
+  );
+
+  Future<List<TranscriptLine>> parseWithHintGated(
+    String content, {
+    String? fileName,
+  }) {
+    if (content.length <= kParseSubtitleComputeBytes) {
+      return Future.value(parseWithHint(content, fileName: fileName));
+    }
+    return compute(_parseWithHintArg, (
+      content: content,
+      fileName: fileName,
+    ), debugLabel: 'subtitle-parse');
+  }
 
   List<TranscriptLine> parseWithHint(String content, {String? fileName}) {
     final lower = fileName?.toLowerCase() ?? '';
@@ -223,7 +248,11 @@ class VttParser {
   static String _stripTags(String l) => l.replaceAll(tagStripRegExp, '').trim();
 
   static int _parseVttTs(String? hOpt, String mm, String ss, String ms) {
-    final h = hOpt != null ? int.tryParse(hOpt.replaceAll(':', '')) ?? 0 : 0;
-    return tryParseHmsDuration('$h:$mm:$ss.$ms')?.inMilliseconds ?? 0;
+    final hours = hOpt != null ? _digitsToInt(hOpt, 0, hOpt.length - 1) : 0;
+    final minutes = _digitsToInt(mm, 0, mm.length);
+    final seconds = _digitsToInt(ss, 0, ss.length);
+    if (minutes > 59 || seconds > 59) return 0;
+    final millis = _digitsToInt(ms, 0, ms.length);
+    return hours * 3600000 + minutes * 60000 + seconds * 1000 + millis;
   }
 }

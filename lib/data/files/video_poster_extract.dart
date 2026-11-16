@@ -8,8 +8,8 @@ import 'package:crypto/crypto.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
+import 'app_directories.dart';
 import 'ffmpeg_argv_runner.dart';
 import 'ffmpeg_media_probe.dart';
 
@@ -28,7 +28,7 @@ const _kAccurateSeekDecodeCap = 45;
 /// Ensures `media_thumbs/` under app documents exists and returns
 /// `…/media_thumbs/<contentHashHex>.jpg`.
 Future<String> videoThumbnailPathForContentHash(String contentHashHex) async {
-  final docs = await getApplicationDocumentsDirectory();
+  final docs = await cachedApplicationDocumentsDirectory();
   final dir = Directory(p.join(docs.path, 'media_thumbs'));
   if (!await dir.exists()) {
     await dir.create(recursive: true);

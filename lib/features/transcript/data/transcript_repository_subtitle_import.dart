@@ -51,7 +51,7 @@ extension _TranscriptRepositorySubtitleImport on TranscriptRepository {
     final tt = await dexieTargetTypeForId(_db, mediaId);
     if (tt == null) return;
     final text = await file.readAsString();
-    final lines = const SubtitleParserFacade().parseWithHint(
+    final lines = await const SubtitleParserFacade().parseWithHintGated(
       text,
       fileName: file.name,
     );

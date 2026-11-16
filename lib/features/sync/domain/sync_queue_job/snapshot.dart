@@ -13,48 +13,23 @@ Future<SyncQueueJob?> _snapshotUpsert(
   final registry = MediaRegistry(db);
   switch (type) {
     case SyncEntityType.audio:
-      final row = await registry.getAudioById(id);
-      if (row == null) return null;
-      final job = SyncAudioUpsert.snapshot(row, action: action);
-      await registry.upsertAudio(
-        row.copyWith(syncStatus: const Value('pending')),
-      );
-      return job;
+      if (!await registry.markAudioSyncPending(id)) return null;
+      return SyncAudioUpsert(id: id, action: action);
     case SyncEntityType.video:
-      final row = await registry.getVideoById(id);
-      if (row == null) return null;
-      final job = SyncVideoUpsert.snapshot(row, action: action);
-      await registry.upsertVideo(
-        row.copyWith(syncStatus: const Value('pending')),
-      );
-      return job;
+      if (!await registry.markVideoSyncPending(id)) return null;
+      return SyncVideoUpsert(id: id, action: action);
     case SyncEntityType.recording:
-      final row = await db.recordingDao.getById(id);
-      if (row == null) return null;
-      final job = SyncRecordingUpsert.snapshot(row, action: action);
-      await db.recordingDao.insertRow(
-        row.copyWith(syncStatus: const Value('pending')),
-      );
-      return job;
+      if (!await db.recordingDao.markSyncPending(id)) return null;
+      return SyncRecordingUpsert(id: id, action: action);
     case SyncEntityType.youtubeSubscription:
       final sub = await db.youtubeChannelSubscriptionDao.getByChannelId(id);
       if (sub == null) return null;
       return SyncYoutubeSubscriptionUpsert.snapshot(sub, action: action);
     case SyncEntityType.vocabularyItem:
-      final row = await db.vocabularyItemDao.getById(id);
-      if (row == null) return null;
-      final job = SyncVocabularyItemUpsert.snapshot(row, action: action);
-      await db.vocabularyItemDao.updateRow(
-        row.copyWith(syncStatus: const Value('pending')),
-      );
-      return job;
+      if (!await db.vocabularyItemDao.markSyncPending(id)) return null;
+      return SyncVocabularyItemUpsert(id: id, action: action);
     case SyncEntityType.vocabularyContext:
-      final row = await db.vocabularyContextDao.getById(id);
-      if (row == null) return null;
-      final job = SyncVocabularyContextUpsert.snapshot(row, action: action);
-      await db.vocabularyContextDao.updateRow(
-        row.copyWith(syncStatus: const Value('pending')),
-      );
-      return job;
+      if (!await db.vocabularyContextDao.markSyncPending(id)) return null;
+      return SyncVocabularyContextUpsert(id: id, action: action);
   }
 }

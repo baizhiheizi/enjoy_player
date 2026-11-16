@@ -31,6 +31,9 @@ mixin BulkPkRowsMixin<DB extends GeneratedDatabase, R extends Insertable<R>>
   late final GeneratedColumn<String> bulkPkColumn =
       bulkPkTable.$primaryKey.single as GeneratedColumn<String>;
 
+  late final GeneratedColumn<String> _syncStatusColumn =
+      bulkPkTable.columnsByName['sync_status']! as GeneratedColumn<String>;
+
   /// Bulk-fetches rows by primary key in one `WHERE id IN (…)` query.
   /// Ids with no row are absent from the map; empty input is a no-op.
   Future<Map<String, R>> getManyByIds(Iterable<String> ids) async {
@@ -49,5 +52,25 @@ mixin BulkPkRowsMixin<DB extends GeneratedDatabase, R extends Insertable<R>>
     await batch((b) {
       b.insertAll(bulkPkTable, rows, mode: bulkPkInsertMode);
     });
+  }
+
+  /// Deletes all rows whose primary key is in [ids] in one statement.
+  Future<void> deleteManyByIds(Iterable<String> ids) async {
+    final values = ids.toList();
+    if (values.isEmpty) return;
+    await (delete(bulkPkTable)..where((_) => bulkPkColumn.isIn(values))).go();
+  }
+
+  /// Flips `sync_status` to `'pending'` in place without reading or rewriting row blobs.
+  Future<bool> markSyncPending(String id) async {
+    final affected =
+        await (update(
+          bulkPkTable,
+        )..where((_) => bulkPkColumn.equals(id))).write(
+          RawValuesInsertable({
+            _syncStatusColumn.name: const Variable<String>('pending'),
+          }),
+        );
+    return affected > 0;
   }
 }

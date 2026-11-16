@@ -184,4 +184,10 @@ mixin MediaRegistryWrites {
     title: title,
     thumbnailUrl: thumbnailUrl,
   );
+
+  Future<bool> markAudioSyncPending(String id) =>
+      _db.audioDao.markSyncPending(id);
+
+  Future<bool> markVideoSyncPending(String id) =>
+      _db.videoDao.markSyncPending(id);
 }

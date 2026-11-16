@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
 import 'package:enjoy_player/data/api/services/ai/ai_api_providers.dart';
 import 'package:enjoy_player/features/ai/application/ai_modality_config_controller.dart';
@@ -47,6 +48,7 @@ AsrCapability resolveAsrCapability(Ref ref, AIServiceConfig config) {
         SpeechByokKind.openAiCompatible => ByokAsrOpenAiCapability(
           config: speechByok,
           secrets: ref.read(byokSecretStoreProvider),
+          httpClient: ref.read(httpClientProvider),
         ),
         SpeechByokKind.azureSpeech => ByokAsrAzureCapability(
           config: speechByok,
@@ -118,6 +120,7 @@ TtsCapability resolveTtsCapability(Ref ref, AIServiceConfig config) {
         SpeechByokKind.openAiCompatible => ByokTtsOpenAiCapability(
           config: speechByok,
           secrets: ref.read(byokSecretStoreProvider),
+          httpClient: ref.read(httpClientProvider),
         ),
         SpeechByokKind.azureSpeech => ByokTtsAzureCapability(
           config: speechByok,

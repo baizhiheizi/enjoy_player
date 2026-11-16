@@ -326,4 +326,63 @@ Default SRT
       expect(SubtitleParserFacade.stripAssTags(''), '');
     });
   });
+
+  group('VttParser timestamp fast path & parseWithHintGated', () {
+    test('parses HH:MM:SS.mmm and MM:SS.mmm timestamps', () {
+      const vtt = '''
+WEBVTT
+
+01:02:03.456 --> 01:02:04.789
+Long hours
+
+02:05.050 --> 02:06.100
+Short mm:ss
+
+''';
+      final lines = const VttParser().parse(vtt);
+      expect(lines, hasLength(2));
+      expect(lines[0].startMs, 125050);
+      expect(lines[0].durationMs, 1050);
+      expect(lines[1].startMs, 3723456);
+      expect(lines[1].durationMs, 1333);
+    });
+
+    test(
+      'parseWithHintGated handles both small and isolate-sized payloads',
+      () async {
+        const facade = SubtitleParserFacade();
+        final small = await facade.parseWithHintGated('''
+WEBVTT
+
+00:00:01.000 --> 00:00:02.000
+Small cue
+''', fileName: 'small.vtt');
+        expect(small.single.text, 'Small cue');
+
+        final buffer = StringBuffer('WEBVTT\n\n');
+        for (var i = 0; i < 1600; i++) {
+          final start = i;
+          final end = i + 1;
+          buffer.writeln(
+            '00:${(start ~/ 60).toString().padLeft(2, '0')}:'
+            '${(start % 60).toString().padLeft(2, '0')}.000 --> '
+            '00:${(end ~/ 60).toString().padLeft(2, '0')}:'
+            '${(end % 60).toString().padLeft(2, '0')}.000',
+          );
+          buffer.writeln('Line number $i with extra text for payload size');
+          buffer.writeln();
+        }
+        final largeText = buffer.toString();
+        expect(largeText.length, greaterThan(50 * 1024));
+
+        final large = await facade.parseWithHintGated(
+          largeText,
+          fileName: 'large.vtt',
+        );
+        expect(large, hasLength(1600));
+        expect(large.first.startMs, 0);
+        expect(large.last.startMs, 1599000);
+      },
+    );
+  });
 }
