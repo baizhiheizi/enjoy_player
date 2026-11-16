@@ -46,7 +46,7 @@ final class LookupCreditsExhaustedProvider
 }
 
 String _$lookupCreditsExhaustedHash() =>
-    r'442b6dc8fbf0512e326b202a55f5e0081690c660';
+    r'0b627f9c7c1094de2edfa078973338ad5565c001';
 
 abstract class _$LookupCreditsExhausted
     extends $Notifier<Map<LookupSectionId, String>> {

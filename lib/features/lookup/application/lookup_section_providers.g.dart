@@ -73,7 +73,7 @@ final class LookupSheetTranslationProvider
 }
 
 String _$lookupSheetTranslationHash() =>
-    r'f7621d025c4332b7e45e99b68d3fa29f711f7207';
+    r'2d65408fdeaa5be7dbf1c00f9e202fba3895984c';
 
 final class LookupSheetTranslationFamily extends $Family
     with
@@ -163,7 +163,7 @@ final class LookupSheetDictionaryProvider
 }
 
 String _$lookupSheetDictionaryHash() =>
-    r'8e58b38ff1c108e3d8d3766e6033d2713e3c78c3';
+    r'7b398adb3e6a3270a6dc03974b70888da8950080';
 
 final class LookupSheetDictionaryFamily extends $Family
     with

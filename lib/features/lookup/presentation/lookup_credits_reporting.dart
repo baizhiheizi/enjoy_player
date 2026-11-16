@@ -6,12 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 
-final Map<LookupSectionId, Object> _lastTokenPerSection =
-    <LookupSectionId, Object>{};
-
-@visibleForTesting
-void resetLookupCreditsReportingForTest() => _lastTokenPerSection.clear();
-
 void scheduleLookupCreditsReport(
   BuildContext context,
   WidgetRef ref,
@@ -46,9 +40,10 @@ void _refreshCreditsSummary(
   LookupSectionId section,
   Object? resultToken,
 ) {
-  if (resultToken != null) {
-    if (identical(_lastTokenPerSection[section], resultToken)) return;
-    _lastTokenPerSection[section] = resultToken;
+  if (!ref
+      .read(lookupCreditsExhaustedProvider.notifier)
+      .markSummaryToken(section, resultToken)) {
+    return;
   }
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (!context.mounted) return;

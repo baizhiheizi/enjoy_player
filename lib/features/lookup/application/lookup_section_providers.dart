@@ -18,6 +18,40 @@ export 'lookup_section_params.dart';
 
 part 'lookup_section_providers.g.dart';
 
+/// The cache keys for the three lookup sections, derived once: the provider
+/// reads through them and force-refresh invalidates through the same one, so
+/// a payload drift can never invalidate a different entry than was displayed.
+String lookupTranslationCacheKey(LookupTranslationParams params) =>
+    AiCacheFingerprint.fingerprint(
+      kind: AiKind.translation.wire,
+      payload: {
+        'text': params.text,
+        'sourceLanguage': params.sourceLanguage,
+        'targetLanguage': params.targetLanguage,
+      },
+    );
+
+String lookupDictionaryCacheKey(LookupDictionaryParams params) =>
+    AiCacheFingerprint.fingerprint(
+      kind: AiKind.dictionary.wire,
+      payload: {
+        'word': params.text,
+        'sourceLanguage': params.sourceLanguage,
+        'targetLanguage': params.targetLanguage,
+      },
+    );
+
+String lookupContextualTranslationCacheKey(LookupContextualParams params) =>
+    AiCacheFingerprint.fingerprint(
+      kind: AiKind.contextualTranslation.wire,
+      payload: {
+        'text': params.text,
+        'sourceLanguage': params.sourceLanguage,
+        'targetLanguage': params.targetLanguage,
+        'context': params.context ?? '',
+      },
+    );
+
 @riverpod
 Future<TranslationResult> lookupSheetTranslation(
   Ref ref,
@@ -25,14 +59,7 @@ Future<TranslationResult> lookupSheetTranslation(
   bool forceRefresh = false,
 }) async {
   final cache = ref.read(aiTranslationCacheProvider);
-  final key = AiCacheFingerprint.fingerprint(
-    kind: AiKind.translation.wire,
-    payload: {
-      'text': params.text,
-      'sourceLanguage': params.sourceLanguage,
-      'targetLanguage': params.targetLanguage,
-    },
-  );
+  final key = lookupTranslationCacheKey(params);
   final cacheHit =
       !forceRefresh && cache.peek(kind: AiKind.translation, key: key) != null;
   ref
@@ -67,14 +94,7 @@ Future<DictionaryResult> lookupSheetDictionary(
   bool forceRefresh = false,
 }) async {
   final cache = ref.read(aiDictionaryCacheProvider);
-  final key = AiCacheFingerprint.fingerprint(
-    kind: AiKind.dictionary.wire,
-    payload: {
-      'word': params.text,
-      'sourceLanguage': params.sourceLanguage,
-      'targetLanguage': params.targetLanguage,
-    },
-  );
+  final key = lookupDictionaryCacheKey(params);
   final cacheHit =
       !forceRefresh && cache.peek(kind: AiKind.dictionary, key: key) != null;
   final result = await cache.lookup(

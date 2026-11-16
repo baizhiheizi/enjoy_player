@@ -126,8 +126,6 @@ Future<void> _pumpSheet(
 List<LookupSectionId> _allSections(int tick) => LookupSectionId.values;
 
 void main() {
-  setUp(resetLookupCreditsReportingForTest);
-
   testWidgets(
     'refreshes once for the first result token and stays flat on identical re-emissions',
     (tester) async {

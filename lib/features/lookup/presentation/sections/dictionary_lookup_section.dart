@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/features/ai/application/ai_cache_fingerprint.dart';
 import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
@@ -47,18 +46,13 @@ class DictionaryLookupSection extends ConsumerWidget {
         child: Builder(
           builder: (_) {
             void forceRefresh() {
-              final key = AiCacheFingerprint.fingerprint(
-                kind: AiKind.dictionary.wire,
-                payload: {
-                  'word': params.text,
-                  'sourceLanguage': params.sourceLanguage,
-                  'targetLanguage': params.targetLanguage,
-                },
-              );
               unawaited(
                 ref
                     .read(aiDictionaryCacheProvider)
-                    .invalidate(kind: AiKind.dictionary, key: key),
+                    .invalidate(
+                      kind: AiKind.dictionary,
+                      key: lookupDictionaryCacheKey(params),
+                    ),
               );
               ref.invalidate(lookupSheetDictionaryProvider(params));
             }
