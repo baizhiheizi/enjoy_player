@@ -187,12 +187,15 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               p.mixinId != null && p.mixinId!.trim().isNotEmpty;
 
           final remoteAvatar = rasterAvatarUrl(p.avatarUrl);
-          ImageProvider? avatarImage;
+          ImageProvider? rawAvatarImage;
           if (_pendingAvatarBytes != null) {
-            avatarImage = MemoryImage(_pendingAvatarBytes!);
+            rawAvatarImage = MemoryImage(_pendingAvatarBytes!);
           } else if (remoteAvatar != null && remoteAvatar.isNotEmpty) {
-            avatarImage = CachedNetworkImageProvider(remoteAvatar);
+            rawAvatarImage = CachedNetworkImageProvider(remoteAvatar);
           }
+          final avatarImage = rawAvatarImage == null
+              ? null
+              : ResizeImage.resizeIfNeeded(276, null, rawAvatarImage);
 
           return SingleChildScrollView(
             padding: metrics.padding(top: t.space16, bottom: t.space32),

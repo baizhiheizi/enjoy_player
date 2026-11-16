@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Window width at which the brand panel joins the form.
@@ -149,21 +150,13 @@ class _LogoArtPainter extends CustomPainter {
     );
     final bounds = origin & Size.square(side);
     final shader = gradient.createShader(bounds);
-    final paint = Paint()
-      ..shader = shader
-      ..strokeWidth = 34 * scale
-      ..strokeJoin = StrokeJoin.round;
+    final paint = Paint()..shader = shader;
+    final strokeRadius = 17 * scale;
     for (final (points, opacity) in _triangles) {
-      final path = Path()
-        ..addPolygon([for (final p in points) origin + p * scale], true);
-      canvas
-        ..saveLayer(
-          path.getBounds().inflate(paint.strokeWidth),
-          Paint()..color = Colors.white.withValues(alpha: opacity),
-        )
-        ..drawPath(path, paint..style = PaintingStyle.fill)
-        ..drawPath(path, paint..style = PaintingStyle.stroke)
-        ..restore();
+      final scaled = <Offset>[for (final p in points) origin + p * scale];
+      final path = roundedExpandedTrianglePath(scaled, strokeRadius);
+      paint.color = Colors.white.withValues(alpha: opacity);
+      canvas.drawPath(path, paint);
     }
   }
 

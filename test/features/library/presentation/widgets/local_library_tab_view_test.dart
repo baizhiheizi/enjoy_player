@@ -363,5 +363,96 @@ void main() {
         expect(grown.totalInLibraryOfKind, 2);
       },
     );
+
+    testWidgets(
+      'LocalAudioLibraryBody and LocalVideoLibraryBody wire findChildIndexCallback',
+      (tester) async {
+        Media makeMedia(String id, MediaKind kind) => Media(
+          id: id,
+          kind: kind,
+          title: 'Item $id',
+          sourceUri: 'file:///$id.mp4',
+          durationMs: 60_000,
+          language: 'en',
+          contentHash: 'h',
+          fileSize: 1024,
+          createdAt: _ts,
+          updatedAt: _ts,
+        );
+        final audioItems = [
+          makeMedia('a1', MediaKind.audio),
+          makeMedia('a2', MediaKind.audio),
+        ];
+        final videoItems = [
+          makeMedia('v1', MediaKind.video),
+          makeMedia('v2', MediaKind.video),
+        ];
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    SizedBox(
+                      height: 300,
+                      child: LocalAudioLibraryBody(
+                        items: audioItems,
+                        searchQuery: '',
+                        totalInLibraryOfKind: 2,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 300,
+                      child: LocalVideoLibraryBody(
+                        items: videoItems,
+                        searchQuery: '',
+                        totalInLibraryOfKind: 2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final audioList = tester.widget<SliverList>(
+          find.descendant(
+            of: find.byType(LocalAudioLibraryBody),
+            matching: find.byType(SliverList),
+          ),
+        );
+        final audioDelegate = audioList.delegate as SliverChildBuilderDelegate;
+        expect(
+          audioDelegate.findChildIndexCallback!(
+            const ValueKey<String>('local-audio-a2'),
+          ),
+          2,
+        );
+
+        final videoGrid = tester.widget<SliverGrid>(
+          find.descendant(
+            of: find.byType(LocalVideoLibraryBody),
+            matching: find.byType(SliverGrid),
+          ),
+        );
+        final videoDelegate = videoGrid.delegate as SliverChildBuilderDelegate;
+        expect(
+          videoDelegate.findChildIndexCallback!(
+            const ValueKey<String>('local-video-v2'),
+          ),
+          1,
+        );
+      },
+    );
   });
 }

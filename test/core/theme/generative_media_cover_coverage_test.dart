@@ -1,6 +1,32 @@
+import 'dart:ui' as ui;
+
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class _RecordingCanvas implements Canvas {
+  _RecordingCanvas(this._inner);
+
+  final Canvas _inner;
+  int saveLayerCount = 0;
+  int drawPathCount = 0;
+
+  @override
+  void saveLayer(Rect? bounds, Paint paint) {
+    saveLayerCount++;
+    _inner.saveLayer(bounds, paint);
+  }
+
+  @override
+  void drawPath(Path path, Paint paint) {
+    drawPathCount++;
+    _inner.drawPath(path, paint);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   group('cover palette', () {
@@ -91,6 +117,32 @@ void main() {
 
       expect(a.shouldRepaint(b), isTrue);
       expect(b.shouldRepaint(a), isTrue);
+    });
+
+    testWidgets('wraps CustomPaint in a RepaintBoundary', (tester) async {
+      await pumpSeed(tester, 'boundary-seed');
+      expect(
+        find.descendant(
+          of: find.byType(GenerativeMediaCover),
+          matching: find.byType(RepaintBoundary),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    test('paintLogoMarkPlanes draws all 3 planes without saveLayer', () {
+      final recorder = ui.PictureRecorder();
+      final canvas = _RecordingCanvas(Canvas(recorder));
+      const rect = Rect.fromLTWH(0, 0, 120, 120);
+      final shader = const LinearGradient(
+        colors: [Colors.blue, Colors.purple],
+      ).createShader(rect);
+
+      paintLogoMarkPlanes(canvas, destination: rect, shader: shader);
+      recorder.endRecording().dispose();
+
+      expect(canvas.saveLayerCount, 0);
+      expect(canvas.drawPathCount, 3);
     });
   });
 }

@@ -1,6 +1,8 @@
 /// Enjoy brand mark — gradient SVG, no chrome.
 library;
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/colors.dart';
@@ -32,6 +34,52 @@ const List<(List<Offset>, double)> kLogoMarkPlanes = [
   (<Offset>[Offset(50, 30), Offset(90, 50), Offset(50, 70)], 1.0),
 ];
 
+/// Builds the outer boundary of a triangle expanded outward by [strokeRadius]
+/// with circular joins, matching fill + round-stroke without `saveLayer`.
+Path roundedExpandedTrianglePath(List<Offset> points, double strokeRadius) {
+  if (points.length != 3 || strokeRadius <= 0) {
+    return Path()..addPolygon(points, true);
+  }
+  final a = points[0];
+  var b = points[1];
+  var c = points[2];
+  final cross = (b.dx - a.dx) * (c.dy - a.dy) - (b.dy - a.dy) * (c.dx - a.dx);
+  if (cross == 0) {
+    return Path()..addPolygon(points, true);
+  }
+  if (cross < 0) {
+    final tmp = b;
+    b = c;
+    c = tmp;
+  }
+  final verts = <Offset>[a, b, c];
+  final normals = <Offset>[];
+  for (var i = 0; i < 3; i++) {
+    final p0 = verts[i];
+    final p1 = verts[(i + 1) % 3];
+    final dx = p1.dx - p0.dx;
+    final dy = p1.dy - p0.dy;
+    final len = math.sqrt(dx * dx + dy * dy);
+    if (len == 0) {
+      return Path()..addPolygon(points, true);
+    }
+    normals.add(Offset((dy / len) * strokeRadius, (-dx / len) * strokeRadius));
+  }
+  final r = Radius.circular(strokeRadius);
+  final path = Path()
+    ..moveTo(verts[0].dx + normals[0].dx, verts[0].dy + normals[0].dy);
+  for (var i = 0; i < 3; i++) {
+    final next = (i + 1) % 3;
+    final edgeEnd = verts[next] + normals[i];
+    final nextStart = verts[next] + normals[next];
+    path
+      ..lineTo(edgeEnd.dx, edgeEnd.dy)
+      ..arcToPoint(nextStart, radius: r, clockwise: true);
+  }
+  path.close();
+  return path;
+}
+
 /// Paints the three logo planes into [destination], faded by [markOpacity],
 /// with [shader] as fill and outline (round joins, 5-unit stroke). The
 /// planes are cropped by whatever clip is active — tiles offset and scale
@@ -44,34 +92,22 @@ void paintLogoMarkPlanes(
 }) {
   final scale = destination.width / kLogoMarkViewBox.width;
   final dy = (destination.height - kLogoMarkViewBox.height * scale) / 2;
-  final stroke = Paint()
-    ..shader = shader
-    ..style = PaintingStyle.stroke
-    ..strokeJoin = StrokeJoin.round
-    ..strokeWidth = 5 * scale;
+  final strokeRadius = 2.5 * scale;
+  final paint = Paint()..shader = shader;
 
   for (final (points, layerOpacity) in kLogoMarkPlanes) {
-    final path = Path()
-      ..moveTo(
-        (points[0].dx - kLogoMarkViewBox.left) * scale,
-        (points[0].dy - kLogoMarkViewBox.top) * scale + dy,
-      );
-    for (final p in points.skip(1)) {
-      path.lineTo(
-        (p.dx - kLogoMarkViewBox.left) * scale,
-        (p.dy - kLogoMarkViewBox.top) * scale + dy,
-      );
-    }
-    path.close();
-
-    canvas.saveLayer(
-      destination,
-      Paint()
-        ..color = Colors.white.withValues(alpha: markOpacity * layerOpacity),
-    );
-    canvas.drawPath(path, Paint()..shader = shader);
-    canvas.drawPath(path, stroke);
-    canvas.restore();
+    final alpha = (markOpacity * layerOpacity).clamp(0.0, 1.0);
+    if (alpha <= 0) continue;
+    final scaled = <Offset>[
+      for (final p in points)
+        Offset(
+          (p.dx - kLogoMarkViewBox.left) * scale,
+          (p.dy - kLogoMarkViewBox.top) * scale + dy,
+        ),
+    ];
+    final path = roundedExpandedTrianglePath(scaled, strokeRadius);
+    paint.color = Colors.white.withValues(alpha: alpha);
+    canvas.drawPath(path, paint);
   }
 }
 

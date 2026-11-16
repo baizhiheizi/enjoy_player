@@ -73,7 +73,9 @@ class GenerativeMediaCover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: _GeneratedCoverPainter(seed: seed));
+    return RepaintBoundary(
+      child: CustomPaint(painter: _GeneratedCoverPainter(seed: seed)),
+    );
   }
 }
 
