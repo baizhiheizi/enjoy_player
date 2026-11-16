@@ -159,6 +159,7 @@ Future<SyncResult> downloadPagedEntities<E>({
   int? maxPages,
   void Function()? onPageCapReached,
   Future<void> Function(String id)? onTombstone,
+  Future<void> Function(List<String> ids)? onTombstones,
   Logger? log,
 }) async {
   final logger = log ?? _log;
@@ -189,20 +190,16 @@ Future<SyncResult> downloadPagedEntities<E>({
     if (batch.isEmpty) break;
 
     final pendingUpserts = <String, Map<String, dynamic>>{};
+    final tombstoneIds = <String>[];
+    final hasTombstoneHandler = onTombstones != null || onTombstone != null;
     for (final m in batch) {
       final id = m['id'] as String?;
       if (id == null || id.isEmpty) continue;
       final deletedAt = m['deletedAt'];
       if (deletedAt != null &&
           deletedAt.toString().isNotEmpty &&
-          onTombstone != null) {
-        try {
-          await onTombstone(id);
-          synced++;
-        } catch (e) {
-          failed++;
-          errors.add('$e');
-        }
+          hasTombstoneHandler) {
+        tombstoneIds.add(id);
         continue;
       }
       if (pendingUpserts.containsKey(id)) {
@@ -212,6 +209,40 @@ Future<SyncResult> downloadPagedEntities<E>({
         );
       }
       pendingUpserts[id] = m;
+    }
+
+    if (tombstoneIds.isNotEmpty) {
+      if (onTombstones != null) {
+        try {
+          await onTombstones(tombstoneIds);
+          synced += tombstoneIds.length;
+        } catch (e) {
+          if (onTombstone != null) {
+            for (final id in tombstoneIds) {
+              try {
+                await onTombstone(id);
+                synced++;
+              } catch (inner) {
+                failed++;
+                errors.add('$inner');
+              }
+            }
+          } else {
+            failed += tombstoneIds.length;
+            errors.add('$e');
+          }
+        }
+      } else if (onTombstone != null) {
+        for (final id in tombstoneIds) {
+          try {
+            await onTombstone(id);
+            synced++;
+          } catch (e) {
+            failed++;
+            errors.add('$e');
+          }
+        }
+      }
     }
 
     var pageFailed = 0;

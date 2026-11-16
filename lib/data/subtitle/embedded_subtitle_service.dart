@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../core/ids/enjoy_ids.dart';
 import '../../core/logging/log.dart';
+import '../../features/transcript/data/transcript_timeline_codec.dart';
 import '../db/app_database.dart';
 import '../db/transcript_row.dart';
 import '../files/ffmpeg_media_probe.dart';
@@ -117,7 +118,11 @@ class EmbeddedSubtitleService {
         continue;
       }
 
-      final lines = _parseExtractedSrt(srtText);
+      final cleaned = SubtitleParserFacade.stripAssTags(srtText);
+      final lines = await const SubtitleParserFacade().parseWithHintGated(
+        cleaned,
+        fileName: 'track.srt',
+      );
       if (lines.isEmpty) {
         ffmpegSubtitleOrdinal++;
         continue;
@@ -191,7 +196,10 @@ class EmbeddedSubtitleService {
       }
 
       final cleaned = SubtitleParserFacade.stripAssTags(srtText);
-      final lines = _parseExtractedSrt(srtText);
+      final lines = await const SubtitleParserFacade().parseWithHintGated(
+        cleaned,
+        fileName: 'track.srt',
+      );
       if (lines.isEmpty) {
         final preview = cleaned.length > 500
             ? cleaned.substring(0, 500)
@@ -210,27 +218,19 @@ class EmbeddedSubtitleService {
         language == 'und' ? null : language,
         i,
       );
+      final json = await encodeTimelineJsonGated(lines);
       results.add(
-        rowForExtracted(
+        _rowFromEncoded(
           targetId: targetId,
           targetTypeDexie: targetTypeDexie,
           language: language,
           label: label,
           trackIndex: i,
-          lines: lines,
+          timelineJson: json,
         ),
       );
     }
     return results;
-  }
-
-  /// Shared extract tail: strip ASS/SSA override tags and parse the SRT text.
-  List<TranscriptLine> _parseExtractedSrt(String srtText) {
-    final cleaned = SubtitleParserFacade.stripAssTags(srtText);
-    return const SubtitleParserFacade().parseWithHint(
-      cleaned,
-      fileName: 'track.srt',
-    );
   }
 
   Future<List<({String? language})>> _probeSubtitleStreams(
@@ -316,16 +316,14 @@ class EmbeddedSubtitleService {
     return null;
   }
 
-  @visibleForTesting
-  static TranscriptRow rowForExtracted({
+  static TranscriptRow _rowFromEncoded({
     required String targetId,
     required String targetTypeDexie,
     required String language,
     required String label,
     required int trackIndex,
-    required List<TranscriptLine> lines,
+    required String timelineJson,
   }) {
-    final json = jsonEncode(lines.map((e) => e.toJson()).toList());
     final now = DateTime.now();
     const source = 'user';
     final id = enjoyTranscriptId(
@@ -340,11 +338,30 @@ class EmbeddedSubtitleService {
       targetId: targetId,
       language: language,
       source: source,
-      timelineJson: json,
+      timelineJson: timelineJson,
       referenceId: 'embedded:$trackIndex',
       label: label,
       trackIndex: trackIndex,
       createdAt: now,
+    );
+  }
+
+  @visibleForTesting
+  static TranscriptRow rowForExtracted({
+    required String targetId,
+    required String targetTypeDexie,
+    required String language,
+    required String label,
+    required int trackIndex,
+    required List<TranscriptLine> lines,
+  }) {
+    return _rowFromEncoded(
+      targetId: targetId,
+      targetTypeDexie: targetTypeDexie,
+      language: language,
+      label: label,
+      trackIndex: trackIndex,
+      timelineJson: encodeTimelineJson(lines),
     );
   }
 

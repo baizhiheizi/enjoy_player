@@ -2,13 +2,14 @@
 library;
 
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/data/files/app_directories.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/data/files/lasting_local_access.dart';
 
@@ -93,12 +94,27 @@ Future<bool> _otherPerUserDbReferencesLocalUri({
   required String fileUri,
 }) async {
   try {
-    final docs = await getApplicationDocumentsDirectory();
-    final dir = Directory(docs.path);
-    if (!await dir.exists()) return false;
+    final docs = await cachedApplicationDocumentsDirectory();
+    final docsPath = docs.path;
+    return await Isolate.run(
+      () => _scanOtherPerUserDbsSync(docsPath, currentDbBaseName, fileUri),
+    );
+  } on Object {
+    return true;
+  }
+}
+
+bool _scanOtherPerUserDbsSync(
+  String docsPath,
+  String currentDbBaseName,
+  String fileUri,
+) {
+  try {
+    final dir = Directory(docsPath);
+    if (!dir.existsSync()) return false;
 
     final currentFileName = '$currentDbBaseName.sqlite';
-    await for (final entity in dir.list(followLinks: false)) {
+    for (final entity in dir.listSync(followLinks: false)) {
       if (entity is! File) continue;
       final name = p.basename(entity.path);
       if (!_isPerUserLibraryDbFileName(name)) continue;
@@ -107,10 +123,10 @@ Future<bool> _otherPerUserDbReferencesLocalUri({
         return true;
       }
     }
+    return false;
   } on Object {
     return true;
   }
-  return false;
 }
 
 bool _isPerUserLibraryDbFileName(String name) {

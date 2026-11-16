@@ -477,4 +477,4 @@ final class YoutubeFeedClientProvider
   }
 }
 
-String _$youtubeFeedClientHash() => r'693e82b80ad15d79462d4bc1ee3ad3195ce12818';
+String _$youtubeFeedClientHash() => r'd28aca6b39b2bc326064de722e03ac2b2602dea8';

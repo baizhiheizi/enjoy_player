@@ -59,5 +59,8 @@ YoutubeTranscriptsClient youtubeTranscriptsClient(Ref ref) =>
 @Riverpod(keepAlive: true)
 YoutubeFeedClient youtubeFeedClient(Ref ref) {
   final tokens = ref.watch(secureTokenStoreProvider);
-  return YoutubeFeedClient(getToken: tokens.readAccessToken);
+  return YoutubeFeedClient(
+    httpClient: ref.watch(httpClientProvider),
+    getToken: tokens.readAccessToken,
+  );
 }

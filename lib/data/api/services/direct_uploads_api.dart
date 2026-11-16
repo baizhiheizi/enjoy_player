@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 
@@ -15,6 +16,10 @@ class DirectUploadsApi extends RestApi {
   const DirectUploadsApi(super.client);
 
   static const _path = '/api/v1/direct_uploads';
+  static const _isolateHashThresholdBytes = 64 * 1024;
+
+  static String _computeMd5Base64(List<int> bytes) =>
+      base64.encode(md5.convert(bytes).bytes);
 
   /// Uploads [bytes] and returns the Active Storage `signed_id`.
   Future<String> uploadBlob({
@@ -22,7 +27,9 @@ class DirectUploadsApi extends RestApi {
     required String filename,
     required String contentType,
   }) async {
-    final checksum = base64.encode(md5.convert(bytes).bytes);
+    final checksum = bytes.length > _isolateHashThresholdBytes
+        ? await Isolate.run(() => _computeMd5Base64(bytes))
+        : _computeMd5Base64(bytes);
     final created = await client.postJson(
       _path,
       body: {

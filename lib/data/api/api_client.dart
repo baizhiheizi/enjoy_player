@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -14,6 +15,29 @@ import 'package:enjoy_player/data/api/case_conversion.dart';
 import 'package:enjoy_player/data/api/json_isolate.dart';
 
 final Logger _log = logNamed('api');
+
+const int _kIsolateJsonEncodeByteEstimateThreshold = 16 * 1024;
+
+List<int> _encodeSnakeJsonBody(Object? body) =>
+    utf8.encode(jsonEncode(convertKeysToSnake(body)));
+
+bool _shouldEncodeJsonInIsolate(Object? body) {
+  if (body is String) {
+    return body.length > _kIsolateJsonEncodeByteEstimateThreshold;
+  }
+  if (body is List) return body.length >= 32;
+  if (body is Map) {
+    if (body.length >= 24) return true;
+    for (final v in body.values) {
+      if (v is List && v.length >= 32) return true;
+      if (v is String && v.length > _kIsolateJsonEncodeByteEstimateThreshold) {
+        return true;
+      }
+      if (v is Map && v.length >= 24) return true;
+    }
+  }
+  return false;
+}
 
 /// Request/response lines at [Level.INFO] so they appear when
 /// [Logger.root.level] is [Level.INFO] (profile/release), not only [Level.ALL].
@@ -416,7 +440,9 @@ class ApiClient {
 
     final bodyBytes = body == null
         ? null
-        : utf8.encode(jsonEncode(convertKeysToSnake(body)));
+        : (_shouldEncodeJsonInIsolate(body)
+              ? await Isolate.run(() => _encodeSnakeJsonBody(body))
+              : _encodeSnakeJsonBody(body));
 
     final sw = Stopwatch()..start();
     _apiHttpTrace('HTTP → $method $uri');

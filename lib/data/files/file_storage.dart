@@ -9,10 +9,10 @@ import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'app_directories.dart';
 import 'chunked_file_hash.dart';
 import 'lasting_local_access.dart';
 import 'security_scoped_bookmark.dart';
@@ -155,7 +155,7 @@ class FileStorage {
         throw const FileFailure('Import failed: no file path');
       }
 
-      final docs = await getApplicationDocumentsDirectory();
+      final docs = await cachedApplicationDocumentsDirectory();
       final mediaDir = Directory(p.join(docs.path, 'media'));
       if (!await mediaDir.exists()) {
         await mediaDir.create(recursive: true);
@@ -267,32 +267,39 @@ class FileStorage {
         throw const FileFailure('Import failed: empty audio bytes');
       }
 
-      final docs = await getApplicationDocumentsDirectory();
+      final docs = await cachedApplicationDocumentsDirectory();
       final mediaDir = Directory(p.join(docs.path, 'media'));
       if (!await mediaDir.exists()) {
         await mediaDir.create(recursive: true);
       }
 
-      final contentHashHex = sha256.convert(bytes).toString();
       final ext = extension.startsWith('.') ? extension : '.$extension';
-      final destPath = p.join(mediaDir.path, '$contentHashHex$ext');
-      final destFile = File(destPath);
-
-      if (!await destFile.exists()) {
-        final raf = await destFile.open(mode: FileMode.write);
-        try {
-          await raf.writeFrom(bytes);
-        } finally {
-          await raf.close();
+      final mediaDirPath = mediaDir.path;
+      final worker = await Isolate.run(() async {
+        final contentHashHex = sha256.convert(bytes).toString();
+        final destPath = p.join(mediaDirPath, '$contentHashHex$ext');
+        final destFile = File(destPath);
+        if (!await destFile.exists()) {
+          final raf = await destFile.open(mode: FileMode.write);
+          try {
+            await raf.writeFrom(bytes);
+          } finally {
+            await raf.close();
+          }
         }
-      }
+        return (
+          localPath: destPath,
+          contentHashHex: contentHashHex,
+          mtimeMs: await _mtimeMsForPath(destPath),
+        );
+      });
 
       return FileImportResult(
-        localPath: destPath,
-        contentHashHex: contentHashHex,
+        localPath: worker.localPath,
+        contentHashHex: worker.contentHashHex,
         fileSize: bytes.length,
         title: title,
-        mtimeMs: await _mtimeMsForPath(destPath),
+        mtimeMs: worker.mtimeMs,
       );
     } catch (e, st) {
       if (e is FileFailure) {

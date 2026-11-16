@@ -144,7 +144,8 @@ class SyncDownloadService {
       upsertRows: _db.videoDao.upsertRows,
       insertRow: _db.videoDao.insertRow,
       merge: mergeVideoLastWriteWins,
-      onTombstone: (id) => _db.videoDao.deleteId(id),
+      onTombstone: _db.videoDao.deleteId,
+      onTombstones: _db.videoDao.deleteManyByIds,
     );
   }
 
@@ -227,6 +228,7 @@ class SyncDownloadService {
     })
     merge,
     Future<void> Function(String id)? onTombstone,
+    Future<void> Function(List<String> ids)? onTombstones,
   }) {
     return downloadPagedEntities<E>(
       settingsDao: _db.settingsDao,
@@ -240,16 +242,24 @@ class SyncDownloadService {
       insertRow: insertRow,
       merge: merge,
       onTombstone: onTombstone,
+      onTombstones: onTombstones,
       log: _log,
     );
   }
 
   Future<SyncResult> downloadAllEntitiesFresh() async {
-    final a = await _downloadAudiosInternal(resetCursor: true);
-    final v = await _downloadVideosInternal(resetCursor: true);
-    final r = await _downloadRecordingsInternal(resetCursor: true);
-    final vi = await _downloadVocabularyItemsInternal(resetCursor: true);
-    final vc = await _downloadVocabularyContextsInternal(resetCursor: true);
-    return a.merge(v).merge(r).merge(vi).merge(vc);
+    await _repairVocabularyCursorsOnce();
+    final results = await Future.wait([
+      _downloadAudiosInternal(resetCursor: true),
+      _downloadVideosInternal(resetCursor: true),
+      _downloadRecordingsInternal(resetCursor: true),
+      _downloadVocabularyItemsInternal(resetCursor: true),
+      _downloadVocabularyContextsInternal(resetCursor: true),
+    ]);
+    var combined = results[0];
+    for (var i = 1; i < results.length; i++) {
+      combined = combined.merge(results[i]);
+    }
+    return combined;
   }
 }

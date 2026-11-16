@@ -4,7 +4,8 @@ library;
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+
+import 'app_directories.dart';
 
 /// True when [absolutePath] is a durable filesystem path suitable for storing
 /// as `localUri` without copying into app `media/`.
@@ -32,7 +33,7 @@ Future<bool> isAppManagedMediaPath(String pathOrFileUri) async {
   try {
     final absolute = _absolutePathFrom(pathOrFileUri);
     if (absolute == null) return false;
-    final docs = await getApplicationDocumentsDirectory();
+    final docs = await cachedApplicationDocumentsDirectory();
     final mediaDir = p.normalize(p.join(docs.path, 'media'));
     return _isUnderOrEqual(mediaDir, p.normalize(absolute));
   } on Object {
@@ -42,17 +43,17 @@ Future<bool> isAppManagedMediaPath(String pathOrFileUri) async {
 
 /// App documents `media/` directory path (creates nothing).
 Future<String> appManagedMediaDirectoryPath() async {
-  final docs = await getApplicationDocumentsDirectory();
+  final docs = await cachedApplicationDocumentsDirectory();
   return p.join(docs.path, 'media');
 }
 
 Future<List<String>> _ephemeralRoots() async {
   final roots = <String>[];
   try {
-    roots.add(p.normalize((await getTemporaryDirectory()).path));
+    roots.add(p.normalize((await cachedTemporaryDirectory()).path));
   } on Object {} // ignore: empty_catches
   try {
-    final cache = await getApplicationCacheDirectory();
+    final cache = await cachedApplicationCacheDirectory();
     roots.add(p.normalize(cache.path));
   } on Object {} // ignore: empty_catches
   return roots;

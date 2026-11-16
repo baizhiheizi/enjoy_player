@@ -603,27 +603,29 @@ void main() {
       expect(await db.select(db.syncQueue).get(), isEmpty);
     });
 
-    test('snapshots the payload and flips syncStatus to pending', () async {
-      await insertAudio('aud-1');
+    test(
+      'flips syncStatus to pending without serializing a snapshot payload',
+      () async {
+        await insertAudio('aud-1');
 
-      final job = await SyncQueueJob.snapshotUpsert(
-        db,
-        SyncEntityType.audio,
-        'aud-1',
-        SyncAction.update,
-      );
+        final job = await SyncQueueJob.snapshotUpsert(
+          db,
+          SyncEntityType.audio,
+          'aud-1',
+          SyncAction.update,
+        );
 
-      expect(job, isA<SyncAudioUpsert>());
-      final wire = job!.encode();
-      expect(wire.entityType, 'audio');
-      expect(wire.entityId, 'aud-1');
-      expect(wire.action, 'update');
-      final payload = jsonDecode(wire.payloadJson!) as Map<String, dynamic>;
-      expect(payload['id'], 'aud-1');
+        expect(job, isA<SyncAudioUpsert>());
+        final wire = job!.encode();
+        expect(wire.entityType, 'audio');
+        expect(wire.entityId, 'aud-1');
+        expect(wire.action, 'update');
+        expect(wire.payloadJson, isNull);
 
-      final row = await db.audioDao.getById('aud-1');
-      expect(row!.syncStatus, 'pending');
-    });
+        final row = await db.audioDao.getById('aud-1');
+        expect(row!.syncStatus, 'pending');
+      },
+    );
 
     test('youtube_subscription snapshots without a status flip', () async {
       final now = DateTime.utc(2026, 9, 16);

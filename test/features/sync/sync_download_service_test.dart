@@ -825,6 +825,28 @@ void main() {
       expect(result.success, isTrue);
       expect(result.synced, 5);
     });
+
+    test('batches tombstones for deleted videos via deleteManyByIds', () async {
+      await buildService(
+        videoApi: _FakeVideoApi([
+          [_videoJson('v1'), _videoJson('v2'), _videoJson('v3')],
+        ]),
+      ).downloadAllEntitiesFresh();
+
+      final result = await buildService(
+        videoApi: _FakeVideoApi([
+          [
+            _videoJson('v1', deletedAt: '2026-01-02T00:00:00.000Z'),
+            _videoJson('v3', deletedAt: '2026-01-02T00:00:00.000Z'),
+          ],
+        ]),
+      ).downloadAllEntitiesFresh();
+
+      expect(result.success, isTrue);
+      expect(await db.videoDao.getById('v1'), isNull);
+      expect(await db.videoDao.getById('v2'), isNotNull);
+      expect(await db.videoDao.getById('v3'), isNull);
+    });
   });
 
   group('SyncResult.merge', () {

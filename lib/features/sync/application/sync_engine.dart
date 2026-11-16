@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
@@ -139,15 +140,36 @@ class SyncEngine {
 
     var synced = 0;
     var failed = 0;
+    if (work.isEmpty) {
+      return const SyncResult(success: true, synced: 0, failed: 0);
+    }
 
+    final byEntity = <String, List<SyncQueueRow>>{};
     for (final item in work) {
-      final ok = await _processOne(item);
-      if (ok) {
-        synced++;
-      } else {
-        failed++;
+      byEntity
+          .putIfAbsent('${item.entityType}\u0000${item.entityId}', () => [])
+          .add(item);
+    }
+    final groups = byEntity.values.toList(growable: false);
+    const maxConcurrency = 4;
+    final workerCount = math.min(maxConcurrency, groups.length);
+    var nextIndex = 0;
+
+    Future<void> runWorker() async {
+      while (nextIndex < groups.length) {
+        final group = groups[nextIndex++];
+        for (final item in group) {
+          final ok = await _processOne(item);
+          if (ok) {
+            synced++;
+          } else {
+            failed++;
+          }
+        }
       }
     }
+
+    await Future.wait([for (var i = 0; i < workerCount; i++) runWorker()]);
 
     return SyncResult(success: failed == 0, synced: synced, failed: failed);
   }
