@@ -1,12 +1,17 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:record/record.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/audio/mic_capture_session.dart';
+import 'package:enjoy_player/core/audio/mic_recorder.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -19,7 +24,9 @@ import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/presentation/capture_stage.dart';
 import 'package:enjoy_player/features/craft/application/craft_library_repository_provider.dart';
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
+import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import '../../../support/test_path_provider.dart';
 
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
@@ -72,6 +79,40 @@ class _FakeTranscriber implements CraftTranscriber {
 class _FakeLibraryRepository implements CraftLibraryRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _FakeMicRecorder implements MicRecorder {
+  RecordConfig? lastConfig;
+  String? lastPath;
+
+  @override
+  Future<bool> hasPermission() async => true;
+
+  @override
+  Future<void> start(RecordConfig config, {required String path}) async {
+    lastConfig = config;
+    lastPath = path;
+  }
+
+  @override
+  Future<String?> stop() async => null;
+
+  @override
+  Stream<Amplitude> onAmplitudeChanged([Duration? interval]) =>
+      const Stream<Amplitude>.empty();
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _FakeDeviceCtrl extends RecordingInputDeviceCtrl {
+  @override
+  Future<RecordingInputDeviceState> build() async =>
+      const RecordingInputDeviceState(
+        devices: [InputDevice(id: 'mic-9', label: 'Test Mic')],
+        selectedId: 'mic-9',
+        persistedId: 'mic-9',
+      );
 }
 
 Widget _harness({required List<Override> overrides, required Widget child}) {
@@ -286,6 +327,48 @@ void main() {
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.text('Transcribing…'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'CaptureStage arms the recorder with the persisted microphone preference',
+    (tester) async {
+      final root = Directory.systemTemp.createTempSync('craft_capture_test_');
+      addTearDown(() {
+        if (root.existsSync()) root.deleteSync(recursive: true);
+      });
+      PathProviderPlatform.instance = TestPathProvider(root.path);
+
+      final recorder = _FakeMicRecorder();
+      final overrides = [
+        ..._baseOverrides(),
+        recordingInputDeviceCtrlProvider.overrideWith(_FakeDeviceCtrl.new),
+        micCaptureSessionFactoryProvider.overrideWithValue(
+          () => MicCaptureSession(recorderFactory: () => recorder),
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _harness(overrides: overrides, child: const CaptureStage()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(EnjoyIcons.micFill));
+      for (var i = 0; i < 20 && recorder.lastConfig == null; i++) {
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+
+      final config = recorder.lastConfig;
+      expect(config, isNotNull);
+      expect(config!.device?.id, 'mic-9');
+      expect(config.sampleRate, 16000);
+      expect(config.numChannels, 1);
+      expect(recorder.lastPath, contains('craft_recordings'));
+
+      await tester.pumpWidget(
+        _harness(overrides: overrides, child: const SizedBox()),
+      );
+      await tester.pump();
     },
   );
 }

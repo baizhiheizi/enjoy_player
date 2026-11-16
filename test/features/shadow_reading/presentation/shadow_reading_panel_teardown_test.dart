@@ -3,11 +3,12 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
-import 'package:record/record.dart' show RecordConfig;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:record/record.dart';
 
+import 'package:enjoy_player/core/audio/mic_recorder.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
@@ -30,6 +31,10 @@ class _HangingMicRecorder implements MicRecorder {
 
   @override
   Future<String?> stop() async => null;
+
+  @override
+  Stream<Amplitude> onAmplitudeChanged([Duration? interval]) =>
+      const Stream<Amplitude>.empty();
 
   @override
   Future<void> dispose() async {}

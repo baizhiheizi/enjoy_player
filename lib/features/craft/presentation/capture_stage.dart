@@ -1,8 +1,9 @@
 /// Capture stage: voice-first input for the Craft Express flow.
 ///
-/// Owns the [AudioRecorder] instance (recreated after each stop, mirroring
-/// the proven pattern from `ShadowReadingPanel`). Provides a large mic button
-/// for recording and a "type instead" text fallback.
+/// The microphone lifecycle (permission, the shared 16 kHz mono WAV config,
+/// the user's chosen device, the recreate-after-stop workaround) lives in
+/// [MicCaptureSession]; this widget owns the elapsed readout, the amplitude
+/// ring buffer, and the [CraftController] hand-off.
 library;
 
 import 'dart:async';
@@ -12,8 +13,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:record/record.dart';
+import 'package:record/record.dart' show InputDevice;
 
+import 'package:enjoy_player/core/audio/mic_capture_session.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
@@ -23,6 +25,7 @@ import 'package:enjoy_player/features/craft/presentation/capture_stage_recording
 import 'package:enjoy_player/features/craft/presentation/capture_stage_text_fallback.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_loading_view.dart';
+import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Voice capture stage for the Express flow.
@@ -38,9 +41,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
 
   static const _maxAmplitudeBars = 40;
 
-  /// Recreated after every `stop()` — `record` on Windows can keep stale
-  /// Media Foundation state on the same instance.
-  AudioRecorder _recorder = AudioRecorder();
   bool _recordingPending = false;
   bool _textMode = false;
 
@@ -48,6 +48,7 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
   /// Tracked locally so [dispose] can clear the session flag without [ref].
   bool _sessionCapturing = false;
   CraftController? _craft;
+  MicCaptureSession? _micSession;
 
   DateTime? _recordingStartedAt;
   Duration _elapsed = Duration.zero;
@@ -66,7 +67,10 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _craft ??= ref.read(craftControllerProvider.notifier);
+    _micSession ??= ref.read(micCaptureSessionFactoryProvider)();
   }
+
+  MicCaptureSession get _session => _micSession!;
 
   @override
   void dispose() {
@@ -75,17 +79,13 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     _textController.dispose();
     _focusNode.dispose();
     if (_sessionCapturing) {
-      _craft?.cancelCapture();
       _sessionCapturing = false;
+      final craft = _craft;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        craft?.cancelCapture();
+      });
     }
-    unawaited(() async {
-      try {
-        await _recorder.stop();
-      } catch (_) {}
-      try {
-        await _recorder.dispose();
-      } catch (_) {}
-    }());
+    unawaited(_micSession?.dispose() ?? Future<void>.value());
     super.dispose();
   }
 
@@ -94,12 +94,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     _amplitudeSub = null;
   }
 
-  RecordConfig _buildConfig() => const RecordConfig(
-    encoder: AudioEncoder.wav,
-    sampleRate: 16000,
-    numChannels: 1,
-  );
-
   Future<void> _startRecording() async {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.read(craftControllerProvider);
@@ -107,35 +101,33 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     if (state.isBusy) return;
     _recordingPending = true;
 
-    bool granted;
+    final support = await getApplicationSupportDirectory();
+    final dir = Directory('${support.path}/craft_recordings');
+
+    InputDevice? device;
     try {
-      granted = await _recorder.hasPermission();
+      device = await ref
+          .read(recordingInputDeviceCtrlProvider.future)
+          .then((state) => state.selectedDevice);
     } catch (e, st) {
-      _log.warning('hasPermission failed', e, st);
-      _recordingPending = false;
-      if (mounted) setState(() {});
-      return;
+      _log.fine('mic device state unavailable, using the OS default', e, st);
     }
-    if (!granted) {
+
+    try {
+      await _session.start(
+        directory: dir,
+        filename: 'craft_${DateTime.now().millisecondsSinceEpoch}.wav',
+        device: device,
+      );
+    } on MicPermissionDeniedException {
       _recordingPending = false;
       if (mounted) {
         AppNotice.warning(context, l10n.craftRecordingMicDenied);
       }
       return;
-    }
-
-    final support = await getApplicationSupportDirectory();
-    final dir = Directory('${support.path}/craft_recordings');
-    await dir.create(recursive: true);
-    final outPath =
-        '${dir.path}/craft_${DateTime.now().millisecondsSinceEpoch}.wav';
-
-    try {
-      await _recorder.start(_buildConfig(), path: outPath);
     } catch (e, st) {
-      _log.warning('recorder.start failed', e, st);
+      _log.warning('mic capture start failed', e, st);
       _recordingPending = false;
-      await _resetRecorderInstance();
       if (mounted) setState(() {});
       return;
     }
@@ -154,12 +146,12 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
   }
 
   Future<void> _stopRecording() async {
-    String? path;
     final controller = ref.read(craftControllerProvider.notifier);
+    String? path;
     try {
-      path = await _recorder.stop();
+      path = await _session.stop();
     } catch (e, st) {
-      _log.warning('recorder.stop failed', e, st);
+      _log.warning('mic capture stop failed', e, st);
     }
     _stopElapsedTimer();
     _cancelAmplitudeStream();
@@ -168,10 +160,8 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     _amplitudeCount = 0;
     _recordingPending = false;
 
-    await _resetRecorderInstance();
-
     if (path == null || path.isEmpty) {
-      _log.warning('recorder.stop returned no path');
+      _log.warning('mic capture stop returned no path');
       _sessionCapturing = false;
       controller.cancelCapture();
       if (mounted) setState(() {});
@@ -208,19 +198,7 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     _amplitudeCount = 0;
     _recordingPending = false;
 
-    String? path;
-    try {
-      path = await _recorder.stop();
-    } catch (e, st) {
-      _log.warning('recorder.stop on cancel failed', e, st);
-    }
-    await _resetRecorderInstance();
-
-    if (path != null && path.isNotEmpty) {
-      try {
-        await File(path).delete();
-      } catch (_) {}
-    }
+    await _session.cancel();
     if (mounted) setState(() {});
   }
 
@@ -230,16 +208,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     await _discardMicOnly();
     _sessionCapturing = false;
     controller.cancelCapture();
-  }
-
-  Future<void> _resetRecorderInstance() async {
-    final old = _recorder;
-    _recorder = AudioRecorder();
-    try {
-      await old.dispose();
-    } catch (e, st) {
-      _log.fine('recorder dispose after stop', e, st);
-    }
   }
 
   /// 1 Hz timer for the `m:ss` label — avoids 60 fps ticker rebuilds.
@@ -259,8 +227,8 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
 
   void _startAmplitudeStream() {
     _cancelAmplitudeStream();
-    _amplitudeSub = _recorder
-        .onAmplitudeChanged(const Duration(milliseconds: 100))
+    _amplitudeSub = _session
+        .amplitudeEvents(const Duration(milliseconds: 100))
         .listen((amp) {
           final level = ((amp.current + 40) / 40).clamp(0.05, 1.0);
           if (mounted) {

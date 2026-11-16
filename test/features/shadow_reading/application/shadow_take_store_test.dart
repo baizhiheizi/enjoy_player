@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:record/record.dart';
 
 import 'package:enjoy_player/core/echo/echo_region_key.dart';
+import 'package:enjoy_player/core/audio/mic_capture_session.dart';
+import 'package:enjoy_player/core/audio/mic_recorder.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_store.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
@@ -79,6 +81,10 @@ class FakeMicRecorder implements MicRecorder {
     final r = stopResult;
     return r == null ? null : r();
   }
+
+  @override
+  Stream<Amplitude> onAmplitudeChanged([Duration? interval]) =>
+      const Stream<Amplitude>.empty();
 
   @override
   Future<void> dispose() async {

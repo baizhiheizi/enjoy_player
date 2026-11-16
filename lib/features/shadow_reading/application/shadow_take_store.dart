@@ -1,10 +1,11 @@
 /// Shadow-reading take capture + persistence (issue #597).
 ///
 /// A deep module behind a small interface: `start` / `cancel` /
-/// `stopAndPersist` / `deleteTake`. It hides microphone permission handling,
-/// take-path construction, the "recreate the recorder after every stop"
-/// Windows workaround, WAV hashing / duration parsing, the silence heuristic,
-/// 18-field [RecordingRow] construction, Drift insert, and sync enqueue.
+/// `stopAndPersist` / `deleteTake`. It hides take-path construction and
+/// identity (uuid filename = row id), WAV hashing / duration parsing, the
+/// silence heuristic, 18-field [RecordingRow] construction, Drift insert, and
+/// sync enqueue; the microphone lifecycle itself (permission, the shared
+/// config, the recreate-after-stop workaround) lives in [MicCaptureSession].
 /// The panel shrinks to view + callbacks; tests exercise the seam directly.
 library;
 
@@ -18,6 +19,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:enjoy_player/core/audio/mic_capture_session.dart';
+import 'package:enjoy_player/core/audio/mic_recorder.dart';
 import 'package:enjoy_player/core/audio/wav_duration_ms.dart';
 import 'package:enjoy_player/core/audio/wav_signal_peak.dart';
 import 'package:enjoy_player/core/echo/echo_region_key.dart';
@@ -26,40 +29,6 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 final _log = logNamed('ShadowTakeStore');
-
-/// Minimal seam over `package:record`'s [AudioRecorder] so the store can be
-/// tested with a fake (production adapter: [PackageRecordMicRecorder]).
-abstract class MicRecorder {
-  Future<bool> hasPermission();
-
-  Future<void> start(RecordConfig config, {required String path});
-
-  /// Returns the path of the written WAV, or `null`/empty when nothing was
-  /// captured.
-  Future<String?> stop();
-
-  Future<void> dispose();
-}
-
-/// Production adapter delegating to a real [AudioRecorder].
-class PackageRecordMicRecorder implements MicRecorder {
-  PackageRecordMicRecorder() : _impl = AudioRecorder();
-
-  final AudioRecorder _impl;
-
-  @override
-  Future<bool> hasPermission() => _impl.hasPermission();
-
-  @override
-  Future<void> start(RecordConfig config, {required String path}) =>
-      _impl.start(config, path: path);
-
-  @override
-  Future<String?> stop() => _impl.stop();
-
-  @override
-  Future<void> dispose() => _impl.dispose();
-}
 
 /// Outcome of a successful [ShadowTakeStore.stopAndPersist].
 class TakePersistResult {
@@ -72,14 +41,6 @@ class TakePersistResult {
   final bool looksSilent;
 }
 
-/// Microphone permission was denied by the OS.
-final class MicPermissionDeniedException implements Exception {
-  const MicPermissionDeniedException();
-
-  @override
-  String toString() => 'microphone permission denied';
-}
-
 /// The captured WAV is missing or unreadable at persist time.
 final class TakeFileMissingException implements Exception {
   const TakeFileMissingException(this.path);
@@ -89,22 +50,6 @@ final class TakeFileMissingException implements Exception {
   @override
   String toString() => 'recording wav missing at path: $path';
 }
-
-/// Capture config aligned with the web client and Azure Speech expectations.
-///
-/// 16 kHz mono PCM16 WAV avoids stereo downmix loss (one mic channel + one
-/// silent / out-of-phase channel cancelling each other to zero) and matches
-/// what the Azure Speech SDK accepts directly without downstream re-encoding.
-///
-/// `device` is the user's chosen (or auto-picked, non-virtual) microphone —
-/// this is what stops Windows from silently picking GlideX / VoiceMeeter /
-/// Stereo-Mix loopback devices.
-RecordConfig buildShadowRecordConfig(InputDevice? device) => RecordConfig(
-  encoder: AudioEncoder.wav,
-  sampleRate: 16000,
-  numChannels: 1,
-  device: device,
-);
 
 /// Builds stores already bound to the app's database and sync seam.
 ///
@@ -171,21 +116,17 @@ class ShadowTakeStore {
   }) {
     _db = db;
     _enqueueSync = enqueueSync;
-    _recorderFactory = recorderFactory ?? PackageRecordMicRecorder.new;
     _takeDirectoryOverride = takeDirectory;
-    _recorder = _recorderFactory();
+    _capture = MicCaptureSession(recorderFactory: recorderFactory);
   }
 
   late final AppDatabase _db;
   late final SyncEnqueueFn _enqueueSync;
-  late final MicRecorder Function() _recorderFactory;
   late final Directory? _takeDirectoryOverride;
-
-  late MicRecorder _recorder;
-  bool _active = false;
+  late final MicCaptureSession _capture;
 
   /// Whether a take capture is currently in flight on the microphone.
-  bool get isActive => _active;
+  bool get isActive => _capture.isActive;
 
   Future<Directory> _takeDirectory() async {
     final override = _takeDirectoryOverride;
@@ -198,31 +139,13 @@ class ShadowTakeStore {
   /// OS denies the microphone, or propagates recorder errors.
   Future<void> start({required InputDevice? device}) async {
     final dir = await _takeDirectory();
-    await dir.create(recursive: true);
     final id = const Uuid().v4();
-    final outPath = p.join(dir.path, '$id.wav');
-
-    final granted = await _recorder.hasPermission();
-    if (!granted) {
-      throw const MicPermissionDeniedException();
-    }
-
-    await _recorder.start(buildShadowRecordConfig(device), path: outPath);
-    _active = true;
+    await _capture.start(directory: dir, filename: '$id.wav', device: device);
   }
 
   /// Discards an in-progress take without persisting it.
   Future<void> cancel() async {
-    if (!_active) return;
-    _active = false;
-    String? path;
-    try {
-      path = await _recorder.stop();
-    } catch (e, st) {
-      _log.warning('microphone stop (cancel recording) failed', e, st);
-    }
-    await _resetRecorder();
-    await _deleteFileIfExists(path);
+    await _capture.cancel();
   }
 
   /// Stops the capture and persists it as a [RecordingRow]. Returns the row
@@ -231,13 +154,7 @@ class ShadowTakeStore {
   Future<TakePersistResult> stopAndPersist({
     required EchoRegionKey region,
   }) async {
-    if (!_active) {
-      throw const TakeFileMissingException('');
-    }
-    _active = false;
-
-    final path = await _recorder.stop();
-    await _resetRecorder();
+    final path = await _capture.stop();
 
     if (path == null || path.isEmpty) {
       _log.warning('recorder.stop returned no path');
@@ -261,31 +178,7 @@ class ShadowTakeStore {
   /// Stops any in-flight capture (discarding the WAV) and releases the
   /// recorder. Safe to call from a widget `dispose`.
   Future<void> dispose() async {
-    if (_active) {
-      _active = false;
-      try {
-        final path = await _recorder.stop();
-        await _deleteFileIfExists(path);
-      } catch (e, st) {
-        _log.fine('recorder stop on dispose', e, st);
-      }
-    }
-    try {
-      await _recorder.dispose();
-    } catch (_) {}
-  }
-
-  /// Recreated after every `stop()` — `record` on Windows can keep stale
-  /// Media Foundation state on the same instance, so a second `start()`
-  /// quietly produces a zero-sample WAV ("second take won't record").
-  Future<void> _resetRecorder() async {
-    final old = _recorder;
-    _recorder = _recorderFactory();
-    try {
-      await old.dispose();
-    } catch (e, st) {
-      _log.fine('audio recorder dispose after stop failed', e, st);
-    }
+    await _capture.dispose();
   }
 
   Future<void> _deleteFileIfExists(String? path) async {

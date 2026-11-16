@@ -85,7 +85,7 @@ A linear three-stage pipeline (`CraftStage` enum: `capture` → `rewrite` → `a
 - Live waveform animation (`accentInk` bars) + a mono recording timer in `scoreBad`-equivalent error red while recording
 - **Cancel** — discards the take without ASR (`CraftController.cancelCapture()`); also wired to Escape (cancel in place, same priority as shadow-reading cancel) and route leave / back (clears `isCapturing` so reopen cannot stick on a dead Stop UI)
 - **Text fallback** — a ghost "type instead" button replaces the mic with a `TextField` (skips ASR), plus an `EnjoyButton.primary` submit
-- `AudioRecorder` is owned by the widget (not the controller), recreated after each stop — mirrors the `ShadowReadingPanel` pattern (16kHz mono WAV)
+- Capture is delegated to the shared [`MicCaptureSession`](../../lib/core/audio/mic_capture_session.dart) (not the controller): mic permission, the 16 kHz mono WAV config, the user's chosen microphone (**Settings → Recording → Microphone now takes effect in Craft**), and the recreate-after-stop-or-failed-start workaround all live there — the same owner as `ShadowReadingPanel`
 - On stop, `CraftController.stopCapture(bytes)` stores the bytes and `transcribeAndRewrite()` runs ASR (`CraftTranscriber`) → guarded empty-transcript check → LLM rewrite (`CraftTranslator`) → advances to the rewrite stage
 
 ### Rewrite stage (`RewriteStage`)

@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
 import 'package:enjoy_player/core/analytics/analytics_provider.dart';
+import 'package:enjoy_player/core/audio/mic_capture_session.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/core/echo/echo_region_key.dart';
 import 'package:enjoy_player/core/logging/log.dart';
@@ -114,7 +115,7 @@ class ShadowReadingPanel extends ConsumerStatefulWidget {
 }
 
 /// Capture config aligned with the web client and Azure Speech expectations
-/// lives in [buildShadowRecordConfig] (shadow_take_store.dart).
+/// lives in [buildMicRecordConfig] (core/audio/mic_capture_session.dart).
 
 /// Run state shared across the panel's concern mixins.
 mixin ShadowReadingPanelBase on ConsumerState<ShadowReadingPanel> {
