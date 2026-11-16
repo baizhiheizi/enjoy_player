@@ -3,8 +3,10 @@ library;
 
 import 'dart:io' show File;
 
+import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
+import 'package:meta/meta.dart';
 
 import 'local_thumbnail.dart';
 
@@ -45,11 +47,26 @@ String? _resolveYoutubeVideoId({
   return parseYoutubeVideoId(mediaUrl ?? '');
 }
 
-/// When set, library/home cards should use [Image.network] instead of a local file.
-///
-/// YouTube `hqdefault` URLs (oEmbed) are 4:3 with baked-in letterboxing — cards
-/// upgrade to 16:9 `maxresdefault` (see [_YoutubeCoverImage] fallback).
-String? remoteThumbnailForCard(
+/// Bounded memos for [remoteThumbnailForCard]. The derivation is pure in its
+/// inputs, so entries never expire; card tiles re-call it per rebuild with
+/// unchanged inputs and the derivation runs several regex/`Uri` passes. A
+/// null and an empty [remoteThumbnailForCard] `thumbnailPath` derive the same
+/// result, so they share the empty key in `_thumbOnlyMemo`.
+final L1Store<String, _CardThumbHit> _thumbOnlyMemo = L1Store(capacity: 256);
+
+final L1Store<(String?, String?, String?), _CardThumbHit> _tupleMemo = L1Store(
+  capacity: 128,
+);
+
+class _CardThumbHit {
+  const _CardThumbHit(this.url);
+  final String? url;
+}
+
+@visibleForTesting
+int remoteThumbnailDerivationCount = 0;
+
+String? _deriveThumbUrl(
   String? thumbnailPath, {
   String? youtubeVideoId,
   String? mediaUrl,
@@ -63,6 +80,37 @@ String? remoteThumbnailForCard(
     return youtubeMaxResThumbnailUrl(videoId);
   }
   return isRemoteThumbnailUrl(thumbnailPath) ? thumbnailPath : null;
+}
+
+/// When set, library/home cards should use [Image.network] instead of a local file.
+///
+/// YouTube `hqdefault` URLs (oEmbed) are 4:3 with baked-in letterboxing — cards
+/// upgrade to 16:9 `maxresdefault` (see [_YoutubeCoverImage] fallback).
+String? remoteThumbnailForCard(
+  String? thumbnailPath, {
+  String? youtubeVideoId,
+  String? mediaUrl,
+}) {
+  if (youtubeVideoId == null && mediaUrl == null) {
+    final key = thumbnailPath ?? '';
+    final hit = _thumbOnlyMemo.peek(key);
+    if (hit != null) return hit.url;
+    remoteThumbnailDerivationCount++;
+    final url = _deriveThumbUrl(thumbnailPath);
+    _thumbOnlyMemo.put(key, _CardThumbHit(url));
+    return url;
+  }
+  final key = (thumbnailPath, youtubeVideoId, mediaUrl);
+  final hit = _tupleMemo.peek(key);
+  if (hit != null) return hit.url;
+  remoteThumbnailDerivationCount++;
+  final url = _deriveThumbUrl(
+    thumbnailPath,
+    youtubeVideoId: youtubeVideoId,
+    mediaUrl: mediaUrl,
+  );
+  _tupleMemo.put(key, _CardThumbHit(url));
+  return url;
 }
 
 /// MQ fallback when [remoteThumbnailForCard] returns maxres for YouTube.
