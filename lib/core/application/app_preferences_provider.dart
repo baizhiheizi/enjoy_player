@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -68,6 +69,19 @@ class AppPreferencesState {
       themeMode: themeMode ?? this.themeMode,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AppPreferencesState &&
+          locale == other.locale &&
+          learningLanguage == other.learningLanguage &&
+          nativeLanguage == other.nativeLanguage &&
+          themeMode == other.themeMode;
+
+  @override
+  int get hashCode =>
+      Object.hash(locale, learningLanguage, nativeLanguage, themeMode);
 }
 
 ThemeMode themeModeFromStorage(String? raw) {
@@ -101,8 +115,13 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     final sw = Stopwatch()..start();
     _prefsLog.info('prefs: build start');
 
-    final auth = ref.watch(authCtrlProvider).valueOrNull;
-    if (auth is! AuthSignedIn) {
+    final signedInUserId = ref.watch(
+      authCtrlProvider.select((a) {
+        final v = a.valueOrNull;
+        return v is AuthSignedIn ? v.profile.id : null;
+      }),
+    );
+    if (signedInUserId == null) {
       _prefsLog.info(
         'prefs: unsigned — defaults only (${sw.elapsedMilliseconds}ms)',
       );
@@ -123,9 +142,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     final themeMode = themeModeFromStorage(themeRaw);
 
     final learnCanonical = canonicalFocusLanguageTag(learnRaw);
-    if (learnRaw == null ||
-        learnRaw.isEmpty ||
-        !tagsEqual(learnRaw, learnCanonical)) {
+    if (learnRaw == null || learnRaw.isEmpty || learnRaw != learnCanonical) {
       await db.settingsDao.writeSetting(
         SettingsKeys.prefsLearningLanguage,
         learnCanonical,
@@ -137,9 +154,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
       nativeRaw,
       learnCanonical,
     );
-    if (nativeRaw == null ||
-        nativeRaw.isEmpty ||
-        !tagsEqual(nativeRaw, nativeCoerced)) {
+    if (nativeRaw == null || nativeRaw.isEmpty || nativeRaw != nativeCoerced) {
       await db.settingsDao.writeSetting(
         SettingsKeys.prefsNativeLanguage,
         nativeCoerced,
@@ -151,7 +166,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     final canonicalLocaleTag = localeToBcp47(decodedLocale);
     if (localeRaw == null ||
         localeRaw.isEmpty ||
-        !tagsEqual(canonicalLocaleTag, localeRaw)) {
+        localeRaw != canonicalLocaleTag) {
       await db.settingsDao.writeSetting(
         SettingsKeys.prefsLocale,
         canonicalLocaleTag,
@@ -291,20 +306,28 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
       nativeLanguage: nativeCoerced,
       themeMode: prev.themeMode,
     );
-    state = AsyncData(next);
-    final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.writeSetting(
-      SettingsKeys.prefsLocale,
-      localeToBcp47(nextLocale ?? kAppDefaultDisplayLocale),
-    );
-    await db.settingsDao.writeSetting(
-      SettingsKeys.prefsLearningLanguage,
-      learnCanonical,
-    );
-    await db.settingsDao.writeSetting(
-      SettingsKeys.prefsNativeLanguage,
-      nativeCoerced,
-    );
+    if (next != prev) {
+      state = AsyncData(next);
+      final db = ref.read(appDatabaseProvider);
+      if (next.locale != prev.locale) {
+        await db.settingsDao.writeSetting(
+          SettingsKeys.prefsLocale,
+          localeToBcp47(nextLocale ?? kAppDefaultDisplayLocale),
+        );
+      }
+      if (next.learningLanguage != prev.learningLanguage) {
+        await db.settingsDao.writeSetting(
+          SettingsKeys.prefsLearningLanguage,
+          learnCanonical,
+        );
+      }
+      if (next.nativeLanguage != prev.nativeLanguage) {
+        await db.settingsDao.writeSetting(
+          SettingsKeys.prefsNativeLanguage,
+          nativeCoerced,
+        );
+      }
+    }
 
     final serverLearn = profile.learningLanguage;
     final serverNative = profile.nativeLanguage;

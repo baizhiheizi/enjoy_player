@@ -105,7 +105,6 @@ Future<void> setupAppLogging() async {
     );
   });
 
-  await LogFileSink.ensureInitialized();
   unawaited(DiagnosticLogConfig.loadFromDeviceGlobalSettings());
   _scheduleSessionBanner();
 }

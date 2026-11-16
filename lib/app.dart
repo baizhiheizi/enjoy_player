@@ -270,23 +270,44 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp>
     ) {
       final nextPrefs = next.valueOrNull;
       if (nextPrefs == null) return;
-      if (identical(nextPrefs, _lastResolvedPrefs)) return;
+      if (_lastResolvedPrefs != null &&
+          _lastResolvedPrefs!.locale == nextPrefs.locale &&
+          _lastResolvedPrefs!.themeMode == nextPrefs.themeMode) {
+        return;
+      }
       setState(() {
         _lastResolvedPrefs = nextPrefs;
       });
     });
 
     final router = ref.watch(appRouterProvider);
-    final prefsAsync = ref.watch(appPreferencesCtrlProvider);
+    final prefsProj = ref.watch(
+      appPreferencesCtrlProvider.select((async) {
+        final v = async.valueOrNull;
+        return (
+          hasError: async.hasError,
+          isLoading: async.isLoading,
+          hasValue: v != null,
+          locale: v?.locale,
+          themeMode: v?.themeMode,
+        );
+      }),
+    );
+    final effectiveLocale = prefsProj.locale ?? _lastResolvedPrefs?.locale;
+    final themeMode =
+        prefsProj.themeMode ??
+        _lastResolvedPrefs?.themeMode ??
+        ThemeMode.system;
+    final hasResolved = prefsProj.hasValue || _lastResolvedPrefs != null;
+
     final overrideTheme = widget.themeBuilder?.call();
     final lightTheme = overrideTheme ?? buildAppTheme(Brightness.light);
-    final darkTheme = overrideTheme ?? buildAppTheme(Brightness.dark);
+    final darkTheme = themeMode == ThemeMode.light
+        ? lightTheme
+        : (overrideTheme ?? buildAppTheme(Brightness.dark));
 
-    final live = prefsAsync.valueOrNull;
-    final effective = live ?? _lastResolvedPrefs;
-    final themeMode = effective?.themeMode ?? ThemeMode.system;
-
-    if (prefsAsync.hasError && effective == null) {
+    if (prefsProj.hasError && !hasResolved) {
+      final prefsAsync = ref.read(appPreferencesCtrlProvider);
       return _errorBranch(
         lightTheme,
         darkTheme,
@@ -296,7 +317,7 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp>
       );
     }
 
-    if (prefsAsync.isLoading && effective == null) {
+    if (prefsProj.isLoading && !hasResolved) {
       return _loadingBranch(lightTheme, darkTheme, themeMode);
     }
 
@@ -312,7 +333,7 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp>
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: themeMode,
-      prefs: effective ?? AppPreferencesState.initial,
+      prefs: AppPreferencesState(locale: effectiveLocale, themeMode: themeMode),
     );
   }
 }

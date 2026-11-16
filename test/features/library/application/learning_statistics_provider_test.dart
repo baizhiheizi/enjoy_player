@@ -6,6 +6,7 @@ import 'package:enjoy_player/data/api/services/api_providers.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
 import 'package:enjoy_player/data/api/services/direct_uploads_api.dart';
 import 'package:enjoy_player/data/api/services/stats_api.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/data/auth_repository.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -198,5 +199,31 @@ void main() {
       expect(result.hasValue, isTrue);
       expect(result.requireValue, isNull);
     });
+
+    test(
+      'does not re-fetch when UserProfile fields change while signed in',
+      () async {
+        final api = _FakeStatsApi(response: const {});
+        final container = _container(
+          api: api,
+          initial: const AuthSignedIn(profile: _profile),
+        );
+        addTearDown(container.dispose);
+
+        final sub = container.listen(learningStatisticsProvider, (_, _) {});
+        addTearDown(sub.close);
+        await container.read(authCtrlProvider.future);
+        await container.read(learningStatisticsProvider.future);
+        expect(api.callCount, 1);
+
+        container.read(authCtrlProvider.notifier).state = AsyncData(
+          AuthSignedIn(profile: _profile.copyWith(name: 'Updated Name')),
+        );
+        await Future<void>.delayed(Duration.zero);
+        await container.read(learningStatisticsProvider.future);
+
+        expect(api.callCount, 1);
+      },
+    );
   });
 }

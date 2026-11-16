@@ -54,4 +54,4 @@ final class AuthRouterTickProvider
   }
 }
 
-String _$authRouterTickHash() => r'7e01e82c7b2a4673aa52277636a280cff8cdf8b7';
+String _$authRouterTickHash() => r'937adb77099b9ab4f495eeb3bf16f8ee51615138';

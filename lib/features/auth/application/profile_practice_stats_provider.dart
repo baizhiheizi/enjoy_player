@@ -12,8 +12,13 @@ import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 
 final profilePracticeStatsProvider =
     FutureProvider.autoDispose<LearningStatistics>((ref) async {
-      final auth = ref.watch(authCtrlProvider).valueOrNull;
-      if (auth is! AuthSignedIn) {
+      final signedInUserId = ref.watch(
+        authCtrlProvider.select((a) {
+          final v = a.valueOrNull;
+          return v is AuthSignedIn ? v.profile.id : null;
+        }),
+      );
+      if (signedInUserId == null) {
         throw StateError('Profile stats require a signed-in session');
       }
 
