@@ -1,12 +1,14 @@
 /// Stacked English + IPA word columns (Enjoy web AlignedWord layout).
 library;
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/data/subtitle/transcript_word_ipa.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_line_selection_toolbar.dart';
 
 /// Whether [words] carry any displayable phone labels.
 bool transcriptWordsHavePhones(List<TranscriptWord>? words) {
@@ -47,11 +49,14 @@ class TranscriptAlignedWords extends StatelessWidget {
     required this.defaultColor,
     required this.emphasize,
     this.activeWordIndex,
+    this.activeWordIndexListenable,
     this.activeUnderlineColor,
     this.wavyWordIndexes,
     this.runSpacing = 8,
     this.onIpaTap,
-    this.selectableWordBuilder,
+    this.selectable = false,
+    this.onTap,
+    this.onLookupRequested,
     super.key,
   });
 
@@ -61,6 +66,7 @@ class TranscriptAlignedWords extends StatelessWidget {
   final Color defaultColor;
   final bool emphasize;
   final int? activeWordIndex;
+  final ValueListenable<int?>? activeWordIndexListenable;
   final Color? activeUnderlineColor;
 
   /// Vertical gap between wrapped word rows.
@@ -73,107 +79,189 @@ class TranscriptAlignedWords extends StatelessWidget {
   /// When set, tapping IPA for that word index calls this.
   final ValueChanged<int>? onIpaTap;
 
-  /// Optional builder for orthography when the row is dictionary-selectable.
-  /// Defaults to a plain [Text].
-  final Widget Function(BuildContext context, String text, TextStyle style)?
-  selectableWordBuilder;
+  /// Whether orthography words are wrapped in a unified selection surface.
+  final bool selectable;
+
+  final VoidCallback? onTap;
+  final ValueChanged<String>? onLookupRequested;
 
   @override
   Widget build(BuildContext context) {
     final activeColor =
         activeUnderlineColor ?? Theme.of(context).colorScheme.primary;
-    return Wrap(
+    final resolvedWordStyle = wordStyle.copyWith(
+      color: emphasize ? defaultColor : wordStyle.color ?? defaultColor,
+    );
+    final wrap = Wrap(
       spacing: (wordStyle.fontSize ?? 16) * _kWordGapEm,
       runSpacing: runSpacing,
       children: [
         for (var i = 0; i < words.length; i++)
           _AlignedWordColumn(
             key: ValueKey('aligned-word-$i'),
+            wordIndex: i,
             text: words[i].text,
             ipa: wordIpaSpelling(words[i]),
-            wordStyle: wordStyle.copyWith(
-              color: emphasize ? defaultColor : wordStyle.color ?? defaultColor,
-            ),
+            wordStyle: resolvedWordStyle,
             ipaStyle: ipaStyle,
-            isActive: activeWordIndex == i,
+            activeWordIndex: activeWordIndex,
+            activeWordIndexListenable: activeWordIndexListenable,
             activeUnderlineColor: activeColor,
             wavy: wavyWordIndexes?.contains(i) ?? false,
-            onIpaTap: onIpaTap == null ? null : () => onIpaTap!(i),
-            selectableWordBuilder: selectableWordBuilder,
+            onIpaTap: onIpaTap,
           ),
       ],
+    );
+    if (!selectable) return wrap;
+    return TranscriptWordSelectionArea(
+      onTap: onTap,
+      onLookupRequested: onLookupRequested,
+      child: wrap,
     );
   }
 }
 
 class _AlignedWordColumn extends StatelessWidget {
   const _AlignedWordColumn({
+    required this.wordIndex,
     required this.text,
     required this.ipa,
     required this.wordStyle,
     required this.ipaStyle,
-    required this.isActive,
+    required this.activeWordIndex,
+    required this.activeWordIndexListenable,
     required this.activeUnderlineColor,
     this.onIpaTap,
-    this.selectableWordBuilder,
     this.wavy = false,
     super.key,
   });
 
+  final int wordIndex;
   final String text;
   final String? ipa;
   final TextStyle wordStyle;
   final TextStyle ipaStyle;
-  final bool isActive;
+  final int? activeWordIndex;
+  final ValueListenable<int?>? activeWordIndexListenable;
   final Color activeUnderlineColor;
   final bool wavy;
-  final VoidCallback? onIpaTap;
-  final Widget Function(BuildContext context, String text, TextStyle style)?
-  selectableWordBuilder;
+  final ValueChanged<int>? onIpaTap;
 
   @override
   Widget build(BuildContext context) {
-    final orthography =
-        selectableWordBuilder?.call(context, text, wordStyle) ??
-        Text(
-          text,
-          style: wavy
-              ? wordStyle.copyWith(
-                  decoration: TextDecoration.underline,
-                  decorationStyle: TextDecorationStyle.wavy,
-                  decorationColor: EnjoyThemeTokens.of(context).you,
-                  decorationThickness: 1.5,
-                )
-              : wordStyle,
-        );
+    final orthography = Text(
+      text,
+      style: wavy
+          ? wordStyle.copyWith(
+              decoration: TextDecoration.underline,
+              decorationStyle: TextDecorationStyle.wavy,
+              decorationColor: EnjoyThemeTokens.of(context).you,
+              decorationThickness: 1.5,
+            )
+          : wordStyle,
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isActive ? activeUnderlineColor : Colors.transparent,
-                width: 2,
-              ),
-            ),
-          ),
+        _WordActiveUnderline(
+          wordIndex: wordIndex,
+          activeWordIndex: activeWordIndex,
+          activeWordIndexListenable: activeWordIndexListenable,
+          activeUnderlineColor: activeUnderlineColor,
           child: orthography,
         ),
         if (ipa != null && ipa!.isNotEmpty)
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onIpaTap,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 2, left: 1),
-              child: ExcludeSemantics(
-                child: Text(ipa!, style: ipaStyle, maxLines: 1),
+          SelectionContainer.disabled(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onIpaTap == null ? null : () => onIpaTap!(wordIndex),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 2, left: 1),
+                child: ExcludeSemantics(
+                  child: Text(ipa!, style: ipaStyle, maxLines: 1),
+                ),
               ),
             ),
           ),
       ],
+    );
+  }
+}
+
+class _WordActiveUnderline extends StatefulWidget {
+  const _WordActiveUnderline({
+    required this.wordIndex,
+    required this.activeWordIndex,
+    required this.activeWordIndexListenable,
+    required this.activeUnderlineColor,
+    required this.child,
+  });
+
+  final int wordIndex;
+  final int? activeWordIndex;
+  final ValueListenable<int?>? activeWordIndexListenable;
+  final Color activeUnderlineColor;
+  final Widget child;
+
+  @override
+  State<_WordActiveUnderline> createState() => _WordActiveUnderlineState();
+}
+
+class _WordActiveUnderlineState extends State<_WordActiveUnderline> {
+  late bool _isActive = _computeActive();
+
+  bool _computeActive() {
+    final current =
+        widget.activeWordIndexListenable?.value ?? widget.activeWordIndex;
+    return current == widget.wordIndex;
+  }
+
+  void _onTick() {
+    final next = _computeActive();
+    if (next != _isActive) {
+      setState(() => _isActive = next);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.activeWordIndexListenable?.addListener(_onTick);
+  }
+
+  @override
+  void didUpdateWidget(_WordActiveUnderline oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(
+      oldWidget.activeWordIndexListenable,
+      widget.activeWordIndexListenable,
+    )) {
+      oldWidget.activeWordIndexListenable?.removeListener(_onTick);
+      widget.activeWordIndexListenable?.addListener(_onTick);
+    }
+    _isActive = _computeActive();
+  }
+
+  @override
+  void dispose() {
+    widget.activeWordIndexListenable?.removeListener(_onTick);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: _isActive ? widget.activeUnderlineColor : Colors.transparent,
+            width: 2,
+          ),
+        ),
+      ),
+      child: widget.child,
     );
   }
 }

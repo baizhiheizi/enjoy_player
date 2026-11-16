@@ -4,6 +4,7 @@
 /// other tags while keeping inner text. No Flutter imports — safe for tests and data layer.
 library;
 
+import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 
 /// One contiguous substring with resolved inline style (stacked tags flattened).
@@ -63,8 +64,10 @@ final tagStripRegExp = RegExp(r'<[^>]*>');
 /// is not recompiled per call site.
 final whitespaceSplitRegExp = whitespaceRunRegExp;
 
-final _parseCache = <String, List<SubtitleTextSegment>>{};
 const _maxParseCacheSize = 256;
+final _parseCache = L1Store<String, List<SubtitleTextSegment>>(
+  capacity: _maxParseCacheSize,
+);
 
 /// Plain text with markup tags removed (preserves inner text and `<br>` breaks).
 String plainTextFromSubtitleMarkup(String input) {
@@ -84,7 +87,7 @@ List<SubtitleTextSegment> parseSubtitleMarkup(String input) {
     return [SubtitleTextSegment(input)];
   }
 
-  final cached = _parseCache[input];
+  final cached = _parseCache.peek(input);
   if (cached != null) return cached;
 
   final out = <SubtitleTextSegment>[];
@@ -202,10 +205,7 @@ List<SubtitleTextSegment> parseSubtitleMarkup(String input) {
   flush();
 
   final result = _mergeAdjacentSameStyle(out);
-  if (_parseCache.length >= _maxParseCacheSize) {
-    _parseCache.remove(_parseCache.keys.first);
-  }
-  _parseCache[input] = result;
+  _parseCache.put(input, result);
   return result;
 }
 

@@ -95,11 +95,14 @@ String? _tileHighlightedPlain(WidgetTester tester, Finder tile) {
 Widget _harness({
   required Widget child,
   List<Override> extraOverrides = const [],
+  bool ipaOverlayOn = false,
 }) {
   return ProviderScope(
     overrides: [
       transcriptBlurModeProvider.overrideWith(() => _BlurMode(false)),
-      ...transcriptWordPracticeOffOverrides(),
+      ...(ipaOverlayOn
+          ? transcriptIpaOverlayOnOverrides()
+          : transcriptWordPracticeOffOverrides()),
       ...extraOverrides,
     ],
     child: MaterialApp(
@@ -109,6 +112,17 @@ Widget _harness({
     ),
   );
 }
+
+class _WordIndexCtrl extends Notifier<int?> {
+  @override
+  int? build() => 0;
+
+  void setIndex(int? index) => state = index;
+}
+
+final _wordIndexProvider = NotifierProvider<_WordIndexCtrl, int?>(
+  _WordIndexCtrl.new,
+);
 
 void main() {
   testWidgets(
@@ -222,4 +236,92 @@ void main() {
     expect(find.text('Hello world'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('wordIndex updates do not rebuild TranscriptLineTile', (
+    tester,
+  ) async {
+    late ProviderContainer container;
+    await tester.pumpWidget(
+      _harness(
+        extraOverrides: [
+          transcriptPlaybackHighlightProvider('test').overrideWith(
+            (ref) => (cueIndex: 0, wordIndex: ref.watch(_wordIndexProvider)),
+          ),
+        ],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return TranscriptLineTile(
+              key: const ValueKey('active'),
+              line: _nested,
+              mediaId: 'test',
+              secondaryText: null,
+              isActive: true,
+              inEcho: false,
+              selectable: false,
+              onTap: () {},
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      _tileHighlightedPlain(tester, find.byType(TranscriptLineTile)),
+      'Hello',
+    );
+    final buildsBefore = transcriptTileBuildCount;
+
+    container.read(_wordIndexProvider.notifier).setIndex(1);
+    await tester.pump();
+
+    expect(transcriptTileBuildCount, buildsBefore);
+    expect(
+      _tileHighlightedPlain(tester, find.byType(TranscriptLineTile)),
+      'world',
+    );
+  });
+
+  testWidgets(
+    'selectable aligned IPA line uses one SelectionArea and skips tile rebuilds on word ticks',
+    (tester) async {
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        _harness(
+          ipaOverlayOn: true,
+          extraOverrides: [
+            transcriptPlaybackHighlightProvider('test').overrideWith(
+              (ref) => (cueIndex: 0, wordIndex: ref.watch(_wordIndexProvider)),
+            ),
+          ],
+          child: Builder(
+            builder: (context) {
+              container = ProviderScope.containerOf(context);
+              return TranscriptLineTile(
+                line: _nested,
+                mediaId: 'test',
+                secondaryText: null,
+                isActive: true,
+                inEcho: false,
+                selectable: true,
+                onLookupRequested: (_) {},
+                onTap: () {},
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(SelectionArea), findsOneWidget);
+      expect(find.byType(SelectableText), findsNothing);
+
+      final buildsBefore = transcriptTileBuildCount;
+      container.read(_wordIndexProvider.notifier).setIndex(1);
+      await tester.pump();
+
+      expect(transcriptTileBuildCount, buildsBefore);
+    },
+  );
 }

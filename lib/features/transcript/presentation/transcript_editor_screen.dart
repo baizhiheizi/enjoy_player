@@ -42,8 +42,8 @@ class TranscriptEditorScreen extends ConsumerStatefulWidget {
       _TranscriptEditorScreenState();
 }
 
-class _LineEdits {
-  _LineEdits({
+class _CueDraft {
+  _CueDraft({
     required this.line,
     required this.text,
     required this.start,
@@ -51,21 +51,15 @@ class _LineEdits {
   });
 
   final TranscriptLine line;
-  final TextEditingController text;
-  final TextEditingController start;
-  final TextEditingController duration;
-
-  void dispose() {
-    text.dispose();
-    start.dispose();
-    duration.dispose();
-  }
+  String text;
+  String start;
+  String duration;
 }
 
 class _TranscriptEditorScreenState
     extends ConsumerState<TranscriptEditorScreen> {
   String? _transcriptId;
-  List<_LineEdits>? _edits;
+  List<_CueDraft>? _edits;
   bool _rowMissing = false;
   bool _failed = false;
   bool _dirty = false;
@@ -75,14 +69,6 @@ class _TranscriptEditorScreenState
   void initState() {
     super.initState();
     unawaited(_load());
-  }
-
-  @override
-  void dispose() {
-    for (final edit in _edits ?? const <_LineEdits>[]) {
-      edit.dispose();
-    }
-    super.dispose();
   }
 
   void _markDirty() => _dirty = true;
@@ -105,22 +91,13 @@ class _TranscriptEditorScreenState
         _transcriptId = row.id;
         _edits = [
           for (final line in lines)
-            _LineEdits(
+            _CueDraft(
               line: line,
-              text: TextEditingController(text: line.text),
-              start: TextEditingController(
-                text: formatTranscriptTimingMs(line.startMs),
-              ),
-              duration: TextEditingController(
-                text: formatTranscriptTimingMs(line.durationMs),
-              ),
+              text: line.text,
+              start: formatTranscriptTimingMs(line.startMs),
+              duration: formatTranscriptTimingMs(line.durationMs),
             ),
         ];
-        for (final edit in _edits!) {
-          edit.text.addListener(_markDirty);
-          edit.start.addListener(_markDirty);
-          edit.duration.addListener(_markDirty);
-        }
       });
     } on Object catch (error) {
       _log.warning('transcript editor load failed: $error');
@@ -164,8 +141,8 @@ class _TranscriptEditorScreenState
     final l10n = AppLocalizations.of(context)!;
     final lines = <TranscriptLine>[];
     for (final edit in edits) {
-      final startMs = parseTranscriptTimingMs(edit.start.text);
-      final durationMs = parseTranscriptTimingMs(edit.duration.text);
+      final startMs = parseTranscriptTimingMs(edit.start);
+      final durationMs = parseTranscriptTimingMs(edit.duration);
       if (startMs == null || durationMs == null) {
         AppNotice.error(context, l10n.transcriptEditorInvalidTiming);
         return;
@@ -173,7 +150,7 @@ class _TranscriptEditorScreenState
       lines.add(
         editedTranscriptLine(
           edit.line,
-          text: edit.text.text.trim(),
+          text: edit.text.trim(),
           startMs: startMs,
           durationMs: durationMs,
         ),
@@ -250,9 +227,11 @@ class _TranscriptEditorScreenState
             padding: metrics.padding(top: t.space16, bottom: t.space32),
             itemCount: edits.length,
             itemBuilder: (context, index) => _LineCard(
-              edits: edits[index],
+              key: ValueKey('transcript-editor-card-${index + 1}'),
+              draft: edits[index],
               index: index + 1,
               saving: _saving,
+              onChanged: _markDirty,
             ),
           );
         },
@@ -261,21 +240,94 @@ class _TranscriptEditorScreenState
   }
 }
 
-class _LineCard extends StatelessWidget {
+class _LineCard extends StatefulWidget {
   const _LineCard({
-    required this.edits,
+    required this.draft,
     required this.index,
     required this.saving,
+    required this.onChanged,
+    super.key,
   });
 
-  final _LineEdits edits;
+  final _CueDraft draft;
   final int index;
   final bool saving;
+  final VoidCallback onChanged;
+
+  @override
+  State<_LineCard> createState() => _LineCardState();
+}
+
+class _LineCardState extends State<_LineCard> {
+  late final TextEditingController _textController;
+  late final TextEditingController _startController;
+  late final TextEditingController _durationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.draft.text)
+      ..addListener(_onTextChanged);
+    _startController = TextEditingController(text: widget.draft.start)
+      ..addListener(_onStartChanged);
+    _durationController = TextEditingController(text: widget.draft.duration)
+      ..addListener(_onDurationChanged);
+  }
+
+  @override
+  void didUpdateWidget(_LineCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.draft, widget.draft)) {
+      _syncController(_textController, widget.draft.text);
+      _syncController(_startController, widget.draft.start);
+      _syncController(_durationController, widget.draft.duration);
+    }
+  }
+
+  void _syncController(TextEditingController controller, String value) {
+    if (controller.text != value) {
+      controller.value = TextEditingValue(
+        text: value,
+        selection: TextSelection.collapsed(offset: value.length),
+      );
+    }
+  }
+
+  void _onTextChanged() {
+    final text = _textController.text;
+    if (widget.draft.text == text) return;
+    widget.draft.text = text;
+    widget.onChanged();
+  }
+
+  void _onStartChanged() {
+    final text = _startController.text;
+    if (widget.draft.start == text) return;
+    widget.draft.start = text;
+    widget.onChanged();
+  }
+
+  void _onDurationChanged() {
+    final text = _durationController.text;
+    if (widget.draft.duration == text) return;
+    widget.draft.duration = text;
+    widget.onChanged();
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _startController.dispose();
+    _durationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final index = widget.index;
+    final saving = widget.saving;
     return Container(
       margin: EdgeInsets.only(bottom: t.space12),
       padding: EdgeInsets.all(t.space16),
@@ -299,7 +351,7 @@ class _LineCard extends StatelessWidget {
           SizedBox(height: t.space8),
           TextFormField(
             key: ValueKey('transcript-editor-text-$index'),
-            controller: edits.text,
+            controller: _textController,
             enabled: !saving,
             minLines: 1,
             maxLines: 4,
@@ -312,7 +364,7 @@ class _LineCard extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   key: ValueKey('transcript-editor-start-$index'),
-                  controller: edits.start,
+                  controller: _startController,
                   enabled: !saving,
                   decoration: InputDecoration(
                     labelText: l10n.transcriptEditorFieldStart,
@@ -327,7 +379,7 @@ class _LineCard extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   key: ValueKey('transcript-editor-duration-$index'),
-                  controller: edits.duration,
+                  controller: _durationController,
                   enabled: !saving,
                   decoration: InputDecoration(
                     labelText: l10n.transcriptEditorFieldDuration,

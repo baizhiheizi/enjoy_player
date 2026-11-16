@@ -116,10 +116,10 @@ class _TranscriptScrollableListState
     final recordingTake = ref.watch(
       shadowReadingHotkeyBusProvider.select((b) => b.isRecordingActive),
     );
-    final activeForUi = ref.watch(
+    final hasActiveCue = ref.watch(
       transcriptPlaybackHighlightProvider(
         widget.mediaId,
-      ).select((h) => h.cueIndex),
+      ).select((h) => h.cueIndex >= 0),
     );
     final density = transcriptDensityOf(context);
     final secondaryAsync = ref.watch(
@@ -148,7 +148,7 @@ class _TranscriptScrollableListState
       mediaId: widget.mediaId,
       lines: widget.lines,
       echo: echo,
-      activeCueIndex: activeForUi,
+      hasActiveCue: hasActiveCue,
       recordingTake: recordingTake,
       secondaryLines: secondaryLines,
       secondaryMatcher: secondaryMatcher,

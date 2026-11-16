@@ -299,18 +299,35 @@ String? resolveAutoTranslateSecondaryText({
   return slot.text;
 }
 
+final Expando<({int length, Map<String, String> byKey})> _reuseIndexMemo =
+    Expando<({int length, Map<String, String> byKey})>(
+      'autoTranslateReuseIndex',
+    );
+
+Map<String, String> _reuseIndexFor(List<TranscriptLine> aiLines) {
+  final cached = _reuseIndexMemo[aiLines];
+  if (cached != null && cached.length == aiLines.length) {
+    return cached.byKey;
+  }
+  final byKey = <String, String>{};
+  for (final line in aiLines) {
+    final key = line.sourceKey;
+    if (key == null || byKey.containsKey(key)) continue;
+    if (line.text.trim().isNotEmpty) {
+      byKey[key] = line.text;
+    }
+  }
+  _reuseIndexMemo[aiLines] = (length: aiLines.length, byKey: byKey);
+  return byKey;
+}
+
 /// Finds a non-empty AI cue whose [TranscriptLine.sourceKey] equals [key].
 String? findCachedAutoTranslateText({
   required List<TranscriptLine> aiLines,
   required String key,
 }) {
-  for (final line in aiLines) {
-    if (line.sourceKey == key) {
-      final t = line.text.trim();
-      if (t.isNotEmpty) return line.text;
-    }
-  }
-  return null;
+  if (aiLines.isEmpty) return null;
+  return _reuseIndexFor(aiLines)[key];
 }
 
 /// Orders pending line indexes by distance from [anchorIndex] (ties: lower first).
