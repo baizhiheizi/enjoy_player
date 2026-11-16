@@ -227,48 +227,35 @@ String _formatSourceReferences(
   return refs.join('; ');
 }
 
+final RegExp _mdH3 = RegExp(r'^### (.*)$', multiLine: true);
+final RegExp _mdH2 = RegExp(r'^## (.*)$', multiLine: true);
+final RegExp _mdH1 = RegExp(r'^# (.*)$', multiLine: true);
+final RegExp _mdBold = RegExp(r'\*\*(.+?)\*\*');
+final RegExp _mdItalic = RegExp(r'\*([^*\n]+?)\*');
+final RegExp _mdListItem = RegExp(r'^[\-\*] (.+)$', multiLine: true);
+final RegExp _mdUlBlock = RegExp(r'(?:<li>.*?</li>\n?)+', dotAll: true);
+final RegExp _mdInlineCode = RegExp(r'`([^`]+)`');
+final RegExp _mdFence = RegExp(r'```([\s\S]*?)```');
+
 /// Simple markdown → HTML (web `markdownToHtmlSimple` fallback).
 String markdownToHtmlSimple(String markdown) {
   if (markdown.trim().isEmpty) return '';
   var html = markdown;
-  html = html.replaceAllMapped(
-    RegExp(r'^### (.*)$', multiLine: true),
-    (m) => '<h3>${m[1]}</h3>',
-  );
-  html = html.replaceAllMapped(
-    RegExp(r'^## (.*)$', multiLine: true),
-    (m) => '<h2>${m[1]}</h2>',
-  );
-  html = html.replaceAllMapped(
-    RegExp(r'^# (.*)$', multiLine: true),
-    (m) => '<h1>${m[1]}</h1>',
-  );
-  html = html.replaceAllMapped(
-    RegExp(r'\*\*(.+?)\*\*'),
-    (m) => '<strong>${m[1]}</strong>',
-  );
-  html = html.replaceAllMapped(
-    RegExp(r'\*([^*\n]+?)\*'),
-    (m) => '<em>${m[1]}</em>',
-  );
-  html = html.replaceAllMapped(
-    RegExp(r'^[\-\*] (.+)$', multiLine: true),
-    (m) => '<li>${m[1]}</li>',
-  );
-  html = html.replaceAllMapped(RegExp(r'(?:<li>.*?</li>\n?)+', dotAll: true), (
-    m,
-  ) {
+  html = html.replaceAllMapped(_mdH3, (m) => '<h3>${m[1]}</h3>');
+  html = html.replaceAllMapped(_mdH2, (m) => '<h2>${m[1]}</h2>');
+  html = html.replaceAllMapped(_mdH1, (m) => '<h1>${m[1]}</h1>');
+  html = html.replaceAllMapped(_mdBold, (m) => '<strong>${m[1]}</strong>');
+  html = html.replaceAllMapped(_mdItalic, (m) => '<em>${m[1]}</em>');
+  html = html.replaceAllMapped(_mdListItem, (m) => '<li>${m[1]}</li>');
+  html = html.replaceAllMapped(_mdUlBlock, (m) {
     if (!m[0]!.contains('<ul>')) return '<ul>${m[0]}</ul>';
     return m[0]!;
   });
   html = html.replaceAll('  \n', '<br>');
   html = html.replaceAll('\n\n', '<br><br>');
+  html = html.replaceAllMapped(_mdInlineCode, (m) => '<code>${m[1]}</code>');
   html = html.replaceAllMapped(
-    RegExp(r'`([^`]+)`'),
-    (m) => '<code>${m[1]}</code>',
-  );
-  html = html.replaceAllMapped(
-    RegExp(r'```([\s\S]*?)```'),
+    _mdFence,
     (m) => '<pre><code>${m[1]}</code></pre>',
   );
   html = html.replaceAll('\n', '<br>');

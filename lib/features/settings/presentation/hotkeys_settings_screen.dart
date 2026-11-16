@@ -45,25 +45,22 @@ class HotkeysSettingsScreen extends ConsumerWidget {
           child: Text(l10n.hotkeysResetAll),
         ),
       ],
-      body: (context, metrics) => ListView(
+      body: (context, metrics) => HotkeysSettingsSection(
         padding: metrics.padding(top: t.space16, bottom: t.space32),
-        children: [
-          Padding(
-            padding: EdgeInsets.only(
-              left: t.space4,
-              right: t.space4,
-              bottom: t.space16,
-            ),
-            child: Text(
-              l10n.hotkeysSettingsSubtitle(helpKeyLabel),
-              style: tt.bodySmall?.copyWith(
-                color: cs.onSurfaceVariant,
-                height: 1.35,
-              ),
+        header: Padding(
+          padding: EdgeInsets.only(
+            left: t.space4,
+            right: t.space4,
+            bottom: t.space16,
+          ),
+          child: Text(
+            l10n.hotkeysSettingsSubtitle(helpKeyLabel),
+            style: tt.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+              height: 1.35,
             ),
           ),
-          const HotkeysSettingsSection(),
-        ],
+        ),
       ),
     );
   }

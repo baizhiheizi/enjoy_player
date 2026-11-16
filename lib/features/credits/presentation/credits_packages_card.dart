@@ -4,7 +4,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -31,7 +32,7 @@ class CreditsPackagesCard extends ConsumerWidget {
     if (await guardMobilePurchase(context)) return;
     if (!context.mounted) return;
 
-    final creditsLabel = NumberFormat.decimalPattern().format(pkg.credits);
+    final creditsLabel = cachedDecimalPattern().format(pkg.credits);
     final confirmed = await showEnjoyConfirmDialog(
       context: context,
       title: l10n.creditsPackageConfirmTitle,
@@ -63,7 +64,7 @@ class CreditsPackagesCard extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
     final locale = Localizations.localeOf(context).toString();
-    final number = NumberFormat.decimalPattern(locale);
+    final number = cachedDecimalPattern(locale);
     final packagesAsync = ref.watch(creditsPackagesProvider);
     final summaryAsync = ref.watch(creditsSummaryProvider);
     final busy = ref.watch(creditsPackagePurchaseCtrlProvider).isLoading;

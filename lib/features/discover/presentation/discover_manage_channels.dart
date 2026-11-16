@@ -78,102 +78,164 @@ class DiscoverManageChannelsView extends ConsumerWidget {
     final subscriptionsAsync = ref.watch(discoverSubscriptionsProvider);
     final isDialog = presentation == DiscoverManageChannelsPresentation.dialog;
 
-    final scrollBody = SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(t.space24, t.space8, t.space24, t.space24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.discoverRecommendedHeading,
-            style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: t.space8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () {
-                final cur = ref.read(
-                  discoverRecommendedShowAllLanguagesProvider,
-                );
-                ref
-                    .read(discoverRecommendedShowAllLanguagesProvider.notifier)
-                    .setShowAll(!cur);
-              },
-              child: Text(
-                ref.watch(discoverRecommendedShowAllLanguagesProvider)
-                    ? l10n.discoverLanguageFilterLabel
-                    : l10n.discoverLanguageFilterAll,
-              ),
-            ),
-          ),
-          SizedBox(height: t.space4),
-          recommendedAsync.when(
-            loading: () => const SizedBox(
-              height: DiscoverRecommendedAvatarStrip.rowHeight,
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
-            error: (_, _) => Text(
-              l10n.discoverRecommendedLoadFailed,
+    final subscriptionsWidget = subscriptionsAsync.when<Widget>(
+      loading: () =>
+          const SliverToBoxAdapter(child: SkeletonMediaList(itemCount: 2)),
+      error: (_, _) => SliverToBoxAdapter(
+        child: Text(
+          l10n.discoverSubscriptionsLoadFailed,
+          style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+        ),
+      ),
+      data: (subs) {
+        if (subs.isEmpty) {
+          return SliverToBoxAdapter(
+            child: Text(
+              l10n.discoverNoSubscriptionsHint,
               style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
             ),
-            data: (recommended) => subscriptionsAsync.when(
-              loading: () => const SizedBox(
-                height: DiscoverRecommendedAvatarStrip.rowHeight,
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
-              error: (_, _) => const SizedBox.shrink(),
-              data: (subs) => DiscoverRecommendedAvatarStrip(
-                recommended: recommended,
-                subscribedChannelIds: subs.map((s) => s.channelId).toSet(),
-              ),
+          );
+        }
+        return SliverList.separated(
+          itemCount: subs.length,
+          separatorBuilder: (_, _) => ColoredBox(
+            color: cs.surfaceContainerLow,
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              indent:
+                  t.space16 + DiscoverSubscriptionRow.avatarSize + t.space12,
+              endIndent: t.space16,
+              color: cs.outlineVariant.withValues(alpha: 0.25),
             ),
           ),
-          SizedBox(height: t.space24),
-          OutlinedButton.icon(
-            onPressed: () => unawaited(showDiscoverSubscribeSheet(context)),
-            icon: const Icon(EnjoyIcons.addLink, size: 18),
-            label: Text(l10n.discoverSubscribeAction),
+          itemBuilder: (_, i) {
+            final channel = subs[i];
+            final topRadius = i == 0
+                ? Radius.circular(t.radiusLg)
+                : Radius.zero;
+            final bottomRadius = i == subs.length - 1
+                ? Radius.circular(t.radiusLg)
+                : Radius.zero;
+            return ClipRSuperellipse(
+              borderRadius: BorderRadius.vertical(
+                top: topRadius,
+                bottom: bottomRadius,
+              ),
+              child: ColoredBox(
+                color: cs.surfaceContainerLow,
+                child: DiscoverSubscriptionRow(
+                  key: ValueKey('discover-sub-${channel.channelId}'),
+                  channel: channel,
+                  navigateToFeed: false,
+                  embeddedInList: true,
+                  onUnsubscribe: () => unawaited(
+                    unsubscribeDiscoverChannel(context, ref, channel.channelId),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    final scrollBody = CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            t.space24,
+            t.space8,
+            t.space24,
+            t.space24,
           ),
-          SizedBox(height: t.space24),
-          Text(
-            l10n.discoverYourChannelsHeading,
-            style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: t.space12),
-          subscriptionsAsync.when(
-            loading: () => const SkeletonMediaList(itemCount: 2),
-            error: (_, _) => Text(
-              l10n.discoverSubscriptionsLoadFailed,
-              style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-            ),
-            data: (subs) {
-              if (subs.isEmpty) {
-                return Text(
-                  l10n.discoverNoSubscriptionsHint,
-                  style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-                );
-              }
-              return DiscoverSubscriptionList(
-                children: [
-                  for (final channel in subs)
-                    DiscoverSubscriptionRow(
-                      channel: channel,
-                      navigateToFeed: false,
-                      embeddedInList: true,
-                      onUnsubscribe: () => unawaited(
-                        unsubscribeDiscoverChannel(
-                          context,
-                          ref,
-                          channel.channelId,
+          sliver: SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l10n.discoverRecommendedHeading,
+                      style: tt.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: t.space8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: () {
+                          final cur = ref.read(
+                            discoverRecommendedShowAllLanguagesProvider,
+                          );
+                          ref
+                              .read(
+                                discoverRecommendedShowAllLanguagesProvider
+                                    .notifier,
+                              )
+                              .setShowAll(!cur);
+                        },
+                        child: Text(
+                          ref.watch(discoverRecommendedShowAllLanguagesProvider)
+                              ? l10n.discoverLanguageFilterLabel
+                              : l10n.discoverLanguageFilterAll,
                         ),
                       ),
                     ),
-                ],
-              );
-            },
+                    SizedBox(height: t.space4),
+                    recommendedAsync.when(
+                      loading: () => const SizedBox(
+                        height: DiscoverRecommendedAvatarStrip.rowHeight,
+                        child: Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      error: (_, _) => Text(
+                        l10n.discoverRecommendedLoadFailed,
+                        style: tt.bodyMedium?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      data: (recommended) => subscriptionsAsync.when(
+                        loading: () => const SizedBox(
+                          height: DiscoverRecommendedAvatarStrip.rowHeight,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        error: (_, _) => const SizedBox.shrink(),
+                        data: (subs) => DiscoverRecommendedAvatarStrip(
+                          recommended: recommended,
+                          subscribedChannelIds: subs
+                              .map((s) => s.channelId)
+                              .toSet(),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: t.space24),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          unawaited(showDiscoverSubscribeSheet(context)),
+                      icon: const Icon(EnjoyIcons.addLink, size: 18),
+                      label: Text(l10n.discoverSubscribeAction),
+                    ),
+                    SizedBox(height: t.space24),
+                    Text(
+                      l10n.discoverYourChannelsHeading,
+                      style: tt.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: t.space12),
+                  ],
+                ),
+              ),
+              subscriptionsWidget,
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
 
     if (isDialog) {

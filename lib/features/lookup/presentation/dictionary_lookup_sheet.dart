@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
@@ -333,16 +334,24 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
   }
 }
 
+final L1Store<String, RegExp> _wholeWordPatternCache = L1Store<String, RegExp>(
+  capacity: 64,
+);
+
 /// First occurrence of [word] in [line] as a whole word — not inside a
 /// longer run of letters (so `time` does not light up inside `timetable`).
 /// Unicode-aware: a CJK glyph counts as a boundary.
 int wholeWordIndexOf(String line, String word) {
   if (word.isEmpty) return -1;
-  final pattern = RegExp(
-    '(?<!\\p{L})${RegExp.escape(word)}(?!\\p{L})',
-    caseSensitive: false,
-    unicode: true,
-  );
+  var pattern = _wholeWordPatternCache.peek(word);
+  if (pattern == null) {
+    pattern = RegExp(
+      '(?<!\\p{L})${RegExp.escape(word)}(?!\\p{L})',
+      caseSensitive: false,
+      unicode: true,
+    );
+    _wholeWordPatternCache.put(word, pattern);
+  }
   return line.indexOf(pattern);
 }
 

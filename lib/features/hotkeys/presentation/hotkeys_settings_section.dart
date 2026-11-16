@@ -24,7 +24,10 @@ import 'package:enjoy_player/features/settings/presentation/widgets/settings_sea
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class HotkeysSettingsSection extends ConsumerStatefulWidget {
-  const HotkeysSettingsSection({super.key});
+  const HotkeysSettingsSection({this.header, this.padding, super.key});
+
+  final Widget? header;
+  final EdgeInsetsGeometry? padding;
 
   @override
   ConsumerState<HotkeysSettingsSection> createState() =>
@@ -71,111 +74,125 @@ class _HotkeysSettingsSectionState
       effectiveKeys: ctrl.effectiveKeys,
     );
 
-    final children = <Widget>[
-      SettingsSearchInput(
-        controller: _filter,
-        hint: l10n.hotkeysFilterHint,
-        clearTooltip: l10n.settingsSearchClear,
-        hasQuery: _filter.text.isNotEmpty,
-        onChanged: (_) => setState(() {}),
-        onClear: () => setState(_filter.clear),
-      ),
-      SizedBox(height: t.space16),
-    ];
+    final searchField = SettingsSearchInput(
+      controller: _filter,
+      hint: l10n.hotkeysFilterHint,
+      clearTooltip: l10n.settingsSearchClear,
+      hasQuery: _filter.text.isNotEmpty,
+      onChanged: (_) => setState(() {}),
+      onClear: () => setState(_filter.clear),
+    );
 
-    for (final (index, (scope, defs)) in groups.indexed) {
-      if (index > 0) children.add(SizedBox(height: t.space24));
+    final topItemCount = (widget.header != null ? 1 : 0) + 1;
+    final bodyItemCount = groups.isEmpty ? 1 : groups.length;
 
-      children.add(
-        Row(
-          children: [
-            Container(
-              width: 26,
-              height: 26,
-              alignment: Alignment.center,
-              decoration: ShapeDecoration(
-                color: t.sunk,
-                shape: RoundedSuperellipseBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+    return ListView.builder(
+      padding: widget.padding ?? EdgeInsets.zero,
+      itemCount: topItemCount + bodyItemCount,
+      itemBuilder: (context, index) {
+        if (widget.header != null && index == 0) {
+          return widget.header!;
+        }
+        final searchIndex = widget.header != null ? 1 : 0;
+        if (index == searchIndex) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: t.space16),
+            child: searchField,
+          );
+        }
+        if (groups.isEmpty) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: t.space24),
+            child: Center(
               child: Text(
-                hotkeysScopeLabel(l10n, scope).characters.first.toUpperCase(),
-                style: enjoyMonoStyle(
-                  context,
-                  size: 11,
-                  weight: FontWeight.w600,
-                  color: t.ink2,
-                ),
+                l10n.hotkeysHelpEmpty,
+                style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
               ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              hotkeysScopeLabel(l10n, scope),
-              style: tt.titleMedium?.copyWith(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: t.ink,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              '${defs.length}',
-              style: enjoyMonoStyle(
-                context,
-                size: 12,
-                weight: FontWeight.w500,
-                color: t.ink3,
-              ),
-            ),
-          ],
-        ),
-      );
-      children.add(SizedBox(height: t.space12));
-      children.add(
-        EnjoyCard(
-          padding: EdgeInsets.zero,
+          );
+        }
+        final groupIndex = index - topItemCount;
+        final (scope, defs) = groups[groupIndex];
+        return Padding(
+          padding: EdgeInsets.only(top: groupIndex > 0 ? t.space24 : 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (var i = 0; i < defs.length; i++) ...[
-                if (i > 0) const SettingsRowDivider(insetForLeading: false),
-                _HotkeyEditRow(
-                  description: hotkeyDescription(l10n, defs[i]),
-                  customized: ctrl.hasCustomBinding(defs[i].id),
-                  customizedLabel: l10n.hotkeysCustomizedBadge,
-                  binding: ctrl.effectiveKeys(defs[i].id),
-                  editTooltip: l10n.hotkeysEditTooltip,
-                  resetTooltip: l10n.hotkeysResetTooltip,
-                  onEdit: () => editBinding(defs[i].id),
-                  onReset: ctrl.hasCustomBinding(defs[i].id)
-                      ? () => ctrl.resetBinding(defs[i].id)
-                      : null,
+              Row(
+                children: [
+                  Container(
+                    width: 26,
+                    height: 26,
+                    alignment: Alignment.center,
+                    decoration: ShapeDecoration(
+                      color: t.sunk,
+                      shape: RoundedSuperellipseBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      hotkeysScopeLabel(
+                        l10n,
+                        scope,
+                      ).characters.first.toUpperCase(),
+                      style: enjoyMonoStyle(
+                        context,
+                        size: 11,
+                        weight: FontWeight.w600,
+                        color: t.ink2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    hotkeysScopeLabel(l10n, scope),
+                    style: tt.titleMedium?.copyWith(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: t.ink,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '${defs.length}',
+                    style: enjoyMonoStyle(
+                      context,
+                      size: 12,
+                      weight: FontWeight.w500,
+                      color: t.ink3,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: t.space12),
+              EnjoyCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < defs.length; i++) ...[
+                      if (i > 0)
+                        const SettingsRowDivider(insetForLeading: false),
+                      _HotkeyEditRow(
+                        description: hotkeyDescription(l10n, defs[i]),
+                        customized: ctrl.hasCustomBinding(defs[i].id),
+                        customizedLabel: l10n.hotkeysCustomizedBadge,
+                        binding: ctrl.effectiveKeys(defs[i].id),
+                        editTooltip: l10n.hotkeysEditTooltip,
+                        resetTooltip: l10n.hotkeysResetTooltip,
+                        onEdit: () => editBinding(defs[i].id),
+                        onReset: ctrl.hasCustomBinding(defs[i].id)
+                            ? () => ctrl.resetBinding(defs[i].id)
+                            : null,
+                      ),
+                    ],
+                  ],
                 ),
-              ],
+              ),
             ],
           ),
-        ),
-      );
-    }
-
-    if (groups.isEmpty) {
-      children.add(
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: t.space24),
-          child: Center(
-            child: Text(
-              l10n.hotkeysHelpEmpty,
-              style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: children,
+        );
+      },
     );
   }
 }

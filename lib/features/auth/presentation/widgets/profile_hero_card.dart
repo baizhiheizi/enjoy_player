@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
@@ -32,9 +32,11 @@ const double _kCompactAvatarSize = 64;
 const double _kHeroCompactBelow = 600;
 const double _kFigureSize = 32;
 
+final RegExp _digitsOnlyRegExp = RegExp(r'^\d+$');
+
 /// `10482231` → `1048 2231`; non-numeric ids are left alone.
 String formatEnjoyId(String id) {
-  if (!RegExp(r'^\d+$').hasMatch(id)) return id;
+  if (!_digitsOnlyRegExp.hasMatch(id)) return id;
   final groups = <String>[];
   for (var i = 0; i < id.length; i += 4) {
     groups.add(id.substring(i, (i + 4).clamp(0, id.length)));
@@ -377,7 +379,7 @@ class ProfileCreditsCard extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final number = NumberFormat.decimalPattern(locale);
+    final number = cachedDecimalPattern(locale);
     final fraction = creditsUsedFraction(used: used, limit: limit);
     final isLow = creditsLow(used: used, limit: limit);
     final upgradeVisible = isLow && tier == SubscriptionTier.free;

@@ -155,6 +155,8 @@ class AllCaptionsResult {
 }
 
 /// Fetches YouTube captions directly using the InnerTube API.
+final RegExp _fmtQueryParamRegExp = RegExp(r'&fmt=[^&]+');
+
 class YoutubeCaptionFetcher {
   YoutubeCaptionFetcher({
     required this.httpClient,
@@ -466,7 +468,7 @@ class YoutubeCaptionFetcher {
     CaptionTrack track,
     ClientProfile profile,
   ) async {
-    var url = track.baseUrl.replaceAll(RegExp(r'&fmt=[^&]+'), '');
+    var url = track.baseUrl.replaceAll(_fmtQueryParamRegExp, '');
     url += '&fmt=json3';
 
     final response = await httpClient.get(

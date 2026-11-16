@@ -59,7 +59,7 @@ class SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (responsive) {
+    if (responsive && (valueBadge != null || trailing != null)) {
       return LayoutBuilder(
         builder: (ctx, constraints) {
           final stackBelow = MediaQuery.textScalerOf(

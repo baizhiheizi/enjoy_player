@@ -3,9 +3,11 @@ library;
 
 import '../../../data/subtitle/transcript_line.dart';
 
+final RegExp _trailingZerosRegExp = RegExp(r'\.?0+$');
+
 /// Formats [ms] as decimal seconds without trailing zeros (`0`, `1.25`, `12.345`).
 String formatTranscriptTimingMs(int ms) =>
-    (ms / 1000.0).toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
+    (ms / 1000.0).toStringAsFixed(3).replaceFirst(_trailingZerosRegExp, '');
 
 /// Parses decimal seconds into whole milliseconds; null when [input] is
 /// blank, not a number, or negative.

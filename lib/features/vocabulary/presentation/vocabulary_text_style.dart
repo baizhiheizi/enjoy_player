@@ -4,6 +4,10 @@ library;
 import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:flutter/material.dart';
 
+final L1Store<String, RegExp> _highlightPatternCache = L1Store<String, RegExp>(
+  capacity: 64,
+);
+
 /// Case-insensitive highlight of [word] within [text].
 List<InlineSpan> highlightVocabularyWord({
   required String text,
@@ -15,7 +19,11 @@ List<InlineSpan> highlightVocabularyWord({
   if (needle.isEmpty || text.isEmpty) {
     return [TextSpan(text: text, style: base)];
   }
-  final pattern = RegExp(RegExp.escape(needle), caseSensitive: false);
+  var pattern = _highlightPatternCache.peek(needle);
+  if (pattern == null) {
+    pattern = RegExp(RegExp.escape(needle), caseSensitive: false);
+    _highlightPatternCache.put(needle, pattern);
+  }
   final spans = <InlineSpan>[];
   var start = 0;
   for (final match in pattern.allMatches(text)) {

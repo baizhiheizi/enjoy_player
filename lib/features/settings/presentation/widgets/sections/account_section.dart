@@ -6,8 +6,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 
 import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
@@ -50,7 +51,7 @@ class AccountSection extends ConsumerWidget {
     final tierLabel = subscriptionTierLabel(l10n, tier);
     final creditsUsed = ref.watch(todaysCreditsUsedProvider).valueOrNull;
     final dailyLimit = ref.watch(dailyCreditsLimitProvider);
-    final number = NumberFormat.decimalPattern(
+    final number = cachedDecimalPattern(
       Localizations.localeOf(context).toString(),
     );
     return Column(

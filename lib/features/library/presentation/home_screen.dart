@@ -219,7 +219,7 @@ class _HomeHeader extends ConsumerWidget {
     );
     final firstName = (name == null || name.isEmpty)
         ? null
-        : name.split(RegExp(r'\s+')).first;
+        : name.split(_homeNameWhitespaceRegExp).first;
     final locale = Localizations.localeOf(context).toLanguageTag();
     return EditorialHeader(
       widthMode: EditorialHeaderWidthMode.browse,
@@ -236,6 +236,8 @@ class _HomeHeader extends ConsumerWidget {
     );
   }
 }
+
+final RegExp _homeNameWhitespaceRegExp = RegExp(r'\s+');
 
 /// Home header trailing actions — Craft entry + Import.
 class _HomeHeaderActions extends ConsumerWidget {

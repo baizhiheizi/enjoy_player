@@ -17,6 +17,7 @@ import 'package:enjoy_player/features/credits/presentation/credits_usage_filters
 import 'package:enjoy_player/features/credits/presentation/credits_usage_format.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_states.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -24,7 +25,6 @@ const double _kCellGutter = 16;
 const double _kLogsWideBreakpoint = 720;
 
 final Map<String, DateFormat> _tableTimeCache = {};
-final Map<String, NumberFormat> _tableNumberCache = {};
 final Map<String, DateFormat> _cardTimestampCache = {};
 
 Widget creditsUsageLogsSliverGroup(
@@ -151,10 +151,7 @@ class UsageTable extends StatelessWidget {
       Intl.getCurrentLocale(),
       () => DateFormat.Hm(),
     );
-    final number = _tableNumberCache.putIfAbsent(
-      localeName,
-      () => NumberFormat.decimalPattern(localeName),
-    );
+    final number = cachedDecimalPattern(localeName);
     final cell = enjoyMonoStyle(context, size: 12.5, color: t.ink);
     final cellMuted = enjoyMonoStyle(context, size: 12.5, color: t.ink3);
 
