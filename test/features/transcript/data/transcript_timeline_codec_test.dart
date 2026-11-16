@@ -603,5 +603,17 @@ void main() {
       expect(indexOfActiveLine(lines, 1.0), 0);
       expect(transcriptActiveIndex(lines, 1.0), 0);
     });
+
+    test('picks earliest containing cue across multi-cue overlaps', () {
+      final lines = [
+        cue(0, 5000),
+        cue(1000, 1000),
+        cue(1500, 1000),
+        cue(6000, 1000),
+      ];
+      expect(indexOfActiveLine(lines, 1.7), 0);
+      expect(indexOfActiveLine(lines, 3.5), 0);
+      expect(indexOfActiveLine(lines, 5.5), 2);
+    });
   });
 }

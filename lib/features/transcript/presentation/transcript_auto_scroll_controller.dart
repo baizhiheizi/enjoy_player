@@ -174,6 +174,19 @@ final class TranscriptAutoScrollController {
   /// Whether the active cue line is roughly within the visible viewport.
   bool _isActiveCueVisible(int activeLineIndex) {
     if (!_scrollController.hasClients) return true;
+    final pos = _scrollController.position;
+    if (_activeLineScrollKeyIndex == activeLineIndex) {
+      final ro = _activeLineScrollKey?.currentContext?.findRenderObject();
+      if (ro != null && ro.attached) {
+        final viewport = RenderAbstractViewport.maybeOf(ro);
+        if (viewport != null) {
+          final topOffset = viewport.getOffsetToReveal(ro, 0.0).offset;
+          final bottomOffset = viewport.getOffsetToReveal(ro, 1.0).offset;
+          return topOffset < pos.pixels + pos.viewportDimension &&
+              bottomOffset + pos.viewportDimension > pos.pixels;
+        }
+      }
+    }
     final focus = scrollFocusLineIndex();
     return (activeLineIndex - focus).abs() <= 2;
   }

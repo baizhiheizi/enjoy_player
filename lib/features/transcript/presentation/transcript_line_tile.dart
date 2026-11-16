@@ -19,7 +19,6 @@ import 'package:enjoy_player/features/settings/application/ipa_overlay_settings.
 import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_cue_reveal_provider.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_tile_chrome.dart';
@@ -187,22 +186,6 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
         transcriptWordsHavePhones(words) &&
         words != null;
 
-    WordTextRange? karaokeRange;
-    int? karaokeWordIndex;
-    if (widget.isActive) {
-      karaokeWordIndex = ref
-          .watch(transcriptPlaybackHighlightProvider(widget.mediaId))
-          .wordIndex;
-      if (!useAligned && karaokeWordIndex != null) {
-        karaokeRange = wordHighlightRange(
-          primaryPlain,
-          widget.line.timeline,
-          karaokeWordIndex,
-        );
-      }
-    }
-    final karaokeFill = karaokeRange == null ? null : tok.original;
-
     final blurEnabled = ref.watch(transcriptBlurModeProvider);
     final cueId = cueIdFor(widget.line);
     final providerRevealed = ref.watch(
@@ -243,6 +226,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           onHoverChanged: _setHoverSafe,
           child: TranscriptTileText(
             line: widget.line,
+            mediaId: widget.mediaId,
             primaryPlain: primaryPlain,
             secondaryText: resolvedSecondaryText,
             lineFg: lineFg,
@@ -254,9 +238,6 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             inLens: inLens,
             lensDistance: lensDistance,
             loopFontSize: widget.loopFontSize,
-            karaokeRange: karaokeRange,
-            karaokeFill: karaokeFill,
-            karaokeWordIndex: karaokeWordIndex,
             wavyWordIndexes: widget.wavyWordIndexes,
             onIpaTap: _onIpaTap,
             onRevealHoldOnly: _revealHoldOnly,

@@ -15,6 +15,7 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/logging/log.dart';
 import '../../../core/riverpod/async_value_x.dart';
 import '../../../data/subtitle/subtitle_markup_parser.dart';
+import '../../../data/subtitle/transcript_line.dart';
 import '../../ai/application/ai_services.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/auth_state.dart';
@@ -32,6 +33,14 @@ final Logger _log = logNamed('auto_translate');
 class AutoTranslateCtrl extends _$AutoTranslateCtrl {
   var _hydrateRunId = 0;
   final _flushHookRepos = <TranscriptRepository>[];
+  ({
+    String primaryId,
+    String aiId,
+    String? aiReferenceId,
+    List<TranscriptLine> primaryLines,
+    List<TranscriptLine> aiLines,
+  })?
+  _verifiedNonStalePair;
 
   late final AutoTranslateLineQueue _queue = AutoTranslateLineQueue(
     isLineFailed: (lineIndex) => state.isLineFailed(lineIndex),
@@ -339,24 +348,44 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
         if (secondaryNow != null && secondaryNow != aiId) return;
 
         final repo = _repo();
-        final primary = await repo.contentById(primaryId);
-        final ai = await repo.contentById(aiId);
+        final (primary, ai) = await (
+          repo.contentById(primaryId),
+          repo.contentById(aiId),
+        ).wait;
         if (primary == null || ai == null) return;
         final primaryLines = primary.lines;
         if (lineIndex >= primaryLines.length) return;
 
-        if (repo.isAutoTranslateTrackStale(
-          aiReferenceId: ai.referenceId,
-          primaryId: primaryId,
-          primaryLines: primaryLines,
-          aiLines: ai.lines,
-        )) {
-          if (!ref.mounted) return;
-          _block(AutoTranslateBlockReason.stalePrimary);
-          return;
+        final aiLines = ai.lines;
+        final cachedPair = _verifiedNonStalePair;
+        final alreadyVerified =
+            cachedPair != null &&
+            cachedPair.primaryId == primaryId &&
+            cachedPair.aiId == aiId &&
+            cachedPair.aiReferenceId == ai.referenceId &&
+            identical(cachedPair.primaryLines, primaryLines) &&
+            identical(cachedPair.aiLines, aiLines);
+        if (!alreadyVerified) {
+          if (repo.isAutoTranslateTrackStale(
+            aiReferenceId: ai.referenceId,
+            primaryId: primaryId,
+            primaryLines: primaryLines,
+            aiLines: aiLines,
+          )) {
+            _verifiedNonStalePair = null;
+            if (!ref.mounted) return;
+            _block(AutoTranslateBlockReason.stalePrimary);
+            return;
+          }
+          _verifiedNonStalePair = (
+            primaryId: primaryId,
+            aiId: aiId,
+            aiReferenceId: ai.referenceId,
+            primaryLines: primaryLines,
+            aiLines: aiLines,
+          );
         }
 
-        final aiLines = ai.lines;
         final sourceLang = primary.language;
         final primaryLine = primaryLines[lineIndex];
         final plain = plainTextFromSubtitleMarkup(primaryLine.text).trim();

@@ -15,6 +15,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show compute;
 
@@ -264,6 +265,39 @@ int transcriptActiveIndex(List<TranscriptLine> lines, double t) {
   return rightmost;
 }
 
+typedef _ActiveLineIndexEntry = ({
+  int length,
+  bool sorted,
+  Float64List prefixMaxEnd,
+});
+
+final Expando<_ActiveLineIndexEntry> _activeLineIndexMemo =
+    Expando<_ActiveLineIndexEntry>('activeLineIndexMemo');
+
+_ActiveLineIndexEntry _activeLineIndexFor(List<TranscriptLine> lines) {
+  final cached = _activeLineIndexMemo[lines];
+  if (cached != null && cached.length == lines.length) return cached;
+  final prefixMaxEnd = Float64List(lines.length);
+  var sorted = true;
+  var maxEnd = double.negativeInfinity;
+  for (var i = 0; i < lines.length; i++) {
+    final line = lines[i];
+    if (i > 0 && line.startSeconds < lines[i - 1].startSeconds) {
+      sorted = false;
+    }
+    final end = line.endSeconds;
+    if (end > maxEnd) maxEnd = end;
+    prefixMaxEnd[i] = maxEnd;
+  }
+  final entry = (
+    length: lines.length,
+    sorted: sorted,
+    prefixMaxEnd: prefixMaxEnd,
+  );
+  _activeLineIndexMemo[lines] = entry;
+  return entry;
+}
+
 /// Active cue index for [t] in seconds — the **transport policy**:
 /// the first cue that strictly contains [t] (`start <= t < end`), falling
 /// back to the highlight policy's rightmost-start cue.
@@ -272,11 +306,27 @@ int transcriptActiveIndex(List<TranscriptLine> lines, double t) {
 /// containment-first matters for overlapping cues: the earliest containing
 /// cue is the one a user tapping at [t] means to replay.
 int indexOfActiveLine(List<TranscriptLine> lines, double t) {
-  for (var i = 0; i < lines.length; i++) {
-    final line = lines[i];
-    if (t >= line.startSeconds && t < line.endSeconds) {
-      return i;
+  if (lines.isEmpty) return -1;
+  final indexEntry = _activeLineIndexFor(lines);
+  if (!indexEntry.sorted) {
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (t >= line.startSeconds && t < line.endSeconds) {
+        return i;
+      }
+    }
+    return transcriptActiveIndex(lines, t);
+  }
+
+  final rightmost = transcriptActiveIndex(lines, t);
+  if (rightmost < 0) return -1;
+  final prefixMaxEnd = indexEntry.prefixMaxEnd;
+  int? earliest;
+  for (var i = rightmost; i >= 0; i--) {
+    if (prefixMaxEnd[i] <= t) break;
+    if (t < lines[i].endSeconds) {
+      earliest = i;
     }
   }
-  return transcriptActiveIndex(lines, t);
+  return earliest ?? rightmost;
 }

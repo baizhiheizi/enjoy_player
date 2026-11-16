@@ -213,5 +213,32 @@ void main() {
       expect(currentWordIndex(line, 1100), isNull);
       expect(wordMediaWindowMs(line, 0), isNull);
     });
+
+    test('handles overlapping and non-monotonic word timings', () {
+      final monotonicOverlap = _line(
+        text: 'Hello brave world',
+        startMs: 1000,
+        durationMs: 2000,
+        timeline: const [
+          TranscriptWord(text: 'Hello', startMs: 0, durationMs: 900),
+          TranscriptWord(text: 'brave', startMs: 200, durationMs: 300),
+          TranscriptWord(text: 'world', startMs: 1000, durationMs: 500),
+        ],
+      );
+      expect(currentWordIndex(monotonicOverlap, 1300), 1);
+      expect(currentWordIndex(monotonicOverlap, 1700), 0);
+
+      final nonMonotonic = _line(
+        text: 'Hello world',
+        startMs: 1000,
+        durationMs: 2000,
+        timeline: const [
+          TranscriptWord(text: 'Hello', startMs: 500, durationMs: 500),
+          TranscriptWord(text: 'world', startMs: 0, durationMs: 500),
+        ],
+      );
+      expect(currentWordIndex(nonMonotonic, 1100), 1);
+      expect(currentWordIndex(nonMonotonic, 1600), 0);
+    });
   });
 }

@@ -135,10 +135,16 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
     }
     if (!changed) return;
     final timelineJson = await encodeTimelineJsonGated(lines);
-    await _db.transcriptDao.upsert(
-      row.copyWith(timelineJson: timelineJson, updatedAt: DateTime.now()),
+    final updatedRow = row.copyWith(
+      timelineJson: timelineJson,
+      updatedAt: DateTime.now(),
     );
-    _linesCache.remove(aiTranscriptId);
+    await _db.transcriptDao.upsert(updatedRow);
+    _linesCache.store(
+      rowId: aiTranscriptId,
+      revision: _revisionOf(updatedRow),
+      lines: List<TranscriptLine>.unmodifiable(lines),
+    );
   }
 
   List<TranscriptLine> _overlayPendingAutoTranslateLines(

@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -9,6 +10,7 @@ import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/transcript/transcript_lens_metrics.dart';
 import 'package:enjoy_player/data/subtitle/current_transcript_word.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_selection_toolbar.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
@@ -18,6 +20,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 class TranscriptTileText extends StatelessWidget {
   const TranscriptTileText({
     required this.line,
+    required this.mediaId,
     required this.primaryPlain,
     required this.secondaryText,
     required this.lineFg,
@@ -29,9 +32,6 @@ class TranscriptTileText extends StatelessWidget {
     required this.inLens,
     required this.lensDistance,
     this.loopFontSize,
-    this.karaokeRange,
-    this.karaokeFill,
-    this.karaokeWordIndex,
     this.wavyWordIndexes,
     this.onIpaTap,
     this.onRevealHoldOnly,
@@ -41,6 +41,7 @@ class TranscriptTileText extends StatelessWidget {
   });
 
   final TranscriptLine line;
+  final String mediaId;
   final String primaryPlain;
   final String? secondaryText;
   final Color lineFg;
@@ -52,9 +53,6 @@ class TranscriptTileText extends StatelessWidget {
   final bool inLens;
   final int lensDistance;
   final double? loopFontSize;
-  final WordTextRange? karaokeRange;
-  final Color? karaokeFill;
-  final int? karaokeWordIndex;
   final Set<int>? wavyWordIndexes;
   final ValueChanged<int>? onIpaTap;
   final VoidCallback? onRevealHoldOnly;
@@ -109,26 +107,49 @@ class TranscriptTileText extends StatelessWidget {
       final alignedBody = loopActive
           ? baseBody
           : baseBody.copyWith(height: metrics.alignedLineHeight);
-      primaryWidget = TranscriptAlignedWords(
-        words: line.timeline!,
-        wordStyle: alignedBody,
-        wavyWordIndexes: wavyWordIndexes,
-        ipaStyle: ipaStyle,
-        defaultColor: lineFg,
-        emphasize: isActive,
-        activeWordIndex: karaokeWordIndex,
-        activeUnderlineColor: tok.original,
-        runSpacing: loopActive
-            ? metrics.loopAlignedRowGap
-            : metrics.alignedRowGap,
-        onIpaTap: onIpaTap,
-        selectableWordBuilder: selectable
-            ? (context, text, style) => TranscriptSelectableRichText(
-                span: TextSpan(text: text, style: style),
-                onTap: onRevealHoldOnly,
-                onLookupRequested: onLookupRequested,
-              )
-            : null,
+      final runSpacing = loopActive
+          ? metrics.loopAlignedRowGap
+          : metrics.alignedRowGap;
+      primaryWidget = isActive
+          ? _ActiveAlignedWordsLeaf(
+              mediaId: mediaId,
+              words: line.timeline!,
+              wordStyle: alignedBody,
+              ipaStyle: ipaStyle,
+              defaultColor: lineFg,
+              activeUnderlineColor: tok.original,
+              wavyWordIndexes: wavyWordIndexes,
+              runSpacing: runSpacing,
+              onIpaTap: onIpaTap,
+              selectable: selectable,
+              onTap: onRevealHoldOnly,
+              onLookupRequested: onLookupRequested,
+            )
+          : TranscriptAlignedWords(
+              words: line.timeline!,
+              wordStyle: alignedBody,
+              wavyWordIndexes: wavyWordIndexes,
+              ipaStyle: ipaStyle,
+              defaultColor: lineFg,
+              emphasize: isActive,
+              activeUnderlineColor: tok.original,
+              runSpacing: runSpacing,
+              onIpaTap: onIpaTap,
+              selectable: selectable,
+              onTap: onRevealHoldOnly,
+              onLookupRequested: onLookupRequested,
+            );
+    } else if (isActive) {
+      primaryWidget = _ActivePlainKaraokeTextLeaf(
+        mediaId: mediaId,
+        line: line,
+        primaryPlain: primaryPlain,
+        baseBody: baseBody,
+        lineFg: lineFg,
+        karaokeFillColor: tok.original,
+        selectable: selectable,
+        onRevealHoldOnly: onRevealHoldOnly,
+        onLookupRequested: onLookupRequested,
       );
     } else {
       final primarySpan = transcriptMarkupToTextSpan(
@@ -136,9 +157,6 @@ class TranscriptTileText extends StatelessWidget {
         baseBody,
         defaultColor: lineFg,
         emphasize: false,
-        highlightRange: karaokeRange,
-        highlightFill: karaokeFill,
-        highlightUnderline: true,
       );
       primaryWidget = selectable
           ? TranscriptSelectableRichText(
@@ -232,6 +250,138 @@ class TranscriptTileText extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _ActivePlainKaraokeTextLeaf extends ConsumerWidget {
+  const _ActivePlainKaraokeTextLeaf({
+    required this.mediaId,
+    required this.line,
+    required this.primaryPlain,
+    required this.baseBody,
+    required this.lineFg,
+    required this.karaokeFillColor,
+    required this.selectable,
+    required this.onRevealHoldOnly,
+    required this.onLookupRequested,
+  });
+
+  final String mediaId;
+  final TranscriptLine line;
+  final String primaryPlain;
+  final TextStyle baseBody;
+  final Color lineFg;
+  final Color karaokeFillColor;
+  final bool selectable;
+  final VoidCallback? onRevealHoldOnly;
+  final ValueChanged<String>? onLookupRequested;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wordIndex = ref.watch(
+      transcriptPlaybackHighlightProvider(mediaId).select((h) => h.wordIndex),
+    );
+    final karaokeRange = wordIndex == null
+        ? null
+        : wordHighlightRange(primaryPlain, line.timeline, wordIndex);
+    final primarySpan = transcriptMarkupToTextSpan(
+      line.text,
+      baseBody,
+      defaultColor: lineFg,
+      emphasize: false,
+      highlightRange: karaokeRange,
+      highlightFill: karaokeRange == null ? null : karaokeFillColor,
+      highlightUnderline: true,
+    );
+    return selectable
+        ? TranscriptSelectableRichText(
+            span: primarySpan,
+            onTap: onRevealHoldOnly,
+            onLookupRequested: onLookupRequested,
+          )
+        : Text.rich(primarySpan);
+  }
+}
+
+class _ActiveAlignedWordsLeaf extends ConsumerStatefulWidget {
+  const _ActiveAlignedWordsLeaf({
+    required this.mediaId,
+    required this.words,
+    required this.wordStyle,
+    required this.ipaStyle,
+    required this.defaultColor,
+    required this.activeUnderlineColor,
+    required this.wavyWordIndexes,
+    required this.runSpacing,
+    required this.onIpaTap,
+    required this.selectable,
+    required this.onTap,
+    required this.onLookupRequested,
+  });
+
+  final String mediaId;
+  final List<TranscriptWord> words;
+  final TextStyle wordStyle;
+  final TextStyle ipaStyle;
+  final Color defaultColor;
+  final Color activeUnderlineColor;
+  final Set<int>? wavyWordIndexes;
+  final double runSpacing;
+  final ValueChanged<int>? onIpaTap;
+  final bool selectable;
+  final VoidCallback? onTap;
+  final ValueChanged<String>? onLookupRequested;
+
+  @override
+  ConsumerState<_ActiveAlignedWordsLeaf> createState() =>
+      _ActiveAlignedWordsLeafState();
+}
+
+class _ActiveAlignedWordsLeafState
+    extends ConsumerState<_ActiveAlignedWordsLeaf> {
+  late final ValueNotifier<int?> _activeWord = ValueNotifier<int?>(
+    ref.read(transcriptPlaybackHighlightProvider(widget.mediaId)).wordIndex,
+  );
+
+  @override
+  void didUpdateWidget(_ActiveAlignedWordsLeaf oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mediaId != widget.mediaId) {
+      _activeWord.value = ref
+          .read(transcriptPlaybackHighlightProvider(widget.mediaId))
+          .wordIndex;
+    }
+  }
+
+  @override
+  void dispose() {
+    _activeWord.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<int?>(
+      transcriptPlaybackHighlightProvider(
+        widget.mediaId,
+      ).select((h) => h.wordIndex),
+      (_, next) => _activeWord.value = next,
+    );
+    return TranscriptAlignedWords(
+      words: widget.words,
+      wordStyle: widget.wordStyle,
+      ipaStyle: widget.ipaStyle,
+      defaultColor: widget.defaultColor,
+      emphasize: true,
+      activeWordIndexListenable: _activeWord,
+      activeUnderlineColor: widget.activeUnderlineColor,
+      wavyWordIndexes: widget.wavyWordIndexes,
+      runSpacing: widget.runSpacing,
+      onIpaTap: widget.onIpaTap,
+      selectable: widget.selectable,
+      onTap: widget.onTap,
+      onLookupRequested: widget.onLookupRequested,
     );
   }
 }

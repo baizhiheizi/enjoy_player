@@ -9,37 +9,35 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/utils/text_normalization.dart';
 
 /// Measured word-bar widths keyed by (text, fontSize, weight); entries are
 /// computed once per line layout and reused across hover rebuilds.
 @visibleForTesting
-final Map<String, List<double>> shapeWidthCache = <String, List<double>>{};
+final L1Store<String, List<double>> shapeWidthCache =
+    L1Store<String, List<double>>(capacity: 512);
 
 @visibleForTesting
 List<double> shapeWidthsFor(String text, double fontSize, FontWeight weight) {
   final key = '$text|$fontSize|$weight';
-  final cached = shapeWidthCache[key];
+  final cached = shapeWidthCache.peek(key);
   if (cached != null) return cached;
-  final tp = TextPainter(
-    text: TextSpan(
-      text: text,
-      style: TextStyle(fontSize: fontSize, fontWeight: weight),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
+  final style = TextStyle(fontSize: fontSize, fontWeight: weight);
+  final tp = TextPainter(textDirection: TextDirection.ltr);
   final widths = <double>[];
-  for (final word in text.split(RegExp(r'\s+'))) {
-    if (word.isEmpty) continue;
-    tp.text = TextSpan(
-      text: word,
-      style: TextStyle(fontSize: fontSize, fontWeight: weight),
-    );
-    tp.layout();
-    widths.add(tp.width.clamp(fontSize * 0.5, fontSize * 6.0));
+  try {
+    for (final word in text.split(whitespaceRunRegExp)) {
+      if (word.isEmpty) continue;
+      tp.text = TextSpan(text: word, style: style);
+      tp.layout();
+      widths.add(tp.width.clamp(fontSize * 0.5, fontSize * 6.0));
+    }
+  } finally {
+    tp.dispose();
   }
-  if (shapeWidthCache.length > 512) shapeWidthCache.clear();
-  shapeWidthCache[key] = widths;
+  shapeWidthCache.put(key, widths);
   return widths;
 }
 

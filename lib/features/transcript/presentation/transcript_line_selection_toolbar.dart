@@ -116,13 +116,15 @@ class _TranscriptSelectableRichTextState
     return plain.substring(start, end);
   }
 
-  static String? _lookupSlice(String plain, TextSelection selection) {
-    final raw = _rawSelectedSlice(plain, selection);
+  static String? _trimLookupSlice(String? raw) {
     if (raw == null) return null;
     final trimmed = raw.trim();
     if (trimmed.isEmpty || trimmed.length > 100) return null;
     return trimmed;
   }
+
+  static String? _lookupSlice(String plain, TextSelection selection) =>
+      _trimLookupSlice(_rawSelectedSlice(plain, selection));
 
   List<ContextMenuButtonItem> _toolbarItems({
     required BuildContext menuContext,
@@ -234,6 +236,128 @@ class _TranscriptSelectableRichTextState
           ),
         );
       },
+    );
+  }
+}
+
+class TranscriptWordSelectionArea extends StatefulWidget {
+  const TranscriptWordSelectionArea({
+    required this.child,
+    this.onTap,
+    this.onLookupRequested,
+    super.key,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final ValueChanged<String>? onLookupRequested;
+
+  @override
+  State<TranscriptWordSelectionArea> createState() =>
+      _TranscriptWordSelectionAreaState();
+}
+
+class _TranscriptWordSelectionAreaState
+    extends State<TranscriptWordSelectionArea> {
+  String? _selectedPlainText;
+
+  List<ContextMenuButtonItem> _menuItems({
+    required BuildContext menuContext,
+    required SelectableRegionState selectableRegionState,
+    required AppLocalizations l10n,
+  }) {
+    final items = <ContextMenuButtonItem>[];
+    final lookupText = widget.onLookupRequested == null
+        ? null
+        : _TranscriptSelectableRichTextState._trimLookupSlice(
+            _selectedPlainText,
+          );
+    if (lookupText != null) {
+      items.add(
+        ContextMenuButtonItem(
+          label: l10n.lookupSheetTitle,
+          onPressed: () {
+            Haptics.selection(menuContext);
+            selectableRegionState.hideToolbar();
+            releasePrimaryFocusForGlobalHotkeys();
+            widget.onLookupRequested!(lookupText);
+          },
+        ),
+      );
+    }
+    items.add(
+      ContextMenuButtonItem(
+        type: ContextMenuButtonType.copy,
+        label: l10n.lookupCopy,
+        onPressed: () async {
+          Haptics.selection(menuContext);
+          final raw = _selectedPlainText;
+          if (raw != null && raw.isNotEmpty) {
+            await Clipboard.setData(ClipboardData(text: raw));
+          } else {
+            for (final item in selectableRegionState.contextMenuButtonItems) {
+              if (item.type == ContextMenuButtonType.copy) {
+                item.onPressed?.call();
+                break;
+              }
+            }
+          }
+          selectableRegionState.hideToolbar();
+          if (menuContext.mounted) {
+            AppNotice.success(menuContext, l10n.lookupCopySuccess);
+          }
+        },
+      ),
+    );
+    items.add(
+      ContextMenuButtonItem(
+        type: ContextMenuButtonType.selectAll,
+        onPressed: () {
+          Haptics.selection(menuContext);
+          selectableRegionState.selectAll(SelectionChangedCause.toolbar);
+        },
+      ),
+    );
+    return items;
+  }
+
+  Widget _toolbarBuilder(
+    BuildContext menuContext,
+    SelectableRegionState selectableRegionState,
+  ) {
+    final l10n = AppLocalizations.of(menuContext);
+    if (l10n == null) {
+      return AdaptiveTextSelectionToolbar.selectableRegion(
+        selectableRegionState: selectableRegionState,
+      );
+    }
+    return AdaptiveTextSelectionToolbar.buttonItems(
+      anchors: selectableRegionState.contextMenuAnchors,
+      buttonItems: _menuItems(
+        menuContext: menuContext,
+        selectableRegionState: selectableRegionState,
+        l10n: l10n,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final child = widget.onTap == null
+        ? widget.child
+        : GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: widget.onTap,
+            child: widget.child,
+          );
+    return TranscriptTextSelectionScope(
+      child: SelectionArea(
+        onSelectionChanged: (content) {
+          _selectedPlainText = content?.plainText;
+        },
+        contextMenuBuilder: _toolbarBuilder,
+        child: child,
+      ),
     );
   }
 }
