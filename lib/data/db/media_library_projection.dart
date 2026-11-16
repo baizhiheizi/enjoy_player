@@ -101,6 +101,19 @@ mixin MediaLibraryProjection<DB extends GeneratedDatabase>
     )..addColumns([count])).watchSingle().map((row) => row.read(count)!);
   }
 
+  /// All row primary keys (`id`) in [mediaLibraryTable], without materializing rows.
+  Stream<Set<String>> watchAllIds() {
+    final query = selectOnly(mediaLibraryTable)..addColumns([_projected.id]);
+    return query.watch().map((rows) {
+      final ids = <String>{};
+      for (final row in rows) {
+        final id = row.read(_projected.id);
+        if (id != null && id.isNotEmpty) ids.add(id);
+      }
+      return ids;
+    });
+  }
+
   /// Content hashes for one [provider] value, without materializing rows.
   Stream<Set<String>> watchContentIdsByProvider(String provider) {
     final query = selectOnly(mediaLibraryTable)

@@ -67,7 +67,7 @@ sequenceDiagram
 
 ### Schema upgrades (release note)
 
-[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 21`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
+[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 22`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
 
 The pre-v6 JSON backup resolves `{applicationSupport}/migrations/` through `path_provider`, but `onUpgrade` runs on the Drift **background isolate**, which had no `BinaryMessenger` — so the path lookup threw, the failure was swallowed, and the backup was silently skipped immediately before the legacy tables were dropped. `AppDatabase` now passes `DriftNativeOptions(isolateSetup: …)` from [`drift_isolate_setup.dart`](../lib/data/db/drift_isolate_setup.dart), installing a `BackgroundIsolateBinaryMessenger` before the database opens; `defaultDriftNativeOptions()` **throws** rather than returning a channel-less default, so the messenger can never be silently skipped again.
 
@@ -90,6 +90,7 @@ The messenger fixes the *cause*; the guard fixes the *consequence*. If the backu
 | v18 → v19 | `idx_videos_updated_at` + `idx_audios_updated_at` (`updated_at DESC`) backing the Home recents `LIMIT 12 ORDER BY updated_at DESC` query (issue #810 D6) |
 | v19 → v20 | `idx_sync_queue_created_at` backing `peekBatch`'s `ORDER BY created_at`, plus `ai_cache.source_language` / `ai_cache.target_language` columns + `idx_ai_cache_lang_pair` and a one-time payload `json_extract` backfill so `evictForPair` matches indexed columns instead of scanning `payload_json` with a leading-wildcard `LIKE` (issue #827 C3+C4) |
 | v20 → v21 | `idx_audios_provider` backing the provider-scoped library view (`Craft` history) so it no longer scans the full `audios` table on open (issue #968 C2) |
+| v21 → v22 | `idx_sync_queue_entity_action` on `sync_queue(entity_type, entity_id, action)` and `idx_echo_sessions_last_active` on `echo_sessions(last_active_at DESC)` |
 
 ### Sync metadata mixins
 

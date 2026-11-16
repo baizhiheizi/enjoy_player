@@ -17,7 +17,6 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 import 'package:enjoy_player/core/theme/widgets/nav_item_pill.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/sidebar_account_chip.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_format.dart';
@@ -121,7 +120,6 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
     );
     final searchKeys = _effectiveKey('library.search', '/');
     final craftKey = _effectiveKey('global.craft', 'C');
-    final due = ref.watch(vocabularyStatsProvider).due;
 
     OutlineInputBorder searchBorder(Color color, [double width = 1]) =>
         OutlineInputBorder(
@@ -282,7 +280,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                   label: l10n.vocabularyTitle,
                   selected: path.startsWith('/vocabulary'),
                   onTap: () => context.go('/vocabulary'),
-                  trailing: due > 0 ? _DueBadge(count: due) : null,
+                  trailing: const _VocabularyDueBadge(),
                 ),
                 NavItemPill(
                   icon: EnjoyIcons.edit,
@@ -312,6 +310,17 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
         ),
       ),
     );
+  }
+}
+
+class _VocabularyDueBadge extends ConsumerWidget {
+  const _VocabularyDueBadge();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final due = ref.watch(vocabularyDueCountProvider).asData?.value ?? 0;
+    if (due <= 0) return const SizedBox.shrink();
+    return _DueBadge(count: due);
   }
 }
 
@@ -354,13 +363,17 @@ class _SyncStatusLine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = EnjoyThemeTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final auth = ref.watch(authCtrlProvider);
-    final signedIn = auth.asData?.value is AuthSignedIn;
+    final signedIn = ref.watch(authIsSignedInProvider);
     if (!signedIn) return const SizedBox.shrink();
 
-    final snapshot = ref.watch(syncQueueSnapshotProvider);
-    final pending = snapshot.asData?.value.retryablePending ?? 0;
-    final failed = snapshot.asData?.value.permanentlyFailed ?? 0;
+    final (pending, failed) = ref.watch(
+      syncQueueSnapshotProvider.select(
+        (s) => (
+          s.asData?.value.retryablePending ?? 0,
+          s.asData?.value.permanentlyFailed ?? 0,
+        ),
+      ),
+    );
     final upToDate = pending == 0 && failed == 0;
     final label = upToDate
         ? l10n.syncSettingsTileSubtitleUpToDate

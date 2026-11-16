@@ -257,6 +257,47 @@ final class VocabularyItem {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VocabularyItem &&
+          other.id == id &&
+          other.word == word &&
+          other.language == language &&
+          other.targetLanguage == targetLanguage &&
+          other.status == status &&
+          other.easeFactor == easeFactor &&
+          other.interval == interval &&
+          other.nextReviewAt == nextReviewAt &&
+          other.reviewsCount == reviewsCount &&
+          other.lastReviewedAt == lastReviewedAt &&
+          other.contextsCount == contextsCount &&
+          other.explanation == explanation &&
+          other.syncStatus == syncStatus &&
+          other.serverUpdatedAt == serverUpdatedAt &&
+          other.createdAt == createdAt &&
+          other.updatedAt == updatedAt;
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    word,
+    language,
+    targetLanguage,
+    status,
+    easeFactor,
+    interval,
+    nextReviewAt,
+    reviewsCount,
+    lastReviewedAt,
+    contextsCount,
+    explanation,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  );
 }
 
 /// Appearance of a word in media / ebook.

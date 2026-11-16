@@ -57,6 +57,28 @@ class VocabularyItemDao extends DatabaseAccessor<AppDatabase>
 
   Future<List<VocabularyItemRow>> listAll() => select(vocabularyItems).get();
 
+  /// Number of items currently due for review, without loading text or blobs.
+  Stream<int> watchDueCount() {
+    final query = selectOnly(vocabularyItems)
+      ..addColumns([
+        vocabularyItems.nextReviewAt,
+        vocabularyItems.lastReviewedAt,
+      ]);
+    return query.watch().map((rows) {
+      final now = DateTime.now();
+      var due = 0;
+      for (final row in rows) {
+        final nextReviewAt = row.read(vocabularyItems.nextReviewAt)!;
+        if (nextReviewAt.isAfter(now)) continue;
+        final lastReviewedAt = row.read(vocabularyItems.lastReviewedAt);
+        if (lastReviewedAt == null || nextReviewAt.isAfter(lastReviewedAt)) {
+          due++;
+        }
+      }
+      return due;
+    }).distinct();
+  }
+
   /// Live list without the `explanation` JSON blob (issue #810 G): every
   /// table write re-emits this stream, and the watch consumers (word list,
   /// stats, review-options preview) render list fields only. Rows read here

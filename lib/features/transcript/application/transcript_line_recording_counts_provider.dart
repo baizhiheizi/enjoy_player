@@ -28,6 +28,7 @@ Map<int, int>? resolveTranscriptLineRecordingCounts({
   required AsyncValue<List<RecordingRow>> recordingsAsync,
   required String mediaId,
   List<DictationRow> dictations = const [],
+  List<DictationTiming> dictationTimings = const [],
   Logger? log,
 }) {
   final logger = log ?? _log;
@@ -72,6 +73,7 @@ Map<int, int>? resolveTranscriptLineRecordingCounts({
     lines,
     recordingsAsync.requireValue,
     dictations: dictations,
+    dictationTimings: dictationTimings,
   );
 }
 
@@ -84,7 +86,7 @@ Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
   final targetTypeAsync = ref.watch(dexieTargetTypeForMediaProvider(mediaId));
 
   final AsyncValue<List<RecordingRow>> recordingsAsync;
-  final List<DictationRow> dictations;
+  final List<DictationTiming> dictationTimings;
   final tt = targetTypeAsync.value;
   if (tt != null) {
     recordingsAsync = ref.watch(
@@ -93,13 +95,13 @@ Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
     final dictationsAsync = ref.watch(
       _dictationsForTargetProvider((targetType: tt, targetId: mediaId)),
     );
-    dictations = dictationsAsync.value ?? const [];
+    dictationTimings = dictationsAsync.value ?? const [];
   } else if (targetTypeAsync.isLoading) {
     recordingsAsync = const AsyncLoading();
-    dictations = const [];
+    dictationTimings = const [];
   } else {
     recordingsAsync = const AsyncData([]);
-    dictations = const [];
+    dictationTimings = const [];
   }
 
   return resolveTranscriptLineRecordingCounts(
@@ -107,15 +109,18 @@ Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
     targetTypeAsync: targetTypeAsync,
     recordingsAsync: recordingsAsync,
     mediaId: mediaId,
-    dictations: dictations,
+    dictationTimings: dictationTimings,
   );
 }
 
 final _dictationsForTargetProvider = StreamProvider.autoDispose
-    .family<List<DictationRow>, ({String targetType, String targetId})>((
+    .family<List<DictationTiming>, ({String targetType, String targetId})>((
       ref,
       target,
     ) {
       final db = ref.watch(appDatabaseProvider);
-      return db.dictationDao.watchByTarget(target.targetType, target.targetId);
+      return db.dictationDao.watchTimingsByTarget(
+        target.targetType,
+        target.targetId,
+      );
     });

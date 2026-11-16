@@ -383,4 +383,34 @@ void main() {
       expect(removed, isNull);
     });
   });
+
+  test(
+    'watchSnapshot omits payloadJson and applies SQL detailLimit while keeping full counts',
+    () async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final repo = SyncQueueRepository(db);
+
+      for (var i = 0; i < 4; i++) {
+        await repo.addOrUpsert(
+          entityType: 'video',
+          entityId: 'v-$i',
+          action: 'create',
+          payloadJson: '{"large":"payload-$i"}',
+        );
+      }
+
+      final snapshot = await repo.watchSnapshot(detailLimit: 2).first;
+      expect(snapshot.retryablePending, 4);
+      expect(snapshot.permanentlyFailed, 0);
+      expect(snapshot.detailRows, hasLength(2));
+      for (final row in snapshot.detailRows) {
+        expect(row.payloadJson, isNull);
+      }
+      expect(await repo.watchCounts().first, (
+        retryablePending: 4,
+        permanentlyFailed: 0,
+      ));
+    },
+  );
 }

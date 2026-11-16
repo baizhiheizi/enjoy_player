@@ -103,6 +103,45 @@ final class VocabularyItemsProvider
 
 String _$vocabularyItemsHash() => r'4e8749ff97524c47021992f223058d8dce9c0d29';
 
+/// Live count of items currently due for review.
+
+@ProviderFor(vocabularyDueCount)
+final vocabularyDueCountProvider = VocabularyDueCountProvider._();
+
+/// Live count of items currently due for review.
+
+final class VocabularyDueCountProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
+    with $FutureModifier<int>, $StreamProvider<int> {
+  /// Live count of items currently due for review.
+  VocabularyDueCountProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vocabularyDueCountProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vocabularyDueCountHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<int> create(Ref ref) {
+    return vocabularyDueCount(ref);
+  }
+}
+
+String _$vocabularyDueCountHash() =>
+    r'ea4846d36cd332606d0cce5e85f855561ff002f0';
+
 /// Aggregated stats for the Vocabulary stats strip.
 
 @ProviderFor(vocabularyStats)
@@ -331,4 +370,4 @@ final class VocabularyFirstContextsProvider
 }
 
 String _$vocabularyFirstContextsHash() =>
-    r'7e3c996b87800387f65c747e48fcd3ab1028c015';
+    r'74e5bc3ab8ba0c185310e1de98696f99e132ac51';

@@ -18,27 +18,16 @@ mixin MediaRegistryWrites {
   /// Returns the kind deleted so the caller can enqueue the matching sync
   /// entity, or `null` when neither table holds [id].
   Future<MediaKind?> deleteById(String id) async {
-    final hit = await _probe(id);
-    if (hit.video != null) {
-      await _db.videoDao.deleteId(id);
-      return MediaKind.video;
-    }
-    if (hit.audio != null) {
-      await _db.audioDao.deleteId(id);
-      return MediaKind.audio;
-    }
+    if (await _db.videoDao.deleteId(id) > 0) return MediaKind.video;
+    if (await _db.audioDao.deleteId(id) > 0) return MediaKind.audio;
     return null;
   }
 
   /// Bumps `updatedAt` on whichever table holds [id] so Home "Recent media"
   /// can resurface the row. No-op when [id] is unknown; no sync enqueue.
   Future<void> touchUpdatedAt(String id) async {
-    final hit = await _probe(id);
-    if (hit.video != null) {
-      await _db.videoDao.touchUpdatedAt(id);
-    } else if (hit.audio != null) {
-      await _db.audioDao.touchUpdatedAt(id);
-    }
+    if (await _db.videoDao.touchUpdatedAt(id) > 0) return;
+    await _db.audioDao.touchUpdatedAt(id);
   }
 
   /// Sets the content language on whichever table holds [id] (video first).
@@ -54,13 +43,21 @@ mixin MediaRegistryWrites {
     String language, {
     ({VideoRow? video, AudioRow? audio})? probed,
   }) async {
-    final hit = probed ?? await _probe(id);
-    if (hit.video != null) {
-      await _db.videoDao.updateLanguage(id: id, language: language);
+    if (probed != null) {
+      if (probed.video != null) {
+        await _db.videoDao.updateLanguage(id: id, language: language);
+        return MediaKind.video;
+      }
+      if (probed.audio != null) {
+        await _db.audioDao.updateLanguage(id: id, language: language);
+        return MediaKind.audio;
+      }
+      return null;
+    }
+    if (await _db.videoDao.updateLanguage(id: id, language: language) > 0) {
       return MediaKind.video;
     }
-    if (hit.audio != null) {
-      await _db.audioDao.updateLanguage(id: id, language: language);
+    if (await _db.audioDao.updateLanguage(id: id, language: language) > 0) {
       return MediaKind.audio;
     }
     return null;
@@ -77,13 +74,21 @@ mixin MediaRegistryWrites {
     String title, {
     ({VideoRow? video, AudioRow? audio})? probed,
   }) async {
-    final hit = probed ?? await _probe(id);
-    if (hit.video != null) {
-      await _db.videoDao.updateTitle(id: id, title: title);
+    if (probed != null) {
+      if (probed.video != null) {
+        await _db.videoDao.updateTitle(id: id, title: title);
+        return MediaKind.video;
+      }
+      if (probed.audio != null) {
+        await _db.audioDao.updateTitle(id: id, title: title);
+        return MediaKind.audio;
+      }
+      return null;
+    }
+    if (await _db.videoDao.updateTitle(id: id, title: title) > 0) {
       return MediaKind.video;
     }
-    if (hit.audio != null) {
-      await _db.audioDao.updateTitle(id: id, title: title);
+    if (await _db.audioDao.updateTitle(id: id, title: title) > 0) {
       return MediaKind.audio;
     }
     return null;
@@ -148,15 +153,12 @@ mixin MediaRegistryWrites {
   /// double-write each other's snapshots) and preserves any unrelated
   /// fields a parallel writer may have changed.
   Future<MediaKind?> patchDurationIfZero(String id, int durationSeconds) async {
-    final hit = await _probe(id);
-    final video = hit.video;
-    if (video != null) {
+    if (await _db.videoDao.existsById(id)) {
       return await _db.videoDao.setDurationIfZero(id, durationSeconds)
           ? MediaKind.video
           : null;
     }
-    final audio = hit.audio;
-    if (audio != null) {
+    if (await _db.audioDao.existsById(id)) {
       return await _db.audioDao.setDurationIfZero(id, durationSeconds)
           ? MediaKind.audio
           : null;

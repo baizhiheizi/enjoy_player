@@ -11728,6 +11728,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_echo_sessions_target_active',
     'CREATE INDEX idx_echo_sessions_target_active ON echo_sessions (target_type, target_id, last_active_at)',
   );
+  late final Index idxEchoSessionsLastActive = Index(
+    'idx_echo_sessions_last_active',
+    'CREATE INDEX idx_echo_sessions_last_active ON echo_sessions (last_active_at)',
+  );
   late final Index idxRecordingsTarget = Index(
     'idx_recordings_target',
     'CREATE INDEX idx_recordings_target ON recordings (target_type, target_id)',
@@ -11743,6 +11747,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxSyncQueueCreatedAt = Index(
     'idx_sync_queue_created_at',
     'CREATE INDEX idx_sync_queue_created_at ON sync_queue (created_at)',
+  );
+  late final Index idxSyncQueueEntityAction = Index(
+    'idx_sync_queue_entity_action',
+    'CREATE INDEX idx_sync_queue_entity_action ON sync_queue (entity_type, entity_id, "action")',
   );
   late final Index idxYoutubeFeedEntriesChannelPublished = Index(
     'idx_youtube_feed_entries_channel_published',
@@ -11841,10 +11849,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxTranscriptsTarget,
     idxTranscriptFetchStatesTarget,
     idxEchoSessionsTargetActive,
+    idxEchoSessionsLastActive,
     idxRecordingsTarget,
     idxDictationsTarget,
     idxSyncQueueRetryCreated,
     idxSyncQueueCreatedAt,
+    idxSyncQueueEntityAction,
     idxYoutubeFeedEntriesChannelPublished,
     idxYoutubeFeedEntriesPublished,
     idxAiCacheKindUpdatedAt,

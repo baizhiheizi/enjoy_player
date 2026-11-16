@@ -12,7 +12,6 @@ import 'package:enjoy_player/features/player/presentation/widgets/app_sidebar.da
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
-import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -180,16 +179,7 @@ void main() {
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
         deviceGlobalAppDatabaseProvider.overrideWithValue(db),
-        vocabularyStatsProvider.overrideWithValue(
-          const VocabularyStats(
-            total: 120,
-            due: 14,
-            newCount: 10,
-            learningCount: 40,
-            reviewingCount: 50,
-            masteredCount: 20,
-          ),
-        ),
+        vocabularyDueCountProvider.overrideWith((ref) => Stream.value(14)),
       ],
     );
     addTearDown(dueContainer.dispose);

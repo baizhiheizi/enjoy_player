@@ -9,6 +9,7 @@ import 'sync_metadata.dart';
   name: 'idx_echo_sessions_target_active',
   columns: {#targetType, #targetId, #lastActiveAt},
 )
+@TableIndex(name: 'idx_echo_sessions_last_active', columns: {#lastActiveAt})
 @DataClassName('EchoSessionRow')
 class EchoSessions extends Table with SyncMetadataColumns {
   @override

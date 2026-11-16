@@ -14,8 +14,9 @@ Stream<String?> activeTranscriptId(Ref ref, String mediaId) {
   return Stream.fromFuture(dexieTargetTypeForId(db, mediaId)).asyncExpand((tt) {
     if (tt == null) return Stream<String?>.value(null);
     return db.echoSessionDao
-        .watchLatestForTarget(tt, mediaId)
-        .map((row) => row?.transcriptId);
+        .watchActiveTranscriptIds(tt, mediaId)
+        .map((row) => row?.transcriptId)
+        .distinct();
   });
 }
 
@@ -25,7 +26,8 @@ Stream<String?> secondaryTranscriptId(Ref ref, String mediaId) {
   return Stream.fromFuture(dexieTargetTypeForId(db, mediaId)).asyncExpand((tt) {
     if (tt == null) return Stream<String?>.value(null);
     return db.echoSessionDao
-        .watchLatestForTarget(tt, mediaId)
-        .map((row) => row?.secondaryTranscriptId);
+        .watchActiveTranscriptIds(tt, mediaId)
+        .map((row) => row?.secondaryTranscriptId)
+        .distinct();
   });
 }

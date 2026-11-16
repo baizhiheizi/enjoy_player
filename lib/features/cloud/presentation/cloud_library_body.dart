@@ -28,7 +28,6 @@ import 'package:enjoy_player/features/auth/presentation/widgets/signed_in_gate.d
 import 'package:enjoy_player/features/cloud/application/cloud_providers.dart';
 import 'package:enjoy_player/features/cloud/data/cloud_index_repository.dart';
 import 'package:enjoy_player/features/cloud/domain/remote_library_item.dart';
-import 'package:enjoy_player/features/library/application/library_media_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 

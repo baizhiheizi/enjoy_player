@@ -2,8 +2,9 @@
 library;
 
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show listEquals, visibleForTesting;
 
+import 'package:enjoy_player/core/utils/stream_combine_latest.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/domain/sync_queue_job.dart';
 import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
@@ -28,6 +29,21 @@ final class SyncQueueSnapshot {
   final List<SyncQueueRow> detailRows;
 
   bool get isFullyCaughtUp => retryablePending == 0 && permanentlyFailed == 0;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SyncQueueSnapshot &&
+          other.retryablePending == retryablePending &&
+          other.permanentlyFailed == permanentlyFailed &&
+          listEquals(other.detailRows, detailRows);
+
+  @override
+  int get hashCode => Object.hash(
+    retryablePending,
+    permanentlyFailed,
+    Object.hashAll(detailRows),
+  );
 }
 
 class SyncQueueRepository {
@@ -86,19 +102,23 @@ class SyncQueueRepository {
     required String action,
     String? payloadJson,
   }) => _db.transaction(() async {
-    final existing =
-        await (_db.select(_db.syncQueue)..where(
-              (t) =>
-                  t.entityType.equals(entityType) &
-                  t.entityId.equals(entityId) &
-                  t.action.equals(action),
-            ))
+    final q = _db.syncQueue;
+    final existingId =
+        await (_db.selectOnly(q)
+              ..addColumns([q.id])
+              ..where(
+                q.entityType.equals(entityType) &
+                    q.entityId.equals(entityId) &
+                    q.action.equals(action),
+              ))
+            .map((row) => row.read(q.id)!)
             .getSingleOrNull();
 
-    if (existing != null) {
-      await (_db.update(_db.syncQueue)..where((t) => t.id.equals(existing.id)))
-          .write(SyncQueueCompanion(payloadJson: Value(payloadJson)));
-      return existing.id;
+    if (existingId != null) {
+      await (_db.update(q)..where((t) => t.id.equals(existingId))).write(
+        SyncQueueCompanion(payloadJson: Value(payloadJson)),
+      );
+      return existingId;
     }
 
     return _db
@@ -124,29 +144,71 @@ class SyncQueueRepository {
         .get();
   }
 
-  /// Watch queue for live status (counts + capped detail list).
+  /// Live aggregate counts (`retryablePending`, `permanentlyFailed`) without loading rows or payloads.
+  Stream<({int retryablePending, int permanentlyFailed})> watchCounts() {
+    final threshold = _retryPolicy.maxRetries;
+    return _db
+        .customSelect(
+          'SELECT '
+          'COALESCE(SUM(CASE WHEN retry_count < ? THEN 1 ELSE 0 END), 0) AS retryable, '
+          'COALESCE(SUM(CASE WHEN retry_count >= ? THEN 1 ELSE 0 END), 0) AS failed '
+          'FROM sync_queue',
+          variables: [Variable.withInt(threshold), Variable.withInt(threshold)],
+          readsFrom: {_db.syncQueue},
+        )
+        .watchSingle()
+        .map(
+          (row) => (
+            retryablePending: row.read<int>('retryable'),
+            permanentlyFailed: row.read<int>('failed'),
+          ),
+        )
+        .distinct();
+  }
+
+  /// Watch queue for live status (counts + capped detail list without `payloadJson`).
   Stream<SyncQueueSnapshot> watchSnapshot({int detailLimit = 50}) {
-    return _db.select(_db.syncQueue).watch().map((rows) {
-      var retryable = 0;
-      var failed = 0;
-      for (final r in rows) {
-        if (_retryPolicy.isPermanentlyFailed(r.retryCount)) {
-          failed++;
-        } else {
-          retryable++;
-        }
-      }
-      final sorted = [...rows]
-        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      final detail = sorted.length <= detailLimit
-          ? sorted
-          : sorted.sublist(0, detailLimit);
-      return SyncQueueSnapshot(
-        retryablePending: retryable,
-        permanentlyFailed: failed,
+    final q = _db.syncQueue;
+    final detailStream =
+        (_db.selectOnly(q)
+              ..addColumns([
+                q.id,
+                q.entityType,
+                q.entityId,
+                q.action,
+                q.retryCount,
+                q.lastAttempt,
+                q.error,
+                q.createdAt,
+              ])
+              ..orderBy([OrderingTerm.asc(q.createdAt)])
+              ..limit(detailLimit))
+            .watch()
+            .map(
+              (rows) => [
+                for (final row in rows)
+                  SyncQueueRow(
+                    id: row.read(q.id)!,
+                    entityType: row.read(q.entityType)!,
+                    entityId: row.read(q.entityId)!,
+                    action: row.read(q.action)!,
+                    payloadJson: null,
+                    retryCount: row.read(q.retryCount)!,
+                    lastAttempt: row.read(q.lastAttempt),
+                    error: row.read(q.error),
+                    createdAt: row.read(q.createdAt)!,
+                  ),
+              ],
+            );
+    return combineLatest2(
+      watchCounts(),
+      detailStream,
+      (counts, detail) => SyncQueueSnapshot(
+        retryablePending: counts.retryablePending,
+        permanentlyFailed: counts.permanentlyFailed,
         detailRows: detail,
-      );
-    });
+      ),
+    ).distinct();
   }
 
   Future<void> removeById(int id) => _db.syncQueueDao.deleteId(id);
