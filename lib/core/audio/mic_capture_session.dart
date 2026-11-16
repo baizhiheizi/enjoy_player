@@ -4,9 +4,9 @@
 /// microphone permission (typed [MicPermissionDeniedException]), the shared
 /// 16 kHz mono WAV config (web-client and Azure-Speech aligned; see
 /// [buildMicRecordConfig]), output-directory creation, and the
-/// recreate-the-recorder-after-every-stop Windows workaround. Callers own the
-/// per-surface identity only: the directory, the file naming, the chosen
-/// device, and what to do with the resulting WAV.
+/// recreate-the-recorder-after-every-stop-or-failed-start Windows
+/// workaround. Callers own the per-surface identity only: the directory, the
+/// file naming, the chosen device, and what to do with the resulting WAV.
 library;
 
 import 'dart:io';
@@ -66,7 +66,9 @@ class MicCaptureSession {
 
   /// Begins capturing into [directory]/[filename] (the directory is created
   /// when missing). Throws [MicPermissionDeniedException] when the OS denies
-  /// the microphone, or propagates recorder errors.
+  /// the microphone, or propagates recorder errors — a failed [start] also
+  /// swaps in a fresh recorder so the next attempt does not reuse the
+  /// possibly-stale instance.
   Future<void> start({
     required Directory directory,
     required String filename,
@@ -77,10 +79,16 @@ class MicCaptureSession {
     if (!granted) {
       throw const MicPermissionDeniedException();
     }
-    await _recorder.start(
-      buildMicRecordConfig(device),
-      path: p.join(directory.path, filename),
-    );
+    try {
+      await _recorder.start(
+        buildMicRecordConfig(device),
+        path: p.join(directory.path, filename),
+      );
+    } catch (e, st) {
+      _log.warning('mic recorder start failed', e, st);
+      await _recreateRecorder();
+      rethrow;
+    }
     _active = true;
   }
 
@@ -128,9 +136,6 @@ class MicCaptureSession {
     Duration interval = const Duration(milliseconds: 100),
   ]) => _recorder.onAmplitudeChanged(interval);
 
-  /// Recreated after every `stop()` — `record` on Windows can keep stale
-  /// Media Foundation state on the same instance, so a second `start()`
-  /// quietly produces a zero-sample WAV ("second take won't record").
   Future<String?> _stopAndRecreate() async {
     String? path;
     try {
@@ -138,14 +143,22 @@ class MicCaptureSession {
     } catch (e, st) {
       _log.warning('mic recorder stop failed', e, st);
     }
+    await _recreateRecorder();
+    return path;
+  }
+
+  /// Swaps in a fresh recorder and disposes the old one — `record` on
+  /// Windows can keep stale Media Foundation state on the same instance, so
+  /// reusing it after a stop or a failed start quietly produces a
+  /// zero-sample WAV ("second take won't record").
+  Future<void> _recreateRecorder() async {
     final old = _recorder;
     _recorder = _recorderFactory();
     try {
       await old.dispose();
     } catch (e, st) {
-      _log.fine('mic recorder dispose after stop failed', e, st);
+      _log.fine('mic recorder dispose after recreate failed', e, st);
     }
-    return path;
   }
 
   Future<void> _deleteFileIfExists(String? path) async {

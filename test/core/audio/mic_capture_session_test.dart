@@ -10,6 +10,7 @@ class _FakeMicRecorder implements MicRecorder {
   _FakeMicRecorder();
 
   bool permissionGranted = true;
+  Object? startError;
   RecordConfig? lastConfig;
   String? lastPath;
   String? stopResult;
@@ -21,6 +22,9 @@ class _FakeMicRecorder implements MicRecorder {
 
   @override
   Future<void> start(RecordConfig config, {required String path}) async {
+    if (startError != null) {
+      throw startError!;
+    }
     lastConfig = config;
     lastPath = path;
   }
@@ -103,6 +107,26 @@ void main() {
       expect(session.isActive, isTrue);
     },
   );
+
+  test('start failure recreates the recorder for the next attempt', () async {
+    recorders.single.startError = Exception('device busy');
+
+    await expectLater(
+      session.start(directory: captureDir(), filename: 'x.wav'),
+      throwsA(isA<Exception>()),
+    );
+    expect(session.isActive, isFalse);
+    expect(recorders, hasLength(2));
+    expect(recorders[0].disposeCalls, 1);
+    expect(identical(recorders[0], recorders[1]), isFalse);
+
+    await session.start(directory: captureDir(), filename: 'x.wav');
+
+    expect(recorders, hasLength(2));
+    expect(recorders[1].disposeCalls, 0);
+    expect(recorders[1].lastPath, p.join(captureDir().path, 'x.wav'));
+    expect(session.isActive, isTrue);
+  });
 
   test('stop returns the written path and recreates the recorder', () async {
     await session.start(directory: captureDir(), filename: 'take.wav');

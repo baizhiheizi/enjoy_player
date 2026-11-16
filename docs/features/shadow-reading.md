@@ -20,8 +20,8 @@ The recording bus is the single source of truth for "is the user recording right
 
 Mic capture and take persistence live in [`ShadowTakeStore`](../../lib/features/shadow_reading/application/shadow_take_store.dart) (issue #597) — the panel is view + callbacks only. Interface: `start(device:)` / `cancel()` / `stopAndPersist(region:)` / `deleteTake(row)` / `dispose()`.
 
-- **Capture**: mic permission gate, `{appSupport}/recordings/{uuid}.wav` paths, and the 16 kHz mono PCM16 WAV config (`buildShadowRecordConfig`, aligned with web + Azure Speech).
-- **Recorder lifecycle**: the `MicRecorder` port wraps `package:record`'s `AudioRecorder`; the recorder is **recreated after every `stop()`** — `record` on Windows keeps stale Media Foundation state on the same instance, so reusing it silently produces a zero-sample WAV ("second take won't record").
+- **Capture**: mic permission gate, `{appSupport}/recordings/{uuid}.wav` paths, and the 16 kHz mono PCM16 WAV config aligned with web + Azure Speech — the whole mic lifecycle is delegated to the shared [`MicCaptureSession`](../../lib/core/audio/mic_capture_session.dart) (`buildMicRecordConfig`).
+- **Recorder lifecycle**: the recorder is **recreated after every `stop()` and after a failed `start()`** — `record` on Windows keeps stale Media Foundation state on the same instance, so reusing it silently produces a zero-sample WAV ("second take won't record").
 - **Persistence**: `stopAndPersist` reads the WAV, computes sha256 + duration (from the RIFF `fmt ` + `data` header; a `fmt ` chunk shorter than 16 bytes yields no duration), applies the **silence heuristic** (RMS < 0.001 or non-zero ratio < 1% → `looksSilent` verdict surfaced by the panel as a warning; the row is persisted regardless), builds the `RecordingRow`, inserts via `recordingDao` (ADR-0002), then enqueues sync create through the injected `SyncEnqueueFn` (ADR-0013).
 - **Deletion**: `deleteTake` enqueues sync delete, removes the WAV file, then deletes the DAO row. Stopping preview playback of the take first is the panel's job (a presentation concern).
 
@@ -35,7 +35,7 @@ The panel no longer names a database handle. [`shadow_take_providers.dart`](../.
 
 The panel's `RecordingRow` mentions are type-only (`app_database.dart` supplies the Drift row shape); it holds no database handle and issues no queries. These providers are hand-written rather than `@riverpod`-annotated because `riverpod_generator` raises `InvalidTypeException` on Drift row types and on function-typed returns (same workaround as `syncEnqueueProvider`).
 
-Craft's `CaptureStage` still owns its own capture loop (it needs the amplitude stream and does not persist takes); migrating it onto the shared `MicRecorder` port is a follow-up.
+Craft's `CaptureStage` runs its capture loop through the same [`MicCaptureSession`](../../lib/core/audio/mic_capture_session.dart) (it needs the amplitude stream and does not persist takes) — mic policy has one owner behind the panel, the echo card, and Craft.
 
 ## Idle toolbar (centered FAB)
 

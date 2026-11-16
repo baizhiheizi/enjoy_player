@@ -146,6 +146,7 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
   }
 
   Future<void> _stopRecording() async {
+    final controller = ref.read(craftControllerProvider.notifier);
     String? path;
     try {
       path = await _session.stop();
@@ -159,7 +160,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     _amplitudeCount = 0;
     _recordingPending = false;
 
-    final controller = ref.read(craftControllerProvider.notifier);
     if (path == null || path.isEmpty) {
       _log.warning('mic capture stop returned no path');
       _sessionCapturing = false;
