@@ -272,6 +272,27 @@ void main() {
       },
     );
 
+    test(
+      'loggedFirstPlayingListenable notifies on mark and reset without spam',
+      () {
+        final session = YoutubeSession()..resetForOpen('abc12345678');
+        final events = <bool>[];
+        void listener() =>
+            events.add(session.loggedFirstPlayingListenable.value);
+        session.loggedFirstPlayingListenable.addListener(listener);
+        addTearDown(
+          () => session.loggedFirstPlayingListenable.removeListener(listener),
+        );
+
+        session.markFirstPlayingLogged();
+        session.markFirstPlayingLogged();
+        session.resetWatchPageExpectations(firstPlaying: false);
+        session.resetWatchPageExpectations(firstPlaying: true);
+
+        expect(events, [true, false]);
+      },
+    );
+
     test('clearAwaitingColdInitialNavigation leaves sibling latches alone', () {
       final session = YoutubeSession()..resetForOpen('abc12345678');
       session

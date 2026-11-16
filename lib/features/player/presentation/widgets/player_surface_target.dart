@@ -161,6 +161,8 @@ class _RenderGeometryProbe extends RenderProxyBox {
 
   VoidCallback onGeometryPossiblyChanged;
   bool _scheduled = false;
+  Offset? _lastGlobalOffset;
+  Size? _lastSize;
 
   void _schedule() {
     if (_scheduled) return;
@@ -175,12 +177,20 @@ class _RenderGeometryProbe extends RenderProxyBox {
   @override
   void performLayout() {
     super.performLayout();
+    _lastSize = size;
     _schedule();
   }
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    _schedule();
+    if (hasSize) {
+      final globalOffset = localToGlobal(Offset.zero);
+      if (globalOffset != _lastGlobalOffset || size != _lastSize) {
+        _lastGlobalOffset = globalOffset;
+        _lastSize = size;
+        _schedule();
+      }
+    }
     super.paint(context, offset);
   }
 }

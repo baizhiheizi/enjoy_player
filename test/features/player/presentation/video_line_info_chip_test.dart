@@ -51,6 +51,15 @@ class _PlayingNotifier extends Notifier<bool> {
   bool build() => false;
 }
 
+class _WordIndexNotifier extends Notifier<int?> {
+  @override
+  int? build() => null;
+}
+
+final _wordIndexProvider = NotifierProvider<_WordIndexNotifier, int?>(
+  _WordIndexNotifier.new,
+);
+
 List<Override> _overrides() {
   final db = AppDatabase(executor: NativeDatabase.memory());
   return [
@@ -74,7 +83,10 @@ List<Override> _overrides() {
       ),
     ),
     transcriptPlaybackHighlightProvider(_mediaId).overrideWith(
-      (ref) => (cueIndex: ref.watch(_cueIndexProvider), wordIndex: null),
+      (ref) => (
+        cueIndex: ref.watch(_cueIndexProvider),
+        wordIndex: ref.watch(_wordIndexProvider),
+      ),
     ),
   ];
 }
@@ -168,5 +180,38 @@ void main() {
 
     expect(find.text('Line 3 of 5'), findsNothing);
     expect(find.byType(Text), findsNothing);
+  });
+
+  testWidgets('wordIndex updates do not rebuild VideoLineInfoChip', (
+    tester,
+  ) async {
+    final container = await _pumpChip(tester);
+
+    final chipFinder = find.byType(VideoLineInfoChip);
+    final initialTextWidget = tester.widget<Text>(
+      find.descendant(of: chipFinder, matching: find.byType(Text)),
+    );
+    expect(initialTextWidget.data, 'Line 3 of 5');
+
+    int? observedWordIndex;
+    container.listen(
+      transcriptPlaybackHighlightProvider(_mediaId),
+      (_, next) => observedWordIndex = next.wordIndex,
+    );
+
+    container.read(_wordIndexProvider.notifier).state = 1;
+    await tester.pump();
+    container.read(_wordIndexProvider.notifier).state = 2;
+    await tester.pump();
+
+    expect(observedWordIndex, 2);
+    final afterWordUpdateWidget = tester.widget<Text>(
+      find.descendant(of: chipFinder, matching: find.byType(Text)),
+    );
+    expect(identical(afterWordUpdateWidget, initialTextWidget), isTrue);
+
+    container.read(_cueIndexProvider.notifier).state = 3;
+    await tester.pump();
+    expect(find.text('Line 4 of 5'), findsOneWidget);
   });
 }

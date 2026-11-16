@@ -2,12 +2,22 @@ part of 'youtube_session.dart';
 
 /// Watch-document navigation expectations.
 mixin YoutubeSessionWatchNavigation on YoutubeSessionBase {
-  bool _loggedFirstPlaying = false;
+  final ValueNotifier<bool> _loggedFirstPlayingNotifier = ValueNotifier<bool>(
+    false,
+  );
   bool _watchPageLoadStopReceived = false;
   bool _awaitingColdInitialNavigation = false;
   bool _nonWatchRecoveryScheduled = false;
 
-  bool get loggedFirstPlaying => _loggedFirstPlaying;
+  ValueListenable<bool> get loggedFirstPlayingListenable =>
+      _loggedFirstPlayingNotifier;
+  bool get loggedFirstPlaying => _loggedFirstPlayingNotifier.value;
+  bool get _loggedFirstPlaying => _loggedFirstPlayingNotifier.value;
+  set _loggedFirstPlaying(bool value) {
+    if (_disposed) return;
+    _loggedFirstPlayingNotifier.value = value;
+  }
+
   bool get watchPageLoadStopReceived => _watchPageLoadStopReceived;
   bool get awaitingColdInitialNavigation => _awaitingColdInitialNavigation;
   bool get nonWatchRecoveryScheduled => _nonWatchRecoveryScheduled;

@@ -45,7 +45,7 @@ class PlayerTopBar extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final tt = Theme.of(context).textTheme;
     final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
-    final echo = ref.watch(echoModeProvider);
+    final echoActive = ref.watch(echoModeProvider.select((e) => e.active));
     final lens = ref.watch(playerLensProvider);
     final hasLines =
         ref.watch(transcriptHasLinesForMediaProvider(mediaId)).value ?? false;
@@ -69,7 +69,7 @@ class PlayerTopBar extends ConsumerWidget {
             return _PhoneTopBar(
               mediaId: mediaId,
               chrome: chrome,
-              echoActive: echo.active,
+              echoActive: echoActive,
               echoEnabled: hasLines,
             );
           }
@@ -127,7 +127,7 @@ class PlayerTopBar extends ConsumerWidget {
                     if (showShare)
                       _ShareAction(
                         mediaId: mediaId,
-                        echoActive: echo.active,
+                        echoActive: echoActive,
                         labeled: true,
                       ),
                     if (showShare) const SizedBox(width: 4),

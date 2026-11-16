@@ -23,19 +23,19 @@ class VideoLineInfoChip extends ConsumerWidget {
     final mediaId = chrome?.mediaId;
     if (mediaId == null) return const SizedBox.shrink();
 
-    final total = ref
-        .watch(transcriptLinesForMediaProvider(mediaId))
-        .value
-        ?.length;
-    final cue = ref
-        .watch(transcriptPlaybackHighlightProvider(mediaId))
-        .cueIndex;
+    final total = ref.watch(
+      transcriptLinesForMediaProvider(mediaId).select((a) => a.value?.length),
+    );
+    final cue = ref.watch(
+      transcriptPlaybackHighlightProvider(mediaId).select((h) => h.cueIndex),
+    );
     final caption = total != null && total > 0 && cue >= 0
         ? AppLocalizations.of(context)!.playerLineOfTotal(cue + 1, total)
         : null;
     if (caption == null) return const SizedBox.shrink();
 
-    final looping = ref.watch(echoModeProvider).active
+    final echoActive = ref.watch(echoModeProvider.select((e) => e.active));
+    final looping = echoActive
         ? ' ${AppLocalizations.of(context)!.playerDockLooping}'
         : '';
 

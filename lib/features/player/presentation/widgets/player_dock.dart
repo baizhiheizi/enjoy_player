@@ -54,9 +54,10 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final chrome = widget.chrome;
-    final echo = ref.watch(echoModeProvider);
-    final bus = ref.watch(shadowReadingHotkeyBusProvider);
-    final recording = bus.isRecordingActive;
+    final echoActive = ref.watch(echoModeProvider.select((e) => e.active));
+    final recording = ref.watch(
+      shadowReadingHotkeyBusProvider.select((b) => b.isRecordingActive),
+    );
     final playing = ref.watch(playerIsPlayingProvider).value ?? false;
     final buffering = ref.watch(playerIsBufferingProvider).value ?? false;
     final hasLines =
@@ -71,7 +72,7 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
       _practiceTips.schedule(
         routePath: routePath,
         mediaId: chrome.mediaId,
-        echoActive: echo.active,
+        echoActive: echoActive,
       );
     }
 
@@ -121,9 +122,9 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                                 .read(shadowReadingHotkeyBusProvider.notifier)
                                 .pulseRecording(),
                           )
-                        : echo.active
+                        : echoActive
                         ? DockEchoControls(
-                            key: ValueKey<bool>(echo.active),
+                            key: ValueKey<bool>(echoActive),
                             mediaId: chrome.mediaId,
                             phone: phone,
                             recording: recording,
@@ -142,12 +143,12 @@ class _PlayerDockState extends ConsumerState<PlayerDock> {
                             onSpeed: _openPlaybackRateSheet,
                           )
                         : DockListenControls(
-                            key: ValueKey<bool>(echo.active),
+                            key: ValueKey<bool>(echoActive),
                             mediaId: chrome.mediaId,
                             phone: phone,
                             recording: recording,
                             showLineMeta: showLineMeta,
-                            echoAvailable: hasLines || echo.active,
+                            echoAvailable: hasLines || echoActive,
                             playing: playing,
                             buffering: buffering,
                             playbackRate: playbackRate,
