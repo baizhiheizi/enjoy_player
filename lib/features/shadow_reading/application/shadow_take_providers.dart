@@ -20,6 +20,7 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/echo/echo_region_key.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
@@ -58,6 +59,18 @@ class EchoRegionRecordingsQuery {
     required this.echoStartMs,
     required this.echoEndMs,
   });
+
+  /// The recording window of [key], without the reference text: stream/family
+  /// identity must not depend on the cue's wording.
+  factory EchoRegionRecordingsQuery.of(EchoRegionKey key) {
+    return EchoRegionRecordingsQuery(
+      targetType: key.targetType,
+      targetId: key.targetId,
+      language: key.language,
+      echoStartMs: key.startMs,
+      echoEndMs: key.endMs,
+    );
+  }
 
   final String targetType;
   final String targetId;

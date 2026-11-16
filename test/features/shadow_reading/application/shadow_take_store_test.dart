@@ -6,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:record/record.dart';
 
+import 'package:enjoy_player/core/echo/echo_region_key.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_store.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
@@ -85,7 +86,7 @@ class FakeMicRecorder implements MicRecorder {
   }
 }
 
-const _region = TakeRegion(
+final _region = EchoRegionKey.fromSeconds(
   targetType: 'video',
   targetId: 'media-1',
   language: 'en',

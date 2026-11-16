@@ -20,6 +20,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:enjoy_player/core/audio/wav_duration_ms.dart';
 import 'package:enjoy_player/core/audio/wav_signal_peak.dart';
+import 'package:enjoy_player/core/echo/echo_region_key.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
@@ -58,26 +59,6 @@ class PackageRecordMicRecorder implements MicRecorder {
 
   @override
   Future<void> dispose() => _impl.dispose();
-}
-
-/// The echo region a take is recorded against — everything the persisted
-/// [RecordingRow] needs beyond the WAV itself.
-class TakeRegion {
-  const TakeRegion({
-    required this.targetType,
-    required this.targetId,
-    required this.language,
-    required this.referenceText,
-    required this.startSec,
-    required this.endSec,
-  });
-
-  final String targetType;
-  final String targetId;
-  final String language;
-  final String referenceText;
-  final double startSec;
-  final double endSec;
 }
 
 /// Outcome of a successful [ShadowTakeStore.stopAndPersist].
@@ -247,7 +228,9 @@ class ShadowTakeStore {
   /// Stops the capture and persists it as a [RecordingRow]. Returns the row
   /// plus a silence verdict; throws [TakeFileMissingException] when nothing
   /// was captured, or propagates DB / sync errors for the caller to surface.
-  Future<TakePersistResult> stopAndPersist({required TakeRegion region}) async {
+  Future<TakePersistResult> stopAndPersist({
+    required EchoRegionKey region,
+  }) async {
     if (!_active) {
       throw const TakeFileMissingException('');
     }
@@ -317,7 +300,7 @@ class ShadowTakeStore {
 
   Future<TakePersistResult> _persistRecording(
     String wavPath,
-    TakeRegion region,
+    EchoRegionKey region,
   ) async {
     final file = File(wavPath);
     if (!await file.exists()) {
@@ -366,14 +349,12 @@ class ShadowTakeStore {
 
     final id = p.basenameWithoutExtension(wavPath);
     final now = DateTime.now();
-    final startMs = (region.startSec * 1000).round();
-    final durMs = ((region.endSec - region.startSec) * 1000).round();
     final row = RecordingRow(
       id: id,
       targetType: region.targetType,
       targetId: region.targetId,
-      referenceStart: startMs,
-      referenceDuration: durMs,
+      referenceStart: region.startMs,
+      referenceDuration: region.durationMs,
       referenceText: region.referenceText,
       language: region.language,
       duration: durationMs,
