@@ -19,8 +19,7 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading_panel.dart';
-import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
-import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_display_providers.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/take_assessment_notes_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
@@ -100,21 +99,8 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
     final lineRecordingCounts = ref.watch(
       transcriptLineRecordingCountsProvider(mediaId),
     );
-    final autoTranslateMode = ref.watch(
-      autoTranslateCtrlProvider(mediaId).select(
-        (s) => (
-          isActive: s.isActive,
-          aiTranscriptId: s.aiTranscriptId,
-          sourceLanguage: s.sourceLanguage,
-          targetLanguage: s.targetLanguage,
-        ),
-      ),
-    );
-    final secondaryId = ref.watch(secondaryTranscriptIdProvider(mediaId)).value;
-    final autoTranslateActive =
-        autoTranslateMode.isActive &&
-        autoTranslateMode.aiTranscriptId != null &&
-        secondaryId == autoTranslateMode.aiTranscriptId;
+    final autoTranslate = ref.watch(autoTranslateDisplayStateProvider(mediaId));
+    final autoTranslateActive = autoTranslate.active;
 
     final showShadow = echo.startTimeSeconds >= 0 && echo.endTimeSeconds >= 0;
     final blurMode = ref.watch(transcriptBlurModeProvider);
@@ -172,8 +158,8 @@ class _EchoRegionMergedCardState extends ConsumerState<EchoRegionMergedCard> {
       echo: echo,
       activeCueIndex: activeCueIndex,
       autoTranslateActive: autoTranslateActive,
-      autoTranslateSourceLanguage: autoTranslateMode.sourceLanguage,
-      autoTranslateTargetLanguage: autoTranslateMode.targetLanguage,
+      autoTranslateSourceLanguage: autoTranslate.sourceLanguage,
+      autoTranslateTargetLanguage: autoTranslate.targetLanguage,
       wavyByLine: wavyByLine,
       lineRecordingCounts: lineRecordingCounts,
       loopFontSize: loopFontSize,

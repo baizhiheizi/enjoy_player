@@ -11,8 +11,8 @@ import 'package:enjoy_player/core/transcript/transcript_density.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
-import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_display_providers.dart';
 import 'package:enjoy_player/features/transcript/application/echo_region_bounds.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
@@ -127,23 +127,10 @@ class _TranscriptScrollableListState
     );
     final secondaryLines = secondaryAsync.value ?? <TranscriptLine>[];
     final secondaryMatcher = _matcherFor(secondaryLines);
-    final autoTranslateMode = ref.watch(
-      autoTranslateCtrlProvider(widget.mediaId).select(
-        (s) => (
-          isActive: s.isActive,
-          aiTranscriptId: s.aiTranscriptId,
-          sourceLanguage: s.sourceLanguage,
-          targetLanguage: s.targetLanguage,
-        ),
-      ),
+    final autoTranslate = ref.watch(
+      autoTranslateDisplayStateProvider(widget.mediaId),
     );
-    final secondaryId = ref
-        .watch(secondaryTranscriptIdProvider(widget.mediaId))
-        .value;
-    final autoTranslateActive =
-        autoTranslateMode.isActive &&
-        autoTranslateMode.aiTranscriptId != null &&
-        secondaryId == autoTranslateMode.aiTranscriptId;
+    final autoTranslateActive = autoTranslate.active;
     final l10n = AppLocalizations.of(context);
     final blurPractice = ref.watch(transcriptBlurModeProvider);
     final items = _virtualItems(echo);
@@ -166,8 +153,8 @@ class _TranscriptScrollableListState
       secondaryLines: secondaryLines,
       secondaryMatcher: secondaryMatcher,
       autoTranslateActive: autoTranslateActive,
-      sourceLanguage: autoTranslateMode.sourceLanguage,
-      targetLanguage: autoTranslateMode.targetLanguage,
+      sourceLanguage: autoTranslate.sourceLanguage,
+      targetLanguage: autoTranslate.targetLanguage,
       autoTranslateCtrl: autoTranslateCtrl,
       l10n: l10n,
       lineRecordingCounts: lineRecordingCounts,
