@@ -8,6 +8,8 @@ import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 
+final RegExp _avatarWhitespaceRegExp = RegExp(r'\s+');
+
 /// Circular avatar: network image, else initials on an aurora-tinted disc.
 class EnjoyAvatar extends StatelessWidget {
   const EnjoyAvatar({
@@ -28,7 +30,7 @@ class EnjoyAvatar extends StatelessWidget {
   String get _initials {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return '?';
-    final parts = trimmed.split(RegExp(r'\s+'));
+    final parts = trimmed.split(_avatarWhitespaceRegExp);
     if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
       return (parts[0].characters.first + parts[1].characters.first)
           .toUpperCase();

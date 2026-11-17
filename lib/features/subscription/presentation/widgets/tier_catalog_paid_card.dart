@@ -3,7 +3,8 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -51,7 +52,7 @@ class TierPaidCard extends StatelessWidget {
     final fallbackPlan = resolveCatalogPlan(plans, CatalogInterval.month, tier);
     final resolved = selectedPlan ?? fallbackPlan;
     final amount = resolved != null
-        ? NumberFormat('0.00').format(resolved.amount)
+        ? cachedNumberFormat('0.00').format(resolved.amount)
         : null;
     final unitLabel = interval == CatalogInterval.year
         ? l10n.subscriptionTierCatalogPerYear

@@ -52,32 +52,41 @@ class CraftHistoryScreen extends ConsumerWidget {
               actionLabel: l10n.craftHistoryEmptyAction,
             );
           }
-          return ListView(
-            padding: metrics.padding(top: t.space16, bottom: t.space32),
-            children: [
-              EnjoySectionHeader(
-                title: l10n.craftHistoryTitle,
-                caption: '${items.length}',
-                padding: EdgeInsets.only(bottom: t.space12),
-              ),
-              EnjoyCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var i = 0; i < items.length; i++) ...[
-                      if (i > 0)
-                        const SettingsRowDivider(insetForLeading: false),
-                      _CraftHistoryTile(
-                        media: items[i],
-                        onTap: () => _openForEdit(context, ref, items[i]),
-                        onRemove: () => _removeRecord(context, ref, items[i]),
-                      ),
-                    ],
-                  ],
+          return Padding(
+            padding: metrics.padding(top: t.space16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                EnjoySectionHeader(
+                  title: l10n.craftHistoryTitle,
+                  caption: '${items.length}',
+                  padding: EdgeInsets.only(bottom: t.space12),
                 ),
-              ),
-            ],
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: t.space32),
+                    child: EnjoyCard(
+                      padding: EdgeInsets.zero,
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: items.length,
+                        separatorBuilder: (_, _) =>
+                            const SettingsRowDivider(insetForLeading: false),
+                        itemBuilder: (_, i) {
+                          final item = items[i];
+                          return _CraftHistoryTile(
+                            key: ValueKey('craft-history-${item.id}'),
+                            media: item,
+                            onTap: () => _openForEdit(context, ref, item),
+                            onRemove: () => _removeRecord(context, ref, item),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
         loading: () => const SkeletonSettingsList(rowCount: 6),
@@ -143,6 +152,7 @@ class _CraftHistoryTile extends StatelessWidget {
     required this.media,
     required this.onTap,
     required this.onRemove,
+    super.key,
   });
 
   final Media media;

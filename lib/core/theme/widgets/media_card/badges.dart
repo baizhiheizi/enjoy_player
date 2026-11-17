@@ -307,6 +307,8 @@ class MediaCardBadge extends StatelessWidget {
   }
 }
 
+final RegExp _parenSplitRegExp = RegExp(r'\s*[（(]');
+
 /// Inline language link for a tile's meta line (tap to edit when [onTap]).
 class MediaCardMetaLanguage extends StatelessWidget {
   const MediaCardMetaLanguage({super.key, required this.label, this.onTap});
@@ -318,7 +320,7 @@ class MediaCardMetaLanguage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final short = label.split(RegExp(r'\s*[（(]')).first.trim();
+    final short = label.split(_parenSplitRegExp).first.trim();
     final text = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
