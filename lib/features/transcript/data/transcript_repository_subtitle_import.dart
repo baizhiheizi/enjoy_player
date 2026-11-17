@@ -55,7 +55,6 @@ extension _TranscriptRepositorySubtitleImport on TranscriptRepository {
       text,
       fileName: file.name,
     );
-    final json = await encodeTimelineJsonGated(lines);
     const source = 'user';
     final id = enjoyTranscriptId(
       targetType: tt,
@@ -64,17 +63,15 @@ extension _TranscriptRepositorySubtitleImport on TranscriptRepository {
       source: source,
     );
     final now = DateTime.now();
-    await _db.transcriptDao.upsert(
-      buildTranscriptRow(
-        id: id,
-        targetType: tt,
-        targetId: mediaId,
-        language: language,
-        source: source,
-        timelineJson: json,
-        label: label ?? p.basenameWithoutExtension(file.name),
-        createdAt: now,
-      ),
+    await _upsertTranscriptTrack(
+      id: id,
+      targetType: tt,
+      targetId: mediaId,
+      language: language,
+      source: source,
+      lines: lines,
+      label: label ?? p.basenameWithoutExtension(file.name),
+      createdAt: now,
     );
     await _assignPrimaryTranscriptIfAbsent(_db, tt, mediaId, id);
   }

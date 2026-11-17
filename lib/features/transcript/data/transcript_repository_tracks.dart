@@ -5,6 +5,53 @@ part of 'transcript_repository.dart';
 /// selection, in-place timeline replacement, and AI (ASR) generated track
 /// upserts.
 extension _TranscriptRepositoryTracks on TranscriptRepository {
+  /// Writes one transcript track row and drops its decoded-timeline memo.
+  ///
+  /// The single home for track writes: encodes [lines] through
+  /// [encodeTimelineJsonGated], builds the row through [buildTranscriptRow]
+  /// and upserts it, so a new track column or a new timeline encoding rule
+  /// changes one place instead of every write site.
+  ///
+  /// The memo entry for [id] is evicted after the write. The timeline memo is
+  /// keyed on the row's `(updatedAt, jsonLength)` revision, so the next read
+  /// re-decodes the stored timeline anyway; the eviction keeps that guarantee
+  /// independent of the revision key.
+  Future<void> _upsertTranscriptTrack({
+    required String id,
+    required String targetType,
+    required String targetId,
+    required String language,
+    required String source,
+    required List<TranscriptLine> lines,
+    required DateTime createdAt,
+    DateTime? updatedAt,
+    String label = '',
+    String? referenceId,
+    int? trackIndex,
+    String syncStatus = 'local',
+    DateTime? serverUpdatedAt,
+  }) async {
+    final timelineJson = await encodeTimelineJsonGated(lines);
+    await _db.transcriptDao.upsert(
+      buildTranscriptRow(
+        id: id,
+        targetType: targetType,
+        targetId: targetId,
+        language: language,
+        source: source,
+        timelineJson: timelineJson,
+        referenceId: referenceId,
+        label: label,
+        trackIndex: trackIndex,
+        syncStatus: syncStatus,
+        serverUpdatedAt: serverUpdatedAt,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      ),
+    );
+    _linesCache.remove(id);
+  }
+
   Future<String?> _upsertAsrGeneratedTrack({
     required String mediaId,
     required String language,
@@ -30,22 +77,17 @@ extension _TranscriptRepositoryTracks on TranscriptRepository {
         : (existing?.label.isNotEmpty == true
               ? existing!.label
               : 'Generated ($language)');
-    final timelineJson = await encodeTimelineJsonGated(lines);
-
-    await _db.transcriptDao.upsert(
-      buildTranscriptRow(
-        id: id,
-        targetType: tt,
-        targetId: mediaId,
-        language: language,
-        source: source,
-        timelineJson: timelineJson,
-        label: resolvedLabel,
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
-      ),
+    await _upsertTranscriptTrack(
+      id: id,
+      targetType: tt,
+      targetId: mediaId,
+      language: language,
+      source: source,
+      lines: lines,
+      label: resolvedLabel,
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
     );
-    _linesCache.remove(id);
 
     if (activateAsPrimary) {
       await setActiveTranscript(mediaId, id);

@@ -139,19 +139,15 @@ extension _TranscriptRepositoryYoutubeFetch on TranscriptRepository {
         language: trackResult.language,
         source: source,
       );
-      final timelineJson = await encodeTimelineJsonGated(trackResult.subtitles);
-
-      await _db.transcriptDao.upsert(
-        buildTranscriptRow(
-          id: id,
-          targetType: 'Video',
-          targetId: mediaId,
-          language: trackResult.language,
-          source: source,
-          timelineJson: timelineJson,
-          label: 'YouTube captions (${trackResult.language})',
-          createdAt: now,
-        ),
+      await _upsertTranscriptTrack(
+        id: id,
+        targetType: 'Video',
+        targetId: mediaId,
+        language: trackResult.language,
+        source: source,
+        lines: trackResult.subtitles,
+        label: 'YouTube captions (${trackResult.language})',
+        createdAt: now,
       );
       storedCount++;
 
