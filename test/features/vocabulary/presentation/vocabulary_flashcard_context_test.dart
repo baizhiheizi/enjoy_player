@@ -8,6 +8,7 @@ import 'package:enjoy_player/features/vocabulary/application/vocabulary_source_t
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard_state.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_text_style.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -75,16 +76,16 @@ VocabularyFlashcard _card({
     item: item ?? _item(),
     primaryContext: primaryContext ?? _context(),
     flipped: flipped,
-    dictionaryFetchInFlight: false,
-    contextualFetchInFlight: false,
-    clipPlayInFlight: false,
-    onFlip: () {},
-    onUnflip: onUnflip ?? () {},
-    onFetchDictionary: () {},
-    onFetchContextual: () {},
-    onPlayClip: () {},
-    onOpenInPlayer: () {},
-    onShadowReading: () {},
+    fetchState: const FlashcardFetchState(),
+    actions: FlashcardActions(
+      onFlip: () {},
+      onUnflip: onUnflip ?? () {},
+      onFetchDictionary: () {},
+      onFetchContextual: () {},
+      onPlayClip: () {},
+      onOpenInPlayer: () {},
+      onShadowReading: () {},
+    ),
   );
 }
 

@@ -23,24 +23,21 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
       source: source,
     );
 
-    final timelineJson = await encodeTimelineJsonGated(lines);
     final updated = DateTime.now();
 
-    await _db.transcriptDao.upsert(
-      buildTranscriptRow(
-        id: id,
-        targetType: 'Video',
-        targetId: mediaId,
-        language: language,
-        source: source,
-        timelineJson: timelineJson,
-        referenceId: response['rawUrl'] as String?,
-        label: 'YouTube captions ($language)',
-        syncStatus: 'synced',
-        serverUpdatedAt: updated,
-        createdAt: fallbackNow,
-        updatedAt: updated,
-      ),
+    await _upsertTranscriptTrack(
+      id: id,
+      targetType: 'Video',
+      targetId: mediaId,
+      language: language,
+      source: source,
+      lines: lines,
+      referenceId: response['rawUrl'] as String?,
+      label: 'YouTube captions ($language)',
+      syncStatus: 'synced',
+      serverUpdatedAt: updated,
+      createdAt: fallbackNow,
+      updatedAt: updated,
     );
     return true;
   }

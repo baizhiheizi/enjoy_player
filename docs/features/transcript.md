@@ -229,6 +229,18 @@ Interface notes:
   through `encodeTimelineJsonGated` (16 KB estimate threshold), which keeps
   small timelines inline and encodes large ones in a background isolate
   (issue #810 D4).
+- Track writes have one home: `_upsertTranscriptTrack` (in
+  [`transcript_repository_tracks.dart`](../../lib/features/transcript/data/transcript_repository_tracks.dart))
+  encodes the lines, builds the row through `buildTranscriptRow`, upserts it
+  and drops that row's decoded memo. The five write sites (ASR generation,
+  subtitle import, auto-translate skeleton, YouTube direct fetch, YouTube
+  worker cache) pass their divergent fields and keep their own id derivation
+  (`enjoyTranscriptId` vs. the auto-translate pair id), label rule and
+  post-write policy (primary assignment, worker upload). Read-your-writes
+  holds on every path — the memo key is the row's `(updatedAt, jsonLength)`
+  revision, which the DAO's same-second nudge changes on every write, and
+  the helper's explicit eviction keeps that guarantee independent of the
+  revision key.
 
 ### Caption fetcher shape
 

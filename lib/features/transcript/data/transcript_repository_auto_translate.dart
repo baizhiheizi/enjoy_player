@@ -35,26 +35,22 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
 
     _pendingAutoTranslateLines.remove(id);
     final skeleton = buildAutoTranslateSkeleton(primaryLines);
-    final json = await encodeTimelineJsonGated(skeleton);
     final now = DateTime.now();
 
-    await _db.transcriptDao.upsert(
-      buildTranscriptRow(
-        id: id,
-        targetType: tt,
-        targetId: mediaId,
-        language: targetLanguage,
-        source: 'ai',
-        timelineJson: json,
-        referenceId: primaryTranscriptId,
-        label: existing?.label.isNotEmpty == true
-            ? existing!.label
-            : 'Auto translate ($targetLanguage)',
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
-      ),
+    await _upsertTranscriptTrack(
+      id: id,
+      targetType: tt,
+      targetId: mediaId,
+      language: targetLanguage,
+      source: 'ai',
+      lines: skeleton,
+      referenceId: primaryTranscriptId,
+      label: existing?.label.isNotEmpty == true
+          ? existing!.label
+          : 'Auto translate ($targetLanguage)',
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
     );
-    _linesCache.remove(id);
     return id;
   }
 

@@ -25,9 +25,8 @@ import 'package:enjoy_player/features/lookup/application/lookup_section_provider
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
 import 'package:enjoy_player/features/lookup/presentation/lookup_section_error_widget.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_ai_section_card.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_auth_gate.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_shimmer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -51,18 +50,16 @@ class ContextualTranslationLookupSection extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
     final mdStyle = buildLookupMarkdownStyleSheet(context, t);
 
-    return LookupExpansionCard(
+    return LookupSectionShell(
       title: l10n.lookupSectionContextualTranslation,
       initiallyExpanded: false,
       leading: const Icon(EnjoyIcons.article),
-      bodyBuilder: (ctx) => LookupSectionAuthGate(
-        surface: AuthRequiredSurface.lookupContextual,
-        child: _ContextualFetchBody(
-          params: params,
-          theme: theme,
-          mdStyle: mdStyle,
-          l10n: l10n,
-        ),
+      surface: AuthRequiredSurface.lookupContextual,
+      bodyBuilder: (_) => _ContextualFetchBody(
+        params: params,
+        theme: theme,
+        mdStyle: mdStyle,
+        l10n: l10n,
       ),
     );
   }

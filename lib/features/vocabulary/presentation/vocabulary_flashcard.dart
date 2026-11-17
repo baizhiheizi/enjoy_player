@@ -17,6 +17,7 @@ import 'package:enjoy_player/features/pronounce/domain/pronounce_target.dart';
 import 'package:enjoy_player/features/pronounce/presentation/pronounce_icon_button.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard_state.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_text_style.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_flashcard_context_tab.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_flashcard_dictionary_tab.dart';
@@ -28,47 +29,17 @@ class VocabularyFlashcard extends ConsumerWidget {
     required this.item,
     required this.primaryContext,
     required this.flipped,
-    required this.dictionaryFetchInFlight,
-    required this.contextualFetchInFlight,
-    required this.clipPlayInFlight,
-    this.dictionaryError,
-    this.contextualError,
-    this.mediaError,
-    required this.onFlip,
-    required this.onUnflip,
-    required this.onFetchDictionary,
-    required this.onFetchContextual,
-    required this.onPlayClip,
-    required this.onOpenInPlayer,
-    required this.onShadowReading,
-    this.contextsCount = 0,
-    this.activeContextIndex = 0,
-    this.onPreviousContext,
-    this.onNextContext,
-    this.actionsEnabled = true,
+    required this.actions,
+    required this.fetchState,
+    this.contextState = const FlashcardContextState(),
   });
 
   final VocabularyItem item;
   final VocabularyContext? primaryContext;
   final bool flipped;
-  final bool dictionaryFetchInFlight;
-  final bool contextualFetchInFlight;
-  final bool clipPlayInFlight;
-  final String? dictionaryError;
-  final String? contextualError;
-  final String? mediaError;
-  final VoidCallback onFlip;
-  final VoidCallback onUnflip;
-  final VoidCallback onFetchDictionary;
-  final VoidCallback onFetchContextual;
-  final VoidCallback onPlayClip;
-  final VoidCallback onOpenInPlayer;
-  final VoidCallback onShadowReading;
-  final int contextsCount;
-  final int activeContextIndex;
-  final VoidCallback? onPreviousContext;
-  final VoidCallback? onNextContext;
-  final bool actionsEnabled;
+  final FlashcardActions actions;
+  final FlashcardFetchState fetchState;
+  final FlashcardContextState contextState;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,26 +71,10 @@ class VocabularyFlashcard extends ConsumerWidget {
                 item: item,
                 primaryContext: primaryContext,
                 localeTag: localeTag,
-                dictionaryFetchInFlight: dictionaryFetchInFlight,
-                contextualFetchInFlight: contextualFetchInFlight,
-                clipPlayInFlight: clipPlayInFlight,
-                dictionaryError: dictionaryError,
-                contextualError: contextualError,
-                mediaError: mediaError,
-                onUnflip: () {
-                  stopPronounce();
-                  onUnflip();
-                },
-                onFetchDictionary: onFetchDictionary,
-                onFetchContextual: onFetchContextual,
-                onPlayClip: onPlayClip,
-                onOpenInPlayer: onOpenInPlayer,
-                onShadowReading: onShadowReading,
-                contextsCount: contextsCount,
-                activeContextIndex: activeContextIndex,
-                onPreviousContext: onPreviousContext,
-                onNextContext: onNextContext,
-                actionsEnabled: actionsEnabled,
+                actions: actions,
+                fetchState: fetchState,
+                contextState: contextState,
+                stopPronounce: stopPronounce,
               ),
             )
           : KeyedSubtree(
@@ -129,10 +84,10 @@ class VocabularyFlashcard extends ConsumerWidget {
                 localeTag: localeTag,
                 explanation: item.explanation,
                 contextText: primaryContext?.text,
-                onFlip: actionsEnabled
+                onFlip: actions.enabled
                     ? () {
                         stopPronounce();
-                        onFlip();
+                        actions.onFlip();
                       }
                     : () {},
               ),
@@ -280,45 +235,19 @@ class _FlashcardBack extends StatelessWidget {
     required this.item,
     required this.primaryContext,
     required this.localeTag,
-    required this.dictionaryFetchInFlight,
-    required this.contextualFetchInFlight,
-    required this.clipPlayInFlight,
-    this.dictionaryError,
-    this.contextualError,
-    this.mediaError,
-    required this.onUnflip,
-    required this.onFetchDictionary,
-    required this.onFetchContextual,
-    required this.onPlayClip,
-    required this.onOpenInPlayer,
-    required this.onShadowReading,
-    required this.contextsCount,
-    required this.activeContextIndex,
-    this.onPreviousContext,
-    this.onNextContext,
-    required this.actionsEnabled,
+    required this.actions,
+    required this.fetchState,
+    required this.contextState,
+    required this.stopPronounce,
   });
 
   final VocabularyItem item;
   final VocabularyContext? primaryContext;
   final String localeTag;
-  final bool dictionaryFetchInFlight;
-  final bool contextualFetchInFlight;
-  final bool clipPlayInFlight;
-  final String? dictionaryError;
-  final String? contextualError;
-  final String? mediaError;
-  final VoidCallback onUnflip;
-  final VoidCallback onFetchDictionary;
-  final VoidCallback onFetchContextual;
-  final VoidCallback onPlayClip;
-  final VoidCallback onOpenInPlayer;
-  final VoidCallback onShadowReading;
-  final int contextsCount;
-  final int activeContextIndex;
-  final VoidCallback? onPreviousContext;
-  final VoidCallback? onNextContext;
-  final bool actionsEnabled;
+  final FlashcardActions actions;
+  final FlashcardFetchState fetchState;
+  final FlashcardContextState contextState;
+  final VoidCallback stopPronounce;
 
   @override
   Widget build(BuildContext context) {
@@ -331,7 +260,12 @@ class _FlashcardBack extends StatelessWidget {
       child: EnjoyCard(
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onTap: actionsEnabled ? onUnflip : null,
+          onTap: actions.enabled
+              ? () {
+                  stopPronounce();
+                  actions.onUnflip();
+                }
+              : null,
           child: DefaultTabController(
             length: 2,
             child: Column(
@@ -424,28 +358,18 @@ class _FlashcardBack extends StatelessWidget {
                           child: FlashcardContextTab(
                             word: item.word,
                             primaryContext: primaryContext,
-                            contextualFetchInFlight: contextualFetchInFlight,
-                            clipPlayInFlight: clipPlayInFlight,
-                            contextualError: contextualError,
-                            mediaError: mediaError,
-                            onFetchContextual: onFetchContextual,
-                            onPlayClip: onPlayClip,
-                            onOpenInPlayer: onOpenInPlayer,
-                            onShadowReading: onShadowReading,
-                            contextsCount: contextsCount,
-                            activeContextIndex: activeContextIndex,
-                            onPreviousContext: onPreviousContext,
-                            onNextContext: onNextContext,
-                            actionsEnabled: actionsEnabled,
+                            actions: actions,
+                            fetchState: fetchState,
+                            contextState: contextState,
                           ),
                         ),
                         _TabBody(
                           child: FlashcardDictionaryTab(
                             key: ValueKey('dict-${item.id}'),
                             explanation: item.explanation,
-                            fetchInFlight: dictionaryFetchInFlight,
-                            error: dictionaryError,
-                            onFetch: onFetchDictionary,
+                            fetchInFlight: fetchState.dictionaryFetchInFlight,
+                            error: fetchState.dictionaryError,
+                            onFetch: actions.onFetchDictionary,
                           ),
                         ),
                       ],

@@ -11,6 +11,7 @@ import 'package:enjoy_player/features/pronounce/presentation/pronounce_icon_butt
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_source_title.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class _AuthSignedInCtrl extends AuthCtrl {
@@ -59,6 +60,16 @@ VocabularyContext _context() => VocabularyContext(
   updatedAt: DateTime.utc(2020),
 );
 
+FlashcardActions _actions({VoidCallback? onUnflip}) => FlashcardActions(
+  onFlip: () {},
+  onUnflip: onUnflip ?? () {},
+  onFetchDictionary: () {},
+  onFetchContextual: () {},
+  onPlayClip: () {},
+  onOpenInPlayer: () {},
+  onShadowReading: () {},
+);
+
 void main() {
   late _TrackingPlaybackController playback;
 
@@ -88,16 +99,8 @@ void main() {
           item: _item(),
           primaryContext: _context(),
           flipped: false,
-          dictionaryFetchInFlight: false,
-          contextualFetchInFlight: false,
-          clipPlayInFlight: false,
-          onFlip: () {},
-          onUnflip: () {},
-          onFetchDictionary: () {},
-          onFetchContextual: () {},
-          onPlayClip: () {},
-          onOpenInPlayer: () {},
-          onShadowReading: () {},
+          fetchState: const FlashcardFetchState(),
+          actions: _actions(),
         ),
       ),
     );
@@ -115,16 +118,8 @@ void main() {
           item: _item(),
           primaryContext: _context(),
           flipped: true,
-          dictionaryFetchInFlight: false,
-          contextualFetchInFlight: false,
-          clipPlayInFlight: false,
-          onFlip: () {},
-          onUnflip: () => unflipped = true,
-          onFetchDictionary: () {},
-          onFetchContextual: () {},
-          onPlayClip: () {},
-          onOpenInPlayer: () {},
-          onShadowReading: () {},
+          fetchState: const FlashcardFetchState(),
+          actions: _actions(onUnflip: () => unflipped = true),
         ),
       ),
     );

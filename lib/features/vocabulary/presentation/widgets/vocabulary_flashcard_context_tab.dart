@@ -15,6 +15,7 @@ import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_m
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_source_title.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard_state.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_text_style.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/flashcard_soft_error.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_context_pager.dart';
@@ -25,36 +26,16 @@ class FlashcardContextTab extends ConsumerWidget {
     super.key,
     required this.word,
     required this.primaryContext,
-    required this.contextualFetchInFlight,
-    required this.clipPlayInFlight,
-    required this.contextualError,
-    required this.mediaError,
-    required this.onFetchContextual,
-    required this.onPlayClip,
-    required this.onOpenInPlayer,
-    required this.onShadowReading,
-    required this.contextsCount,
-    required this.activeContextIndex,
-    this.onPreviousContext,
-    this.onNextContext,
-    required this.actionsEnabled,
+    required this.actions,
+    required this.fetchState,
+    required this.contextState,
   });
 
   final String word;
   final VocabularyContext? primaryContext;
-  final bool contextualFetchInFlight;
-  final bool clipPlayInFlight;
-  final String? contextualError;
-  final String? mediaError;
-  final VoidCallback onFetchContextual;
-  final VoidCallback onPlayClip;
-  final VoidCallback onOpenInPlayer;
-  final VoidCallback onShadowReading;
-  final int contextsCount;
-  final int activeContextIndex;
-  final VoidCallback? onPreviousContext;
-  final VoidCallback? onNextContext;
-  final bool actionsEnabled;
+  final FlashcardActions actions;
+  final FlashcardFetchState fetchState;
+  final FlashcardContextState contextState;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -112,13 +93,13 @@ class FlashcardContextTab extends ConsumerWidget {
             ),
           ),
         ),
-        if (contextsCount > 1) ...[
+        if (contextState.hasMultiple) ...[
           SizedBox(height: t.space16),
           VocabularyContextPager(
-            index: activeContextIndex,
-            total: contextsCount,
-            onPrevious: actionsEnabled ? onPreviousContext : null,
-            onNext: actionsEnabled ? onNextContext : null,
+            index: contextState.index,
+            total: contextState.count,
+            onPrevious: actions.enabled ? actions.onPreviousContext : null,
+            onNext: actions.enabled ? actions.onNextContext : null,
           ),
         ],
         SizedBox(height: t.space16),
@@ -153,30 +134,30 @@ class FlashcardContextTab extends ConsumerWidget {
             children: [
               EnjoyTappableIcon(
                 icon: EnjoyIcons.play,
-                tooltip: clipPlayInFlight
+                tooltip: fetchState.clipPlayInFlight
                     ? l10n.vocabularyFetching
                     : l10n.vocabularyPlaySegment,
-                semanticLabel: clipPlayInFlight
+                semanticLabel: fetchState.clipPlayInFlight
                     ? l10n.vocabularyFetching
                     : l10n.vocabularyPlaySegment,
                 color: cs.primary,
-                onPressed: (!actionsEnabled || clipPlayInFlight)
+                onPressed: (!actions.enabled || fetchState.clipPlayInFlight)
                     ? null
-                    : onPlayClip,
+                    : actions.onPlayClip,
               ),
               EnjoyTappableIcon(
                 icon: EnjoyIcons.openExternal,
                 tooltip: l10n.vocabularyOpenInPlayer,
                 semanticLabel: l10n.vocabularyOpenInPlayer,
                 color: cs.primary,
-                onPressed: actionsEnabled ? onOpenInPlayer : null,
+                onPressed: actions.enabled ? actions.onOpenInPlayer : null,
               ),
               EnjoyTappableIcon(
                 icon: EnjoyIcons.speak,
                 tooltip: l10n.vocabularyEchoReading,
                 semanticLabel: l10n.vocabularyEchoReading,
                 color: cs.primary,
-                onPressed: actionsEnabled ? onShadowReading : null,
+                onPressed: actions.enabled ? actions.onShadowReading : null,
               ),
             ],
           ),
@@ -187,7 +168,7 @@ class FlashcardContextTab extends ConsumerWidget {
             style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
-        if (mediaError != null) ...[
+        if (fetchState.mediaError != null) ...[
           SizedBox(height: t.space8),
           FlashcardSoftError(message: l10n.vocabularyMediaPlayFailed),
         ],
@@ -201,7 +182,7 @@ class FlashcardContextTab extends ConsumerWidget {
             surface: AuthRequiredSurface.lookupContextual,
             compact: true,
           )
-        else if (contextualFetchInFlight)
+        else if (fetchState.contextualFetchInFlight)
           Padding(
             padding: EdgeInsets.symmetric(vertical: t.space8),
             child: Row(
@@ -223,16 +204,16 @@ class FlashcardContextTab extends ConsumerWidget {
             ),
           )
         else ...[
-          if (contextualError != null)
+          if (fetchState.contextualError != null)
             Padding(
               padding: EdgeInsets.only(bottom: t.space8),
               child: FlashcardSoftError(
-                message: contextualError == 'credits'
+                message: fetchState.contextualError == 'credits'
                     ? l10n.subscriptionCreditsLimitMessageWithPackages
                     : l10n.vocabularyAiFetchFailed,
               ),
             ),
-          if (contextualError == 'credits')
+          if (fetchState.contextualError == 'credits')
             Padding(
               padding: EdgeInsets.only(bottom: t.space8),
               child: Align(
@@ -246,7 +227,7 @@ class FlashcardContextTab extends ConsumerWidget {
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: EnjoyButton.secondary(
-              onPressed: onFetchContextual,
+              onPressed: actions.onFetchContextual,
               child: Text(l10n.vocabularyFetchContextual),
             ),
           ),
