@@ -1,7 +1,6 @@
 library;
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,12 +14,9 @@ import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_ca
 import 'package:enjoy_player/features/lookup/application/lookup_credits_exhausted_provider.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
-import 'package:enjoy_player/features/lookup/presentation/lookup_credits_reporting.dart';
-import 'package:enjoy_player/features/lookup/presentation/lookup_section_error_widget.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
+import 'package:enjoy_player/features/lookup/presentation/lookup_section_refresh.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_ai_section_card.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_auth_gate.dart';
-import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_shimmer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class DictionaryLookupSection extends ConsumerWidget {
@@ -37,59 +33,32 @@ class DictionaryLookupSection extends ConsumerWidget {
       targetLanguage: request.targetLanguage,
     );
 
-    return LookupExpansionCard(
+    void forceRefresh() {
+      forceRefreshLookupSection<DictionaryResult>(
+        ref: ref,
+        cache: ref.read(aiDictionaryCacheProvider),
+        kind: AiKind.dictionary,
+        key: lookupDictionaryCacheKey(params),
+        invalidateProvider: () =>
+            ref.invalidate(lookupSheetDictionaryProvider(params)),
+      );
+    }
+
+    return LookupAiSectionCard<DictionaryResult>(
       title: l10n.lookupSectionDictionary,
       initiallyExpanded: false,
       leading: const Icon(EnjoyIcons.book),
-      bodyBuilder: (_) => LookupSectionAuthGate(
-        surface: AuthRequiredSurface.lookupDictionary,
-        child: Builder(
-          builder: (_) {
-            void forceRefresh() {
-              unawaited(
-                ref
-                    .read(aiDictionaryCacheProvider)
-                    .invalidate(
-                      kind: AiKind.dictionary,
-                      key: lookupDictionaryCacheKey(params),
-                    ),
-              );
-              ref.invalidate(lookupSheetDictionaryProvider(params));
-            }
-
-            final async = ref.watch(lookupSheetDictionaryProvider(params));
-            return async.when(
-              skipLoadingOnReload: true,
-              data: (DictionaryResult d) {
-                scheduleLookupCreditsClear(
-                  context,
-                  ref,
-                  LookupSectionId.dictionary,
-                  resultToken: d,
-                );
-                return _DictionaryBody(
-                  d: d,
-                  l10n: l10n,
-                  refreshControl: LookupRefreshIconButton(
-                    l10n: l10n,
-                    isRetrying: async.isRefreshing,
-                    onRetry: forceRefresh,
-                  ),
-                );
-              },
-              loading: () => const LookupSectionShimmer(),
-              error: (Object e, StackTrace st) => lookupSectionErrorWidget(
-                context: context,
-                ref: ref,
-                l10n: l10n,
-                section: LookupSectionId.dictionary,
-                surface: AuthRequiredSurface.lookupDictionary,
-                error: e,
-                onRetry: forceRefresh,
-                isRetrying: async.hasError && async.isLoading,
-              ),
-            );
-          },
+      surface: AuthRequiredSurface.lookupDictionary,
+      section: LookupSectionId.dictionary,
+      provider: lookupSheetDictionaryProvider(params),
+      onRetry: forceRefresh,
+      bodyBuilder: (context, d, async) => _DictionaryBody(
+        d: d,
+        l10n: l10n,
+        refreshControl: LookupRefreshIconButton(
+          l10n: l10n,
+          isRetrying: async.isRefreshing,
+          onRetry: forceRefresh,
         ),
       ),
     );
