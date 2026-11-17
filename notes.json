@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "cursors": {
+    "labelling_after": null,
+    "investigation_after": 1391
+  },
+  "issues": [
+    {
+      "number": 1392,
+      "state": "awaiting_approval",
+      "updated_at": "2026-11-17",
+      "note": "weekly-research timeout 15->45m cannot be pushed by the agent (GitHub rejects workflow-file pushes without workflows scope). Issue body carries the bundle/manual-PR steps; maintainer must create the PR. Do not retry from the agent."
+    },
+    {
+      "number": 1314,
+      "state": "awaiting_approval",
+      "updated_at": "2026-11-17",
+      "note": "Refreshed and pushed 2026-11-17: branch carries main through bfd17ce2, the [0.10.4] window records every PR since v0.10.3 (21 previously unrecorded PRs added), release notes rewritten. Gates green. The 2026-11-13 workflows-scope push guard did NOT recur this time. Maintainer: merge, then tag."
+    }
+  ],
+  "fixes": [],
+  "checks": [
+    {
+      "area": "tests",
+      "checked_at": "2026-11-17",
+      "result": "No actionable gap: #1402/#1387/#1393 each landed their own suites; CI enforces a 73.4% union-merged coverage baseline. Full local suite 7386 passed / 45 skipped.",
+      "follow_up": null
+    },
+    {
+      "area": "ci",
+      "checked_at": "2026-11-17",
+      "result": "At capacity: #1336/#1340 sharded the suite, #1317 hardened hooks, #1365/#1373 landed. No Dependabot PRs open. #1392 is the one open eng item, maintainer-blocked.",
+      "follow_up": null
+    },
+    {
+      "area": "release",
+      "checked_at": "2026-11-17",
+      "result": "Changelog completeness audit: 21 PRs since v0.10.3 lacked their own entries on both sides; all recorded on #1314 except #1337/#1365 (deliberately minor). Release notes at docs/releases/0.10.4.md extended; section date provisional until publish.",
+      "follow_up": null
+    }
+  ],
+  "completed_actions": [],
+  "priorities": [
+    {
+      "task": 10,
+      "item": "await #1314 merge + tag",
+      "note": "Branch refreshed and pushed; PR comment posted with test status. Next release-related action belongs to the maintainer. If more fixes land before tagging, extend the [0.10.4] window per the #1221 precedent."
+    }
+  ]
+}
