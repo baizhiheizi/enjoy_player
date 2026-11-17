@@ -5,7 +5,8 @@ import 'package:enjoy_player/features/ai/domain/models/asr_long_form_phase.dart'
 /// Request for worker `POST /audio/transcriptions` (OpenAI-compatible).
 final class AsrRequest {
   const AsrRequest({
-    required this.audioBytes,
+    this.audioBytes,
+    this.audioPath,
     required this.filename,
     this.mimeType,
     this.model,
@@ -22,7 +23,8 @@ final class AsrRequest {
     this.shouldCancel,
   });
 
-  final Uint8List audioBytes;
+  final Uint8List? audioBytes;
+  final String? audioPath;
   final String filename;
   final String? mimeType;
   final String? model;

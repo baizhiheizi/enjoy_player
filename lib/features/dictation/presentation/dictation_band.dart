@@ -18,6 +18,8 @@ class DictationBand extends StatefulWidget {
     required this.regionDurationMs,
     required this.currentPlaybackMs,
     required this.diffResult,
+    this.prebuiltWords,
+    this.activeIndexOverride,
     this.textStyle,
   });
 
@@ -27,6 +29,8 @@ class DictationBand extends StatefulWidget {
   final int regionDurationMs;
   final int currentPlaybackMs;
   final DictationDiffResult? diffResult;
+  final List<DictationBandWord>? prebuiltWords;
+  final int? activeIndexOverride;
   final TextStyle? textStyle;
 
   @override
@@ -35,6 +39,43 @@ class DictationBand extends StatefulWidget {
 
 class _DictationBandState extends State<DictationBand> {
   Timer? _peekTimer;
+  List<DictationBandWord>? _cachedBandWords;
+
+  void _syncBandWords() {
+    if (widget.diffResult != null || widget.prebuiltWords != null) {
+      _cachedBandWords = widget.prebuiltWords;
+      return;
+    }
+    _cachedBandWords = buildDictationBandWords(
+      lines: widget.lines,
+      fallbackReferenceText: widget.fallbackReferenceText,
+      regionStartMs: widget.regionStartMs,
+      regionDurationMs: widget.regionDurationMs,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _syncBandWords();
+  }
+
+  @override
+  void didUpdateWidget(covariant DictationBand oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.prebuiltWords != null) {
+      _cachedBandWords = widget.prebuiltWords;
+    } else if (widget.diffResult != null) {
+      _cachedBandWords = null;
+    } else if (_cachedBandWords == null ||
+        oldWidget.diffResult != null ||
+        !identical(oldWidget.lines, widget.lines) ||
+        oldWidget.fallbackReferenceText != widget.fallbackReferenceText ||
+        oldWidget.regionStartMs != widget.regionStartMs ||
+        oldWidget.regionDurationMs != widget.regionDurationMs) {
+      _syncBandWords();
+    }
+  }
 
   @override
   void dispose() {
@@ -60,16 +101,20 @@ class _DictationBandState extends State<DictationBand> {
     final diff = widget.diffResult;
 
     if (diff == null) {
-      final bandWords = buildDictationBandWords(
-        lines: widget.lines,
-        fallbackReferenceText: widget.fallbackReferenceText,
-        regionStartMs: widget.regionStartMs,
-        regionDurationMs: widget.regionDurationMs,
-      );
-      final activeIndex = findActiveDictationWordIndex(
-        words: bandWords,
-        currentPlaybackMs: widget.currentPlaybackMs,
-      );
+      final bandWords =
+          widget.prebuiltWords ??
+          (_cachedBandWords ??= buildDictationBandWords(
+            lines: widget.lines,
+            fallbackReferenceText: widget.fallbackReferenceText,
+            regionStartMs: widget.regionStartMs,
+            regionDurationMs: widget.regionDurationMs,
+          ));
+      final activeIndex =
+          widget.activeIndexOverride ??
+          findActiveDictationWordIndex(
+            words: bandWords,
+            currentPlaybackMs: widget.currentPlaybackMs,
+          );
 
       if (_peekTimer != null) {
         final peekStyle =

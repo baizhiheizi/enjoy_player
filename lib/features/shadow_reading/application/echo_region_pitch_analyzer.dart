@@ -122,8 +122,11 @@ EchoRegionAnalysisResult analyzePcmSamples(
   double sampleRate,
 ) {
   final env = computePeakEnvelope(samples, sampleRate, points: 520);
-  final yin = estimatePitchYin(samples, sampleRate);
-  final hz = pitchAtEnvelopeTimes(envelope: env, yin: yin);
+  final hz = estimatePitchAtEnvelopeTimes(
+    samples: samples,
+    sampleRate: sampleRate,
+    envelope: env,
+  );
   final points = buildSeriesPoints(envelope: env, pitchHzList: hz);
   final durationSeconds = samples.length / sampleRate;
   return EchoRegionAnalysisResult(

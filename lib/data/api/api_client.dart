@@ -1,7 +1,9 @@
 /// Typed HTTP client: bearer auth, JSON, camelCase ↔ snake_case.
 library;
 
+import 'dart:async' show unawaited;
 import 'dart:convert';
+import 'dart:io' show File;
 import 'dart:isolate';
 
 import 'package:http/http.dart' as http;
@@ -161,6 +163,40 @@ class ApiClient {
     return _decodeMapResponse(response);
   }
 
+  /// Streams a file from disk via PUT without materializing its bytes in RAM.
+  Future<Map<String, dynamic>> putFileJson(
+    String path, {
+    required String filePath,
+    required String contentType,
+    bool requireAuth = true,
+  }) async {
+    final merged = await _resolveApiUrl(path);
+    final bearer = await _ensureAuthenticated(requireAuth);
+    final file = File(filePath);
+    final len = await file.length();
+
+    final request = http.StreamedRequest('PUT', merged);
+    request.contentLength = len;
+    request.headers['Accept'] = 'application/json';
+    request.headers['Content-Type'] = contentType;
+    if (bearer != null) {
+      request.headers['Authorization'] = 'Bearer $bearer';
+    }
+    unawaited(
+      file.openRead().pipe(request.sink).catchError((Object e, StackTrace st) {
+        request.sink.addError(e, st);
+        return request.sink.close();
+      }),
+    );
+
+    final response = await _sendUnbuffered(
+      request,
+      merged,
+      logLabel: ' (file len=$len)',
+    );
+    return _decodeMapResponse(response);
+  }
+
   /// PUT raw bytes to an absolute URL (e.g. Active Storage direct-upload target).
   ///
   /// Does not attach the Enjoy bearer token — storage backends use [headers]
@@ -191,7 +227,8 @@ class ApiClient {
   Future<Map<String, dynamic>> postMultipartJson(
     String path, {
     required String fileFieldName,
-    required List<int> fileBytes,
+    List<int>? fileBytes,
+    String? filePath,
     String? fileFilename,
     Map<String, String> fields = const {},
     bool requireAuth = true,
@@ -205,13 +242,23 @@ class ApiClient {
     if (bearer != null) {
       request.headers['Authorization'] = 'Bearer $bearer';
     }
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        fileFieldName,
-        fileBytes,
-        filename: fileFilename,
-      ),
-    );
+    if (filePath != null && filePath.isNotEmpty) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          fileFieldName,
+          filePath,
+          filename: fileFilename,
+        ),
+      );
+    } else {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          fileFieldName,
+          fileBytes ?? const [],
+          filename: fileFilename,
+        ),
+      );
+    }
     for (final e in fields.entries) {
       request.fields[e.key] = e.value;
     }

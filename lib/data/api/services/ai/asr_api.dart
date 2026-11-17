@@ -11,7 +11,8 @@ class AsrApi extends RestApi {
 
   /// Short-clip Whisper path (`multipart/form-data`).
   Future<Map<String, dynamic>> transcribe({
-    required List<int> audioBytes,
+    List<int>? audioBytes,
+    String? audioPath,
     required String filename,
     String? model,
     String? language,
@@ -30,6 +31,7 @@ class AsrApi extends RestApi {
       _path,
       fileFieldName: 'file',
       fileBytes: audioBytes,
+      filePath: audioPath,
       fileFilename: filename,
       fields: fields,
     );

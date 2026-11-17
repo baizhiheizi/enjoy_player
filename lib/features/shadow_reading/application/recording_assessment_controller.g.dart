@@ -25,7 +25,7 @@ final class RecordingAssessmentControllerProvider
   }) : super(
          retry: null,
          name: r'recordingAssessmentControllerProvider',
-         isAutoDispose: false,
+         isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -65,7 +65,7 @@ final class RecordingAssessmentControllerProvider
 }
 
 String _$recordingAssessmentControllerHash() =>
-    r'4bbf65398bb6e1132a604fb18b76cfc9a3b116d9';
+    r'dba9b7673e4166cd22da10d5744954a8de82ef2d';
 
 final class RecordingAssessmentControllerFamily extends $Family
     with
@@ -82,7 +82,7 @@ final class RecordingAssessmentControllerFamily extends $Family
         name: r'recordingAssessmentControllerProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: false,
+        isAutoDispose: true,
       );
 
   RecordingAssessmentControllerProvider call(String recordingId) =>

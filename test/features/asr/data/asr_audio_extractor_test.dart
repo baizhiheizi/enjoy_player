@@ -149,4 +149,27 @@ void main() {
       );
     });
   });
+
+  group('AsrAudioExtractor.extractAudioFile', () {
+    test(
+      'audio source returns existing file path without deleteAfterUse',
+      () async {
+        final tmp = Directory.systemTemp.createTempSync('asr_test_file_');
+        final file = File('${tmp.path}/clip.m4a')
+          ..writeAsBytesSync([9, 8, 7, 6]);
+        addTearDown(() => tmp.delete(recursive: true));
+
+        final extracted = await const AsrAudioExtractor().extractAudioFile(
+          mediaSourceUri: file.path,
+          kind: MediaKind.audio,
+        );
+
+        expect(extracted.filePath, file.path);
+        expect(extracted.byteLength, 4);
+        expect(extracted.deleteAfterUse, isFalse);
+        await extracted.cleanup();
+        expect(file.existsSync(), isTrue);
+      },
+    );
+  });
 }

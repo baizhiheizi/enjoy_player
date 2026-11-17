@@ -34,6 +34,7 @@ final class ByokAsrOpenAiCapability implements AsrCapability {
       baseUrl: baseUrl,
       apiKey: apiKey,
       audioBytes: request.audioBytes,
+      audioPath: request.audioPath,
       filename: request.filename,
       model: model,
       language: request.language == null

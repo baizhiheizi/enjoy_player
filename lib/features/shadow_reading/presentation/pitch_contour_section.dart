@@ -6,6 +6,7 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -25,6 +26,7 @@ class PitchContourSection extends ConsumerStatefulWidget {
     required this.startSec,
     required this.endSec,
     this.currentTimeRelativeSec,
+    this.currentTimeRelativeSecListenable,
     this.selectedRecordingPath,
     this.selectedRecordingDurationMs,
 
@@ -43,6 +45,7 @@ class PitchContourSection extends ConsumerStatefulWidget {
   final double startSec;
   final double endSec;
   final double? currentTimeRelativeSec;
+  final ValueListenable<double?>? currentTimeRelativeSecListenable;
   final String? selectedRecordingPath;
   final int? selectedRecordingDurationMs;
 
@@ -69,12 +72,27 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
   int _userRequestGen = 0;
   PitchContourVisibility _vis = const PitchContourVisibility();
   final _mergedMemo = EchoMergedSeriesMemo();
+  final ValueNotifier<double?> _progressNotifier = ValueNotifier<double?>(null);
 
   bool get _effectiveExpanded => widget.expanded ?? _expanded;
+
+  void _syncProgressFromListenable() {
+    final rel = widget.currentTimeRelativeSecListenable?.value;
+    final refDur = widget.endSec - widget.startSec;
+    if (rel == null || refDur <= 0) {
+      _progressNotifier.value = null;
+    } else {
+      _progressNotifier.value = (rel / refDur).clamp(0.0, 1.0);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    widget.currentTimeRelativeSecListenable?.addListener(
+      _syncProgressFromListenable,
+    );
+    _syncProgressFromListenable();
     if (_effectiveExpanded) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -86,6 +104,19 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
   @override
   void didUpdateWidget(covariant PitchContourSection oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentTimeRelativeSecListenable !=
+        widget.currentTimeRelativeSecListenable) {
+      oldWidget.currentTimeRelativeSecListenable?.removeListener(
+        _syncProgressFromListenable,
+      );
+      widget.currentTimeRelativeSecListenable?.addListener(
+        _syncProgressFromListenable,
+      );
+      _syncProgressFromListenable();
+    } else if (oldWidget.startSec != widget.startSec ||
+        oldWidget.endSec != widget.endSec) {
+      _syncProgressFromListenable();
+    }
     if (oldWidget.mediaPath != widget.mediaPath ||
         oldWidget.startSec != widget.startSec ||
         oldWidget.endSec != widget.endSec) {
@@ -113,7 +144,15 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     }
   }
 
-  /// Loads reference + user when section opens (mirrors expand transition).
+  @override
+  void dispose() {
+    widget.currentTimeRelativeSecListenable?.removeListener(
+      _syncProgressFromListenable,
+    );
+    _progressNotifier.dispose();
+    super.dispose();
+  }
+
   Future<void> _syncExpandLoads() async {
     if (!_effectiveExpanded) return;
     if (_reference == null) {
@@ -278,6 +317,10 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
                 userColor: userColor,
                 visibility: _vis,
                 progress: progress,
+                progressListenable:
+                    widget.currentTimeRelativeSecListenable != null
+                    ? _progressNotifier
+                    : null,
               ),
               if (_loadingUser) ...[
                 const SizedBox(height: 6),

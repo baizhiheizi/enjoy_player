@@ -16,7 +16,6 @@
 library;
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -160,7 +159,7 @@ class AsrGenerationController extends _$AsrGenerationController {
     required MediaKind kind,
   }) async {
     final startedAt = DateTime.now();
-    Uint8List? audio;
+    AsrExtractedAudio? extracted;
     final attemptStore = ref.read(asrLongFormAttemptStoreProvider);
     try {
       final mediaDurationMs = await _resolveMediaDurationMs(mediaSourceUri);
@@ -199,7 +198,7 @@ class AsrGenerationController extends _$AsrGenerationController {
         _setPhase(AsrGenerationPhase.extracting);
         final extractor = ref.read(asrAudioExtractorProvider);
         try {
-          audio = await extractor.extractAudio(
+          extracted = await extractor.extractAudioFile(
             mediaSourceUri: mediaSourceUri,
             kind: kind,
             onProgress: (p) {
@@ -213,8 +212,7 @@ class AsrGenerationController extends _$AsrGenerationController {
           return;
         }
 
-        final audioBytes = audio;
-        if (audioBytes.isEmpty) {
+        if (extracted.byteLength <= 0) {
           _setError('asrErrorGeneric');
           return;
         }
@@ -230,9 +228,8 @@ class AsrGenerationController extends _$AsrGenerationController {
         _setPhase(AsrGenerationPhase.recognizing);
       }
       final asrService = ref.read(asrServiceProvider);
-      final audioBytes = audio ?? Uint8List(0);
       final req = AsrRequest(
-        audioBytes: audioBytes,
+        audioPath: extracted?.filePath,
         filename: 'asr-${mediaId.hashCode}.wav',
         language: requestedLanguage,
         responseFormat: 'json',
@@ -380,7 +377,8 @@ class AsrGenerationController extends _$AsrGenerationController {
             ),
           );
     } finally {
-      audio = null;
+      await extracted?.cleanup();
+      extracted = null;
     }
   }
 

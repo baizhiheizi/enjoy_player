@@ -10,6 +10,8 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/dictation/application/dictation_providers.dart';
+import 'package:enjoy_player/features/dictation/domain/dictation_band_words.dart';
+import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
 import 'package:enjoy_player/features/dictation/presentation/dictation_band.dart';
 import 'package:enjoy_player/features/dictation/presentation/dictation_list.dart';
 import 'package:enjoy_player/features/dictation/presentation/dictation_panel.dart';
@@ -25,7 +27,7 @@ DictationSessionCtrlProvider echoRegionSessionCtrl(EchoRegionKey key) =>
       key.language,
     );
 
-class EchoRegionDictationBand extends ConsumerWidget {
+class EchoRegionDictationBand extends ConsumerStatefulWidget {
   const EchoRegionDictationBand({
     required this.region,
     required this.lines,
@@ -42,32 +44,84 @@ class EchoRegionDictationBand extends ConsumerWidget {
   final double loopFontSize;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tok = EnjoyThemeTokens.of(context);
-    final session = ref.watch(echoRegionSessionCtrl(region));
-    final posAsync = ref.watch(displayPositionProvider);
-    final currentPlaybackMs = switch (posAsync) {
-      AsyncData(:final value) => value.inMilliseconds,
-      _ => 0,
-    };
-    final selectedLines = [
+  ConsumerState<EchoRegionDictationBand> createState() =>
+      _EchoRegionDictationBandState();
+}
+
+class _EchoRegionDictationBandState
+    extends ConsumerState<EchoRegionDictationBand> {
+  late List<TranscriptLine> _selectedLines;
+  late List<DictationBandWord> _bandWords;
+  int _latestPlaybackMs = 0;
+
+  void _rebuildMemo() {
+    _selectedLines = [
       for (
-        var i = echoStartLineIndex;
-        i <= echoEndLineIndex && i < lines.length;
+        var i = widget.echoStartLineIndex;
+        i <= widget.echoEndLineIndex && i < widget.lines.length;
         i++
       )
-        lines[i],
+        widget.lines[i],
     ];
+    _bandWords = buildDictationBandWords(
+      lines: _selectedLines,
+      fallbackReferenceText: widget.region.referenceText,
+      regionStartMs: widget.region.startMs,
+      regionDurationMs: widget.region.durationMs,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _rebuildMemo();
+  }
+
+  @override
+  void didUpdateWidget(covariant EchoRegionDictationBand oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.region != widget.region ||
+        oldWidget.echoStartLineIndex != widget.echoStartLineIndex ||
+        oldWidget.echoEndLineIndex != widget.echoEndLineIndex ||
+        !identical(oldWidget.lines, widget.lines)) {
+      _rebuildMemo();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tok = EnjoyThemeTokens.of(context);
+    final diffResult = ref.watch(
+      echoRegionSessionCtrl(widget.region).select((s) => s.activeDiff),
+    );
+    int? activeIndex;
+    if (diffResult == null) {
+      activeIndex = ref.watch(
+        displayPositionProvider.select((posAsync) {
+          final ms = switch (posAsync) {
+            AsyncData(:final value) => value.inMilliseconds,
+            _ => 0,
+          };
+          _latestPlaybackMs = ms;
+          return findActiveDictationWordIndex(
+            words: _bandWords,
+            currentPlaybackMs: ms,
+          );
+        }),
+      );
+    }
 
     return DictationBand(
-      lines: selectedLines,
-      fallbackReferenceText: region.referenceText,
-      regionStartMs: region.startMs,
-      regionDurationMs: region.durationMs,
-      currentPlaybackMs: currentPlaybackMs,
-      diffResult: session.activeDiff,
+      lines: _selectedLines,
+      fallbackReferenceText: widget.region.referenceText,
+      regionStartMs: widget.region.startMs,
+      regionDurationMs: widget.region.durationMs,
+      currentPlaybackMs: _latestPlaybackMs,
+      diffResult: diffResult,
+      prebuiltWords: _bandWords,
+      activeIndexOverride: activeIndex,
       textStyle: TextStyle(
-        fontSize: loopFontSize,
+        fontSize: widget.loopFontSize,
         fontWeight: FontWeight.w500,
         color: tok.ink,
       ),

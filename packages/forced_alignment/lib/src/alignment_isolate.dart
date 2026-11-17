@@ -5,9 +5,11 @@ import 'dart:typed_data';
 import 'package:logging/logging.dart';
 
 import 'alignment_pipeline.dart';
+import 'cue_window.dart';
 import 'failures.dart';
 import 'request.dart';
 import 'synth/spoken_reference.dart';
+import 'types.dart';
 
 final _log = Logger('forced_alignment');
 
@@ -38,6 +40,57 @@ final class AlignIsolateJob {
   final ReferenceAudio? reference;
 }
 
+final class AlignCueSpec {
+  const AlignCueSpec({
+    required this.id,
+    required this.startTime,
+    required this.endTime,
+    required this.startSample,
+    required this.endSample,
+    required this.transcript,
+    required this.reference,
+  });
+
+  final Object? id;
+  final double startTime;
+  final double endTime;
+  final int startSample;
+  final int endSample;
+  final String transcript;
+  final ReferenceAudio? reference;
+}
+
+final class AlignSegmentsIsolateJob {
+  const AlignSegmentsIsolateJob({
+    required this.sourcePcm,
+    required this.language,
+    required this.cues,
+  });
+
+  final Float32List sourcePcm;
+  final String language;
+  final List<AlignCueSpec> cues;
+}
+
+final class AlignSegmentsIsolateResult {
+  const AlignSegmentsIsolateResult({
+    required this.timeline,
+    this.lastCueFailure,
+    this.criticalFailure,
+  });
+
+  final List<TimelineEntry> timeline;
+  final AlignmentFailureReason? lastCueFailure;
+  final AlignmentFailure? criticalFailure;
+}
+
+bool _isCriticalCueFailure(AlignmentFailureReason reason) =>
+    reason == AlignmentFailureReason.cancelled ||
+    reason == AlignmentFailureReason.timedOut ||
+    reason == AlignmentFailureReason.unsupportedLanguage ||
+    reason == AlignmentFailureReason.audioUnavailable ||
+    reason == AlignmentFailureReason.spokenReferenceUnavailable;
+
 /// DSP entry used by [Isolate.spawn]. Top-level so it is sendable.
 void _alignIsolateMain(_AlignIsolateBox box) {
   final cancelIn = ReceivePort();
@@ -66,6 +119,89 @@ void _alignIsolateMain(_AlignIsolateBox box) {
   }
 }
 
+void _alignSegmentsIsolateMain(_AlignSegmentsIsolateBox box) {
+  final cancelIn = ReceivePort();
+  var cancelled = false;
+  cancelIn.listen((_) {
+    cancelled = true;
+  });
+  box.reply.send(cancelIn.sendPort);
+  try {
+    final job = box.job;
+    final successes = <TimelineEntry>[];
+    AlignmentFailureReason? lastCueFailure;
+    for (final cue in job.cues) {
+      if (cancelled) {
+        box.reply.send(
+          const AlignSegmentsIsolateResult(
+            timeline: [],
+            criticalFailure: AlignmentFailure(
+              reason: AlignmentFailureReason.cancelled,
+            ),
+          ),
+        );
+        return;
+      }
+      final slice = Float32List.sublistView(
+        job.sourcePcm,
+        cue.startSample,
+        cue.endSample,
+      );
+      final outcome = runAlignPipeline(
+        sourcePcm: slice,
+        transcript: cue.transcript,
+        language: job.language,
+        timeOffset: cue.startTime,
+        reference: cue.reference,
+      );
+      if (outcome is AlignmentResult) {
+        for (final entry in outcome.timeline) {
+          successes.add(
+            withSegmentId(
+              clampTimelineToCueWindow(
+                entry,
+                startTime: cue.startTime,
+                endTime: cue.endTime,
+              ),
+              cue.id,
+            ),
+          );
+        }
+      } else if (outcome is AlignmentFailure) {
+        if (_isCriticalCueFailure(outcome.reason)) {
+          box.reply.send(
+            AlignSegmentsIsolateResult(
+              timeline: const [],
+              criticalFailure: outcome,
+            ),
+          );
+          return;
+        }
+        lastCueFailure = outcome.reason;
+      }
+    }
+    box.reply.send(
+      AlignSegmentsIsolateResult(
+        timeline: successes,
+        lastCueFailure: lastCueFailure,
+      ),
+    );
+  } catch (e, st) {
+    _log.warning('alignment segments isolate failed', e, st);
+    box.reply.send(
+      AlignSegmentsIsolateResult(
+        timeline: const [],
+        criticalFailure: AlignmentFailure(
+          reason: AlignmentFailureReason.internal,
+          message: e.toString(),
+        ),
+      ),
+    );
+  } finally {
+    cancelIn.close();
+  }
+}
+
 final class _AlignIsolateBox {
   const _AlignIsolateBox(this.reply, this.job);
 
@@ -73,10 +209,17 @@ final class _AlignIsolateBox {
   final AlignIsolateJob job;
 }
 
-/// Runs [runAlignPipeline] off the calling isolate. Kills the worker on
-/// cancel or timeout. Does not initialize eSpeak-NG.
-Future<Object> runAlignJobInIsolate({
-  required AlignIsolateJob job,
+final class _AlignSegmentsIsolateBox {
+  const _AlignSegmentsIsolateBox(this.reply, this.job);
+
+  final SendPort reply;
+  final AlignSegmentsIsolateJob job;
+}
+
+Future<Object> _spawnWithCancel<T>({
+  required void Function(T) entry,
+  required T Function(SendPort reply) buildMessage,
+  required String debugName,
   AlignmentCancelToken? cancel,
   required Duration timeout,
 }) async {
@@ -87,9 +230,9 @@ Future<Object> runAlignJobInIsolate({
   late Isolate isolate;
   try {
     isolate = await Isolate.spawn(
-      _alignIsolateMain,
-      _AlignIsolateBox(receive.sendPort, job),
-      debugName: 'forced_alignment',
+      entry,
+      buildMessage(receive.sendPort),
+      debugName: debugName,
     );
   } catch (e, st) {
     receive.close();
@@ -135,3 +278,31 @@ Future<Object> runAlignJobInIsolate({
     receive.close();
   }
 }
+
+/// Runs [runAlignPipeline] off the calling isolate. Kills the worker on
+/// cancel or timeout. Does not initialize eSpeak-NG.
+Future<Object> runAlignJobInIsolate({
+  required AlignIsolateJob job,
+  AlignmentCancelToken? cancel,
+  required Duration timeout,
+}) => _spawnWithCancel(
+  entry: _alignIsolateMain,
+  buildMessage: (reply) => _AlignIsolateBox(reply, job),
+  debugName: 'forced_alignment',
+  cancel: cancel,
+  timeout: timeout,
+);
+
+/// Runs all cue DTW alignments for a multi-cue transcript inside one worker
+/// isolate so `sourcePcm` crosses the isolate boundary only once.
+Future<Object> runAlignSegmentsJobInIsolate({
+  required AlignSegmentsIsolateJob job,
+  AlignmentCancelToken? cancel,
+  required Duration timeout,
+}) => _spawnWithCancel(
+  entry: _alignSegmentsIsolateMain,
+  buildMessage: (reply) => _AlignSegmentsIsolateBox(reply, job),
+  debugName: 'forced_alignment_segments',
+  cancel: cancel,
+  timeout: timeout,
+);

@@ -8,7 +8,8 @@ import 'package:http/http.dart' as http;
 Future<Map<String, dynamic>> postWhisperTranscription({
   required String baseUrl,
   required String apiKey,
-  required List<int> audioBytes,
+  List<int>? audioBytes,
+  String? audioPath,
   required String filename,
   String? model,
   String? language,
@@ -24,9 +25,19 @@ Future<Map<String, dynamic>> postWhisperTranscription({
 
   final request = http.MultipartRequest('POST', uri);
   request.headers.addAll(byokBearerHeaders(apiKey: apiKey));
-  request.files.add(
-    http.MultipartFile.fromBytes('file', audioBytes, filename: filename),
-  );
+  if (audioPath != null && audioPath.isNotEmpty) {
+    request.files.add(
+      await http.MultipartFile.fromPath('file', audioPath, filename: filename),
+    );
+  } else {
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        audioBytes ?? const [],
+        filename: filename,
+      ),
+    );
+  }
 
   final fields = <String, String>{
     'response_format': responseFormat,

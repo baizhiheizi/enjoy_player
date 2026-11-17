@@ -8,7 +8,7 @@ import 'package:enjoy_player/features/shadow_reading/presentation/pitch_contour_
 /// Shadow-reading pitch tile: [PitchContourSection] with the live
 /// player-progress marker, shared by the panel's player-embed and
 /// vocabulary-embed branches so the contour is defined exactly once.
-class ShadowPitchContourTile extends ConsumerWidget {
+class ShadowPitchContourTile extends ConsumerStatefulWidget {
   const ShadowPitchContourTile({
     required this.mediaPath,
     required this.startSec,
@@ -38,31 +38,76 @@ class ShadowPitchContourTile extends ConsumerWidget {
   final double? leftInset;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final path = mediaPath;
+  ConsumerState<ShadowPitchContourTile> createState() =>
+      _ShadowPitchContourTileState();
+}
+
+class _ShadowPitchContourTileState
+    extends ConsumerState<ShadowPitchContourTile> {
+  final ValueNotifier<double?> _relativeSec = ValueNotifier<double?>(null);
+
+  double? _computeRelative(Duration pos) {
+    if (!widget.showLiveProgress || !widget.expanded) return null;
+    final posSec = pos.inMilliseconds / 1000.0;
+    return (posSec - widget.startSec).clamp(
+      0.0,
+      widget.endSec - widget.startSec,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant ShadowPitchContourTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showLiveProgress != widget.showLiveProgress ||
+        oldWidget.expanded != widget.expanded ||
+        oldWidget.startSec != widget.startSec ||
+        oldWidget.endSec != widget.endSec) {
+      if (!widget.showLiveProgress || !widget.expanded) {
+        _relativeSec.value = null;
+      } else {
+        final pos =
+            ref.read(displayPositionProvider).valueOrNull ?? Duration.zero;
+        _relativeSec.value = _computeRelative(pos);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _relativeSec.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final path = widget.mediaPath;
     if (path == null || path.isEmpty) {
       return const SizedBox.shrink();
     }
-    double? relativeSec;
-    if (showLiveProgress && expanded) {
-      final posSec =
-          (ref.watch(displayPositionProvider).valueOrNull ?? Duration.zero)
-              .inMilliseconds /
-          1000.0;
-      relativeSec = (posSec - startSec).clamp(0.0, endSec - startSec);
+    if (widget.showLiveProgress && widget.expanded) {
+      _relativeSec.value ??= _computeRelative(
+        ref.read(displayPositionProvider).valueOrNull ?? Duration.zero,
+      );
+      ref.listen<AsyncValue<Duration>>(displayPositionProvider, (_, next) {
+        _relativeSec.value = _computeRelative(
+          next.valueOrNull ?? Duration.zero,
+        );
+      });
+    } else {
+      _relativeSec.value = null;
     }
     final section = PitchContourSection(
       mediaPath: path,
-      startSec: startSec,
-      endSec: endSec,
-      currentTimeRelativeSec: relativeSec,
-      selectedRecordingPath: selectedRecordingPath,
-      selectedRecordingDurationMs: selectedRecordingDurationMs,
-      expanded: expanded,
-      onToggleExpanded: onToggleExpanded,
+      startSec: widget.startSec,
+      endSec: widget.endSec,
+      currentTimeRelativeSecListenable: _relativeSec,
+      selectedRecordingPath: widget.selectedRecordingPath,
+      selectedRecordingDurationMs: widget.selectedRecordingDurationMs,
+      expanded: widget.expanded,
+      onToggleExpanded: widget.onToggleExpanded,
       showHeader: false,
     );
-    final inset = leftInset;
+    final inset = widget.leftInset;
     if (inset == null) return section;
     return Padding(
       padding: EdgeInsets.only(left: inset),

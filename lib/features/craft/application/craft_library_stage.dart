@@ -39,7 +39,7 @@ mixin CraftLibraryMixin on CraftControllerCore {
           ? normalized.substring(0, craftMaxTextLength)
           : normalized;
 
-      final timelineJson030 = buildCraftPrimaryTimelineJson(
+      final timelineJson030 = await buildCraftPrimaryTimelineJsonGated(
         state.previewWordBoundaries,
         language: state.synthLanguage,
       );

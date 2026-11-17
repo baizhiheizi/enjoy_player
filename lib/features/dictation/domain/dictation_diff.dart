@@ -1,19 +1,38 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
+
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
+
+final RegExp _apostropheRegExp = RegExp(r"['’]");
+final RegExp _punctRegExp = RegExp(r'[.,!?;:"()[\]{}<>—–-]');
+final RegExp _whitespaceRegExp = RegExp(r'\s+');
 
 String dictationWordOf(String word) {
   return word
       .toLowerCase()
-      .replaceAll(RegExp(r"['’]"), '')
-      .replaceAll(RegExp(r'[.,!?;:"()[\]{}<>—–-]'), '');
+      .replaceAll(_apostropheRegExp, '')
+      .replaceAll(_punctRegExp, '');
 }
 
 List<String> tokenizeDictationWords(String text) {
-  return text
-      .trim()
-      .split(RegExp(r'\s+'))
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return const [];
+  return trimmed
+      .split(_whitespaceRegExp)
       .where((w) => w.isNotEmpty && dictationWordOf(w).isNotEmpty)
       .toList();
+}
+
+int countDictationWords(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return 0;
+  var count = 0;
+  for (final token in trimmed.split(_whitespaceRegExp)) {
+    if (token.isNotEmpty && dictationWordOf(token).isNotEmpty) {
+      count++;
+    }
+  }
+  return count;
 }
 
 DictationDiffResult computeDictationDiff(
@@ -36,25 +55,32 @@ DictationDiffResult computeDictationDiff(
     );
   }
 
-  final dp = List.generate(m + 1, (_) => List.filled(n + 1, 0));
+  final refNorm = [for (final token in refRawTokens) dictationWordOf(token)];
+  final userNorm = [for (final token in userRawTokens) dictationWordOf(token)];
+  final stride = n + 1;
+  final dp = Int32List((m + 1) * stride);
 
   for (var i = 0; i <= m; i++) {
-    dp[i][0] = i;
+    dp[i * stride] = i;
   }
   for (var j = 0; j <= n; j++) {
-    dp[0][j] = j;
+    dp[j] = j;
   }
 
   for (var i = 1; i <= m; i++) {
+    final rowOffset = i * stride;
+    final prevRowOffset = (i - 1) * stride;
+    final refWord = refNorm[i - 1];
     for (var j = 1; j <= n; j++) {
-      final refNorm = dictationWordOf(refRawTokens[i - 1]);
-      final userNorm = dictationWordOf(userRawTokens[j - 1]);
-      if (refNorm == userNorm) {
-        dp[i][j] = dp[i - 1][j - 1];
+      if (refWord == userNorm[j - 1]) {
+        dp[rowOffset + j] = dp[prevRowOffset + j - 1];
       } else {
-        dp[i][j] =
+        dp[rowOffset + j] =
             1 +
-            math.min(dp[i - 1][j - 1], math.min(dp[i - 1][j], dp[i][j - 1]));
+            math.min(
+              dp[prevRowOffset + j - 1],
+              math.min(dp[prevRowOffset + j], dp[rowOffset + j - 1]),
+            );
       }
     }
   }
@@ -69,9 +95,8 @@ DictationDiffResult computeDictationDiff(
 
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0) {
-      final refNorm = dictationWordOf(refRawTokens[i - 1]);
-      final userNorm = dictationWordOf(userRawTokens[j - 1]);
-      if (refNorm == userNorm && dp[i][j] == dp[i - 1][j - 1]) {
+      final diag = (i - 1) * stride + j - 1;
+      if (refNorm[i - 1] == userNorm[j - 1] && dp[i * stride + j] == dp[diag]) {
         reversedTokens.add(
           DictationDiffToken(
             word: refRawTokens[i - 1],
@@ -85,7 +110,7 @@ DictationDiffResult computeDictationDiff(
       }
     }
 
-    if (j > 0 && (i == 0 || dp[i][j] == dp[i][j - 1] + 1)) {
+    if (j > 0 && (i == 0 || dp[i * stride + j] == dp[i * stride + j - 1] + 1)) {
       reversedTokens.add(
         DictationDiffToken(
           word: userRawTokens[j - 1],
@@ -94,7 +119,8 @@ DictationDiffResult computeDictationDiff(
       );
       extra++;
       j--;
-    } else if (i > 0 && (j == 0 || dp[i][j] == dp[i - 1][j] + 1)) {
+    } else if (i > 0 &&
+        (j == 0 || dp[i * stride + j] == dp[(i - 1) * stride + j] + 1)) {
       reversedTokens.add(
         DictationDiffToken(
           word: refRawTokens[i - 1],

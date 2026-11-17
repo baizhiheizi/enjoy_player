@@ -3,7 +3,6 @@ library;
 
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
@@ -75,7 +74,7 @@ final class AudioplayersPronounceEngine implements PronounceAudioEngine {
         'Pronounce audio download failed: HTTP ${response.statusCode}',
       );
     }
-    final bytes = Uint8List.fromList(response.bodyBytes);
+    final bytes = response.bodyBytes;
     if (bytes.isEmpty) {
       throw StateError('Pronounce audio download returned empty body');
     }

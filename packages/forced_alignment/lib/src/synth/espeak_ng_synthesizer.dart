@@ -39,6 +39,7 @@ final class EspeakNgSynthesizer implements SpokenReferenceSynthesizer {
   static bool _capturePcm = true;
   static final List<EspeakWordEvent> _words = <EspeakWordEvent>[];
   static final List<EspeakPhoneEvent> _phones = <EspeakPhoneEvent>[];
+  static final Uint8List _phonemeScratch = Uint8List(8);
   static bool Function()? _cancelHook;
 
   static void _appendPcm(Pointer<Int16> wav, int n) {
@@ -93,13 +94,15 @@ final class EspeakNgSynthesizer implements SpokenReferenceSynthesizer {
   }
 
   static String _readPhoneme(EspeakEvent event) {
-    final units = <int>[];
+    var len = 0;
     for (var i = 0; i < 8; i++) {
       final b = event.idBytes[i];
       if (b == 0) break;
-      units.add(b);
+      _phonemeScratch[len++] = b;
     }
-    return decodeEspeakPhonemeIdBytes(units);
+    return decodeEspeakPhonemeIdBytes(
+      Uint8List.sublistView(_phonemeScratch, 0, len),
+    );
   }
 
   static EspeakNgBindings _open() {
@@ -256,7 +259,12 @@ final class EspeakNgSynthesizer implements SpokenReferenceSynthesizer {
       );
     }
 
-    final floatNative = int16ToFloat32(_pcm.sublist(0, _pcmCount));
+    final floatNative = int16ToFloat32(
+      Int16List.sublistView(_pcm, 0, _pcmCount),
+    );
+    if (_pcm.length > 512 * 1024) {
+      _pcm = Int16List(0);
+    }
     final pcm = resampleToAlignmentRate(floatNative, _nativeSampleRate);
     final duration = pcm.length / kAlignmentSampleRate;
     final words = buildReferenceWords(

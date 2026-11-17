@@ -1,6 +1,7 @@
 /// YIN pitch estimator — frame-hop contour aligned with web Essentia defaults.
 library;
 
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'waveform_envelope.dart';
@@ -33,6 +34,8 @@ YinPitchSeries estimatePitchYin(
   int frameSize = 4096,
   int hopSize = 128,
   double yinThreshold = 0.15,
+  double minHz = 55.0,
+  double maxHz = 600.0,
 }) {
   if (samples.isEmpty || sampleRate <= 0) {
     return YinPitchSeries(
@@ -55,7 +58,23 @@ YinPitchSeries estimatePitchYin(
   final probs = List<double>.filled(nHop, 0);
 
   final half = frameSize ~/ 2;
-  final tauMax = half - 1;
+  final maxPossibleTau = half - 1;
+  final boundedMax = minHz > 0
+      ? math.min(maxPossibleTau, (sampleRate / minHz).ceil() + 2)
+      : maxPossibleTau;
+  final tauMin = maxHz > 0 ? math.max(2, (sampleRate / maxHz).floor()) : 2;
+  if (boundedMax < 2) {
+    return YinPitchSeries(
+      sampleRate: sampleRate,
+      frameSize: frameSize,
+      hopSize: hopSize,
+      pitchHz: pitches,
+      voicedProb: probs,
+    );
+  }
+
+  final yinScratch = Float64List(boundedMax + 1);
+  final voicedProbValue = (1.0 - yinThreshold).clamp(0.0, 1.0);
 
   for (var fi = 0; fi < nHop; fi++) {
     final start = fi * hopSize;
@@ -65,12 +84,14 @@ YinPitchSeries estimatePitchYin(
       buf,
       start,
       frameSize,
-      tauMax,
+      tauMin,
+      boundedMax,
       yinThreshold,
+      yinScratch,
     );
     if (tauEstimate != null && tauEstimate > 1) {
       pitches[fi] = sampleRate / tauEstimate;
-      probs[fi] = (1.0 - yinThreshold).clamp(0.0, 1.0);
+      probs[fi] = voicedProbValue;
     }
   }
 
@@ -83,20 +104,109 @@ YinPitchSeries estimatePitchYin(
   );
 }
 
+/// Evaluates speech YIN F0 only at [envelope] timestamps, decimating high-rate
+/// PCM (~44.1 kHz) toward ~16 kHz and reusing a single scratch buffer.
+List<double?> estimatePitchAtEnvelopeTimes({
+  required Float32List samples,
+  required double sampleRate,
+  required List<WaveformPoint> envelope,
+  double yinThreshold = 0.15,
+  double minVoicedProb = 0.35,
+  double minHz = 55.0,
+  double maxHz = 600.0,
+}) {
+  if (envelope.isEmpty) return const [];
+  if (samples.isEmpty || sampleRate <= 0) {
+    return List<double?>.filled(envelope.length, null);
+  }
+  final prob = (1.0 - yinThreshold).clamp(0.0, 1.0);
+  if (prob < minVoicedProb) {
+    return List<double?>.filled(envelope.length, null);
+  }
+
+  final decimation = sampleRate >= 28000 ? (sampleRate / 14700).floor() : 1;
+  final Float32List workSamples;
+  final double workRate;
+  if (decimation > 1) {
+    final outLen = samples.length ~/ decimation;
+    if (outLen <= 0) {
+      return List<double?>.filled(envelope.length, null);
+    }
+    final decimated = Float32List(outLen);
+    final inv = 1.0 / decimation;
+    for (var i = 0; i < outLen; i++) {
+      final base = i * decimation;
+      var sum = 0.0;
+      for (var k = 0; k < decimation; k++) {
+        sum += samples[base + k];
+      }
+      decimated[i] = sum * inv;
+    }
+    workSamples = decimated;
+    workRate = sampleRate / decimation;
+  } else {
+    workSamples = samples;
+    workRate = sampleRate;
+  }
+
+  final frameSize = (0.093 * workRate).round().clamp(512, 4096);
+  final buf = workSamples.length < frameSize
+      ? (Float32List(frameSize)..setRange(0, workSamples.length, workSamples))
+      : workSamples;
+  final maxStart = buf.length - frameSize;
+
+  final half = frameSize ~/ 2;
+  final tauMax = math.min(half - 1, (workRate / minHz).ceil() + 2);
+  final tauMin = math.max(2, (workRate / maxHz).floor());
+  if (tauMax < 2 || maxStart < 0) {
+    return List<double?>.filled(envelope.length, null);
+  }
+
+  final yinScratch = Float64List(tauMax + 1);
+  final out = List<double?>.filled(envelope.length, null);
+  var lastStart = -1;
+  double? lastHz;
+
+  for (var i = 0; i < envelope.length; i++) {
+    final start = (envelope[i].t * workRate).round().clamp(0, maxStart);
+    if (start == lastStart) {
+      out[i] = lastHz;
+      continue;
+    }
+    lastStart = start;
+    final tauEstimate = _yinTauForFrame(
+      buf,
+      start,
+      frameSize,
+      tauMin,
+      tauMax,
+      yinThreshold,
+      yinScratch,
+    );
+    final double? hz = (tauEstimate != null && tauEstimate > 1)
+        ? workRate / tauEstimate
+        : null;
+    lastHz = (hz != null && hz.isFinite && hz > 0) ? hz : null;
+    out[i] = lastHz;
+  }
+  return out;
+}
+
 double? _yinTauForFrame(
   Float32List buf,
   int offset,
   int frameLen,
+  int tauMin,
   int tauMax,
   double threshold,
+  Float64List yin,
 ) {
   if (tauMax < 2) return null;
 
-  final yin = List<double>.filled(tauMax + 1, 0);
-
   for (var tau = 1; tau <= tauMax; tau++) {
     var s = 0.0;
-    for (var i = 0; i < frameLen - tau; i++) {
+    final limit = frameLen - tau;
+    for (var i = 0; i < limit; i++) {
       final delta = buf[offset + i] - buf[offset + i + tau];
       s += delta * delta;
     }
@@ -114,7 +224,7 @@ double? _yinTauForFrame(
     }
   }
 
-  var tau = 2;
+  var tau = math.max(2, tauMin);
   while (tau < tauMax) {
     if (yin[tau] < threshold) {
       while (tau + 1 < tauMax && yin[tau + 1] < yin[tau]) {

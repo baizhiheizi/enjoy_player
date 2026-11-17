@@ -26,16 +26,35 @@ import 'package:uuid/uuid.dart';
 
 enum MediaKind { audio, video }
 
+final class AsrExtractedAudio {
+  const AsrExtractedAudio({
+    required this.filePath,
+    required this.byteLength,
+    this.deleteAfterUse = false,
+  });
+
+  final String filePath;
+  final int byteLength;
+  final bool deleteAfterUse;
+
+  Future<void> cleanup() async {
+    if (!deleteAfterUse) return;
+    try {
+      final f = File(filePath);
+      if (f.existsSync()) await f.delete();
+    } on Object catch (_) {}
+  }
+}
+
+/// Extracts ASR-ready audio from a local audio or video media source.
 class AsrAudioExtractor {
   const AsrAudioExtractor();
 
-  static const _maxBytesDefault = 500 * 1024 * 1024;
+  static const int _maxBytesDefault = 500 * 1024 * 1024;
 
-  /// Returns the audio bytes to feed to [AsrService.transcribe].
-  ///
   /// Throws [AsrAudioExtractionException] on every failure mode listed
   /// in [AsrAudioExtractionFailureReason].
-  Future<Uint8List> extractAudio({
+  Future<AsrExtractedAudio> extractAudioFile({
     required String mediaSourceUri,
     required MediaKind kind,
     void Function(double progress)? onProgress,
@@ -50,17 +69,39 @@ class AsrAudioExtractor {
     final input = FfmpegMediaProbe.mediaInputForFfmpeg(mediaSourceUri);
 
     if (kind == MediaKind.audio) {
-      return _readAudioDirect(input, maxBytes);
+      final size = await _validateInputFile(input, maxBytes, label: 'Audio');
+      return AsrExtractedAudio(filePath: input, byteLength: size);
     }
 
-    return _extractFromVideo(
+    return _extractToFileFromVideo(
       input: input,
       onProgress: onProgress,
       maxBytes: maxBytes,
     );
   }
 
-  Future<void> _validateInputFile(
+  /// Throws [AsrAudioExtractionException] on every failure mode listed
+  /// in [AsrAudioExtractionFailureReason].
+  Future<Uint8List> extractAudio({
+    required String mediaSourceUri,
+    required MediaKind kind,
+    void Function(double progress)? onProgress,
+    int maxBytes = _maxBytesDefault,
+  }) async {
+    final extracted = await extractAudioFile(
+      mediaSourceUri: mediaSourceUri,
+      kind: kind,
+      onProgress: onProgress,
+      maxBytes: maxBytes,
+    );
+    try {
+      return await File(extracted.filePath).readAsBytes();
+    } finally {
+      await extracted.cleanup();
+    }
+  }
+
+  Future<int> _validateInputFile(
     String input,
     int maxBytes, {
     required String label,
@@ -79,14 +120,10 @@ class AsrAudioExtractor {
         '$label file is $size bytes (max $maxBytes)',
       );
     }
+    return size;
   }
 
-  Future<Uint8List> _readAudioDirect(String input, int maxBytes) async {
-    await _validateInputFile(input, maxBytes, label: 'Audio');
-    return File(input).readAsBytes();
-  }
-
-  Future<Uint8List> _extractFromVideo({
+  Future<AsrExtractedAudio> _extractToFileFromVideo({
     required String input,
     required void Function(double progress)? onProgress,
     required int maxBytes,
@@ -97,6 +134,7 @@ class AsrAudioExtractor {
 
     final dir = await getTemporaryDirectory();
     final outputPath = p.join(dir.path, 'asr_${const Uuid().v4()}.wav');
+    var keepOutput = false;
     try {
       final ok = await _runExtract(
         input: input,
@@ -124,12 +162,19 @@ class AsrAudioExtractor {
         );
       }
       onProgress?.call(1.0);
-      return await out.readAsBytes();
+      keepOutput = true;
+      return AsrExtractedAudio(
+        filePath: outputPath,
+        byteLength: extractedSize,
+        deleteAfterUse: true,
+      );
     } finally {
-      try {
-        final f = File(outputPath);
-        if (f.existsSync()) await f.delete();
-      } on Object catch (_) {}
+      if (!keepOutput) {
+        try {
+          final f = File(outputPath);
+          if (f.existsSync()) await f.delete();
+        } on Object catch (_) {}
+      }
     }
   }
 

@@ -10,6 +10,8 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show compute;
+
 import 'package:enjoy_player/core/application/cjk_language.dart';
 import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
 
@@ -306,6 +308,26 @@ String segmentsToTimelineJson(List<TranscriptSegment> segments) {
         )
         .toList(),
   );
+}
+
+String? _buildCraftPrimaryTimelineJsonArg(
+  ({List<CraftWordBoundary> wordBoundaries, String? language}) arg,
+) => buildCraftPrimaryTimelineJson(arg.wordBoundaries, language: arg.language);
+
+/// Size-gated [buildCraftPrimaryTimelineJson] offloading large boundary lists.
+Future<String?> buildCraftPrimaryTimelineJsonGated(
+  List<CraftWordBoundary> wordBoundaries, {
+  String? language,
+}) {
+  if (wordBoundaries.length <= 200) {
+    return Future.value(
+      buildCraftPrimaryTimelineJson(wordBoundaries, language: language),
+    );
+  }
+  return compute(_buildCraftPrimaryTimelineJsonArg, (
+    wordBoundaries: wordBoundaries,
+    language: language,
+  ), debugLabel: 'craft-primary-timeline');
 }
 
 /// Builds Craft primary `timelineJson` when timings are solid.
