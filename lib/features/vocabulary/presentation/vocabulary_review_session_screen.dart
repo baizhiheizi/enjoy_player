@@ -27,6 +27,7 @@ import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_review_practice.dart';
 import 'package:enjoy_player/features/pronounce/application/pronounce_playback_controller.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard_state.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_practice_sheet.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_rating_bar.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -257,69 +258,74 @@ class _VocabularyReviewSessionScreenState
                                   item: session.currentItem!,
                                   primaryContext: session.currentPrimaryContext,
                                   flipped: session.flipped,
-                                  dictionaryFetchInFlight:
-                                      session.dictionaryFetchInFlight,
-                                  contextualFetchInFlight:
-                                      session.contextualFetchInFlight,
-                                  clipPlayInFlight: session.clipPlayInFlight,
-                                  dictionaryError: session.dictionaryError,
-                                  contextualError: session.contextualError,
-                                  mediaError: session.mediaError,
-                                  contextsCount: session.currentContextsCount,
-                                  activeContextIndex:
-                                      session.currentActiveContextIndex,
-                                  actionsEnabled: !session.practiceSheetOpen,
-                                  onPreviousContext: () => unawaited(
-                                    ref
+                                  fetchState: FlashcardFetchState(
+                                    dictionaryFetchInFlight:
+                                        session.dictionaryFetchInFlight,
+                                    contextualFetchInFlight:
+                                        session.contextualFetchInFlight,
+                                    clipPlayInFlight: session.clipPlayInFlight,
+                                    dictionaryError: session.dictionaryError,
+                                    contextualError: session.contextualError,
+                                    mediaError: session.mediaError,
+                                  ),
+                                  contextState: FlashcardContextState(
+                                    count: session.currentContextsCount,
+                                    index: session.currentActiveContextIndex,
+                                  ),
+                                  actions: FlashcardActions(
+                                    enabled: !session.practiceSheetOpen,
+                                    onPreviousContext: () => unawaited(
+                                      ref
+                                          .read(
+                                            vocabularyReviewSessionProvider
+                                                .notifier,
+                                          )
+                                          .selectPreviousContext(),
+                                    ),
+                                    onNextContext: () => unawaited(
+                                      ref
+                                          .read(
+                                            vocabularyReviewSessionProvider
+                                                .notifier,
+                                          )
+                                          .selectNextContext(),
+                                    ),
+                                    onFlip: () => ref
                                         .read(
                                           vocabularyReviewSessionProvider
                                               .notifier,
                                         )
-                                        .selectPreviousContext(),
-                                  ),
-                                  onNextContext: () => unawaited(
-                                    ref
+                                        .flip(),
+                                    onUnflip: () => ref
                                         .read(
                                           vocabularyReviewSessionProvider
                                               .notifier,
                                         )
-                                        .selectNextContext(),
-                                  ),
-                                  onFlip: () => ref
-                                      .read(
-                                        vocabularyReviewSessionProvider
-                                            .notifier,
-                                      )
-                                      .flip(),
-                                  onUnflip: () => ref
-                                      .read(
-                                        vocabularyReviewSessionProvider
-                                            .notifier,
-                                      )
-                                      .unflip(),
-                                  onFetchDictionary: () => unawaited(
-                                    ref
-                                        .read(
-                                          vocabularyReviewSessionProvider
-                                              .notifier,
-                                        )
-                                        .fetchDictionary(),
-                                  ),
-                                  onFetchContextual: () => unawaited(
-                                    ref
-                                        .read(
-                                          vocabularyReviewSessionProvider
-                                              .notifier,
-                                        )
-                                        .fetchContextualTranslation(),
-                                  ),
-                                  onPlayClip: () => unawaited(
-                                    _openPractice(ReviewPracticeMode.clip),
-                                  ),
-                                  onOpenInPlayer: () =>
-                                      unawaited(_confirmOpenInPlayer()),
-                                  onShadowReading: () => unawaited(
-                                    _openPractice(ReviewPracticeMode.echo),
+                                        .unflip(),
+                                    onFetchDictionary: () => unawaited(
+                                      ref
+                                          .read(
+                                            vocabularyReviewSessionProvider
+                                                .notifier,
+                                          )
+                                          .fetchDictionary(),
+                                    ),
+                                    onFetchContextual: () => unawaited(
+                                      ref
+                                          .read(
+                                            vocabularyReviewSessionProvider
+                                                .notifier,
+                                          )
+                                          .fetchContextualTranslation(),
+                                    ),
+                                    onPlayClip: () => unawaited(
+                                      _openPractice(ReviewPracticeMode.clip),
+                                    ),
+                                    onOpenInPlayer: () =>
+                                        unawaited(_confirmOpenInPlayer()),
+                                    onShadowReading: () => unawaited(
+                                      _openPractice(ReviewPracticeMode.echo),
+                                    ),
                                   ),
                                 ),
                               ),
