@@ -230,6 +230,28 @@ Interface notes:
   small timelines inline and encodes large ones in a background isolate
   (issue #810 D4).
 
+### Caption fetcher shape
+
+The direct InnerTube caption fetcher is split the same way (issue #1396). The
+public API is unchanged — `YoutubeCaptionFetcher`, `CaptionTrack`,
+`CaptionFetchResult`, `AllCaptionsResult`, `YoutubeCaptionFetchException`,
+`YoutubeCaptionErrorStage`, and `resetLastSuccessfulCaptionProfile()` all stay
+exported from
+[`youtube_caption_fetcher.dart`](../../lib/features/transcript/data/youtube_caption_fetcher.dart),
+which is now the library root. The split stays inside one Dart library
+(`part` / `part of`), so the module-private sticky profile key
+(`_lastSuccessfulCaptionProfileKey`) and the `_log` logger remain shared across
+the parts and no importer or test file changed.
+
+| File | Responsibility |
+|------|----------------|
+| [`youtube_caption_fetcher.dart`](../../lib/features/transcript/data/youtube_caption_fetcher.dart) | The library root: imports and `part` directives, the `_log` logger, the session-sticky profile state plus `resetLastSuccessfulCaptionProfile()`, the transport-failure classifier, and the `YoutubeCaptionFetcher` class shell — profile-chain policy, track fan-out, preference sort, failure aggregation. |
+| [`youtube_caption_fetcher_errors.dart`](../../lib/features/transcript/data/youtube_caption_fetcher_errors.dart) | The typed failure taxonomy: `YoutubeCaptionErrorStage` (InnerTube `/player` vs. `timedtext` boundaries) and `YoutubeCaptionFetchException`. |
+| [`youtube_caption_fetcher_models.dart`](../../lib/features/transcript/data/youtube_caption_fetcher_models.dart) | The value types describing tracks and fetch outcomes: `CaptionTrack`, `CaptionFetchResult`, `AllCaptionsResult`. |
+| [`youtube_caption_fetcher_player.dart`](../../lib/features/transcript/data/youtube_caption_fetcher_player.dart) | InnerTube `/player` request construction, transport, playability gating, and track extraction (`_fetchPlayer`, `_extractCaptionTracks`). |
+| [`youtube_caption_fetcher_track_selection.dart`](../../lib/features/transcript/data/youtube_caption_fetcher_track_selection.dart) | Manual-vs-auto preference and language-tag ranking (`_determineSource`, `_isBetterMatch`, `_preferredLanguageRank`). The `no` → `nb` alias behavior is unchanged. |
+| [`youtube_caption_fetcher_timedtext.dart`](../../lib/features/transcript/data/youtube_caption_fetcher_timedtext.dart) | The `timedtext` transport and json3 parsing into `TranscriptLine`s (`_fetchCaptionTrack`). |
+
 ## Dictate lens (listening-focus) mode
 
 The **Dictate** lens (`H`, or the third segment of the top bar's
