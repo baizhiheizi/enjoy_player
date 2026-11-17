@@ -69,7 +69,7 @@ preference ranking is alias-aware: tracks matching the requested tag exactly
 rank first, tracks sharing its primary subtag second (so a `no` track still
 counts as preferred for `nb-NO` via `kLanguageTagAliases`, ADR-0087), and
 everything else last
-([`youtube_caption_fetcher.dart`](../../lib/features/transcript/data/youtube_caption_fetcher.dart),
+([`youtube_caption_fetcher_track_selection.dart`](../../lib/features/transcript/data/youtube_caption_fetcher_track_selection.dart),
 #848).
 
 ### Primary selection
