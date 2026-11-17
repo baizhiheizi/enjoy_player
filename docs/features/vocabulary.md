@@ -454,6 +454,8 @@ Empty states: no words; no due with **Custom review** CTA in the empty panel (no
 
 **Desktop scrolling:** back-tab content (`_TabBody`) attaches an explicit `ScrollController` to both `SingleChildScrollView` and `Scrollbar`. Desktop `Scrollbar` defaults to `PrimaryScrollController`, which `SingleChildScrollView` does not auto-attach to — without the explicit pair, scrolling the Context / Dictionary tabs on desktop throws. Mobile scrollables are unaffected.
 
+**Flashcard wiring:** the card's state travels as three bundles — [`FlashcardFetchState`](../../lib/features/vocabulary/presentation/vocabulary_flashcard_state.dart) (in-flight flags + error strings), `FlashcardContextState` (context pager position) and `FlashcardActions` (callbacks + the gate that disables them while a practice sheet owns the input). The session screen builds them once from the session state; the card, its back face and the context tab pass the same objects down, so a new flashcard action or fetch state reaches every layer through one place.
+
 ### Word list
 
 - One toolbar: search + filter toggle + Export. On **mobile** the filter
