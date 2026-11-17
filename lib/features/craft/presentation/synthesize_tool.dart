@@ -62,7 +62,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
     final canSynthesize =
         !state.isSynthesizing &&
         !state.isSaving &&
-        normalizeCraftText(state.synthText).length >= craftMinTextLength;
+        meetsCraftMinTextLength(state.synthText);
 
     return EnjoyCard(
       padding: EdgeInsets.all(tokens.space16),

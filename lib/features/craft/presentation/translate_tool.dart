@@ -63,8 +63,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
 
     final tokens = EnjoyThemeTokens.of(context);
     final canTranslate =
-        !state.isTranslating &&
-        normalizeCraftText(state.sourceText).length >= craftMinTextLength;
+        !state.isTranslating && meetsCraftMinTextLength(state.sourceText);
 
     return EnjoyCard(
       padding: EdgeInsets.all(tokens.space16),
