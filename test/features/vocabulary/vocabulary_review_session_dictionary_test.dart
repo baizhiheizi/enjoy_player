@@ -45,6 +45,29 @@ final class _CreditsExhaustedDictionary implements DictionaryCapability {
   }) async => throw const CreditsFailure('HTTP 402');
 }
 
+/// Deletes the saved row between the lookup and the persist.
+final class _DeletingDictionary implements DictionaryCapability {
+  const _DeletingDictionary(this.onLookup);
+
+  final Future<void> Function() onLookup;
+
+  @override
+  Future<DictionaryResult> lookupDictionary({
+    required String word,
+    required String sourceLanguage,
+    required String targetLanguage,
+    bool? forceRefresh,
+  }) async {
+    await onLookup();
+    return DictionaryResult(
+      word: word,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+      senses: const [DictionarySense(definition: 'test sense')],
+    );
+  }
+}
+
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
@@ -139,4 +162,44 @@ void main() {
       expect(state.dictionaryFetchInFlight, isFalse);
     },
   );
+
+  test('persist returning null sets the persist_failed token', () async {
+    final repo = VocabularyRepository(db);
+    final added = await repo.addWithContext(
+      word: 'hello',
+      language: 'en',
+      targetLanguage: 'zh',
+      text: 'Hello world.',
+      sourceType: VocabularySourceType.video,
+      sourceId: 'v1',
+      mediaLocator: const MediaLocator(start: 0, duration: 1000),
+      now: DateTime.utc(2020, 1, 1),
+    );
+
+    final persistContainer = ProviderContainer(
+      overrides: [
+        appDatabaseProvider.overrideWithValue(db),
+        dictionaryCapabilityProvider.overrideWithValue(
+          _DeletingDictionary(
+            () => db.vocabularyItemDao.deleteById(added.item.id),
+          ),
+        ),
+      ],
+    );
+    addTearDown(persistContainer.dispose);
+
+    final session = persistContainer.read(
+      vocabularyReviewSessionProvider.notifier,
+    );
+    await session.start(
+      const ReviewSelectionOptions(mode: VocabularyReviewMode.all),
+      now: DateTime.utc(2030, 1, 1),
+    );
+    session.flip();
+    await session.fetchDictionary();
+
+    final state = persistContainer.read(vocabularyReviewSessionProvider);
+    expect(state.dictionaryError, 'persist_failed');
+    expect(state.dictionaryFetchInFlight, isFalse);
+  });
 }

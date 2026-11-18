@@ -15,7 +15,8 @@ mixin VocabularyReviewSessionFetches on VocabularyReviewSessionBase {
       clearDictionaryError: true,
     );
     await _runAiFetch(
-      surface: 'Dictionary fetch',
+      creditsSurface: 'Dictionary fetch',
+      failureSurface: 'Dictionary fetch',
       call: () => ref
           .read(dictionaryServiceProvider)
           .lookup(
@@ -59,7 +60,8 @@ mixin VocabularyReviewSessionFetches on VocabularyReviewSessionBase {
       clearContextualError: true,
     );
     await _runAiFetch(
-      surface: 'Contextual translation',
+      creditsSurface: 'Contextual translation',
+      failureSurface: 'Contextual translation fetch',
       call: () => ref
           .read(contextualTranslationServiceProvider)
           .translate(
@@ -98,7 +100,8 @@ mixin VocabularyReviewSessionFetches on VocabularyReviewSessionBase {
   }
 
   Future<void> _runAiFetch<T, P extends Object>({
-    required String surface,
+    required String creditsSurface,
+    required String failureSurface,
     required Future<T> Function() call,
     required String Function(T result) encode,
     required Future<P?> Function(String json) persist,
@@ -115,10 +118,10 @@ mixin VocabularyReviewSessionFetches on VocabularyReviewSessionBase {
       }
       state = onPersisted(persisted);
     } on CreditsFailure catch (failure, st) {
-      _log.warning('$surface rejected: credits', failure, st);
+      _log.warning('$creditsSurface rejected: credits', failure, st);
       state = onError('credits');
     } catch (e, st) {
-      _log.warning('$surface failed', e, st);
+      _log.warning('$failureSurface failed', e, st);
       state = onError('fetch_failed');
     }
   }
