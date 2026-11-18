@@ -109,9 +109,13 @@ class CraftJobState {
 
   /// True when the editable native transcript differs from the last successful
   /// rewrite input (whitespace-normalized).
-  bool get isRawTranscriptDirty =>
-      normalizeCraftText(rawTranscript ?? '') !=
-      normalizeCraftText(rewrittenFromTranscript ?? '');
+  bool get isRawTranscriptDirty {
+    final raw = rawTranscript ?? '';
+    final rewritten = rewrittenFromTranscript ?? '';
+    if (raw == rewritten) return false;
+    if (collapsedLength(raw) != collapsedLength(rewritten)) return true;
+    return normalizeCraftText(raw) != normalizeCraftText(rewritten);
+  }
 
   CraftJobState copyWith({
     CraftScreenMode? screenMode,

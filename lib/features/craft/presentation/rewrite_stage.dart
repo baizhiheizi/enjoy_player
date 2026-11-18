@@ -120,9 +120,7 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
     final hasRaw = raw != null && raw.isNotEmpty;
     final isRetranslating = state.isTranslating && state.hasTranslation;
     final canRegenerate =
-        hasRaw &&
-        normalizeCraftText(raw).length >= craftMinTextLength &&
-        !state.isBusy;
+        hasRaw && meetsCraftMinTextLength(raw) && !state.isBusy;
     final showReTranslate =
         hasRaw && state.isRawTranscriptDirty && !isRetranslating;
 
