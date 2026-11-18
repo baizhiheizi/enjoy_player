@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 class _SignedInAuthCtrl extends AuthCtrl {
   @override
@@ -55,6 +56,7 @@ Widget _harness(
   Widget child, {
   List<Override> overrides = const [],
   AuthCtrl Function()? authCtrlFactory,
+  Locale? locale,
 }) {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
   return ProviderScope(
@@ -68,6 +70,7 @@ Widget _harness(
       ...overrides,
     ],
     child: MaterialApp(
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
@@ -81,6 +84,10 @@ Widget _harness(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    Intl.defaultLocale = 'en_US';
+  });
 
   testWidgets('shows loading skeleton while status loads', (tester) async {
     final completer = Completer<SubscriptionStatus>();
@@ -250,6 +257,59 @@ void main() {
       );
       expect(find.text(l10n.subscriptionBalanceToCreditsTitle), findsOneWidget);
       expect(find.text(l10n.subscriptionBalanceToCreditsCta), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'status card formats the expiration date and credits per app locale',
+    (tester) async {
+      const iso = '2026-08-01T00:00:00.000Z';
+      final parsed = DateTime.parse(iso).toLocal();
+      final enL10n = lookupAppLocalizations(const Locale('en'));
+      final zhL10n = lookupAppLocalizations(const Locale('zh'));
+
+      Future<void> pumpLocale(Locale locale) async {
+        await tester.pumpWidget(
+          _harness(
+            const SubscriptionScreen(),
+            locale: locale,
+            overrides: [
+              subscriptionStatusProvider.overrideWith(
+                (ref) async => const SubscriptionStatus(
+                  subscriptionActive: true,
+                  subscriptionTier: SubscriptionTier.pro,
+                  autoRenew: AutoRenewBilling(
+                    active: true,
+                    provider: 'stripe',
+                    status: 'active',
+                    autoRenew: true,
+                    cancelAtPeriodEnd: false,
+                    interval: 'month',
+                    amount: 9.99,
+                    tier: 'pro',
+                    currentPeriodEnd: iso,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await pumpLocale(const Locale('en'));
+      expect(find.text(DateFormat.yMMMMd('en').format(parsed)), findsOneWidget);
+      expect(
+        find.text(enL10n.subscriptionDailyCredits('60,000')),
+        findsOneWidget,
+      );
+
+      await pumpLocale(const Locale('zh'));
+      expect(find.text(DateFormat.yMMMMd('zh').format(parsed)), findsOneWidget);
+      expect(
+        find.text(zhL10n.subscriptionDailyCredits('60,000')),
+        findsOneWidget,
+      );
     },
   );
 }
