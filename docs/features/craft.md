@@ -171,6 +171,12 @@ Azure Neural voices grouped by language. Supported languages map to the subset o
 
 Per-call voice selection is v1 scope; the provider-default voice is used for initial creation. Voice names and gender labels come from `AzureVoice` (`lib/features/craft/domain/azure_voice.dart`).
 
+### Text length gates
+
+`craftMinTextLength` (10, post-normalization) gates the Craft actions: Translate and Synthesize in Advanced mode, Regenerate in the Express rewrite stage. The gates are evaluated by `meetsCraftMinTextLength` (`lib/features/craft/domain/craft_request.dart`), an allocation-free scan that never materializes the normalized string, so a rebuild on every keystroke does not re-run the whitespace collapse over the whole transcript. The same scan backs `collapsedLength`, which decides `CraftJobState.isRawTranscriptDirty` before falling back to a full comparison.
+
+The scans must stay exactly equivalent to `normalizeCraftText` (which delegates to `collapseWhitespace`: collapse whitespace runs to single spaces, then trim). The two differ on one code unit — U+0085 NEL is trimmed at the edges but is not collapsed — so the scan keeps a separate whitespace-run set and trim set, and the equivalence is pinned by the differential test (`test/features/craft/domain/craft_text_gate_perf_test.dart`) rather than by reading the scan.
+
 ## Provider / capability routing
 
 | Action | Enjoy (default) | BYOK |
@@ -213,7 +219,7 @@ The save hook runs the shared alignment pipeline ([`align_lines_to_pcm.dart`](..
 
 ### Deduplication
 
-`SHA-256(sourceFlag | learningLanguage | normalizedText)`. Re-pasting identical text returns the existing media id without making any AI calls. `normalizedText` strips whitespace differences and normalizes Unicode so copy-paste variation does not defeat dedup. Express items use `sourceFlag = 'craft-express'`, so they dedupe independently from Advanced-mode items with the same text.
+`SHA-256(sourceFlag | learningLanguage | normalizedText)`. Re-pasting identical text returns the existing media id without making any AI calls. `normalizedText` strips whitespace differences so copy-paste variation does not defeat dedup. Express items use `sourceFlag = 'craft-express'`, so they dedupe independently from Advanced-mode items with the same text.
 
 ## Library surface
 
@@ -294,7 +300,7 @@ No `isWide` width calculations or ad-hoc max widths live in Craft widgets — al
 
 ## Test pointers
 
-- Unit tests: `test/features/craft/` — covers `CraftFailure` messages, `WordBoundarySegmenter` grouping, dedup hashing, `TranscriptTimestampEstimator` (retained for legacy non-Craft uses), Auto-style prompt, Express capture/rewrite/save/reset flow, ASR + empty-transcript failure mapping, `loadForEdit` mode inference + editing save path (`craft_controller_test.dart`), `craftHistoryProvider` filter/sort (`craft_history_provider_test.dart`).
+- Unit tests: `test/features/craft/` — covers `CraftFailure` messages, `WordBoundarySegmenter` grouping, dedup hashing, `TranscriptTimestampEstimator` (retained for legacy non-Craft uses), Auto-style prompt, Express capture/rewrite/save/reset flow, ASR + empty-transcript failure mapping, `loadForEdit` mode inference + editing save path (`craft_controller_test.dart`), `craftHistoryProvider` filter/sort (`craft_history_provider_test.dart`), and the differential equivalence of the text-length gate scans against `normalizeCraftText` (`craft_text_gate_perf_test.dart`).
 - Widget tests: `test/features/craft/` — covers CraftScreen mode toggle, CaptureStage idle state, RewriteStage editable target + actions, AudioStage preview + actions, AdvancedTools responsive layout, TranslateTool / SynthesizeTool.
 - Repository tests: `test/features/craft/data/craft_library_repository_test.dart` — `getCraftEditSource` timeline reconstruction, `updateCraftedFromText` same-id update + stale-file cleanup.
 - Home / hotkey tests: `test/features/library/home_screen_test.dart` (Craft header action navigation), `test/features/hotkeys/global_craft_hotkey_test.dart` (hotkey registration).

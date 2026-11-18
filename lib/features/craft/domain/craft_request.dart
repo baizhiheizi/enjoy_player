@@ -3,8 +3,8 @@ library;
 
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 
-/// Normalizes text for hashing and synthesis: NFC-normalize, collapse
-/// whitespace runs to single spaces, trim leading/trailing.
+/// Normalizes text for hashing and synthesis: collapse whitespace runs to
+/// single spaces, trim leading/trailing.
 String normalizeCraftText(String input) {
   final collapsed = collapseWhitespace(input);
   return collapsed;
@@ -12,6 +12,9 @@ String normalizeCraftText(String input) {
 
 /// The minimum text length (post-normalize) for the Craft action to be enabled.
 const int craftMinTextLength = 10;
+
+/// The maximum text length (post-normalize) before truncation notice applies.
+const int craftMaxTextLength = 5000;
 
 /// Whether [normalizeCraftText] would leave at least [craftMinTextLength]
 /// characters.
@@ -113,6 +116,3 @@ bool _isTrimWhitespace(int unit) => switch (unit) {
   0xFEFF => true,
   _ => false,
 };
-
-/// The maximum text length (post-normalize) before truncation notice applies.
-const int craftMaxTextLength = 5000;
