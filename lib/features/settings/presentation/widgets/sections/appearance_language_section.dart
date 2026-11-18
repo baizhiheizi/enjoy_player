@@ -15,7 +15,6 @@ import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/presentation/widgets/content_language_picker.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/language_choice_sheet.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
@@ -28,11 +27,7 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final prefs = ref.watch(appPreferencesCtrlProvider);
-    final auth = ref.watch(authCtrlProvider);
-    final signedIn = auth.maybeWhen(
-      data: (s) => s is AuthSignedIn,
-      orElse: () => false,
-    );
+    final signedIn = ref.watch(authIsSignedInProvider);
     final langSubtitle = signedIn
         ? l10n.settingsLanguageSubtitleSignedIn
         : l10n.settingsLanguageSubtitleDeviceOnly;

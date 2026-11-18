@@ -7,7 +7,6 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
 import 'package:enjoy_player/features/ai/presentation/widgets/dictionary_senses_view.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
@@ -59,14 +58,10 @@ class _FlashcardDictionaryTabState
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final result = decodeDictionaryExplanation(widget.explanation);
-    final (authLoading, signedIn) = ref.watch(
-      authCtrlProvider.select(
-        (auth) => (
-          auth.isLoading,
-          auth.maybeWhen(data: (s) => s is AuthSignedIn, orElse: () => false),
-        ),
-      ),
+    final authLoading = ref.watch(
+      authCtrlProvider.select((auth) => auth.isLoading),
     );
+    final signedIn = ref.watch(authIsSignedInProvider);
 
     if (result != null) {
       return _DictionaryResultView(result: result);
