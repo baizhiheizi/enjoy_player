@@ -18,7 +18,6 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/player/domain/player_launch_request.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_media.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
@@ -166,12 +165,7 @@ class _VocabularyReviewSessionScreenState
     final ctx = session.currentPrimaryContext;
     if (ctx == null || ctx.text.isEmpty) return;
     if (decodeContextualExplanation(ctx.explanation) != null) return;
-    final auth = ref.read(authCtrlProvider);
-    final signedIn = auth.maybeWhen(
-      data: (s) => s is AuthSignedIn,
-      orElse: () => false,
-    );
-    if (!signedIn) return;
+    if (!ref.read(authIsSignedInProvider)) return;
     unawaited(
       ref
           .read(vocabularyReviewSessionProvider.notifier)
@@ -184,12 +178,7 @@ class _VocabularyReviewSessionScreenState
     final item = session.currentItem;
     if (item == null) return;
     if (decodeDictionaryExplanation(item.explanation) != null) return;
-    final auth = ref.read(authCtrlProvider);
-    final signedIn = auth.maybeWhen(
-      data: (s) => s is AuthSignedIn,
-      orElse: () => false,
-    );
-    if (!signedIn) return;
+    if (!ref.read(authIsSignedInProvider)) return;
     unawaited(
       ref.read(vocabularyReviewSessionProvider.notifier).fetchDictionary(),
     );
