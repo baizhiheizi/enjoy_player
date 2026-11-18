@@ -67,7 +67,7 @@ control.
    cost of working-tree rewrites and multi-minute stalls. `bash
    .github/scripts/validate_ci_gates.sh --fix` remains the full local mirror
    for anyone who wants the complete run before pushing.
-5. **Add `.github/scripts/test_git_hooks.sh`**: 27 cases in throwaway git
+5. **Add `.github/scripts/test_git_hooks.sh`**: 26 cases in throwaway git
    repositories covering blocked credentials (including inside `test/`),
    exempted digests and tool-generated manifests, the deleted-line regression,
    digest-plus-secret same-line regressions, stubs proving `pre-push` invokes
