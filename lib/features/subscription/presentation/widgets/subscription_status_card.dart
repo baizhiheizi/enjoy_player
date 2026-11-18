@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -88,7 +89,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
     final ar = status.autoRenew;
     final cancelBusy = ref.watch(subscriptionPurchaseCtrlProvider).isLoading;
     final creditsLabel = l10n.subscriptionDailyCredits(
-      NumberFormat.decimalPattern().format(status.dailyCreditsLimit),
+      cachedDecimalPattern().format(status.dailyCreditsLimit),
     );
 
     if (isPaid) {
@@ -350,13 +351,16 @@ class _PaidMembershipCard extends StatelessWidget {
   }
 }
 
+final Map<String, DateFormat> _statusDateCache = {};
+
 String? _formatDate(BuildContext context, String? iso) {
   if (iso == null || iso.isEmpty) return null;
   try {
     final date = DateTime.parse(iso).toLocal();
-    return DateFormat.yMMMMd(
-      Localizations.localeOf(context).toString(),
-    ).format(date);
+    final locale = Localizations.localeOf(context).toString();
+    return _statusDateCache
+        .putIfAbsent(locale, () => DateFormat.yMMMMd(locale))
+        .format(date);
   } catch (_) {
     return iso;
   }
