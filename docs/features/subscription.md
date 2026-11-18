@@ -65,11 +65,12 @@ Only one non-terminal auto-renew subscription is allowed per account, so a secon
 | `creditsFailureMessage` | The localized message — the worker's credit numbers (required vs. remaining) and reset time when the envelope was parsed, the generic `subscriptionCreditsLimitMessageWithPackages` copy otherwise. |
 | `creditsCtaLabel` | The unified CTA label (`subscriptionViewPlansAndPackages`). |
 | `CreditsCtaButton` | The CTA as a button: the label and the `/subscription` destination in one widget, in three treatments (`text` inline, `brand` as a callout's primary action, `ghost` in a failure card). |
+| `creditsCtaAction` | The CTA as an `AppNotice` action record — the same label and destination for surfaces that report the failure as a toast. The caller passes the `GoRouter` so the action stays safe to press after the originating widget is gone. |
 | `showCreditsFailureNotice` | The `AppNotice.error` snackbar with the one-tap CTA, for surfaces that report the failure as a toast rather than in place. |
 
 `purchaseErrorMessage` / `showPurchaseErrorNotice` sit beside them for the checkout and cancellation flows, matching typed `StateError` pay-url sentinels and `SubscriptionConflictFailure` before falling back to the surface's own copy.
 
-Surfaces that show the CTA inline must use `CreditsCtaButton` rather than reassembling the label and the destination — the destination is [`kSubscriptionRoutePath`](../../lib/core/routing/route_paths.dart), never a `'/subscription'` literal.
+Surfaces that show the CTA inline must use `CreditsCtaButton` (in place) or `creditsCtaAction` (in a toast) rather than reassembling the label and the destination — the destination is [`kSubscriptionRoutePath`](../../lib/core/routing/route_paths.dart), never a `'/subscription'` literal.
 
 ### Reconciliation & celebration
 

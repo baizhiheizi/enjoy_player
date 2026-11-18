@@ -90,6 +90,16 @@ class CreditsCtaButton extends StatelessWidget {
   }
 }
 
+/// The credits CTA as a notice action — the label and the destination in one
+/// record, for surfaces that report the failure as an [AppNotice] toast.
+///
+/// [router] is captured by the caller so the action stays safe to press after
+/// the originating widget is gone.
+AppNoticeAction creditsCtaAction(GoRouter router, AppLocalizations l10n) => (
+  label: creditsCtaLabel(l10n),
+  onPressed: () => router.push(kSubscriptionRoutePath),
+);
+
 /// Shows the credits error as an [AppNotice.error] snackbar with the
 /// one-tap CTA to the subscription screen (plans + credits packages).
 void showCreditsFailureNotice(BuildContext context, CreditsFailure failure) {

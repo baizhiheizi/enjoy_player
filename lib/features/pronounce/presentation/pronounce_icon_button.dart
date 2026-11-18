@@ -1,7 +1,6 @@
 /// Shared tap-to-play pronounce control.
 library;
 
-import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -105,10 +104,7 @@ class PronounceIconButton extends ConsumerWidget {
         AppNotice.warning(
           context,
           creditsFailureMessage(failure, l10n),
-          action: (
-            label: creditsCtaLabel(l10n),
-            onPressed: () => router.push(kSubscriptionRoutePath),
-          ),
+          action: creditsCtaAction(router, l10n),
         );
       } on AppFailure {
         if (!context.mounted) return;

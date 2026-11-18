@@ -199,6 +199,47 @@ void main() {
     });
   });
 
+  testWidgets('creditsCtaAction carries the label and navigates', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: Text('home-page')),
+        ),
+        GoRoute(
+          path: kSubscriptionRoutePath,
+          builder: (context, state) =>
+              const Scaffold(body: Text('subscription-page')),
+        ),
+      ],
+    );
+
+    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
+    await tester.pumpWidget(
+      MaterialApp.router(
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        theme: ThemeData(
+          colorScheme: scheme,
+          extensions: [EnjoyThemeTokens.build(scheme)],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final action = creditsCtaAction(router, l10n);
+    expect(action.label, l10n.subscriptionViewPlansAndPackages);
+
+    action.onPressed();
+    await tester.pumpAndSettle();
+
+    expect(find.text('subscription-page'), findsOneWidget);
+  });
+
   group('purchaseErrorMessage', () {
     test('maps typed StateError pay-url sentinels to localized messages', () {
       expect(

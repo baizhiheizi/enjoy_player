@@ -130,6 +130,30 @@ void main() {
     expect(find.text(l10n.vocabularyAiFetchFailed), findsNothing);
   });
 
+  testWidgets('a non-credits failure shows the generic message and no CTA', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        FlashcardDictionaryTab(
+          explanation: null,
+          fetchInFlight: false,
+          error: kVocabularyAiErrorFetchFailed,
+          onFetch: () {},
+        ),
+        overrides: [authCtrlProvider.overrideWith(_AuthSignedInCtrl.new)],
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text(l10n.vocabularyAiFetchFailed), findsOneWidget);
+    expect(
+      find.text(l10n.subscriptionCreditsLimitMessageWithPackages),
+      findsNothing,
+    );
+    expect(find.text(l10n.subscriptionViewPlansAndPackages), findsNothing);
+  });
+
   testWidgets('does not auto-fetch when signed out', (tester) async {
     var fetchCount = 0;
     await tester.pumpWidget(
