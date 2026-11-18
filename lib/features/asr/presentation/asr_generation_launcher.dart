@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -105,7 +106,7 @@ Future<void> launchAsrGeneration(
           ? null
           : (
               label: creditsCtaLabel(l10n),
-              onPressed: () => router.push('/subscription'),
+              onPressed: () => router.push(kSubscriptionRoutePath),
             ),
     );
   }

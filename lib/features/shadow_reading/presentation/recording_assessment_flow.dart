@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/logging/log.dart';
@@ -158,7 +159,7 @@ Future<void> triggerRecordingAssessment({
         action: kind == RecordingAssessmentFailureKind.credits
             ? (
                 label: creditsCtaLabel(l10n),
-                onPressed: () => router.push('/subscription'),
+                onPressed: () => router.push(kSubscriptionRoutePath),
               )
             : null,
       );

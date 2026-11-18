@@ -22,6 +22,7 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -46,7 +47,7 @@ class CraftInlineFailure extends StatelessWidget {
     if (failure is CraftCreditsFailure) {
       return (
         label: creditsCtaLabel(l10n),
-        onPressed: () => unawaited(context.push('/subscription')),
+        onPressed: () => unawaited(context.push(kSubscriptionRoutePath)),
       );
     }
     switch (failure.action) {
@@ -200,11 +201,7 @@ class CraftFailureCard extends StatelessWidget {
                       ),
                       if (showCreditsCta) ...[
                         SizedBox(height: t.space8),
-                        EnjoyButton.ghost(
-                          onPressed: () =>
-                              unawaited(context.push('/subscription')),
-                          child: Text(creditsCtaLabel(l10n)),
-                        ),
+                        const CreditsCtaButton(style: CreditsCtaStyle.ghost),
                       ],
                     ],
                   ),

@@ -5,6 +5,7 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_source_title.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_ai_error.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard.dart';
@@ -71,12 +72,13 @@ VocabularyFlashcard _card({
   VocabularyContext? primaryContext,
   bool flipped = true,
   VoidCallback? onUnflip,
+  FlashcardFetchState fetchState = const FlashcardFetchState(),
 }) {
   return VocabularyFlashcard(
     item: item ?? _item(),
     primaryContext: primaryContext ?? _context(),
     flipped: flipped,
-    fetchState: const FlashcardFetchState(),
+    fetchState: fetchState,
     actions: FlashcardActions(
       onFlip: () {},
       onUnflip: onUnflip ?? () {},
@@ -90,6 +92,8 @@ VocabularyFlashcard _card({
 }
 
 void main() {
+  final l10n = lookupAppLocalizations(const Locale('en'));
+
   test('formatIpaWithSlashes strips duplicate slashes', () {
     expect(formatIpaWithSlashes('ɪnˈvɪʒən'), '/ɪnˈvɪʒən/');
     expect(formatIpaWithSlashes('/ɪnˈvɪʒən/'), '/ɪnˈvɪʒən/');
@@ -223,6 +227,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Test Talk Title'), findsOneWidget);
     expect(find.text('v1'), findsNothing);
+  });
+
+  testWidgets('Context tab shows the credits CTA after a credits rejection', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        _card(
+          fetchState: const FlashcardFetchState(
+            contextualError: kVocabularyAiErrorCredits,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text(l10n.subscriptionCreditsLimitMessageWithPackages),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
+    expect(find.text(l10n.vocabularyAiFetchFailed), findsNothing);
   });
 
   testWidgets('Context tab falls back when title missing', (tester) async {

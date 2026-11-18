@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -119,6 +120,83 @@ void main() {
 
     expect(find.byType(SnackBar), findsOneWidget);
     expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
+  });
+
+  group('CreditsCtaButton', () {
+    Future<void> pumpCta(
+      WidgetTester tester, {
+      CreditsCtaStyle style = CreditsCtaStyle.text,
+    }) async {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => Scaffold(
+              body: Center(child: CreditsCtaButton(style: style)),
+            ),
+          ),
+          GoRoute(
+            path: kSubscriptionRoutePath,
+            builder: (context, state) =>
+                const Scaffold(body: Text('subscription-page')),
+          ),
+        ],
+      );
+
+      final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: ThemeData(
+            colorScheme: scheme,
+            extensions: [EnjoyThemeTokens.build(scheme)],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('shows the unified label and navigates to the subscription', (
+      tester,
+    ) async {
+      await pumpCta(tester);
+
+      expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
+
+      await tester.tap(find.text(l10n.subscriptionViewPlansAndPackages));
+      await tester.pumpAndSettle();
+
+      expect(find.text('subscription-page'), findsOneWidget);
+    });
+
+    testWidgets('the brand style keeps the same label and destination', (
+      tester,
+    ) async {
+      await pumpCta(tester, style: CreditsCtaStyle.brand);
+
+      expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
+
+      await tester.tap(find.text(l10n.subscriptionViewPlansAndPackages));
+      await tester.pumpAndSettle();
+
+      expect(find.text('subscription-page'), findsOneWidget);
+    });
+
+    testWidgets('the ghost style keeps the same label and destination', (
+      tester,
+    ) async {
+      await pumpCta(tester, style: CreditsCtaStyle.ghost);
+
+      expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
+
+      await tester.tap(find.text(l10n.subscriptionViewPlansAndPackages));
+      await tester.pumpAndSettle();
+
+      expect(find.text('subscription-page'), findsOneWidget);
+    });
   });
 
   group('purchaseErrorMessage', () {
