@@ -11,4 +11,6 @@
 - Maintainer (an-lee) merges perf PRs within ~1-2 days usually; #1389 merged same-evening.
 - Read-only toolcache gotcha: a standalone `dart format` from an SDK that cannot resolve the package (pre-pub-get) silently formats with default options — it inserted an import blank line the canonical formatter does not produce. Always run the format gate AFTER `pub get` succeeded, and diff-check formatter churn beyond your edit (`git stash` + gate on pristine main isolates who introduced it).
 - Killed background `pub get` can leave an orphan holding the pub-cache lock; a resumed run then stalls at "Resolving dependencies..." with a cache that stops growing. Check `ps aux | grep dart`, kill orphans, re-run.
+- 2026-11-18: pub get can also stall at "Downloading packages..." AFTER resolution (lockfile written, hosted cache flat, no `.dart_tool/package_config.json`, worker at ~0 CPU) — same fix: kill dart orphans, warm re-run completes.
+- Run `check_dart_format.sh` with the writable SDK first on `PATH` — it otherwise invokes the read-only toolcache wrapper and errors on `engine.stamp`.
 - Integrity policy on this repo's GitHub MCP: some issue/PR comments are unreadable (filtered) — work from issue bodies and visible metadata.
