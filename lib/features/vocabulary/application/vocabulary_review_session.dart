@@ -24,6 +24,7 @@ import 'package:enjoy_player/features/player/application/player_controller.dart'
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_media.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session_state.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_ai_error.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_review_practice.dart';

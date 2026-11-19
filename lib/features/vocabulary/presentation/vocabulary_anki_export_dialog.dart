@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/platform/file_share_export.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -72,7 +73,7 @@ class _VocabularyAnkiExportDialogState
                   EnjoyButton.brand(
                     onPressed: () async {
                       Navigator.of(context).pop();
-                      await context.push('/subscription');
+                      await context.push(kSubscriptionRoutePath);
                     },
                     child: Text(l10n.vocabularyUpgradeToPro),
                   ),

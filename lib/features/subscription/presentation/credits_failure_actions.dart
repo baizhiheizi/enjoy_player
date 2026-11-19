@@ -2,9 +2,10 @@
 ///
 /// The single presentation seam for credits-exhausted rejections across all
 /// AI surfaces (spec 045): a shared localized message builder (with credit
-/// numbers when the worker envelope was parsed), the unified CTA label, and
-/// the snackbar helper. Inline idioms reuse [creditsFailureMessage] and
-/// [creditsCtaLabel] with the same `/subscription` destination.
+/// numbers when the worker envelope was parsed), the unified CTA label, the
+/// CTA button, and the snackbar helper. Inline idioms reuse
+/// [creditsFailureMessage] and [CreditsCtaButton] so every surface shows the
+/// same message and the same destination.
 library;
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:intl/intl.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/route_paths.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Builds the user-facing message for [failure].
@@ -44,6 +46,59 @@ String creditsFailureMessage(CreditsFailure failure, AppLocalizations l10n) {
 /// Unified CTA label for every credits-error surface (spec 045 FR-003).
 String creditsCtaLabel(AppLocalizations l10n) =>
     l10n.subscriptionViewPlansAndPackages;
+
+/// The button treatment a credits CTA takes in its host surface.
+enum CreditsCtaStyle {
+  /// Inline text button, beside an error message.
+  text,
+
+  /// Brand button — the one primary action of a callout.
+  brand,
+
+  /// Ghost button — the low-emphasis action of a failure card.
+  ghost,
+}
+
+/// The credits CTA button: the unified label and the `/subscription`
+/// destination in one widget, so every credits surface offers the same
+/// one-tap recovery path (spec 045 FR-003).
+class CreditsCtaButton extends StatelessWidget {
+  const CreditsCtaButton({super.key, this.style = CreditsCtaStyle.text});
+
+  /// The treatment to render; defaults to the inline text button.
+  final CreditsCtaStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final label = Text(creditsCtaLabel(l10n));
+    return switch (style) {
+      CreditsCtaStyle.text => TextButton(
+        onPressed: () => context.push(kSubscriptionRoutePath),
+        child: label,
+      ),
+      CreditsCtaStyle.brand => EnjoyButton.brand(
+        size: EnjoyButtonSize.small,
+        onPressed: () => context.push(kSubscriptionRoutePath),
+        child: label,
+      ),
+      CreditsCtaStyle.ghost => EnjoyButton.ghost(
+        onPressed: () => context.push(kSubscriptionRoutePath),
+        child: label,
+      ),
+    };
+  }
+}
+
+/// The credits CTA as a notice action — the label and the destination in one
+/// record, for surfaces that report the failure as an [AppNotice] toast.
+///
+/// [router] is captured by the caller so the action stays safe to press after
+/// the originating widget is gone.
+AppNoticeAction creditsCtaAction(GoRouter router, AppLocalizations l10n) => (
+  label: creditsCtaLabel(l10n),
+  onPressed: () => router.push(kSubscriptionRoutePath),
+);
 
 /// Shows the credits error as an [AppNotice.error] snackbar with the
 /// one-tap CTA to the subscription screen (plans + credits packages).

@@ -1,6 +1,7 @@
 /// Sidebar account entry: sign-in or profile shortcut.
 library;
 
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,7 +88,7 @@ class SidebarAccountChip extends ConsumerWidget {
               trailing: isFree
                   ? _SidebarUpgradeButton(
                       label: l10n.subscriptionUpgradeShort,
-                      onPressed: () => context.push('/subscription'),
+                      onPressed: () => context.push(kSubscriptionRoutePath),
                     )
                   : Icon(EnjoyIcons.chevronRight, size: 14, color: t.ink3),
               onTap: () => context.go('/profile'),

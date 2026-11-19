@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
@@ -215,14 +214,11 @@ List<Widget> buildTrackListBody({
                 ),
               if (autoTranslateState.blockReason ==
                   AutoTranslateBlockReason.credits)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(12, 0, 12, 8),
                   child: Align(
                     alignment: AlignmentDirectional.centerStart,
-                    child: TextButton(
-                      onPressed: () => context.push('/subscription'),
-                      child: Text(creditsCtaLabel(l10n)),
-                    ),
+                    child: CreditsCtaButton(),
                   ),
                 ),
               if (!signedIn &&

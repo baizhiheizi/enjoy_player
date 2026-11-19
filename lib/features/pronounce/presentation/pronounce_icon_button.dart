@@ -104,10 +104,7 @@ class PronounceIconButton extends ConsumerWidget {
         AppNotice.warning(
           context,
           creditsFailureMessage(failure, l10n),
-          action: (
-            label: creditsCtaLabel(l10n),
-            onPressed: () => router.push('/subscription'),
-          ),
+          action: creditsCtaAction(router, l10n),
         );
       } on AppFailure {
         if (!context.mounted) return;

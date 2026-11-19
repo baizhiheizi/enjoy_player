@@ -113,16 +113,16 @@ mixin VocabularyReviewSessionFetches on VocabularyReviewSessionBase {
       final json = encode(result);
       final persisted = await persist(json);
       if (persisted == null) {
-        state = onError('persist_failed');
+        state = onError(kVocabularyAiErrorPersistFailed);
         return;
       }
       state = onPersisted(persisted);
     } on CreditsFailure catch (failure, st) {
       _log.warning('$creditsSurface rejected: credits', failure, st);
-      state = onError('credits');
+      state = onError(kVocabularyAiErrorCredits);
     } catch (e, st) {
       _log.warning('$failureSurface failed', e, st);
-      state = onError('fetch_failed');
+      state = onError(kVocabularyAiErrorFetchFailed);
     }
   }
 }

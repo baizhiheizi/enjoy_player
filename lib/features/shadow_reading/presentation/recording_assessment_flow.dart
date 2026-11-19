@@ -156,10 +156,7 @@ Future<void> triggerRecordingAssessment({
           creditsFailure: creditsFailure,
         ),
         action: kind == RecordingAssessmentFailureKind.credits
-            ? (
-                label: creditsCtaLabel(l10n),
-                onPressed: () => router.push('/subscription'),
-              )
+            ? creditsCtaAction(router, l10n)
             : null,
       );
   }

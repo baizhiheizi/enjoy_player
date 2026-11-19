@@ -456,6 +456,10 @@ Empty states: no words; no due with **Custom review** CTA in the empty panel (no
 
 **Flashcard wiring:** the card's state travels as three bundles — [`FlashcardFetchState`](../../lib/features/vocabulary/presentation/vocabulary_flashcard_state.dart) (in-flight flags + error strings), `FlashcardContextState` (context pager position) and `FlashcardActions` (callbacks + the gate that disables them while a practice sheet owns the input). The session screen builds them once from the session state; the card, its back face and the context tab pass the same objects down, so a new flashcard action or fetch state reaches every layer through one place.
 
+**Failed AI fetches:** the Context and Dictionary tabs share one error surface — [`FlashcardAiErrorRetry`](../../lib/features/vocabulary/presentation/widgets/flashcard_ai_error_retry.dart) — so a failed fetch reads the same on both tabs: the soft-error banner, then the **View plans & packages** CTA when the worker rejected the request for credits, then the tab's own retry action. The error strings are the `kVocabularyAiError*` sentinels from [`vocabulary_ai_error.dart`](../../lib/features/vocabulary/domain/vocabulary_ai_error.dart); the CTA itself comes from the shared credits seam ([subscription.md](subscription.md#credits-error-seam)).
+
+Sharing the surface also aligned the Dictionary tab's geometry with the Context tab's: its credits error now reads **banner → CTA → retry** (the CTA used to sit below the retry), and on *both* its failure paths the retry action is content-width rather than full-width, with an 8 px gap after the banner instead of 12 px. The Context tab's error layout is unchanged — it already matched the shared surface.
+
 ### Word list
 
 - One toolbar: search + filter toggle + Export. On **mobile** the filter
@@ -739,6 +743,7 @@ The flashcard and related UI were extracted from a single file into focused modu
 | [`widgets/vocabulary_review_launch.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_review_launch.dart) | `startVocabularyReview` — shared review-session launch helper |
 | [`widgets/vocabulary_empty_states.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_empty_states.dart) | `VocabularyEmptyState` — reusable empty states (no words / no due / no matches) |
 | [`widgets/flashcard_soft_error.dart`](../../lib/features/vocabulary/presentation/widgets/flashcard_soft_error.dart) | `FlashcardSoftError` — reusable error banner widget |
+| [`widgets/flashcard_ai_error_retry.dart`](../../lib/features/vocabulary/presentation/widgets/flashcard_ai_error_retry.dart) | `FlashcardAiErrorRetry` — the failed-AI-fetch surface shared by the Context and Dictionary tabs: soft-error banner, the credits CTA, and the retry action |
 
 ---
 

@@ -2,6 +2,7 @@ import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_ai_error.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_flashcard_dictionary_tab.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -35,6 +36,8 @@ Widget _wrap(Widget child, {required List<Override> overrides}) {
 }
 
 void main() {
+  final l10n = lookupAppLocalizations(const Locale('en'));
+
   testWidgets('auto-fetches dictionary when signed in and cache empty', (
     tester,
   ) async {
@@ -101,6 +104,54 @@ void main() {
     await tester.tap(find.text('Look up dictionary'));
     await tester.pump();
     expect(fetchCount, 1);
+  });
+
+  testWidgets('a credits rejection shows the credits message and the CTA', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        FlashcardDictionaryTab(
+          explanation: null,
+          fetchInFlight: false,
+          error: kVocabularyAiErrorCredits,
+          onFetch: () {},
+        ),
+        overrides: [authCtrlProvider.overrideWith(_AuthSignedInCtrl.new)],
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.text(l10n.subscriptionCreditsLimitMessageWithPackages),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
+    expect(find.text(l10n.vocabularyAiFetchFailed), findsNothing);
+  });
+
+  testWidgets('a non-credits failure shows the generic message and no CTA', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        FlashcardDictionaryTab(
+          explanation: null,
+          fetchInFlight: false,
+          error: kVocabularyAiErrorFetchFailed,
+          onFetch: () {},
+        ),
+        overrides: [authCtrlProvider.overrideWith(_AuthSignedInCtrl.new)],
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text(l10n.vocabularyAiFetchFailed), findsOneWidget);
+    expect(
+      find.text(l10n.subscriptionCreditsLimitMessageWithPackages),
+      findsNothing,
+    );
+    expect(find.text(l10n.subscriptionViewPlansAndPackages), findsNothing);
   });
 
   testWidgets('does not auto-fetch when signed out', (tester) async {

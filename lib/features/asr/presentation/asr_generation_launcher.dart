@@ -101,12 +101,7 @@ Future<void> launchAsrGeneration(
       failure != null && failure.requiredCredits != null
           ? creditsFailureMessage(failure, l10n)
           : asrMessageForKey(l10n, job.errorMessage),
-      action: failure == null
-          ? null
-          : (
-              label: creditsCtaLabel(l10n),
-              onPressed: () => router.push('/subscription'),
-            ),
+      action: failure == null ? null : creditsCtaAction(router, l10n),
     );
   }
 }

@@ -2,21 +2,19 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/lookup_markdown_style.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
-import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_media.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_source_title.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard_state.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_text_style.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/widgets/flashcard_ai_error_retry.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/flashcard_soft_error.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_context_pager.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -204,32 +202,10 @@ class FlashcardContextTab extends ConsumerWidget {
             ),
           )
         else ...[
-          if (fetchState.contextualError != null)
-            Padding(
-              padding: EdgeInsets.only(bottom: t.space8),
-              child: FlashcardSoftError(
-                message: fetchState.contextualError == 'credits'
-                    ? l10n.subscriptionCreditsLimitMessageWithPackages
-                    : l10n.vocabularyAiFetchFailed,
-              ),
-            ),
-          if (fetchState.contextualError == 'credits')
-            Padding(
-              padding: EdgeInsets.only(bottom: t.space8),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton(
-                  onPressed: () => context.push('/subscription'),
-                  child: Text(creditsCtaLabel(l10n)),
-                ),
-              ),
-            ),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: EnjoyButton.secondary(
-              onPressed: actions.onFetchContextual,
-              child: Text(l10n.vocabularyFetchContextual),
-            ),
+          FlashcardAiErrorRetry(
+            error: fetchState.contextualError,
+            onRetry: actions.onFetchContextual,
+            retryLabel: l10n.vocabularyFetchContextual,
           ),
         ],
       ],
