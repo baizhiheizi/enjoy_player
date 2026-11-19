@@ -97,7 +97,11 @@ class _StubAuthController extends AuthCtrl {
   Future<AuthState> build() async => _initial;
 }
 
-Widget _wrap({required _StubCreditsApi stub, required AuthState auth}) {
+Widget _wrap({
+  required _StubCreditsApi stub,
+  required AuthState auth,
+  Locale? locale,
+}) {
   return ProviderScope(
     overrides: [
       authCtrlProvider.overrideWith(() => _StubAuthController(auth)),
@@ -114,15 +118,16 @@ Widget _wrap({required _StubCreditsApi stub, required AuthState auth}) {
         ),
       ),
     ],
-    child: const MaterialApp(
-      localizationsDelegates: [
+    child: MaterialApp(
+      locale: locale,
+      localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: CreditsUsageScreen(),
+      home: const CreditsUsageScreen(),
     ),
   );
 }
@@ -251,6 +256,44 @@ void main() {
     expect(find.byType(UsageTable), findsOneWidget);
     expect(find.text(DateFormat.Hm().format(local)), findsOneWidget);
   });
+
+  testWidgets(
+    'usage timestamps follow the app display language, not the intl default',
+    (tester) async {
+      final previousDefault = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previousDefault);
+      Intl.defaultLocale = 'en_US';
+
+      tester.view.physicalSize = const Size(420, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final log = _logFixture();
+      final local = DateTime.fromMillisecondsSinceEpoch(
+        log.timestampMs,
+        isUtc: true,
+      ).toLocal();
+
+      final stub = _StubCreditsApi(_fakeApiClient())
+        ..nextPage = CreditsUsagePage(logs: [log], hasMore: false);
+      await tester.pumpWidget(
+        _wrap(
+          stub: stub,
+          auth: AuthSignedIn(profile: _stubProfile()),
+          locale: const Locale('zh', 'CN'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final displayLocaleForm = DateFormat.yMMMd(
+        'zh_CN',
+      ).add_jm().format(local);
+      final intlDefaultForm = DateFormat.yMMMd().add_jm().format(local);
+      expect(displayLocaleForm, isNot(intlDefaultForm));
+      expect(find.text(displayLocaleForm), findsOneWidget);
+      expect(find.text(intlDefaultForm), findsNothing);
+    },
+  );
 
   testWidgets('a wide viewport renders the usage table, not the cards', (
     tester,

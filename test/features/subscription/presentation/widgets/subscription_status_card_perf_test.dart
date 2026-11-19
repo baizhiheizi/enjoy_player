@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -21,14 +22,11 @@ void _sink(String output) {
   _benchSink += output.length;
 }
 
-final Map<String, DateFormat> _statusDateReplica = <String, DateFormat>{};
-
 String _freshStatusDate(DateTime at, String locale) =>
     DateFormat.yMMMMd(locale).format(at);
 
-String _cachedStatusDate(DateTime at, String locale) => _statusDateReplica
-    .putIfAbsent(locale, () => DateFormat.yMMMMd(locale))
-    .format(at);
+String _cachedStatusDate(DateTime at, String locale) =>
+    cachedDateFormat('yMMMMd', locale).format(at);
 
 String _freshCreditsNumber(num value) =>
     NumberFormat.decimalPattern().format(value);
