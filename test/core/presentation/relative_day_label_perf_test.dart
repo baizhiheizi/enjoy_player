@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/presentation/relative_day_label.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
@@ -19,8 +20,6 @@ final List<DateTime> _kRows = <DateTime>[
 
 final DateTime _kNow = DateTime(2026, 9, 29, 14, 30);
 
-final Map<String, DateFormat> _craftCacheReplica = <String, DateFormat>{};
-
 String _legacyRelativeDayLabel(
   AppLocalizations l10n,
   String locale,
@@ -38,9 +37,8 @@ String _legacyRelativeDayLabel(
 String _freshCraftSubtitle(DateTime at) =>
     DateFormat.yMMMd().add_jm().format(at);
 
-String _cachedCraftSubtitle(DateTime at, String locale) => _craftCacheReplica
-    .putIfAbsent(locale, () => DateFormat.yMMMd(locale).add_jm())
-    .format(at);
+String _cachedCraftSubtitle(DateTime at, String locale) =>
+    cachedDateFormat('yMMMd jm', locale).format(at);
 
 List<double> _benchRounds(String Function(DateTime at) pass, String tag) {
   final medians = <double>[];

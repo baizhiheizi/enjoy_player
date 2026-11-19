@@ -4,8 +4,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
@@ -44,7 +44,7 @@ class LookupCreditsChip extends ConsumerWidget {
     final remaining = summary.dailyRemaining.clamp(0, limit);
     final isLow = creditsLow(used: limit - remaining, limit: limit);
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final count = NumberFormat.decimalPattern(locale).format(remaining);
+    final count = cachedDecimalPattern(locale).format(remaining);
     final label = isLow
         ? l10n.lookupCreditsRunningLowLabel(count)
         : l10n.lookupCreditsRemainingLabel(count);

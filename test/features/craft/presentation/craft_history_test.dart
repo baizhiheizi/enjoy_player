@@ -34,7 +34,7 @@ Media _craftMedia({
   );
 }
 
-Widget _harness({required List<Media> items}) {
+Widget _harness({required List<Media> items, Locale? locale}) {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
   final router = GoRouter(
     initialLocation: '/craft/history',
@@ -55,6 +55,7 @@ Widget _harness({required List<Media> items}) {
         colorScheme: scheme,
         extensions: [EnjoyThemeTokens.build(scheme)],
       ),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
@@ -124,6 +125,41 @@ void main() {
       ];
       expect(find.text(subtitles[0]), findsOneWidget);
       expect(find.text(subtitles[1]), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'CraftHistoryScreen subtitles follow the app display language, not the '
+    'intl default',
+    (tester) async {
+      final previousDefault = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previousDefault);
+      Intl.defaultLocale = 'en_US';
+
+      final time = DateTime.utc(2026, 7, 23, 12, 30);
+      await tester.pumpWidget(
+        _harness(
+          items: [
+            _craftMedia(
+              id: 'a',
+              title: 'Display language row',
+              updatedAt: time,
+            ),
+          ],
+          locale: const Locale('zh', 'CN'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final displayLocaleForm = DateFormat.yMMMd(
+        'zh_CN',
+      ).add_jm().format(time.toLocal());
+      final intlDefaultForm = DateFormat.yMMMd().add_jm().format(
+        time.toLocal(),
+      );
+      expect(displayLocaleForm, isNot(intlDefaultForm));
+      expect(find.text(displayLocaleForm), findsOneWidget);
+      expect(find.text(intlDefaultForm), findsNothing);
     },
   );
 

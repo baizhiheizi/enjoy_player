@@ -3,8 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
@@ -25,10 +25,6 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-
-final Map<String, DateFormat> _lastSyncTimeCache = {};
-final Map<String, DateFormat> _lastSyncShortDateCache = {};
-final Map<String, DateFormat> _lastSyncYearDateCache = {};
 
 enum _SyncAction { sync, retry, repullVocabulary }
 
@@ -134,10 +130,7 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
     final lastSyncAsync = ref.watch(syncLastFullSyncAtProvider);
 
     final locale = Localizations.localeOf(context).toString();
-    final timeFmt = _lastSyncTimeCache.putIfAbsent(
-      locale,
-      () => DateFormat.Hm(locale),
-    );
+    final timeFmt = cachedDateFormat('Hm', locale);
 
     Widget lastSyncText(AppLocalizations l10n, String? iso) {
       if (iso == null || iso.isEmpty) {
@@ -162,14 +155,8 @@ class _SignedInBodyState extends ConsumerState<_SignedInBody> {
         sameDay
             ? l10n.syncLastSyncToday(timeFmt.format(parsed))
             : (parsed.year == now.year
-                      ? _lastSyncShortDateCache.putIfAbsent(
-                          locale,
-                          () => DateFormat.MMMd(locale).add_Hm(),
-                        )
-                      : _lastSyncYearDateCache.putIfAbsent(
-                          locale,
-                          () => DateFormat.yMMMd(locale).add_Hm(),
-                        ))
+                      ? cachedDateFormat('MMMd Hm', locale)
+                      : cachedDateFormat('yMMMd Hm', locale))
                   .format(parsed),
         style: enjoyDisplayStyle(context, size: 24, color: t.ink),
       );

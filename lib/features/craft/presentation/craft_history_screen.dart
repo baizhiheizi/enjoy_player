@@ -6,8 +6,8 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -162,9 +162,9 @@ class _CraftHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final dateFmt = _subtitleDateCache.putIfAbsent(
-      Intl.getCurrentLocale(),
-      () => DateFormat.yMMMd().add_jm(),
+    final dateFmt = cachedDateFormat(
+      'yMMMd jm',
+      Localizations.localeOf(context).toLanguageTag(),
     );
 
     return SettingsRow(
@@ -183,5 +183,3 @@ class _CraftHistoryTile extends StatelessWidget {
     );
   }
 }
-
-final Map<String, DateFormat> _subtitleDateCache = {};

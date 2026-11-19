@@ -263,6 +263,8 @@ All failures go through the `CraftFailure` sealed hierarchy (`lib/features/craft
 
 **All-or-nothing write**: Translation, synthesis, and save run in a single try block. If any stage fails, no repository write happens — no orphan transcript rows or audio files.
 
+**One AI-call runner**: the translate, rewrite, and ASR stages all run through `runCraftAiCall` ([`lib/features/craft/application/craft_controller_core.dart`](../../lib/features/craft/application/craft_controller_core.dart)), which owns the try / credits / generic arms. A credits rejection always becomes `CraftCreditsFailure`; a generic error becomes the stage's own failure (`CraftTranslateFailure` for translate and rewrite, `CraftAsrFailure` for ASR). Each caller keeps its own log wording through the `logLabel` / `surface` pair (`craft.translate` / "Translate", `craft.rewrite` / "Rewrite", `craft.asr` / "ASR") and its own success patch, so a new busy flag or failure kind lands in one place.
+
 ## v1 limits and out-of-scope
 
 | Constraint | Detail |
@@ -296,7 +298,7 @@ No `isWide` width calculations or ad-hoc max widths live in Craft widgets — al
 | **AI wiring** | `EnjoyTtsCapability` (`lib/features/ai/data/enjoy/`), `ChatService` / `TtsService` / `AsrService` providers |
 | **Native plugin** | [`packages/azure_speech`](../../packages/azure_speech/) (synthesize, word boundary events) |
 
-`CraftController` is assembled from one mixin per pipeline so no single file owns the whole Craft surface: `CraftControllerCore` (hydration latch, language/voice helpers), `CraftTranslateMixin` (text inputs + translation), `CraftSynthesizeMixin` (voice inputs + TTS + audio handoff), `CraftCaptureMixin` (capture, ASR, rewrite), and `CraftLibraryMixin` (save, dedup, edit restore). The three service providers live in `craft_service_providers.dart` and are re-exported by `craft_controller.dart`, so the public import surface (`CraftController`, `craftControllerProvider`, `craftSynthesizerProvider`, `craftTranslatorProvider`, `craftTranscriberProvider`) is unchanged.
+`CraftController` is assembled from one mixin per pipeline so no single file owns the whole Craft surface: `CraftControllerCore` (hydration latch, language/voice helpers, the shared `runCraftAiCall` runner), `CraftTranslateMixin` (text inputs + translation), `CraftSynthesizeMixin` (voice inputs + TTS + audio handoff), `CraftCaptureMixin` (capture, ASR, rewrite), and `CraftLibraryMixin` (save, dedup, edit restore). The three service providers live in `craft_service_providers.dart` and are re-exported by `craft_controller.dart`, so the public import surface (`CraftController`, `craftControllerProvider`, `craftSynthesizerProvider`, `craftTranslatorProvider`, `craftTranscriberProvider`) is unchanged.
 
 ## Test pointers
 

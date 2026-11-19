@@ -17,15 +17,12 @@ import 'package:enjoy_player/features/credits/presentation/credits_usage_filters
 import 'package:enjoy_player/features/credits/presentation/credits_usage_format.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_states.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 const double _kCellGutter = 16;
 const double _kLogsWideBreakpoint = 720;
-
-final Map<String, DateFormat> _tableTimeCache = {};
-final Map<String, DateFormat> _cardTimestampCache = {};
 
 Widget creditsUsageLogsSliverGroup(
   BuildContext context, {
@@ -147,10 +144,7 @@ class UsageTable extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-    final tf = _tableTimeCache.putIfAbsent(
-      Intl.getCurrentLocale(),
-      () => DateFormat.Hm(),
-    );
+    final tf = cachedDateFormat('Hm', localeName);
     final number = cachedDecimalPattern(localeName);
     final cell = enjoyMonoStyle(context, size: 12.5, color: t.ink);
     final cellMuted = enjoyMonoStyle(context, size: 12.5, color: t.ink3);
@@ -266,9 +260,7 @@ class UsageLogCard extends StatelessWidget {
       log.timestampMs,
       isUtc: true,
     ).toLocal();
-    final whenText = _cardTimestampCache
-        .putIfAbsent(localeName, () => DateFormat.yMMMd(localeName).add_jm())
-        .format(when);
+    final whenText = cachedDateFormat('yMMMd jm', localeName).format(when);
     final statusLabel = log.allowed
         ? l10n.creditsUsageAllowed
         : l10n.creditsUsageDenied;

@@ -46,6 +46,16 @@ One stroke family — **Phosphor** (MIT) vendored as `PhosphorRegular` / `Phosph
 
 Duet light + dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0093); `duet_tokens_test.dart` pins each theme's values to `tokens.json`. `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
 
+## Localization formatters
+
+Number and date formatting goes through two shared, process-level memo caches — [`lib/core/format/cached_number_format.dart`](../../lib/core/format/cached_number_format.dart) (`cachedDecimalPattern`, `cachedNumberFormat`) and [`lib/core/format/cached_date_format.dart`](../../lib/core/format/cached_date_format.dart) (`cachedDateFormat`). Both key on the **canonicalized** locale, so `zh-CN` and `zh_CN` share one entry instead of two.
+
+`cachedDateFormat` takes a space-separated list of CLDR skeletons (`'yMMMd jm'`), and every part resolves through the locale's preferred pattern — the output is byte-identical to `DateFormat.yMMMd(locale).add_jm()`.
+
+**Call sites key on the app's display locale**, not intl's process default: widget code passes `Localizations.localeOf(context)` (or `AppLocalizations.localeName` where no `BuildContext` is available). The app's display locale is the user's pick (default `zh_CN`), while `Intl.getCurrentLocale()` returns intl's built-in **`en_US`** — nothing in the app calls `findSystemLocale()` or sets `Intl.defaultLocale`, so that value never follows the user's pick. A surface keyed on it renders hardcoded English whatever language the UI is in, and must not key a formatter.
+
+**Regression checks:** [`test/core/format/cached_date_format_test.dart`](../../test/core/format/cached_date_format_test.dart) pins the shared date cache (instance identity, locale canonicalization, byte-identical output against every constructor shape it replaces) and [`test/core/presentation/date_format_caches_shapes_test.dart`](../../test/core/presentation/date_format_caches_shapes_test.dart) pins each dated surface against fresh per-row construction. The display-locale rule is pinned by widget tests that set the app locale to `zh_CN` while intl's default stays `en_US` — [`test/features/craft/presentation/craft_history_test.dart`](../../test/features/craft/presentation/craft_history_test.dart) and [`test/features/credits/presentation/credits_usage_screen_test.dart`](../../test/features/credits/presentation/credits_usage_screen_test.dart) — because `en` and `en_US` share identical CLDR skeletons, so only a locale that differs from `en_US` can tell the two apart.
+
 ## Startup preferences
 
 `AppPreferencesCtrl` ([`lib/core/application/app_preferences_provider.dart`](../../lib/core/application/app_preferences_provider.dart)) resolves the four shell preferences — `prefs.locale`, `prefs.learning_language`, `prefs.native_language`, `prefs.theme_mode` — before the app renders its router, so its reads sit on the **signed-in cold-start critical path**.

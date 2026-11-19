@@ -6,10 +6,10 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/presentation/relative_day_label.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
@@ -38,8 +38,6 @@ import '../application/library_media_provider.dart';
 import '../domain/media.dart';
 import 'library_actions.dart';
 import 'widgets/library_media_card.dart';
-
-final Map<String, DateFormat> _homeDateOverlineCache = {};
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -223,9 +221,7 @@ class _HomeHeader extends ConsumerWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     return EditorialHeader(
       widthMode: EditorialHeaderWidthMode.browse,
-      overline: _homeDateOverlineCache
-          .putIfAbsent(locale, () => DateFormat.MMMMEEEEd(locale))
-          .format(now),
+      overline: cachedDateFormat('MMMMEEEEd', locale).format(now),
       title: firstName == null
           ? greeting
           : l10n.homeGreetingNamed(greeting, firstName),
