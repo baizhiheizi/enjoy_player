@@ -7,7 +7,7 @@ final Map<String, NumberFormat> _decimalPatternCache = <String, NumberFormat>{};
 final Map<String, NumberFormat> _patternCache = <String, NumberFormat>{};
 
 NumberFormat cachedDecimalPattern([String? locale]) {
-  final key = locale ?? Intl.getCurrentLocale();
+  final key = Intl.canonicalizedLocale(locale);
   return _decimalPatternCache.putIfAbsent(
     key,
     () => NumberFormat.decimalPattern(locale),
@@ -15,6 +15,6 @@ NumberFormat cachedDecimalPattern([String? locale]) {
 }
 
 NumberFormat cachedNumberFormat(String pattern, [String? locale]) {
-  final key = '$pattern\u0000${locale ?? Intl.getCurrentLocale()}';
+  final key = '$pattern\u0000${Intl.canonicalizedLocale(locale)}';
   return _patternCache.putIfAbsent(key, () => NumberFormat(pattern, locale));
 }

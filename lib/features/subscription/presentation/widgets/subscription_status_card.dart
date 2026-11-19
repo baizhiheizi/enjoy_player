@@ -5,8 +5,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -351,16 +351,12 @@ class _PaidMembershipCard extends StatelessWidget {
   }
 }
 
-final Map<String, DateFormat> _statusDateCache = {};
-
 String? _formatDate(BuildContext context, String? iso) {
   if (iso == null || iso.isEmpty) return null;
   try {
     final date = DateTime.parse(iso).toLocal();
     final locale = Localizations.localeOf(context).toString();
-    return _statusDateCache
-        .putIfAbsent(locale, () => DateFormat.yMMMMd(locale))
-        .format(date);
+    return cachedDateFormat('yMMMMd', locale).format(date);
   } catch (_) {
     return iso;
   }

@@ -4,8 +4,6 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:enjoy_player/core/errors/app_failure.dart';
-import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller_core.dart';
 import 'package:enjoy_player/features/craft/application/craft_service_providers.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
@@ -68,28 +66,17 @@ mixin CraftCaptureMixin on CraftControllerCore {
 
     state = state.copyWith(isTranscribing: true, clearFailure: true);
 
-    String transcript;
-    try {
-      final transcriber = ref.read(craftTranscriberProvider);
-      transcript = await transcriber.transcribe(
-        audioBytes: audio,
-        language: state.sourceLanguage,
-      );
-    } on CreditsFailure catch (failure, st) {
-      logNamed('craft.asr').warning('ASR rejected: credits', failure, st);
-      state = state.copyWith(
-        isTranscribing: false,
-        failure: CraftCreditsFailure(failure),
-      );
-      return;
-    } catch (e, st) {
-      logNamed('craft.asr').warning('ASR failed: $e', e, st);
-      state = state.copyWith(
-        isTranscribing: false,
-        failure: const CraftAsrFailure(),
-      );
-      return;
-    }
+    final transcript = await runCraftAiCall<String>(
+      logLabel: 'craft.asr',
+      surface: 'ASR',
+      call: () => ref
+          .read(craftTranscriberProvider)
+          .transcribe(audioBytes: audio, language: state.sourceLanguage),
+      genericFailure: () => const CraftAsrFailure(),
+      clearTranslating: false,
+      clearTranscribing: true,
+    );
+    if (transcript == null) return;
 
     if (transcript.trim().length < craftMinTextLength) {
       state = state.copyWith(
@@ -115,41 +102,30 @@ mixin CraftCaptureMixin on CraftControllerCore {
       clearFailure: true,
     );
 
-    try {
-      final translator = ref.read(craftTranslatorProvider);
-      final result = await translator.translate(
-        text: transcript,
-        sourceLanguage: src ?? target,
-        targetLanguage: target,
-        style: state.style,
-        customPrompt: state.customPrompt,
-      );
-      state = state.copyWith(
-        translatedText: result,
+    await runCraftAiCall<String>(
+      logLabel: 'craft.rewrite',
+      surface: 'Rewrite',
+      call: () => ref
+          .read(craftTranslatorProvider)
+          .translate(
+            text: transcript,
+            sourceLanguage: src ?? target,
+            targetLanguage: target,
+            style: state.style,
+            customPrompt: state.customPrompt,
+          ),
+      onSuccess: (translated) => state.copyWith(
+        translatedText: translated,
         rewrittenFromTranscript: transcript,
         isTranslating: false,
         isTranscribing: false,
         stage: CraftStage.rewrite,
         selectedVoice: voiceMatchingLanguage(target, state.selectedVoice),
         synthLanguage: target,
-      );
-    } on CreditsFailure catch (failure, st) {
-      logNamed(
-        'craft.rewrite',
-      ).warning('Rewrite rejected: credits', failure, st);
-      state = state.copyWith(
-        isTranslating: false,
-        isTranscribing: false,
-        failure: CraftCreditsFailure(failure),
-      );
-    } catch (e, st) {
-      logNamed('craft.rewrite').warning('Rewrite failed: $e', e, st);
-      state = state.copyWith(
-        isTranslating: false,
-        isTranscribing: false,
-        failure: const CraftTranslateFailure(),
-      );
-    }
+      ),
+      genericFailure: () => const CraftTranslateFailure(),
+      clearTranscribing: true,
+    );
   }
 
   /// Re-run the LLM rewrite on existing transcript with current style.

@@ -10,9 +10,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
@@ -34,7 +34,10 @@ String creditsFailureMessage(CreditsFailure failure, AppLocalizations l10n) {
     final body = l10n.creditsExhaustedDetailed(required, remaining);
     final resetAt = failure.resetAt;
     if (resetAt != null) {
-      final time = DateFormat.jm().add_MEd().format(resetAt.toLocal());
+      final time = cachedDateFormat(
+        'jm MEd',
+        l10n.localeName,
+      ).format(resetAt.toLocal());
       return '$body ${l10n.creditsExhaustedResets(time)}';
     }
     return body;

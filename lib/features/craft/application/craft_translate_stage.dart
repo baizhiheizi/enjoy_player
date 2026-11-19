@@ -4,8 +4,6 @@ library;
 
 import 'dart:async';
 
-import 'package:enjoy_player/core/errors/app_failure.dart';
-import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller_core.dart';
 import 'package:enjoy_player/features/craft/application/craft_preferences_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_service_providers.dart';
@@ -83,30 +81,21 @@ mixin CraftTranslateMixin on CraftControllerCore {
 
     state = state.copyWith(isTranslating: true, clearFailure: true);
 
-    try {
-      final translator = ref.read(craftTranslatorProvider);
-      final result = await translator.translate(
-        text: normalized,
-        sourceLanguage: src,
-        targetLanguage: state.targetLanguage,
-        style: state.style,
-        customPrompt: state.customPrompt,
-      );
-      state = state.copyWith(translatedText: result, isTranslating: false);
-    } on CreditsFailure catch (failure, st) {
-      logNamed(
-        'craft.translate',
-      ).warning('Translate rejected: credits', failure, st);
-      state = state.copyWith(
-        isTranslating: false,
-        failure: CraftCreditsFailure(failure),
-      );
-    } catch (e, st) {
-      logNamed('craft.translate').warning('Translate failed: $e', e, st);
-      state = state.copyWith(
-        isTranslating: false,
-        failure: const CraftTranslateFailure(),
-      );
-    }
+    await runCraftAiCall<String>(
+      logLabel: 'craft.translate',
+      surface: 'Translate',
+      call: () => ref
+          .read(craftTranslatorProvider)
+          .translate(
+            text: normalized,
+            sourceLanguage: src,
+            targetLanguage: state.targetLanguage,
+            style: state.style,
+            customPrompt: state.customPrompt,
+          ),
+      onSuccess: (translated) =>
+          state.copyWith(translatedText: translated, isTranslating: false),
+      genericFailure: () => const CraftTranslateFailure(),
+    );
   }
 }

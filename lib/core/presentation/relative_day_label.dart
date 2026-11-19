@@ -1,5 +1,4 @@
-import 'package:intl/intl.dart';
-
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// `today`, `yesterday`, else a short date (`Sep 29`) in [locale].
@@ -13,12 +12,8 @@ String relativeDayLabel(
   final days = _calendarDaysBefore(reference, at);
   if (days == 0) return l10n.mediaRelativeToday;
   if (days == 1) return l10n.mediaRelativeYesterday;
-  return _shortDateCache
-      .putIfAbsent(locale, () => DateFormat.MMMd(locale))
-      .format(at);
+  return cachedDateFormat('MMMd', locale).format(at);
 }
-
-final Map<String, DateFormat> _shortDateCache = {};
 
 /// Calendar days between two local calendar dates, counted between UTC
 /// midnights so a DST transition cannot shorten a day to 23 hours.

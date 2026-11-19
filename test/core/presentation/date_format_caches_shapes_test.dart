@@ -1,3 +1,5 @@
+import 'package:enjoy_player/core/format/cached_date_format.dart';
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -20,66 +22,47 @@ void _sink(String output) {
   _benchSink += output.length;
 }
 
-final Map<String, DateFormat> _tableTimeReplica = <String, DateFormat>{};
-final Map<String, NumberFormat> _tableNumberReplica = <String, NumberFormat>{};
-final Map<String, DateFormat> _cardTimestampReplica = <String, DateFormat>{};
-final Map<String, DateFormat> _lastSyncTimeReplica = <String, DateFormat>{};
-final Map<String, DateFormat> _lastSyncShortDateReplica =
-    <String, DateFormat>{};
-final Map<String, DateFormat> _lastSyncYearDateReplica = <String, DateFormat>{};
-final Map<String, DateFormat> _homeDateOverlineReplica = <String, DateFormat>{};
+String _freshTableTime(DateTime at, String localeName) =>
+    DateFormat.Hm(localeName).format(at);
 
-String _freshTableTime(DateTime at) => DateFormat.Hm().format(at);
-
-String _cachedTableTime(DateTime at) => _tableTimeReplica
-    .putIfAbsent(Intl.getCurrentLocale(), () => DateFormat.Hm())
-    .format(at);
+String _cachedTableTime(DateTime at, String localeName) =>
+    cachedDateFormat('Hm', localeName).format(at);
 
 String _freshTableNumber(num value, String localeName) =>
     NumberFormat.decimalPattern(localeName).format(value);
 
-String _cachedTableNumber(num value, String localeName) => _tableNumberReplica
-    .putIfAbsent(localeName, () => NumberFormat.decimalPattern(localeName))
-    .format(value);
+String _cachedTableNumber(num value, String localeName) =>
+    cachedDecimalPattern(localeName).format(value);
 
 String _freshCardTimestamp(DateTime at, String localeName) =>
     DateFormat.yMMMd(localeName).add_jm().format(at);
 
 String _cachedCardTimestamp(DateTime at, String localeName) =>
-    _cardTimestampReplica
-        .putIfAbsent(localeName, () => DateFormat.yMMMd(localeName).add_jm())
-        .format(at);
+    cachedDateFormat('yMMMd jm', localeName).format(at);
 
 String _freshLastSyncTime(DateTime at, String locale) =>
     DateFormat.Hm(locale).format(at);
 
-String _cachedLastSyncTime(DateTime at, String locale) => _lastSyncTimeReplica
-    .putIfAbsent(locale, () => DateFormat.Hm(locale))
-    .format(at);
+String _cachedLastSyncTime(DateTime at, String locale) =>
+    cachedDateFormat('Hm', locale).format(at);
 
 String _freshLastSyncShortDate(DateTime at, String locale) =>
     DateFormat.MMMd(locale).add_Hm().format(at);
 
 String _cachedLastSyncShortDate(DateTime at, String locale) =>
-    _lastSyncShortDateReplica
-        .putIfAbsent(locale, () => DateFormat.MMMd(locale).add_Hm())
-        .format(at);
+    cachedDateFormat('MMMd Hm', locale).format(at);
 
 String _freshLastSyncYearDate(DateTime at, String locale) =>
     DateFormat.yMMMd(locale).add_Hm().format(at);
 
 String _cachedLastSyncYearDate(DateTime at, String locale) =>
-    _lastSyncYearDateReplica
-        .putIfAbsent(locale, () => DateFormat.yMMMd(locale).add_Hm())
-        .format(at);
+    cachedDateFormat('yMMMd Hm', locale).format(at);
 
 String _freshHomeOverline(DateTime at, String locale) =>
     DateFormat.MMMMEEEEd(locale).format(at);
 
 String _cachedHomeOverline(DateTime at, String locale) =>
-    _homeDateOverlineReplica
-        .putIfAbsent(locale, () => DateFormat.MMMMEEEEd(locale))
-        .format(at);
+    cachedDateFormat('MMMMEEEEd', locale).format(at);
 
 int _mismatchesAcross(
   String Function(DateTime, String) fresh,
@@ -133,12 +116,11 @@ void main() {
   });
 
   group('once-per-locale formatter caches match fresh construction', () {
-    test('usage table time cell (Hm, intl default locale)', () {
-      var mismatches = 0;
-      for (final at in _kTimestamps) {
-        if (_freshTableTime(at) != _cachedTableTime(at)) mismatches++;
-      }
-      expect(mismatches, 0);
+    test('usage table time cell (Hm)', () {
+      expect(
+        _mismatchesAcross(_freshTableTime, _cachedTableTime, _kTimestamps),
+        0,
+      );
     });
 
     test('usage table number cell (decimalPattern)', () {
@@ -223,7 +205,7 @@ void main() {
         _expectStable(() => _cachedLastSyncYearDate(at, locale));
         _expectStable(() => _cachedHomeOverline(at, locale));
       }
-      _expectStable(() => _cachedTableTime(at));
+      _expectStable(() => _cachedTableTime(at, 'en'));
       _expectStable(() => _cachedTableNumber(12345, 'en'));
     });
   });
@@ -270,7 +252,7 @@ void main() {
   test('bench (local only): usage table fresh formatters per build', () {
     final medians = _benchRounds(() {
       for (var build = 0; build < 25; build++) {
-        final tf = DateFormat.Hm();
+        final tf = DateFormat.Hm('en');
         final number = NumberFormat.decimalPattern('en');
         for (final at in _kTimestamps.take(50)) {
           _sink(tf.format(at));
@@ -284,14 +266,8 @@ void main() {
   test('bench (local only): usage table cached formatters per build', () {
     final medians = _benchRounds(() {
       for (var build = 0; build < 25; build++) {
-        final tf = _tableTimeReplica.putIfAbsent(
-          Intl.getCurrentLocale(),
-          () => DateFormat.Hm(),
-        );
-        final number = _tableNumberReplica.putIfAbsent(
-          'en',
-          () => NumberFormat.decimalPattern('en'),
-        );
+        final tf = cachedDateFormat('Hm', 'en');
+        final number = cachedDecimalPattern('en');
         for (final at in _kTimestamps.take(50)) {
           _sink(tf.format(at));
           _sink(number.format(1000 + build));

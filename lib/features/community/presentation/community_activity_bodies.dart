@@ -2,8 +2,8 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
@@ -63,7 +63,7 @@ class SummaryBody extends StatelessWidget {
             children: [
               if (data.recordingsCountToday != null)
                 InlineMetric(
-                  value: NumberFormat.decimalPattern(
+                  value: cachedDecimalPattern(
                     locale,
                   ).format(data.recordingsCountToday),
                   label: l10n.homeRecordingsToday,

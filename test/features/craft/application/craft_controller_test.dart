@@ -1284,6 +1284,75 @@ void main() {
 
       expect(stateOf(c).failure, isA<CraftAsrFailure>());
     });
+
+    test('ASR credits rejection → CraftCreditsFailure', () async {
+      transcriber = _FakeTranscriber(
+        error: const CreditsFailure(
+          'HTTP 402',
+          requiredCredits: 900,
+          usedCredits: 800,
+          limitCredits: 1000,
+        ),
+      );
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      await n.stopCapture(Uint8List.fromList(const [1]));
+      await Future<void>.delayed(Duration.zero);
+
+      final s = stateOf(c);
+      expect(s.failure, isA<CraftCreditsFailure>());
+      expect(s.isTranscribing, isFalse);
+      expect(translator.callCount, 0);
+    });
+
+    test('rewrite translator throws → CraftTranslateFailure', () async {
+      translator = _FakeTranslator(error: StateError('boom'));
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      n.setSourceLanguage('en');
+      n.setTargetLanguage('es');
+      await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
+      await Future<void>.delayed(Duration.zero);
+
+      final s = stateOf(c);
+      expect(s.failure, isA<CraftTranslateFailure>());
+      expect(s.isTranslating, isFalse);
+      expect(s.isTranscribing, isFalse);
+      expect(s.translatedText, isNull);
+      expect(s.rawTranscript, 'I had a great day today.');
+    });
+
+    test('rewrite credits rejection → CraftCreditsFailure', () async {
+      translator = _FakeTranslator(
+        error: const CreditsFailure(
+          'HTTP 402',
+          requiredCredits: 900,
+          usedCredits: 800,
+          limitCredits: 1000,
+        ),
+      );
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      n.setSourceLanguage('en');
+      n.setTargetLanguage('es');
+      await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
+      await Future<void>.delayed(Duration.zero);
+
+      final s = stateOf(c);
+      expect(s.failure, isA<CraftCreditsFailure>());
+      expect(s.isTranslating, isFalse);
+      expect(s.isTranscribing, isFalse);
+      expect(s.translatedText, isNull);
+    });
   });
 
   group('resetForNextCapture', () {

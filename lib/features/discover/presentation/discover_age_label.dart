@@ -1,5 +1,4 @@
-import 'package:intl/intl.dart';
-
+import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Compact relative age of a feed entry or refresh: `just now`, `12m ago`,
@@ -18,13 +17,9 @@ String discoverAgeLabel(
   if (diff.inHours < 24) return l10n.discoverHoursAgo(diff.inHours);
   if (diff.inDays < 2) return l10n.mediaRelativeYesterday;
   if (diff.inDays < 7) return l10n.discoverDaysAgo(diff.inDays);
-  final formats = _formatCache.putIfAbsent(
-    locale,
-    () => (DateFormat.MMMd(locale), DateFormat.yMMMd(locale)),
-  );
+  final short = cachedDateFormat('MMMd', locale);
+  final year = cachedDateFormat('yMMMd', locale);
   return local.year == reference.year
-      ? formats.$1.format(local)
-      : formats.$2.format(local);
+      ? short.format(local)
+      : year.format(local);
 }
-
-final Map<String, (DateFormat, DateFormat)> _formatCache = {};
