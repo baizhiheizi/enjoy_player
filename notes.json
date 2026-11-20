@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": null,
-    "investigation_after": 1404
+    "investigation_after": 1430
   },
   "issues": [
     {
@@ -10,26 +10,41 @@
       "state": "awaiting_approval",
       "updated_at": "2026-11-17",
       "note": "weekly-research timeout 15->45m cannot be pushed by the agent (workflow-file pushes need the workflows scope). Issue body carries the bundle/manual-PR steps; maintainer must create the PR. Do not retry from the agent."
+    },
+    {
+      "number": 1429,
+      "state": "awaiting_approval",
+      "updated_at": "2026-11-20",
+      "note": "Fixed on branch repo-assist/docs-drift-1429 (Closes #1429; PR number unknown at creation - resolve the #1431 placeholder in monthly issue #1216 next run). Awaits maintainer merge."
     }
   ],
-  "fixes": [],
+  "fixes": [
+    {
+      "issue": 1429,
+      "pr": null,
+      "branch": "repo-assist/docs-drift-1429",
+      "status": "open",
+      "updated_at": "2026-11-20",
+      "note": "F1: agentic-workflows.md gains backfilled 2026-10-30 (#1149 MINIMAX->ZHIPU swap, setup 0.x->1.x) + full 2026-11-14 (cee893f5: OTLP vars, setup v1.2.2, mcps v2.1.0, firewall 0.29.11) entries. F2: CHANGELOG [Unreleased] entry for #1412. Gates green."
+    }
+  ],
   "checks": [
     {
       "area": "release",
-      "checked_at": "2026-11-17",
-      "result": "PR #1314 rebuilt to carry main through bfd17ce2 (head d8fd360d): 7 tree-update commits, workflows/** left at base by design, CHANGELOG union complete, merge-tree says CHANGELOG.md is the only merge conflict, gates green (7382 tests). Four staggered pushes under the ~4096KB per-push patch cap.",
+      "checked_at": "2026-11-20",
+      "result": "#1314 closed unmerged 2026-11-20; superseded by draft PR #1422 (fresh branch off d4dd1caf, one-commit patch, [0.10.4] cut incl. compact #1412 entry). Main gained NO CHANGELOG changes since (verified to 7af78692) so #1422 stays clean-merge; landing-order comment posted: keep ONE #1412 copy.",
+      "follow_up": "await #1422 merge + tag v0.10.4; maintainer-only"
+    },
+    {
+      "area": "ci",
+      "checked_at": "2026-11-20",
+      "result": "No Dependabot PRs open; no actionable CI gap. #1392 still maintainer-blocked. Sandbox: first codegen run failed 'Could not find bin/build_runner.dart' - fixed by flutter pub get, then check_codegen_drift ok.",
       "follow_up": null
     },
     {
       "area": "tests",
-      "checked_at": "2026-11-17",
-      "result": "Full suite green on the release branch: 7382 passed / 45 skipped. Lane-budget test intentionally absent (arrives from main at merge). doc_relative_links caught main's new .github/scripts links when scripts were excluded; fixed.",
-      "follow_up": null
-    },
-    {
-      "area": "ci",
-      "checked_at": "2026-11-17",
-      "result": "No new item: #1392 maintainer-blocked; no Dependabot PRs open; perf lane owned by perf-improver (#1403, not repo-assist).",
+      "checked_at": "2026-11-20",
+      "result": "Docs-only PR gate set: format 2075/0 changed, analyze clean, ci_release_publish_notes + release_version_consistency 8/8. Full suite not run (no lib/test changes) - matches prior docs-only PR precedent.",
       "follow_up": null
     }
   ],
@@ -37,13 +52,18 @@
   "priorities": [
     {
       "task": 10,
-      "item": "await #1314 merge + tag",
-      "note": "Maintainer steps posted on the PR: git merge main, keep --ours CHANGELOG.md (port newer entries first if main advanced), merge, tag. Do not re-push unless main gains new changelog entries."
+      "item": "await #1422 merge + tag v0.10.4",
+      "note": "Maintainer steps are on the PR body (merge, then tag; if the docs-drift PR lands first, dedupe the #1412 entry per the comment). Do not re-push: main gained no changelog entries since d4dd1caf."
     },
     {
       "task": 2,
-      "item": "issue sweep 2026-11-17",
-      "note": "Cursor -> 1404; all 9 open issues reviewed, none actionable. #1251 stays wontfix/declined (PR #1262 closed unmerged 2026-11-07, vendored-fork declined - never re-attempt). #1383/#1390/#1286/#1395/#1404 are automation reports."
+      "item": "resolve #1431 placeholder in monthly issue #1216",
+      "note": "Once the docs-drift PR number is known (next run), replace the placeholder references in #1216's Suggested Actions/Run History with the real number and the branch-compare link with the PR link."
+    },
+    {
+      "task": 2,
+      "item": "issue sweep 2026-11-20",
+      "note": "Cursor -> 1430; all 7 open issues reviewed. #1429 fixed (see fixes). #1251 stays wontfix/declined - never re-attempt. #1192/#1216/#1286/#1395/#1430 are automation trackers/reports."
     }
   ]
 }
