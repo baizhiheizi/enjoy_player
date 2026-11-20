@@ -125,7 +125,6 @@ class MediaCardTile extends StatefulWidget {
 
 class _MediaCardTileState extends State<MediaCardTile> {
   final _hover = ValueNotifier<bool>(false);
-  bool _deleteFocused = false;
 
   @override
   void dispose() {
@@ -210,19 +209,9 @@ class _MediaCardTileState extends State<MediaCardTile> {
                   ),
                 ),
                 if (widget.adding) const MediaCardAddingScrim(),
-                IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: ShapeDecoration(
-                      shape: RoundedSuperellipseBorder(
-                        borderRadius: radius,
-                        side: BorderSide(
-                          color: light
-                              ? const Color(0x1416161D)
-                              : Colors.white.withValues(alpha: 0.07),
-                        ),
-                      ),
-                    ),
-                  ),
+                mediaCardArtworkHairlineOverlay(
+                  borderRadius: radius,
+                  light: light,
                 ),
                 if (widget.inLibrary)
                   Positioned(
@@ -269,23 +258,15 @@ class _MediaCardTileState extends State<MediaCardTile> {
                   Positioned(
                     top: 6,
                     right: 6,
-                    child: Focus(
-                      onFocusChange: (f) => setState(() => _deleteFocused = f),
-                      child: AnimatedOpacity(
-                        opacity: hover || _deleteFocused ? 1 : 0,
-                        duration: t.motionFast,
-                        curve: Curves.easeOut,
-                        child: MediaCardGlassIconButton(
-                          icon: EnjoyIcons.delete,
-                          tooltip:
-                              (widget.deleteTooltip != null &&
-                                  widget.deleteTooltip!.isNotEmpty)
-                              ? widget.deleteTooltip!
-                              : MaterialLocalizations.of(
-                                  context,
-                                ).deleteButtonTooltip,
-                          onPressed: widget.onDelete!,
+                    child: MediaCardHoverReveal(
+                      hover: hover,
+                      child: MediaCardGlassIconButton(
+                        icon: EnjoyIcons.delete,
+                        tooltip: mediaCardDeleteTooltip(
+                          context,
+                          widget.deleteTooltip,
                         ),
+                        onPressed: widget.onDelete!,
                       ),
                     ),
                   ),

@@ -82,7 +82,6 @@ class MediaCardRow extends StatefulWidget {
 
 class _MediaCardRowState extends State<MediaCardRow> {
   final _hover = ValueNotifier<bool>(false);
-  bool _deleteFocused = false;
 
   @override
   void dispose() {
@@ -95,7 +94,12 @@ class _MediaCardRowState extends State<MediaCardRow> {
     final duration = widget.durationLabel;
     final meta = <Widget>[
       if (language != null)
-        _RowLanguageChip(label: language, onTap: widget.onLanguageTap),
+        MediaCardMonoChip(
+          label: language,
+          fillColor: t.sunk,
+          textColor: t.ink2,
+          onTap: widget.onLanguageTap,
+        ),
       if (duration != null)
         isMobilePlatform
             ? Text(
@@ -115,31 +119,20 @@ class _MediaCardRowState extends State<MediaCardRow> {
     if (widget.trailing != null) {
       action = widget.trailing;
     } else if (widget.onDelete != null && showMediaCardPointerDeleteButton()) {
-      action = Focus(
-        onFocusChange: (f) => setState(() => _deleteFocused = f),
-        child: ValueListenableBuilder<bool>(
-          valueListenable: _hover,
-          builder: (context, hover, child) => AnimatedOpacity(
-            opacity: hover || _deleteFocused ? 1 : 0,
-            duration: t.motionFast,
-            curve: Curves.easeOut,
-            child: child,
+      action = ValueListenableBuilder<bool>(
+        valueListenable: _hover,
+        builder: (context, hover, child) =>
+            MediaCardHoverReveal(hover: hover, child: child!),
+        child: IconButton(
+          iconSize: 17,
+          style: IconButton.styleFrom(
+            fixedSize: const Size(34, 34),
+            minimumSize: const Size(34, 34),
+            padding: EdgeInsets.zero,
           ),
-          child: IconButton(
-            iconSize: 17,
-            style: IconButton.styleFrom(
-              fixedSize: const Size(34, 34),
-              minimumSize: const Size(34, 34),
-              padding: EdgeInsets.zero,
-            ),
-            tooltip:
-                (widget.deleteTooltip != null &&
-                    widget.deleteTooltip!.isNotEmpty)
-                ? widget.deleteTooltip!
-                : MaterialLocalizations.of(context).deleteButtonTooltip,
-            onPressed: widget.onDelete,
-            icon: Icon(EnjoyIcons.delete, color: t.ink3),
-          ),
+          tooltip: mediaCardDeleteTooltip(context, widget.deleteTooltip),
+          onPressed: widget.onDelete,
+          icon: Icon(EnjoyIcons.delete, color: t.ink3),
         ),
       );
     } else {
@@ -206,19 +199,9 @@ class _MediaCardRowState extends State<MediaCardRow> {
                           width: 56,
                         ),
                       ),
-                      IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: ShapeDecoration(
-                            shape: RoundedSuperellipseBorder(
-                              borderRadius: artRadius,
-                              side: BorderSide(
-                                color: light
-                                    ? const Color(0x1416161D)
-                                    : Colors.white.withValues(alpha: 0.08),
-                              ),
-                            ),
-                          ),
-                        ),
+                      mediaCardArtworkHairlineOverlay(
+                        borderRadius: artRadius,
+                        light: light,
                       ),
                       if (widget.providerBadge != null &&
                           widget.providerBadge!.isNotEmpty)
@@ -281,47 +264,6 @@ class _MediaCardRowState extends State<MediaCardRow> {
             _buildTrailing(cs, t),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _RowLanguageChip extends StatelessWidget {
-  const _RowLanguageChip({required this.label, this.onTap});
-
-  final String label;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final chip = Container(
-      height: 22,
-      padding: const EdgeInsets.symmetric(horizontal: 7),
-      alignment: Alignment.center,
-      decoration: ShapeDecoration(
-        color: t.sunk,
-        shape: RoundedSuperellipseBorder(
-          borderRadius: BorderRadius.circular(7),
-        ),
-      ),
-      child: Text(
-        label,
-        style: enjoyMonoStyle(
-          context,
-          size: 11,
-          weight: FontWeight.w600,
-          color: t.ink2,
-        ),
-      ),
-    );
-    if (onTap == null) return chip;
-    return Semantics(
-      button: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: MouseRegion(cursor: SystemMouseCursors.click, child: chip),
       ),
     );
   }
