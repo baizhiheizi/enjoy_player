@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
-import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
+import 'package:enjoy_player/features/ai/application/ai_call_runner.dart';
 import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
 import 'package:enjoy_player/features/craft/application/craft_preferences_provider.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
@@ -78,28 +78,32 @@ mixin CraftControllerCore on Notifier<CraftJobState> {
     CraftJobState Function(T result)? onSuccess,
     bool clearTranslating = true,
     bool clearTranscribing = false,
-  }) async {
-    try {
-      final result = await call();
-      final patched = onSuccess?.call(result);
-      if (patched != null) state = patched;
-      return result;
-    } on CreditsFailure catch (failure, st) {
-      logNamed(logLabel).warning('$surface rejected: credits', failure, st);
-      state = state.copyWith(
-        isTranslating: clearTranslating ? false : null,
-        isTranscribing: clearTranscribing ? false : null,
-        failure: CraftCreditsFailure(failure),
-      );
-      return null;
-    } catch (e, st) {
-      logNamed(logLabel).warning('$surface failed: $e', e, st);
-      state = state.copyWith(
-        isTranslating: clearTranslating ? false : null,
-        isTranscribing: clearTranscribing ? false : null,
-        failure: genericFailure(),
-      );
-      return null;
-    }
+  }) {
+    return runAiCall<T>(
+      logLabel: logLabel,
+      surface: surface,
+      call: call,
+      onSuccess: onSuccess == null
+          ? null
+          : (result) {
+              state = onSuccess(result);
+            },
+      onCredits: (failure, st) {
+        state = state.copyWith(
+          isTranslating: clearTranslating ? false : null,
+          isTranscribing: clearTranscribing ? false : null,
+          failure: CraftCreditsFailure(failure),
+        );
+        return null;
+      },
+      onGeneric: (e, st) {
+        state = state.copyWith(
+          isTranslating: clearTranslating ? false : null,
+          isTranscribing: clearTranscribing ? false : null,
+          failure: genericFailure(),
+        );
+        return null;
+      },
+    );
   }
 }

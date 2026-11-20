@@ -18,6 +18,7 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/features/ai/application/ai_call_runner.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/models/assessment_request.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
@@ -145,84 +146,87 @@ class RecordingAssessmentController extends _$RecordingAssessmentController {
 
       state = RecordingAssessmentUiState.running;
       try {
-        final result = await ref
-            .read(assessmentServiceProvider)
-            .assess(
-              AssessmentRequest(
-                audioPath: path,
-                referenceText: row.referenceText,
-                language: assessmentLocale,
-                durationMs: row.duration,
-              ),
-            );
-
-        final ps = result.detail.primaryScores;
-        if (ps != null &&
-            ps.pronScore == 0 &&
-            ps.accuracyScore == 0 &&
-            ps.fluencyScore == 0 &&
-            ps.completenessScore == 0) {
-          _log.warning(
-            'RecordingAssessment: stored scores are all zero for recording=${row.id} '
-            '(status=${result.detail.recognitionStatus} display="${result.detail.displayText}"). '
-            'See ai.enjoy.assessment logs for audio path and Azure fields.',
-          );
-        }
-
-        final score = switch (ps) {
-          null => null,
-          final s => s.pronScore.round(),
-        };
-
-        final json = jsonEncode(result.rawJson);
-        final now = DateTime.now();
-        await ref
-            .read(appDatabaseProvider)
-            .recordingDao
-            .updateAssessment(
-              id: row.id,
-              pronunciationScore: score,
-              assessmentJson: json,
-              updatedAt: now,
-            );
-
-        await ref.read(syncEnqueueProvider)(
-          SyncEntityType.recording,
-          row.id,
-          SyncAction.update,
-        );
-
-        try {
-          final media = await ref
-              .read(mediaRegistryProvider)
-              .getById(row.targetId);
-          if (media?.provider == 'craft') {
-            ref
-                .read(analyticsProvider)
-                .capture(
-                  AnalyticsEvents.craftPracticeCompleted,
-                  properties: AnalyticsEvents.craftCompleted(
-                    durationSeconds: (row.duration / 1000).round(),
+        final outcome = await runAiCall<RecordingAssessmentOutcome>(
+          logLabel: 'RecordingAssessment',
+          surface: 'Assessment',
+          call: () async {
+            final result = await ref
+                .read(assessmentServiceProvider)
+                .assess(
+                  AssessmentRequest(
+                    audioPath: path,
+                    referenceText: row.referenceText,
+                    language: assessmentLocale,
+                    durationMs: row.duration,
                   ),
                 );
-          }
-        } on Object catch (e, st) {
-          _log.fine('craft practice attribution skipped', e, st);
-        }
 
-        return RecordingAssessmentSuccess(result.detail);
-      } on CreditsFailure catch (failure, st) {
-        _log.warning('Assessment rejected: credits', failure, st);
-        return RecordingAssessmentFailure(
-          RecordingAssessmentFailureKind.credits,
-          creditsFailure: failure,
+            final ps = result.detail.primaryScores;
+            if (ps != null &&
+                ps.pronScore == 0 &&
+                ps.accuracyScore == 0 &&
+                ps.fluencyScore == 0 &&
+                ps.completenessScore == 0) {
+              _log.warning(
+                'RecordingAssessment: stored scores are all zero for recording=${row.id} '
+                '(status=${result.detail.recognitionStatus} display="${result.detail.displayText}"). '
+                'See ai.enjoy.assessment logs for audio path and Azure fields.',
+              );
+            }
+
+            final score = switch (ps) {
+              null => null,
+              final s => s.pronScore.round(),
+            };
+
+            final json = jsonEncode(result.rawJson);
+            final now = DateTime.now();
+            await ref
+                .read(appDatabaseProvider)
+                .recordingDao
+                .updateAssessment(
+                  id: row.id,
+                  pronunciationScore: score,
+                  assessmentJson: json,
+                  updatedAt: now,
+                );
+
+            await ref.read(syncEnqueueProvider)(
+              SyncEntityType.recording,
+              row.id,
+              SyncAction.update,
+            );
+
+            try {
+              final media = await ref
+                  .read(mediaRegistryProvider)
+                  .getById(row.targetId);
+              if (media?.provider == 'craft') {
+                ref
+                    .read(analyticsProvider)
+                    .capture(
+                      AnalyticsEvents.craftPracticeCompleted,
+                      properties: AnalyticsEvents.craftCompleted(
+                        durationSeconds: (row.duration / 1000).round(),
+                      ),
+                    );
+              }
+            } on Object catch (e, st) {
+              _log.fine('craft practice attribution skipped', e, st);
+            }
+
+            return RecordingAssessmentSuccess(result.detail);
+          },
+          onCredits: (failure, st) => RecordingAssessmentFailure(
+            RecordingAssessmentFailureKind.credits,
+            creditsFailure: failure,
+          ),
+          onGeneric: (e, st) => RecordingAssessmentFailure(
+            RecordingAssessmentFailureKind.serviceError,
+            debugMessage: e.toString(),
+          ),
         );
-      } on Object catch (e, st) {
-        _log.warning('Assessment failed', e, st);
-        return RecordingAssessmentFailure(
-          RecordingAssessmentFailureKind.serviceError,
-          debugMessage: e.toString(),
-        );
+        return outcome!;
       } finally {
         if (ref.mounted) {
           state = RecordingAssessmentUiState.idle;

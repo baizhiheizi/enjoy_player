@@ -716,6 +716,45 @@ void main() {
     });
   });
 
+  group('artwork hairline', () {
+    testWidgets('tile and row paint one shared dark-mode hairline', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 220,
+                child: MediaCardTile(title: 'T', onTap: () {}),
+              ),
+              MediaCardRow(title: 'R', onTap: () {}),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final hairline = Colors.white.withValues(alpha: 0.07);
+      final shapes = tester
+          .widgetList<DecoratedBox>(
+            find.byWidgetPredicate(
+              (w) =>
+                  w is DecoratedBox &&
+                  w.decoration is ShapeDecoration &&
+                  (w.decoration as ShapeDecoration).shape
+                      is RoundedSuperellipseBorder,
+            ),
+          )
+          .map((d) => (d.decoration as ShapeDecoration).shape)
+          .whereType<RoundedSuperellipseBorder>()
+          .where((shape) => shape.side.color == hairline)
+          .toList();
+      expect(shapes, hasLength(2));
+    });
+  });
+
   test('isMobilePlatform is read by delete-button helper', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     expect(isMobilePlatform, isTrue);

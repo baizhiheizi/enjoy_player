@@ -12,6 +12,70 @@ import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 
+import '../../enjoy_tokens.dart';
+
+/// Hairline edge painted over clipped artwork ([MediaCardTile] /
+/// [MediaCardRow]).
+Widget mediaCardArtworkHairlineOverlay({
+  required BorderRadius borderRadius,
+  required bool light,
+}) {
+  return IgnorePointer(
+    child: DecoratedBox(
+      decoration: ShapeDecoration(
+        shape: RoundedSuperellipseBorder(
+          borderRadius: borderRadius,
+          side: BorderSide(
+            color: light
+                ? const Color(0x1416161D)
+                : Colors.white.withValues(alpha: 0.07),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// Shows [child] while hovered or keyboard-focused, hiding it otherwise.
+class MediaCardHoverReveal extends StatefulWidget {
+  const MediaCardHoverReveal({
+    super.key,
+    required this.hover,
+    required this.child,
+  });
+
+  final bool hover;
+  final Widget child;
+
+  @override
+  State<MediaCardHoverReveal> createState() => _MediaCardHoverRevealState();
+}
+
+class _MediaCardHoverRevealState extends State<MediaCardHoverReveal> {
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Focus(
+      onFocusChange: (focused) => setState(() => _focused = focused),
+      child: AnimatedOpacity(
+        opacity: widget.hover || _focused ? 1 : 0,
+        duration: t.motionFast,
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+/// [deleteTooltip] when set and non-empty, else the framework default.
+String mediaCardDeleteTooltip(BuildContext context, String? deleteTooltip) {
+  return (deleteTooltip != null && deleteTooltip.isNotEmpty)
+      ? deleteTooltip
+      : MaterialLocalizations.of(context).deleteButtonTooltip;
+}
+
 /// Inline trash on the card is for pointer UIs; phones use long-press → sheet.
 bool showMediaCardPointerDeleteButton() {
   return !isMobilePlatform;

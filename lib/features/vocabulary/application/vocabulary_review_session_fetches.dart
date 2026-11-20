@@ -15,8 +15,7 @@ mixin VocabularyReviewSessionFetches on VocabularyReviewSessionBase {
       clearDictionaryError: true,
     );
     await _runAiFetch(
-      creditsSurface: 'Dictionary fetch',
-      failureSurface: 'Dictionary fetch',
+      surface: 'Dictionary fetch',
       call: () => ref
           .read(dictionaryServiceProvider)
           .lookup(
@@ -60,8 +59,7 @@ mixin VocabularyReviewSessionFetches on VocabularyReviewSessionBase {
       clearContextualError: true,
     );
     await _runAiFetch(
-      creditsSurface: 'Contextual translation',
-      failureSurface: 'Contextual translation fetch',
+      surface: 'Contextual translation',
       call: () => ref
           .read(contextualTranslationServiceProvider)
           .translate(
@@ -100,29 +98,32 @@ mixin VocabularyReviewSessionFetches on VocabularyReviewSessionBase {
   }
 
   Future<void> _runAiFetch<T, P extends Object>({
-    required String creditsSurface,
-    required String failureSurface,
+    required String surface,
     required Future<T> Function() call,
     required String Function(T result) encode,
     required Future<P?> Function(String json) persist,
     required ReviewSessionState Function(P persisted) onPersisted,
     required ReviewSessionState Function(String error) onError,
   }) async {
-    try {
-      final result = await call();
-      final json = encode(result);
-      final persisted = await persist(json);
-      if (persisted == null) {
-        state = onError(kVocabularyAiErrorPersistFailed);
-        return;
-      }
-      state = onPersisted(persisted);
-    } on CreditsFailure catch (failure, st) {
-      _log.warning('$creditsSurface rejected: credits', failure, st);
-      state = onError(kVocabularyAiErrorCredits);
-    } catch (e, st) {
-      _log.warning('$failureSurface failed', e, st);
-      state = onError(kVocabularyAiErrorFetchFailed);
-    }
+    await runAiCall<P?>(
+      logLabel: 'VocabularyReviewSession',
+      surface: surface,
+      call: () async => persist(encode(await call())),
+      onSuccess: (persisted) {
+        if (persisted == null) {
+          state = onError(kVocabularyAiErrorPersistFailed);
+          return;
+        }
+        state = onPersisted(persisted);
+      },
+      onCredits: (failure, st) {
+        state = onError(kVocabularyAiErrorCredits);
+        return null;
+      },
+      onGeneric: (e, st) {
+        state = onError(kVocabularyAiErrorFetchFailed);
+        return null;
+      },
+    );
   }
 }
