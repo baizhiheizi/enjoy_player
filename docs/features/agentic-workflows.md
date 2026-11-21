@@ -227,41 +227,58 @@ the agent's own memory directory into the workflow log.
 ### 2026-10-30 — upstream bump to `v1.0.1` (#1149) — backfilled
 
 Recorded after the fact; this is the upgrade between the 2026-10-22 entry and the
-2026-11-14 one, and it carried the window's one secret change.
+2026-11-14 one, and it carried the window's one secret change. All eight lock files
+also moved to a newer upstream workflow pin — `source:` `b4e175b…` → `139fa09e…`, the
+pin the 2026-11-14 upgrade later recompiled on unchanged.
 
 **Secrets — one project-owned swap.** `MINIMAX_API_KEY` is replaced by `ZHIPU_API_KEY`
-in every manifest secret list, and the GLM engine block's `ANTHROPIC_API_KEY` mapping
-now points at the new secret. This is exactly the change the safe-update gate's
-restricted-secret watch exists for; the 2026-10-22 entry's statement that
-"`MINIMAX_API_KEY` is the only project-owned secret" describes that review's baseline,
-not the present — [ADR-0028](../decisions/0028-agentic-engine-choice.md) and
-`shared/engine-glm.md` document ZHIPU as the live engine secret.
+in every manifest secret list, and the GLM engine block added in the same upgrade
+(`shared/engine-glm.md`, a new file) maps its `ANTHROPIC_API_KEY` at the new secret.
+This is exactly the change the safe-update gate's restricted-secret watch exists for;
+the 2026-10-22 entry's statement that "`MINIMAX_API_KEY` is the only project-owned
+secret" describes that review's baseline, not the present —
+[ADR-0028](../decisions/0028-agentic-engine-choice.md) and `shared/engine-glm.md`
+document ZHIPU as the live engine secret.
 
-**Actions / containers.** `github/gh-aw-actions/setup` crossed the 0.x → 1.x major
-boundary (v0.92.0 → v1.0.1, sha `221ba4f4`). Firewall `agent` / `api-proxy` / `squid`
-0.28.57 → 0.29.0, `gh-aw-mcpg` v0.4.31 → v0.5.0, `github-mcp-server` v2.0.2 → v2.0.3,
-`gh-aw-node` digest refreshed (`23746305…` → `2c2ea524…`). All other pinned actions
-unchanged.
+**Actions / containers.** `github/gh-aw-actions/setup` and the gh-aw CLI installer
+`github/gh-aw-actions/setup-cli` both crossed the 0.x → 1.x major boundary (v0.92.0 →
+v1.0.1, same sha `221ba4f4` — the two actions ship together). Firewall
+`agent` / `api-proxy` / `squid` 0.28.57 → 0.29.0, `gh-aw-mcpg` v0.4.31 → v0.5.0,
+`github-mcp-server` v2.0.2 → v2.0.3, `gh-aw-node` digest refreshed (`23746305…` →
+`2c2ea524…`). All other pinned actions unchanged. `.github/workflows/copilot-setup-steps.yml`
+was not recompiled in this upgrade and stayed on setup-cli v0.92.0 until the
+2026-11-14 upgrade took it straight to v1.2.2.
 
 ### 2026-11-14 — aw upgrade (compiler v1.2.2, `cee893f5`)
 
-All eight workflows recompiled — every lock file's `source:` SHA moved and the
-compiler-emitted pin surface refreshed with it. `repo-assist` was reviewed in full; the
-manifest headers show the same action, container, and variable surface in the others.
+All eight workflows recompiled at compiler v1.2.2 on the upstream source the
+2026-10-30 upgrade had pulled in — every lock file's `source:` SHA is unchanged
+(`139fa09e…` on both sides; the pin itself moved in the 2026-10-30 entry above) and
+only the compiler-emitted pin surface refreshed. `repo-assist` was reviewed in full;
+the manifest headers show the same action, container, and variable surface in the
+others.
 
-**Secrets — none added, none removed.** The manifest secret set is byte-identical across
-the upgrade in all eight lock files: `COPILOT_GITHUB_TOKEN`, `GH_AW_CI_TRIGGER_TOKEN`,
-`GH_AW_DEFAULT_OTLP_ENDPOINT`, `GH_AW_DEFAULT_OTLP_HEADERS`,
-`GH_AW_GITHUB_MCP_SERVER_TOKEN`, `GH_AW_GITHUB_TOKEN`, `GITHUB_TOKEN`, `ZHIPU_API_KEY`.
-The workflow `body_hash` is unchanged (`05a43d30…` on both sides) — only the frontmatter
-env plumbing moved — and the memory-validation script digest is unchanged (`bf0981ae…`).
+**Secrets — none added, none removed.** Each workflow's own manifest secret set is
+byte-identical across the upgrade in all eight lock files. The union across the eight
+workflows is `COPILOT_GITHUB_TOKEN`, `GH_AW_DEFAULT_OTLP_ENDPOINT`,
+`GH_AW_DEFAULT_OTLP_HEADERS`, `GH_AW_GITHUB_MCP_SERVER_TOKEN`, `GH_AW_GITHUB_TOKEN`,
+`GITHUB_TOKEN`, `ZHIPU_API_KEY` — declared by every workflow — plus three
+workflow-private members: `GH_AW_AGENT_TOKEN` (`duplicate-code-detector`,
+`large-file-simplifier`), `GH_AW_CI_TRIGGER_TOKEN` (`perf-improver`, `repo-assist`),
+and `ZAI_API_KEY` (`weekly-research` only — the Bearer credential the shared MCP
+servers in `shared/mcp.md` use). The workflow `body_hash` is unchanged (`05a43d30…` on
+both sides) — only the frontmatter env plumbing moved — and the memory-validation
+script digest is unchanged (`bf0981ae…`).
 
-**Repo variables — new surface, empty by default.** Compiled workflows now map three
-repository *variables* into the job env: `OTEL_EXPORTER_OTLP_PROTOCOL`,
-`GH_AW_OTLP_LOGS_ENABLED`, `GH_AW_OTLP_LOGS_MAX_BYTES` (`${{ vars.… }}`). Variables
-cannot carry secret values and every mapping renders empty unless a repo variable of
-that name is set, so nothing is exposed by default — they are opt-in switches for
-optional OTLP log export.
+**Repo variables — new surface, empty by default.** Compiled workflows now map seven
+repository *variables* into the job env (`${{ vars.… }}`): the three OTLP log-export
+switches `OTEL_EXPORTER_OTLP_PROTOCOL`, `GH_AW_OTLP_LOGS_ENABLED`,
+`GH_AW_OTLP_LOGS_MAX_BYTES`, and the four MCP-gateway object-pack controls
+`GH_AW_OBJECT_PACK_FETCH_DEPTHS`, `GH_AW_OBJECT_PACK_MAX_BYTES`,
+`GH_AW_OBJECT_PACK_MAX_OBJECTS`, `GH_AW_OBJECT_PACK_TIMEOUT_MS`. Variables cannot
+carry secret values and every mapping renders empty unless a repo variable of that
+name is set, so nothing is exposed by default — they are opt-in switches for optional
+OTLP log export and gateway object-pack tuning.
 
 **Actions — no repo added or removed.** Every change is a re-pin of a repo that was
 already in the baseline:
@@ -269,6 +286,7 @@ already in the baseline:
 | Action | Before | After | Assessment |
 |---|---|---|---|
 | `github/gh-aw-actions/setup` | v1.0.1 (`221ba4f4…`) | v1.2.2 (`53d0749e…`) | gh-aw infrastructure, matches compiler v1.2.2 |
+| `github/gh-aw-actions/setup-cli` | v1.0.1 (`221ba4f4…`) | v1.2.2 (`53d0749e…`) | gh-aw CLI installer, ships with `setup`; `.github/workflows/copilot-setup-steps.yml` rode it straight from v0.92.0, crossing the 0.x → 1.x major that the 2026-10-30 upgrade skipped for that file |
 | `jdx/mise-action` | raw-SHA pin `8418fedb…` (no version tag) | v5.2.8 (`d5574b52…`) | `repo-assist` only; the pin now carries a version tag |
 | `actions/checkout`, `download-artifact`, `github-script`, `setup-node`, `upload-artifact` | v7.0.1 / v8.0.2 / v9.0.0 / v7.1.0 / v7.0.2 | unchanged | — |
 
