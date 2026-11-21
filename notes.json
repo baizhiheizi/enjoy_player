@@ -2,49 +2,34 @@
   "version": 1,
   "cursors": {
     "labelling_after": null,
-    "investigation_after": 1430
+    "investigation_after": 1437
   },
   "issues": [
     {
       "number": 1392,
       "state": "awaiting_approval",
-      "updated_at": "2026-11-17",
-      "note": "weekly-research timeout 15->45m cannot be pushed by the agent (workflow-file pushes need the workflows scope). Issue body carries the bundle/manual-PR steps; maintainer must create the PR. Do not retry from the agent."
-    },
-    {
-      "number": 1429,
-      "state": "awaiting_approval",
-      "updated_at": "2026-11-20",
-      "note": "Fixed on branch repo-assist/docs-drift-1429 (Closes #1429; PR number unknown at creation - resolve the #1431 placeholder in monthly issue #1216 next run). Awaits maintainer merge."
+      "updated_at": "2026-11-21",
+      "note": "weekly-research timeout 15->45m: agent cannot push workflow files (workflows scope). Issue body carries the manual-PR steps; maintainer must act. Do not retry."
     }
   ],
-  "fixes": [
-    {
-      "issue": 1429,
-      "pr": null,
-      "branch": "repo-assist/docs-drift-1429",
-      "status": "open",
-      "updated_at": "2026-11-20",
-      "note": "F1: agentic-workflows.md gains backfilled 2026-10-30 (#1149 MINIMAX->ZHIPU swap, setup 0.x->1.x) + full 2026-11-14 (cee893f5: OTLP vars, setup v1.2.2, mcps v2.1.0, firewall 0.29.11) entries. F2: CHANGELOG [Unreleased] entry for #1412. Gates green."
-    }
-  ],
+  "fixes": [],
   "checks": [
     {
       "area": "release",
-      "checked_at": "2026-11-20",
-      "result": "#1314 closed unmerged 2026-11-20; superseded by draft PR #1422 (fresh branch off d4dd1caf, one-commit patch, [0.10.4] cut incl. compact #1412 entry). Main gained NO CHANGELOG changes since (verified to 7af78692) so #1422 stays clean-merge; landing-order comment posted: keep ONE #1412 copy.",
+      "checked_at": "2026-11-21",
+      "result": "#1422 refreshed onto main 7b9badf0: fuller #1412 kept (compact dropped), new [0.10.4] entries #1433/#1423/#1428, both 11-19 vigil release-notes findings fixed. Merge commit + docs commit on fe595e8. Gates green: 7446 passed/59 skipped.",
       "follow_up": "await #1422 merge + tag v0.10.4; maintainer-only"
     },
     {
       "area": "ci",
       "checked_at": "2026-11-20",
-      "result": "No Dependabot PRs open; no actionable CI gap. #1392 still maintainer-blocked. Sandbox: first codegen run failed 'Could not find bin/build_runner.dart' - fixed by flutter pub get, then check_codegen_drift ok.",
+      "result": "No Dependabot PRs open; no actionable CI gap. #1392 maintainer-blocked. Sandbox: run flutter pub get after branch switches, before codegen.",
       "follow_up": null
     },
     {
       "area": "tests",
-      "checked_at": "2026-11-20",
-      "result": "Docs-only PR gate set: format 2075/0 changed, analyze clean, ci_release_publish_notes + release_version_consistency 8/8. Full suite not run (no lib/test changes) - matches prior docs-only PR precedent.",
+      "checked_at": "2026-11-21",
+      "result": "Full mirror green on the #1422 refresh: analyze clean, 7446 passed/59 skipped. validate_ci_gates default set is format+codegen+path-deps only; add --analyze --test for analyze/tests.",
       "follow_up": null
     }
   ],
@@ -53,17 +38,12 @@
     {
       "task": 10,
       "item": "await #1422 merge + tag v0.10.4",
-      "note": "Maintainer steps are on the PR body (merge, then tag; if the docs-drift PR lands first, dedupe the #1412 entry per the comment). Do not re-push: main gained no changelog entries since d4dd1caf."
+      "note": "Branch carries main exactly plus docs edits; clean by any merge method. Do not re-push unless main advances again."
     },
     {
       "task": 2,
-      "item": "resolve #1431 placeholder in monthly issue #1216",
-      "note": "Once the docs-drift PR number is known (next run), replace the placeholder references in #1216's Suggested Actions/Run History with the real number and the branch-compare link with the PR link."
-    },
-    {
-      "task": 2,
-      "item": "issue sweep 2026-11-20",
-      "note": "Cursor -> 1430; all 7 open issues reviewed. #1429 fixed (see fixes). #1251 stays wontfix/declined - never re-attempt. #1192/#1216/#1286/#1395/#1430 are automation trackers/reports."
+      "item": "issue sweep 2026-11-21",
+      "note": "Cursor -> 1437; 11 issues reviewed. Detector lanes off-limits: large-file-simplifier splits = maintainer's own (#1432); duplicate-code = @copilot (#1434-#1437, #1434 verified in code). #1251 wontfix - never re-attempt."
     }
   ]
 }
