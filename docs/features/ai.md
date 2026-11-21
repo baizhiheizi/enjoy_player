@@ -92,6 +92,10 @@ Every Enjoy AI surface renders `CreditsFailure` through the shared seam in [`cre
 
 Missing BYOK credentials are surfaced **before** the capability runs, by the `ByokNotConfigured*Capability` wrappers and [`ByokNotConfiguredFailure`](../../lib/features/ai/domain/byok_not_configured_failure.dart) — see [BYOK provider § Persistence and security](#persistence-and-security) above. The translation table above only applies to errors thrown by the resolved capability itself.
 
+### Feature-side AI-call runner (`runAiCall`)
+
+Where `guardAiCall` translates transport errors at the service layer, controllers and widgets that run one AI call and map its failure modes share [`runAiCall`](../../lib/features/ai/application/ai_call_runner.dart): it owns the try / credits / generic arms and the warning wording (`'$surface rejected: credits'` / `'$surface failed: $e'`), routing `CreditsFailure` to `onCredits` and every other error to `onGeneric`. Three features build on it: Craft's `runCraftAiCall` (busy-flag reset + `CraftFailure` mapping), the vocabulary review session's `_runAiFetch` (fetch → encode → persist chain, persist-null → `kVocabularyAiErrorPersistFailed`), and the shadow-reading recording-assessment flow (typed `RecordingAssessmentOutcome`). Two sites stay deliberately divergent: `auto_translate_controller` (auth arm + retry loop) and `pronounce_icon_button` (failures become `AppNotice` + subscription CTA at UI level); revisit if a third retry-loop or notice-mapping consumer appears.
+
 ### Debug UI
 
 **Settings → Developer → AI playground** shows the active provider label per modality and exercises ASR, chat, translation, dictionary, and assessment.
@@ -114,7 +118,7 @@ The screen follows the Duet design language ([ADR-0093](../decisions/0093-duet-d
 - Domain contracts and DTO-style models: `lib/features/ai/domain/`
 - Enjoy implementations: `lib/features/ai/data/enjoy/`
 - BYOK implementations: `lib/features/ai/data/byok/`
-- Riverpod services and capability wiring: `lib/features/ai/application/`
+- Riverpod services and capability wiring: `lib/features/ai/application/` (incl. `ai_api_failures.dart` `guardAiCall` and `ai_call_runner.dart` `runAiCall`)
 - Settings UI: `lib/features/ai/presentation/settings/`
   - Screen: `ai_providers_screen.dart` (privacy callout + stacked modality cards)
   - Shared modality card: `widgets/modality_provider_card.dart` (segmented provider, modality pill, inset BYOK panel, calmer footer)

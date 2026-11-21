@@ -143,7 +143,7 @@ class MediaCardDurationBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      _MediaCardCoverChip(label: label, weight: FontWeight.w500, size: 11.5);
+      MediaCardMonoChip(label: label, weight: FontWeight.w500, size: 11.5);
 }
 
 /// Where [MediaCardTile] draws its language code: on the artwork
@@ -171,15 +171,7 @@ class MediaCardTitleLanguage extends StatelessWidget {
         ),
       ),
     );
-    if (onTap == null) return text;
-    return Semantics(
-      button: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: MouseRegion(cursor: SystemMouseCursors.click, child: text),
-      ),
-    );
+    return mediaCardTappableChip(onTap, text);
   }
 }
 
@@ -196,42 +188,37 @@ class MediaCardCoverLanguageChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chip = _MediaCardCoverChip(
-      label: label,
-      weight: FontWeight.w600,
-      size: 11,
-    );
-    if (onTap == null) return chip;
-    return Semantics(
-      button: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: MouseRegion(cursor: SystemMouseCursors.click, child: chip),
-      ),
-    );
+    return MediaCardMonoChip(label: label, onTap: onTap);
   }
 }
 
-class _MediaCardCoverChip extends StatelessWidget {
-  const _MediaCardCoverChip({
+/// 22px mono chip shared by artwork corners and [MediaCardRow] meta.
+class MediaCardMonoChip extends StatelessWidget {
+  const MediaCardMonoChip({
+    super.key,
     required this.label,
-    required this.weight,
-    required this.size,
+    this.weight = FontWeight.w600,
+    this.size = 11,
+    this.fillColor = const Color(0x8C0C0E12),
+    this.textColor = Colors.white,
+    this.onTap,
   });
 
   final String label;
   final FontWeight weight;
   final double size;
+  final Color fillColor;
+  final Color textColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final chip = Container(
       height: 22,
       padding: const EdgeInsets.symmetric(horizontal: 7),
       alignment: Alignment.center,
       decoration: ShapeDecoration(
-        color: const Color(0x8C0C0E12),
+        color: fillColor,
         shape: RoundedSuperellipseBorder(
           borderRadius: BorderRadius.circular(7),
         ),
@@ -242,12 +229,51 @@ class _MediaCardCoverChip extends StatelessWidget {
           context,
           size: size,
           weight: weight,
-          color: Colors.white,
+          color: textColor,
           height: 1,
         ),
       ),
     );
+    return mediaCardTappableChip(onTap, chip);
   }
+}
+
+/// Adds button semantics, an opaque hit target, and a click cursor when
+/// [onTap] is set; returns [child] unchanged otherwise.
+Widget mediaCardTappableChip(VoidCallback? onTap, Widget child) {
+  if (onTap == null) return child;
+  return Semantics(
+    button: true,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: MouseRegion(cursor: SystemMouseCursors.click, child: child),
+    ),
+  );
+}
+
+/// Dark-glass fill + white hairline border shared by artwork pills.
+ShapeDecoration mediaCardGlassPillDecoration({Color? fill}) {
+  return ShapeDecoration(
+    color: fill ?? const Color(0x99000000),
+    shape: StadiumBorder(
+      side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+    ),
+  );
+}
+
+/// White `labelSmall` typography shared by artwork pills.
+TextStyle? mediaCardGlassPillTextStyle(
+  BuildContext context, {
+  double fontSize = 10.5,
+}) {
+  return Theme.of(context).textTheme.labelSmall?.copyWith(
+    color: Colors.white,
+    fontWeight: FontWeight.w600,
+    fontSize: fontSize,
+    letterSpacing: 0.1,
+    height: 1.25,
+  );
 }
 
 /// Language / metadata chip in [MediaCardRow] meta.
@@ -393,20 +419,12 @@ class MediaCardProviderBadgePill extends StatelessWidget {
         horizontal: compact ? 4 : 7,
         vertical: compact ? 1 : 2.5,
       ),
-      decoration: ShapeDecoration(
-        color: const Color(0x99000000),
-        shape: StadiumBorder(
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-        ),
-      ),
+      decoration: mediaCardGlassPillDecoration(),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
+        style: mediaCardGlassPillTextStyle(
+          context,
           fontSize: compact ? 8.5 : 10.5,
-          letterSpacing: 0.1,
-          height: 1.25,
         ),
       ),
     );
@@ -478,27 +496,13 @@ class MediaCardInLibraryChip extends StatelessWidget {
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.fromLTRB(6, 3, 8, 3),
-        decoration: ShapeDecoration(
-          color: const Color(0x99000000),
-          shape: StadiumBorder(
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
-          ),
-        ),
+        decoration: mediaCardGlassPillDecoration(),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(EnjoyIcons.check, size: 12, color: Colors.white),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 10.5,
-                letterSpacing: 0.1,
-                height: 1.25,
-              ),
-            ),
+            Text(label, style: mediaCardGlassPillTextStyle(context)),
           ],
         ),
       ),

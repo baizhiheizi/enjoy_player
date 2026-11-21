@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
@@ -6,6 +8,8 @@ import 'package:enjoy_player/features/subscription/data/subscription_repository.
 import 'package:enjoy_player/features/subscription/domain/payment_processor.dart';
 import 'package:enjoy_player/features/subscription/domain/purchase_request.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 class _FakeSubscriptionApi implements SubscriptionApi {
   _FakeSubscriptionApi(this._handler);
@@ -135,6 +139,40 @@ void main() {
 
       expect(() => repo.getStatus(), throwsA(isA<CreditsFailure>()));
     });
+  });
+
+  group('SubscriptionApi client tagging', () {
+    test(
+      'includes client=enjoy_player on purchase and startAutoRenew',
+      () async {
+        final captured = <String, Map<String, dynamic>>{};
+        final client = MockClient((request) async {
+          captured[request.url.path] =
+              jsonDecode(request.body) as Map<String, dynamic>;
+          return http.Response(
+            '{"id":"p1","status":"pending","payUrl":"https://pay.example.com"}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        });
+        final api = SubscriptionApi(
+          ApiClient(
+            httpClient: client,
+            getBaseUrl: () async => 'https://enjoy.bot',
+            getAccessToken: () async => 'bearer-1',
+          ),
+        );
+
+        await api.purchase(months: 3, tier: 'pro');
+        await api.startAutoRenew(planId: 'pro_month');
+
+        expect(captured['/api/v1/subscriptions']?['client'], 'enjoy_player');
+        expect(
+          captured['/api/v1/subscriptions/auto_renew']?['client'],
+          'enjoy_player',
+        );
+      },
+    );
   });
 }
 

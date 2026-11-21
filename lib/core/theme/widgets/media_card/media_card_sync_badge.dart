@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+import 'badges.dart';
+
 /// State of the cloud-sync indicator for a library item.
 enum MediaCardSyncBadge {
   /// Audio binary is on cloud and playable from any signed-in device.
@@ -83,12 +85,7 @@ class MediaCardSyncBadgePill extends StatelessWidget {
           horizontal: compact ? 5 : 8,
           vertical: compact ? 2 : 3,
         ),
-        decoration: ShapeDecoration(
-          color: _backgroundFor(cs),
-          shape: StadiumBorder(
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-          ),
-        ),
+        decoration: mediaCardGlassPillDecoration(fill: _backgroundFor(cs)),
         child: Icon(_icon, size: compact ? 12 : 14, color: _foregroundFor(cs)),
       ),
     );

@@ -36,6 +36,13 @@ components:
         native_language:
           type: string
           nullable: true
+        subscription_tier:
+          type: string
+          nullable: true
+        subscription_expire_date:
+          type: string
+          format: date-time
+          nullable: true
 
     AuthTokenResponse:
       type: object
@@ -208,6 +215,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: prompt
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [select_account]
       responses:
         '302':
           description: Redirect to Enjoy web login or IdP
@@ -270,3 +283,19 @@ paths:
                     type: integer
                   token_type:
                     type: string
+
+  /api/v1/auth/logout:
+    post:
+      summary: Revoke a native client session (best-effort, idempotent)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '204':
+          description: Session revoked or already absent

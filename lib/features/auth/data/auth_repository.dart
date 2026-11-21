@@ -164,6 +164,7 @@ class AuthRepository {
         'redirect_uri': redirectUri,
         'code_challenge': codeChallenge,
         'code_challenge_method': 'S256',
+        'prompt': 'select_account',
         'state': state,
       },
     );
@@ -425,6 +426,23 @@ class AuthRepository {
     final expiresAt = DateTime.tryParse(expiresAtRaw);
     if (expiresAt == null) return false;
     return DateTime.now().toUtc().isAfter(expiresAt);
+  }
+
+  Future<String?> readRefreshToken() => _tokenStore.readRefreshToken();
+
+  Future<void> revokeRefreshTokenBestEffort(String? refreshToken) async {
+    if (refreshToken == null || refreshToken.isEmpty) return;
+    try {
+      await _authApi
+          .logout(refreshToken: refreshToken)
+          .timeout(const Duration(seconds: 3));
+    } catch (e, st) {
+      _log.warning('server logout revoke failed', e, st);
+    }
+  }
+
+  Future<void> revokeSessionBestEffort() async {
+    await revokeRefreshTokenBestEffort(await readRefreshToken());
   }
 
   Future<void> clearSession() async {

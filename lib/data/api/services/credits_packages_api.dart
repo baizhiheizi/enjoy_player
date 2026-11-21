@@ -12,5 +12,8 @@ class CreditsPackagesApi extends RestApi {
 
   Future<Map<String, dynamic>> startPackagePurchase({
     required String packageId,
-  }) => client.postJson('$_path/purchases', body: {'packageId': packageId});
+  }) => client.postJson(
+    '$_path/purchases',
+    body: {'packageId': packageId, 'client': 'enjoy_player'},
+  );
 }

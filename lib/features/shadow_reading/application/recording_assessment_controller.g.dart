@@ -65,7 +65,7 @@ final class RecordingAssessmentControllerProvider
 }
 
 String _$recordingAssessmentControllerHash() =>
-    r'dba9b7673e4166cd22da10d5744954a8de82ef2d';
+    r'f7945c30ca6ff4f63297552ddc5b7cf3c186ac0f';
 
 final class RecordingAssessmentControllerFamily extends $Family
     with
