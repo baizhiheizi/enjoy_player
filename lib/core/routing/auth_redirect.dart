@@ -27,13 +27,31 @@ bool isNativeAuthCallbackArtifact(String matchedLocation) =>
 
 /// Matches the location go_router derives for `enjoyplayer://checkout/return`.
 bool isCheckoutReturnArtifact(String matchedLocation) =>
-    matchedLocation == '/return';
+    matchedLocation == '/return' || matchedLocation == '/return/';
+
+/// Whether [uri] is the native checkout-return deep link.
+bool isCheckoutReturnUri(Uri uri) =>
+    uri.scheme == 'enjoyplayer' &&
+    uri.host == 'checkout' &&
+    (uri.path == '/return' || uri.path == '/return/');
 
 /// Maps a checkout return deep-link URI to the in-app billing destination.
 String checkoutReturnTarget(Uri uri) =>
     uri.queryParameters['kind'] == 'credits_package'
     ? '/credits'
     : '/subscription';
+
+/// Resolves a redirect target when [matchedLocation] is the checkout return
+/// artifact, or returns `null` for all other locations.
+String? resolveCheckoutReturnRedirect({
+  required String matchedLocation,
+  required Uri uri,
+  required AsyncValue<AuthState> auth,
+}) {
+  if (!isCheckoutReturnArtifact(matchedLocation)) return null;
+  final target = checkoutReturnTarget(uri);
+  return resolveAuthRedirect(matchedLocation: target, auth: auth) ?? target;
+}
 
 /// Returns `true` when the user has an active Enjoy account session.
 bool isAuthenticated(AuthState? state) => state is AuthSignedIn;

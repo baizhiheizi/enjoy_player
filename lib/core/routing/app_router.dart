@@ -112,12 +112,12 @@ GoRouter appRouter(Ref ref) {
     observers: [rootOverlayObserver, rootScreenObserver],
     errorBuilder: (context, state) => NotFoundScreen(uri: state.uri),
     redirect: (context, state) {
-      if (isCheckoutReturnArtifact(state.matchedLocation)) {
-        final target = checkoutReturnTarget(state.uri);
-        final auth = ref.read(authCtrlProvider);
-        return resolveAuthRedirect(matchedLocation: target, auth: auth) ??
-            target;
-      }
+      final checkoutRedirect = resolveCheckoutReturnRedirect(
+        matchedLocation: state.matchedLocation,
+        uri: state.uri,
+        auth: ref.read(authCtrlProvider),
+      );
+      if (checkoutRedirect != null) return checkoutRedirect;
 
       final loc = isNativeAuthCallbackArtifact(state.matchedLocation)
           ? '/'

@@ -56,9 +56,7 @@ class _AuthDeepLinkListenerState extends ConsumerState<AuthDeepLinkListener> {
     _log.info(
       'auth deep link received (${uri.scheme}://${uri.host}${uri.path})',
     );
-    if (uri.scheme == 'enjoyplayer' &&
-        uri.host == 'checkout' &&
-        uri.path == '/return') {
+    if (isCheckoutReturnUri(uri)) {
       ref.read(appRouterProvider).go(checkoutReturnTarget(uri));
       return;
     }

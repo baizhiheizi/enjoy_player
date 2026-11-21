@@ -428,16 +428,21 @@ class AuthRepository {
     return DateTime.now().toUtc().isAfter(expiresAt);
   }
 
-  Future<void> revokeSessionBestEffort() async {
+  Future<String?> readRefreshToken() => _tokenStore.readRefreshToken();
+
+  Future<void> revokeRefreshTokenBestEffort(String? refreshToken) async {
+    if (refreshToken == null || refreshToken.isEmpty) return;
     try {
-      final refresh = await _tokenStore.readRefreshToken();
-      if (refresh == null || refresh.isEmpty) return;
       await _authApi
-          .logout(refreshToken: refresh)
+          .logout(refreshToken: refreshToken)
           .timeout(const Duration(seconds: 3));
     } catch (e, st) {
       _log.warning('server logout revoke failed', e, st);
     }
+  }
+
+  Future<void> revokeSessionBestEffort() async {
+    await revokeRefreshTokenBestEffort(await readRefreshToken());
   }
 
   Future<void> clearSession() async {

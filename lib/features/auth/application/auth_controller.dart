@@ -244,13 +244,24 @@ class AuthCtrl extends _$AuthCtrl {
   Future<void> signOut() async {
     _flowGeneration++;
     _cancelPkceTimeout();
+    final repo = ref.read(authRepositoryProvider);
+    String? refreshToken;
     try {
-      await ref.read(authRepositoryProvider).revokeSessionBestEffort();
+      refreshToken = await repo.readRefreshToken();
     } catch (e, st) {
-      _log.warning('server logout revoke failed', e, st);
+      _log.warning('failed to read refresh token before sign-out', e, st);
     }
-    await ref.read(authRepositoryProvider).clearSession();
+    await repo.clearSession();
     state = const AsyncData(AuthSignedOut());
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      unawaited(() async {
+        try {
+          await repo.revokeRefreshTokenBestEffort(refreshToken);
+        } catch (e, st) {
+          _log.warning('server logout revoke failed', e, st);
+        }
+      }());
+    }
     try {
       await ref.read(googleSignInServiceProvider).signOut();
     } catch (e, st) {

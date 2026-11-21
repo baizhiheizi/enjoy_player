@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
@@ -47,11 +49,24 @@ class _FakeAuthRepository extends AuthRepository {
   Future<AuthState> loadInitialAuthState() async => const AuthSignedOut();
 
   final List<String> signOutCalls = <String>[];
+  final List<String?> revokedTokens = <String?>[];
+  String? storedRefreshToken = 'refresh-token-1';
+  Completer<void>? revokeGate;
   bool failRevoke = false;
 
   @override
-  Future<void> revokeSessionBestEffort() async {
+  Future<String?> readRefreshToken() async {
+    signOutCalls.add('read');
+    return storedRefreshToken;
+  }
+
+  @override
+  Future<void> revokeRefreshTokenBestEffort(String? refreshToken) async {
     signOutCalls.add('revoke');
+    revokedTokens.add(refreshToken);
+    if (revokeGate != null) {
+      await revokeGate!.future;
+    }
     if (failRevoke) {
       throw StateError('network error');
     }
@@ -187,29 +202,41 @@ void main() {
     expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
   });
 
-  test('signOut revokes server session before clearing local tokens', () async {
-    FlutterSecureStorage.setMockInitialValues({});
-    final fake = _FakeAuthRepository();
-    final container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(fake)],
-    );
-    addTearDown(container.dispose);
+  test(
+    'signOut clears local session immediately and revokes in background',
+    () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      final revokeGate = Completer<void>();
+      final fake = _FakeAuthRepository()..revokeGate = revokeGate;
+      final container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(fake)],
+      );
+      addTearDown(container.dispose);
 
-    await container.read(authCtrlProvider.future);
-    container.read(authCtrlProvider.notifier).state = const AsyncData(
-      AuthSignedIn(
-        profile: UserProfile(id: 'u1', email: 'user@example.com', name: 'User'),
-      ),
-    );
+      await container.read(authCtrlProvider.future);
+      container.read(authCtrlProvider.notifier).state = const AsyncData(
+        AuthSignedIn(
+          profile: UserProfile(
+            id: 'u1',
+            email: 'user@example.com',
+            name: 'User',
+          ),
+        ),
+      );
 
-    await container.read(authCtrlProvider.notifier).signOut();
+      await container.read(authCtrlProvider.notifier).signOut();
 
-    expect(fake.signOutCalls, ['revoke', 'clear']);
-    expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
-  });
+      expect(fake.signOutCalls.sublist(0, 2), ['read', 'clear']);
+      expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
+      expect(fake.revokedTokens, ['refresh-token-1']);
+
+      revokeGate.complete();
+      await Future<void>.delayed(Duration.zero);
+    },
+  );
 
   test(
-    'signOut still clears local session when server revoke throws',
+    'signOut still clears local session when background revoke throws',
     () async {
       FlutterSecureStorage.setMockInitialValues({});
       final fake = _FakeAuthRepository()..failRevoke = true;
@@ -230,8 +257,9 @@ void main() {
       );
 
       await container.read(authCtrlProvider.notifier).signOut();
+      await Future<void>.delayed(Duration.zero);
 
-      expect(fake.signOutCalls, ['revoke', 'clear']);
+      expect(fake.signOutCalls, ['read', 'clear', 'revoke']);
       expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
     },
   );

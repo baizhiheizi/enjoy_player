@@ -66,11 +66,19 @@ Save submits `UpdateProfileRequest(goal: …)` (and locale/language prefs via lo
 
 OpenAPI contract: [native-auth-v2.openapi.yaml](../api/native-auth-v2.openapi.yaml).
 
-## Deep links (PKCE callback)
+## Deep links (PKCE callback & checkout return)
 
-- Custom scheme (all platforms): `enjoyplayer://auth/callback`
+- **PKCE auth callback**: `enjoyplayer://auth/callback` (the only redirect URI whitelisted in enjoy_web's `config/native_auth_clients.yml`; a universal/app link was dropped to avoid hosting `apple-app-site-association` / `assetlinks.json`).
+- **Stripe checkout return**: `enjoyplayer://checkout/return?result=...&kind=...` (opened by `enjoy.bot/checkout/return` when Stripe finishes or cancels a payment created with `client=enjoy_player`; `AuthDeepLinkListener` and `app_router.dart` route `credits_package` to `/credits` and other purchases to `/subscription`).
 
-This is the only redirect URI whitelisted in enjoy_web's `config/native_auth_clients.yml`; a universal/app link (`https://enjoy.bot/app/auth/callback`) was considered but dropped to avoid the backend needing to host `apple-app-site-association` / `assetlinks.json`. Windows installer registers the `enjoyplayer://` protocol; Android and iOS register it via manifest/Info.plist intent filters. On Linux the app **self-registers** a user-level handler (desktop entry + `xdg-mime`) at startup and before every web PKCE attempt, so plain AppImage runs and dev builds need no manual step ([ADR-0084](../decisions/0084-linux-google-signin-off-and-pkce-deeplink.md)).
+| Platform | Custom-scheme registration | Paths matched |
+|----------|----------------------------|---------------|
+| Android | [`AndroidManifest.xml`](../../android/app/src/main/AndroidManifest.xml) (`<intent-filter>`) | `host="auth" path="/callback"` and `host="checkout" path="/return"` |
+| iOS & macOS | [`ios/Runner/Info.plist`](../../ios/Runner/Info.plist), [`macos/Runner/Info.plist`](../../macos/Runner/Info.plist) (`CFBundleURLSchemes`) | All `enjoyplayer://` paths |
+| Windows | [`windows/installer/enjoy_player.iss`](../../windows/installer/enjoy_player.iss) (`enjoyplayer` protocol) | All `enjoyplayer://` paths |
+| Linux | User desktop entry (`MimeType=x-scheme-handler/enjoyplayer`, [ADR-0084](../decisions/0084-linux-google-signin-off-and-pkce-deeplink.md)) | All `enjoyplayer://` paths |
+
+On Linux the app **self-registers** a user-level handler (desktop entry + `xdg-mime`) at startup and before every web PKCE attempt, so plain AppImage runs and dev builds need no manual step ([ADR-0084](../decisions/0084-linux-google-signin-off-and-pkce-deeplink.md)).
 
 **Windows single-instance forwarding**: Windows always launches a *new* `enjoy_player.exe` process to handle a registered `enjoyplayer://` URL — there is no OS-level concept of routing it to an already-running instance. [`windows/runner/main.cpp`](../../windows/runner/main.cpp) therefore calls `SendAppLinkToInstance()` before creating any window: it looks up the existing top-level window (class `FLUTTER_RUNNER_WIN32_WINDOW`, title `Enjoy Player`) with `FindWindow`, and if found, forwards the new process's command-line URI to it via `app_links`'s exported `SendAppLink()` (a `WM_COPYDATA` message the plugin already listens for on the first instance), restores/foregrounds that window, and exits immediately. Without this, the second process has no in-memory PKCE state (code verifier / OAuth `state`) and the original instance's `AuthDeepLinkListener` never receives the callback, so sign-in silently stalls until timeout and a stray second window is left open.
 
