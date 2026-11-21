@@ -45,6 +45,23 @@ class _FakeAuthRepository extends AuthRepository {
 
   @override
   Future<AuthState> loadInitialAuthState() async => const AuthSignedOut();
+
+  final List<String> signOutCalls = <String>[];
+  bool failRevoke = false;
+
+  @override
+  Future<void> revokeSessionBestEffort() async {
+    signOutCalls.add('revoke');
+    if (failRevoke) {
+      throw StateError('network error');
+    }
+  }
+
+  @override
+  Future<void> clearSession() async {
+    signOutCalls.add('clear');
+    await super.clearSession();
+  }
 }
 
 class _ThrowingGoogleSignInService extends GoogleSignInService {
@@ -169,4 +186,53 @@ void main() {
 
     expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
   });
+
+  test('signOut revokes server session before clearing local tokens', () async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final fake = _FakeAuthRepository();
+    final container = ProviderContainer(
+      overrides: [authRepositoryProvider.overrideWithValue(fake)],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(authCtrlProvider.future);
+    container.read(authCtrlProvider.notifier).state = const AsyncData(
+      AuthSignedIn(
+        profile: UserProfile(id: 'u1', email: 'user@example.com', name: 'User'),
+      ),
+    );
+
+    await container.read(authCtrlProvider.notifier).signOut();
+
+    expect(fake.signOutCalls, ['revoke', 'clear']);
+    expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
+  });
+
+  test(
+    'signOut still clears local session when server revoke throws',
+    () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      final fake = _FakeAuthRepository()..failRevoke = true;
+      final container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(fake)],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authCtrlProvider.future);
+      container.read(authCtrlProvider.notifier).state = const AsyncData(
+        AuthSignedIn(
+          profile: UserProfile(
+            id: 'u1',
+            email: 'user@example.com',
+            name: 'User',
+          ),
+        ),
+      );
+
+      await container.read(authCtrlProvider.notifier).signOut();
+
+      expect(fake.signOutCalls, ['revoke', 'clear']);
+      expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
+    },
+  );
 }

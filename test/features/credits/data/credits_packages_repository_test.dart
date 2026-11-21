@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
@@ -5,6 +7,7 @@ import 'package:enjoy_player/data/api/services/credits_packages_api.dart';
 import 'package:enjoy_player/features/credits/data/credits_packages_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 class _NullHttpClient extends http.BaseClient {
   @override
@@ -226,6 +229,33 @@ void main() {
         ),
       );
       expect(api.lastPackageId, 'pkg-99');
+    });
+  });
+
+  group('CreditsPackagesApi client tagging', () {
+    test('includes client=enjoy_player on startPackagePurchase', () async {
+      Map<String, dynamic>? body;
+      final client = MockClient((request) async {
+        expect(request.url.path, '/api/v1/credits/packages/purchases');
+        body = jsonDecode(request.body) as Map<String, dynamic>;
+        return http.Response(
+          '{"id":"psess-1","status":"pending","payUrl":"https://pay.example.com"}',
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+      final api = CreditsPackagesApi(
+        ApiClient(
+          httpClient: client,
+          getBaseUrl: () async => 'https://enjoy.bot',
+          getAccessToken: () async => 'bearer-1',
+        ),
+      );
+
+      await api.startPackagePurchase(packageId: 'pkg-1');
+
+      expect(body?['package_id'], 'pkg-1');
+      expect(body?['client'], 'enjoy_player');
     });
   });
 }

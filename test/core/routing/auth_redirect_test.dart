@@ -203,4 +203,46 @@ void main() {
       );
     });
   });
+
+  group('checkout return deep link helpers', () {
+    test('isCheckoutReturnArtifact matches go_router /return path', () {
+      expect(isCheckoutReturnArtifact('/return'), isTrue);
+      expect(isCheckoutReturnArtifact('/subscription'), isFalse);
+      expect(isCheckoutReturnArtifact('/checkout/return'), isFalse);
+    });
+
+    test(
+      'checkoutReturnTarget maps credits_package to /credits and others to /subscription',
+      () {
+        expect(
+          checkoutReturnTarget(
+            Uri.parse(
+              'enjoyplayer://checkout/return?result=success&kind=credits_package',
+            ),
+          ),
+          '/credits',
+        );
+        expect(
+          checkoutReturnTarget(
+            Uri.parse(
+              'enjoyplayer://checkout/return?result=success&kind=auto_renew',
+            ),
+          ),
+          '/subscription',
+        );
+        expect(
+          checkoutReturnTarget(
+            Uri.parse(
+              'enjoyplayer://checkout/return?result=cancel&kind=subscription',
+            ),
+          ),
+          '/subscription',
+        );
+        expect(
+          checkoutReturnTarget(Uri.parse('enjoyplayer://checkout/return')),
+          '/subscription',
+        );
+      },
+    );
+  });
 }

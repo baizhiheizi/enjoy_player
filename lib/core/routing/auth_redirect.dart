@@ -25,6 +25,16 @@ bool isSignInAllowlisted(String matchedLocation) {
 bool isNativeAuthCallbackArtifact(String matchedLocation) =>
     matchedLocation == '/callback';
 
+/// Matches the location go_router derives for `enjoyplayer://checkout/return`.
+bool isCheckoutReturnArtifact(String matchedLocation) =>
+    matchedLocation == '/return';
+
+/// Maps a checkout return deep-link URI to the in-app billing destination.
+String checkoutReturnTarget(Uri uri) =>
+    uri.queryParameters['kind'] == 'credits_package'
+    ? '/credits'
+    : '/subscription';
+
 /// Returns `true` when the user has an active Enjoy account session.
 bool isAuthenticated(AuthState? state) => state is AuthSignedIn;
 

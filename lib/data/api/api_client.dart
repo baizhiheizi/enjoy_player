@@ -80,11 +80,13 @@ class ApiClient with _ApiClientDecoding, _ApiClientDispatch, _ApiClientUploads {
     String path, {
     Map<String, dynamic>? body,
     bool requireAuth = true,
+    bool allowEmptyBody = false,
   }) => _sendMapWithOptionalRefresh(
     method: 'POST',
     path: path,
     body: body,
     requireAuth: requireAuth,
+    allowEmptyBody: allowEmptyBody,
   );
 
   Future<Map<String, dynamic>> patchJson(

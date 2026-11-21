@@ -244,6 +244,11 @@ class AuthCtrl extends _$AuthCtrl {
   Future<void> signOut() async {
     _flowGeneration++;
     _cancelPkceTimeout();
+    try {
+      await ref.read(authRepositoryProvider).revokeSessionBestEffort();
+    } catch (e, st) {
+      _log.warning('server logout revoke failed', e, st);
+    }
     await ref.read(authRepositoryProvider).clearSession();
     state = const AsyncData(AuthSignedOut());
     try {
