@@ -1,7 +1,7 @@
-# Optimization backlog (updated 2026-11-20)
+# Optimization backlog (updated 2026-11-21)
 
 ## Ready-to-ship (validated on main)
-- `balance_to_credits.dart:63` (subscription widgets) builds `NumberFormat.simpleCurrency(name: 'USD')` per call — legacy-balance card on the same quiet screen #1412 covered; `cachedNumberFormat` from #1394 applies. Small, measured precedent from #1412 (~3x on number formatting).
+- (none — the two validated candidates shipped as drafts on 2026-11-21; next candidates need a fresh sweep)
 
 ## Maintainer-decision items (unchanged)
 - P7: auto-translate flush rebuilds 40–80 tiles + re-resolves secondary text per tile.
@@ -11,7 +11,8 @@
 
 ## Context
 - 18 perf-improver PRs merged (latest #1412 subscription-card formatter caches — commit 68ab6189; drafted 2026-11-18).
-- 2026-11-20 run: PR (draft) `perf-assist/vocab-review-tab-due-preview` — review tab due preview provider (the #827 C2 pattern applied to the Review tab, which that pass missed). If merged, that becomes #19.
+- 2026-11-21 run re-shipped the review-tab due preview (branch `perf-assist/vocab-review-tab-due-preview`, commit 59a253ae) and shipped the balance-card currency cache (branch `perf-assist/balance-currency-cache`, commit 4e431339). The 2026-11-20 run's version of the due-preview PR never published — work was redone from scratch.
 - Third-party perf PRs #1381–#1388 + #1393/#1394/#1397/#1402 all landed. The deferred feature re-sweep of touched surfaces is still due.
-- #1394 added `lib/core/format/cached_number_format.dart` (shared per-locale NumberFormat cache) — reuse for future format candidates.
-- Provider-cache candidates: grep presentation `build` methods that watch `vocabularyItemsProvider` (or similar item streams) and derive inline (map/set/sort/filter/copy). The #827 C2 pass covered the word list; 2026-11-20 covered the Review tab; other surfaces likely clean but a fresh sweep per feature is cheap.
+- #1394 added `lib/core/format/cached_number_format.dart` (shared per-locale NumberFormat cache; `cachedSimpleCurrency` added 2026-11-21) — reuse for future format candidates.
+- Provider-cache candidates: grep presentation `build` methods that watch `vocabularyItemsProvider` (or similar item streams) and derive inline (map/set/sort/filter/copy). The #827 C2 pass covered the word list; the Review tab was covered 2026-11-21; other surfaces likely clean but a fresh sweep per feature is cheap.
+- Maintainer-decision items unchanged (P7 auto-translate flush, P8 seek/bucket rule, P10b timeline length from SQL projection, P3-reframed review-session listAll over-fetch) — re-verify on current main before escalating.
