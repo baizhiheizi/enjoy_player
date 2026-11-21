@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -57,20 +56,13 @@ class _DueReviewCard extends ConsumerWidget {
 
   final VocabularyStats stats;
 
-  static const int _kPreviewWords = 5;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-    final items = ref.watch(vocabularyItemsProvider).valueOrNull ?? const [];
-    final dueWords = buildVocabularySessionQueue(
-      items: items,
-      options: const ReviewSelectionOptions(mode: VocabularyReviewMode.due),
-      now: DateTime.now(),
-    ).map((i) => i.word).toList();
-    final hasDue = dueWords.isNotEmpty;
+    final preview = ref.watch(vocabularyDuePreviewProvider);
+    final hasDue = preview.count > 0;
 
     Widget chip(String text) => Container(
       height: 30,
@@ -94,7 +86,7 @@ class _DueReviewCard extends ConsumerWidget {
             const SizedBox(height: 14),
             Text(
               hasDue
-                  ? l10n.vocabularyDueWaiting(dueWords.length)
+                  ? l10n.vocabularyDueWaiting(preview.count)
                   : l10n.vocabularyNoDueItems,
               style: enjoyDisplayStyle(
                 context,
@@ -120,9 +112,9 @@ class _DueReviewCard extends ConsumerWidget {
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  for (final word in dueWords.take(_kPreviewWords)) chip(word),
-                  if (dueWords.length > _kPreviewWords)
-                    chip('+${dueWords.length - _kPreviewWords}'),
+                  for (final word in preview.firstWords) chip(word),
+                  if (preview.count > preview.firstWords.length)
+                    chip('+${preview.count - preview.firstWords.length}'),
                 ],
               ),
               const SizedBox(height: 22),

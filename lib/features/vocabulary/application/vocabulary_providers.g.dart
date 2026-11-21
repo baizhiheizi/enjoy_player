@@ -310,6 +310,68 @@ final class VocabularyVisibleItemsProvider
 String _$vocabularyVisibleItemsHash() =>
     r'2953423e75ca2264871b9b5def1945eb1fdfdb34';
 
+/// Due count + preview words for the Review tab's due card — same
+/// `isVocabularyItemDue` predicate and item order as the due-mode session
+/// queue, cached between `vocabularyItemsProvider` emissions so rebuilds
+/// unrelated to the items stop re-deriving the full due queue.
+
+@ProviderFor(vocabularyDuePreview)
+final vocabularyDuePreviewProvider = VocabularyDuePreviewProvider._();
+
+/// Due count + preview words for the Review tab's due card — same
+/// `isVocabularyItemDue` predicate and item order as the due-mode session
+/// queue, cached between `vocabularyItemsProvider` emissions so rebuilds
+/// unrelated to the items stop re-deriving the full due queue.
+
+final class VocabularyDuePreviewProvider
+    extends
+        $FunctionalProvider<
+          VocabularyDuePreview,
+          VocabularyDuePreview,
+          VocabularyDuePreview
+        >
+    with $Provider<VocabularyDuePreview> {
+  /// Due count + preview words for the Review tab's due card — same
+  /// `isVocabularyItemDue` predicate and item order as the due-mode session
+  /// queue, cached between `vocabularyItemsProvider` emissions so rebuilds
+  /// unrelated to the items stop re-deriving the full due queue.
+  VocabularyDuePreviewProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vocabularyDuePreviewProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vocabularyDuePreviewHash();
+
+  @$internal
+  @override
+  $ProviderElement<VocabularyDuePreview> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  VocabularyDuePreview create(Ref ref) {
+    return vocabularyDuePreview(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(VocabularyDuePreview value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<VocabularyDuePreview>(value),
+    );
+  }
+}
+
+String _$vocabularyDuePreviewHash() =>
+    r'567af5fbbbcfdb529d5fc7eb5e45fd1ff1e31a64';
+
 /// Earliest saved context sentence per visible word (the word list's second
 /// line).
 ///
