@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
@@ -335,5 +336,92 @@ void main() {
       const e = ApiException(message: 'no status');
       expect(authFailureCodeForApiException(e), AuthFailureCode.unknown);
     });
+  });
+
+  group('AuthRepository PKCE and server logout', () {
+    setUp(() {
+      FlutterSecureStorage.setMockInitialValues({});
+    });
+
+    AuthRepository buildRepo(http.Client client, SecureTokenStore tokenStore) {
+      final sharedClient = ApiClient(
+        httpClient: client,
+        getBaseUrl: () async => 'https://enjoy.bot',
+        getAccessToken: () async => null,
+      );
+      final api = AuthApi(authClient: sharedClient, userClient: sharedClient);
+      return AuthRepository(
+        authApi: api,
+        directUploadsApi: DirectUploadsApi(sharedClient),
+        tokenStore: tokenStore,
+        getBaseUrl: () async => 'https://enjoy.bot',
+      );
+    }
+
+    test('buildPkceAuthorizeUri includes prompt=select_account', () async {
+      final tokenStore = SecureTokenStore(const FlutterSecureStorage());
+      final repo = buildRepo(
+        MockClient((_) async => http.Response('{}', 200)),
+        tokenStore,
+      );
+
+      final uri = await repo.buildPkceAuthorizeUri(
+        redirectUri: 'enjoyplayer://auth/callback',
+        codeChallenge: 'challenge-123',
+        state: 'state-123',
+      );
+
+      expect(uri.path, '/api/v1/auth/authorize');
+      expect(uri.queryParameters['client_id'], 'enjoy_player');
+      expect(
+        uri.queryParameters['redirect_uri'],
+        'enjoyplayer://auth/callback',
+      );
+      expect(uri.queryParameters['code_challenge'], 'challenge-123');
+      expect(uri.queryParameters['code_challenge_method'], 'S256');
+      expect(uri.queryParameters['prompt'], 'select_account');
+      expect(uri.queryParameters['state'], 'state-123');
+    });
+
+    test(
+      'revokeSessionBestEffort posts refresh token to /api/v1/auth/logout',
+      () async {
+        final tokenStore = SecureTokenStore(const FlutterSecureStorage());
+        await tokenStore.writeRefreshToken('refresh-xyz');
+        String? postedPath;
+        Map<String, dynamic>? postedBody;
+        final client = MockClient((request) async {
+          postedPath = request.url.path;
+          postedBody = jsonDecode(request.body) as Map<String, dynamic>;
+          return http.Response('', 204);
+        });
+        final repo = buildRepo(client, tokenStore);
+
+        await repo.revokeSessionBestEffort();
+
+        expect(postedPath, '/api/v1/auth/logout');
+        expect(postedBody, {'refresh_token': 'refresh-xyz'});
+      },
+    );
+
+    test(
+      'revokeSessionBestEffort ignores errors and absent refresh tokens',
+      () async {
+        final tokenStore = SecureTokenStore(const FlutterSecureStorage());
+        var networkCalls = 0;
+        final client = MockClient((_) async {
+          networkCalls++;
+          return http.Response('boom', 500);
+        });
+        final repo = buildRepo(client, tokenStore);
+
+        await repo.revokeSessionBestEffort();
+        expect(networkCalls, 0);
+
+        await tokenStore.writeRefreshToken('refresh-xyz');
+        await repo.revokeSessionBestEffort();
+        expect(networkCalls, 1);
+      },
+    );
   });
 }

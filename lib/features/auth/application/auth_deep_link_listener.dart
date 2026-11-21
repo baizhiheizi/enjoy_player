@@ -11,6 +11,8 @@ import 'package:logging/logging.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/routing/app_router.dart';
+import 'package:enjoy_player/core/routing/auth_redirect.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 
 final Logger _log = logNamed('auth.deeplink');
@@ -54,6 +56,10 @@ class _AuthDeepLinkListenerState extends ConsumerState<AuthDeepLinkListener> {
     _log.info(
       'auth deep link received (${uri.scheme}://${uri.host}${uri.path})',
     );
+    if (isCheckoutReturnUri(uri)) {
+      ref.read(appRouterProvider).go(checkoutReturnTarget(uri));
+      return;
+    }
     try {
       await ref.read(authCtrlProvider.notifier).handleAuthCallbackUri(uri);
     } on AuthFailure catch (e) {

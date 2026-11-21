@@ -77,6 +77,7 @@ Surfaces that show the CTA inline must use `CreditsCtaButton` (in place) or `cre
 - `TierReconcileHost` (mounted in `RootShell`) is a global `WidgetsBindingObserver`. On `AppLifecycleState.resumed` and on (re)sign-in it runs `TierReconcileCtrl.reconcile()`, which refreshes **both** the live status and the cached profile.
 - When a genuine `free → any paid tier` transition is detected (Lite or Pro), a tier-aware `AppNotice.success` snackbar is shown: `"You're now Lite — enjoy!"` (`subscriptionUpgradedToLite`) or `"You're now Pro — enjoy!"` (`subscriptionUpgradedToPro`). Free members upgrading from Free to Lite get the Lite toast; Pro upgrades still get the Pro toast. The poll uses `status.isPaidTier` (true for either Lite or Pro) rather than `== SubscriptionTier.pro`.
 - App-initiated paid-tier checkout: `markPurchasePending()` → eager resume poll until the user lands on any paid tier (Lite or Pro) via `_pollPaidOnce` / `_pollUntilPaidOrTimeout`.
+- **Checkout return deep link**: `PurchaseRequest`, auto-renew checkout, and credits-package checkout pass `client: "enjoy_player"` so Stripe return URLs land on the public `enjoy.bot/checkout/return` page and offer a one-click return via `enjoyplayer://checkout/return?result=...&kind=...` (routed back to `/subscription` or `/credits`).
 - App-initiated credits-package checkout: `markPackagePurchasePending(expectedCredits:, baselinePermanent:)` → eager poll of Worker credits summary until permanent credits increase.
 
 ### Desktop (Windows, macOS, Linux)
@@ -101,11 +102,11 @@ Surfaces that show the CTA inline must use `CreditsCtaButton` (in place) or `cre
 |--------|------|---------|
 | GET | `/api/v1/subscriptions` | Current subscription status (+ `auto_renew`) |
 | GET | `/api/v1/subscriptions/plans` | Auto-renew catalog |
-| POST | `/api/v1/subscriptions` | Prepaid months checkout (`months`, `processor`) |
-| POST | `/api/v1/subscriptions/auto_renew` | Start auto-renew (`plan_id`) |
+| POST | `/api/v1/subscriptions` | Prepaid months checkout (`months`, `processor`, `tier`, `client`) |
+| POST | `/api/v1/subscriptions/auto_renew` | Start auto-renew (`plan_id`, `client`) |
 | POST | `/api/v1/subscriptions/cancel` | Cancel auto-renew at period end |
 | GET | `/api/v1/credits/packages` | Credits package catalog |
-| POST | `/api/v1/credits/packages/purchases` | Start package checkout (`package_id`) |
+| POST | `/api/v1/credits/packages/purchases` | Start package checkout (`package_id`, `client`) |
 | GET | `{AI}/credits/summary` | Worker daily + permanent wallet (post-package refresh) |
 
 Rails API base URL (`apiClientProvider`); Worker via `aiApiClientProvider`; bearer auth required.
