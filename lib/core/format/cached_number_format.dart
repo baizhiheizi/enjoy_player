@@ -18,3 +18,12 @@ NumberFormat cachedNumberFormat(String pattern, [String? locale]) {
   final key = '$pattern\u0000${Intl.canonicalizedLocale(locale)}';
   return _patternCache.putIfAbsent(key, () => NumberFormat(pattern, locale));
 }
+
+NumberFormat cachedSimpleCurrency({String? locale, String? name}) {
+  final key =
+      'simpleCurrency\u0000${name ?? ''}\u0000${Intl.canonicalizedLocale(locale)}';
+  return _patternCache.putIfAbsent(
+    key,
+    () => NumberFormat.simpleCurrency(locale: locale, name: name),
+  );
+}
