@@ -8,6 +8,7 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_list_controller.dart';
 import 'package:enjoy_player/features/vocabulary/data/vocabulary_repository.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_due_preview.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 
@@ -61,6 +62,18 @@ List<VocabularyItem> vocabularyVisibleItems(Ref ref) {
       ref.watch(vocabularyItemsProvider).valueOrNull ??
       const <VocabularyItem>[];
   return filterVocabularyItems(items, ref.watch(vocabularyListFiltersProvider));
+}
+
+/// Due count + preview words for the Review tab's due card — same
+/// `isVocabularyItemDue` predicate and item order as the due-mode session
+/// queue, cached between `vocabularyItemsProvider` emissions so rebuilds
+/// unrelated to the items stop re-deriving the full due queue.
+@riverpod
+VocabularyDuePreview vocabularyDuePreview(Ref ref) {
+  final items =
+      ref.watch(vocabularyItemsProvider).valueOrNull ??
+      const <VocabularyItem>[];
+  return buildVocabularyDuePreview(items: items, now: DateTime.now());
 }
 
 /// Earliest saved context sentence per visible word (the word list's second

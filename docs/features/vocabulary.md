@@ -419,6 +419,7 @@ Offline: full local CRUD/review. AI dictionary / contextual translation require 
 - List-first chrome: the **Due** count is a badge on the **Review** tab, and the Total / Due / status breakdown renders inline as a stats row above the tab content (`VocabularyStatsRow` in `widgets/vocabulary_stats_cards.dart` — a Due card and a status card side by side, stacked below 856 px).
 - Equal-width segmented tabs: **Review** | **All Words** (due badge on Review).
 - **All Words table:** the first context sentence of every visible word is read in one bulk query (repository `firstContextTextsForItems`, chunked at 900 ids) — one query per visible list, not one per rendered row. Items without a context simply show no second line.
+- **Due counts are emission-driven:** the tab badge, the stats row and the Review tab's due card (count, first five due words, `+n` overflow chip) are derived from the live vocabulary items stream (`vocabularyStatsProvider`, `vocabularyDuePreviewProvider`) and cached between emissions — they refresh when the items change, not on unrelated rebuilds. The due card previews the same predicate and item order as the due-mode session queue.
 
 ### Review entry + options
 
