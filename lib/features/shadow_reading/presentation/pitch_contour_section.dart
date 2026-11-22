@@ -4,7 +4,6 @@ library;
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
@@ -19,6 +18,8 @@ import '../application/echo_pitch_analysis_service.dart';
 import '../application/shadow_reading_hotkey_bus.dart';
 import '../domain/echo_region_analysis.dart';
 import 'pitch_contour_chart.dart';
+import 'pitch_contour_legend.dart';
+import 'pitch_contour_skeleton.dart';
 
 class PitchContourSection extends ConsumerStatefulWidget {
   const PitchContourSection({
@@ -297,7 +298,7 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     final body = _effectiveExpanded
         ? [
             if (_loading) ...[
-              const _PitchContourChartSkeleton(),
+              const PitchContourChartSkeleton(),
               const SizedBox(height: 8),
               Text(
                 l10n.pitchContourAnalyzing,
@@ -331,25 +332,25 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  _LegendToggle(
+                  PitchContourLegendToggle(
                     label: l10n.pitchContourReference,
-                    swatch: _LegendSwatch.band(tok.original),
+                    swatch: PitchContourLegendSwatch.band(tok.original),
                     selected: _vis.showReference,
                     onTap: () => setState(() {
                       _vis = _vis.copyWith(showReference: !_vis.showReference);
                     }),
                   ),
-                  _LegendToggle(
+                  PitchContourLegendToggle(
                     label: l10n.pitchContourUser,
-                    swatch: _LegendSwatch.line(tok.you),
+                    swatch: PitchContourLegendSwatch.line(tok.you),
                     selected: _vis.showUser,
                     onTap: () => setState(() {
                       _vis = _vis.copyWith(showUser: !_vis.showUser);
                     }),
                   ),
-                  _LegendToggle(
+                  PitchContourLegendToggle(
                     label: l10n.pitchContourWaveform,
-                    swatch: _LegendSwatch.envelope(tok.original),
+                    swatch: PitchContourLegendSwatch.envelope(tok.original),
                     selected: _vis.showWaveform,
                     onTap: () => setState(() {
                       _vis = _vis.copyWith(showWaveform: !_vis.showWaveform);
@@ -394,167 +395,4 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
       ],
     );
   }
-}
-
-/// Legend entry that toggles one chart layer on and off.
-class _LegendToggle extends StatelessWidget {
-  const _LegendToggle({
-    required this.label,
-    required this.swatch,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final _LegendSwatch swatch;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    return Semantics(
-      button: true,
-      toggled: selected,
-      child: EnjoyPressable(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(t.radiusFull),
-        child: AnimatedContainer(
-          duration: t.motionFast,
-          height: 28,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: ShapeDecoration(
-            color: selected ? t.paper : Colors.transparent,
-            shape: StadiumBorder(
-              side: BorderSide(color: selected ? t.line : Colors.transparent),
-            ),
-          ),
-          child: Opacity(
-            opacity: selected ? 1 : 0.45,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                swatch,
-                const SizedBox(width: 7),
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w500,
-                    color: selected ? t.ink2 : t.ink3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Miniature of a chart layer: the reference band, the take line, or the
-/// amplitude envelope.
-class _LegendSwatch extends StatelessWidget {
-  const _LegendSwatch.band(this.color) : kind = 0;
-  const _LegendSwatch.line(this.color) : kind = 1;
-  const _LegendSwatch.envelope(this.color) : kind = 2;
-
-  final Color color;
-  final int kind;
-
-  @override
-  Widget build(BuildContext context) {
-    return switch (kind) {
-      0 => Container(
-        width: 16,
-        height: 7,
-        decoration: ShapeDecoration(
-          color: color.withValues(alpha: 0.35),
-          shape: const StadiumBorder(),
-        ),
-      ),
-      1 => Container(
-        width: 16,
-        height: 3,
-        decoration: ShapeDecoration(color: color, shape: const StadiumBorder()),
-      ),
-      _ => Container(
-        width: 16,
-        height: 9,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.18),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-        ),
-      ),
-    };
-  }
-}
-
-/// Placeholder footprint matching [PitchContourChart] height band.
-class _PitchContourChartSkeleton extends StatelessWidget {
-  const _PitchContourChartSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    final base = Theme.of(
-      context,
-    ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6);
-    return SizedBox(
-      height: 160,
-      width: double.infinity,
-      child: CustomPaint(
-        painter: _PitchContourSkeletonPainter(baseColor: base),
-      ),
-    );
-  }
-}
-
-class _PitchContourSkeletonPainter extends CustomPainter {
-  _PitchContourSkeletonPainter({required this.baseColor});
-
-  final Color baseColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = baseColor;
-    const n = 44;
-    final barW = size.width / n;
-    final rnd = math.Random(42);
-    for (var i = 0; i < n; i++) {
-      final h = barW * (0.45 + rnd.nextDouble() * 1.1);
-      final x = i * barW + barW * 0.12;
-      final top = size.height * 0.52 + (size.height * 0.42 - h);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, top, barW * 0.76, h),
-          const Radius.circular(2),
-        ),
-        paint,
-      );
-    }
-    final linePaint = Paint()
-      ..color = baseColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round;
-    final path = Path();
-    const steps = 48;
-    for (var i = 0; i <= steps; i++) {
-      final t = i / steps;
-      final x = t * size.width;
-      final y =
-          size.height * 0.26 + math.sin(t * math.pi * 5) * size.height * 0.09;
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    canvas.drawPath(path, linePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _PitchContourSkeletonPainter oldDelegate) =>
-      oldDelegate.baseColor != baseColor;
 }

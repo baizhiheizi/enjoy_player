@@ -449,7 +449,7 @@ Read [player.md](../../features/player.md), [transcript.md](../../features/trans
 
 #### D3.6 Takes, pitch, and recording in the loop
 - **Boards:** `DEcho`, `DRecording`, `DScored`, `PEcho`, `PRecording`, `PScored`.
-- **Code:** `lib/features/shadow_reading/presentation/shadow_reading_panel.dart`, `widgets/shadow_takes_toolbar_actions.dart`, `widgets/shadow_reading_toolbar_row.dart`, `widgets/shadow_recording_live.dart`, `widgets/shadow_recording_caption.dart`, `pitch_contour_section.dart`, `pitch_contour_chart.dart`, `recording_assessment_button.dart`.
+- **Code:** `lib/features/shadow_reading/presentation/shadow_reading_panel.dart`, `widgets/shadow_takes_toolbar_actions.dart`, `widgets/shadow_reading_toolbar_row.dart`, `widgets/shadow_recording_live.dart`, `widgets/shadow_recording_caption.dart`, `pitch_contour_section.dart`, `pitch_contour_chart.dart`, `pitch_contour_legend.dart`, `pitch_contour_skeleton.dart`, `recording_assessment_button.dart`.
 - **Change:**
   - **Takes row** under the loop: `TAKES` label, then one chip per take (play `G`, duration, score chip or `Score` `V`), plus the Pitch toggle `P`.
   - **Pitch duet:** reference as a 9 px `original` band at 0.35 opacity, yours as a 3 px `you` line, with a legend.
