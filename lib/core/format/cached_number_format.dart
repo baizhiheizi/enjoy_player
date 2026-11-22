@@ -18,3 +18,27 @@ NumberFormat cachedNumberFormat(String pattern, [String? locale]) {
   final key = '$pattern\u0000${Intl.canonicalizedLocale(locale)}';
   return _patternCache.putIfAbsent(key, () => NumberFormat(pattern, locale));
 }
+
+/// The memoized [NumberFormat.simpleCurrency] for [name] in [locale].
+///
+/// [name] defaults to the locale's default currency and [decimalDigits] to
+/// the currency's own precision. A null [locale] resolves to
+/// [Intl.getCurrentLocale].
+NumberFormat cachedSimpleCurrency({
+  String? locale,
+  String? name,
+  int? decimalDigits,
+}) {
+  final key =
+      'simpleCurrency\u0000${name ?? '<locale default>'}\u0000'
+      '${decimalDigits ?? '<currency default>'}\u0000'
+      '${Intl.canonicalizedLocale(locale)}';
+  return _patternCache.putIfAbsent(
+    key,
+    () => NumberFormat.simpleCurrency(
+      locale: locale,
+      name: name,
+      decimalDigits: decimalDigits,
+    ),
+  );
+}

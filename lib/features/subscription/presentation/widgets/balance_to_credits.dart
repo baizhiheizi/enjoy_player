@@ -13,8 +13,8 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
@@ -60,7 +60,7 @@ class BalanceToCredits extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final usdLabel = NumberFormat.simpleCurrency(name: 'USD').format(balance);
+    final usdLabel = cachedSimpleCurrency(name: 'USD').format(balance);
     final previewCredits = previewBalanceToCredits(balance);
 
     return EnjoyCard(
