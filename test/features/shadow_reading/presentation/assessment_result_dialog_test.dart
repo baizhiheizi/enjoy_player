@@ -1,155 +1,41 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'dart:convert';
-
-import 'package:azure_speech/azure_speech.dart';
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_dialog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+
+import '../../../helpers/assessment_result_harness.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/selected_word_panel.dart';
-import 'package:media_kit/media_kit.dart';
 
-const _kBaseJson = '''
-{
-  "RecognitionStatus": "Success",
-  "Offset": 0,
-  "Duration": 10000000,
-  "DisplayText": "Hi there friend.",
-  "NBest": [
-    {
-      "Confidence": 0.9,
-      "Lexical": "hi there friend",
-      "ITN": "hi there friend",
-      "MaskedITN": "hi there friend",
-      "Display": "Hi there friend.",
-      "PronunciationAssessment": {
-        "AccuracyScore": 90,
-        "FluencyScore": 88,
-        "CompletenessScore": 95,
-        "PronScore": 91,
-        "ProsodyScore": 80
-      },
-      "Words": [
-        {
-          "Word": "hi",
-          "Offset": 0,
-          "Duration": 10000000,
-          "PronunciationAssessment": {
-            "AccuracyScore": 92,
-            "ErrorType": "None"
-          }
-        },
-        {
-          "Word": "there",
-          "Offset": 10000000,
-          "Duration": 10000000,
-          "PronunciationAssessment": {
-            "AccuracyScore": 88,
-            "ErrorType": "Mispronunciation"
-          }
-        },
-        {
-          "Word": "friend",
-          "Offset": 20000000,
-          "Duration": 10000000,
-          "PronunciationAssessment": {
-            "AccuracyScore": 95,
-            "ErrorType": "None"
-          }
-        }
-      ]
-    }
-  ]
-}''';
-
-const _kNoWordsJson = '''
-{
-  "RecognitionStatus": "Success",
-  "Offset": 0,
-  "Duration": 10000000,
-  "DisplayText": "",
-  "NBest": [
-    {
-      "Confidence": 0.0,
-      "Lexical": "",
-      "ITN": "",
-      "MaskedITN": "",
-      "Display": "",
-      "PronunciationAssessment": {
-        "AccuracyScore": 0,
-        "FluencyScore": 0,
-        "CompletenessScore": 0,
-        "PronScore": 0
-      },
-      "Words": []
-    }
-  ]
-}''';
-
-const _kEmptyJson = '''
-{
-  "RecognitionStatus": "Success",
-  "Offset": 0,
-  "Duration": 0,
-  "DisplayText": "",
-  "NBest": []
-}''';
-
-AzurePronunciationAssessmentResult _parse(String json) {
-  return AzurePronunciationAssessmentResult.fromJson(
-    jsonDecode(json) as Map<String, dynamic>,
-  );
-}
-
-Widget _wrap(Widget child, {double width = 800}) {
-  final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
-  return ProviderScope(
-    child: MaterialApp(
-      theme: ThemeData(
-        colorScheme: scheme,
-        extensions: [EnjoyThemeTokens.build(scheme)],
-      ),
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: Center(
-          child: SizedBox(width: width, height: 600, child: child),
-        ),
-      ),
-    ),
-  );
-}
-
-AssessmentResultDialog _dialog(String json) =>
-    AssessmentResultDialog(assessment: _parse(json), localeTag: 'en-US');
+AssessmentResultDialog _dialog(String json) => AssessmentResultDialog(
+  assessment: parseAssessmentResult(json),
+  localeTag: 'en-US',
+);
 
 late final AppLocalizations l10n;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  try {
-    MediaKit.ensureInitialized();
-  } on Object catch (e) {
-    test('(skipped) media_kit native library not available', () {}, skip: '$e');
+  final mediaKitError = initAssessmentMediaKit();
+  if (mediaKitError != null) {
+    test(
+      '(skipped) media_kit native library not available',
+      () {},
+      skip: '$mediaKitError',
+    );
     return;
   }
 
   setUpAll(() async {
-    l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    l10n = await loadAssessmentL10n();
   });
 
   testWidgets('AssessmentResultDialog renders title and overall score', (
     tester,
   ) async {
-    await tester.pumpWidget(_wrap(_dialog(_kBaseJson)));
+    await tester.pumpWidget(
+      wrapAssessmentHarness(_dialog(kAssessmentResultJson)),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(AssessmentResultDialog), findsOneWidget);
@@ -166,7 +52,9 @@ void main() {
   testWidgets(
     'AssessmentResultDialog tap on a word tile toggles selection state',
     (tester) async {
-      await tester.pumpWidget(_wrap(_dialog(_kBaseJson)));
+      await tester.pumpWidget(
+        wrapAssessmentHarness(_dialog(kAssessmentResultJson)),
+      );
       await tester.pumpAndSettle();
 
       final initialHiCount = find.text('hi').evaluate().length;
@@ -200,7 +88,9 @@ void main() {
   testWidgets(
     'AssessmentResultDialog shows the no-result fallback when nBest is empty',
     (tester) async {
-      await tester.pumpWidget(_wrap(_dialog(_kEmptyJson)));
+      await tester.pumpWidget(
+        wrapAssessmentHarness(_dialog(kAssessmentResultEmptyJson)),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text(l10n.assessmentNoResultSummary), findsOneWidget);
@@ -211,36 +101,18 @@ void main() {
     'showAssessmentResultDialog with empty nBest shows dismissible fallback',
     (tester) async {
       final navKey = GlobalKey<NavigatorState>();
-      final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
       await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            navigatorKey: navKey,
-            theme: ThemeData(
-              colorScheme: scheme,
-              extensions: [EnjoyThemeTokens.build(scheme)],
-            ),
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Builder(
-              builder: (ctx) => Scaffold(
-                body: Center(
-                  child: ElevatedButton(
-                    onPressed: () => showAssessmentResultDialog(
-                      context: ctx,
-                      assessment: _parse(_kEmptyJson),
-                    ),
-                    child: const Text('open'),
-                  ),
-                ),
+        wrapAssessmentHarness(
+          Builder(
+            builder: (ctx) => ElevatedButton(
+              onPressed: () => showAssessmentResultDialog(
+                context: ctx,
+                assessment: parseAssessmentResult(kAssessmentResultEmptyJson),
               ),
+              child: const Text('open'),
             ),
           ),
+          navigatorKey: navKey,
         ),
       );
       await tester.pumpAndSettle();
@@ -266,27 +138,10 @@ void main() {
     'AssessmentResultDialog close button dismisses via Navigator.pop',
     (tester) async {
       final navKey = GlobalKey<NavigatorState>();
-      final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
       await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            navigatorKey: navKey,
-            theme: ThemeData(
-              colorScheme: scheme,
-              extensions: [EnjoyThemeTokens.build(scheme)],
-            ),
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Builder(
-              builder: (ctx) =>
-                  Scaffold(body: Center(child: _dialog(_kBaseJson))),
-            ),
-          ),
+        wrapAssessmentHarness(
+          _dialog(kAssessmentResultJson),
+          navigatorKey: navKey,
         ),
       );
       await tester.pumpAndSettle();
@@ -301,7 +156,9 @@ void main() {
   testWidgets('AssessmentResultDialog handles a result with empty word list', (
     tester,
   ) async {
-    await tester.pumpWidget(_wrap(_dialog(_kNoWordsJson)));
+    await tester.pumpWidget(
+      wrapAssessmentHarness(_dialog(kAssessmentResultNoWordsJson)),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.assessmentTitle), findsOneWidget);

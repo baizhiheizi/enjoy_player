@@ -15,6 +15,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
@@ -141,7 +142,7 @@ class _PackagesLinkCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     return EnjoyCard(
       child: EnjoyPressable(
-        onTap: () => context.push('/credits'),
+        onTap: () => context.push(kCreditsRoutePath),
         borderRadius: BorderRadius.circular(t.radiusCard),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),

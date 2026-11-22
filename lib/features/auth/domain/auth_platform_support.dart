@@ -4,6 +4,7 @@ library;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 
+import 'package:enjoy_player/core/application/app_links.dart';
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/core/release/distribution_channel.dart';
 import 'package:enjoy_player/features/auth/domain/google_auth_config.dart';
@@ -47,7 +48,7 @@ bool get nativeAppleSignInSupported {
 /// link (`https://enjoy.bot/app/auth/callback`) would also require the
 /// backend to host `apple-app-site-association` / `assetlinks.json`, which
 /// it does not.
-String authPkceRedirectUri() => 'enjoyplayer://auth/callback';
+String authPkceRedirectUri() => '$kEnjoyPlayerUrlScheme://auth/callback';
 
 /// Platform string sent to `POST /api/v1/auth/google`.
 String? authGooglePlatformParam() {

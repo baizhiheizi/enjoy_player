@@ -404,7 +404,7 @@ void main() {
     );
 
     test(
-      'revokeRefreshTokenBestEffort ignores errors and absent refresh tokens',
+      'revokeRefreshTokenBestEffort swallows the server error and skips absent or empty tokens',
       () async {
         final tokenStore = SecureTokenStore(const FlutterSecureStorage());
         var networkCalls = 0;
@@ -414,11 +414,14 @@ void main() {
         });
         final repo = buildRepo(client, tokenStore);
 
-        await repo.revokeRefreshTokenBestEffort(null);
-        await repo.revokeRefreshTokenBestEffort('');
+        await expectLater(repo.revokeRefreshTokenBestEffort(null), completes);
+        await expectLater(repo.revokeRefreshTokenBestEffort(''), completes);
         expect(networkCalls, 0);
 
-        await repo.revokeRefreshTokenBestEffort('refresh-xyz');
+        await expectLater(
+          repo.revokeRefreshTokenBestEffort('refresh-xyz'),
+          completes,
+        );
         expect(networkCalls, 1);
       },
     );
