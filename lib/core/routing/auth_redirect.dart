@@ -1,7 +1,9 @@
 /// Pure auth-gate redirect rules for [GoRouter] (login-only app access).
 library;
 
+import 'package:enjoy_player/core/application/app_links.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -31,15 +33,15 @@ bool isCheckoutReturnArtifact(String matchedLocation) =>
 
 /// Whether [uri] is the native checkout-return deep link.
 bool isCheckoutReturnUri(Uri uri) =>
-    uri.scheme == 'enjoyplayer' &&
+    uri.scheme == kEnjoyPlayerUrlScheme &&
     uri.host == 'checkout' &&
     (uri.path == '/return' || uri.path == '/return/');
 
 /// Maps a checkout return deep-link URI to the in-app billing destination.
 String checkoutReturnTarget(Uri uri) =>
     uri.queryParameters['kind'] == 'credits_package'
-    ? '/credits'
-    : '/subscription';
+    ? kCreditsRoutePath
+    : kSubscriptionRoutePath;
 
 /// Resolves a redirect target when [matchedLocation] is the checkout return
 /// artifact, or returns `null` for all other locations.
@@ -61,9 +63,9 @@ String encodeSignInFrom(String matchedLocation) {
   switch (matchedLocation) {
     case '/profile':
       return 'profile';
-    case '/credits':
+    case kCreditsRoutePath:
       return 'credits';
-    case '/subscription':
+    case kSubscriptionRoutePath:
       return 'subscription';
     case '/profile/edit':
       return 'profile_edit';
@@ -89,9 +91,9 @@ String resolvePostSignInPath(String? from) {
     case 'profile':
       return '/profile';
     case 'credits':
-      return '/credits';
+      return kCreditsRoutePath;
     case 'subscription':
-      return '/subscription';
+      return kSubscriptionRoutePath;
     case 'profile_edit':
       return '/profile/edit';
     case 'profile_preferences':

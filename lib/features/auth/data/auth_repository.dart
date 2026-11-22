@@ -430,6 +430,10 @@ class AuthRepository {
 
   Future<String?> readRefreshToken() => _tokenStore.readRefreshToken();
 
+  /// Revokes [refreshToken] on the server, swallowing every failure.
+  ///
+  /// Never throws: an absent or empty token is skipped, and a failed or
+  /// timed-out request is logged. Callers can fire this without a guard.
   Future<void> revokeRefreshTokenBestEffort(String? refreshToken) async {
     if (refreshToken == null || refreshToken.isEmpty) return;
     try {
@@ -439,10 +443,6 @@ class AuthRepository {
     } catch (e, st) {
       _log.warning('server logout revoke failed', e, st);
     }
-  }
-
-  Future<void> revokeSessionBestEffort() async {
-    await revokeRefreshTokenBestEffort(await readRefreshToken());
   }
 
   Future<void> clearSession() async {

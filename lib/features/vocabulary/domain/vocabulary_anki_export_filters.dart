@@ -1,18 +1,24 @@
 /// Filters for Anki CSV export (web ExportAnkiDialog parity).
 library;
 
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 
 /// Search + status + language narrowing before Anki CSV generation.
-final class VocabularyAnkiExportFilters {
+final class VocabularyAnkiExportFilters implements VocabularyFilterSpec {
   const VocabularyAnkiExportFilters({
     this.query = '',
     this.status,
     this.language,
   });
 
+  @override
   final String query;
+
+  @override
   final VocabularyStatus? status;
+
+  @override
   final String? language;
 
   VocabularyAnkiExportFilters copyWith({
@@ -28,29 +34,4 @@ final class VocabularyAnkiExportFilters {
       language: clearLanguage ? null : (language ?? this.language),
     );
   }
-}
-
-/// Apply [filters] to [items] (status ∩ language ∩ search contains).
-List<VocabularyItem> filterVocabularyItemsForAnkiExport(
-  List<VocabularyItem> items,
-  VocabularyAnkiExportFilters filters,
-) {
-  Iterable<VocabularyItem> result = items;
-  final status = filters.status;
-  if (status != null) {
-    result = result.where((i) => i.status == status);
-  }
-  final language = filters.language;
-  if (language != null) {
-    result = result.where((i) => i.language == language);
-  }
-  final q = filters.query.trim().toLowerCase();
-  if (q.isNotEmpty) {
-    result = result.where(
-      (i) =>
-          i.word.toLowerCase().contains(q) ||
-          i.language.toLowerCase().contains(q),
-    );
-  }
-  return result.toList();
 }

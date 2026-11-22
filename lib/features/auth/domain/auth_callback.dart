@@ -1,6 +1,8 @@
 /// OAuth PKCE callback URI parsing for Enjoy account auth.
 library;
 
+import 'package:enjoy_player/core/application/app_links.dart';
+
 class AuthCallbackParams {
   const AuthCallbackParams({required this.code, required this.state});
 
@@ -9,7 +11,7 @@ class AuthCallbackParams {
 }
 
 bool isAuthCallbackUri(Uri uri) {
-  return uri.scheme == 'enjoyplayer' &&
+  return uri.scheme == kEnjoyPlayerUrlScheme &&
       uri.host == 'auth' &&
       uri.path == '/callback';
 }

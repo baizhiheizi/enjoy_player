@@ -88,13 +88,10 @@ class AuthApi extends RestApi {
         requireAuth: false,
       );
 
-  Future<void> logout({String? refreshToken}) async {
+  Future<void> logout({required String refreshToken}) async {
     await client.postJson(
       '$_authPrefix/logout',
-      body: {
-        if (refreshToken != null && refreshToken.isNotEmpty)
-          'refreshToken': refreshToken,
-      },
+      body: {'refreshToken': refreshToken},
       requireAuth: false,
       allowEmptyBody: true,
     );

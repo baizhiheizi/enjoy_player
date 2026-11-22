@@ -49,14 +49,14 @@ final class SyncRecordingDelete extends SyncDeleteJob {
 /// Subscription deletion is local-only: the drain removes the queue row
 /// without a cloud API call.
 final class SyncYoutubeSubscriptionDelete extends SyncDeleteJob {
-  const SyncYoutubeSubscriptionDelete({required this.channelId});
+  const SyncYoutubeSubscriptionDelete({required this.id});
 
-  final String channelId;
+  final String id;
 
   @override
   SyncQueueJobWire encode() => SyncQueueJobWire(
     entityType: SyncEntityType.youtubeSubscription.wireName,
-    entityId: channelId,
+    entityId: id,
     action: SyncAction.delete.wireName,
   );
 }

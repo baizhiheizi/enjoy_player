@@ -253,15 +253,7 @@ class AuthCtrl extends _$AuthCtrl {
     }
     await repo.clearSession();
     state = const AsyncData(AuthSignedOut());
-    if (refreshToken != null && refreshToken.isNotEmpty) {
-      unawaited(() async {
-        try {
-          await repo.revokeRefreshTokenBestEffort(refreshToken);
-        } catch (e, st) {
-          _log.warning('server logout revoke failed', e, st);
-        }
-      }());
-    }
+    unawaited(repo.revokeRefreshTokenBestEffort(refreshToken));
     try {
       await ref.read(googleSignInServiceProvider).signOut();
     } catch (e, st) {

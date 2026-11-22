@@ -1,6 +1,10 @@
 /// Public URLs for the Enjoy Player app.
 library;
 
+/// Custom URL scheme the app registers for inbound deep links —
+/// `enjoyplayer://auth/callback` and `enjoyplayer://checkout/return`.
+const String kEnjoyPlayerUrlScheme = 'enjoyplayer';
+
 /// Canonical open-source repository.
 const String kEnjoyPlayerGitHubUrl = 'https://github.com/an-lee/enjoy_player';
 

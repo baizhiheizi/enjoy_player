@@ -384,10 +384,9 @@ void main() {
     });
 
     test(
-      'revokeSessionBestEffort posts refresh token to /api/v1/auth/logout',
+      'revokeRefreshTokenBestEffort posts the refresh token to /api/v1/auth/logout',
       () async {
         final tokenStore = SecureTokenStore(const FlutterSecureStorage());
-        await tokenStore.writeRefreshToken('refresh-xyz');
         String? postedPath;
         Map<String, dynamic>? postedBody;
         final client = MockClient((request) async {
@@ -397,7 +396,7 @@ void main() {
         });
         final repo = buildRepo(client, tokenStore);
 
-        await repo.revokeSessionBestEffort();
+        await repo.revokeRefreshTokenBestEffort('refresh-xyz');
 
         expect(postedPath, '/api/v1/auth/logout');
         expect(postedBody, {'refresh_token': 'refresh-xyz'});
@@ -405,7 +404,7 @@ void main() {
     );
 
     test(
-      'revokeSessionBestEffort ignores errors and absent refresh tokens',
+      'revokeRefreshTokenBestEffort ignores errors and absent refresh tokens',
       () async {
         final tokenStore = SecureTokenStore(const FlutterSecureStorage());
         var networkCalls = 0;
@@ -415,11 +414,11 @@ void main() {
         });
         final repo = buildRepo(client, tokenStore);
 
-        await repo.revokeSessionBestEffort();
+        await repo.revokeRefreshTokenBestEffort(null);
+        await repo.revokeRefreshTokenBestEffort('');
         expect(networkCalls, 0);
 
-        await tokenStore.writeRefreshToken('refresh-xyz');
-        await repo.revokeSessionBestEffort();
+        await repo.revokeRefreshTokenBestEffort('refresh-xyz');
         expect(networkCalls, 1);
       },
     );

@@ -1,6 +1,7 @@
 /// Rails `/api/v1/credits/packages` catalog and checkout.
 library;
 
+import 'package:enjoy_player/data/api/checkout_client_tag.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
 
 class CreditsPackagesApi extends RestApi {
@@ -14,6 +15,6 @@ class CreditsPackagesApi extends RestApi {
     required String packageId,
   }) => client.postJson(
     '$_path/purchases',
-    body: {'packageId': packageId, 'client': 'enjoy_player'},
+    body: {'packageId': packageId, 'client': kNativeCheckoutClientTag},
   );
 }

@@ -9,6 +9,7 @@ import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_list_controller.dart';
 import 'package:enjoy_player/features/vocabulary/data/vocabulary_repository.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_due_preview.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 

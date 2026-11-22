@@ -1,4 +1,5 @@
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_export_filters.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -78,7 +79,7 @@ void main() {
     });
   });
 
-  group('filterVocabularyItemsForAnkiExport', () {
+  group('filterVocabularyItems', () {
     final items = <VocabularyItem>[
       _item(id: '1', word: 'hello', language: 'en'),
       _item(id: '2', word: 'world', language: 'en'),
@@ -98,7 +99,7 @@ void main() {
     ];
 
     test('returns all items when filters are empty', () {
-      final out = filterVocabularyItemsForAnkiExport(
+      final out = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(),
       );
@@ -106,7 +107,7 @@ void main() {
     });
 
     test('filters by status', () {
-      final out = filterVocabularyItemsForAnkiExport(
+      final out = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(status: VocabularyStatus.learning),
       );
@@ -114,7 +115,7 @@ void main() {
     });
 
     test('filters by language', () {
-      final out = filterVocabularyItemsForAnkiExport(
+      final out = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(language: 'es'),
       );
@@ -122,7 +123,7 @@ void main() {
     });
 
     test('status + language combined (intersection)', () {
-      final out = filterVocabularyItemsForAnkiExport(
+      final out = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(
           status: VocabularyStatus.learning,
@@ -133,7 +134,7 @@ void main() {
     });
 
     test('query matches word substring case-insensitively', () {
-      final out = filterVocabularyItemsForAnkiExport(
+      final out = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(query: 'HEL'),
       );
@@ -141,7 +142,7 @@ void main() {
     });
 
     test('empty query is treated as no filter', () {
-      final out = filterVocabularyItemsForAnkiExport(
+      final out = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(query: '   '),
       );
@@ -149,7 +150,7 @@ void main() {
     });
 
     test('query does not match anything when no word or language matches', () {
-      final out = filterVocabularyItemsForAnkiExport(
+      final out = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(query: 'xyz123'),
       );
@@ -158,7 +159,7 @@ void main() {
 
     test('language filter does not crash on empty items list', () {
       expect(
-        filterVocabularyItemsForAnkiExport(
+        filterVocabularyItems(
           const <VocabularyItem>[],
           const VocabularyAnkiExportFilters(language: 'en'),
         ),

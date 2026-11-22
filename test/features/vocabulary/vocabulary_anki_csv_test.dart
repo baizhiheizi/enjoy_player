@@ -7,6 +7,7 @@ import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_csv.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_export_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 
 VocabularyItem _item({
@@ -156,7 +157,7 @@ void main() {
     });
   });
 
-  group('filterVocabularyItemsForAnkiExport', () {
+  group('filterVocabularyItems', () {
     test('filters by status language and search', () {
       final items = [
         _item(id: '1', word: 'hello', status: VocabularyStatus.learning),
@@ -167,7 +168,7 @@ void main() {
           status: VocabularyStatus.new_,
         ),
       ];
-      final filtered = filterVocabularyItemsForAnkiExport(
+      final filtered = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(
           query: 'hel',

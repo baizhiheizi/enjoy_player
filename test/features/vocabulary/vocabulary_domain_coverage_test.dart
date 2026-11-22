@@ -1,5 +1,6 @@
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_csv.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_export_filters.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_locator_json.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_srs.dart';
@@ -324,13 +325,13 @@ void main() {
     });
   });
 
-  group('filterVocabularyItemsForAnkiExport — additional paths', () {
+  group('filterVocabularyItems — additional paths', () {
     test('filters by language', () {
       final items = [
         _item(id: '1', word: 'hello', language: 'en'),
         _item(id: '2', word: 'bonjour', language: 'fr'),
       ];
-      final filtered = filterVocabularyItemsForAnkiExport(
+      final filtered = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(language: 'fr'),
       );
@@ -342,7 +343,7 @@ void main() {
         _item(id: '1', word: 'hello', language: 'en'),
         _item(id: '2', word: 'bonjour', language: 'fr'),
       ];
-      final filtered = filterVocabularyItemsForAnkiExport(
+      final filtered = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(query: 'fr'),
       );
@@ -354,7 +355,7 @@ void main() {
         _item(id: '1', word: 'hello'),
         _item(id: '2', word: 'world'),
       ];
-      final filtered = filterVocabularyItemsForAnkiExport(
+      final filtered = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(query: ''),
       );
@@ -366,7 +367,7 @@ void main() {
         _item(id: '1', word: 'hello'),
         _item(id: '2', word: 'world'),
       ];
-      final filtered = filterVocabularyItemsForAnkiExport(
+      final filtered = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(query: '   '),
       );
@@ -394,7 +395,7 @@ void main() {
           status: VocabularyStatus.learning,
         ),
       ];
-      final filtered = filterVocabularyItemsForAnkiExport(
+      final filtered = filterVocabularyItems(
         items,
         const VocabularyAnkiExportFilters(
           query: 'hel',

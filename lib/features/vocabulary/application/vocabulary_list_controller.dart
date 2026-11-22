@@ -5,16 +5,22 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 
 const Duration kVocabularySearchDebounce = Duration(milliseconds: 150);
 
 /// Status + language filters and debounced search query for All Words.
-final class VocabularyListFilters {
+final class VocabularyListFilters implements VocabularyFilterSpec {
   const VocabularyListFilters({this.status, this.language, this.query = ''});
 
+  @override
   final VocabularyStatus? status;
+
+  @override
   final String? language;
+
+  @override
   final String query;
 
   VocabularyListFilters copyWith({
@@ -87,29 +93,4 @@ class VocabularyListFiltersNotifier extends Notifier<VocabularyListFilters> {
     _pending = '';
     state = state.copyWith(query: '');
   }
-}
-
-/// Apply [filters] to [items] (status ∩ language ∩ search contains).
-List<VocabularyItem> filterVocabularyItems(
-  List<VocabularyItem> items,
-  VocabularyListFilters filters,
-) {
-  Iterable<VocabularyItem> result = items;
-  final status = filters.status;
-  if (status != null) {
-    result = result.where((i) => i.status == status);
-  }
-  final language = filters.language;
-  if (language != null) {
-    result = result.where((i) => i.language == language);
-  }
-  final q = filters.query.toLowerCase();
-  if (q.isNotEmpty) {
-    result = result.where(
-      (i) =>
-          i.word.toLowerCase().contains(q) ||
-          i.language.toLowerCase().contains(q),
-    );
-  }
-  return result.toList();
 }
