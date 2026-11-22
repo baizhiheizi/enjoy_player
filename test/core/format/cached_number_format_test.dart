@@ -3,6 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
 void main() {
+  final previousDefault = Intl.defaultLocale;
+  setUpAll(() => Intl.defaultLocale = 'en');
+  tearDownAll(() => Intl.defaultLocale = previousDefault);
+
   test('cachedDecimalPattern returns identical instance per locale key', () {
     final a = cachedDecimalPattern('en');
     final b = cachedDecimalPattern('en');
@@ -91,6 +95,56 @@ void main() {
     expect(
       eur.format(100),
       NumberFormat.simpleCurrency(name: 'EUR').format(100),
+    );
+  });
+
+  test('cachedSimpleCurrency keeps the locale default currency distinct', () {
+    final localeDefault = cachedSimpleCurrency(locale: 'de');
+    final explicitName = cachedSimpleCurrency(locale: 'de', name: 'USD');
+
+    expect(identical(localeDefault, explicitName), isFalse);
+    expect(
+      localeDefault.format(100),
+      NumberFormat.simpleCurrency(locale: 'de').format(100),
+    );
+    expect(localeDefault.format(100), isNot(explicitName.format(100)));
+  });
+
+  test('cachedSimpleCurrency does not collide on an empty currency name', () {
+    final localeDefault = cachedSimpleCurrency(locale: 'de');
+    final emptyName = cachedSimpleCurrency(locale: 'de', name: '');
+
+    expect(identical(localeDefault, emptyName), isFalse);
+  });
+
+  test('cachedSimpleCurrency honours an explicit decimal digit count', () {
+    final two = cachedSimpleCurrency(
+      locale: 'en_US',
+      name: 'JPY',
+      decimalDigits: 2,
+    );
+    final three = cachedSimpleCurrency(
+      locale: 'en_US',
+      name: 'JPY',
+      decimalDigits: 3,
+    );
+
+    expect(identical(two, three), isFalse);
+    expect(
+      two.format(12.5),
+      NumberFormat.simpleCurrency(
+        locale: 'en_US',
+        name: 'JPY',
+        decimalDigits: 2,
+      ).format(12.5),
+    );
+    expect(
+      three.format(12.5),
+      NumberFormat.simpleCurrency(
+        locale: 'en_US',
+        name: 'JPY',
+        decimalDigits: 3,
+      ).format(12.5),
     );
   });
 }
