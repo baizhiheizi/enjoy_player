@@ -8,7 +8,7 @@ import 'vocabulary_srs.dart';
 const int kVocabularyDuePreviewWords = 5;
 
 /// What the due card needs from the due queue: the total count and the
-/// first [kVocabularyDuePreviewWords] words.
+/// leading preview words.
 final class VocabularyDuePreview {
   const VocabularyDuePreview({required this.count, required this.firstWords});
 
@@ -16,7 +16,8 @@ final class VocabularyDuePreview {
   /// order as the `VocabularyReviewMode.due` session queue.
   final int count;
 
-  /// First `min(count, [kVocabularyDuePreviewWords])` due words, unmodifiable.
+  /// The leading due words, capped by the builder's `maxWords`
+  /// ([kVocabularyDuePreviewWords] by default), unmodifiable.
   final List<String> firstWords;
 
   @override

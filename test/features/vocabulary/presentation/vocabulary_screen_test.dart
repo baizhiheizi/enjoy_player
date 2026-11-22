@@ -166,13 +166,17 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   }
 
-  Future<void> addHello(DateTime nextReviewAt) async {
+  Future<void> addWord(
+    String word, {
+    required DateTime nextReviewAt,
+    String? contextText,
+  }) async {
     final repo = VocabularyRepository(db);
     final created = await repo.addWithContext(
-      word: 'hello',
+      word: word,
       language: 'en',
       targetLanguage: 'zh',
-      text: 'Hello world',
+      text: contextText ?? 'Context for $word',
       sourceType: VocabularySourceType.video,
       sourceId: 'v1',
       mediaLocator: const MediaLocator(start: 0, duration: 1000),
@@ -180,6 +184,14 @@ void main() {
     await (db.update(db.vocabularyItems)
           ..where((t) => t.id.equals(created.item.id)))
         .write(VocabularyItemsCompanion(nextReviewAt: Value(nextReviewAt)));
+  }
+
+  Future<void> addHello(DateTime nextReviewAt) async {
+    await addWord(
+      'hello',
+      nextReviewAt: nextReviewAt,
+      contextText: 'Hello world',
+    );
   }
 
   testWidgets('empty book shows the no-words state under the header', (
@@ -222,6 +234,32 @@ void main() {
 
     expect(find.text('1 word is waiting'), findsOneWidget);
     expect(find.text('Custom review'), findsOneWidget);
+
+    await disposeHarness(tester);
+  });
+
+  testWidgets('the due card previews five due words and counts the rest', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    for (var i = 0; i < 7; i++) {
+      await addWord('word$i', nextReviewAt: DateTime.utc(2000));
+    }
+    await pumpScreen(tester);
+
+    await tester.tap(find.text('Review'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('7 words are waiting'), findsOneWidget);
+    for (var i = 0; i < 5; i++) {
+      expect(find.text('word$i'), findsOneWidget);
+    }
+    expect(find.text('word5'), findsNothing);
+    expect(find.text('word6'), findsNothing);
+    expect(find.text('+2'), findsOneWidget);
 
     await disposeHarness(tester);
   });
