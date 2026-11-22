@@ -1,6 +1,7 @@
 /// REST client for Enjoy subscription endpoints.
 library;
 
+import 'package:enjoy_player/data/api/checkout_client_tag.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
 import 'package:enjoy_player/features/subscription/domain/payment_processor.dart';
 
@@ -23,14 +24,14 @@ class SubscriptionApi extends RestApi {
       'months': months,
       'processor': processor.apiValue,
       'tier': tier,
-      'client': 'enjoy_player',
+      'client': kNativeCheckoutClientTag,
     },
   );
 
   Future<Map<String, dynamic>> startAutoRenew({required String planId}) =>
       client.postJson(
         '$_path/auto_renew',
-        body: {'planId': planId, 'client': 'enjoy_player'},
+        body: {'planId': planId, 'client': kNativeCheckoutClientTag},
       );
 
   Future<Map<String, dynamic>> cancelAutoRenew() =>

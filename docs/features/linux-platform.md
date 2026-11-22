@@ -179,6 +179,8 @@ xdg-mime default enjoy-player-scheme.desktop x-scheme-handler/enjoyplayer
 
 The app must be running when you finish sign-in in the browser — the running instance receives the callback (a fresh launch forwards to it over D-Bus and exits). If the app was closed mid-sign-in, the flow cannot resume (the one-time code verifier lived in memory); start sign-in again from the app.
 
+The scheme literal has one home: `kEnjoyPlayerUrlScheme` in [`app_links.dart`](../../lib/core/application/app_links.dart), shared by the desktop-entry writer, the deep-link matcher, the PKCE callback parser and the PKCE redirect URI.
+
 ### Database won't open ("corrupt local database")
 
 The recovery surface works on Linux — it uses `xdg-open` to reveal the database directory (same code path as macOS uses `open` and Windows uses `explorer`). Tap "Copy error" or "Open logs folder" as needed.

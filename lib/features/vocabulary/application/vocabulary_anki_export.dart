@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/subscription/application/subscription_stat
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_csv.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_export_filters.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 
 /// Whether the current session may export Anki CSV (paid tier when known).
@@ -61,7 +62,7 @@ Future<VocabularyAnkiExportBundle> buildVocabularyAnkiExport({
 }) async {
   onProgress?.call(0.1);
   final all = await listAll();
-  final items = filterVocabularyItemsForAnkiExport(all, filters);
+  final items = filterVocabularyItems(all, filters);
   if (items.isEmpty) {
     throw StateError('no_items_to_export');
   }

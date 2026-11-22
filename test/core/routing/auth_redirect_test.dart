@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:enjoy_player/core/routing/auth_redirect.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
@@ -258,7 +259,7 @@ void main() {
               'enjoyplayer://checkout/return?result=success&kind=credits_package',
             ),
           ),
-          '/credits',
+          kCreditsRoutePath,
         );
         expect(
           checkoutReturnTarget(
@@ -266,7 +267,7 @@ void main() {
               'enjoyplayer://checkout/return?result=success&kind=auto_renew',
             ),
           ),
-          '/subscription',
+          kSubscriptionRoutePath,
         );
         expect(
           checkoutReturnTarget(
@@ -274,11 +275,11 @@ void main() {
               'enjoyplayer://checkout/return?result=cancel&kind=subscription',
             ),
           ),
-          '/subscription',
+          kSubscriptionRoutePath,
         );
         expect(
           checkoutReturnTarget(Uri.parse('enjoyplayer://checkout/return')),
-          '/subscription',
+          kSubscriptionRoutePath,
         );
       },
     );

@@ -52,7 +52,6 @@ class _FakeAuthRepository extends AuthRepository {
   final List<String?> revokedTokens = <String?>[];
   String? storedRefreshToken = 'refresh-token-1';
   Completer<void>? revokeGate;
-  bool failRevoke = false;
 
   @override
   Future<String?> readRefreshToken() async {
@@ -66,9 +65,6 @@ class _FakeAuthRepository extends AuthRepository {
     revokedTokens.add(refreshToken);
     if (revokeGate != null) {
       await revokeGate!.future;
-    }
-    if (failRevoke) {
-      throw StateError('network error');
     }
   }
 
@@ -236,10 +232,10 @@ void main() {
   );
 
   test(
-    'signOut still clears local session when background revoke throws',
+    'signOut calls the best-effort revoke once and clears the local session',
     () async {
       FlutterSecureStorage.setMockInitialValues({});
-      final fake = _FakeAuthRepository()..failRevoke = true;
+      final fake = _FakeAuthRepository();
       final container = ProviderContainer(
         overrides: [authRepositoryProvider.overrideWithValue(fake)],
       );
@@ -260,6 +256,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(fake.signOutCalls, ['read', 'clear', 'revoke']);
+      expect(fake.revokedTokens, ['refresh-token-1']);
       expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
     },
   );

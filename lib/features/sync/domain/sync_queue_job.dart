@@ -95,7 +95,7 @@ sealed class SyncQueueJob {
         SyncEntityType.video => SyncVideoDelete(id: id),
         SyncEntityType.recording => SyncRecordingDelete(id: id),
         SyncEntityType.youtubeSubscription => SyncYoutubeSubscriptionDelete(
-          channelId: id,
+          id: id,
         ),
         SyncEntityType.vocabularyItem => SyncVocabularyItemDelete(id: id),
         SyncEntityType.vocabularyContext => SyncVocabularyContextDelete(id: id),
@@ -139,7 +139,7 @@ sealed class SyncQueueJob {
         SyncEntityType.video => SyncVideoDelete(id: row.entityId),
         SyncEntityType.recording => SyncRecordingDelete(id: row.entityId),
         SyncEntityType.youtubeSubscription => SyncYoutubeSubscriptionDelete(
-          channelId: row.entityId,
+          id: row.entityId,
         ),
         SyncEntityType.vocabularyItem => SyncVocabularyItemDelete(
           id: row.entityId,
@@ -167,7 +167,7 @@ sealed class SyncQueueJob {
         payloadJson: row.payloadJson,
       ),
       SyncEntityType.youtubeSubscription => SyncYoutubeSubscriptionUpsert(
-        channelId: row.entityId,
+        id: row.entityId,
         action: action,
         payloadJson: row.payloadJson,
       ),

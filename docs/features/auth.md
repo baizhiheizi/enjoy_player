@@ -15,7 +15,7 @@ Native-first sign-in ([ADR-0027](../decisions/0027-native-auth-v2.md)) with **lo
 - Last **profile snapshot** cached in secure storage for fast cold start ([ADR-0012](../decisions/0012-per-user-sqlite-isolation.md)).
 - **Profile** via `GET/PATCH /api/v1/profile` (camelCase JSON over the wire from the client’s perspective).
 - **Locale / learning / native language** applied from server profile on login and refresh (unchanged).
-- **Sign out** revokes the server-side refresh session best-effort via `POST /api/v1/auth/logout` before clearing local secrets, then returns to the welcome sign-in screen; the app is not usable without re-authenticating. Native PKCE sign-in sends `prompt=select_account` so re-authenticating users can switch accounts on `enjoy.bot` instead of silently re-binding the previous browser session.
+- **Sign out** revokes the server-side refresh session best-effort via `POST /api/v1/auth/logout` before clearing local secrets, then returns to the welcome sign-in screen; the app is not usable without re-authenticating. The revocation policy has one owner: [`AuthRepository.revokeRefreshTokenBestEffort`](../../lib/features/auth/data/auth_repository.dart) skips an absent or empty token, bounds the request with a 3 s timeout, and logs `server logout revoke failed` — it never throws, so `AuthCtrl.signOut` fires it in the background without a second guard. Native PKCE sign-in sends `prompt=select_account` so re-authenticating users can switch accounts on `enjoy.bot` instead of silently re-binding the previous browser session.
 
 YouTube account login remains a separate WebView flow ([features/youtube.md](youtube.md), ADR-0015), reachable after Enjoy account sign-in.
 
@@ -70,6 +70,8 @@ OpenAPI contract: [native-auth-v2.openapi.yaml](../api/native-auth-v2.openapi.ya
 
 - **PKCE auth callback**: `enjoyplayer://auth/callback` (the only redirect URI whitelisted in enjoy_web's `config/native_auth_clients.yml`; a universal/app link was dropped to avoid hosting `apple-app-site-association` / `assetlinks.json`).
 - **Stripe checkout return**: `enjoyplayer://checkout/return?result=...&kind=...` (opened by `enjoy.bot/checkout/return` when Stripe finishes or cancels a payment created with `client=enjoy_player`; `AuthDeepLinkListener` and `app_router.dart` route `credits_package` to `/credits` and other purchases to `/subscription`).
+
+The scheme and the billing route paths each have one home: `kEnjoyPlayerUrlScheme` in [`app_links.dart`](../../lib/core/application/app_links.dart) — used by the PKCE redirect URI (`auth_platform_support.dart`), the deep-link matcher (`auth_redirect.dart`), the PKCE callback parser (`auth_callback.dart`) and the Linux scheme handler — and `kCreditsRoutePath` / `kSubscriptionRoutePath` in [`route_paths.dart`](../../lib/core/routing/route_paths.dart) — used by `checkoutReturnTarget`, the sign-in redirect helpers, the router registration, the account-tab route prefixes and the credits-package link.
 
 | Platform | Custom-scheme registration | Paths matched |
 |----------|----------------------------|---------------|

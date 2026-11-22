@@ -63,11 +63,7 @@ void main() {
             action: 'delete',
           ),
         ),
-        isA<SyncYoutubeSubscriptionDelete>().having(
-          (j) => j.channelId,
-          'channelId',
-          'ch-1',
-        ),
+        isA<SyncYoutubeSubscriptionDelete>().having((j) => j.id, 'id', 'ch-1'),
       );
       expect(
         SyncQueueJob.decode(
@@ -130,7 +126,7 @@ void main() {
             ),
           ),
           isA<SyncYoutubeSubscriptionUpsert>()
-              .having((j) => j.channelId, 'channelId', 'ch-1')
+              .having((j) => j.id, 'id', 'ch-1')
               .having((j) => j.action, 'action', action),
         );
         expect(
@@ -377,12 +373,43 @@ void main() {
       );
     });
 
+    test('every upsert variant encodes its own entity type', () {
+      final wires = <SyncQueueJobWire>[
+        const SyncAudioUpsert(id: 'x', action: SyncAction.create).encode(),
+        const SyncVideoUpsert(id: 'x', action: SyncAction.create).encode(),
+        const SyncRecordingUpsert(id: 'x', action: SyncAction.create).encode(),
+        const SyncYoutubeSubscriptionUpsert(
+          id: 'x',
+          action: SyncAction.create,
+        ).encode(),
+        const SyncVocabularyItemUpsert(
+          id: 'x',
+          action: SyncAction.create,
+        ).encode(),
+        const SyncVocabularyContextUpsert(
+          id: 'x',
+          action: SyncAction.create,
+        ).encode(),
+      ];
+
+      expect(wires.map((w) => w.entityType), <String>[
+        'audio',
+        'video',
+        'recording',
+        'youtube_subscription',
+        'vocabulary_item',
+        'vocabulary_context',
+      ]);
+      expect(wires.map((w) => w.entityId), everyElement('x'));
+      expect(wires.map((w) => w.action), everyElement('create'));
+    });
+
     test('delete variants emit a null payload', () {
       for (final wire in [
         const SyncAudioDelete(id: 'a1'),
         const SyncVideoDelete(id: 'v1'),
         const SyncRecordingDelete(id: 'r1'),
-        const SyncYoutubeSubscriptionDelete(channelId: 'ch1'),
+        const SyncYoutubeSubscriptionDelete(id: 'ch1'),
         const SyncVocabularyItemDelete(id: 'vi1'),
         const SyncVocabularyContextDelete(id: 'vc1'),
       ]) {

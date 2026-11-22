@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/notices/root_shell_bottom_inset.dart';
+import 'package:enjoy_player/core/routing/route_paths.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/app_background.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
@@ -42,8 +43,8 @@ class _RootShellState extends ConsumerState<RootShell> {
   static const _accountPrefixes = {
     '/profile',
     '/settings',
-    '/subscription',
-    '/credits',
+    kSubscriptionRoutePath,
+    kCreditsRoutePath,
     '/vocabulary',
   };
 

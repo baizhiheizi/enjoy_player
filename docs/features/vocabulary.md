@@ -470,6 +470,7 @@ Sharing the surface also aligned the Dictionary tab's geometry with the Context 
 - Rows: word title; one status chip + muted secondary line (`contexts · reviews · next-review`); language trailing + overflow delete (confirm).
 - Localized load-failure + retry; no-match empty copy.
 - The distinct-language list and the filtered list are derived in providers (`vocabularyListLanguagesProvider`, `vocabularyVisibleItemsProvider`, keyed on items + filters) rather than recomputed inside `build` on every rebuild (issue #827 C2).
+- The word list and the Anki CSV export share one filter pipeline: [`filterVocabularyItems`](../../lib/features/vocabulary/domain/vocabulary_filters.dart) applies status ∩ language ∩ search-contains, trimming the query before matching. Both filter classes (`VocabularyListFilters`, `VocabularyAnkiExportFilters`) implement `VocabularyFilterSpec`, so the list and the export can never select different rows for the same search term.
 
 ### Add-to-vocabulary control (lookup sheet)
 

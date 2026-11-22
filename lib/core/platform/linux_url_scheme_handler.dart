@@ -14,11 +14,11 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:enjoy_player/core/application/app_links.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 
 final Logger _log = logNamed('linux.url_scheme');
 
-const String _scheme = 'enjoyplayer';
 const String _desktopFileName = 'enjoy-player-scheme.desktop';
 
 /// `Exec=` value pointing at the running install.
@@ -45,7 +45,7 @@ String buildSchemeHandlerDesktopEntry({required String exec}) =>
     'Name=Enjoy Player\n'
     'Exec=$exec\n'
     'Terminal=false\n'
-    'MimeType=x-scheme-handler/$_scheme;\n'
+    'MimeType=x-scheme-handler/$kEnjoyPlayerUrlScheme;\n'
     'NoDisplay=true\n';
 
 /// Writes the handler desktop entry into the user's applications directory
@@ -71,7 +71,7 @@ Future<void> ensureEnjoyplayerSchemeHandler({
     final existing = await file.exists() ? await file.readAsString() : null;
     if (existing != entry) {
       await file.writeAsString(entry, flush: true);
-      _log.info('wrote $_scheme handler entry: ${file.path}');
+      _log.info('wrote $kEnjoyPlayerUrlScheme handler entry: ${file.path}');
     }
 
     if (!runDesktopIntegrationCommands) return;
@@ -79,10 +79,10 @@ Future<void> ensureEnjoyplayerSchemeHandler({
     await _runQuietly('xdg-mime', [
       'default',
       _desktopFileName,
-      'x-scheme-handler/$_scheme',
+      'x-scheme-handler/$kEnjoyPlayerUrlScheme',
     ]);
   } on Object catch (e, st) {
-    _log.warning('$_scheme scheme registration failed', e, st);
+    _log.warning('$kEnjoyPlayerUrlScheme scheme registration failed', e, st);
   }
 }
 

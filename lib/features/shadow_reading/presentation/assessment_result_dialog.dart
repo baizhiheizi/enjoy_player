@@ -9,7 +9,6 @@
 /// Ported from the web `AssessmentResultDialog`.
 library;
 
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:math' as math;
 
 import 'package:azure_speech/azure_speech.dart';
@@ -22,6 +21,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'assessment_result_body.dart';
+import 'assessment_result_header.dart';
 import 'assessment_result_sheet.dart';
 
 class _NoResultAlertDialog extends StatelessWidget {
@@ -110,9 +110,7 @@ class _AssessmentResultDialogState
     extends ConsumerState<AssessmentResultDialog> {
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
+    final t = EnjoyThemeTokens.of(context);
 
     final nBest = widget.assessment.primaryNBest;
     if (nBest == null) {
@@ -128,32 +126,8 @@ class _AssessmentResultDialogState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 8, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l10n.assessmentTitle, style: tt.titleLarge),
-                        const SizedBox(height: 4),
-                        Text(
-                          l10n.assessmentDescription,
-                          style: tt.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(EnjoyIcons.close),
-                  ),
-                ],
-              ),
+            AssessmentResultHeader(
+              padding: EdgeInsets.fromLTRB(t.space24, t.space20, t.space8, 0),
             ),
             Expanded(
               child: SingleChildScrollView(

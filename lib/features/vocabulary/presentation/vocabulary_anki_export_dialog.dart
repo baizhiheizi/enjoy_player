@@ -16,6 +16,7 @@ import 'package:enjoy_player/features/subscription/application/subscription_stat
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_anki_export.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_anki_export_filters.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_filters.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_l10n.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -83,10 +84,7 @@ class _VocabularyAnkiExportDialogState
 
             final languages = items.map((i) => i.language).toSet().toList()
               ..sort();
-            final filtered = filterVocabularyItemsForAnkiExport(
-              items,
-              _filters,
-            );
+            final filtered = filterVocabularyItems(items, _filters);
 
             return Column(
               mainAxisSize: MainAxisSize.min,

@@ -6,16 +6,15 @@
 /// with the wide [AssessmentResultDialog].
 library;
 
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
-import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'assessment_result_body.dart';
+import 'assessment_result_header.dart';
 
 class AssessmentResultSheet extends ConsumerStatefulWidget {
   const AssessmentResultSheet({
@@ -37,9 +36,6 @@ class AssessmentResultSheet extends ConsumerStatefulWidget {
 class _AssessmentResultSheetState extends ConsumerState<AssessmentResultSheet> {
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
     final t = EnjoyThemeTokens.of(context);
     final nBest = widget.assessment.nBest.first;
     final padH = t.space16 + t.space4;
@@ -55,37 +51,8 @@ class _AssessmentResultSheetState extends ConsumerState<AssessmentResultSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const PaddedSheetDragHandle(),
-            Padding(
-              padding: EdgeInsets.fromLTRB(padH, t.space8, 8, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l10n.assessmentTitle, style: tt.titleLarge),
-                        SizedBox(height: t.space4),
-                        Text(
-                          l10n.assessmentDescription,
-                          style: tt.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                      fixedSize: const Size(48, 48),
-                    ),
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(EnjoyIcons.close),
-                  ),
-                ],
-              ),
+            AssessmentResultHeader(
+              padding: EdgeInsets.fromLTRB(padH, t.space8, t.space8, 0),
             ),
             const Divider(height: 1),
             Expanded(

@@ -8,21 +8,41 @@ part of '../sync_queue_job.dart';
 /// dedicated `Sync*Delete` variants. Sealed so the drain switch stays
 /// exhaustive over the leaf variants.
 sealed class SyncUpsertJob extends SyncQueueJob {
-  const SyncUpsertJob({required this.action})
-    : assert(
-        action == SyncAction.create || action == SyncAction.update,
-        'Upsert jobs are create/update only; use the Delete variant',
-      );
+  const SyncUpsertJob({
+    required this.id,
+    required this.action,
+    this.payloadJson,
+  }) : assert(
+         action == SyncAction.create || action == SyncAction.update,
+         'Upsert jobs are create/update only; use the Delete variant',
+       );
+
+  /// The local entity id this job upserts.
+  final String id;
 
   final SyncAction action;
+
+  /// The fallback-only payload snapshot — the drain re-reads the live row.
+  final String? payloadJson;
+
+  /// The synced entity kind this job upserts.
+  SyncEntityType get entityType;
+
+  @override
+  SyncQueueJobWire encode() => SyncQueueJobWire(
+    entityType: entityType.wireName,
+    entityId: id,
+    action: action.wireName,
+    payloadJson: payloadJson,
+  );
 }
 
 /// Audio metadata upsert (`entityType: audio`).
 final class SyncAudioUpsert extends SyncUpsertJob {
   const SyncAudioUpsert({
-    required this.id,
+    required super.id,
     required super.action,
-    this.payloadJson,
+    super.payloadJson,
   });
 
   /// Snapshots a live audio row into the (fallback-only) payload columns.
@@ -35,25 +55,17 @@ final class SyncAudioUpsert extends SyncUpsertJob {
     payloadJson: jsonEncode(prepareForSyncAudioMap(row)),
   );
 
-  final String id;
-  final String? payloadJson;
-
   @override
-  SyncQueueJobWire encode() => SyncQueueJobWire(
-    entityType: SyncEntityType.audio.wireName,
-    entityId: id,
-    action: action.wireName,
-    payloadJson: payloadJson,
-  );
+  SyncEntityType get entityType => SyncEntityType.audio;
 }
 
 /// Video metadata upsert (`entityType: video`) — the plain path that
 /// re-reads the local video row on drain.
 final class SyncVideoUpsert extends SyncUpsertJob {
   const SyncVideoUpsert({
-    required this.id,
+    required super.id,
     required super.action,
-    this.payloadJson,
+    super.payloadJson,
   });
 
   /// Snapshots a live video row into the (fallback-only) payload columns.
@@ -66,24 +78,16 @@ final class SyncVideoUpsert extends SyncUpsertJob {
     payloadJson: jsonEncode(prepareForSyncVideoMap(row)),
   );
 
-  final String id;
-  final String? payloadJson;
-
   @override
-  SyncQueueJobWire encode() => SyncQueueJobWire(
-    entityType: SyncEntityType.video.wireName,
-    entityId: id,
-    action: action.wireName,
-    payloadJson: payloadJson,
-  );
+  SyncEntityType get entityType => SyncEntityType.video;
 }
 
 /// Recording metadata upsert (`entityType: recording`).
 final class SyncRecordingUpsert extends SyncUpsertJob {
   const SyncRecordingUpsert({
-    required this.id,
+    required super.id,
     required super.action,
-    this.payloadJson,
+    super.payloadJson,
   });
 
   /// Snapshots a live recording row into the (fallback-only) payload
@@ -97,24 +101,16 @@ final class SyncRecordingUpsert extends SyncUpsertJob {
     payloadJson: jsonEncode(prepareForSyncRecordingMap(row)),
   );
 
-  final String id;
-  final String? payloadJson;
-
   @override
-  SyncQueueJobWire encode() => SyncQueueJobWire(
-    entityType: SyncEntityType.recording.wireName,
-    entityId: id,
-    action: action.wireName,
-    payloadJson: payloadJson,
-  );
+  SyncEntityType get entityType => SyncEntityType.recording;
 }
 
 /// Vocabulary item upsert (`entityType: vocabulary_item`, ADR-0054).
 final class SyncVocabularyItemUpsert extends SyncUpsertJob {
   const SyncVocabularyItemUpsert({
-    required this.id,
+    required super.id,
     required super.action,
-    this.payloadJson,
+    super.payloadJson,
   });
 
   /// Snapshots a live vocabulary item row into the (fallback-only) payload
@@ -128,24 +124,16 @@ final class SyncVocabularyItemUpsert extends SyncUpsertJob {
     payloadJson: jsonEncode(prepareForSyncVocabularyItemMap(row)),
   );
 
-  final String id;
-  final String? payloadJson;
-
   @override
-  SyncQueueJobWire encode() => SyncQueueJobWire(
-    entityType: SyncEntityType.vocabularyItem.wireName,
-    entityId: id,
-    action: action.wireName,
-    payloadJson: payloadJson,
-  );
+  SyncEntityType get entityType => SyncEntityType.vocabularyItem;
 }
 
 /// Vocabulary context upsert (`entityType: vocabulary_context`, ADR-0054).
 final class SyncVocabularyContextUpsert extends SyncUpsertJob {
   const SyncVocabularyContextUpsert({
-    required this.id,
+    required super.id,
     required super.action,
-    this.payloadJson,
+    super.payloadJson,
   });
 
   /// Snapshots a live vocabulary context row into the (fallback-only)
@@ -159,16 +147,8 @@ final class SyncVocabularyContextUpsert extends SyncUpsertJob {
     payloadJson: jsonEncode(prepareForSyncVocabularyContextMap(row)),
   );
 
-  final String id;
-  final String? payloadJson;
-
   @override
-  SyncQueueJobWire encode() => SyncQueueJobWire(
-    entityType: SyncEntityType.vocabularyContext.wireName,
-    entityId: id,
-    action: action.wireName,
-    payloadJson: payloadJson,
-  );
+  SyncEntityType get entityType => SyncEntityType.vocabularyContext;
 }
 
 /// YouTube channel subscription upsert (`entityType:
@@ -177,9 +157,9 @@ final class SyncVocabularyContextUpsert extends SyncUpsertJob {
 /// stays exhaustive when wire parity requires it.
 final class SyncYoutubeSubscriptionUpsert extends SyncUpsertJob {
   const SyncYoutubeSubscriptionUpsert({
-    required this.channelId,
+    required super.id,
     required super.action,
-    this.payloadJson,
+    super.payloadJson,
   });
 
   /// Snapshots a live subscription row into the (fallback-only) payload
@@ -188,19 +168,11 @@ final class SyncYoutubeSubscriptionUpsert extends SyncUpsertJob {
     YoutubeChannelSubscriptionRow row, {
     required SyncAction action,
   }) => SyncYoutubeSubscriptionUpsert(
-    channelId: row.channelId,
+    id: row.channelId,
     action: action,
     payloadJson: jsonEncode(prepareForSyncSubscriptionMap(row)),
   );
 
-  final String channelId;
-  final String? payloadJson;
-
   @override
-  SyncQueueJobWire encode() => SyncQueueJobWire(
-    entityType: SyncEntityType.youtubeSubscription.wireName,
-    entityId: channelId,
-    action: action.wireName,
-    payloadJson: payloadJson,
-  );
+  SyncEntityType get entityType => SyncEntityType.youtubeSubscription;
 }
