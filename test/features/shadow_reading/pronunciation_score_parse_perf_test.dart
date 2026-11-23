@@ -85,6 +85,9 @@ List<String> benchCorpus() {
   return docs;
 }
 
+String? freshCopy(String? s) =>
+    s == null ? null : String.fromCharCodes(s.codeUnits);
+
 RecordingRow rowWith(String? assessmentJson, {int? pronunciationScore}) {
   final now = DateTime.now();
   return RecordingRow(
@@ -265,6 +268,51 @@ void main() {
       expect(pronunciationScoreFromRecording(row), isNull);
       expect(pronScoreParseCount, 1);
     });
+
+    test('the 129th distinct raw evicts the memo head', () {
+      pronScoreParseCount = 0;
+      final docs = [
+        for (var i = 0; i < 128; i++)
+          azureDoc(
+            words: 1,
+            pronScore: 50 + (i % 40),
+          ).replaceFirst('Success', 'MemoEvictFill$i'),
+      ];
+      for (final doc in docs) {
+        expect(
+          pronunciationScoreFromRecording(
+            rowWith(doc, pronunciationScore: null),
+          ),
+          isNotNull,
+        );
+      }
+      expect(pronScoreParseCount, 128);
+      final fresh = azureDoc(
+        words: 1,
+        pronScore: 90,
+      ).replaceFirst('Success', 'MemoEvictHead');
+      expect(
+        pronunciationScoreFromRecording(
+          rowWith(fresh, pronunciationScore: null),
+        ),
+        90,
+      );
+      expect(pronScoreParseCount, 129);
+      expect(
+        pronunciationScoreFromRecording(
+          rowWith(docs.first, pronunciationScore: null),
+        ),
+        isNotNull,
+      );
+      expect(pronScoreParseCount, 130);
+      expect(
+        pronunciationScoreFromRecording(
+          rowWith(fresh, pronunciationScore: null),
+        ),
+        90,
+      );
+      expect(pronScoreParseCount, 130);
+    });
   });
 
   test('sink parity: legacy and memoized agree over the bench corpus', () {
@@ -347,6 +395,47 @@ void main() {
       print(
         'memoized panel rebuild: ${sw.elapsedMicroseconds / 1000.0} ms '
         '(sink $sink)',
+      ); // ignore: avoid_print
+    },
+  );
+
+  test(
+    'bench (local only): memoized parse, $benchPasses copy-key panel passes '
+    'over 16 takes',
+    skip: true,
+    () {
+      final docs = benchCorpus();
+      final rows = [
+        for (final doc in docs) rowWith(doc, pronunciationScore: null),
+      ];
+      int panelPass(List<RecordingRow> rows) {
+        var sink = 0;
+        for (final row in rows) {
+          sink +=
+              pronunciationScoreFromRecording(
+                rowWith(
+                  freshCopy(row.assessmentJson),
+                  pronunciationScore: null,
+                ),
+              ) ??
+              0;
+        }
+        return sink;
+      }
+
+      var sink = 0;
+      for (var warm = 0; warm < 100; warm++) {
+        sink += panelPass(rows);
+      }
+      final sw = Stopwatch()..start();
+      for (var i = 0; i < benchPasses; i++) {
+        sink += panelPass(rows);
+      }
+      sw.stop();
+      // ignore: avoid_print
+      print(
+        'memoized copy-key panel rebuild: '
+        '${sw.elapsedMicroseconds / 1000.0} ms (sink $sink)',
       ); // ignore: avoid_print
     },
   );
