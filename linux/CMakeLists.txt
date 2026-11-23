@@ -108,6 +108,15 @@ set_target_properties(${BINARY_NAME}
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# Compat: flutter_inappwebview_linux 0.1.0-beta.1 references
+# WPE_SETTING_DISABLE_ANIMATIONS, which no released wpe-platform header
+# defines (same header patch CI applies in ensure_linux_tooling.sh). The
+# runtime tolerates unregistered keys, so animations simply stay enabled.
+if(TARGET flutter_inappwebview_linux_plugin)
+  target_compile_definitions(flutter_inappwebview_linux_plugin PRIVATE
+    WPE_SETTING_DISABLE_ANIMATIONS="/wpe-platform/disable-animations")
+endif()
+
 
 # === Installation ===
 # By default, "installing" just makes a relocatable bundle in the build

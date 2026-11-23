@@ -64,8 +64,8 @@ ensure_wpe() {
       rm -rf "$staging" "$WPE_ROOT"
       mkdir -p "$staging"
       for deb in \
-        https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-dev_2.54.0-2_amd64.deb \
-        https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-1_2.54.0-2_amd64.deb \
+        https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-dev_2.54.3-1_amd64.deb \
+        https://deb.debian.org/debian/pool/main/w/wpewebkit/libwpewebkit-2.0-1_2.54.3-1_amd64.deb \
         https://deb.debian.org/debian/pool/main/libw/libwpe/libwpe-1.0-1_1.16.3-2_amd64.deb \
         https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-1_1.16.1-1+b1_amd64.deb \
         https://deb.debian.org/debian/pool/main/w/wpebackend-fdo/libwpebackend-fdo-1.0-dev_1.16.1-1+b1_amd64.deb \
