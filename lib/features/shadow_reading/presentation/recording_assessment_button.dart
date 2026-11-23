@@ -8,6 +8,8 @@ import 'dart:convert';
 
 import 'package:material_ui/material_ui.dart';
 
+import 'package:enjoy_player/core/cache/lru_store.dart';
+
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -24,6 +26,20 @@ import 'package:enjoy_player/features/shadow_reading/presentation/recording_asse
 import 'package:enjoy_player/features/shadow_reading/presentation/score_level.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+/// Bounded memo for the fallback score parse: the derivation is pure in the
+/// raw JSON string, so entries never expire, and take widgets re-call it per
+/// rebuild while [jsonDecode] walks the whole NBest document for one field.
+final L1Store<String, _PronScoreHit> _pronScoreMemo = L1Store(capacity: 128);
+
+class _PronScoreHit {
+  const _PronScoreHit(this.score);
+
+  final int? score;
+}
+
+@visibleForTesting
+int pronScoreParseCount = 0;
+
 int? pronunciationScoreFromRecording(RecordingRow row) {
   if (row.pronunciationScore != null) return row.pronunciationScore;
   return _parsePronScoreFromAssessmentJson(row.assessmentJson);
@@ -31,6 +47,15 @@ int? pronunciationScoreFromRecording(RecordingRow row) {
 
 int? _parsePronScoreFromAssessmentJson(String? raw) {
   if (raw == null || raw.trim().isEmpty) return null;
+  final hit = _pronScoreMemo.peek(raw);
+  if (hit != null) return hit.score;
+  pronScoreParseCount++;
+  final score = _decodePronScore(raw);
+  _pronScoreMemo.put(raw, _PronScoreHit(score));
+  return score;
+}
+
+int? _decodePronScore(String raw) {
   try {
     final m = jsonDecode(raw) as Map<String, dynamic>;
     final nb = m['NBest'] as List<dynamic>?;
