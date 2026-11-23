@@ -61,6 +61,50 @@ class DefaultEchoPitchPipeline implements EchoPitchPipeline {
   }
 }
 
+/// Bounded-entry cap shared by every [_CancellableCache].
+const int _maxCacheEntries = 8;
+
+/// Bounded cache whose in-flight analysis is cancellable: a newer [run]
+/// cancels the previous token (killing the live FFmpeg extraction) and the
+/// superseded request resolves to `null` instead of storing its result.
+final class _CancellableCache<K> {
+  final Map<K, EchoRegionAnalysisResult> _entries = {};
+
+  EchoPcmCancelToken? _activeToken;
+
+  Future<EchoRegionAnalysisResult?> run(
+    K key,
+    Future<EchoRegionAnalysisResult> Function(EchoPcmCancelToken token) analyze,
+  ) async {
+    final cached = _entries[key];
+    if (cached != null) return cached;
+
+    _activeToken?.cancel();
+    final token = EchoPcmCancelToken();
+    _activeToken = token;
+    try {
+      final result = await analyze(token);
+      if (token.isCancelled) return null;
+      _store(key, result);
+      return result;
+    } on EchoPcmExtractionException catch (e) {
+      if (e.reason == EchoPcmFailureReason.cancelled) return null;
+      rethrow;
+    } finally {
+      if (identical(_activeToken, token)) _activeToken = null;
+    }
+  }
+
+  void _store(K key, EchoRegionAnalysisResult result) {
+    while (_entries.length >= _maxCacheEntries) {
+      _entries.remove(_entries.keys.first);
+    }
+    _entries[key] = result;
+  }
+
+  void clear() => _entries.clear();
+}
+
 /// Cache + cancellation service for echo pitch analysis.
 ///
 /// Methods return `null` when a request was **superseded** (cancelled by a
@@ -71,13 +115,8 @@ class EchoPitchAnalysisService {
 
   final EchoPitchPipeline pipeline;
 
-  static const int _maxCacheEntries = 8;
-
-  final Map<_RefCacheKey, EchoRegionAnalysisResult> _refCache = {};
-  final Map<String, EchoRegionAnalysisResult> _userCache = {};
-
-  EchoPcmCancelToken? _refToken;
-  EchoPcmCancelToken? _userToken;
+  final _refCache = _CancellableCache<_RefCacheKey>();
+  final _userCache = _CancellableCache<String>();
 
   /// Analyzes (or returns the cached) reference region `[startSec, endSec)`.
   ///
@@ -87,79 +126,33 @@ class EchoPitchAnalysisService {
     required String mediaPath,
     required double startSec,
     required double endSec,
-  }) async {
-    final key = _RefCacheKey(mediaPath, startSec, endSec);
-    final cached = _refCache[key];
-    if (cached != null) return cached;
-
-    _refToken?.cancel();
-    final token = EchoPcmCancelToken();
-    _refToken = token;
-    try {
-      final result = await pipeline.analyzeSegment(
+  }) {
+    return _refCache.run(
+      _RefCacheKey(mediaPath, startSec, endSec),
+      (token) => pipeline.analyzeSegment(
         mediaPath: mediaPath,
         startSec: startSec,
         endSec: endSec,
         token: token,
-      );
-      if (token.isCancelled) return null;
-      _storeRef(key, result);
-      return result;
-    } on EchoPcmExtractionException catch (e) {
-      if (e.reason == EchoPcmFailureReason.cancelled) return null;
-      rethrow;
-    } finally {
-      if (identical(_refToken, token)) _refToken = null;
-    }
+      ),
+    );
   }
 
   /// Analyzes (or returns the cached) full user recording at [mediaPath].
   ///
   /// Returns the result, or `null` if cancelled by a newer call. Throws
   /// [EchoPcmExtractionException] on a genuine failure.
-  Future<EchoRegionAnalysisResult?> analyzeUser({
-    required String mediaPath,
-  }) async {
-    final cached = _userCache[mediaPath];
-    if (cached != null) return cached;
-
-    _userToken?.cancel();
-    final token = EchoPcmCancelToken();
-    _userToken = token;
-    try {
-      final result = await pipeline.analyzeFile(
-        mediaPath: mediaPath,
-        token: token,
-      );
-      if (token.isCancelled) return null;
-      _storeUser(mediaPath, result);
-      return result;
-    } on EchoPcmExtractionException catch (e) {
-      if (e.reason == EchoPcmFailureReason.cancelled) return null;
-      rethrow;
-    } finally {
-      if (identical(_userToken, token)) _userToken = null;
-    }
+  Future<EchoRegionAnalysisResult?> analyzeUser({required String mediaPath}) {
+    return _userCache.run(
+      mediaPath,
+      (token) => pipeline.analyzeFile(mediaPath: mediaPath, token: token),
+    );
   }
 
   /// Drops all cached results (e.g. when a media file is replaced).
   void clearCache() {
     _refCache.clear();
     _userCache.clear();
-  }
-
-  void _storeRef(_RefCacheKey key, EchoRegionAnalysisResult result) {
-    while (_refCache.length >= _maxCacheEntries) {
-      _refCache.remove(_refCache.keys.first);
-    }
-    _refCache[key] = result;
-  }
-
-  void _storeUser(String path, EchoRegionAnalysisResult result) {
-    while (_userCache.length >= _maxCacheEntries) {
-      _userCache.remove(_userCache.keys.first);
-    }
-    _userCache[path] = result;
   }
 }
 

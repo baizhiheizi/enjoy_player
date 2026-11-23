@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-import 'badges.dart';
+import 'glass_overlays.dart';
 
 /// State of the cloud-sync indicator for a library item.
 enum MediaCardSyncBadge {

@@ -2,8 +2,27 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/features/player/application/loop_clip_export_plan.dart';
 import 'package:enjoy_player/features/player/application/loop_clip_export_runner.dart';
+
+const String _stubScript = r'''#!/bin/sh
+exit 0
+''';
+
+const String _stubFailScript = r'''#!/bin/sh
+echo stub failure >&2
+exit 3
+''';
+
+const String _stubBatchScript =
+    '@echo off\r\n'
+    'exit /b 0\r\n';
+
+const String _stubFailBatchScript =
+    '@echo off\r\n'
+    'echo stub failure 1>&2\r\n'
+    'exit /b 3\r\n';
 
 void main() {
   late Directory tmp;
@@ -152,4 +171,87 @@ void main() {
       ),
     );
   });
+
+  group('runLoopClipFfmpeg (stub CLI)', () {
+    late Directory stubTemp;
+
+    setUp(() {
+      stubTemp = Directory.systemTemp.createTempSync('loop_clip_ffmpeg_');
+    });
+
+    tearDown(() {
+      FfmpegMediaProbe.debugExecutableOverride = null;
+      FfmpegMediaProbe.debugForceUnavailable = false;
+      if (stubTemp.existsSync()) stubTemp.deleteSync(recursive: true);
+    });
+
+    LoopClipExportRequest stubRequest() => LoopClipExportRequest(
+      inputPath: '${stubTemp.path}/in.mp4',
+      outputPath: '${stubTemp.path}/clip.mp4',
+      startSeconds: 0,
+      durationSeconds: 2,
+      video: true,
+    );
+
+    File writeStub(String shellBody, String batchBody) {
+      if (Platform.isWindows) {
+        return File('${stubTemp.path}/ffmpeg-stub.cmd')
+          ..writeAsStringSync(batchBody);
+      }
+      final stub = File('${stubTemp.path}/ffmpeg-stub')
+        ..writeAsStringSync(shellBody);
+      Process.runSync('chmod', <String>['+x', stub.path]);
+      return stub;
+    }
+
+    test('a zero exit completes and keeps the output', () async {
+      FfmpegMediaProbe.debugExecutableOverride = writeStub(
+        _stubScript,
+        _stubBatchScript,
+      ).path;
+      final output = File(stubRequest().outputPath)..writeAsBytesSync([1]);
+
+      await runLoopClipFfmpeg(stubRequest());
+
+      expect(output.existsSync(), isTrue);
+    });
+
+    test(
+      'a non-zero exit → ffmpegFailed and the partial output is deleted',
+      () async {
+        FfmpegMediaProbe.debugExecutableOverride = writeStub(
+          _stubFailScript,
+          _stubFailBatchScript,
+        ).path;
+        final output = File(stubRequest().outputPath)..writeAsBytesSync([1]);
+
+        await expectLater(
+          runLoopClipFfmpeg(stubRequest()),
+          throwsA(
+            isA<LoopClipExportException>().having(
+              (e) => e.reason,
+              'reason',
+              LoopClipExportFailureReason.ffmpegFailed,
+            ),
+          ),
+        );
+        expect(output.existsSync(), isFalse);
+      },
+    );
+
+    test('no ffmpeg binary → ffmpegMissing', () async {
+      FfmpegMediaProbe.debugForceUnavailable = true;
+
+      await expectLater(
+        runLoopClipFfmpeg(stubRequest()),
+        throwsA(
+          isA<LoopClipExportException>().having(
+            (e) => e.reason,
+            'reason',
+            LoopClipExportFailureReason.ffmpegMissing,
+          ),
+        ),
+      );
+    });
+  }, skip: !FfmpegMediaProbe.usesFfmpegCli ? 'FFmpegKit platform' : false);
 }
