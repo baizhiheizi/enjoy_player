@@ -419,7 +419,7 @@ Offline: full local CRUD/review. AI dictionary / contextual translation require 
 - List-first chrome: the **Due** count is a badge on the **Review** tab, and the Total / Due / status breakdown renders inline as a stats row above the tab content (`VocabularyStatsRow` in `widgets/vocabulary_stats_cards.dart` — a Due card and a status card side by side, stacked below 856 px).
 - Equal-width segmented tabs: **Review** | **All Words** (due badge on Review).
 - **All Words table:** the first context sentence of every visible word is read in one bulk query (repository `firstContextTextsForItems`, chunked at 900 ids) — one query per visible list, not one per rendered row. Items without a context simply show no second line.
-- **Due counts are emission-driven:** the tab badge, the stats row and the Review tab's due card (count, first five due words, `+n` overflow chip) are derived from the live vocabulary items stream (`vocabularyStatsProvider`, `vocabularyDuePreviewProvider`) and cached between emissions — they refresh when the items change, not on unrelated rebuilds. The due card previews the same predicate and item order as the due-mode session queue.
+- **Due counts are emission-driven:** the tab badge, the stats row, the Review tab's due card (count, first five due words, `+n` overflow chip) and the custom-review panel's Due mode tile are derived from the live vocabulary items stream (`vocabularyStatsProvider`, `vocabularyDuePreviewProvider`) and cached between emissions — they refresh when the items change, not on unrelated rebuilds. The due card previews the same predicate and item order as the due-mode session queue.
 
 ### Review entry + options
 
@@ -428,7 +428,7 @@ statistics (total / due / status breakdown) as a collapsible detail within the
 review setup rather than a persistent banner, keeping the word list as the
 primary focus.
 
-Modes (selectable cards with short hints + live queue count):
+Modes (selectable cards with short hints + a count where one exists):
 
 | Mode | Behavior |
 |------|----------|
@@ -437,6 +437,8 @@ Modes (selectable cards with short hints + live queue count):
 | By status | Filter one status |
 | By language | Filter one source language |
 | Random | Shuffle then take N (Fisher–Yates; default N=20) |
+
+The panel's derivations are shared, emission-level reads — not per-rebuild recomputation: the Due tile reads `vocabularyDuePreviewProvider` (same source and value as the Review tab's due card, so it refreshes when the items stream emits, when the Review tab remounts, or on a sync pull — a word that becomes due while the tab sits open is under-reported until then), the All tile shows `items.length`, and the language dropdown reads `vocabularyListLanguagesProvider` (the word-list filter's source). Pressing Start builds a queue only as the emptiness guard for the inline “no words match” error — the session itself is rebuilt by `vocabularyReviewSessionProvider.start()` from a fresh `listAll()` at press time.
 
 Empty states: no words; no due with **Custom review** CTA in the empty panel (not a contradictory bottom “Start review”).
 
