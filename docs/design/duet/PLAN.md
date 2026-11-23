@@ -292,7 +292,7 @@ Already done: `docs/design/duet/`, ADR-0093, this plan, `STATUS.md`, the Literat
 
 #### D1.7 Generated covers + media cards
 - **Boards:** `Home`, `Library`, `LibraryAudio`, `Discover`, `CraftHistory`.
-- **Code:** `lib/core/theme/generative_media_cover.dart` and `lib/core/theme/widgets/media_card/` (`tile.dart`, `row.dart`, `badges.dart`, `helpers.dart`).
+- **Code:** `lib/core/theme/generative_media_cover.dart` and `lib/core/theme/widgets/media_card/` (`tile.dart`, `row.dart`, `helpers.dart`, `thumbnail.dart`, `mono_chips.dart`, `glass_overlays.dart`, `meta_badges.dart`).
 - **Change:**
   - Replace the generative painter with the logo-plane recipe in `tokens.json → generatedCover`. Pick the palette by a stable hash of the media id.
   - Tiles: radius 14, mono duration pill, language chip, Craft / YouTube labels as drawn.
