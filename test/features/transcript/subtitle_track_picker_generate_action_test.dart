@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
@@ -8,6 +8,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_actions.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 Widget _wrap(Widget child) {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
@@ -16,7 +17,7 @@ Widget _wrap(Widget child) {
       colorScheme: scheme,
       extensions: [EnjoyThemeTokens.build(scheme)],
     ),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
   );

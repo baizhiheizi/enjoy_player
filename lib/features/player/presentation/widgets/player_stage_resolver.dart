@@ -1,7 +1,7 @@
 /// Engine identity → video stage mapping for the surface host (issue #664).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/features/player/application/engines/media_kit/media_kit_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';

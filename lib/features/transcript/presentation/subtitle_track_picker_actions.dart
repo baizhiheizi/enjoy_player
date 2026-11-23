@@ -2,7 +2,7 @@
 /// (desktop puts the same actions in the player's ⋯ More menu).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';

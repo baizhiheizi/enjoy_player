@@ -1,7 +1,7 @@
 /// Brand-style payment method icons for subscription checkout.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 enum PaymentMethodIconKind {

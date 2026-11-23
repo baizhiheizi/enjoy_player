@@ -1,7 +1,7 @@
 /// Enjoy-aligned colors for showcase tooltips.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 abstract final class OnboardingTooltipTheme {
   static TextStyle? titleStyle(BuildContext context) {

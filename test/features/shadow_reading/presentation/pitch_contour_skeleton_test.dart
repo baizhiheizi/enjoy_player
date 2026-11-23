@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/features/shadow_reading/presentation/pitch_contour_skeleton.dart';

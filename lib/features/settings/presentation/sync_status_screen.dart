@@ -1,7 +1,7 @@
 /// Sync queue status, last full sync time, and manual sync actions.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/format/cached_date_format.dart';

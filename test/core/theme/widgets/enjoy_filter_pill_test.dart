@@ -1,7 +1,7 @@
 import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_filter_pill.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<EnjoyThemeTokens> _pump(WidgetTester tester, Widget child) async {

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _sentinelPadding = EdgeInsets.all(9);

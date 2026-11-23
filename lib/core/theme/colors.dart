@@ -6,7 +6,7 @@
 /// ADR-0089 and docs/features/app-ui.md.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 abstract final class AppColors {
   /// Iris fill for light surfaces — white labels 5.8:1, ink on page 5.4:1.

@@ -13,7 +13,7 @@ library;
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';

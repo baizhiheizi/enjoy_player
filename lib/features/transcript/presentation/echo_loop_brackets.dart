@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The four `you` corner brackets framing the echo loop block.
 class EchoLoopBrackets extends CustomPainter {

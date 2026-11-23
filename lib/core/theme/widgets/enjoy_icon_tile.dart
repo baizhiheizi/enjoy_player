@@ -3,7 +3,7 @@
 /// Vocabulary) and the original-voice rows (Cloud sync) take a tone.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 

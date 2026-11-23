@@ -1,7 +1,7 @@
 /// Shared tappable surfaces: press wash, hover scale, cursor, focus, haptics.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';

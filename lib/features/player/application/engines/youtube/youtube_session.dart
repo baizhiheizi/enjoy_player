@@ -39,7 +39,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show ValueListenable;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_audible_playback_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_monotonic_clock.dart';

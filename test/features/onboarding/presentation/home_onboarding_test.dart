@@ -1,5 +1,5 @@
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -13,6 +13,7 @@ import 'package:enjoy_player/features/onboarding/domain/tip_eligibility.dart';
 import 'package:enjoy_player/features/onboarding/domain/tip_progress.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 /// Registers ShowcaseView with animations off so [pumpAndSettle] can finish.
 class _TestShowcaseHost extends ConsumerStatefulWidget {
@@ -141,7 +142,7 @@ Widget _harness({required AppDatabase db}) {
       appDatabaseProvider.overrideWithValue(db),
     ],
     child: const MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: Locale('en'),
       home: _TestShowcaseHost(

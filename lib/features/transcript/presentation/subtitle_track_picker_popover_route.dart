@@ -1,7 +1,7 @@
 /// The wide-screen Subtitles & display popover route (ADR-0093).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/anchored_popover_route.dart';

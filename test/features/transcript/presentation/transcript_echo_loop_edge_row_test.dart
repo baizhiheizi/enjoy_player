@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,6 +7,7 @@ import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_loop_edge_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 class _Spy extends PlayerInteractions {
   _Spy(super.ref);
@@ -49,7 +50,7 @@ Future<_Spy> _pump(
           colorScheme: scheme,
           extensions: [EnjoyThemeTokens.build(scheme)],
         ),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: EchoLoopEdgeRow(line: _line, edge: edge, canDrop: canDrop),

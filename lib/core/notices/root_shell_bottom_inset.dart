@@ -1,7 +1,7 @@
 /// Extra bottom clearance for floating notices above shell chrome (dock + nav).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
 

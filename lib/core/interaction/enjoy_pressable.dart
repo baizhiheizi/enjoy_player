@@ -6,7 +6,7 @@
 /// mobile. See ADR-0018 (shared primitives) and ADR-0089 (Aurora).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';

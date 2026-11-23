@@ -16,7 +16,8 @@ import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_loop_edge_row.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -117,7 +118,7 @@ Widget _harness({required Widget child, required List<Override> overrides}) {
         colorScheme: scheme,
         extensions: [EnjoyThemeTokens.build(scheme)],
       ),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
     ),
@@ -242,7 +243,7 @@ void main() {
                 colorScheme: scheme,
                 extensions: [EnjoyThemeTokens.build(scheme)],
               ),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              localizationsDelegates: appLocalizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: Scaffold(
                 body: SizedBox(
@@ -299,7 +300,7 @@ void main() {
                   colorScheme: scheme,
                   extensions: [EnjoyThemeTokens.build(scheme)],
                 ),
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                localizationsDelegates: appLocalizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 home: Scaffold(
                   body: SizedBox(
@@ -357,7 +358,7 @@ void main() {
                 colorScheme: scheme,
                 extensions: [EnjoyThemeTokens.build(scheme)],
               ),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              localizationsDelegates: appLocalizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: Scaffold(
                 body: SizedBox(
@@ -448,7 +449,7 @@ void main() {
                 colorScheme: scheme,
                 extensions: [EnjoyThemeTokens.build(scheme)],
               ),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              localizationsDelegates: appLocalizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: Scaffold(
                 body: SizedBox(

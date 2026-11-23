@@ -3,7 +3,8 @@ import 'package:enjoy_player/features/player/application/player_surface_registry
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -76,7 +77,7 @@ _pump(WidgetTester tester, {required FakePlayerEngine engine}) async {
           colorScheme: scheme,
           extensions: [EnjoyThemeTokens.build(scheme)],
         ),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Center(

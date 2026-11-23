@@ -20,8 +20,8 @@
 import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter_platform_interface/ffmpeg_kit_flutter_platform_interface.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import '../arch_detect.dart';
 import '../ffmpeg_kit_config.dart';

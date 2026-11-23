@@ -1,7 +1,7 @@
 /// Summary body for the `CommunityActivityCard`.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/format/cached_number_format.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';

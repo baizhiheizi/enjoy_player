@@ -6,7 +6,8 @@ import 'package:enjoy_player/features/subscription/application/subscription_stat
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
 import 'package:enjoy_player/features/subscription/presentation/tier_reconcile_host.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -58,7 +59,7 @@ Widget _harness({
     ],
     child: MaterialApp(
       scaffoldMessengerKey: appScaffoldMessengerKey,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const TierReconcileHost(child: Scaffold(body: SizedBox.expand())),
     ),
@@ -87,7 +88,7 @@ void main() {
         ],
         child: MaterialApp(
           scaffoldMessengerKey: appScaffoldMessengerKey,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const TierReconcileHost(
             child: Scaffold(body: SizedBox.expand()),
@@ -121,7 +122,7 @@ void main() {
         ],
         child: MaterialApp(
           scaffoldMessengerKey: appScaffoldMessengerKey,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const TierReconcileHost(
             child: Scaffold(body: Text('body', key: key)),

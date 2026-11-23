@@ -3,7 +3,7 @@ library;
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Legend entry that toggles one chart layer on and off.
 class PitchContourLegendToggle extends StatelessWidget {

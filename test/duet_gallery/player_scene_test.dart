@@ -34,7 +34,7 @@ import 'package:enjoy_player/features/transcript/application/video_row_for_media
 import 'package:enjoy_player/features/transcript/presentation/transcript_panel.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;

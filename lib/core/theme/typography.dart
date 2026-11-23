@@ -11,7 +11,7 @@
 /// so Chinese UI renders natively without extra font downloads.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Bundled multi-weight families declared in `pubspec.yaml` (ADR-0095).
 const String kGeistFamily = 'Geist';

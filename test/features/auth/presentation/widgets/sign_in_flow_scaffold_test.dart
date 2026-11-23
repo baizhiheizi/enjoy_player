@@ -1,7 +1,8 @@
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/sign_in_flow_scaffold.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> _pump(WidgetTester tester, Size size) async {
@@ -14,7 +15,7 @@ Future<void> _pump(WidgetTester tester, Size size) async {
         colorScheme: scheme,
         extensions: [EnjoyThemeTokens.build(scheme)],
       ),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const SignInFlowScaffold(child: Text('form')),
     ),

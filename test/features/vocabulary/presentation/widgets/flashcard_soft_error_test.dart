@@ -1,5 +1,5 @@
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/flashcard_soft_error.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

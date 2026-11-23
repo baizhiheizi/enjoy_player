@@ -1,7 +1,7 @@
 /// Shows a once-per-session info notice after Craft saves solid synthesis cues.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_solid_transcript_hint_gate.dart';

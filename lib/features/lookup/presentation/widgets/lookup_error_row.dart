@@ -1,7 +1,7 @@
 library;
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/latched_retry_state.dart';

@@ -1,7 +1,7 @@
 /// Adaptive page scaffold — chrome + width family for shell content.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_subpage_app_bar.dart';

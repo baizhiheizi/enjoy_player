@@ -1,7 +1,7 @@
 /// Small red notification dot for pending app updates.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Compact unread-style indicator used on Profile / Settings entry points.
 class UpdateNotificationDot extends StatelessWidget {

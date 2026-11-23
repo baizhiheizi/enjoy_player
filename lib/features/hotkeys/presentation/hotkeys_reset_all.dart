@@ -1,7 +1,7 @@
 /// Confirmation before clearing all custom hotkey bindings.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';

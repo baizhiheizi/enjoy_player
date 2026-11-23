@@ -2,7 +2,7 @@
 library;
 
 import 'package:enjoy_player/core/theme/typography.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 TextStyle recoveryMonoText(BuildContext context, ColorScheme cs) {
   return enjoyMonoStyle(

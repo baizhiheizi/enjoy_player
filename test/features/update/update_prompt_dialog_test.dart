@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/update/domain/update_types.dart';
 import 'package:enjoy_player/features/update/presentation/update_prompt_dialog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 const _releaseOptional = AppRelease(
   currentVersion: '1.0.0',
@@ -46,7 +47,7 @@ Widget _harness({
       useMaterial3: true,
       extensions: [EnjoyThemeTokens.build(scheme)],
     ),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     locale: const Locale('en'),
     home: Scaffold(

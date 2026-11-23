@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +15,7 @@ import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_description.d
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_settings_section.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 class _FakeHotkeysCtrl extends HotkeysCtrl {
   _FakeHotkeysCtrl(this._bindings);
@@ -41,7 +42,7 @@ Widget _app({List<Override> overrides = const []}) {
     overrides: overrides,
     child: MaterialApp(
       theme: buildAppTheme(),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const Scaffold(body: HotkeysSettingsSection()),
     ),

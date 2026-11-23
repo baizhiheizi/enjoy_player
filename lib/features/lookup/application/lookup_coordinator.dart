@@ -1,7 +1,7 @@
 /// Opens the transcript dictionary / translation bottom sheet.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

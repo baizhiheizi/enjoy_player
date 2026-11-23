@@ -2,7 +2,7 @@
 /// stages based on [CraftJobState.stage].
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';

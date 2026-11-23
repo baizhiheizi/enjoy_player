@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/transcript/application/video_row_for_media
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 const _mediaId = 'actions-media';
 final _epoch = DateTime.utc(2026);
@@ -103,7 +104,7 @@ Future<List<TranscriptAction>> _actions(
         ).overrideWithValue(enrich),
       ],
       child: MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Consumer(
           builder: (context, ref, _) {

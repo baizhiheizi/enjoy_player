@@ -1,5 +1,5 @@
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,6 +9,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_playback
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 import '../../helpers/transcript_settings_overrides.dart';
 
@@ -27,7 +28,7 @@ Widget _harness(Widget child) {
       ...transcriptWordPracticeOffOverrides(),
     ],
     child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
     ),
@@ -148,7 +149,7 @@ void main() {
           ...transcriptWordPracticeOffOverrides(),
         ],
         child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: TranscriptLineTile(

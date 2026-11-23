@@ -6,7 +6,7 @@
 /// `asr_generation_launcher.dart`) shared with the transcript empty state.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';

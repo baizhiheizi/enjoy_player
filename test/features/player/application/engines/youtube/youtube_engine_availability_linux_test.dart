@@ -4,7 +4,7 @@ import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/domain/youtube_playback_unavailable_exception.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_stage_resolver.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_host.dart';
-import 'package:flutter/material.dart' show MaterialApp, Scaffold;
+import 'package:material_ui/material_ui.dart' show MaterialApp, Scaffold;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

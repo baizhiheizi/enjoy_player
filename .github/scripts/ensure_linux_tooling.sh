@@ -53,7 +53,7 @@ ensure_wpe() {
   # WPE WebKit has no Ubuntu packages (noble), so the plugin compiles against a
   # pinned Debian bookworm build extracted into a runner-local prefix. Compile-
   # time only: the shipped artifact resolves WPE from the host (ADR-0092).
-  WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-2.54b}"
+  WPE_ROOT="${WPE_ROOT:-$HOME/.cache/wpe-webkit-2.54.3-1}"
   if ! pkg-config --exists wpe-webkit-2.0 2>/dev/null; then
     if [ ! -e "$WPE_ROOT/usr/lib/x86_64-linux-gnu/pkgconfig/wpe-webkit-2.0.pc" ]; then
       echo "WPE WebKit not installed — extracting pinned Debian build into $WPE_ROOT"

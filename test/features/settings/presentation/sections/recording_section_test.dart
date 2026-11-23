@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:record/record.dart';
@@ -7,6 +7,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/recording_section.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 const _devices = <InputDevice>[
   InputDevice(id: 'mic-1', label: 'USB Microphone'),
@@ -60,7 +61,7 @@ Widget _harness() {
         extensions: [EnjoyThemeTokens.build(scheme)],
       ),
       locale: const Locale('en', 'US'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const Scaffold(body: RecordingSectionBody()),
     ),
@@ -126,7 +127,7 @@ void main() {
                   extensions: [EnjoyThemeTokens.build(scheme)],
                 ),
                 locale: const Locale('en', 'US'),
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                localizationsDelegates: appLocalizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 home: const Scaffold(body: RecordingSectionBody()),
               );

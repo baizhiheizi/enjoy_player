@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,6 +12,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_display_
 import 'package:enjoy_player/features/transcript/application/transcript_enrichment_controller.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 const _mediaId = 'more-menu-media';
 final _epoch = DateTime.utc(2026);
@@ -66,7 +67,7 @@ Future<(PlayerMoreMenuPanel, List<PlayerMenuChoice>)> _pump(
         ).overrideWith((ref) async => exportAvailable),
       ],
       child: MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: Center(child: panel)),
       ),

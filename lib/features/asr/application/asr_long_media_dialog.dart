@@ -4,7 +4,7 @@
 /// to continue, `false` or `null` otherwise.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/asr/domain/asr_long_form_constants.dart';
