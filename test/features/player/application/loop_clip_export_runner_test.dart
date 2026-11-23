@@ -15,6 +15,10 @@ echo stub failure >&2
 exit 3
 ''';
 
+const String _stubHangScript = r'''#!/bin/sh
+sleep 30
+''';
+
 const String _stubBatchScript =
     '@echo off\r\n'
     'exit /b 0\r\n';
@@ -23,6 +27,11 @@ const String _stubFailBatchScript =
     '@echo off\r\n'
     'echo stub failure 1>&2\r\n'
     'exit /b 3\r\n';
+
+const String _stubHangBatchScript =
+    '@echo off\r\n'
+    'ping -n 31 127.0.0.1 >nul\r\n'
+    'exit /b 0\r\n';
 
 void main() {
   late Directory tmp;
@@ -252,6 +261,29 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('a hung encode → timeout and the partial output is deleted', () async {
+      FfmpegMediaProbe.debugExecutableOverride = writeStub(
+        _stubHangScript,
+        _stubHangBatchScript,
+      ).path;
+      final output = File(stubRequest().outputPath)..writeAsBytesSync([1]);
+
+      await expectLater(
+        runLoopClipFfmpeg(
+          stubRequest(),
+          timeout: const Duration(milliseconds: 300),
+        ),
+        throwsA(
+          isA<LoopClipExportException>().having(
+            (e) => e.reason,
+            'reason',
+            LoopClipExportFailureReason.timeout,
+          ),
+        ),
+      );
+      expect(output.existsSync(), isFalse);
     });
   }, skip: !FfmpegMediaProbe.usesFfmpegCli ? 'FFmpegKit platform' : false);
 }

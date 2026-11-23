@@ -76,15 +76,19 @@ class LoopClipExportRunner {
 }
 
 /// Real [LoopClipFfmpegRun]: the shared dispatch on its cancellable backends
-/// (`processStart` CLI, async FFmpegKit), bounded by [kLoopClipExportTimeout].
-/// A run that did not succeed deletes the partial output.
-Future<void> runLoopClipFfmpeg(LoopClipExportRequest request) async {
+/// (`processStart` CLI, async FFmpegKit), bounded by [timeout] (default
+/// [kLoopClipExportTimeout]). A run that did not succeed deletes the partial
+/// output.
+Future<void> runLoopClipFfmpeg(
+  LoopClipExportRequest request, {
+  Duration? timeout,
+}) async {
   final result = await runFfmpegArgv(
     args: buildLoopClipFfmpegArgs(request),
     failLabel: 'loop clip export',
     cliBackend: FfmpegCliBackend.processStart,
     kitBackend: FfmpegKitBackend.async,
-    timeout: kLoopClipExportTimeout,
+    timeout: timeout ?? kLoopClipExportTimeout,
     outputPath: request.outputPath,
   );
   switch (result.outcome) {
