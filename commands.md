@@ -9,9 +9,10 @@
 - `bash .github/scripts/validate_ci_gates.sh` — format + codegen drift + gates (`--fix`, `--analyze`, `--test`, `--all`).
 - `bash .github/scripts/check_dart_format.sh` / `check_codegen_drift.sh` — individual gates, both green 2026-11-20.
 
-## SDK / sandbox setup (refreshed 2026-11-20)
+## SDK / sandbox setup (refreshed 2026-11-23)
 
-- Toolcache SDK at `/home/runner/.toolcache/flutter-3.47.6-stable/flutter` is READ-ONLY — `flutter` exits 1 writing `bin/cache/engine.stamp`. Fix: `cp -a` the SDK to `/tmp/gh-aw/agent/sdk/flutter` (~2.3 GB, ~1 min) and put `/tmp/gh-aw/agent/sdk/flutter/bin` first on `PATH`.
+- 2026-11-23: `main` (since #1454) pins Flutter **3.50.1** via `mise.toml` (`[tools] flutter = "3.50.1"`) — the toolcache `flutter-3.47.6-stable` is TOO OLD to compile `lib/` (`ScrollCacheExtent`, defined in `src/rendering/viewport.dart` but not exported by 3.47.6's `widgets.dart`, is used by transcript_scrollable_list.dart). The pinned SDK downloads fine from `https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.50.1-stable.tar.xz` (the exact URL CI's `.github/actions/setup-flutter` uses; ~1 GB); `storage.flutter-io.cn` (workflow env mirror) is NOT reachable from this sandbox. Copy a fresh toolcache SDK only if the pin matches it; otherwise download the pinned version from googleapis.
+- Older-SDK toolcache copies are READ-ONLY — `flutter` exits 1 writing `bin/cache/engine.stamp`. Fix: `cp -a` the SDK to `/tmp/gh-aw/agent/sdk/<ver>` and put its `bin` first on `PATH`.
 - `package:sqlite3` (3.9.1) downloads its prebuilt Linux library from github.com and the TLS-intercepting proxy breaks it for curl AND Dart HttpClient (self-signed cert); `tool/prefetch_sqlite3_libs.sh` fails the same way. Working workaround: temporary top-level pubspec.yaml block
   ```yaml
   hooks:
