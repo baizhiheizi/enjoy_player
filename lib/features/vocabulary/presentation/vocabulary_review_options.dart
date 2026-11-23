@@ -54,15 +54,17 @@ class _VocabularyCustomReviewState
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
     final items = ref.watch(vocabularyItemsProvider).valueOrNull ?? const [];
-    final languages = items.map((i) => i.language).toSet().toList()..sort();
+    final languages = ref.watch(vocabularyListLanguagesProvider);
+    final dueCount = ref.watch(
+      vocabularyDuePreviewProvider.select((preview) => preview.count),
+    );
     final selectedLanguage =
         _language ?? (languages.isEmpty ? null : languages.first);
-    final now = DateTime.now();
-    int queueLength(VocabularyReviewMode mode) => buildVocabularySessionQueue(
-      items: items,
-      options: _options(mode, selectedLanguage),
-      now: now,
-    ).length;
+    int queueLength(VocabularyReviewMode mode) => switch (mode) {
+      VocabularyReviewMode.due => dueCount,
+      VocabularyReviewMode.all => items.length,
+      _ => 0,
+    };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

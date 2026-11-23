@@ -1,22 +1,12 @@
-/// Runs the FFmpeg invocation for a loop clip export (`loop_clip_export_plan`):
-/// the FFmpeg CLI on Windows / Linux, FFmpegKit on Android / iOS / macOS —
-/// the same split every other FFmpeg call site uses (see
-/// `FfmpegMediaProbe.usesFfmpegCli`).
+/// Runs the FFmpeg invocation for a loop clip export (`loop_clip_export_plan`)
+/// through `runFfmpegArgv` — the one dispatch every FFmpeg call site shares
+/// (see `data/files/ffmpeg_argv_runner.dart`).
 library;
 
-import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
+import 'package:enjoy_player/data/files/ffmpeg_argv_runner.dart';
 import 'package:enjoy_player/features/player/application/loop_clip_export_plan.dart';
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_session.dart';
-import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'package:flutter/services.dart';
-
-final _log = logNamed('LoopClipExportRunner');
 
 /// Why a loop clip export failed. `ffmpegMissing` is the actionable one —
 /// the user can install / restore FFmpeg — so it maps to its own notice.
@@ -85,105 +75,36 @@ class LoopClipExportRunner {
   }
 }
 
-/// Real [LoopClipFfmpegRun]: spawns the CLI or submits an FFmpegKit session,
-/// bounded by [kLoopClipExportTimeout].
-Future<void> runLoopClipFfmpeg(LoopClipExportRequest request) async {
-  if (FfmpegMediaProbe.usesFfmpegCli) {
-    final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-    if (exe == null) {
+/// Real [LoopClipFfmpegRun]: the shared dispatch on its cancellable backends
+/// (`processStart` CLI, async FFmpegKit), bounded by [timeout] (default
+/// [kLoopClipExportTimeout]). A run that did not succeed deletes the partial
+/// output.
+Future<void> runLoopClipFfmpeg(
+  LoopClipExportRequest request, {
+  Duration? timeout,
+}) async {
+  final result = await runFfmpegArgv(
+    args: buildLoopClipFfmpegArgs(request),
+    failLabel: 'loop clip export',
+    cliBackend: FfmpegCliBackend.processStart,
+    kitBackend: FfmpegKitBackend.async,
+    timeout: timeout ?? kLoopClipExportTimeout,
+    outputPath: request.outputPath,
+  );
+  switch (result.outcome) {
+    case FfmpegOutcome.success:
+      return;
+    case FfmpegOutcome.unavailable:
       throw const LoopClipExportException(
         LoopClipExportFailureReason.ffmpegMissing,
       );
-    }
-    await _runCli(exe, buildLoopClipFfmpegArgs(request));
-    return;
-  }
-  await _runKit(buildLoopClipFfmpegArgs(request));
-}
-
-Future<void> _runCli(String exe, List<String> args) async {
-  final Process proc;
-  try {
-    proc = await Process.start(exe, args);
-  } on Object catch (e) {
-    throw LoopClipExportException(
-      LoopClipExportFailureReason.ffmpegFailed,
-      'cli spawn failed: $e',
-    );
-  }
-  final stderrBuf = BytesBuilder(copy: false);
-  final stderrDone = Completer<void>();
-  proc.stderr.listen(
-    stderrBuf.add,
-    onDone: stderrDone.complete,
-    onError: (Object e) {
-      _log.fine('loop clip ffmpeg stderr read error: $e');
-      if (!stderrDone.isCompleted) stderrDone.complete();
-    },
-  );
-  unawaited(proc.stdout.drain<void>());
-
-  final int exitCode = await proc.exitCode.timeout(
-    kLoopClipExportTimeout,
-    onTimeout: () {
-      try {
-        proc.kill();
-      } on Object catch (e) {
-        _log.fine('loop clip ffmpeg kill failed: $e');
-      }
+    case FfmpegOutcome.timedOut:
       throw const LoopClipExportException(LoopClipExportFailureReason.timeout);
-    },
-  );
-  await stderrDone.future;
-  if (exitCode != 0) {
-    final stderr = systemEncoding.decode(stderrBuf.takeBytes());
-    _log.fine('loop clip ffmpeg failed (exit $exitCode): $stderr');
-    throw LoopClipExportException(
-      LoopClipExportFailureReason.ffmpegFailed,
-      'cli exit $exitCode',
-    );
-  }
-}
-
-Future<void> _runKit(List<String> args) async {
-  final completer = Completer<void>();
-  FFmpegSession? session;
-  try {
-    session = await FFmpegKit.executeWithArgumentsAsync(args, (s) async {
-      if (completer.isCompleted) return;
-      final code = await s.getReturnCode();
-      if (ReturnCode.isSuccess(code)) {
-        completer.complete();
-        return;
-      }
-      completer.completeError(
-        const LoopClipExportException(LoopClipExportFailureReason.ffmpegFailed),
+    case FfmpegOutcome.failed:
+    case FfmpegOutcome.cancelled:
+      throw LoopClipExportException(
+        LoopClipExportFailureReason.ffmpegFailed,
+        result.exitCode == null ? '' : 'exit ${result.exitCode}',
       );
-    });
-  } on MissingPluginException {
-    throw const LoopClipExportException(
-      LoopClipExportFailureReason.ffmpegMissing,
-    );
-  }
-
-  final sessionId = session.getSessionId();
-  try {
-    await completer.future.timeout(
-      kLoopClipExportTimeout,
-      onTimeout: () {
-        if (sessionId != null) unawaited(FFmpegKit.cancel(sessionId));
-        throw const LoopClipExportException(
-          LoopClipExportFailureReason.timeout,
-        );
-      },
-    );
-  } on LoopClipExportException {
-    rethrow;
-  } on Object catch (e, st) {
-    _log.fine('loop clip FFmpegKit failed', e, st);
-    throw LoopClipExportException(
-      LoopClipExportFailureReason.ffmpegFailed,
-      '$e',
-    );
   }
 }

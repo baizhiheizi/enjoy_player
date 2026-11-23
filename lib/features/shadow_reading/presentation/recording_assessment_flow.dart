@@ -70,6 +70,33 @@ String? _pronounceLocaleForAssessment(WidgetRef ref, RecordingRow row) {
 bool _assessmentUsesMargin(BuildContext context) =>
     MediaQuery.sizeOf(context).width >= 600;
 
+/// Shows [assessment] in the wide margin surface, else the centered dialog.
+Future<void> _revealAssessment(
+  BuildContext context, {
+  required AzurePronunciationAssessmentResult assessment,
+  required String? localeTag,
+  required String? recordingPath,
+  required bool marginWhenWide,
+  required int? takeNumber,
+}) async {
+  if (marginWhenWide && _assessmentUsesMargin(context)) {
+    await showAssessmentMargin(
+      context: context,
+      assessment: assessment,
+      localeTag: localeTag,
+      recordingPath: recordingPath,
+      takeNumber: takeNumber,
+    );
+    return;
+  }
+  await showAssessmentResultDialog(
+    context: context,
+    assessment: assessment,
+    localeTag: localeTag,
+    recordingPath: recordingPath,
+  );
+}
+
 Future<void> triggerRecordingAssessment({
   required BuildContext context,
   required WidgetRef ref,
@@ -93,21 +120,13 @@ Future<void> triggerRecordingAssessment({
           jsonDecode(stored) as Map<String, dynamic>,
         );
         if (!context.mounted) return;
-        if (marginWhenWide && _assessmentUsesMargin(context)) {
-          await showAssessmentMargin(
-            context: context,
-            assessment: parsed,
-            localeTag: pronounceLocale,
-            recordingPath: row.localPath,
-            takeNumber: takeNumber,
-          );
-          return;
-        }
-        await showAssessmentResultDialog(
-          context: context,
+        await _revealAssessment(
+          context,
           assessment: parsed,
           localeTag: pronounceLocale,
           recordingPath: row.localPath,
+          marginWhenWide: marginWhenWide,
+          takeNumber: takeNumber,
         );
       } on Object {
         if (!context.mounted) return;
@@ -125,21 +144,13 @@ Future<void> triggerRecordingAssessment({
 
   switch (outcome) {
     case RecordingAssessmentSuccess(:final detail):
-      if (marginWhenWide && _assessmentUsesMargin(context)) {
-        await showAssessmentMargin(
-          context: context,
-          assessment: detail,
-          localeTag: pronounceLocale,
-          recordingPath: row.localPath,
-          takeNumber: takeNumber,
-        );
-        return;
-      }
-      await showAssessmentResultDialog(
-        context: context,
+      await _revealAssessment(
+        context,
         assessment: detail,
         localeTag: pronounceLocale,
         recordingPath: row.localPath,
+        marginWhenWide: marginWhenWide,
+        takeNumber: takeNumber,
       );
     case RecordingAssessmentFailure(
       :final kind,

@@ -11,9 +11,11 @@ import 'package:enjoy_player/core/platform/mobile_platform.dart';
 
 import '../../enjoy_tokens.dart';
 import '../../typography.dart';
-import 'badges.dart';
+import 'glass_overlays.dart';
 import 'helpers.dart';
 import 'media_card_sync_badge.dart';
+import 'mono_chips.dart';
+import 'thumbnail.dart';
 
 class MediaCardRow extends StatefulWidget {
   const MediaCardRow({
