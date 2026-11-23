@@ -2,7 +2,7 @@
 /// tenths-precision caption row beside it.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/recording_elapsed_ticker.dart';

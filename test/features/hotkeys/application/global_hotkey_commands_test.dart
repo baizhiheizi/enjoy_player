@@ -3,7 +3,8 @@ import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/features/hotkeys/application/global_hotkey_commands.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -55,7 +56,7 @@ Future<({GoRouter router, ProviderContainer container})> _mountHarness(
       child: MaterialApp.router(
         scaffoldMessengerKey: appScaffoldMessengerKey,
         routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),
     ),

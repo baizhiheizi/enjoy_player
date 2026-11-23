@@ -11,7 +11,7 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/auth_token_response.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';

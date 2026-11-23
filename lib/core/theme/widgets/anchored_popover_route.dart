@@ -1,7 +1,7 @@
 /// The shared anchored-popover route (ADR-0018).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Resolves the insets between the anchored edge and the popover's child.
 typedef AnchoredPopoverInsets =

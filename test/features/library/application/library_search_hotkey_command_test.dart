@@ -2,7 +2,7 @@ import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus_provider.dart';
 import 'package:enjoy_player/features/library/application/library_search_hotkey_command.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';

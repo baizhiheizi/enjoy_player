@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,6 +7,7 @@ import 'package:enjoy_player/features/player/application/echo_mode_provider.dart
 import 'package:enjoy_player/features/player/application/player_margin_provider.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_margin.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 const _contentKey = ValueKey('content');
 
@@ -36,7 +37,7 @@ Future<ProviderContainer> _pump(WidgetTester tester, double width) async {
           colorScheme: scheme,
           extensions: [EnjoyThemeTokens.build(scheme)],
         ),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: PlayerMarginLayout(

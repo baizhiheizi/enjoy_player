@@ -1,7 +1,7 @@
 /// Dialog to capture one key chord for shortcut customization.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';

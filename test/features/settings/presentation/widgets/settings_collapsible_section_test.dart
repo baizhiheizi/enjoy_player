@@ -1,10 +1,11 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_collapsible_section.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 Widget _harness(Widget child) {
   final scheme = ColorScheme.fromSeed(
@@ -16,7 +17,7 @@ Widget _harness(Widget child) {
       colorScheme: scheme,
       extensions: [EnjoyThemeTokens.build(scheme)],
     ),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
   );

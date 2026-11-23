@@ -1,7 +1,7 @@
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
 import 'package:enjoy_player/features/dictation/presentation/dictation_band.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

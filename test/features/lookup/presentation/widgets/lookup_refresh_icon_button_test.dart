@@ -1,16 +1,17 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 Widget _harness({required VoidCallback onPressed, bool isRefreshing = false}) {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
   return MaterialApp(
     theme: ThemeData(colorScheme: scheme, useMaterial3: true),
     locale: const Locale('en', 'US'),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Builder(
       builder: (context) => Scaffold(

@@ -1,5 +1,5 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +19,7 @@ import 'package:enjoy_player/features/subscription/domain/subscription_status.da
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 const _fakeProfile = UserProfile(
   id: 'user-1',
@@ -81,7 +82,7 @@ Widget _harness(
         extensions: [EnjoyThemeTokens.build(scheme)],
       ),
       locale: const Locale('en', 'US'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
     ),

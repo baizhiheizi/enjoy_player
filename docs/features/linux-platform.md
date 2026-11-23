@@ -69,7 +69,12 @@ sudo apt-get install -y \
 The trailing WPE line is required by the `flutter_inappwebview_linux` plugin
 (YouTube playback, [ADR-0091](../decisions/0091-youtube-linux-playback.md)) —
 build-time only; release artifacts bundle the runtime. On Arch:
-`wpewebkit libwpe wpebackend-fdo`. At runtime, YouTube playback also needs the
+`wpewebkit libwpe wpebackend-fdo`. The plugin references
+`WPE_SETTING_DISABLE_ANIMATIONS`; wpe-webkit ≥ 2.54 renamed that settings key
+to `WPE_SETTING_REDUCED_MOTION`. When the installed header lacks the old key,
+`linux/CMakeLists.txt` injects the same compile-time definition the CI WPE
+prefix patch applies in `ensure_linux_tooling.sh`, so both old and new
+wpewebkit build without extra steps. At runtime, YouTube playback also needs the
 GStreamer plugin set (`gst-plugins-good`, `gst-plugins-bad`, `gst-libav`) —
 bundled inside the release AppImage, so the packages above are for source
 builds and debugging only.

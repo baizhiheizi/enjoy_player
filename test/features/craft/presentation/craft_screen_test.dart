@@ -1,7 +1,7 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +26,7 @@ import 'package:enjoy_player/features/craft/presentation/express_flow.dart';
 import 'package:enjoy_player/features/craft/application/craft_library_repository_provider.dart';
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
@@ -113,7 +114,7 @@ Widget _harness({required List<Override> overrides}) {
     overrides: overrides,
     child: MaterialApp(
       theme: buildAppTheme(),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const CraftScreen(),
     ),

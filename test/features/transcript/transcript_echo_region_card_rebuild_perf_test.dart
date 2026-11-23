@@ -7,7 +7,8 @@ import 'package:enjoy_player/features/transcript/application/transcript_line_rec
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_region_merged_card.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -51,7 +52,7 @@ Widget _harness({
       ...transcriptWordPracticeOffOverrides(),
     ],
     child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: ListView(

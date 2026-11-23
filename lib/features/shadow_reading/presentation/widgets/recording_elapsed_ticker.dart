@@ -12,7 +12,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show ValueListenable, ValueNotifier;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
 
 mixin RecordingElapsedTicker<T extends StatefulWidget>

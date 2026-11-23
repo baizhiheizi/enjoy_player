@@ -1,7 +1,7 @@
 /// Parent-driven retry contract and tap-latch busy state for lookup widgets.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 abstract class ParentRetryWidget extends StatefulWidget {
   const ParentRetryWidget({

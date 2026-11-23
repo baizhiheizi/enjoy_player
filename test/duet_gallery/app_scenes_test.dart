@@ -34,7 +34,7 @@ import 'package:enjoy_player/features/update/domain/update_types.dart';
 import 'package:enjoy_player/features/update/presentation/update_prompt_dialog.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_session_screen.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';

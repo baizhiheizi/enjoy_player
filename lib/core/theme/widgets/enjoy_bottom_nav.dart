@@ -4,7 +4,7 @@
 /// brandSoft pill, a filled glyph in brandInk, and a 600 label.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';

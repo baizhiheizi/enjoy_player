@@ -7,7 +7,7 @@ import 'package:enjoy_player/features/player/application/player_engine_rev.dart'
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:media_kit/media_kit.dart';

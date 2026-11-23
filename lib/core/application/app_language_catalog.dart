@@ -11,7 +11,7 @@
 library;
 
 import 'package:enjoy_player/core/application/language_descriptor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 export 'package:enjoy_player/core/application/language_descriptor.dart'
     show kLanguageTagAliases, normalizeLanguageAlias, primaryLanguageSubtag;

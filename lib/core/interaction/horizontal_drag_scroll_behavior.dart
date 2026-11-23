@@ -2,7 +2,7 @@
 library;
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Stable [ScrollBehavior] for horizontal [ListView]s — avoids rebuilding
 /// [ScrollConfiguration] from [ScrollConfiguration.of] on every frame.

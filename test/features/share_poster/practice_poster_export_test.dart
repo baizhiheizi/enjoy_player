@@ -1,5 +1,5 @@
 import 'package:enjoy_player/features/share_poster/application/practice_poster_export.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

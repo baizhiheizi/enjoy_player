@@ -2,7 +2,7 @@
 library;
 
 import 'package:enjoy_player/core/cache/lru_store.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 final L1Store<String, RegExp> _highlightPatternCache = L1Store<String, RegExp>(
   capacity: 64,

@@ -8,7 +8,8 @@ import 'package:enjoy_player/features/player/presentation/widgets/player_surface
 import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -72,7 +73,7 @@ void main() {
             colorScheme: scheme,
             extensions: [EnjoyThemeTokens.build(scheme)],
           ),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: Stack(
@@ -178,7 +179,7 @@ void main() {
               colorScheme: scheme,
               extensions: [EnjoyThemeTokens.build(scheme)],
             ),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: ValueListenableBuilder<Size>(
@@ -361,7 +362,7 @@ void main() {
             colorScheme: scheme,
             extensions: [EnjoyThemeTokens.build(scheme)],
           ),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             extendBody: true,
@@ -409,7 +410,7 @@ void main() {
               colorScheme: scheme,
               extensions: [EnjoyThemeTokens.build(scheme)],
             ),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Center(
               child: SizedBox(

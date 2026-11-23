@@ -1,5 +1,5 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,12 +7,13 @@ import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
 import 'package:enjoy_player/features/player/presentation/locate_media_screen.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 Widget _wrap(Widget child, {Size size = const Size(420, 900)}) {
   return ProviderScope(
     child: MaterialApp(
       locale: const Locale('en', 'US'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: MediaQuery(
         data: MediaQueryData(size: size),

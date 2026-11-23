@@ -1,7 +1,7 @@
 /// Shared 16:9 open-in-flight portal for the local and YouTube loading stages.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';

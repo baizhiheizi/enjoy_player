@@ -1,7 +1,7 @@
 /// Full-screen player: Duet top bar + video/audio chrome.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/features/player/application/open_media_provider.dart';

@@ -23,7 +23,8 @@ import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_ai_sect
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_shimmer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -81,7 +82,7 @@ Widget _harness({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
     overrides: overrides,
     child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
     ),

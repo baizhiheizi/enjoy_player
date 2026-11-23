@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -15,6 +15,7 @@ import 'package:enjoy_player/features/settings/presentation/widgets/sections/clo
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 const _fakeProfile = UserProfile(
   id: 'user-1',
@@ -49,7 +50,7 @@ Widget _harness(Widget child, {overrides = const []}) {
         extensions: [EnjoyThemeTokens.build(scheme)],
       ),
       locale: const Locale('en', 'US'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
     ),

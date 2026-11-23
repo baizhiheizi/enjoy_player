@@ -108,6 +108,37 @@ set_target_properties(${BINARY_NAME}
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# Compat: flutter_inappwebview_linux 0.1.0-beta.1 references
+# WPE_SETTING_DISABLE_ANIMATIONS, which wpe-webkit >= 2.54 headers no longer
+# define (renamed to WPE_SETTING_REDUCED_MOTION). Inject the old key as a
+# compile definition only when the installed header lacks it — on <= 2.53 the
+# header's own definition wins, avoiding a macro-redefinition warning under
+# -Werror. Same key the CI header patch uses in ensure_linux_tooling.sh; the
+# runtime tolerates unregistered keys, so animations simply stay enabled.
+if(TARGET flutter_inappwebview_linux_plugin)
+  pkg_check_modules(WPE_PLATFORM_PROBE QUIET wpe-platform-2.0)
+  set(_wpe_define_needed ON)
+  if(WPE_PLATFORM_PROBE_FOUND)
+    foreach(_dir IN LISTS WPE_PLATFORM_PROBE_INCLUDE_DIRS)
+      if(EXISTS "${_dir}/wpe/WPESettings.h")
+        file(READ "${_dir}/wpe/WPESettings.h" _wpe_settings_h)
+        string(FIND "${_wpe_settings_h}" "#define WPE_SETTING_DISABLE_ANIMATIONS" _wpe_idx)
+        if(NOT _wpe_idx EQUAL -1)
+          set(_wpe_define_needed OFF)
+        endif()
+        unset(_wpe_settings_h)
+        break()
+      endif()
+    endforeach()
+  endif()
+  if(_wpe_define_needed)
+    target_compile_definitions(flutter_inappwebview_linux_plugin PRIVATE
+      WPE_SETTING_DISABLE_ANIMATIONS="/wpe-platform/disable-animations")
+  endif()
+  unset(_wpe_define_needed)
+  unset(_wpe_idx)
+endif()
+
 
 # === Installation ===
 # By default, "installing" just makes a relocatable bundle in the build

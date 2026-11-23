@@ -18,7 +18,7 @@ import 'package:enjoy_player/features/player/application/player_engine_test_doub
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/update/application/update_controller.dart';
 import 'package:enjoy_player/features/update/domain/update_types.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';

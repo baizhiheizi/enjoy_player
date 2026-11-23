@@ -9,7 +9,7 @@ import 'package:enjoy_player/features/credits/application/credits_usage_provider
 import 'package:enjoy_player/features/credits/domain/credits_usage_filters.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_format.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 const List<String> kCreditsUsageServiceTypeValues = [

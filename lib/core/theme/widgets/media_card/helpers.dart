@@ -4,7 +4,7 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/platform/mobile_platform.dart';

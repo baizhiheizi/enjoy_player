@@ -3,7 +3,7 @@ library;
 
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Minimum logical width for the app shell. Narrower host windows scroll horizontally.
 const double kMinAppViewportWidth = 360;

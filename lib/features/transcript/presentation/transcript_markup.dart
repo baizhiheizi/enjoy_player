@@ -1,7 +1,7 @@
 /// Timestamp and SSA/HTML-like markup rendering for transcript lines.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/data/subtitle/current_transcript_word.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart';

@@ -1,7 +1,7 @@
 /// Centered loading icon and text row for busy button labels in craft tools.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 

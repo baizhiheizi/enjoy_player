@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,6 +8,7 @@ import 'package:enjoy_player/features/vocabulary/application/vocabulary_provider
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_anki_export_dialog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 VocabularyItem _item(String id, String word) {
   final now = DateTime.utc(2026, 1, 1);
@@ -36,7 +37,7 @@ Widget _wrap(Widget child, {required SubscriptionTier tier}) {
       ),
     ],
     child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
     ),

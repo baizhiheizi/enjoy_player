@@ -7,7 +7,8 @@ import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_description.d
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -27,7 +28,7 @@ Widget _app(Map<String, String> bindings) {
     ],
     child: MaterialApp(
       theme: buildAppTheme(),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const Scaffold(body: HotkeysHelpDialog()),
     ),

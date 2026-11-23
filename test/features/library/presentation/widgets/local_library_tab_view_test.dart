@@ -6,8 +6,11 @@ import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/library/presentation/widgets/local_library_tab_view.dart';
 import 'package:enjoy_player/features/player/application/local_thumbnail_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show GlobalCupertinoLocalizations;
+import 'package:flutter_localizations/flutter_localizations.dart'
+    hide GlobalCupertinoLocalizations, GlobalMaterialLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

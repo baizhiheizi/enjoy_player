@@ -6,7 +6,7 @@
 /// `Material` + `InkWell` + `AnimatedContainer` stack.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/widgets/nav_item_pill.dart';
 

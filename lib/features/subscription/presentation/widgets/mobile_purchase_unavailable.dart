@@ -1,7 +1,7 @@
 /// Informational dialog when mobile in-app purchase is not yet available.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/platform/subscription_purchase_capability.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';

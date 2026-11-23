@@ -5,7 +5,7 @@ import 'package:enjoy_player/features/player/application/transport_slider_positi
 import 'package:enjoy_player/features/player/presentation/widgets/transport/sentence_ruler.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

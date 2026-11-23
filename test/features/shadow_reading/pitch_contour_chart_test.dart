@@ -1,7 +1,7 @@
 import 'package:enjoy_player/features/shadow_reading/domain/echo_region_analysis.dart';
 import 'package:enjoy_player/features/shadow_reading/domain/waveform_envelope.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/pitch_contour_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

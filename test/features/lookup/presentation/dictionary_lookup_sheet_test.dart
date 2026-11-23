@@ -2,7 +2,7 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +15,7 @@ import 'package:enjoy_player/features/lookup/application/lookup_credits_exhauste
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/dictionary_lookup_sheet.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 class _AuthSignedOutCtrl extends AuthCtrl {
   @override
@@ -32,7 +33,7 @@ Widget _harness({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
     overrides: overrides,
     child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
     ),
@@ -108,7 +109,7 @@ void main() {
         ProviderScope(
           overrides: baseOverrides(),
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Builder(

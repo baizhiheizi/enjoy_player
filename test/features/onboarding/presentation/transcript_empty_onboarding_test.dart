@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -8,11 +8,12 @@ import 'package:enjoy_player/features/onboarding/presentation/onboarding_keys.da
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_empty_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 Widget _wrap(Widget child) {
   return ProviderScope(
     child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
       home: Scaffold(body: child),

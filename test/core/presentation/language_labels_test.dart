@@ -2,7 +2,7 @@ import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/language_descriptor.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -2,7 +2,7 @@
 /// primitive so the app has exactly one keycap style (ADR-0089 §3 / §5).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';

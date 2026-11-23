@@ -1,5 +1,5 @@
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +12,7 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/about_section_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 Widget _harness({required AppDatabase db}) {
   final scheme = ColorScheme.fromSeed(
@@ -30,7 +31,7 @@ Widget _harness({required AppDatabase db}) {
         brightness: Brightness.dark,
         extensions: [EnjoyThemeTokens.build(scheme)],
       ),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en', 'US'),
       home: const Scaffold(

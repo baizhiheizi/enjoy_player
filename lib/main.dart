@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kDebugMode, kProfileMode, TargetPlatform;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logging/logging.dart';

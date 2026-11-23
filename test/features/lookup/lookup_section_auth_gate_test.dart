@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +12,7 @@ import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_ca
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_auth_gate.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_shimmer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 class _AuthSignedOutCtrl extends AuthCtrl {
   @override
@@ -63,7 +64,7 @@ Widget _app({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
     overrides: overrides,
     child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
     ),

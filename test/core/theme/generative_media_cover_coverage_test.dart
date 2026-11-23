@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _RecordingCanvas implements Canvas {

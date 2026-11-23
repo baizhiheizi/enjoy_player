@@ -5,7 +5,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show listEquals;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Minimum second stop for the sweep gradient: a near-zero arc would put the
 /// two stops almost on top of each other, rendering a hard color step instead

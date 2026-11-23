@@ -1,7 +1,7 @@
 /// View and edit the signed-in Enjoy profile.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 

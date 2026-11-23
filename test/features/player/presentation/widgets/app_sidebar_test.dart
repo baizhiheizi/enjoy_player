@@ -14,8 +14,11 @@ import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show GlobalCupertinoLocalizations;
+import 'package:flutter_localizations/flutter_localizations.dart'
+    hide GlobalCupertinoLocalizations, GlobalMaterialLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
@@ -160,6 +163,8 @@ void main() {
   testWidgets('AppSidebar search field calls setQuery on change', (
     tester,
   ) async {
+    final savedRouter = router;
+    router = _router('/library');
     await pumpAndFindPills(tester);
 
     await tester.enterText(find.byType(TextField).first, 'foo');
@@ -170,6 +175,9 @@ void main() {
 
     final textField = tester.widget<TextField>(find.byType(TextField).first);
     expect(textField.controller?.text, 'foo');
+
+    router.dispose();
+    router = savedRouter;
   });
 
   testWidgets('AppSidebar shows the due badge when vocabulary has due items', (

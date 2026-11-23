@@ -19,7 +19,7 @@ import 'package:enjoy_player/features/credits/presentation/credits_usage_states.
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:enjoy_player/core/format/cached_date_format.dart';
 import 'package:enjoy_player/core/format/cached_number_format.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 const double _kCellGutter = 16;
 const double _kLogsWideBreakpoint = 720;

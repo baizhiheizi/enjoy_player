@@ -3,7 +3,7 @@ import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_host.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_stage.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Widget _stage(YoutubePlayerEngine engine, {VoidCallback? onWatchdogStarted}) {

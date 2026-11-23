@@ -2,8 +2,11 @@ import 'package:enjoy_player/features/ai/application/ai_byok_error_mapping.dart'
 import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show GlobalCupertinoLocalizations;
+import 'package:flutter_localizations/flutter_localizations.dart'
+    hide GlobalCupertinoLocalizations, GlobalMaterialLocalizations;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

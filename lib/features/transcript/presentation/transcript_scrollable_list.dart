@@ -1,8 +1,7 @@
 /// Scrollable transcript list with auto-scroll (active cue, or echo block in echo mode).
 library;
 
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollCacheExtent;
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';

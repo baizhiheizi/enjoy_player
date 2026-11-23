@@ -1,5 +1,5 @@
 import 'package:enjoy_player/features/library/application/library_search_focus.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 

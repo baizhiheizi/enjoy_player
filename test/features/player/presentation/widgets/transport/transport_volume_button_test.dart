@@ -10,8 +10,9 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_volume_button.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    hide GlobalMaterialLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

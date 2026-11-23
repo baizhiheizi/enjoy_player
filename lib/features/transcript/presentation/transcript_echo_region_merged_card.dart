@@ -3,7 +3,7 @@
 /// (the row above is the list's own slot for that line).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/features/transcript/presentation/transcript_echo_loop_edge_row.dart';

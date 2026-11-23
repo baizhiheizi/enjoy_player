@@ -1,5 +1,5 @@
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,6 +10,7 @@ import 'package:enjoy_player/features/vocabulary/data/vocabulary_repository.dart
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 void main() {
   late AppDatabase db;
@@ -27,7 +28,7 @@ void main() {
       overrides: [appDatabaseProvider.overrideWithValue(db)],
       child: MaterialApp(
         theme: buildAppTheme(Brightness.light),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: const VocabularyScreen(),
       ),

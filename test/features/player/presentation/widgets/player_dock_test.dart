@@ -13,8 +13,11 @@ import 'package:enjoy_player/features/player/presentation/widgets/transport/sent
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_volume_button.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart' hide RepeatMode;
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart' hide RepeatMode;
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show GlobalCupertinoLocalizations;
+import 'package:flutter_localizations/flutter_localizations.dart'
+    hide GlobalCupertinoLocalizations, GlobalMaterialLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';

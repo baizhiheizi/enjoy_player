@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:enjoy_player/features/share_poster/domain/practice_poster_data.dart';
 import 'package:enjoy_player/features/share_poster/presentation/practice_poster_widget.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

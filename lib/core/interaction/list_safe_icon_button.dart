@@ -1,7 +1,7 @@
 /// Compact icon buttons safe to mount inside scrollable lists.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Icon button without a [Tooltip] overlay.
 ///

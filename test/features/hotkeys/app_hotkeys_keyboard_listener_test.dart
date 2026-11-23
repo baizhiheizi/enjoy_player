@@ -18,13 +18,14 @@ import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_review_practice.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 class _PlatformResetter extends StatefulWidget {
   const _PlatformResetter({required this.child});
@@ -456,7 +457,7 @@ Future<_Harness> _mountHarness(
         child: MaterialApp.router(
           scaffoldMessengerKey: appScaffoldMessengerKey,
           routerConfig: router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           builder: (context, child) =>
               AppHotkeysKeyboardListener(child: child ?? const SizedBox()),
@@ -591,7 +592,7 @@ void main() {
                 decoration: InputDecoration(hintText: 'search'),
               ),
             ),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),

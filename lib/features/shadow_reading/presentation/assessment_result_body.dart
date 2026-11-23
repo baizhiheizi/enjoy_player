@@ -15,7 +15,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:azure_speech/azure_speech.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -7,7 +7,7 @@ import 'package:enjoy_player/features/dictation/domain/dictation_band_words.dart
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class DictationBand extends StatefulWidget {
   const DictationBand({

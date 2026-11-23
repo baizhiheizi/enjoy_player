@@ -1,7 +1,7 @@
 /// Fallback screen for unknown go_router locations.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';

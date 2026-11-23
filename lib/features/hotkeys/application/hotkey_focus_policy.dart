@@ -1,7 +1,7 @@
 /// When global hotkeys should defer to the focused widget (text fields, etc.).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/features/transcript/presentation/transcript_text_selection_scope.dart';
 

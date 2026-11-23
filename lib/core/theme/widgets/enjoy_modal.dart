@@ -1,7 +1,7 @@
 /// Shared modal bottom sheet and dialog chrome (barrier, shape, max width).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 

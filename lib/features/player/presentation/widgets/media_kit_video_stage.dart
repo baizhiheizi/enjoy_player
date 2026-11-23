@@ -3,7 +3,7 @@ library;
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 import 'package:enjoy_player/features/player/application/engines/media_kit/media_kit_player_engine.dart';

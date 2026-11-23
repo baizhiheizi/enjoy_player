@@ -3,7 +3,7 @@
 library;
 
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +25,7 @@ import 'package:enjoy_player/features/shadow_reading/application/recording_input
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 const _fakeProfile = UserProfile(
   id: 'user-1',
@@ -114,7 +115,7 @@ Future<AppLocalizations> _pumpHub(WidgetTester tester, AppDatabase db) async {
           brightness: Brightness.dark,
           extensions: [EnjoyThemeTokens.build(scheme)],
         ),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: _router(),
       ),

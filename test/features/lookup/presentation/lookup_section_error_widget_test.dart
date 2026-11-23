@@ -5,8 +5,11 @@ import 'package:enjoy_player/features/lookup/presentation/lookup_section_error_w
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_credits_notice.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show GlobalCupertinoLocalizations;
+import 'package:flutter_localizations/flutter_localizations.dart'
+    hide GlobalCupertinoLocalizations, GlobalMaterialLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

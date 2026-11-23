@@ -10,7 +10,7 @@ import 'package:enjoy_player/features/dictation/domain/dictation_diff.dart';
 import 'package:enjoy_player/features/dictation/domain/dictation_models.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

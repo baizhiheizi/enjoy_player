@@ -1,6 +1,6 @@
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +11,7 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/keyboard_shortcuts_section.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/l10n/l10n_delegates.dart';
 
 Widget _harness(Widget child, {required AppDatabase db, GoRouter? router}) {
   final scheme = ColorScheme.fromSeed(
@@ -25,7 +26,7 @@ Widget _harness(Widget child, {required AppDatabase db, GoRouter? router}) {
       extensions: [EnjoyThemeTokens.build(scheme)],
     ),
     locale: const Locale('en', 'US'),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
   );
@@ -42,7 +43,7 @@ Widget _harness(Widget child, {required AppDatabase db, GoRouter? router}) {
               extensions: [EnjoyThemeTokens.build(scheme)],
             ),
             locale: const Locale('en', 'US'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             routerConfig: router,
           ),

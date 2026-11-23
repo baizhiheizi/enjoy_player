@@ -1,5 +1,5 @@
 import 'package:enjoy_player/features/lookup/presentation/widgets/latched_retry_state.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _Harness extends ParentRetryWidget {

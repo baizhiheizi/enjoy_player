@@ -4,7 +4,7 @@ library;
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Dark-glass fill + white hairline border shared by artwork pills.
 ShapeDecoration mediaCardGlassPillDecoration({Color? fill}) {

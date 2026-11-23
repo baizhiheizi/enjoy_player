@@ -7,7 +7,7 @@
 /// and selection on revealed lines are untouched.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
