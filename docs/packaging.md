@@ -179,6 +179,10 @@ YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-yo
   `/opt/homebrew` kegs, whose bottles are built for the current bottle-tag
   macOS (26.0 today) and fail the macOS 12 floor gate (#1187). CI
   (`build_apple.yml`) and `release_apple.sh` run it automatically.
+  The prefix wins over the keg on **every** build, so rebuilding the prefix
+  (or building it for the first time after a build) is picked up by the next
+  build without deleting `build/macos` by hand — the bundler re-resolves the
+  `@rpath` references the prefix provides and replaces the bundled copy.
 - The Xcode target bundles FFmpeg/media-kit's Homebrew dylib dependencies into
   `Contents/Frameworks/`, resolving each reference from the compat prefix
   first and `/opt/homebrew` kegs only as a dev fallback. This includes

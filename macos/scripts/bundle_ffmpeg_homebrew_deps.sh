@@ -227,24 +227,29 @@ macho_strong_deps() {
 }
 
 MACHO_LIST="$(mktemp)"
+MACHO_ALL="$(mktemp)"
 RPATH_CACHE_DIR="$(mktemp -d)"
 WORKLIST="$(mktemp)"
 BUNDLED="$(mktemp)"
 DEP_REWRITES="$(mktemp)"
 : >"${MACHO_LIST}"
+: >"${MACHO_ALL}"
 : >"${WORKLIST}"
 : >"${BUNDLED}"
 : >"${DEP_REWRITES}"
 
 cleanup() {
-  rm -f "${MACHO_LIST}" "${WORKLIST}" "${BUNDLED}" "${DEP_REWRITES}"
+  rm -f "${MACHO_LIST}" "${MACHO_ALL}" "${WORKLIST}" "${BUNDLED}" "${DEP_REWRITES}"
   rm -rf "${RPATH_CACHE_DIR}"
 }
 trap cleanup EXIT
 
 while IFS= read -r -d '' f; do
-  if is_macho "$f" && references_homebrew "$f"; then
-    printf '%s\n' "$f"
+  if is_macho "$f"; then
+    printf '%s\n' "$f" >>"${MACHO_ALL}"
+    if references_homebrew "$f"; then
+      printf '%s\n' "$f"
+    fi
   fi
 done < <(find "${APP_BUNDLE}/Contents" -type f -print0 2>/dev/null) >"${MACHO_LIST}"
 
@@ -258,6 +263,24 @@ $(homebrew_deps_for "${bin}")
 EOF
 done <"${MACHO_LIST}"
 
+# Every @rpath dylib reference the compat prefix provides is re-resolved on
+# every run, not only on the run that first bundled it. The first pass
+# rewrites the references to @rpath, so afterwards no binary points at
+# /opt/homebrew any more and the brew walk finds nothing to do — the bundle
+# would keep whatever copy was bundled then, a keg copy whose minos is the
+# current macOS and that dyld rejects on every older macOS (#1187).
+while read -r bin; do
+  [ -n "${bin}" ] || continue
+  while read -r dep; do
+    [ -n "${dep}" ] || continue
+    name="${dep#@rpath/}"
+    [ -f "${COMPAT_PREFIX}/lib/${name}" ] || continue
+    printf 'rpath\t%s\t%s\n' "${dep}" "$(dirname "${bin}")" >>"${WORKLIST}"
+  done <<EOF
+$(rpath_dylib_deps_for "${bin}")
+EOF
+done <"${MACHO_ALL}"
+
 while :; do
   sort -u "${WORKLIST}" -o "${WORKLIST}"
   [ -s "${WORKLIST}" ] || break
@@ -270,10 +293,17 @@ while :; do
       brew) src="$(resolve_homebrew_dep "${reference}" || true)" ;;
       rpath)
         name="${reference#@rpath/}"
-        if [ -f "${FRAMEWORKS_DIR}/${name}" ] || [ -f "${CONTENTS_MACOS_DIR}/${name}" ]; then
-          continue
-        fi
+        # Resolve first, then decide: the compat prefix has to win over a keg
+        # copy that an earlier build already put in the bundle. Skipping the
+        # reference because the file is present would pin the app to the keg's
+        # LC_BUILD_VERSION minos (the current macOS) forever, which is the
+        # crash on older macOS the prefix exists to prevent (#1187).
         src="$(resolve_rpath_dep "${reference}" "${keg_dir}" || true)"
+        if [ -z "${src}" ]; then
+          if [ -f "${FRAMEWORKS_DIR}/${name}" ] || [ -f "${CONTENTS_MACOS_DIR}/${name}" ]; then
+            continue
+          fi
+        fi
         ;;
       *) continue ;;
     esac
@@ -294,7 +324,14 @@ while :; do
     echo "${src}" >>"${BUNDLED}"
     base="$(basename "${src}")"
     dest="${FRAMEWORKS_DIR}/${base}"
-    if [ ! -f "${dest}" ]; then
+    # A copy that came from the compat prefix replaces whatever the bundle
+    # already holds: the prefix's build is the only one whose LC_BUILD_VERSION
+    # minos matches the app's floor. Copies from a keg are left alone.
+    replace_existing=0
+    case "${src}" in
+      "${COMPAT_PREFIX}"/*) replace_existing=1 ;;
+    esac
+    if [ ! -f "${dest}" ] || [ "${replace_existing}" -eq 1 ]; then
       cp -f "${src}" "${dest}"
       chmod 755 "${dest}"
       install_name_tool -id "@rpath/${base}" "${dest}" >/dev/null 2>&1 || true
