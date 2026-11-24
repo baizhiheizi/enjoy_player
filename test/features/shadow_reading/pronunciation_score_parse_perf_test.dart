@@ -111,6 +111,21 @@ RecordingRow rowWith(String? assessmentJson, {int? pronunciationScore}) {
   );
 }
 
+int copyKeyPanelPass(
+  List<RecordingRow> rows,
+  int? Function(RecordingRow row) scoreOf,
+) {
+  var sink = 0;
+  for (final row in rows) {
+    sink +=
+        scoreOf(
+          rowWith(freshCopy(row.assessmentJson), pronunciationScore: null),
+        ) ??
+        0;
+  }
+  return sink;
+}
+
 String fuzzDoc(int i) {
   switch (i % 6) {
     case 0:
@@ -331,6 +346,22 @@ void main() {
     expect(memoSink, legacySink);
   });
 
+  test('copy-key sink parity: legacy and memoized agree on fresh strings', () {
+    final rows = [
+      for (final doc in benchCorpus()) rowWith(doc, pronunciationScore: null),
+    ];
+    int? legacyScoreOf(RecordingRow row) => legacyPronScore(row.assessmentJson);
+
+    var legacySink = 0;
+    var memoSink = 0;
+    for (var pass = 0; pass < 3; pass++) {
+      legacySink += copyKeyPanelPass(rows, legacyScoreOf);
+      memoSink += copyKeyPanelPass(rows, pronunciationScoreFromRecording);
+    }
+    expect(memoSink, legacySink);
+    expect(memoSink, 436 * 3);
+  });
+
   const int benchPasses = 200;
 
   test(
@@ -400,36 +431,48 @@ void main() {
   );
 
   test(
+    'bench (local only): legacy decode, $benchPasses copy-key panel passes '
+    'over 16 takes',
+    skip: true,
+    () {
+      final rows = [
+        for (final doc in benchCorpus()) rowWith(doc, pronunciationScore: null),
+      ];
+      int? scoreOf(RecordingRow row) => legacyPronScore(row.assessmentJson);
+
+      var sink = 0;
+      for (var warm = 0; warm < 100; warm++) {
+        sink += copyKeyPanelPass(rows, scoreOf);
+      }
+      final sw = Stopwatch()..start();
+      for (var i = 0; i < benchPasses; i++) {
+        sink += copyKeyPanelPass(rows, scoreOf);
+      }
+      sw.stop();
+      // ignore: avoid_print
+      print(
+        'legacy copy-key panel rebuild: '
+        '${sw.elapsedMicroseconds / 1000.0} ms (sink $sink)',
+      ); // ignore: avoid_print
+    },
+  );
+
+  test(
     'bench (local only): memoized parse, $benchPasses copy-key panel passes '
     'over 16 takes',
     skip: true,
     () {
-      final docs = benchCorpus();
       final rows = [
-        for (final doc in docs) rowWith(doc, pronunciationScore: null),
+        for (final doc in benchCorpus()) rowWith(doc, pronunciationScore: null),
       ];
-      int panelPass(List<RecordingRow> rows) {
-        var sink = 0;
-        for (final row in rows) {
-          sink +=
-              pronunciationScoreFromRecording(
-                rowWith(
-                  freshCopy(row.assessmentJson),
-                  pronunciationScore: null,
-                ),
-              ) ??
-              0;
-        }
-        return sink;
-      }
 
       var sink = 0;
       for (var warm = 0; warm < 100; warm++) {
-        sink += panelPass(rows);
+        sink += copyKeyPanelPass(rows, pronunciationScoreFromRecording);
       }
       final sw = Stopwatch()..start();
       for (var i = 0; i < benchPasses; i++) {
-        sink += panelPass(rows);
+        sink += copyKeyPanelPass(rows, pronunciationScoreFromRecording);
       }
       sw.stop();
       // ignore: avoid_print
