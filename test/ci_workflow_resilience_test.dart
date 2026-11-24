@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _diskGuardPath = '.github/scripts/ensure_macos_disk_headroom.sh';
@@ -662,7 +664,15 @@ distributionUrl=https\\://services.gradle.org/distributions/gradle-9.3.1-all.zip
 
         File('${androidDir.path}/gradlew').writeAsStringSync(r'''#!/bin/sh
 archive="$GRADLE_USER_HOME/wrapper/dists/gradle-9.3.1-all/hash/gradle-9.3.1-all.zip"
-if [ -f "$archive" ] && unzip -tqq "$archive" >/dev/null 2>&1; then
+valid() {
+  [ -s "$1" ] || return 1
+  if command -v unzip >/dev/null 2>&1; then
+    unzip -tqq "$1" >/dev/null 2>&1
+  else
+    tail -c 22 "$1" | grep -q PK
+  fi
+}
+if [ -f "$archive" ] && valid "$archive"; then
   exit 0
 fi
 exit 1
@@ -685,15 +695,14 @@ exit 0
 ''');
         Process.runSync('chmod', ['+x', '${stubBin.path}/curl']);
 
-        final zipDir = Directory('${sandbox.path}/zip')
-          ..createSync(recursive: true);
-        File('${zipDir.path}/payload.txt').writeAsStringSync('gradle');
-        Process.runSync('zip', [
-          '-q',
-          '-j',
-          '${sandbox.path}/valid.zip',
-          '${zipDir.path}/payload.txt',
-        ]);
+        final payloadBytes = utf8.encode('gradle');
+        File('${sandbox.path}/valid.zip').writeAsBytesSync(
+          ZipEncoder().encode(
+            Archive()..addFile(
+              ArchiveFile('payload.txt', payloadBytes.length, payloadBytes),
+            ),
+          ),
+        );
 
         final gradleHome = '${sandbox.path}/gradle-home';
         final distDir = Directory(
@@ -724,14 +733,16 @@ exit 0
           reason: 'the distribution archive has to be in place afterwards',
         );
         expect(archiveFile.readAsBytesSync().length, greaterThan(0));
-        final unzipCheck = Process.runSync('unzip', ['-tqq', archiveFile.path]);
+        final decoded = ZipDecoder().decodeBytes(archiveFile.readAsBytesSync());
+        final payload = decoded.findFile('payload.txt');
         expect(
-          unzipCheck.exitCode,
-          0,
+          payload,
+          isNotNull,
           reason:
               'the truncated archive has to be replaced by one that actually '
               'unzips — that is the whole point of the prefetch',
         );
+        expect(utf8.decode(payload!.content), 'gradle');
       },
     );
   });
