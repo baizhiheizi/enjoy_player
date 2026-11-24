@@ -70,6 +70,24 @@ if [ -z "${sign_identity}" ] || [ "${sign_identity}" = "-" ]; then
   sign_identity="${CODE_SIGN_IDENTITY:-}"
 fi
 
+# A locked login keychain still lists its certificates, so codesign reaches the
+# signing step and then fails with "errSecInternalComponent" — a Security
+# framework error that names neither the keychain nor the lock. Report the
+# actual cause instead.
+assert_keychain_unlocked() {
+  keychain="${HOME}/Library/Keychains/login.keychain-db"
+  [ -e "${keychain}" ] || return 0
+  keychain_output="$(security show-keychain-info "${keychain}" 2>&1)" && return 0
+  case "${keychain_output}" in
+    *"User interaction is not allowed"*)
+      echo "bundle_espeak_ng: the login keychain is locked, so codesign cannot reach the signing key (errSecInternalComponent)." >&2
+      echo "bundle_espeak_ng: unlock it with 'security unlock-keychain' and build again." >&2
+      return 1
+      ;;
+  esac
+  return 0
+}
+
 # Xcode's iOS asset/archive pipeline can leave an empty macOS-style
 # Contents/Resources directory in the app bundle. codesign rejects that
 # directory as unsealed root content, so remove only empty containers before
@@ -99,6 +117,7 @@ case "${PLATFORM_NAME}" in
         extra="--options runtime --timestamp"
       fi
       # shellcheck disable=SC2086
+      assert_keychain_unlocked
       codesign --force --sign "${sign_identity}" ${extra} "${LIB_DEST}"
     fi
     ;;

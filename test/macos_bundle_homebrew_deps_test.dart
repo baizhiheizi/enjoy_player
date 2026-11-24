@@ -614,4 +614,34 @@ void main() {
           'must not be queried at all.',
     );
   }, skip: skipOnWindows);
+
+  test('replaces a keg copy an earlier build already bundled', () {
+    final sandbox = _buildSandbox();
+    addTearDown(sandbox.dispose);
+
+    sandbox.writeCompatLib(_freetypeKegDylib, 'compat');
+    sandbox.writeAppFile('Contents/Frameworks/$_freetypeKegDylib', 'keg');
+    sandbox.writeDeps('Enjoy Player', [
+      '@rpath/$_freetypeKegDylib',
+      '/usr/lib/libSystem.B.dylib',
+    ]);
+
+    final result = sandbox.runBundler();
+
+    expect(
+      result.exitCode,
+      0,
+      reason: 'bundler failed:\n${result.stdout}\n${result.stderr}',
+    );
+    expect(
+      File('${sandbox.frameworksDir}/$_freetypeKegDylib').readAsStringSync(),
+      'compat',
+      reason:
+          'A bundle that already holds the keg copy — bundled before the '
+          'compat prefix existed, or before a prefix rebuild — has to be '
+          'upgraded to the prefix build. Otherwise the app keeps a dylib '
+          'whose minos is the current macOS and dyld aborts on every older '
+          'macOS (#1187).',
+    );
+  }, skip: skipOnWindows);
 }

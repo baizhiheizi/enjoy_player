@@ -62,6 +62,15 @@ a green pipeline.
 2. **The bundler resolves the compat prefix before any keg.** Kegs remain a
    dev-machine fallback, but anything they contribute now has to pass the new
    gates — which a Tahoe bottle cannot.
+   The prefix wins **on every build, not only on the first one** (amended
+   2026-11-24). The bundler's first pass rewrites the bundle's load commands
+   to `@rpath`, so afterwards no binary points at `/opt/homebrew` any more and
+   the keg walk finds nothing to do — the bundle would keep whatever copy it
+   was given then. A keg copy bundled before the prefix existed (or before a
+   prefix rebuild) kept its `minos` at the current macOS and failed the
+   system-dylib allowlist on `/usr/lib/libhvf.dylib`, so the bundler now
+   re-resolves every `@rpath` dylib reference the prefix provides and replaces
+   the bundled copy with the prefix's build.
 3. **Two gates make the failure mode a build error, not a user launch crash:**
    - **macOS floor gate**: every dylib the bundler copies must have
      `LC_BUILD_VERSION minos ≤ 12.0` (all arch slices). A violation fails the

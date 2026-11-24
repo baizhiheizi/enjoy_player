@@ -53,6 +53,10 @@ jobs:
   release:
     name: iOS + macOS release
     runs-on: [self-hosted, macos]
+    # Self-hosted jobs have no default timeout. The Apple release is the
+    # heaviest build on the pool — universal Release, notarization and
+    # TestFlight — so it gets a generous but bounded budget.
+    timeout-minutes: 180
     env:
       APPLE_USE_RUNNER_KEYCHAIN: ${{ vars.APPLE_USE_RUNNER_KEYCHAIN || 'true' }}
       NOTARY_PROFILE: enjoy-notary
@@ -63,6 +67,13 @@ jobs:
           fetch-depth: 0
 
       - uses: ./.github/actions/setup-macos-runner-env
+
+      # The release build is the heaviest Apple compile on this runner
+      # (universal Release + notarization + TestFlight), so it claims the disk
+      # headroom first and fails fast on a full volume instead of dying inside
+      # Xcode with an opaque "No space left on device".
+      - name: Ensure disk headroom
+        run: bash .github/scripts/ensure_macos_disk_headroom.sh prune
 
       - uses: ./.github/actions/setup-flutter
 

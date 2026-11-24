@@ -14,6 +14,7 @@ on:
       - "mise.toml"
       - ".github/actions/setup-flutter/**"
       - ".github/scripts/ensure_linux_tooling.sh"
+      - ".github/scripts/retry_command.sh"
       - "tool/prefetch_sqlite3_libs.sh"
       - ".github/workflows/build_linux.yml"
   push:
@@ -28,6 +29,7 @@ on:
       - "mise.toml"
       - ".github/actions/setup-flutter/**"
       - ".github/scripts/ensure_linux_tooling.sh"
+      - ".github/scripts/retry_command.sh"
       - "tool/prefetch_sqlite3_libs.sh"
       - ".github/workflows/build_linux.yml"
   workflow_dispatch:
@@ -54,6 +56,9 @@ jobs:
     environment:
       name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux, ci]
+    # Self-hosted jobs have no default timeout: a host-starved build could hold
+    # the runner indefinitely. Bound it the way android_apk_smoke does.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
 
@@ -134,8 +139,22 @@ jobs:
       - name: Flutter build linux (debug)
         run: flutter build linux --debug
 
+      # A command-level failure — the compile process killed, a flaky configure
+      # step — leaves the job alive, so the expensive release compile gets
+      # three attempts with escalating backoff. A runner that loses contact
+      # with GitHub ends the job instead; that remedy is a job re-run
+      # (ADR-0105), not a command retry.
+      #
+      # Each attempt starts from a clean release tree: a build that fails
+      # half-way (a partial Azure Speech SDK download, say) leaves the CMake
+      # tree half-configured, and retrying against it fails differently and
+      # worse than the first attempt. The debug tree is kept — the artifact
+      # upload below needs it.
       - name: Flutter build linux (release)
-        run: flutter build linux --release
+        run: >
+          bash .github/scripts/retry_command.sh
+          --clean "rm -rf build/linux/*/release"
+          3 30 flutter build linux --release
 
       - name: Upload debug bundle
         if: always()

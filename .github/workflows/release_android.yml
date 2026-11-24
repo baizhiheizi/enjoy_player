@@ -34,6 +34,8 @@ jobs:
   release:
     name: Android release
     runs-on: [self-hosted, Linux]
+    # Self-hosted jobs have no default timeout.
+    timeout-minutes: 120
     env:
       ANDROID_USE_RUNNER_KEYSTORE: ${{ vars.ANDROID_USE_RUNNER_KEYSTORE || 'false' }}
       # This runner sits behind a network where dl.google.com resets the TLS
@@ -57,6 +59,13 @@ jobs:
           packages: >-
             platforms;android-36
             build-tools;36.0.0
+
+      # The Gradle wrapper downloads its own distribution with no retry and no
+      # integrity check, so a truncated transfer becomes a persistent
+      # "ZipException: zip END header not found". Fetch it with retries and
+      # verify the archive instead.
+      - name: Prefetch Gradle distribution
+        run: bash tool/prefetch_gradle_distribution.sh
 
       - name: Point Flutter at Android SDK
         run: |

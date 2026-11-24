@@ -16,6 +16,8 @@ on:
       - ".github/actions/setup-flutter/**"
       - ".github/actions/setup-macos-runner-env/**"
       - ".github/scripts/ensure_ios_ci_toolchain.sh"
+      - ".github/scripts/ensure_macos_disk_headroom.sh"
+      - ".github/scripts/install_apple_platform.sh"
       - ".github/scripts/apple_spm_hygiene.sh"
       - ".github/scripts/build_ios_ci.sh"
       - ".github/scripts/build_macos_ci.sh"
@@ -35,6 +37,8 @@ on:
       - ".github/actions/setup-flutter/**"
       - ".github/actions/setup-macos-runner-env/**"
       - ".github/scripts/ensure_ios_ci_toolchain.sh"
+      - ".github/scripts/ensure_macos_disk_headroom.sh"
+      - ".github/scripts/install_apple_platform.sh"
       - ".github/scripts/apple_spm_hygiene.sh"
       - ".github/scripts/build_ios_ci.sh"
       - ".github/scripts/build_macos_ci.sh"
@@ -78,6 +82,9 @@ jobs:
     environment:
       name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, macos]
+    # Self-hosted jobs have no default timeout: a build stuck on a starved
+    # runner could hold it indefinitely. Bound it like the other platform jobs.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
 
@@ -97,6 +104,15 @@ jobs:
 
       - uses: ./.github/actions/setup-macos-runner-env
 
+      # The runner's volume filled up mid-compile on 2026-11-24 and the job
+      # died with an opaque "No space left on device" IOException while the
+      # runner was writing its own log pages. Reclaim what CI owns (a
+      # superseded Flutter SDK, the previous run's DerivedData) and assert the
+      # headroom *before* the build, so a full disk is a clear error instead of
+      # a mystery failure eight minutes into an Xcode compile.
+      - name: Ensure disk headroom
+        run: bash .github/scripts/ensure_macos_disk_headroom.sh prune
+
       - uses: ./.github/actions/setup-flutter
 
       - name: Flutter pub get
@@ -115,6 +131,9 @@ jobs:
 
       - name: Flutter build ios (debug, compile-only)
         run: bash .github/scripts/build_ios_ci.sh Debug
+
+      - name: Ensure disk headroom (release build)
+        run: bash .github/scripts/ensure_macos_disk_headroom.sh check
 
       - name: Flutter build ios (release, compile-only)
         run: bash .github/scripts/build_ios_ci.sh Release
@@ -139,6 +158,9 @@ jobs:
     environment:
       name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, macos]
+    # Self-hosted jobs have no default timeout: a build stuck on a starved
+    # runner could hold it indefinitely. Bound it like the other platform jobs.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
 
@@ -148,6 +170,13 @@ jobs:
       # WAN-proxy traffic (and ~8 min per restore) for already-local data.
 
       - uses: ./.github/actions/setup-macos-runner-env
+
+      # Same guard as the iOS job: reclaim the superseded Flutter SDK and the
+      # iOS job's DerivedData (both are still on disk — the runner is native
+      # and its workspace persists), then assert the headroom before the
+      # universal Release compile doubles the architecture count.
+      - name: Ensure disk headroom
+        run: bash .github/scripts/ensure_macos_disk_headroom.sh prune
 
       - uses: ./.github/actions/setup-flutter
 
@@ -170,6 +199,9 @@ jobs:
 
       - name: Flutter build macos (debug)
         run: bash .github/scripts/build_macos_ci.sh Debug
+
+      - name: Ensure disk headroom (release build)
+        run: bash .github/scripts/ensure_macos_disk_headroom.sh check
 
       - name: Flutter build macos (release, compile-only)
         run: bash .github/scripts/build_macos_ci.sh Release

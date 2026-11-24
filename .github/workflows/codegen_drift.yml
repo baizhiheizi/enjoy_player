@@ -72,6 +72,8 @@ jobs:
     environment:
       name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, Linux, ci]
+    # Self-hosted jobs have no default timeout.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
 
