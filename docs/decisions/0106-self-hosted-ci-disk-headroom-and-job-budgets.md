@@ -73,10 +73,18 @@ fails a release with the same opaque message.
    release job. It removes what CI owns and nothing else — the superseded
    Flutter SDKs in `RUNNER_TOOL_CACHE` (the pinned version always survives)
    and the workspace's previous `build/ios` / `build/macos` DerivedData — and
-   then requires `APPLE_DISK_HEADROOM_GIB` (default 20 GiB) of free space on
+   then requires `APPLE_DISK_HEADROOM_GIB` of free space on
    the workspace volume. A volume that cannot hold the build fails with an
    `::error::` line naming the numbers, before the build starts, instead of an
    IOException eight minutes into an Xcode compile.
+
+   The floor defaults to **8 GiB**: twice the ~4 GB the macOS Release
+   compile's DerivedData tree actually consumes. It is a safety floor, not a
+   disk-hygiene quota — it has to catch the volume *before* the build reaches
+   zero (where it failed on 2026-11-24) while still being reachable on a
+   runner whose volume is tight for unrelated reasons. A floor the runner
+   cannot reach without manual cleanup would block every Apple job, which is
+   the opposite of what it is for. Raise it on a host with room.
 
 2. **Re-check before the release build.** The same script runs in `check` mode
    (no deletion) immediately before each Release compile, because the Debug
@@ -109,9 +117,17 @@ fails a release with the same opaque message.
   truncated log and a mystery. The guard reclaimed 8 GB on the macOS runner
   (`_work` went from 12 GB to 4.3 GB) purely by dropping the superseded
   Flutter SDK and the previous run's DerivedData.
-- The disk floor is a policy number, not a measurement. 20 GiB covers the
-  observed peak (the universal Release build's DerivedData is ~4 GB) with
-  margin; `APPLE_DISK_HEADROOM_GIB` overrides it on a smaller volume.
+- The disk floor is a policy number, not a measurement. 8 GiB is twice the
+  observed peak (the universal Release build's DerivedData is ~4 GB), so the
+  build still has room to grow when the floor is met; `APPLE_DISK_HEADROOM_GIB`
+  overrides it on a host with more or less to spare.
+- The floor is deliberately not a disk-hygiene quota. The runner's volume is
+  shared with the local checkout, the system asset store and the developer
+  toolchain, and on this host ~25 GB of it sits in orphaned simulator-runtime
+  assets that no supported command reaches. A floor the runner cannot reach
+  would turn every Apple job red for a reason the guard cannot fix, so the
+  host's own headroom is a separate problem — and the guard's job is to make
+  it visible before the build, not to enforce it.
 - The guard only deletes what CI owns. It never touches the user's
   `~/Library/Developer/Xcode` caches, the simulator runtimes, the pub cache
   or the CocoaPods store, so it cannot silently shrink a developer's machine.

@@ -128,6 +128,19 @@ void main() {
       final result = await _runScript(_diskGuardPath, ['nonsense']);
       expect(result.exitCode, 2);
     });
+
+    test('the headroom floor is sized against the build it guards', () {
+      final script = _read(_diskGuardPath);
+      expect(
+        script,
+        contains('APPLE_DISK_HEADROOM_GIB:-8'),
+        reason:
+            'the floor has to be twice the macOS Release build\'s ~4 GB peak '
+            'DerivedData — high enough to catch the volume before the build '
+            'reaches zero, low enough that the runner can reach it without '
+            'manual cleanup',
+      );
+    });
   });
 
   group('retry_command.sh', () {

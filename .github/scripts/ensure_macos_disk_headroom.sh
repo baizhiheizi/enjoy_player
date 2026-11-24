@@ -19,8 +19,15 @@
 #            previous iOS/macOS DerivedData), then require the headroom
 #   check  — require the headroom only; safe to run between two builds
 #
-# The headroom floor is APPLE_DISK_HEADROOM_GIB (default 20 GiB). Override it
+# The headroom floor is APPLE_DISK_HEADROOM_GIB (default 8). Override it
 # with the environment variable when the runner's disk is genuinely smaller.
+#
+# 8 GiB is sized against the build: the macOS Release compile's DerivedData
+# tree is ~4 GB, so the floor is twice the peak the build actually consumes.
+# It is not a disk-hygiene quota — it exists to catch the volume before the
+# build reaches zero, which is where it failed on 2026-11-24. A floor that
+# the runner cannot reach without manual cleanup would block every Apple
+# job, so raise it on a host with room, do not lower it below the peak.
 set -euo pipefail
 
 log() {
@@ -37,7 +44,7 @@ case "${mode}" in
 esac
 
 root="$(cd "$(dirname "$0")/../.." && pwd)"
-required_gib="${APPLE_DISK_HEADROOM_GIB:-20}"
+required_gib="${APPLE_DISK_HEADROOM_GIB:-8}"
 tool_cache="${RUNNER_TOOL_CACHE:-${RUNNER_TEMP:-/tmp}}"
 # The workspace whose build trees may be pruned. It is the repository root in
 # CI; APPLE_WORKSPACE_ROOT redirects it so the test suite can drive the script
@@ -100,8 +107,9 @@ log "Free space on the workspace volume: ${free} GiB (need ${required_gib} GiB)"
 if awk "BEGIN{exit !(${free} < ${required_gib})}"; then
   log "Not enough disk headroom for an Apple build on this runner."
   log "Free: ${free} GiB, required: ${required_gib} GiB."
-  log "Reclaim space on the runner host, or lower APPLE_DISK_HEADROOM_GIB if"
-  log "that floor is simply too high for this volume."
+  log "The floor is twice the build's peak DerivedData, so it must not be"
+  log "lowered below it — reclaim space on the runner host instead, or raise"
+  log "APPLE_DISK_HEADROOM_GIB if the floor is simply too high for this volume."
   echo "::error::Apple build needs ${required_gib} GiB free but only ${free} GiB is available on the runner volume."
   exit 1
 fi
