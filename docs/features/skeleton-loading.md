@@ -170,7 +170,7 @@ New placeholders should:
 | Scrollable placeholders | `SkeletonTranscript`, `SkeletonProfile` |
 | Bounded subtitle-picker dialog placeholder | [`buildDialogSkeletonLoading`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet_body.dart) |
 | Grid placeholder | `SkeletonMediaGrid` |
-| Home recents tile placeholder | `_HomeRecentGridSkeletonTile` in [`home_screen.dart`](../../lib/features/library/presentation/home_screen.dart) |
+| Home recents tile placeholder | `_HomeRecentGridSkeletonTile` in [`home_screen_loading.dart`](../../lib/features/library/presentation/home_screen_loading.dart) |
 | Layout regression tests | [`test/core/theme/skeleton_layout_test.dart`](../../test/core/theme/skeleton_layout_test.dart) |
 | Settings loading tests | [`test/features/settings/presentation/sections/settings_loading_states_test.dart`](../../test/features/settings/presentation/sections/settings_loading_states_test.dart) |
 
