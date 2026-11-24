@@ -32,6 +32,10 @@ assert_login_keychain_unlocked() {
 
 if [ "${APPLE_USE_RUNNER_KEYCHAIN:-true}" = "true" ]; then
   echo "Using existing login keychain on self-hosted runner."
+  lib="$(dirname "$0")/release_lib.sh"
+  # shellcheck source=release_lib.sh
+  source "${lib}"
+  release_unlock_login_keychain
   assert_login_keychain_unlocked
   security find-identity -v -p codesigning | head -10 || true
   exit 0

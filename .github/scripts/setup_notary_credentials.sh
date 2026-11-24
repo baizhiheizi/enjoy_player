@@ -20,6 +20,8 @@ done
 release_cache_asc_credentials
 KEY_PATH="$(release_asc_config_dir)/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
 
+release_unlock_login_keychain
+
 xcrun notarytool store-credentials "${PROFILE}" \
   --key "${KEY_PATH}" \
   --key-id "${APP_STORE_CONNECT_API_KEY_ID}" \

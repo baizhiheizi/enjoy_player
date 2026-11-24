@@ -312,6 +312,23 @@ release_asc_config_dir() {
   echo "${HOME}/.config/enjoy-player"
 }
 
+# Notarytool stores its credentials in the login keychain, and a keychain write
+# on a locked keychain prompts — impossible on a headless runner. A locked
+# keychain still lists its certificates, so the failure surfaces later as
+# "An error occurred while accessing the keychain. User interaction is not
+# allowed." with no mention of the lock. Unlocking an open keychain is a no-op,
+# so this is safe to call before any keychain write. Without KEYCHAIN_PASSWORD
+# the local + CI callers keep their previous best-effort behavior.
+release_unlock_login_keychain() {
+  local keychain="${HOME}/Library/Keychains/login.keychain-db"
+  [[ -e "${keychain}" ]] || return 0
+  if [[ -z "${KEYCHAIN_PASSWORD:-}" ]]; then
+    echo "release_unlock_login_keychain: KEYCHAIN_PASSWORD is not set; assuming the login keychain is unlocked." >&2
+    return 0
+  fi
+  security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${keychain}"
+}
+
 # Persist ASC identifiers (+ private key when available) under ~/.config/enjoy-player/.
 # Safe to call from CI helpers; never writes into the git worktree.
 release_cache_asc_credentials() {
