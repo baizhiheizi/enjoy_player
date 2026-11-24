@@ -14,13 +14,27 @@
 #
 # Usage:
 #   bash .github/scripts/retry_command.sh <attempts> <delay_seconds> <command> [args...]
+#   bash .github/scripts/retry_command.sh --clean "<clean command>" <attempts> <delay_seconds> <command> [args...]
+#
+# --clean runs a command before every attempt. A build command that fails
+# half-way leaves its build tree dirty, and a retry that reuses that tree can
+# fail differently and worse than the first attempt — a half-configured CMake
+# tree re-ran its stale install rule and died on a permission error instead
+# of retrying the download that had actually failed. Cleaning between
+# attempts gives every one of them the same starting point.
 #
 # The command's output is streamed to the job log on every attempt, and the
 # exit status of the last attempt is the script's exit status.
 set -euo pipefail
 
-attempts="${1:?Usage: $0 <attempts> <delay_seconds> <command> [args...]}"
-delay_seconds="${2:?Usage: $0 <attempts> <delay_seconds> <command> [args...]}"
+clean_command=""
+if [ "${1:-}" = "--clean" ]; then
+  clean_command="${2:?--clean needs a command}"
+  shift 2
+fi
+
+attempts="${1:?Usage: $0 [--clean \"<command>\"] <attempts> <delay_seconds> <command> [args...]}"
+delay_seconds="${2:?Usage: $0 [--clean \"<command>\"] <attempts> <delay_seconds> <command> [args...]}"
 shift 2
 
 if ! [[ "${attempts}" =~ ^[0-9]+$ ]] || [ "${attempts}" -lt 1 ]; then
@@ -38,6 +52,10 @@ fi
 
 attempt=1
 while true; do
+  if [ -n "${clean_command}" ]; then
+    echo ">>> retry_command: cleaning before attempt ${attempt}/${attempts}: ${clean_command}"
+    bash -c "${clean_command}" || echo ">>> retry_command: the clean command failed; continuing." >&2
+  fi
   echo ">>> retry_command: attempt ${attempt}/${attempts}: $*"
   status=0
   "$@" || status=$?

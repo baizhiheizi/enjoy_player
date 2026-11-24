@@ -111,6 +111,26 @@ fails a release with the same opaque message.
    ADR-0105's "retry the failed legs" prescribes. The two failure shapes
    need different remedies, and the script says which one it addresses.
 
+   Every attempt starts from a **clean release tree** (`--clean
+   "rm -rf build/linux/*/release"`). A build that fails half-way leaves its
+   CMake tree half-configured, and retrying against that tree fails
+   differently and worse than the first attempt: a configure step that died
+   on a partial Azure Speech SDK download left a stale `cmake_install.cmake`
+   behind, and the second attempt re-ran that install rule and died on
+   "file INSTALL cannot copy file … to /usr/local/enjoy_player: Permission
+   denied" — three attempts burned on a deterministic error instead of
+   retrying the download that had actually failed. The debug tree is kept; the
+   artifact upload needs it.
+
+   The Azure Speech SDK itself is still fetched by the plugin's
+   `file(DOWNLOAD)` at configure time, which has no retry and no integrity
+   check — the same weakness ADR-0107 removed from the Gradle distribution.
+   Prefetching it the way ADR-0101 prefetches the engine artifacts would mean
+   writing the package and its `.extracted-` marker into the plugin's
+   per-build CMake binary directory, which depends on the build type and
+   architecture; that is a larger change than the retry's clean-between-
+   attempts, so it stays a known gap for now.
+
 5. **Report a locked keychain as a locked keychain.**
    `setup_apple_signing.sh` checks the login keychain before the release signs
    and fails with an actionable `::error::` when it is locked, and

@@ -217,6 +217,45 @@ exit 0
       expect(result.exitCode, 7);
     });
 
+    test('cleans the tree before every attempt', () async {
+      final dir = await Directory.systemTemp.createTemp('retry_clean_');
+      addTearDown(() => dir.delete(recursive: true));
+      final marker = File('${dir.path}/attempts');
+      final helper = File('${dir.path}/attempt.sh')
+        ..writeAsStringSync(r'''
+#!/usr/bin/env bash
+count=0
+[ -f "$1" ] && count=$(cat "$1")
+count=$((count + 1))
+echo "$count" > "$1"
+# A stale build tree would make the second attempt fail differently; the
+# clean command removes it, so the helper always sees a fresh one.
+[ -e "$2" ] && exit 9
+echo stale > "$2"
+[ "$count" -ge 2 ] || exit 1
+exit 0
+''');
+      Process.runSync('chmod', ['+x', helper.path]);
+
+      final result = await _runScript(_retryScriptPath, [
+        '--clean',
+        'rm -f "${dir.path}/stale"',
+        '3',
+        '0',
+        helper.path,
+        marker.path,
+        '${dir.path}/stale',
+      ]);
+
+      expect(result.exitCode, 0, reason: result.stderr.toString());
+      expect(marker.readAsStringSync().trim(), '2');
+      expect(
+        result.stdout.toString(),
+        contains('cleaning before attempt'),
+        reason: 'every attempt has to start from the same tree',
+      );
+    });
+
     test('rejects a missing command', () async {
       final result = await _runScript(_retryScriptPath, ['2', '0']);
       expect(result.exitCode, 2);
@@ -365,8 +404,17 @@ exit 0
       );
       expect(
         script,
-        contains(r'cp "${backup_file}" /etc/pf.conf'),
-        reason: 'the anchor added to /etc/pf.conf has to be removed again',
+        contains(r'cp "${backup_file}" "${pf_conf}"'),
+        reason:
+            'the anchor added to the pf configuration has to be removed again',
+      );
+      expect(
+        script,
+        contains('backup_taken=1'),
+        reason:
+            'the backup file is created empty by mktemp, so only the flag '
+            'proves a backup was taken — restoring the empty file would wipe '
+            'the host\'s pf configuration',
       );
       expect(
         script,
@@ -376,6 +424,66 @@ exit 0
             '/etc/pf.conf',
       );
     });
+
+    test(
+      'the platform installer leaves the pf config alone when it exits early',
+      () async {
+        final sandbox = await Directory.systemTemp.createTemp('pf_install_');
+        addTearDown(() => sandbox.delete(recursive: true));
+        final stubBin = Directory('${sandbox.path}/bin')
+          ..createSync(recursive: true);
+
+        final pfConf = File('${sandbox.path}/pf.conf')
+          ..writeAsStringSync(
+            '# original configuration\nanchor "com.apple/*"\n',
+          );
+        final original = pfConf.readAsStringSync();
+
+        // The platform is already installed, so the script takes its early exit
+        // — the most common path by far.
+        File('${stubBin.path}/xcodebuild').writeAsStringSync(r'''#!/bin/sh
+case "$*" in
+  *-showdestinations*)
+    printf 'Available destinations for the "Runner" scheme:\n'
+    printf '\t\t{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }\n'
+    ;;
+esac
+exit 0
+''');
+        final pfctlLog = File('${sandbox.path}/pfctl.log');
+        File('${stubBin.path}/pfctl').writeAsStringSync(r'''#!/bin/sh
+echo "$@" >> "$PFCTL_LOG"
+exit 0
+''');
+        Process.runSync('chmod', ['+x', '${stubBin.path}/xcodebuild']);
+        Process.runSync('chmod', ['+x', '${stubBin.path}/pfctl']);
+
+        final result = await Process.run(
+          'bash',
+          [_platformInstallerPath],
+          environment: {
+            'PATH': '${stubBin.path}:${Platform.environment['PATH']}',
+            'PFCTL_LOG': pfctlLog.path,
+            'INSTALL_APPLE_PLATFORM_PF_CONF': pfConf.path,
+          },
+        );
+
+        expect(result.exitCode, 0, reason: result.stderr.toString());
+        expect(
+          pfConf.readAsStringSync(),
+          original,
+          reason:
+              'the cleanup must not restore a backup that was never taken — the '
+              'mktemp file is empty, and copying it over the configuration would '
+              'wipe the host\'s pf.conf',
+        );
+        expect(
+          pfctlLog.existsSync() ? pfctlLog.readAsStringSync() : '',
+          isNot(contains('-f ')),
+          reason: 'the running ruleset must not be reloaded on the early exit',
+        );
+      },
+    );
 
     test('the pf ruleset blocks UDP/443 last', () async {
       final result = await Process.run('bash', [

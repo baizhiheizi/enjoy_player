@@ -142,8 +142,17 @@ jobs:
       # The shared pool's documented "runner lost communication" shape is host
       # starvation, not a broken build (ADR-0105), so the expensive release
       # compile gets a second chance before the job goes red.
+      #
+      # Each attempt starts from a clean release tree: a build that fails
+      # half-way (a partial Azure Speech SDK download, say) leaves the CMake
+      # tree half-configured, and retrying against it fails differently and
+      # worse than the first attempt. The debug tree is kept — the artifact
+      # upload below needs it.
       - name: Flutter build linux (release)
-        run: bash .github/scripts/retry_command.sh 3 30 flutter build linux --release
+        run: >
+          bash .github/scripts/retry_command.sh
+          --clean "rm -rf build/linux/*/release"
+          3 30 flutter build linux --release
 
       - name: Upload debug bundle
         if: always()

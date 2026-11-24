@@ -103,6 +103,15 @@ hung one — and a job that waits on it waits forever.
    `xcodebuild -downloadPlatform` prints no progress and an unbounded call
    hangs forever.
 
+   The cleanup only restores the configuration when a backup was actually
+   taken. The backup file is created *empty* by `mktemp`, so its existence
+   proves nothing — restoring it unconditionally would replace the host's
+   `pf.conf` with an empty file, and that happens on the most common path of
+   all: "the platform is already installed → exit early". A `backup_taken`
+   flag gates the restore, and the configuration path is overridable
+   (`INSTALL_APPLE_PLATFORM_PF_CONF`) so the behaviour can be tested without
+   touching the host's real configuration.
+
 ## Consequences
 
 - A runner without the iOS device platform fails the toolchain step with a

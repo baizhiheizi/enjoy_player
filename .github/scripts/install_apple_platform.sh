@@ -37,9 +37,17 @@ set -euo pipefail
 anchor="enjoy_player"
 rules_file="$(mktemp -t enjoy-pf-rules.XXXXXX)"
 backup_file="$(mktemp -t enjoy-pf-conf.XXXXXX)"
+# The pf configuration to modify. Overridable so the behaviour can be tested
+# without touching the host's real configuration.
+pf_conf="${INSTALL_APPLE_PLATFORM_PF_CONF:-/etc/pf.conf}"
 dry_run=0
 print_ruleset=0
 pf_was_enabled=0
+# The backup file is created empty by mktemp, so its mere existence says
+# nothing about whether a real backup was taken. Only this flag does — and
+# without it the cleanup would overwrite the host's pf.conf with an empty file
+# on every run, including the common "already installed" early exit.
+backup_taken=0
 
 for arg in "$@"; do
   case "${arg}" in
@@ -77,15 +85,13 @@ EOF
 
 cleanup() {
   local status=$?
-  if [ "${dry_run}" -eq 0 ] && [ "${print_ruleset}" -eq 0 ]; then
+  if [ "${dry_run}" -eq 0 ] && [ "${print_ruleset}" -eq 0 ] && [ "${backup_taken}" -eq 1 ]; then
     log "Removing the temporary pf rule."
     pfctl -a "${anchor}" -F all 2>/dev/null || true
     pfctl -a "${anchor}" -X "${anchor}" 2>/dev/null || true
-    if [ -f "${backup_file}" ]; then
-      cp "${backup_file}" /etc/pf.conf 2>/dev/null || true
-      pfctl -f /etc/pf.conf 2>/dev/null || true
-      log "Restored /etc/pf.conf."
-    fi
+    cp "${backup_file}" "${pf_conf}" 2>/dev/null || true
+    pfctl -f "${pf_conf}" 2>/dev/null || true
+    log "Restored ${pf_conf}."
     if [ "${pf_was_enabled}" -eq 0 ]; then
       pfctl -d 2>/dev/null || true
       log "pf disabled again (it was disabled before)."
@@ -135,8 +141,8 @@ run_with_timeout() {
   return "${status}"
 }
 
-if [ "$(id -u)" -ne 0 ]; then
-  echo "install_apple_platform: needs sudo (it edits /etc/pf.conf and pf)." >&2
+if [ "${pf_conf}" = "/etc/pf.conf" ] && [ "$(id -u)" -ne 0 ]; then
+  echo "install_apple_platform: needs sudo (it edits ${pf_conf} and pf)." >&2
   exit 1
 fi
 
@@ -158,16 +164,17 @@ write_ruleset
 if [ "${dry_run}" -eq 1 ]; then
   log "Dry run: validating the ruleset without applying it."
   pfctl -n -f "${rules_file}" 2>&1 | sed 's/^/[pf] /'
-  log "Would add 'anchor \"${anchor}\"' to /etc/pf.conf, enable pf, block UDP/443, download, then restore."
+  log "Would add 'anchor \"${anchor}\"' to ${pf_conf}, enable pf, block UDP/443, download, then restore."
   exit 0
 fi
 
-log "Backing up /etc/pf.conf…"
-cp /etc/pf.conf "${backup_file}"
+log "Backing up ${pf_conf}…"
+cp "${pf_conf}" "${backup_file}"
+backup_taken=1
 
-if ! grep -q "^anchor \"${anchor}\"" /etc/pf.conf; then
-  log "Adding the '${anchor}' anchor to /etc/pf.conf."
-  printf '\nanchor "%s"\n' "${anchor}" >>/etc/pf.conf
+if ! grep -q "^anchor \"${anchor}\"" "${pf_conf}"; then
+  log "Adding the '${anchor}' anchor to ${pf_conf}."
+  printf '\nanchor "%s"\n' "${anchor}" >>"${pf_conf}"
 fi
 
 if pfctl -s info 2>/dev/null | grep -q "Status: Enabled"; then
@@ -182,7 +189,7 @@ log "Loading the UDP/443 block rule…"
 # Reload the main ruleset: the running one has to reference the anchor, or the
 # anchor's rules are never evaluated. `pfctl -a … -f` alone only fills the
 # anchor's rule list — nothing points at it until /etc/pf.conf is reloaded.
-pfctl -f /etc/pf.conf
+pfctl -f "${pf_conf}"
 pfctl -a "${anchor}" -f "${rules_file}" -v
 
 log "Asserting the block is live…"
