@@ -147,9 +147,6 @@ void main() {
       addTearDown(() => sandbox.delete(recursive: true));
       final stubBin = Directory('${sandbox.path}/bin')
         ..createSync(recursive: true);
-      // A `df` whose output has no capacity column: the free space cannot be
-      // parsed, and the guard must refuse to start a build rather than
-      // compare an empty value.
       File('${stubBin.path}/df').writeAsStringSync(r'''#!/bin/sh
 printf 'Filesystem 1024-blocks Used Available\\n'
 printf 'weird-device 100 50 50\\n'
@@ -439,8 +436,6 @@ exit 0
           );
         final original = pfConf.readAsStringSync();
 
-        // The platform is already installed, so the script takes its early exit
-        // — the most common path by far.
         File('${stubBin.path}/xcodebuild').writeAsStringSync(r'''#!/bin/sh
 case "$*" in
   *-showdestinations*)
@@ -585,6 +580,58 @@ Ineligible destinations for the "Runner" scheme:
       );
     });
 
+    test('the iOS toolchain check fails when runFirstLaunch fails', () async {
+      final sandbox = await Directory.systemTemp.createTemp(
+        'ios_first_launch_',
+      );
+      addTearDown(() => sandbox.delete(recursive: true));
+      final stubBin = Directory('${sandbox.path}/bin')
+        ..createSync(recursive: true);
+
+      File('${stubBin.path}/xcodebuild').writeAsStringSync(r'''#!/bin/sh
+case "$*" in
+  *-runFirstLaunch*)
+    echo 'xcodebuild: error: CoreSimulator is out of date' >&2
+    exit 70
+    ;;
+  *-showdestinations*)
+    printf 'Available destinations for the "Runner" scheme:\n'
+    printf '\t\t{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }\n'
+    ;;
+  *-downloadPlatform*)
+    printf 'No needed downloadables found\n'
+    exit 1
+    ;;
+esac
+exit 0
+''');
+      File('${stubBin.path}/killall').writeAsStringSync('#!/bin/sh\nexit 0\n');
+      File('${stubBin.path}/xcrun').writeAsStringSync('#!/bin/sh\nexit 0\n');
+      for (final stub in ['xcodebuild', 'killall', 'xcrun']) {
+        Process.runSync('chmod', ['+x', '${stubBin.path}/$stub']);
+      }
+
+      final result = await Process.run(
+        'bash',
+        [_iosToolchainPath],
+        environment: {
+          'PATH': '${stubBin.path}:${Platform.environment['PATH']}',
+        },
+      );
+
+      expect(
+        result.exitCode,
+        isNot(0),
+        reason:
+            'a failed runFirstLaunch leaves CoreSimulator stale, and the step '
+            'has to say so instead of reporting success',
+      );
+      expect(
+        '${result.stdout}${result.stderr}',
+        contains('runFirstLaunch failed'),
+      );
+    });
+
     test(
       'the Gradle prefetch replaces a truncated distribution archive',
       () async {
@@ -613,8 +660,6 @@ distributionUrl=https\\://services.gradle.org/distributions/gradle-9.3.1-all.zip
         );
         File('${wrapperDir.path}/gradle-wrapper.jar').writeAsStringSync('jar');
 
-        // A wrapper that reports the distribution as missing until a valid
-        // archive is in place, then succeeds.
         File('${androidDir.path}/gradlew').writeAsStringSync(r'''#!/bin/sh
 archive="$GRADLE_USER_HOME/wrapper/dists/gradle-9.3.1-all/hash/gradle-9.3.1-all.zip"
 if [ -f "$archive" ] && unzip -tqq "$archive" >/dev/null 2>&1; then
@@ -640,7 +685,6 @@ exit 0
 ''');
         Process.runSync('chmod', ['+x', '${stubBin.path}/curl']);
 
-        // A real (small) zip to serve as the download.
         final zipDir = Directory('${sandbox.path}/zip')
           ..createSync(recursive: true);
         File('${zipDir.path}/payload.txt').writeAsStringSync('gradle');

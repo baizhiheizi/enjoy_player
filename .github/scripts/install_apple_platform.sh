@@ -132,10 +132,11 @@ run_with_timeout() {
     sleep 1
     waited=$((waited + 1))
   done
-  set +e
-  wait "${pid}" 2>/dev/null
-  status=$?
-  set -e
+  if wait "${pid}" 2>/dev/null; then
+    status=0
+  else
+    status=$?
+  fi
   cat "${logfile}"
   rm -f "${logfile}"
   return "${status}"

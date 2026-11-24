@@ -73,6 +73,13 @@ hung one — and a job that waits on it waits forever.
    destination errors it found so the failure names the platform version that
    is missing.
 
+   The same step must not report success when its own prerequisites failed.
+   `run_first_launch` reads its status the way `download_ios_platform` does —
+   explicitly, not through the exit status of an `if` statement, which is 0
+   when no branch was taken. A `xcodebuild -runFirstLaunch` that fails leaves
+   CoreSimulator stale, and the step has to say so instead of reporting a
+   green toolchain that the compile will then contradict.
+
 4. **Provide a TCP escape hatch.**
    [`install_apple_platform.sh`](../../.github/scripts/install_apple_platform.sh)
    forces the download over TCP by blocking outbound UDP/443 with a temporary

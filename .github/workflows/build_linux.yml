@@ -139,9 +139,11 @@ jobs:
       - name: Flutter build linux (debug)
         run: flutter build linux --debug
 
-      # The shared pool's documented "runner lost communication" shape is host
-      # starvation, not a broken build (ADR-0105), so the expensive release
-      # compile gets a second chance before the job goes red.
+      # A command-level failure — the compile process killed, a flaky configure
+      # step — leaves the job alive, so the expensive release compile gets
+      # three attempts with escalating backoff. A runner that loses contact
+      # with GitHub ends the job instead; that remedy is a job re-run
+      # (ADR-0105), not a command retry.
       #
       # Each attempt starts from a clean release tree: a build that fails
       # half-way (a partial Azure Speech SDK download, say) leaves the CMake

@@ -14,10 +14,20 @@ run_first_launch() {
   log "Running xcodebuild -runFirstLaunch (CoreSimulator + required components)…"
   # Bounded for the same reason as the platform download: it is an
   # xcodebuild invocation that can sit without output.
-  if run_with_timeout "${IOS_FIRST_LAUNCH_TIMEOUT_S:-240}" xcodebuild -runFirstLaunch; then
+  #
+  # The status is captured the way download_ios_platform does it: `if cmd; then`
+  # without an `else` leaves the *statement* at status 0, so a `$?` read after
+  # it would report success and the stale CoreSimulator would sail through as
+  # a green step.
+  local status=0
+  set +e
+  run_with_timeout "${IOS_FIRST_LAUNCH_TIMEOUT_S:-240}" \
+    xcodebuild -runFirstLaunch
+  status=$?
+  set -e
+  if [ "${status}" -eq 0 ]; then
     return 0
   fi
-  local status=$?
   log "xcodebuild -runFirstLaunch failed (exit ${status})."
   log "On the runner Mac, run once with admin rights: sudo xcodebuild -runFirstLaunch"
   return "${status}"
@@ -47,10 +57,11 @@ run_with_timeout() {
     sleep 1
     waited=$((waited + 1))
   done
-  set +e
-  wait "${pid}" 2>/dev/null
-  status=$?
-  set -e
+  if wait "${pid}" 2>/dev/null; then
+    status=0
+  else
+    status=$?
+  fi
   cat "${logfile}"
   rm -f "${logfile}"
   return "${status}"
