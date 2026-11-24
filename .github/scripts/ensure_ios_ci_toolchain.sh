@@ -21,32 +21,82 @@ run_first_launch() {
   return "${status}"
 }
 
-download_ios_platform() {
-  log "Downloading iOS platform for active Xcode (xcodebuild -downloadPlatform iOS)…"
-  local output status
-  # arm64 matches Apple Silicon runners; universal is the fallback on ambiguous feeds.
-  if output="$(xcodebuild -downloadPlatform iOS -architectureVariant arm64 2>&1)"; then
-    log "${output}"
-    return 0
-  fi
+run_with_timeout() {
+  # Runs a command, kills it after the timeout, and echoes its output.
+  # `timeout` is not part of macOS, so the wait is done here.
+  local timeout_s="$1"
+  shift
+  local logfile pid waited status
+  logfile="$(mktemp -t enjoy-ios-platform.XXXXXX)"
+  "$@" >"${logfile}" 2>&1 &
+  pid=$!
+  waited=0
+  while kill -0 "${pid}" 2>/dev/null; do
+    if [ "${waited}" -ge "${timeout_s}" ]; then
+      log "The command exceeded ${timeout_s}s; terminating it."
+      kill -TERM "${pid}" 2>/dev/null || true
+      sleep 2
+      kill -KILL "${pid}" 2>/dev/null || true
+      wait "${pid}" 2>/dev/null || true
+      cat "${logfile}"
+      rm -f "${logfile}"
+      return 124
+    fi
+    sleep 5
+    waited=$((waited + 5))
+  done
+  set +e
+  wait "${pid}" 2>/dev/null
   status=$?
-  log "${output}"
-  if echo "${output}" | grep -qE 'already downloaded|No needed downloadables'; then
-    log "iOS platform/runtime already present."
-    return 0
-  fi
-  log "arm64 variant unavailable; retrying with universal…"
-  if output="$(xcodebuild -downloadPlatform iOS -architectureVariant universal 2>&1)"; then
-    log "${output}"
-    return 0
-  fi
-  status=$?
-  log "${output}"
-  if echo "${output}" | grep -qE 'already downloaded|No needed downloadables'; then
-    log "iOS platform/runtime already present."
-    return 0
-  fi
+  set -e
+  cat "${logfile}"
+  rm -f "${logfile}"
   return "${status}"
+}
+
+download_ios_platform() {
+  log "Downloading the iOS platform for the active Xcode…"
+  local variant attempt output status
+  # `universal` first: the generic iOS device destination the build uses needs
+  # the device platform, while the arm64 variant is only the simulator
+  # runtime. Asking for arm64 alone reported "already present" on a runner
+  # that had no device platform at all, and the build then failed much later
+  # with "No Xcode build settings have been found".
+  for variant in universal arm64; do
+    # xcodebuild exits non-zero when there is nothing to download, so the
+    # "already present" answer is success and needs its own flag.
+    variant_ok=0
+    for attempt in 1 2 3; do
+      log "Requesting the iOS platform (variant ${variant}, attempt ${attempt}/3)…"
+      set +e
+      output="$(run_with_timeout "${IOS_PLATFORM_TIMEOUT_S:-900}" \
+        xcodebuild -downloadPlatform iOS -architectureVariant "${variant}")"
+      status=$?
+      set -e
+      log "${output}"
+      if [ "${status}" -eq 0 ]; then
+        variant_ok=1
+        break
+      fi
+      if echo "${output}" | grep -qE 'already downloaded|No needed downloadables'; then
+        log "iOS platform already present (${variant})."
+        variant_ok=1
+        break
+      fi
+      if [ "${status}" -eq 124 ]; then
+        log "The ${variant} download did not finish in time; retrying."
+      fi
+      sleep 15
+    done
+    # The device platform is what the generic iOS destination needs, so its
+    # failure is fatal. The arm64 simulator variant is best effort — the
+    # destination check below is the real gate.
+    if [ "${variant}" = "universal" ] && [ "${variant_ok}" -eq 0 ]; then
+      log "The iOS device platform could not be downloaded." >&2
+      return 1
+    fi
+  done
+  return 0
 }
 
 restart_simulator_services() {
@@ -59,12 +109,20 @@ restart_simulator_services() {
 
 assert_ios_destination() {
   log "Checking for a usable generic iOS device destination…"
-  if xcodebuild -showdestinations -workspace ios/Runner.xcworkspace -scheme Runner -sdk iphoneos 2>&1 \
-    | grep -q "platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder"; then
+  # The placeholder id also appears in the "Ineligible destinations" list, where
+  # it carries an "error:" clause ("iOS 26.5 is not installed"), so matching
+  # the id alone proves nothing — the check has to reject the ineligible line.
+  local destinations
+  destinations="$(xcodebuild -showdestinations -workspace ios/Runner.xcworkspace -scheme Runner -sdk iphoneos 2>&1)" || true
+  if printf '%s\n' "${destinations}" \
+    | grep -E "platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder" \
+    | grep -qv "error:"; then
     log "generic iOS device destination is available."
     return 0
   fi
-  log "No generic iOS device destination. Install components in Xcode > Settings > Components," >&2
+  log "No usable generic iOS device destination." >&2
+  printf '%s\n' "${destinations}" | grep -E "error:" | head -5 >&2 || true
+  log "Install components in Xcode > Settings > Components," >&2
   log "or run: xcodebuild -downloadPlatform iOS && sudo xcodebuild -runFirstLaunch" >&2
   return 1
 }

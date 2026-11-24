@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 const _diskGuardPath = '.github/scripts/ensure_macos_disk_headroom.sh';
 const _retryScriptPath = '.github/scripts/retry_command.sh';
 const _gradlePrefetchPath = 'tool/prefetch_gradle_distribution.sh';
+const _iosToolchainPath = '.github/scripts/ensure_ios_ci_toolchain.sh';
+const _platformInstallerPath = '.github/scripts/install_apple_platform.sh';
 
 const _appleWorkflowPath = '.github/workflows/build_apple.yml';
 const _releaseAppleWorkflowPath = '.github/workflows/release_apple.yml';
@@ -252,6 +254,79 @@ exit 0
         );
       }
       expect(File(_gradlePrefetchPath).existsSync(), isTrue);
+    });
+
+    test('the iOS toolchain check asks for the device platform', () {
+      final script = _read(_iosToolchainPath);
+      expect(
+        script,
+        contains(r'-architectureVariant "${variant}"'),
+        reason: 'the platform request has to name the variant explicitly',
+      );
+      expect(
+        script,
+        contains('for variant in universal arm64'),
+        reason:
+            'the universal variant carries the device platform the generic '
+            'iOS destination needs; the arm64 variant is only the simulator '
+            'runtime, and asking for it alone reported "already present" on a '
+            'runner that had no device platform',
+      );
+      expect(
+        script,
+        isNot(contains('for variant in arm64 universal')),
+        reason: 'the device platform has to be requested first',
+      );
+      expect(
+        script,
+        contains('grep -qv "error:"'),
+        reason:
+            'the destination check has to reject an ineligible destination — '
+            'the placeholder id also appears in the ineligible list',
+      );
+      expect(
+        script,
+        contains('run_with_timeout'),
+        reason:
+            'the platform download prints no progress, so it has to be '
+            'bounded and retried instead of hanging the runner',
+      );
+    });
+
+    test('the platform installer restores the firewall it changed', () {
+      final script = _read(_platformInstallerPath);
+      expect(File(_platformInstallerPath).existsSync(), isTrue);
+      expect(
+        script,
+        contains('block out proto udp to port 443'),
+        reason: 'the QUIC fallback is the whole point of the installer',
+      );
+      expect(
+        script,
+        contains('trap cleanup EXIT INT TERM'),
+        reason:
+            'the rule has to be removed even when the script is interrupted, '
+            'or the host is left without QUIC',
+      );
+      expect(
+        script,
+        contains('pfctl -d'),
+        reason:
+            'macOS ships pf disabled; the installer has to restore that state '
+            'rather than leave the host firewalled',
+      );
+      expect(
+        script,
+        contains(r'cp "${backup_file}" /etc/pf.conf'),
+        reason: 'the anchor added to /etc/pf.conf has to be removed again',
+      );
+      expect(
+        script,
+        contains('--dry-run'),
+        reason:
+            'the ruleset has to be verifiable without enabling pf or editing '
+            '/etc/pf.conf',
+      );
     });
   });
 }
