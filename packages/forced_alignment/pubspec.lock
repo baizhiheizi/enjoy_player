@@ -164,7 +164,7 @@ packages:
     source: hosted
     version: "0.13.0"
   mcfcc_nsn:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: mcfcc_nsn
       sha256: b57c6f7654c2822b9853fefb71cb10de4280868b78bc1d6679596769f67dc082
