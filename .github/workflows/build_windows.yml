@@ -60,6 +60,9 @@ jobs:
     environment:
       name: ${{ github.event_name == 'pull_request' && !contains(fromJSON('["OWNER", "MEMBER"]'), github.event.pull_request.author_association) && 'ci-approval' || 'ci-direct' }}
     runs-on: [self-hosted, windows, flutter]
+    # Self-hosted jobs have no default timeout: a stuck build could hold the
+    # runner indefinitely.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
 

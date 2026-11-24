@@ -15,6 +15,7 @@ on:
       - "tool/patch_agp9_pub_plugins.dart"
       - "tool/patch_agp9_pub_plugins.ps1"
       - "tool/prefetch_media_kit_android_libs.sh"
+      - "tool/prefetch_gradle_distribution.sh"
       - "tool/prefetch_sqlite3_libs.sh"
       - "mise.toml"
       - ".github/actions/setup-flutter/**"
@@ -34,6 +35,7 @@ on:
       - "tool/patch_agp9_pub_plugins.dart"
       - "tool/patch_agp9_pub_plugins.ps1"
       - "tool/prefetch_media_kit_android_libs.sh"
+      - "tool/prefetch_gradle_distribution.sh"
       - "tool/prefetch_sqlite3_libs.sh"
       - "mise.toml"
       - ".github/actions/setup-flutter/**"
@@ -186,6 +188,13 @@ jobs:
       # Gradle resolve them from the local Maven repository this produces.
       - name: Prefetch Flutter engine Android artifacts
         run: bash tool/prefetch_flutter_engine_android_libs.sh
+
+      # The Gradle wrapper downloads its own distribution with no retry and no
+      # integrity check, so a truncated transfer becomes a persistent
+      # "ZipException: zip END header not found" that the cache restore keeps
+      # re-serving. Fetch it with retries and verify the archive instead.
+      - name: Prefetch Gradle distribution
+        run: bash tool/prefetch_gradle_distribution.sh
 
       - name: Flutter build apk (debug)
         run: flutter build apk --debug --flavor store

@@ -10,8 +10,29 @@
 #   MACOS_DEVELOPER_ID_CERT_BASE64 + MACOS_DEVELOPER_ID_CERT_PASSWORD
 set -euo pipefail
 
+# A locked keychain still lists its certificates, so `security find-identity`
+# succeeds while codesign cannot reach the private key. The symptom is an
+# opaque "errSecInternalComponent" from codesign with no mention of the
+# keychain, so the lock is detected here and reported as what it is.
+assert_login_keychain_unlocked() {
+  local keychain="${HOME}/Library/Keychains/login.keychain-db"
+  [ -e "${keychain}" ] || return 0
+  local output
+  if output="$(security show-keychain-info "${keychain}" 2>&1)"; then
+    return 0
+  fi
+  case "${output}" in
+    *"User interaction is not allowed"*)
+      echo "::error::The login keychain is locked, so codesign cannot reach the signing key (errSecInternalComponent). Unlock it on the runner Mac (security unlock-keychain) and re-run." >&2
+      return 1
+      ;;
+  esac
+  return 0
+}
+
 if [ "${APPLE_USE_RUNNER_KEYCHAIN:-true}" = "true" ]; then
   echo "Using existing login keychain on self-hosted runner."
+  assert_login_keychain_unlocked
   security find-identity -v -p codesigning | head -10 || true
   exit 0
 fi

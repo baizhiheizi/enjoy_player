@@ -64,6 +64,13 @@ jobs:
 
       - uses: ./.github/actions/setup-macos-runner-env
 
+      # The release build is the heaviest Apple compile on this runner
+      # (universal Release + notarization + TestFlight), so it claims the disk
+      # headroom first and fails fast on a full volume instead of dying inside
+      # Xcode with an opaque "No space left on device".
+      - name: Ensure disk headroom
+        run: bash .github/scripts/ensure_macos_disk_headroom.sh prune
+
       - uses: ./.github/actions/setup-flutter
 
       - name: Build Apple release
