@@ -1,6 +1,6 @@
 /// Small pieces shared by the takes row under the Echo loop and the takes
-/// list: take numbering, the play / pause glyph, and whether a take can be
-/// scored.
+/// list: take numbering and length, the play / pause glyph, and whether a
+/// take can be scored.
 library;
 
 import 'dart:io';
@@ -39,17 +39,24 @@ bool takeIsPlayable(RecordingRow row) {
   return path != null && path.isNotEmpty;
 }
 
-bool takeCanBeScored(WidgetRef ref, RecordingRow row) {
+/// Take length formatted as `1.5 s`.
+String takeDurationLabel(RecordingRow row) =>
+    '${(row.duration / 1000).toStringAsFixed(1)} s';
+
+/// Whether pronunciation assessment covers [row]'s language.
+bool takeAssessmentSupported(WidgetRef ref, RecordingRow row) {
   final learningLanguage = ref
       .watch(appPreferencesCtrlProvider)
       .valueOrNull
       ?.effectiveLearningLanguage;
-  return takeIsPlayable(row) &&
-      isAzurePronunciationAssessmentSupportedForPractice(
-        row.language,
-        learningLanguage: learningLanguage,
-      );
+  return isAzurePronunciationAssessmentSupportedForPractice(
+    row.language,
+    learningLanguage: learningLanguage,
+  );
 }
+
+bool takeCanBeScored(WidgetRef ref, RecordingRow row) =>
+    takeIsPlayable(row) && takeAssessmentSupported(ref, row);
 
 /// Play, or pause while [row]'s file is the one playing.
 class TakePlayGlyph extends ConsumerWidget {

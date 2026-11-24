@@ -13,10 +13,7 @@ import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/application/app_language_catalog.dart';
-import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
@@ -24,6 +21,7 @@ import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.
 import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_controller.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_flow.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/score_level.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_take_bits.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Bounded memo for the fallback score parse: the derivation is pure in the
@@ -86,18 +84,9 @@ class RecordingAssessmentButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final lp = row.localPath;
-    final learningLanguage = ref
-        .watch(appPreferencesCtrlProvider)
-        .valueOrNull
-        ?.effectiveLearningLanguage;
-    final assessmentSupported =
-        isAzurePronunciationAssessmentSupportedForPractice(
-          row.language,
-          learningLanguage: learningLanguage,
-        );
+    final assessmentSupported = takeAssessmentSupported(ref, row);
     final canInteract =
-        echoActive && lp != null && lp.isNotEmpty && assessmentSupported;
+        echoActive && takeIsPlayable(row) && assessmentSupported;
 
     final ui = ref.watch(recordingAssessmentControllerProvider(row.id));
     final isAssessing = ui.isRunning;
