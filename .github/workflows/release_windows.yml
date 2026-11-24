@@ -43,6 +43,8 @@ jobs:
   release:
     name: Windows release
     runs-on: [self-hosted, windows, flutter]
+    # Self-hosted jobs have no default timeout.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
         with:

@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # Re-run a command with bounded retries and escalating backoff.
 #
-# Why:
-#   On the shared self-hosted pool a build can fail because the host was
-#   starved, not because the code is broken — ADR-0105 records the pool's
-#   "self-hosted runner lost communication with the server" shape and calls
-#   for a retry before suspecting the suite. A release compile is the
-#   expensive step in the Linux build, so it gets a second and third chance
-#   before the job goes red.
+# What this covers: a command that fails and leaves the job alive — the
+# compile process killed by the OOM killer, a flaky CMake configure, a
+# transient network error inside the build. The command exits non-zero and
+# the step keeps running, so the retry loop gets its chance.
+#
+# What this does NOT cover: the runner losing contact with GitHub. That
+# failure ends the job at the runner level — the step never gets to run
+# again — so it needs a job re-run, not a command retry (ADR-0105 records it
+# as "retry the failed legs"). The Linux release compile is the step that
+# gets this treatment; a runner-level loss is handled by re-running the job.
 #
 # Usage:
 #   bash .github/scripts/retry_command.sh <attempts> <delay_seconds> <command> [args...]

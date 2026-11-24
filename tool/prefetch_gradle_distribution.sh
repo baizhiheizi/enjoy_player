@@ -35,6 +35,21 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 android_dir="${root}/android"
+sweep_only=0
+
+for arg in "$@"; do
+  case "${arg}" in
+    --sweep-only) sweep_only=1 ;;
+    -h | --help)
+      sed -n '2,36p' "$0"
+      exit 0
+      ;;
+    *)
+      echo "Usage: $0 [--sweep-only]" >&2
+      exit 2
+      ;;
+  esac
+done
 
 log() {
   echo "[prefetch_gradle_distribution] $*"
@@ -69,27 +84,30 @@ resolve_flutter_root() {
 }
 
 ensure_wrapper_present() {
+  # The wrapper is injected by Flutter at build time (it is gitignored, so it is
+  # absent on a fresh checkout). When it is already there, the SDK lookup does
+  # not matter.
+  if [ -x "${android_dir}/gradlew" ] &&
+     [ -f "${android_dir}/gradle/wrapper/gradle-wrapper.jar" ]; then
+    return 0
+  fi
   local flutter_root artifact
   if ! flutter_root="$(resolve_flutter_root)"; then
-    log "Could not locate the Flutter SDK; skipping the wrapper injection."
+    log "Could not locate the Flutter SDK; the Gradle wrapper is unavailable."
     return 1
   fi
   artifact="${flutter_root}/bin/cache/artifacts/gradle_wrapper"
   if [ ! -d "${artifact}" ]; then
-    log "The Flutter SDK has no gradle_wrapper artifact; skipping the wrapper injection."
+    log "The Flutter SDK has no gradle_wrapper artifact; the Gradle wrapper is unavailable."
     return 1
   fi
-  if [ ! -x "${android_dir}/gradlew" ]; then
-    log "Injecting the Gradle wrapper from the Flutter SDK (gitignored, so it is absent on a fresh checkout)."
-    cp "${artifact}/gradlew" "${android_dir}/gradlew"
-    cp "${artifact}/gradlew.bat" "${android_dir}/gradlew.bat"
-    chmod +x "${android_dir}/gradlew"
-  fi
-  if [ ! -f "${android_dir}/gradle/wrapper/gradle-wrapper.jar" ]; then
-    mkdir -p "${android_dir}/gradle/wrapper"
-    cp "${artifact}/gradle/wrapper/gradle-wrapper.jar" \
-      "${android_dir}/gradle/wrapper/gradle-wrapper.jar"
-  fi
+  log "Injecting the Gradle wrapper from the Flutter SDK (gitignored, so it is absent on a fresh checkout)."
+  cp "${artifact}/gradlew" "${android_dir}/gradlew"
+  cp "${artifact}/gradlew.bat" "${android_dir}/gradlew.bat"
+  chmod +x "${android_dir}/gradlew"
+  mkdir -p "${android_dir}/gradle/wrapper"
+  cp "${artifact}/gradle/wrapper/gradle-wrapper.jar" \
+    "${android_dir}/gradle/wrapper/gradle-wrapper.jar"
   return 0
 }
 
@@ -164,12 +182,19 @@ download_distribution() {
   return 1
 }
 
+# The sweep runs before the wrapper is resolved: a corrupt archive left by a
+# cache restore has to go whether or not this machine can run the wrapper.
+sweep_corrupt_zips
+
+if [ "${sweep_only}" -eq 1 ]; then
+  log "Sweep only; not downloading."
+  exit 0
+fi
+
 if ! ensure_wrapper_present; then
   log "The Gradle wrapper is unavailable; leaving the distribution to the wrapper."
   exit 0
 fi
-
-sweep_corrupt_zips
 
 log "Resolving the Gradle distribution ${dist_name}…"
 if (cd "${android_dir}" && ./gradlew --version >/dev/null 2>&1); then

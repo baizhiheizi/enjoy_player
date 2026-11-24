@@ -53,6 +53,10 @@ jobs:
   release:
     name: iOS + macOS release
     runs-on: [self-hosted, macos]
+    # Self-hosted jobs have no default timeout. The Apple release is the
+    # heaviest build on the pool — universal Release, notarization and
+    # TestFlight — so it gets a generous but bounded budget.
+    timeout-minutes: 180
     env:
       APPLE_USE_RUNNER_KEYCHAIN: ${{ vars.APPLE_USE_RUNNER_KEYCHAIN || 'true' }}
       NOTARY_PROFILE: enjoy-notary

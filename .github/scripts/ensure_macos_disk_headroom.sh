@@ -56,6 +56,11 @@ free_gib() {
   # so a wrapped device name — macOS `df` puts a long filesystem name on its
   # own line and shifts the numeric columns — cannot turn "Available" into
   # "Used".
+  #
+  # An output without a capacity column yields an empty string, and the
+  # comparison below would then be an awk syntax error that exits non-zero —
+  # which reads as "enough space" unless the caller checks for it. The caller
+  # does, and fails closed.
   df -Pk "$1" | tail -n 1 | awk '{
     for (i = 1; i <= NF; i++) {
       if ($i ~ /^[0-9]+%$/) {
@@ -101,15 +106,26 @@ if [ "${mode}" = "prune" ]; then
 fi
 
 free="$(free_gib "${workspace_root}")"
+
+# Fail closed: a free-space value that is empty or not a number means the
+# volume could not be measured, and a build must not start on an unmeasured
+# volume. Comparing it anyway would make awk fail on the syntax error, which
+# reads as "enough space".
+if ! printf '%s' "${free}" | grep -qE '^[0-9]+(\.[0-9]+)?$'; then
+  log "Could not measure the free space on the workspace volume (got '${free}')."
+  echo "::error::Could not measure the free space on the runner volume; refusing to start an Apple build on an unmeasured volume."
+  exit 1
+fi
+
 log "Free space on the workspace volume: ${free} GiB (need ${required_gib} GiB)"
 
 # awk exits 0 exactly when the free space is below the floor.
 if awk "BEGIN{exit !(${free} < ${required_gib})}"; then
   log "Not enough disk headroom for an Apple build on this runner."
   log "Free: ${free} GiB, required: ${required_gib} GiB."
-  log "The floor is twice the build's peak DerivedData, so it must not be"
-  log "lowered below it — reclaim space on the runner host instead, or raise"
-  log "APPLE_DISK_HEADROOM_GIB if the floor is simply too high for this volume."
+  log "Reclaim space on the runner host, or lower APPLE_DISK_HEADROOM_GIB to"
+  log "this volume's real capacity — but never below the build's peak"
+  log "DerivedData, or the build runs out of room halfway through."
   echo "::error::Apple build needs ${required_gib} GiB free but only ${free} GiB is available on the runner volume."
   exit 1
 fi

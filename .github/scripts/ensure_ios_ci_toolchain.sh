@@ -12,7 +12,9 @@ log() {
 
 run_first_launch() {
   log "Running xcodebuild -runFirstLaunch (CoreSimulator + required components)…"
-  if xcodebuild -runFirstLaunch; then
+  # Bounded for the same reason as the platform download: it is an
+  # xcodebuild invocation that can sit without output.
+  if run_with_timeout "${IOS_FIRST_LAUNCH_TIMEOUT_S:-240}" xcodebuild -runFirstLaunch; then
     return 0
   fi
   local status=$?
@@ -42,8 +44,8 @@ run_with_timeout() {
       rm -f "${logfile}"
       return 124
     fi
-    sleep 5
-    waited=$((waited + 5))
+    sleep 1
+    waited=$((waited + 1))
   done
   set +e
   wait "${pid}" 2>/dev/null
@@ -57,6 +59,13 @@ run_with_timeout() {
 download_ios_platform() {
   log "Downloading the iOS platform for the active Xcode…"
   local variant attempt output status
+  # The per-attempt timeout is sized so the whole step fits inside the Apple
+  # job's budget: two variants × three attempts × (timeout + 15 s backoff) is
+  # ~25 min at the 240 s default, and the job allows 45 min for everything
+  # including the two compiles. A per-attempt timeout the job budget cannot
+  # accommodate would kill the job before the destination check ever runs,
+  # which is exactly the opaque timeout failure the check exists to replace.
+  local attempt_timeout="${IOS_PLATFORM_TIMEOUT_S:-240}"
   # `universal` first: the generic iOS device destination the build uses needs
   # the device platform, while the arm64 variant is only the simulator
   # runtime. Asking for arm64 alone reported "already present" on a runner
@@ -69,7 +78,7 @@ download_ios_platform() {
     for attempt in 1 2 3; do
       log "Requesting the iOS platform (variant ${variant}, attempt ${attempt}/3)…"
       set +e
-      output="$(run_with_timeout "${IOS_PLATFORM_TIMEOUT_S:-900}" \
+      output="$(run_with_timeout "${attempt_timeout}" \
         xcodebuild -downloadPlatform iOS -architectureVariant "${variant}")"
       status=$?
       set -e

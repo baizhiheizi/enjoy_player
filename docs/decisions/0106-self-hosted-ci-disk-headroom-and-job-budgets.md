@@ -91,18 +91,25 @@ fails a release with the same opaque message.
    build's DerivedData is still on disk when the Release build starts and the
    universal Release build is the peak.
 
-3. **Bound every self-hosted platform job.** `build_apple.yml` (both jobs),
-   `build_linux.yml` and `build_windows.yml` now carry `timeout-minutes: 45`,
-   matching the shape `ci.yml` and `android_apk_smoke.yml` already used. A
-   wedged build can no longer hold a runner forever.
+3. **Bound every self-hosted job.** The platform builds get 45 minutes
+   (`build_apple.yml`'s two jobs, `build_linux.yml`, `build_windows.yml`),
+   matching the shape `ci.yml` and `android_apk_smoke.yml` already used. The
+   release builds get more room, because the Apple release is the heaviest
+   compile on the pool — universal Release, notarization and TestFlight: 180
+   minutes for `release_apple.yml`, 120 for `release_android.yml`,
+   `release_linux.yml` and `release_windows.yml`. A wedged build can no longer
+   hold a runner forever.
 
 4. **Retry the expensive Linux compile.**
    [`.github/scripts/retry_command.sh`](../../.github/scripts/retry_command.sh)
    runs `flutter build linux --release` up to three times with escalating
-   backoff. ADR-0105 already established that "lost communication" on this
-   pool is host starvation rather than a broken build, and prescribed a retry
-   before suspecting the suite; this makes that retry part of the job instead
-   of a manual re-run.
+   backoff. This covers a **command-level** failure — the compile process
+   killed by the OOM killer, a flaky configure step — where the step exits
+   non-zero and the job keeps running. It does **not** cover the runner
+   losing contact with GitHub: that ends the job at the runner level, so the
+   step never gets to run again and the remedy is a job re-run, which is what
+   ADR-0105's "retry the failed legs" prescribes. The two failure shapes
+   need different remedies, and the script says which one it addresses.
 
 5. **Report a locked keychain as a locked keychain.**
    `setup_apple_signing.sh` checks the login keychain before the release signs

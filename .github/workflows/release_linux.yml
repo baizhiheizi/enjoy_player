@@ -26,6 +26,8 @@ jobs:
   release:
     name: Linux release
     runs-on: [self-hosted, Linux, ci]
+    # Self-hosted jobs have no default timeout.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
         with:

@@ -141,6 +141,40 @@ void main() {
             'manual cleanup',
       );
     });
+
+    test('fails closed when the free space cannot be measured', () async {
+      final sandbox = await Directory.systemTemp.createTemp('disk_guard_');
+      addTearDown(() => sandbox.delete(recursive: true));
+      final stubBin = Directory('${sandbox.path}/bin')
+        ..createSync(recursive: true);
+      // A `df` whose output has no capacity column: the free space cannot be
+      // parsed, and the guard must refuse to start a build rather than
+      // compare an empty value.
+      File('${stubBin.path}/df').writeAsStringSync(r'''#!/bin/sh
+printf 'Filesystem 1024-blocks Used Available\\n'
+printf 'weird-device 100 50 50\\n'
+exit 0
+''');
+      Process.runSync('chmod', ['+x', '${stubBin.path}/df']);
+
+      final result = await Process.run(
+        'bash',
+        [_diskGuardPath, 'check'],
+        environment: {
+          'PATH': '${stubBin.path}:${Platform.environment['PATH']}',
+          'APPLE_WORKSPACE_ROOT': sandbox.path,
+          'APPLE_DISK_HEADROOM_GIB': '8',
+          'RUNNER_TOOL_CACHE': '${sandbox.path}/tool',
+        },
+      );
+
+      expect(
+        result.exitCode,
+        isNot(0),
+        reason: 'an unmeasurable volume must not pass the guard',
+      );
+      expect(result.stdout.toString(), contains('Could not measure'));
+    });
   });
 
   group('retry_command.sh', () {
@@ -240,14 +274,15 @@ exit 0
       }
     });
 
-    test('the Linux release build retries a starved host', () {
+    test('the Linux release build retries a command-level failure', () {
       final workflow = _read(_linuxWorkflowPath);
       expect(
         workflow,
         contains('retry_command.sh'),
         reason:
-            'ADR-0105 records the pool\'s "lost communication" shape as host '
-            'starvation, so the expensive release compile must be retried',
+            'a command-level failure (the compile process killed, a flaky '
+            'configure step) leaves the job alive, so the expensive release '
+            'compile must be retried',
       );
       expect(
         workflow.indexOf('retry_command.sh'),
@@ -341,5 +376,211 @@ exit 0
             '/etc/pf.conf',
       );
     });
+
+    test('the pf ruleset blocks UDP/443 last', () async {
+      final result = await Process.run('bash', [
+        _platformInstallerPath,
+        '--print-ruleset',
+      ]);
+
+      expect(result.exitCode, 0, reason: result.stderr.toString());
+      final lines = result.stdout
+          .toString()
+          .split('\n')
+          .where((line) => line.trim().isNotEmpty)
+          .toList();
+      expect(lines, isNotEmpty);
+      expect(
+        lines.last,
+        'block out proto udp to port 443',
+        reason:
+            'pf is last-match-wins: a block that any later rule overrides '
+            'never takes effect, so it has to be the last rule',
+      );
+      expect(
+        lines.any((line) => line.startsWith('pass out all')),
+        isTrue,
+        reason:
+            'the ruleset has to be self-contained — macOS\'s stock pf.conf '
+            'has no top-level pass rule, so relying on the default policy '
+            'would gamble with the host\'s connectivity',
+      );
+    });
+
+    test('the iOS toolchain check rejects an ineligible destination', () async {
+      final sandbox = await Directory.systemTemp.createTemp('ios_toolchain_');
+      addTearDown(() => sandbox.delete(recursive: true));
+      final stubBin = Directory('${sandbox.path}/bin')
+        ..createSync(recursive: true);
+
+      File('${stubBin.path}/xcodebuild').writeAsStringSync(r'''#!/bin/sh
+case "$*" in
+  *-showdestinations*)
+    cat "$FIXTURE_DIR/destinations.txt"
+    ;;
+  *-downloadPlatform*)
+    printf 'No needed downloadables found for %s\\n' "$(echo "$*" | sed -n 's/.*architectureVariant \\([^ ]*\\).*/\\1/p')"
+    exit 1
+    ;;
+esac
+exit 0
+''');
+      File('${stubBin.path}/killall').writeAsStringSync('#!/bin/sh\nexit 0\n');
+      File('${stubBin.path}/xcrun').writeAsStringSync('#!/bin/sh\nexit 0\n');
+      for (final stub in ['xcodebuild', 'killall', 'xcrun']) {
+        Process.runSync('chmod', ['+x', '${stubBin.path}/$stub']);
+      }
+
+      Future<ProcessResult> runWithDestinations(String fixture) async {
+        File('${sandbox.path}/destinations.txt').writeAsStringSync(fixture);
+        return Process.run(
+          'bash',
+          [_iosToolchainPath],
+          environment: {
+            'PATH': '${stubBin.path}:${Platform.environment['PATH']}',
+            'FIXTURE_DIR': sandbox.path,
+          },
+        );
+      }
+
+      const eligible = '''
+Available destinations for the "Runner" scheme:
+\t\t{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }
+''';
+      const ineligible = '''
+Ineligible destinations for the "Runner" scheme:
+\t\t{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device, error:iOS 26.5 is not installed. Please download and install the platform from Xcode > Settings > Components. }
+''';
+
+      final eligibleResult = await runWithDestinations(eligible);
+      expect(
+        eligibleResult.exitCode,
+        0,
+        reason:
+            'an eligible destination must pass:\n'
+            '${eligibleResult.stdout}\n${eligibleResult.stderr}',
+      );
+      expect(eligibleResult.stdout.toString(), contains('is available'));
+
+      final ineligibleResult = await runWithDestinations(ineligible);
+      expect(
+        ineligibleResult.exitCode,
+        isNot(0),
+        reason:
+            'the placeholder id also appears in the ineligible list, so a '
+            'check that only matches the id passes on exactly the runner it '
+            'is meant to catch',
+      );
+      expect(
+        '${ineligibleResult.stdout}${ineligibleResult.stderr}',
+        contains('No usable generic'),
+      );
+    });
+
+    test(
+      'the Gradle prefetch replaces a truncated distribution archive',
+      () async {
+        final sandbox = await Directory.systemTemp.createTemp(
+          'gradle_prefetch_',
+        );
+        addTearDown(() => sandbox.delete(recursive: true));
+
+        final scriptDir = Directory('${sandbox.path}/tool')
+          ..createSync(recursive: true);
+        File(
+          '${scriptDir.path}/prefetch_gradle_distribution.sh',
+        ).writeAsStringSync(_read(_gradlePrefetchPath));
+        final androidDir = Directory('${sandbox.path}/android')
+          ..createSync(recursive: true);
+        final wrapperDir = Directory('${androidDir.path}/gradle/wrapper')
+          ..createSync(recursive: true);
+        File('${wrapperDir.path}/gradle-wrapper.properties').writeAsStringSync(
+          '''
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+distributionUrl=https\\://services.gradle.org/distributions/gradle-9.3.1-all.zip
+''',
+        );
+        File('${wrapperDir.path}/gradle-wrapper.jar').writeAsStringSync('jar');
+
+        // A wrapper that reports the distribution as missing until a valid
+        // archive is in place, then succeeds.
+        File('${androidDir.path}/gradlew').writeAsStringSync(r'''#!/bin/sh
+archive="$GRADLE_USER_HOME/wrapper/dists/gradle-9.3.1-all/hash/gradle-9.3.1-all.zip"
+if [ -f "$archive" ] && unzip -tqq "$archive" >/dev/null 2>&1; then
+  exit 0
+fi
+exit 1
+''');
+        Process.runSync('chmod', ['+x', '${androidDir.path}/gradlew']);
+
+        final stubBin = Directory('${sandbox.path}/bin')
+          ..createSync(recursive: true);
+        File('${stubBin.path}/curl').writeAsStringSync(r'''#!/bin/sh
+out=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -o) out="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+mkdir -p "$(dirname "$out")"
+cp "$FIXTURE_DIR/valid.zip" "$out"
+exit 0
+''');
+        Process.runSync('chmod', ['+x', '${stubBin.path}/curl']);
+
+        // A real (small) zip to serve as the download.
+        final zipDir = Directory('${sandbox.path}/zip')
+          ..createSync(recursive: true);
+        File('${zipDir.path}/payload.txt').writeAsStringSync('gradle');
+        Process.runSync('zip', [
+          '-q',
+          '-j',
+          '${sandbox.path}/valid.zip',
+          '${zipDir.path}/payload.txt',
+        ]);
+
+        final gradleHome = '${sandbox.path}/gradle-home';
+        final distDir = Directory(
+          '$gradleHome/wrapper/dists/gradle-9.3.1-all/hash',
+        )..createSync(recursive: true);
+        final archiveFile = File('${distDir.path}/gradle-9.3.1-all.zip');
+        archiveFile.writeAsStringSync('PK not really a zip');
+
+        final result = await Process.run(
+          'bash',
+          ['${scriptDir.path}/prefetch_gradle_distribution.sh'],
+          environment: {
+            'PATH': '${stubBin.path}:${Platform.environment['PATH']}',
+            'FIXTURE_DIR': sandbox.path,
+            'GRADLE_USER_HOME': gradleHome,
+            'FLUTTER_ROOT': '${sandbox.path}/no-sdk',
+          },
+        );
+
+        expect(
+          result.exitCode,
+          0,
+          reason: 'prefetch failed:\n${result.stdout}\n${result.stderr}',
+        );
+        expect(
+          archiveFile.existsSync(),
+          isTrue,
+          reason: 'the distribution archive has to be in place afterwards',
+        );
+        expect(archiveFile.readAsBytesSync().length, greaterThan(0));
+        final unzipCheck = Process.runSync('unzip', ['-tqq', archiveFile.path]);
+        expect(
+          unzipCheck.exitCode,
+          0,
+          reason:
+              'the truncated archive has to be replaced by one that actually '
+              'unzips — that is the whole point of the prefetch',
+        );
+      },
+    );
   });
 }

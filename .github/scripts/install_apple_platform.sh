@@ -27,27 +27,30 @@
 #
 # Requires sudo. Usage:
 #   sudo bash .github/scripts/install_apple_platform.sh [--dry-run]
+#   bash .github/scripts/install_apple_platform.sh --print-ruleset
 #
 # The dry run validates the ruleset with `pfctl -n` and reports what would
-# change; it never enables pf or touches /etc/pf.conf.
+# change; it never enables pf or touches /etc/pf.conf. --print-ruleset just
+# prints the ruleset and needs no privileges.
 set -euo pipefail
 
 anchor="enjoy_player"
 rules_file="$(mktemp -t enjoy-pf-rules.XXXXXX)"
 backup_file="$(mktemp -t enjoy-pf-conf.XXXXXX)"
 dry_run=0
+print_ruleset=0
 pf_was_enabled=0
-anchor_added=0
 
 for arg in "$@"; do
   case "${arg}" in
     --dry-run) dry_run=1 ;;
+    --print-ruleset) print_ruleset=1 ;;
     -h | --help)
-      sed -n '2,32p' "$0"
+      sed -n '2,34p' "$0"
       exit 0
       ;;
     *)
-      echo "Usage: $0 [--dry-run]" >&2
+      echo "Usage: $0 [--dry-run] [--print-ruleset]" >&2
       exit 2
       ;;
   esac
@@ -57,25 +60,80 @@ log() {
   echo "[install_apple_platform] $*"
 }
 
+# pf is last-match-wins (pf.conf(5)): "the last matching rule decides what
+# action is performed". The block has to come AFTER the pass rules, or the
+# trailing `pass out all` overrides it and UDP/443 keeps flowing.
+#
+# The ruleset is self-contained on purpose: macOS's stock /etc/pf.conf has no
+# top-level pass rules in the com.apple anchor, so relying on the default
+# policy would be a gamble with the host's connectivity.
+write_ruleset() {
+  cat >"${rules_file}" <<'EOF'
+pass out all
+pass in all
+block out proto udp to port 443
+EOF
+}
+
 cleanup() {
   local status=$?
-  if [ "${dry_run}" -eq 0 ]; then
+  if [ "${dry_run}" -eq 0 ] && [ "${print_ruleset}" -eq 0 ]; then
     log "Removing the temporary pf rule."
     pfctl -a "${anchor}" -F all 2>/dev/null || true
     pfctl -a "${anchor}" -X "${anchor}" 2>/dev/null || true
+    if [ -f "${backup_file}" ]; then
+      cp "${backup_file}" /etc/pf.conf 2>/dev/null || true
+      pfctl -f /etc/pf.conf 2>/dev/null || true
+      log "Restored /etc/pf.conf."
+    fi
     if [ "${pf_was_enabled}" -eq 0 ]; then
       pfctl -d 2>/dev/null || true
       log "pf disabled again (it was disabled before)."
-    fi
-    if [ "${anchor_added}" -eq 1 ] && [ -f "${backup_file}" ]; then
-      cp "${backup_file}" /etc/pf.conf 2>/dev/null || true
-      log "Restored /etc/pf.conf."
     fi
   fi
   rm -f "${rules_file}" "${backup_file}"
   exit "${status}"
 }
 trap cleanup EXIT INT TERM
+
+if [ "${print_ruleset}" -eq 1 ]; then
+  write_ruleset
+  cat "${rules_file}"
+  exit 0
+fi
+
+# Runs a command, kills it after the timeout, and echoes its output.
+# `timeout` is not part of macOS, so the wait is done here.
+run_with_timeout() {
+  local timeout_s="$1"
+  shift
+  local logfile pid waited status
+  logfile="$(mktemp -t enjoy-platform-timeout.XXXXXX)"
+  "$@" >"${logfile}" 2>&1 &
+  pid=$!
+  waited=0
+  while kill -0 "${pid}" 2>/dev/null; do
+    if [ "${waited}" -ge "${timeout_s}" ]; then
+      log "The command exceeded ${timeout_s}s; terminating it."
+      kill -TERM "${pid}" 2>/dev/null || true
+      sleep 2
+      kill -KILL "${pid}" 2>/dev/null || true
+      wait "${pid}" 2>/dev/null || true
+      cat "${logfile}"
+      rm -f "${logfile}"
+      return 124
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+  set +e
+  wait "${pid}" 2>/dev/null
+  status=$?
+  set -e
+  cat "${logfile}"
+  rm -f "${logfile}"
+  return "${status}"
+}
 
 if [ "$(id -u)" -ne 0 ]; then
   echo "install_apple_platform: needs sudo (it edits /etc/pf.conf and pf)." >&2
@@ -95,11 +153,7 @@ if printf '%s\n' "${destinations}" \
 fi
 log "The generic iOS device destination is not usable; the platform is missing."
 
-cat >"${rules_file}" <<EOF
-block out proto udp to port 443
-pass out all
-pass in all
-EOF
+write_ruleset
 
 if [ "${dry_run}" -eq 1 ]; then
   log "Dry run: validating the ruleset without applying it."
@@ -114,7 +168,6 @@ cp /etc/pf.conf "${backup_file}"
 if ! grep -q "^anchor \"${anchor}\"" /etc/pf.conf; then
   log "Adding the '${anchor}' anchor to /etc/pf.conf."
   printf '\nanchor "%s"\n' "${anchor}" >>/etc/pf.conf
-  anchor_added=1
 fi
 
 if pfctl -s info 2>/dev/null | grep -q "Status: Enabled"; then
@@ -126,12 +179,27 @@ else
 fi
 
 log "Loading the UDP/443 block rule…"
+# Reload the main ruleset: the running one has to reference the anchor, or the
+# anchor's rules are never evaluated. `pfctl -a … -f` alone only fills the
+# anchor's rule list — nothing points at it until /etc/pf.conf is reloaded.
+pfctl -f /etc/pf.conf
 pfctl -a "${anchor}" -f "${rules_file}" -v
+
+log "Asserting the block is live…"
+if ! pfctl -a "${anchor}" -sr -v 2>&1 | grep -q "block out proto udp to port 443"; then
+  echo "install_apple_platform: the UDP/443 block is not in the running ruleset." >&2
+  exit 1
+fi
 pfctl -a "${anchor}" -sr -v 2>&1 | sed 's/^/[pf] /'
 
 log "Downloading the iOS platform over TCP…"
-xcodebuild -downloadPlatform iOS -architectureVariant universal
-xcodebuild -downloadPlatform iOS -architectureVariant arm64
+# The download is bounded: xcodebuild prints no progress while mobileassetd
+# fetches the asset, so an unbounded call would hang forever — the exact
+# failure this script exists to work around.
+run_with_timeout "${INSTALL_APPLE_PLATFORM_TIMEOUT_S:-1800}" \
+  xcodebuild -downloadPlatform iOS -architectureVariant universal || true
+run_with_timeout "${INSTALL_APPLE_PLATFORM_TIMEOUT_S:-1800}" \
+  xcodebuild -downloadPlatform iOS -architectureVariant arm64 || true
 
 log "Verifying the generic iOS device destination…"
 destinations="$(xcodebuild -showdestinations -workspace ios/Runner.xcworkspace -scheme Runner -sdk iphoneos 2>&1 || true)"

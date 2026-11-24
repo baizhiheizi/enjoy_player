@@ -56,10 +56,17 @@ hung one — and a job that waits on it waits forever.
    variant's is not.
 
 2. **Bound and retry every request.** Each `xcodebuild -downloadPlatform` call
-   runs under a timeout (`IOS_PLATFORM_TIMEOUT_S`, default 900 s) and is
-   retried up to three times. macOS has no `timeout(1)`, so the script
-   implements the wait itself. A stalled download can no longer hold the
-   runner, and a slow-but-progressing one is retried instead of abandoned.
+   runs under a timeout (`IOS_PLATFORM_TIMEOUT_S`, default **240 s**) and is
+   retried up to three times; `xcodebuild -runFirstLaunch` is bounded the same
+   way (`IOS_FIRST_LAUNCH_TIMEOUT_S`, default 240 s). macOS has no
+   `timeout(1)`, so the script implements the wait itself.
+
+   The per-attempt timeout is sized against the **job** budget, not chosen on
+   its own: two variants × three attempts × (timeout + 15 s backoff) is ~25
+   minutes at 240 s, and the Apple job allows 45 minutes for everything
+   including the two compiles. A per-attempt timeout the job budget cannot
+   accommodate would kill the job before the destination check ever runs —
+   which is the opaque timeout failure this check exists to replace.
 
 3. **Reject an ineligible destination.** The destination check now requires
    the placeholder destination *without* an `error:` clause, and prints the
@@ -72,8 +79,29 @@ hung one — and a job that waits on it waits forever.
    pf rule, then restores the machine: the rule, the anchor, `/etc/pf.conf`,
    and pf's enabled/disabled state — including the "pf disabled" state macOS
    ships with. A runner whose platform is already installed exits without
-   touching anything, and `--dry-run` validates the ruleset with `pfctl -n`
-   without enabling pf or editing `/etc/pf.conf`.
+   touching anything, `--dry-run` validates the ruleset with `pfctl -n` without
+   enabling pf or editing `/etc/pf.conf`, and `--print-ruleset` prints the
+   ruleset without privileges.
+
+   Two pf details decide whether the block works at all:
+
+   - **pf is last-match-wins** (pf.conf(5): "the last matching rule decides
+     what action is performed"), so the block has to come *after* the pass
+     rules. With the block first, the trailing `pass out all` overrides it,
+     UDP/443 keeps flowing, and the "force TCP" download hangs forever — the
+     exact failure the script exists to work around.
+   - **The running ruleset has to reference the anchor.** `pfctl -a … -f` only
+     fills the anchor's rule list; nothing evaluates it until the main
+     ruleset is reloaded. The script therefore reloads `/etc/pf.conf` after
+     adding the anchor, and asserts with `pfctl -a … -sr` that the block is
+     actually live before it starts the download.
+
+   The ruleset is self-contained on purpose (`pass out all`, `pass in all`,
+   then the block): macOS's stock `/etc/pf.conf` has no top-level pass rule in
+   the com.apple anchor, so relying on the default policy would gamble with
+   the host's connectivity. The download itself is bounded, because
+   `xcodebuild -downloadPlatform` prints no progress and an unbounded call
+   hangs forever.
 
 ## Consequences
 
@@ -81,7 +109,8 @@ hung one — and a job that waits on it waits forever.
   message that names it, instead of failing later inside Flutter with an
   unrelated message.
 - The platform request cannot hang the job: the worst case is three bounded
-  attempts per variant.
+  attempts per variant, and the total fits inside the 45-minute Apple job
+  budget so the destination check always gets to run.
 - The pf escape hatch is opt-in and self-restoring. It needs sudo, and it
   temporarily changes the machine's firewall state, so it is a deliberate
   operator action rather than something a CI job does on its own — the CI job

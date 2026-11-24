@@ -34,6 +34,8 @@ jobs:
   release:
     name: Android release
     runs-on: [self-hosted, Linux]
+    # Self-hosted jobs have no default timeout.
+    timeout-minutes: 120
     env:
       ANDROID_USE_RUNNER_KEYSTORE: ${{ vars.ANDROID_USE_RUNNER_KEYSTORE || 'false' }}
       # This runner sits behind a network where dl.google.com resets the TLS
