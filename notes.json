@@ -8,7 +8,7 @@
     {
       "number": 1392,
       "state": "awaiting_approval",
-      "updated_at": "2026-11-21",
+      "updated_at": "2026-11-24",
       "note": "weekly-research timeout 15->45m: agent cannot push workflow files (workflows scope). Issue body carries the manual-PR steps; maintainer must act. Do not retry."
     }
   ],
@@ -16,20 +16,26 @@
   "checks": [
     {
       "area": "release",
-      "checked_at": "2026-11-21",
-      "result": "#1422 refreshed onto main 7b9badf0: fuller #1412 kept (compact dropped), new [0.10.4] entries #1433/#1423/#1428, both 11-19 vigil release-notes findings fixed. Merge commit + docs commit on fe595e8. Gates green: 7446 passed/59 skipped.",
-      "follow_up": "await #1422 merge + tag v0.10.4; maintainer-only"
+      "checked_at": "2026-11-24",
+      "result": "v0.11.0 tagged 37d5147a; #1422 superseded/closed 11-22. Windows green post-4f237d90; Apple attempt 2 red at runner keychain (unlock-keychain fix documented). No v0.11.0 Release object yet; v0.10.2/v0.10.0/v0.9.0 backfill open.",
+      "follow_up": "monthly item updated: publish v0.11.0 then backfill"
+    },
+    {
+      "area": "docs",
+      "checked_at": "2026-11-24",
+      "result": "ADR index 108/108 in sync. ADR-0108 orphan citation fixed in ci-self-hosted-runners.md (branch repo-assist/basics-adr-0108-runner-doc-citation, PR #1473, draft). [Unreleased] folded into [0.11.0].",
+      "follow_up": "await #1473 review"
     },
     {
       "area": "ci",
-      "checked_at": "2026-11-20",
-      "result": "No Dependabot PRs open; no actionable CI gap. #1392 maintainer-blocked. Sandbox: run flutter pub get after branch switches, before codegen.",
-      "follow_up": null
+      "checked_at": "2026-11-24",
+      "result": "main CI green at 4f237d90 (run 1748). No Dependabot PRs. Only posthog_flutter 5.61.3 within-constraint; majors maintainer-held. Sandbox: stale .dart_tool after branch switch; pub get fixes.",
+      "follow_up": "bundle posthog 5.61.3 into next refresh"
     },
     {
-      "area": "tests",
-      "checked_at": "2026-11-21",
-      "result": "Full mirror green on the #1422 refresh: analyze clean, 7446 passed/59 skipped. validate_ci_gates default set is format+codegen+path-deps only; add --analyze --test for analyze/tests.",
+      "area": "qa",
+      "checked_at": "2026-11-24",
+      "result": "No gap worth a PR: #1433 deep link has 23 tests; Gradle harness tested post-4f237d90; coverage baseline enforced; main green.",
       "follow_up": null
     }
   ],
@@ -37,13 +43,13 @@
   "priorities": [
     {
       "task": 10,
-      "item": "await #1422 merge + tag v0.10.4",
-      "note": "Branch carries main exactly plus docs edits; clean by any merge method. Do not re-push unless main advances again."
+      "item": "watch v0.11.0 publish",
+      "note": "Apple release red on locked runner keychain; once green the Release object is created. Then check the v0.10.2/v0.10.0/v0.9.0 backfill."
     },
     {
       "task": 2,
-      "item": "issue sweep 2026-11-21",
-      "note": "Cursor -> 1437; 11 issues reviewed. Detector lanes off-limits: large-file-simplifier splits = maintainer's own (#1432); duplicate-code = @copilot (#1434-#1437, #1434 verified in code). #1251 wontfix - never re-attempt."
+      "item": "issue sweep",
+      "note": "Cursor 1437 (2026-11-21). Detector lanes off-limits: large-file-simplifier = maintainer's own; duplicate-code routes to @copilot (PRs #1469/#1470 in flight). #1251 wontfix. perf-improver code lane (#1471) off-limits."
     }
   ]
 }
