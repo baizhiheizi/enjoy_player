@@ -2,7 +2,9 @@
 
 - `flutter pub get` — resolves against pub.dev; cold pub-cache download can exceed 10 min (re-run resumes from warm cache). On a fresh runner: budget with run_in_background + max timeout.
 - `flutter analyze` — must pass with zero issues.
-- `flutter test` — full app suite (~20 min on this runner; 7436 passing / 61 skipped as of 2026-11-20). `test/tool/patch_agp9_pub_plugins_test.dart` shells out to `flutter` — the suite must run with a WRITABLE SDK first on `PATH`.
+- `flutter test` — full app suite (~20 min on this runner; 7537 passing / 71 skipped as of 2026-11-24). `test/tool/patch_agp9_pub_plugins_test.dart` shells out to `flutter` — the suite must run with a WRITABLE SDK first on `PATH`. The sqlite3 system-lib pubspec workaround must stay in place for the WHOLE verify pass: native assets build the sqlite3 hook during `flutter test` itself (2026-11-24: reverting after pub get failed the suite with "Building native assets failed").
+- Path packages: CI's "Flutter test (path packages)" job runs `cd packages/<pkg> && flutter pub get && flutter test` for every package with a test dir — package-local benches + tests belong in packages/<pkg>/test/.
+- Pinned-SDK download: ~1 GB takes ~45 min on this sandbox's throttled link; `curl -C - -o flutter.tar.xz <url>` resumes a killed download.
 - `flutter test --run-skipped <file>` — runs the repo's local-only microbenchmarks; select one with `--plain-name '<name>'` (`-n` does not exist on the pinned Flutter). Run A/B arms sequentially, ONE implementation per fresh process.
 - `dart format lib test packages/*/lib packages/*/test` — the formatter (`flutter format` does not exist).
 - `dart run build_runner build --delete-conflicting-outputs` — regenerate Drift/Riverpod/Freezed outputs (~41 s warm).
