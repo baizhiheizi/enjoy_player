@@ -4,7 +4,6 @@ library;
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:material_ui/material_ui.dart';
 
@@ -19,6 +18,7 @@ import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_controller.dart';
+import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_json.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_flow.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/score_level.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_take_bits.dart';
@@ -26,7 +26,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Bounded memo for the fallback score parse: the derivation is pure in the
 /// raw JSON string, so entries never expire, and take widgets re-call it per
-/// rebuild while [jsonDecode] walks the whole NBest document for one field.
+/// rebuild while the decode walks the whole `NBest` document for one field.
 final L1Store<String, _PronScoreHit> _pronScoreMemo = L1Store(capacity: 128);
 
 class _PronScoreHit {
@@ -48,26 +48,9 @@ int? _parsePronScoreFromAssessmentJson(String? raw) {
   final hit = _pronScoreMemo.peek(raw);
   if (hit != null) return hit.score;
   pronScoreParseCount++;
-  final score = _decodePronScore(raw);
+  final score = decodeStoredPronScore(raw);
   _pronScoreMemo.put(raw, _PronScoreHit(score));
   return score;
-}
-
-int? _decodePronScore(String raw) {
-  try {
-    final m = jsonDecode(raw) as Map<String, dynamic>;
-    final nb = m['NBest'] as List<dynamic>?;
-    if (nb == null || nb.isEmpty) return null;
-    final first = nb.first;
-    if (first is! Map<String, dynamic>) return null;
-    final pa = first['PronunciationAssessment'];
-    if (pa is! Map<String, dynamic>) return null;
-    final v = pa['PronScore'];
-    if (v is num) return v.round();
-    return null;
-  } on Object {
-    return null;
-  }
 }
 
 class RecordingAssessmentButton extends ConsumerWidget {

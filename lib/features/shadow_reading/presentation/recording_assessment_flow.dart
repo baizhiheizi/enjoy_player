@@ -1,8 +1,6 @@
 /// Shared assessment trigger (toolbar button, hotkey, take menu).
 library;
 
-import 'dart:convert';
-
 import 'package:azure_speech/azure_speech.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +15,7 @@ import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_controller.dart';
+import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_json.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/assessment_margin.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_dialog.dart';
@@ -115,23 +114,20 @@ Future<void> triggerRecordingAssessment({
   if (!forceRun) {
     final stored = row.assessmentJson?.trim();
     if (stored != null && stored.isNotEmpty) {
-      try {
-        final parsed = AzurePronunciationAssessmentResult.fromJson(
-          jsonDecode(stored) as Map<String, dynamic>,
-        );
-        if (!context.mounted) return;
-        await _revealAssessment(
-          context,
-          assessment: parsed,
-          localeTag: pronounceLocale,
-          recordingPath: row.localPath,
-          marginWhenWide: marginWhenWide,
-          takeNumber: takeNumber,
-        );
-      } on Object {
-        if (!context.mounted) return;
+      final parsed = tryParseStoredAssessment(stored);
+      if (!context.mounted) return;
+      if (parsed == null) {
         AppNotice.error(context, l10n.assessmentInvalidStored);
+        return;
       }
+      await _revealAssessment(
+        context,
+        assessment: parsed,
+        localeTag: pronounceLocale,
+        recordingPath: row.localPath,
+        marginWhenWide: marginWhenWide,
+        takeNumber: takeNumber,
+      );
       return;
     }
   }
