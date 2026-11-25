@@ -1,12 +1,9 @@
 /// Decoded pronunciation notes for an assessed shadow-reading take.
 library;
 
-import 'dart:convert';
-
-import 'package:azure_speech/azure_speech.dart';
-
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_json.dart';
 
 /// Above this payload size the assessment JSON decodes off the UI isolate.
 const int kTakeAssessmentDecodeIsolateGate = 32 * 1024;
@@ -22,21 +19,8 @@ String normalizeAssessmentWord(String word) =>
 /// fail-closed behavior. The function is isolate-safe: it touches only plain
 /// data and the Azure result model.
 Set<String> takeAssessmentErrorWords(String assessmentJson) {
-  final Map<String, dynamic> decoded;
-  try {
-    final value = jsonDecode(assessmentJson);
-    if (value is! Map<String, dynamic>) return const <String>{};
-    decoded = value;
-  } on Object {
-    return const <String>{};
-  }
-  final AzurePronunciationAssessmentResult result;
-  try {
-    result = AzurePronunciationAssessmentResult.fromJson(decoded);
-  } on Object {
-    return const <String>{};
-  }
-  if (result.nBest.isEmpty) return const <String>{};
+  final result = tryParseStoredAssessment(assessmentJson);
+  if (result == null || result.nBest.isEmpty) return const <String>{};
   final bad = <String>{};
   for (final word in result.nBest.first.words) {
     final error = word.pronunciationAssessment.errorType;

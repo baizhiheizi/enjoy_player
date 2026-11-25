@@ -129,7 +129,7 @@ class _TakeListRow extends ConsumerWidget {
         .watch(recordingAssessmentControllerProvider(row.id))
         .isRunning;
     final canScore = takeCanBeScored(ref, row);
-    final duration = '${(row.duration / 1000).toStringAsFixed(1)} s';
+    final duration = takeDurationLabel(row);
 
     void assess() => unawaited(
       triggerRecordingAssessment(

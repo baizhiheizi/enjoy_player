@@ -777,7 +777,7 @@ void main() {
       expect(deleteItem.enabled, isFalse);
     });
 
-    testWidgets('_takeNumber fallback returns list.length when id not found', (
+    testWidgets('takeNumber fallback returns list.length when id not found', (
       tester,
     ) async {
       final env = await _buildEnv(tester);

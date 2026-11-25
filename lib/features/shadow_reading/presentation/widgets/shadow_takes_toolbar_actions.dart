@@ -12,6 +12,7 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_button.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_flow.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'shadow_take_bits.dart';
 
 /// `PopupMenuButton` value tokens for the takes menu — kept library-private.
 const kShadowDeleteTakeToken = '__shadow_delete_current_take__';
@@ -66,22 +67,16 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
   final VoidCallback onDeleteCurrent;
   final Future<void> Function(String id) onChooseTake;
 
-  int _takeNumber(RecordingRow r) {
-    final i = list.indexWhere((e) => e.id == r.id);
-    if (i < 0) return list.length;
-    return list.length - i;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = EnjoyThemeTokens.of(context);
     final preview = ref.watch(recordingPreviewPlayerProvider);
     final lp = row.localPath;
-    final canPlay = echoActive && lp != null && lp.isNotEmpty;
+    final canPlay = echoActive && takeIsPlayable(row);
 
     final takeSummary =
-        '${l10n.shadowRecordingTake} ${_takeNumber(row)} · '
-        '${(row.duration / 1000).toStringAsFixed(1)} s';
+        '${l10n.shadowRecordingTake} ${takeNumberOf(list, row)} · '
+        '${takeDurationLabel(row)}';
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -171,8 +166,8 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                           ),
                           Expanded(
                             child: Text(
-                              '${l10n.shadowRecordingTake} ${list.length - i} · '
-                              '${(r.duration / 1000).toStringAsFixed(1)} s',
+                              '${l10n.shadowRecordingTake} ${takeNumberOf(list, r)} · '
+                              '${takeDurationLabel(r)}',
                             ),
                           ),
                           if (score != null)
