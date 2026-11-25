@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -189,6 +191,37 @@ void main() {
       expect(find.text('First video'), findsOneWidget);
       expect(find.text('Second video'), findsOneWidget);
       expect(find.byType(SliverList), findsWidgets);
+    });
+
+    testWidgets('the feed grid keeps tile elements across a reorder', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(960, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final feed = StreamController<List<FeedEntry>>();
+      addTearDown(feed.close);
+      await tester.pumpWidget(
+        _wrap(
+          subscriptions: Stream.value(_subscriptions),
+          timeline: feed.stream,
+        ),
+      );
+      feed.add(_entries);
+      await tester.pumpAndSettle();
+
+      final first = find.byKey(const ValueKey<String>('discover-feed-vid_001'));
+      final second = find.byKey(const ValueKey<String>('discover-feed-vid_002'));
+      final firstElement = tester.element(first);
+      expect(tester.getTopLeft(first).dx, lessThan(tester.getTopLeft(second).dx));
+
+      feed.add(_entries.reversed.toList());
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(first).dx,
+        greaterThan(tester.getTopLeft(second).dx),
+      );
+      expect(tester.element(first), same(firstElement));
     });
 
     testWidgets('shows feed empty state when entries are empty', (

@@ -229,6 +229,37 @@ void main() {
       },
     );
 
+    testWidgets('the channel grid keeps tile elements across a reorder', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1080, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final feed = StreamController<List<FeedEntry>>();
+      addTearDown(feed.close);
+      await tester.pumpWidget(
+        _wrap(
+          subscriptions: Stream.value(_subscriptions),
+          channelFeed: feed.stream,
+        ),
+      );
+      feed.add(_entries);
+      await tester.pumpAndSettle();
+
+      final first = find.byKey(const ValueKey<String>('channel-feed-vid_001'));
+      final second = find.byKey(const ValueKey<String>('channel-feed-vid_002'));
+      final firstElement = tester.element(first);
+      expect(tester.getTopLeft(first).dx, lessThan(tester.getTopLeft(second).dx));
+
+      feed.add([_entries[1], _entries[0], _entries[2]]);
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(first).dx,
+        greaterThan(tester.getTopLeft(second).dx),
+      );
+      expect(tester.element(first), same(firstElement));
+    });
+
     testWidgets(
       'the unsubscribed icon button triggers repository unsubscribe',
       (tester) async {

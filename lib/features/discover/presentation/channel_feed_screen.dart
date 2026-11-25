@@ -13,11 +13,13 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
+import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
-import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_feed_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+
+const _channelFeedKeyPrefix = 'channel-feed-';
 
 class ChannelFeedScreen extends ConsumerWidget {
   const ChannelFeedScreen({required this.channelId, super.key});
@@ -83,7 +85,7 @@ class ChannelFeedScreen extends ConsumerWidget {
               separatorBuilder: (_, _) => SizedBox(height: t.space20),
               itemBuilder: (context, index) => KeyedSubtree(
                 key: ValueKey<String>(
-                  'channel-feed-${entries[index].entry.videoId}',
+                  '$_channelFeedKeyPrefix${entries[index].entry.videoId}',
                 ),
                 child: DiscoverFeedTile(
                   entry: entries[index].entry,
@@ -98,8 +100,9 @@ class ChannelFeedScreen extends ConsumerWidget {
           final tileWidth =
               (gridExtent - t.space16 * (crossAxisCount - 1)) / crossAxisCount;
 
-          return GridView.builder(
+          return GridView.custom(
             padding: EdgeInsets.all(gutter),
+            semanticChildCount: entries.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
               mainAxisSpacing: t.space20,
@@ -108,24 +111,16 @@ class ChannelFeedScreen extends ConsumerWidget {
                 tileWidth,
               ),
             ),
-            itemCount: entries.length,
-            itemBuilder: (context, index) => Align(
-              key: ValueKey<String>(
-                'channel-feed-${entries[index].entry.videoId}',
-              ),
-              alignment: Alignment.topCenter,
-              child: DiscoverFeedTile(
-                entry: entries[index].entry,
-                inLibrary: entries[index].inLibrary,
-                channelName: entries[index].channelName,
-                channelAvatarUrl: entries[index].channelAvatarUrl,
-              ),
-            ),
-            findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
+            childrenDelegate: mediaCardKeyedDelegate(
               items: entries,
-              key: key,
-              prefix: 'channel-feed-',
-              idOf: (e) => e.entry.videoId,
+              keyPrefix: _channelFeedKeyPrefix,
+              idOf: (item) => item.entry.videoId,
+              tileBuilder: (context, item) => DiscoverFeedTile(
+                entry: item.entry,
+                inLibrary: item.inLibrary,
+                channelName: item.channelName,
+                channelAvatarUrl: item.channelAvatarUrl,
+              ),
             ),
           );
         },

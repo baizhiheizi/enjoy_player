@@ -162,7 +162,7 @@ Failures during avatar fetch return `null`, so the caller can fall back to a pla
 
 ## Sliver performance
 
-The merged feed grid and the channel feed grid both use stable `ValueKey<String>` — `discover-feed-<videoId>` on the merged feed, `channel-feed-<videoId>` on the channel feed — plus `findChildIndexCallback` via `findSliverIndexByPrefixedId` so a refresh that only prepends new entries reuses existing tile `Element`s.
+The merged feed and channel feed grids use [`mediaCardKeyedDelegate`](../../lib/core/theme/widgets/media_card/helpers.dart) to keep the `discover-feed-<videoId>` and `channel-feed-<videoId>` keys paired with their index lookup. A refresh that prepends entries can reuse existing tile elements. Each grid retains its own geometry.
 
 ## Library membership in the feed
 

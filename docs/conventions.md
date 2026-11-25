@@ -125,7 +125,7 @@ Grids/lists backed by a Drift stream or an RSS refresh re-emit their full item l
 
 Use a stable `ValueKey<String>` per row plus `findChildIndexCallback` so Flutter can reuse existing `Element`s instead of tearing them down.
 
-For the Home recents and local Library video grids, use [`mediaCardKeyedDelegate`](../lib/core/theme/widgets/media_card/helpers.dart). It uses the same prefix and ID accessor to build and look up each tile's key. For slivers with a different layout, pair the key with the lookup directly:
+For media-card grids, use [`mediaCardKeyedDelegate`](../lib/core/theme/widgets/media_card/helpers.dart). It uses the same prefix and ID accessor to build and look up each tile's key, independent of the grid geometry. For non-grid layouts, pair the key with the lookup directly:
 
 ```dart
 SliverChildBuilderDelegate(
@@ -142,7 +142,7 @@ SliverChildBuilderDelegate(
 
 [`findSliverIndexByPrefixedId<T>`](../lib/core/utils/sliver_key_index.dart) looks up a key by its prefix and ID suffix. It returns `null` for the wrong key type, wrong prefix, or a missing ID. Interleaved lists must convert the returned item index to a child index that accounts for separators.
 
-Home recents use `home-media-` and local Library video uses `local-video-`. Discover's merged feed and channel feed keep their own layouts and use `discover-feed-` and `channel-feed-` respectively. The lookup is covered by `test/core/utils/sliver_key_index_test.dart`.
+Home recents use `home-media-`, local Library video uses `local-video-`, and Discover's merged and channel feeds use `discover-feed-` and `channel-feed-`. The interleaved Library audio rows use `local-audio-`; both those rows and the narrow Discover feed list account for separators. The lookup is covered by `test/core/utils/sliver_key_index_test.dart`.
 
 ## Stream dedupe (long live streams)
 

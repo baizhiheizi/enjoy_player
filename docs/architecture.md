@@ -143,4 +143,4 @@ The same limit applies to function-typed providers: a provider whose return type
 
 ## Sliver child identity (long live lists)
 
-Grids and lists backed by a Drift stream or RSS refresh use stable `ValueKey<String>` values and `findChildIndexCallback` to reuse existing `Element`s when items move. Home recents and local Library video share [`mediaCardKeyedDelegate`](../lib/core/theme/widgets/media_card/helpers.dart); other layouts can use [`findSliverIndexByPrefixedId`](../lib/core/utils/sliver_key_index.dart) directly. See [conventions.md § Sliver performance](conventions.md#sliver-performance-long-live-lists).
+Grids and lists backed by a Drift stream or RSS refresh use stable `ValueKey<String>` values and `findChildIndexCallback` to reuse existing `Element`s when items move. Home recents, local Library video, and the two Discover grids share [`mediaCardKeyedDelegate`](../lib/core/theme/widgets/media_card/helpers.dart) without coupling their geometry. Other layouts can use [`findSliverIndexByPrefixedId`](../lib/core/utils/sliver_key_index.dart) directly. See [conventions.md § Sliver performance](conventions.md#sliver-performance-long-live-lists).
