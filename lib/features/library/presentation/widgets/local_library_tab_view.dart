@@ -286,23 +286,12 @@ class LocalVideoLibraryBody extends StatelessWidget {
         return SliverGrid(
           gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
             crossAxisExtent: crossAxisExtent,
-            minTileWidth: _kLibraryTileMinWidth,
-            mainAxisSpacing: 24,
-            crossAxisSpacing: 20,
           ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) => Align(
-              key: ValueKey<String>('$_kLocalVideoKeyPrefix${items[index].id}'),
-              alignment: Alignment.topCenter,
-              child: LocalVideoTile(media: items[index]),
-            ),
-            childCount: items.length,
-            findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
-              items: items,
-              key: key,
-              prefix: _kLocalVideoKeyPrefix,
-              idOf: (m) => m.id,
-            ),
+          delegate: mediaCardKeyedDelegate(
+            items: items,
+            keyPrefix: 'local-video-',
+            idOf: (media) => media.id,
+            tileBuilder: (context, media) => LocalVideoTile(media: media),
           ),
         );
       },
@@ -310,9 +299,7 @@ class LocalVideoLibraryBody extends StatelessWidget {
   }
 }
 
-const double _kLibraryTileMinWidth = 210;
 const String _kLocalAudioKeyPrefix = 'local-audio-';
-const String _kLocalVideoKeyPrefix = 'local-video-';
 
 class LocalVideoTile extends ConsumerWidget {
   const LocalVideoTile({required this.media, super.key});

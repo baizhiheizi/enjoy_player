@@ -29,6 +29,8 @@ import 'package:enjoy_player/features/discover/presentation/discover_feed_tile.d
 import 'package:enjoy_player/features/discover/presentation/discover_manage_channels.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+const _discoverFeedKeyPrefix = 'discover-feed-';
+
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
 
@@ -263,7 +265,7 @@ class _DiscoverFeedSliver extends StatelessWidget {
                           final item = entries[itemIndex];
                           return KeyedSubtree(
                             key: ValueKey<String>(
-                              'discover-feed-${item.entry.videoId}',
+                              '$_discoverFeedKeyPrefix${item.entry.videoId}',
                             ),
                             child: DiscoverFeedTile(
                               entry: item.entry,
@@ -280,7 +282,7 @@ class _DiscoverFeedSliver extends StatelessWidget {
                           final itemIndex = findSliverIndexByPrefixedId(
                             items: entries,
                             key: key,
-                            prefix: 'discover-feed-',
+                            prefix: _discoverFeedKeyPrefix,
                             idOf: (e) => e.entry.videoId,
                           );
                           return itemIndex == null ? null : itemIndex * 2;
@@ -309,27 +311,16 @@ class _DiscoverFeedSliver extends StatelessWidget {
                         metaHeight: discoverFeedTileMetaHeight,
                       ),
                     ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => Align(
-                        key: ValueKey<String>(
-                          'discover-feed-${entries[index].entry.videoId}',
-                        ),
-                        alignment: Alignment.topCenter,
-                        child: DiscoverFeedTile(
-                          entry: entries[index].entry,
-                          inLibrary: entries[index].inLibrary,
-                          channelName: entries[index].channelName,
-                          channelAvatarUrl: entries[index].channelAvatarUrl,
-                        ),
+                    delegate: mediaCardKeyedDelegate(
+                      items: entries,
+                      keyPrefix: _discoverFeedKeyPrefix,
+                      idOf: (item) => item.entry.videoId,
+                      tileBuilder: (context, item) => DiscoverFeedTile(
+                        entry: item.entry,
+                        inLibrary: item.inLibrary,
+                        channelName: item.channelName,
+                        channelAvatarUrl: item.channelAvatarUrl,
                       ),
-                      childCount: entries.length,
-                      findChildIndexCallback: (key) =>
-                          findSliverIndexByPrefixedId(
-                            items: entries,
-                            key: key,
-                            prefix: 'discover-feed-',
-                            idOf: (e) => e.entry.videoId,
-                          ),
                     ),
                   );
                 },

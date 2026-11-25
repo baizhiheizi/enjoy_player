@@ -34,9 +34,6 @@ class _HomeLoadingScrollView extends ConsumerWidget {
                 return SliverGrid(
                   gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
                     crossAxisExtent: gridConstraints.crossAxisExtent,
-                    minTileWidth: _kRecentTileMinWidth,
-                    mainAxisSpacing: 24,
-                    crossAxisSpacing: 20,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => const _HomeRecentGridSkeletonTile(),

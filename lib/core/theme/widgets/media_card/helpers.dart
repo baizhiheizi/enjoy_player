@@ -11,6 +11,7 @@ import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
+import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 
 import '../../enjoy_tokens.dart';
 
@@ -155,9 +156,6 @@ double mediaCardTileGridAspectRatioForWidth(
 /// Default max column width for library / cloud video grids.
 const double mediaCardTileDefaultMaxWidth = 280;
 
-/// Minimum column width for home recents.
-const double mediaCardTileHomeMinWidth = 200;
-
 int _mediaCardTileCrossAxisCountForMaxWidth({
   required double crossAxisExtent,
   required double maxTileWidth,
@@ -206,14 +204,14 @@ SliverGridDelegate mediaCardTileGridDelegateForMaxTileWidth({
   );
 }
 
-/// Grid delegate with column count derived from [minTileWidth] (home recents).
 SliverGridDelegate mediaCardTileGridDelegateForMinTileWidth({
   required double crossAxisExtent,
-  double minTileWidth = mediaCardTileHomeMinWidth,
-  double mainAxisSpacing = 12,
-  double crossAxisSpacing = 12,
-  int maxCrossAxisCount = 6,
 }) {
+  const minTileWidth = 210.0;
+  const mainAxisSpacing = 24.0;
+  const crossAxisSpacing = 20.0;
+  const maxCrossAxisCount = 6;
+
   final effectiveMin = crossAxisExtent < 520 ? 150.0 : minTileWidth;
   final crossAxisCount =
       ((crossAxisExtent + crossAxisSpacing) / (effectiveMin + crossAxisSpacing))
@@ -229,5 +227,30 @@ SliverGridDelegate mediaCardTileGridDelegateForMinTileWidth({
     mainAxisSpacing: mainAxisSpacing,
     crossAxisSpacing: crossAxisSpacing,
     childAspectRatio: mediaCardTileGridAspectRatioForWidth(tileWidth),
+  );
+}
+
+SliverChildBuilderDelegate mediaCardKeyedDelegate<T>({
+  required List<T> items,
+  required String keyPrefix,
+  required String Function(T) idOf,
+  required Widget Function(BuildContext, T) tileBuilder,
+}) {
+  return SliverChildBuilderDelegate(
+    (context, index) {
+      final item = items[index];
+      return Align(
+        key: ValueKey<String>('$keyPrefix${idOf(item)}'),
+        alignment: Alignment.topCenter,
+        child: tileBuilder(context, item),
+      );
+    },
+    childCount: items.length,
+    findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
+      items: items,
+      key: key,
+      prefix: keyPrefix,
+      idOf: idOf,
+    ),
   );
 }
