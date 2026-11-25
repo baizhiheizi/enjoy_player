@@ -9,6 +9,9 @@ const _retryScriptPath = '.github/scripts/retry_command.sh';
 const _gradlePrefetchPath = 'tool/prefetch_gradle_distribution.sh';
 const _iosToolchainPath = '.github/scripts/ensure_ios_ci_toolchain.sh';
 const _platformInstallerPath = '.github/scripts/install_apple_platform.sh';
+const _iosSdkGatePath = '.github/scripts/check_ios_sdk_requirement.sh';
+const _iosIpaCheckPath = '.github/scripts/check_ios_ipa.sh';
+const _releaseAppleScriptPath = '.github/scripts/release_apple.sh';
 
 const _appleWorkflowPath = '.github/workflows/build_apple.yml';
 const _releaseAppleWorkflowPath = '.github/workflows/release_apple.yml';
@@ -745,5 +748,166 @@ exit 0
         expect(utf8.decode(payload!.content), 'gradle');
       },
     );
+  });
+
+  group('check_ios_sdk_requirement.sh', () {
+    late Directory scratch;
+    late Directory stubBin;
+    late File machoFile;
+
+    setUp(() async {
+      scratch = await Directory.systemTemp.createTemp('ios_sdk_gate_');
+      stubBin = Directory('${scratch.path}/stub-bin')..createSync();
+      machoFile = File('${scratch.path}/Runner')
+        ..writeAsStringSync('fake mach-o');
+    });
+
+    tearDown(() async {
+      await scratch.delete(recursive: true);
+    });
+
+    /// Writes an `xcrun` stub whose behaviour is driven by env vars, so the
+    /// gate can be exercised on any host: `FAKE_IOS_SDK_VERSION` answers
+    /// `--show-sdk-version`, `FAKE_VTOOL_OUTPUT` answers
+    /// `vtool -show-build` (empty = xcrun silent).
+    Future<void> installXcrunStub() async {
+      final stub = File('${stubBin.path}/xcrun')
+        ..writeAsStringSync('''
+#!/usr/bin/env bash
+if [ "\$1" = "--sdk" ]; then
+  printf '%s' "\$FAKE_IOS_SDK_VERSION"
+  exit 0
+fi
+if [ "\$1" = "vtool" ]; then
+  printf '%s' "\$FAKE_VTOOL_OUTPUT"
+  exit 0
+fi
+exit 0
+''');
+      await Process.run('chmod', ['+x', stub.path]);
+    }
+
+    Future<ProcessResult> runGate(
+      List<String> args, {
+      required String hostSdkVersion,
+      String vtoolOutput = '',
+      Map<String, String> extraEnvironment = const {},
+    }) async {
+      await installXcrunStub();
+      return _runScript(
+        _iosSdkGatePath,
+        args,
+        environment: {
+          'PATH': '${stubBin.path}:${Platform.environment['PATH']}',
+          'FAKE_IOS_SDK_VERSION': hostSdkVersion,
+          'FAKE_VTOOL_OUTPUT': vtoolOutput,
+          ...extraEnvironment,
+        },
+      );
+    }
+
+    test('fails the host check below the minimum and names the fix', () async {
+      final result = await runGate(const [], hostSdkVersion: '26.5');
+
+      expect(result.exitCode, isNot(0));
+      expect(result.stderr, contains('::error::'));
+      expect(result.stderr, contains('iOS 26.5 SDK'));
+      expect(result.stderr, contains('90725'));
+      expect(result.stderr, contains('xcode-select'));
+    });
+
+    test('passes the host check at the minimum', () async {
+      final result = await runGate(const [], hostSdkVersion: '27.0');
+
+      expect(result.exitCode, 0, reason: result.stderr);
+      expect(result.stdout, contains('meets the App Store upload minimum'));
+    });
+
+    test('fails the host check when no iOS SDK is reported', () async {
+      final result = await runGate(const [], hostSdkVersion: '');
+
+      expect(result.exitCode, isNot(0));
+      expect(result.stderr, contains('reports no iOS SDK'));
+    });
+
+    test(
+      '--warn downgrades a stale SDK to an annotation and succeeds',
+      () async {
+        final result = await runGate(const ['--warn'], hostSdkVersion: '26.5');
+
+        expect(result.exitCode, 0, reason: result.stderr);
+        expect(result.stderr, contains('::warning::'));
+        expect(result.stderr, isNot(contains('::error::')));
+      },
+    );
+
+    test('the bypass env downgrades a stale SDK and succeeds', () async {
+      final result = await runGate(
+        const [],
+        hostSdkVersion: '26.5',
+        extraEnvironment: const {'ALLOW_IOS_SDK_BELOW_MINIMUM': '1'},
+      );
+
+      expect(result.exitCode, 0, reason: result.stderr);
+      expect(result.stderr, contains('::warning::'));
+      expect(result.stderr, isNot(contains('::error::')));
+    });
+
+    test('fails the artifact check on an old recorded build SDK', () async {
+      final result = await runGate(
+        ['--macho', machoFile.path],
+        hostSdkVersion: '27.0',
+        vtoolOutput: ' platform IOS\n    minos 15.0\n      sdk 26.5\n',
+      );
+
+      expect(result.exitCode, isNot(0));
+      expect(result.stderr, contains('::error::'));
+      expect(result.stderr, contains('below the required minimum'));
+      expect(result.stderr, contains('90725'));
+    });
+
+    test('passes the artifact check on a current recorded build SDK', () async {
+      final result = await runGate(
+        ['--macho', machoFile.path],
+        hostSdkVersion: '27.0',
+        vtoolOutput: ' platform IOS\n    minos 15.0\n      sdk 27.0\n',
+      );
+
+      expect(result.exitCode, 0, reason: result.stderr);
+      expect(result.stdout, contains('meets the App Store upload minimum'));
+    });
+
+    test('rejects a simulator slice in a device artifact', () async {
+      final result = await runGate(
+        ['--macho', machoFile.path],
+        hostSdkVersion: '27.0',
+        vtoolOutput: ' platform IOSSIMULATOR\n    minos 15.0\n      sdk 27.0\n',
+      );
+
+      expect(result.exitCode, isNot(0));
+      expect(result.stderr, contains('non-device slices'));
+    });
+
+    test('the release path gates before the build and on the artifact', () {
+      final releaseScript = _read(_releaseAppleScriptPath);
+      expect(releaseScript, contains('check_ios_sdk_requirement.sh'));
+      expect(
+        releaseScript.indexOf('check_ios_sdk_requirement.sh'),
+        lessThan(releaseScript.indexOf('Build iOS IPA')),
+        reason: 'the SDK gate has to fail before the ~15-minute build starts',
+      );
+
+      final ipaCheck = _read(_iosIpaCheckPath);
+      expect(ipaCheck, contains('--macho'));
+
+      final toolchain = _read(_iosToolchainPath);
+      expect(
+        toolchain,
+        contains('check_ios_sdk_requirement.sh" --warn'),
+        reason:
+            'PR smoke annotates instead of failing while the runner '
+            'waits for its Xcode upgrade',
+      );
+    });
   });
 }

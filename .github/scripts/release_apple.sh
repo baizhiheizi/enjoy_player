@@ -159,6 +159,11 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
   fi
 
   if [[ "${MACOS_ONLY}" != true ]]; then
+    # App Store Connect requires the iOS 27 SDK (Xcode 27+) for iOS uploads
+    # from April 2027 (warning 90725); fail before a ~15-minute build rather
+    # than after it, on a runner still selected against an older Xcode.
+    echo ">>> iOS SDK upload gate"
+    bash "${root}/.github/scripts/check_ios_sdk_requirement.sh"
     (cd "${root}/ios" && pod install)
 
     echo ">>> Build iOS IPA"

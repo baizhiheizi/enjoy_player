@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **The iOS release can no longer be built or uploaded with a below-minimum App Store SDK** (ADR-0109): the v0.11.0 (20) upload came back with App Store Connect **warning 90725** — the IPA was built with the iOS 26.5 SDK from the runner's Xcode 26.6, and from April 2027 Apple rejects iOS uploads not built with the iOS 27 SDK (Xcode 27+) outright. The SDK comes from the build machine's selected Xcode, which nothing in the repo pinned or reported, so the requirement surfaced only as a post-upload warning. One gate, [`check_ios_sdk_requirement.sh`](.github/scripts/check_ios_sdk_requirement.sh), now owns the minimum (`IOS_SDK_MINIMUM`, 27) at both points the repo can act: `release_apple.sh` fails the release before the ~15-minute build while the runner's Xcode is older (with the upgrade commands in the failure message), and `check_ios_ipa.sh` fails on an IPA whose binary records an older build SDK — covering a stale `--skip-build --testflight` re-upload — and rejects simulator slices in a device build. PR smoke only annotates with a `::warning::` until the runner Mac is upgraded to Xcode 27, so pending-operator-work never turns PRs red; `ALLOW_IOS_SDK_BELOW_MINIMUM=1` is the documented conscious bypass. See [docs/apple-release-ci.md](docs/apple-release-ci.md) and [docs/ci-self-hosted-runners.md](docs/ci-self-hosted-runners.md).
+
 ## [0.11.0] - 2026-11-24
 
 ### Added

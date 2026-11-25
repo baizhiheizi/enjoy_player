@@ -168,7 +168,7 @@ YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-yo
 
 ### macOS (Apple)
 
-- **Xcode** + **CocoaPods** + Apple Developer team **`46X685R747`**
+- **Xcode 27+** (iOS 27 SDK — Apple's upload minimum from April 2027, warning 90725; enforced by [`check_ios_sdk_requirement.sh`](../.github/scripts/check_ios_sdk_requirement.sh), ADR-0109) + **CocoaPods** + Apple Developer team **`46X685R747`**
 - **Homebrew** + FFmpeg deps: `brew bundle install --file=macos/Brewfile`
 - **Compat dylibs** (see [ADR-0102](decisions/0102-macos-compat-dylibs-macos-12-floor.md)):
   `bash macos/scripts/build_compat_dylibs.sh` — builds every

@@ -151,3 +151,10 @@ run_first_launch
 download_ios_platform
 restart_simulator_services
 assert_ios_destination
+
+# App Store Connect requires the iOS 27 SDK (Xcode 27+) for iOS uploads from
+# April 2027 (warning 90725). PR smoke only warns — the enforcing gates live in
+# release_apple.sh (pre-build) and check_ios_ipa.sh (artifact) — so a runner
+# still selected against an older Xcode shows a yellow annotation instead of
+# red PRs until it is upgraded.
+bash "$(dirname "$0")/check_ios_sdk_requirement.sh" --warn

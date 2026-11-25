@@ -160,6 +160,8 @@ sudo xcodebuild -runFirstLaunch
 xcodebuild -downloadPlatform iOS
 ```
 
+**Xcode 27 or later** is required on the Mac runner: App Store Connect accepts iOS uploads made with the iOS 27 SDK or later from April 2027 (warning 90725), and the release gates on it (ADR-0109) — the PR smoke job prints a `::warning::` annotation until the runner is upgraded, and an Apple release fails hard while `xcode-select` still points at an older Xcode.
+
 The **Build Apple** workflow runs [`.github/scripts/ensure_ios_ci_toolchain.sh`](../.github/scripts/ensure_ios_ci_toolchain.sh) before iOS compile smoke. If `xcodebuild -runFirstLaunch` fails with *Authorization is required*, run the `sudo` command above on the runner Mac.
 
 The script's destination check rejects an **ineligible** generic device destination. The placeholder id (`dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder`) also appears in the "Ineligible destinations" list, where it carries an `error:` clause — "iOS 26.5 is not installed" — so matching the id alone proved nothing and the check passed on a runner whose iOS platform was missing. It now requires the placeholder *without* an error, and prints the destination errors it found.

@@ -67,5 +67,12 @@ if [[ "${minimum_os}" != "15.0" ]]; then
   exit 1
 fi
 
+# The upload gate works on the artifact, not the host: the exported binary
+# records the SDK that actually built it, so a stale IPA re-uploaded with
+# --skip-build is caught here too (App Store Connect warning 90725 — iOS 27
+# SDK required from April 2027, ADR-0109).
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+bash "${script_dir}/check_ios_sdk_requirement.sh" --macho "${app}/Runner"
+
 codesign --verify --deep --strict "${app}"
 echo "iOS IPA packaging ok: ${ipa} (MinimumOSVersion=${minimum_os})"
