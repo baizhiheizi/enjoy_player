@@ -22,9 +22,16 @@ KEY_PATH="$(release_asc_config_dir)/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
 
 release_unlock_login_keychain
 
-xcrun notarytool store-credentials "${PROFILE}" \
+# Notarization no longer consumes this profile — notarize_release.sh submits
+# with the cached API key directly, because macOS 26's notarytool cannot write
+# a keychain profile headlessly (errSecInteractionNotAllowed even on an
+# unlocked keychain). Keep the store attempt best-effort for local users whose
+# other tooling reads the profile; a failure must not fail the release run.
+if ! xcrun notarytool store-credentials "${PROFILE}" \
   --key "${KEY_PATH}" \
   --key-id "${APP_STORE_CONNECT_API_KEY_ID}" \
-  --issuer "${APP_STORE_CONNECT_ISSUER_ID}"
+  --issuer "${APP_STORE_CONNECT_ISSUER_ID}"; then
+  echo "store-credentials failed (see above); continuing — notarize_release.sh submits with the cached API key." >&2
+fi
 
 echo "Registered notary profile: ${PROFILE}"

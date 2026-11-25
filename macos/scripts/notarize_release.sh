@@ -45,6 +45,26 @@ if [ "${SIGN_ONLY}" = true ] && [ "${SKIP_SIGN}" = true ]; then
 fi
 
 NOTARY_PROFILE="${NOTARY_PROFILE:-enjoy-notary}"
+
+# Prefer the App Store Connect API key as direct submit arguments: macOS 26's
+# notarytool store-credentials cannot write the keychain profile headlessly
+# (errSecInteractionNotAllowed even on an unlocked keychain, while security(1)
+# writes fine), and the profile was the only remaining keychain dependency of
+# the notarization path. The cached key is written by setup_notary_credentials.sh
+# (release_cache_asc_credentials) before this script runs; without the ASC env
+# the submit falls back to the stored profile for local use.
+NOTARY_AUTH_ARGS=()
+ASC_CACHED_KEY="${HOME}/.config/enjoy-player/AuthKey_${APP_STORE_CONNECT_API_KEY_ID:-}.p8"
+if [ -n "${APP_STORE_CONNECT_API_KEY_ID:-}" ] &&
+  [ -n "${APP_STORE_CONNECT_ISSUER_ID:-}" ] &&
+  [ -f "${ASC_CACHED_KEY}" ]; then
+  echo "==> Notary auth: ASC API key ${APP_STORE_CONNECT_API_KEY_ID} (direct arguments)"
+  NOTARY_AUTH_ARGS+=(--key "${ASC_CACHED_KEY}" --key-id "${APP_STORE_CONNECT_API_KEY_ID}" --issuer "${APP_STORE_CONNECT_ISSUER_ID}")
+else
+  echo "==> Notary auth: keychain profile ${NOTARY_PROFILE}"
+  NOTARY_AUTH_ARGS+=(--keychain-profile "${NOTARY_PROFILE}")
+fi
+
 SCRIPT_DIR="$(CDPATH= cd "$(dirname "$0")" && pwd)"
 MACOS_DIR="$(dirname "${SCRIPT_DIR}")"
 ENTITLEMENTS="${MACOS_ENTITLEMENTS:-${MACOS_DIR}/Runner/ReleaseDirect.entitlements}"
@@ -164,9 +184,9 @@ submit_notary_with_retry() {
   SUBMIT_OUT="$(mktemp)"
 
   while [ "${attempt}" -le "${max_attempts}" ]; do
-    echo "==> Submitting to Apple notary service (attempt ${attempt}/${max_attempts}, profile: ${NOTARY_PROFILE})"
+    echo "==> Submitting to Apple notary service (attempt ${attempt}/${max_attempts})"
     if xcrun notarytool submit "${ZIP_PATH}" \
-      --keychain-profile "${NOTARY_PROFILE}" \
+      "${NOTARY_AUTH_ARGS[@]}" \
       --wait \
       --output-format json >"${SUBMIT_OUT}" 2>&1 \
       && grep -q '"status"[[:space:]]*:[[:space:]]*"Accepted"' "${SUBMIT_OUT}"; then
