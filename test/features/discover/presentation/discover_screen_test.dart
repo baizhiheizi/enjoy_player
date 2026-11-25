@@ -210,9 +210,14 @@ void main() {
       await tester.pumpAndSettle();
 
       final first = find.byKey(const ValueKey<String>('discover-feed-vid_001'));
-      final second = find.byKey(const ValueKey<String>('discover-feed-vid_002'));
+      final second = find.byKey(
+        const ValueKey<String>('discover-feed-vid_002'),
+      );
       final firstElement = tester.element(first);
-      expect(tester.getTopLeft(first).dx, lessThan(tester.getTopLeft(second).dx));
+      expect(
+        tester.getTopLeft(first).dx,
+        lessThan(tester.getTopLeft(second).dx),
+      );
 
       feed.add(_entries.reversed.toList());
       await tester.pumpAndSettle();
