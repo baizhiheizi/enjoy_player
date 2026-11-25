@@ -90,11 +90,16 @@ void main() {
       expect(delegate, isA<SliverGridDelegateWithFixedCrossAxisCount>());
     });
 
-    test('mediaCardTileGridDelegateForMinTileWidth builds a grid delegate', () {
-      final delegate = mediaCardTileGridDelegateForMinTileWidth(
-        crossAxisExtent: 1200,
-      );
-      expect(delegate, isA<SliverGridDelegateWithFixedCrossAxisCount>());
+    test('Home and Library grid fits three columns at 670 logical pixels', () {
+      SliverGridDelegateWithFixedCrossAxisCount gridAt(double width) =>
+          mediaCardTileGridDelegateForMinTileWidth(crossAxisExtent: width)
+              as SliverGridDelegateWithFixedCrossAxisCount;
+
+      expect(gridAt(669).crossAxisCount, 2);
+      final grid = gridAt(670);
+      expect(grid.crossAxisCount, 3);
+      expect(grid.mainAxisSpacing, 24);
+      expect(grid.crossAxisSpacing, 20);
     });
 
     test('mediaCardTileGridDelegateForMinTileWidth clamps crossAxisCount', () {

@@ -368,7 +368,7 @@ void main() {
     );
 
     testWidgets(
-      'LocalAudioLibraryBody and LocalVideoLibraryBody wire findChildIndexCallback',
+      'audio rows and video tiles retain their elements when reordered',
       (tester) async {
         Media makeMedia(String id, MediaKind kind) => Media(
           id: id,
@@ -391,70 +391,62 @@ void main() {
           makeMedia('v2', MediaKind.video),
         ];
 
-        await tester.pumpWidget(
-          ProviderScope(
-            child: MaterialApp(
-              home: Scaffold(
-                body: Column(
-                  children: [
-                    SizedBox(
-                      height: 300,
-                      child: LocalAudioLibraryBody(
-                        items: audioItems,
-                        searchQuery: '',
-                        totalInLibraryOfKind: 2,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 300,
-                      child: LocalVideoLibraryBody(
-                        items: videoItems,
-                        searchQuery: '',
-                        totalInLibraryOfKind: 2,
-                      ),
-                    ),
-                  ],
+        Widget library({required bool reversed}) {
+          return _wrap(
+            Column(
+              children: [
+                SizedBox(
+                  height: 300,
+                  child: LocalAudioLibraryBody(
+                    items: reversed ? audioItems.reversed.toList() : audioItems,
+                    searchQuery: '',
+                    totalInLibraryOfKind: 2,
+                  ),
                 ),
-              ),
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
+                SizedBox(
+                  height: 300,
+                  child: LocalVideoLibraryBody(
+                    items: reversed ? videoItems.reversed.toList() : videoItems,
+                    searchQuery: '',
+                    totalInLibraryOfKind: 2,
+                  ),
+                ),
               ],
-              supportedLocales: AppLocalizations.supportedLocales,
             ),
-          ),
-        );
+          );
+        }
+
+        await tester.pumpWidget(library(reversed: false));
         await tester.pumpAndSettle();
 
-        final audioList = tester.widget<SliverList>(
-          find.descendant(
-            of: find.byType(LocalAudioLibraryBody),
-            matching: find.byType(SliverList),
-          ),
-        );
-        final audioDelegate = audioList.delegate as SliverChildBuilderDelegate;
+        final firstAudio = find.text('Item a1');
+        final secondAudio = find.text('Item a2');
+        final firstVideo = find.text('Item v1');
+        final secondVideo = find.text('Item v2');
+        final audioElement = tester.element(secondAudio);
+        final videoElement = tester.element(secondVideo);
         expect(
-          audioDelegate.findChildIndexCallback!(
-            const ValueKey<String>('local-audio-a2'),
-          ),
-          2,
+          tester.getTopLeft(secondAudio).dy,
+          greaterThan(tester.getTopLeft(firstAudio).dy),
+        );
+        expect(
+          tester.getTopLeft(secondVideo).dx,
+          greaterThan(tester.getTopLeft(firstVideo).dx),
         );
 
-        final videoGrid = tester.widget<SliverGrid>(
-          find.descendant(
-            of: find.byType(LocalVideoLibraryBody),
-            matching: find.byType(SliverGrid),
-          ),
-        );
-        final videoDelegate = videoGrid.delegate as SliverChildBuilderDelegate;
+        await tester.pumpWidget(library(reversed: true));
+        await tester.pumpAndSettle();
+
         expect(
-          videoDelegate.findChildIndexCallback!(
-            const ValueKey<String>('local-video-v2'),
-          ),
-          1,
+          tester.getTopLeft(secondAudio).dy,
+          lessThan(tester.getTopLeft(firstAudio).dy),
         );
+        expect(
+          tester.getTopLeft(secondVideo).dx,
+          lessThan(tester.getTopLeft(firstVideo).dx),
+        );
+        expect(tester.element(secondAudio), same(audioElement));
+        expect(tester.element(secondVideo), same(videoElement));
       },
     );
   });

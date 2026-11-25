@@ -15,7 +15,6 @@ import 'package:enjoy_player/core/presentation/relative_day_label.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/error_state.dart';
-import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -101,27 +100,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           gridDelegate:
                               mediaCardTileGridDelegateForMinTileWidth(
                                 crossAxisExtent: constraints.crossAxisExtent,
-                                minTileWidth: _kRecentTileMinWidth,
-                                mainAxisSpacing: 24,
-                                crossAxisSpacing: 20,
                               ),
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final m = recent[index];
-                              return Align(
-                                key: ValueKey<String>('home-media-${m.id}'),
-                                alignment: Alignment.topCenter,
-                                child: _HomeMediaTile(media: m),
-                              );
-                            },
-                            childCount: recent.length,
-                            findChildIndexCallback: (key) =>
-                                findSliverIndexByPrefixedId(
-                                  items: recent,
-                                  key: key,
-                                  prefix: 'home-media-',
-                                  idOf: (m) => m.id,
-                                ),
+                          delegate: mediaCardKeyedDelegate(
+                            items: recent,
+                            keyPrefix: 'home-media-',
+                            idOf: (media) => media.id,
+                            tileBuilder: (context, media) =>
+                                _HomeMediaTile(media: media),
                           ),
                         );
                       },
@@ -142,8 +127,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 }
-
-const double _kRecentTileMinWidth = 210;
 
 class _RecentMediaHeading extends StatelessWidget {
   const _RecentMediaHeading();
