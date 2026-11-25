@@ -246,7 +246,7 @@ YouTube on Linux renders in the WPE WebKit backend ([ADR-0091](decisions/0091-yo
       --team-id "46X685R747" \
       --password "@keychain:AC_PASSWORD"
     ```
-  - **API key** (CI / local): the three `APP_STORE_CONNECT_*` values (env or `~/.config/enjoy-player/`) — the release script registers profile `enjoy-notary` automatically when `--notarize` is set
+  - **API key** (CI / local — the submit mechanism): the three `APP_STORE_CONNECT_*` values (env or cached under `~/.config/enjoy-player/` as `asc.env` + `AuthKey_<KEY_ID>.p8`). `notarize_release.sh` submits with the cached key as direct `notarytool` arguments (`--key` / `--key-id` / `--issuer`); it uses the stored `enjoy-notary` keychain profile only as a fallback when the ASC env is absent (local keychain-profile workflows). The release script still attempts to register that profile at setup time, but the write is **best-effort** — on macOS 26 `notarytool store-credentials` cannot write the profile headlessly (`errSecInteractionNotAllowed`), and a failed registration no longer fails the release run.
 - **TestFlight upload** (for `--testflight`): same ASC credentials; the IPA goes up via fastlane `pilot` ([ADR-0094](decisions/0094-fastlane-store-uploads.md)). `--testflight` fails hard if credentials are still missing (no silent skip). Build outputs (IPA / zip) stay under `build/` and are ephemeral — not part of credential setup.
 - **Sparkle auto-update** (before `--publish`): run once on Mac — `dart run auto_updater:generate_keys`, **paste the printed `SUPublicEDKey` into [`macos/Runner/Info.plist`](../macos/Runner/Info.plist)** (private key stays in Keychain), then `bash .github/scripts/verify_sparkle_setup.sh`
 
@@ -695,11 +695,12 @@ git-ignored.
   ```
   The prefetch verifies the SHA256 the installed `package:sqlite3` pins before it writes anything into the hook cache, so a wrong body can never poison it. `SQLITE3_BASE_URL` points it at a mirror; `SQLITE3_API_ROOT` (set it empty to switch the fallback off) points the fallback at another API host.
 - **Keychain / signing on new Mac**: open `macos/Runner.xcworkspace`, enable automatic signing, team `46X685R747`, build once in Xcode.
-- **Notarization fails**: check `NOTARY_PROFILE` (default `enjoy-notary`) and stored credentials; unlock the login keychain if `notarytool` reports `keychainLocked` or `errSecInternalComponent`:
+- **Notarization fails**: read the auth line from the log first — `==> Notary auth: ASC API key <id> (direct arguments)` means `notarize_release.sh` is submitting with the cached `~/.config/enjoy-player/AuthKey_<KEY_ID>.p8`; verify the three `APP_STORE_CONNECT_*` values and that the `.p8` file is present. `==> Notary auth: keychain profile <name>` means the ASC env was absent and the submit fell back to the stored `NOTARY_PROFILE` (default `enjoy-notary`) — only on that local fallback path does the keychain matter, so unlock the login keychain if `notarytool` reports `keychainLocked` or `errSecInternalComponent`:
   ```bash
   security unlock-keychain login.keychain-db
   bash .github/scripts/release.sh --platform apple --macos-only --notarize --skip-build --skip-checks
   ```
+  `keychainLocked` / `errSecInternalComponent` are profile-path failures. On the ASC-key path a `store-credentials` failure during setup (`errSecInteractionNotAllowed` — macOS 26 cannot write the profile headlessly) is best-effort and non-fatal: the submit already uses the cached key.
 - **`deadlineExceeded` / `abortedUpload` during notary upload**: signing succeeded; Apple's notary upload timed out (large ~200MB+ bundle, slow/VPN network). Retry upload only:
   ```bash
   ./macos/scripts/notarize_release.sh "build/macos/Build/Products/Release/Enjoy Player.app" --skip-sign

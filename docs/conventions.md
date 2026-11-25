@@ -24,7 +24,7 @@ bash .github/scripts/validate_ci_gates.sh
 
 ## Imports
 
-Prefer `package:enjoy_player/...` for cross-layer imports in presentation code to avoid fragile relative paths.
+Prefer `package:enjoy_player/...` for cross-layer imports in presentation code to avoid fragile relative paths. UI imports come from `package:material_ui/material_ui.dart` (`package:cupertino_ui/cupertino_ui.dart` for cupertino widgets); `package:flutter/material.dart` is no longer used — do not reintroduce it in new files.
 
 ## Code quality
 

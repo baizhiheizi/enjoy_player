@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **The Apple release notarizes with the ASC API key instead of a keychain profile**: the v0.11.0 Apple rerun passed the agreement gate and then died on `An error occurred while accessing the keychain. User interaction is not allowed.` — `notarytool store-credentials` writes its profile into the login keychain, which had locked on the runner since a reboot, and the #1467 lock assert never fired because `show-keychain-info` reads metadata a locked keychain serves fine. Unlocking the login keychain ahead of that write (`release_unlock_login_keychain`, shared with the runner-keychain signing branch) exposed the deeper problem: on macOS 26 `store-credentials` fails with `errSecInteractionNotAllowed` even headlessly and from the unlocked GUI session, and the notary profile item did not exist on the runner at all. `notarize_release.sh` now submits with the cached `AuthKey_<id>.p8` as direct `--key` / `--key-id` / `--issuer` arguments whenever the ASC env is present, falling back to the stored `enjoy-notary` profile only for local workflows without it, and `setup_notary_credentials.sh` keeps its profile write best-effort so a failed registration can no longer fail the run. TestFlight was already file-based, so this removes the last keychain dependency from the Apple release path. See [docs/packaging.md](docs/packaging.md).
+- **The Gradle-prefetch harness runs on Windows**: the #1467 harness built its valid-zip fixture with `Process.runSync('zip')` and verified the replacement with `unzip`, so the v0.11.0 Windows release job died before an artifact on a host without Info-ZIP (`ProcessException: system cannot find the file specified`) even though the script under test already falls back to a PK-tail check. The fixture and the stub `gradlew` now build and verify the archive in Dart through `package:archive`, so the test genuinely runs on every platform without a skip guard.
+
+### Changed
+
+- **Four post-release refactor and perf batches land** ([#1469](https://github.com/baizhiheizi/enjoy_player/pull/1469), [#1470](https://github.com/baizhiheizi/enjoy_player/pull/1470), [#1471](https://github.com/baizhiheizi/enjoy_player/pull/1471), [#1478](https://github.com/baizhiheizi/enjoy_player/pull/1478)): the shadow-reading audit batch makes the take widgets call the shared `shadow_take_bits.dart` helpers for numbering, playability and scoring eligibility and gives the stored-assessment payload one reader module (`recording_assessment_json.dart`) with the badge's cheap `PronScore` read and the result flow's typed parse kept deliberately distinct (#1469); `home_screen.dart` splits into header, loading and overview part files with `HomeScreen` the only public symbol (#1470); the forced-alignment MFCC extractor replaces its boxed `mcfcc_nsn` per-frame composition with an in-package typed-data pipeline — iterative radix-2 FFT plan, sparse mel filterbank, precomputed DCT-II cosine table — pinned by differential-equivalence and perf tests (#1471, see [docs/perf-measurement.md](docs/perf-measurement.md)); and the Home/Library media-grid tile-key and sliver-lookup scaffolding is shared with Discover behind one keyed delegate so Duet auto-fill geometry stays identical across Home recents, its loading skeleton and Library video (#1478).
+
+### Documentation
+
+- **The 2026-11-25 docs-drift review findings are resolved** (resolves [#1480](https://github.com/baizhiheizi/enjoy_player/issues/1480)): [docs/packaging.md](docs/packaging.md) now documents the ASC-API-key-first notarization submit and scopes the keychain advice to the profile fallback; this `[Unreleased]` section backfills the seven post-v0.11.0 commits the release fold left unrecorded; `docs/design/duet/PLAN.md` states the Flutter 3.50.1 pin from `mise.toml`; and [docs/conventions.md](docs/conventions.md) / [docs/tech-stack.md](docs/tech-stack.md) record the `material_ui` / `cupertino_ui` imports the 3.50 migration made canonical.
+
 ## [0.11.0] - 2026-11-24
 
 ### Added
