@@ -5,7 +5,7 @@
 **Goal**: Replace the unreleased Aurora UI with Duet on every screen. Features, behavior, hotkeys, and data do not change.
 **Decision**: [ADR-0093](../../decisions/0093-duet-design-language.md). **Design**: this folder ([README](README.md) → renders, boards, tokens).
 **Branch**: `design-duet`, which merges to `main` as one release when Phase 5 is done.
-**Stack**: Flutter 3.44 (`mise.toml`), Riverpod 3, `google_fonts` 8.2 with bundled fonts, Phosphor via `EnjoyIcons`.
+**Stack**: Flutter 3.50.1 (`mise.toml`), Riverpod 3, `google_fonts` 8.2 with bundled fonts, Phosphor via `EnjoyIcons`.
 
 ---
 
