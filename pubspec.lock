@@ -732,10 +732,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_svg
-      sha256: "4565a66f0a968f2e1ab4197854686990258aadab9572eb80a7655053a01dc302"
+      sha256: "5b0dd02de78d110e4acaca042e3be80c9b2ec04c1f41a83ca39a717497c7e2d2"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.0"
+    version: "2.5.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -1285,10 +1285,10 @@ packages:
     dependency: "direct main"
     description:
       name: posthog_flutter
-      sha256: "9156211a2fec2e794c344103781cb9aee2a6c7d6c08d87adfead4d4cdafff0c7"
+      sha256: "3e756128ef5e7e05801d814add8299b2b3b40f625f56545c8c16c18a1bf328bf"
       url: "https://pub.dev"
     source: hosted
-    version: "5.61.2"
+    version: "5.61.3"
   process:
     dependency: transitive
     description:
