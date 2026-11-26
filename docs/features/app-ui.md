@@ -178,7 +178,7 @@ Legacy:     `auroraStart`/`auroraEnd`/`aurora` = logo stops · `shadowCard`=lift
 | `MediaCardTile` / `MediaCardRow` | `core/theme/widgets/media_card.dart` (→ `media_card/`) | Poster tile (artwork is the card) with optional discover affordances (adding scrim, in-library chip, custom `meta` slot) / list row |
 | `SettingsRow` / `SettingsRowDivider` / `SettingsValuePill` | `features/settings/presentation/widgets/settings_row.dart` | Grouped-list row with icon tile, value, chevron |
 | `AppNotice` | `core/notices/app_notice.dart` | Dark toast with semantic glyph |
-| `Skeleton` (+ helpers) | `core/theme/widgets/skeleton.dart` | Shimmer placeholders; see [skeleton-loading.md](skeleton-loading.md) |
+| `Skeleton` (+ helpers) | `core/theme/widgets/skeleton.dart` (+ `skeleton_presets.dart`, `skeleton_scrollable_presets.dart`) | Shimmer placeholders; see [skeleton-loading.md](skeleton-loading.md) |
 | `LoadingIcon` / `SectionLabel` | `core/presentation/` | Inline spinner; in-card section label |
 | `AppSidebar` / `SidebarAccountChip` | `features/player/presentation/widgets/app_sidebar.dart`, `features/auth/presentation/widgets/sidebar_account_chip.dart` | Desktop navigation on the canvas |
 

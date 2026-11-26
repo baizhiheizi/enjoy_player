@@ -1,7 +1,12 @@
 # Feature: Skeleton loading
 
-The app's loading placeholders all come from a single module:
-[`lib/core/theme/widgets/skeleton.dart`](../../lib/core/theme/widgets/skeleton.dart).
+The app's loading placeholders live in one module family:
+[`lib/core/theme/widgets/skeleton.dart`](../../lib/core/theme/widgets/skeleton.dart)
+holds the shimmer primitive and shared ticker, the pre-built placeholders live in
+[`skeleton_presets.dart`](../../lib/core/theme/widgets/skeleton_presets.dart) and
+[`skeleton_scrollable_presets.dart`](../../lib/core/theme/widgets/skeleton_scrollable_presets.dart),
+and `skeleton.dart` re-exports both so it stays the single import path for
+consumers.
 A `Skeleton` paints a tinted, shimmering shape that respects the OS reduced-motion
 setting and reads its colors from the active `ThemeData.colorScheme`.
 
@@ -152,7 +157,12 @@ Reach for the existing widgets first. Add a new placeholder only when:
 New placeholders should:
 
 1. Be a `StatelessWidget` named `Skeleton*` in
-   `lib/core/theme/widgets/skeleton.dart`.
+   [`skeleton_presets.dart`](../../lib/core/theme/widgets/skeleton_presets.dart)
+   (sliver-safe scaffolds) or
+   [`skeleton_scrollable_presets.dart`](../../lib/core/theme/widgets/skeleton_scrollable_presets.dart)
+   (scrollable / detail surfaces). Both are re-exported by
+   [`skeleton.dart`](../../lib/core/theme/widgets/skeleton.dart), so consumers keep
+   a single import path.
 2. Compose only `Skeleton` / `Skeleton.line` / `Skeleton.box` / `Skeleton.circle`
    — never `Container`-based tinted rectangles, so the shimmer and reduced-motion
    behavior stays uniform.
@@ -164,7 +174,9 @@ New placeholders should:
 
 | Area | Path |
 |------|------|
-| Skeleton module | [`lib/core/theme/widgets/skeleton.dart`](../../lib/core/theme/widgets/skeleton.dart) |
+| Shimmer core + shared ticker (public entry point) | [`lib/core/theme/widgets/skeleton.dart`](../../lib/core/theme/widgets/skeleton.dart) |
+| Sliver-safe presets | [`lib/core/theme/widgets/skeleton_presets.dart`](../../lib/core/theme/widgets/skeleton_presets.dart) |
+| Scrollable / detail presets | [`lib/core/theme/widgets/skeleton_scrollable_presets.dart`](../../lib/core/theme/widgets/skeleton_scrollable_presets.dart) |
 | Skeleton app-bootstrap usage | Library, Home, Discover bootstrap paths |
 | Sliver-safe list placeholders | `SkeletonMediaList`, `SkeletonSettingsList` |
 | Scrollable placeholders | `SkeletonTranscript`, `SkeletonProfile` |
