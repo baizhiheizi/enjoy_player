@@ -119,14 +119,11 @@ class AuthRepository {
     ),
   );
 
-  Future<OtpSendResponse> sendOtp({required String email}) async {
-    try {
-      final m = await _authApi.sendOtp(email: email.trim());
-      return OtpSendResponse.fromJson(m);
-    } on ApiException catch (e) {
-      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
-    }
-  }
+  Future<OtpSendResponse> sendOtp({required String email}) =>
+      _guardApi(() async {
+        final m = await _authApi.sendOtp(email: email.trim());
+        return OtpSendResponse.fromJson(m);
+      }, revokeSession: false);
 
   Future<UserProfile> verifyOtp({
     required String requestId,
@@ -220,37 +217,48 @@ class AuthRepository {
     return false;
   }
 
-  Future<UserProfile> fetchProfile() async {
+  /// Single mapping point for transport failures raised by the auth API.
+  ///
+  /// A rejected session (HTTP 401 or 403) clears the local tokens before the
+  /// [AuthFailure] surfaces — see [AuthFailureCode.sessionRevoked]. Pass
+  /// `revokeSession: false` for calls that run without a session (sign-in,
+  /// OTP request).
+  Future<T> _guardApi<T>(
+    Future<T> Function() call, {
+    bool revokeSession = true,
+  }) async {
     try {
-      final m = await _authApi.profile();
-      final profile = UserProfile.fromJson(m);
-      await _cacheProfile(profile);
-      return profile;
+      return await call();
     } on ApiException catch (e) {
-      if (e.isUnauthorized) {
-        await clearSession();
+      if (revokeSession && _shouldRevokeSessionOnApiException(e)) {
+        try {
+          await clearSession();
+        } catch (e2, st2) {
+          _log.warning('clearSession failed', e2, st2);
+        }
       }
       throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
     }
   }
 
-  Future<UserProfile> updateProfile(UpdateProfileRequest request) async {
-    try {
-      final body = request.toUserJson();
-      if (body.isEmpty) {
-        return await fetchProfile();
-      }
-      final m = await _authApi.updateProfile(body);
-      final profile = UserProfile.fromJson(m);
-      await _cacheProfile(profile);
-      return profile;
-    } on ApiException catch (e) {
-      if (e.isUnauthorized) {
-        await clearSession();
-      }
-      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
-    }
-  }
+  Future<UserProfile> fetchProfile() => _guardApi(() async {
+    final m = await _authApi.profile();
+    final profile = UserProfile.fromJson(m);
+    await _cacheProfile(profile);
+    return profile;
+  });
+
+  Future<UserProfile> updateProfile(UpdateProfileRequest request) =>
+      _guardApi(() async {
+        final body = request.toUserJson();
+        if (body.isEmpty) {
+          return await fetchProfile();
+        }
+        final m = await _authApi.updateProfile(body);
+        final profile = UserProfile.fromJson(m);
+        await _cacheProfile(profile);
+        return profile;
+      });
 
   /// Direct-uploads [bytes] then attaches via `user.avatar` signed_id.
   Future<UserProfile> updateAvatar({
@@ -281,7 +289,7 @@ class AuthRepository {
       );
     }
 
-    try {
+    return _guardApi(() async {
       final signedId = await _directUploadsApi.uploadBlob(
         bytes: bytes,
         filename: filename,
@@ -290,12 +298,7 @@ class AuthRepository {
       return await updateProfile(
         UpdateProfileRequest(avatarSignedId: signedId),
       );
-    } on ApiException catch (e) {
-      if (e.isUnauthorized) {
-        await clearSession();
-      }
-      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
-    }
+    });
   }
 
   Future<UserProfile?> readCachedProfile() => _readOrNull(
@@ -453,16 +456,16 @@ class AuthRepository {
     Future<Map<String, dynamic>> request,
   ) async {
     try {
-      final m = await request;
-      final tokens = AuthTokenResponse.fromJson(m);
-      await _persistTokens(tokens);
-      if (tokens.user != null) {
-        await _cacheProfile(tokens.user!);
-        return tokens.user!;
-      }
-      return await fetchProfile();
-    } on ApiException catch (e) {
-      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
+      return await _guardApi(() async {
+        final m = await request;
+        final tokens = AuthTokenResponse.fromJson(m);
+        await _persistTokens(tokens);
+        if (tokens.user != null) {
+          await _cacheProfile(tokens.user!);
+          return tokens.user!;
+        }
+        return await fetchProfile();
+      }, revokeSession: false);
     } on FormatException catch (e) {
       throw AuthFailure(e.message, code: AuthFailureCode.invalidCredentials);
     }

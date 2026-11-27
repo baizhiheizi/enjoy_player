@@ -189,6 +189,27 @@ void main() {
         ),
       );
     });
+    test('does not clear the session on 401', () async {
+      await tokenStore.writeAccessToken('keep-me');
+      final client = MockClient(
+        (_) async => http.Response('unauthorized', 401),
+      );
+      final repo = buildRepo(client);
+
+      expect(
+        () => repo.sendOtp(email: 'a@b.com'),
+        throwsA(
+          isA<AuthFailure>().having(
+            (f) => f.code,
+            'code',
+            AuthFailureCode.sessionRevoked,
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      expect(await tokenStore.readAccessToken(), 'keep-me');
+    });
   });
 
   group('AuthRepository.signInGoogle', () {
@@ -264,6 +285,28 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('does not clear the session on 401', () async {
+      await tokenStore.writeAccessToken('keep-me');
+      final client = MockClient(
+        (_) async => http.Response('unauthorized', 401),
+      );
+      final repo = buildRepo(client);
+
+      expect(
+        () => repo.signInGoogle(idToken: 'tok'),
+        throwsA(
+          isA<AuthFailure>().having(
+            (f) => f.code,
+            'code',
+            AuthFailureCode.sessionRevoked,
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      expect(await tokenStore.readAccessToken(), 'keep-me');
     });
 
     test(
@@ -497,6 +540,28 @@ void main() {
       expect(await tokenStore.readRefreshToken(), isNull);
     });
 
+    test('clears session and throws on 403', () async {
+      await tokenStore.writeAccessToken('old-token');
+      await tokenStore.writeRefreshToken('old-refresh');
+      final client = MockClient((_) async => http.Response('forbidden', 403));
+      final repo = buildRepo(client, accessToken: 'old-token');
+
+      expect(
+        () => repo.fetchProfile(),
+        throwsA(
+          isA<AuthFailure>().having(
+            (f) => f.code,
+            'code',
+            AuthFailureCode.sessionRevoked,
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      expect(await tokenStore.readAccessToken(), isNull);
+      expect(await tokenStore.readRefreshToken(), isNull);
+    });
+
     test('throws AuthFailure without clearing session on 500', () async {
       await tokenStore.writeAccessToken('tok-500');
       final client = MockClient((_) async => http.Response('error', 500));
@@ -579,6 +644,26 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(await tokenStore.readAccessToken(), isNull);
     });
+    test('clears session and throws on 403', () async {
+      await tokenStore.writeAccessToken('tok-up');
+      await tokenStore.writeRefreshToken('ref-up');
+      final client = MockClient((_) async => http.Response('forbidden', 403));
+      final repo = buildRepo(client, accessToken: 'tok-up');
+
+      expect(
+        () => repo.updateProfile(const UpdateProfileRequest(name: 'X')),
+        throwsA(
+          isA<AuthFailure>().having(
+            (f) => f.code,
+            'code',
+            AuthFailureCode.sessionRevoked,
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      expect(await tokenStore.readAccessToken(), isNull);
+    });
   });
 
   group('AuthRepository.updateAvatar edge cases', () {
@@ -640,6 +725,31 @@ void main() {
       final client = MockClient(
         (_) async => http.Response('unauthorized', 401),
       );
+      final repo = buildRepo(client, accessToken: 'tok-av');
+
+      expect(
+        () => repo.updateAvatar(
+          bytes: [1, 2, 3],
+          filename: 'a.png',
+          contentType: 'image/png',
+        ),
+        throwsA(
+          isA<AuthFailure>().having(
+            (f) => f.code,
+            'code',
+            AuthFailureCode.sessionRevoked,
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      expect(await tokenStore.readAccessToken(), isNull);
+    });
+
+    test('clears session and throws on upload 403', () async {
+      await tokenStore.writeAccessToken('tok-av');
+      await tokenStore.writeRefreshToken('ref-av');
+      final client = MockClient((_) async => http.Response('forbidden', 403));
       final repo = buildRepo(client, accessToken: 'tok-av');
 
       expect(
