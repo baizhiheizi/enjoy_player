@@ -30,7 +30,15 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 String formatRateCore(double rate) {
   final x = (rate * 100).round() / 100;
-  return x.toStringAsFixed(2).replaceFirst(RegExp(r'(?<=\.\d)0$'), '');
+  final s = x.toStringAsFixed(2);
+  final last = s.length - 1;
+  if (last >= 2 &&
+      s.codeUnitAt(last) == 0x30 &&
+      s.codeUnitAt(last - 2) == 0x2E) {
+    final digit = s.codeUnitAt(last - 1);
+    if (digit >= 0x30 && digit <= 0x39) return s.substring(0, last);
+  }
+  return s;
 }
 
 /// The dock's left readout: where you are (line, loop, dictation) over a
