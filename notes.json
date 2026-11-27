@@ -16,33 +16,33 @@
     {
       "area": "ci",
       "checked_at": "2026-11-27",
-      "result": "#1488 lockfile refresh merged 2026-11-26 as 879217c0. pub outdated: every remaining direct-dep gap is a major (ai_sdk 3, cached_network_image 4, file_picker 13, go_router 18, google_fonts 9, posthog 6, etc.), maintainer-held. No refresh PR warranted.",
+      "result": "#1488 lockfile refresh merged 2026-11-26 (879217c0). pub outdated: every direct-dep gap is a major, maintainer-held; no refresh PR. 11-27: #1497 bot-published CI runs (Analyze/Codegen drift) sat in waiting ~12h, a workflow-approval gate; surfaced in #1216.",
       "follow_up": null
     },
     {
       "area": "docs",
       "checked_at": "2026-11-27",
-      "result": "[Unreleased] was missing entries for #1487/#1488. Draft PR on repo-assist/basics-changelog-1487-1488 adds both in the #1269 style. House pattern: changelog entries land in periodic docs passes, not per-PR. #1383/#1392 closed not_planned 11-20.",
-      "follow_up": "after both new PRs merge, the next docs pass adds their entries"
+      "result": "#1496 (branch repo-assist/basics-changelog-1487-1488) adds [Unreleased] entries for #1487/#1488 in the #1269 style; gate-green, vigil pass, awaiting review. House pattern: changelog entries land in periodic docs passes, not per-PR.",
+      "follow_up": "after #1496 merges, the next docs pass covers newer merges"
     },
     {
       "area": "qa",
       "checked_at": "2026-11-27",
-      "result": "2026-11-27 survey: tap_reveal_hold_provider documented a withClock hook that never existed; draft PR adds the constructor plus 6 fakeAsync cases, gates green. sync maxPages callback declined (cap path covered by the service test). 11-26: full suite 7554 passed / 71 skipped.",
-      "follow_up": null
+      "result": "#1497 (repo-assist/test-tap-reveal-hold-clock): withClock hook + 8 fakeAsync cases. Vigil r1 blockers fixed by d533981 (overrideWith2, dispose coverage); r2 pass; addTearDown nit pushed 8c73bb97. Gates green, suite 7562 passed. sync maxPages declined (cap covered by service test).",
+      "follow_up": "track both PRs until merged"
     }
   ],
   "completed_actions": [],
   "priorities": [
     {
       "task": 6,
-      "item": "track two draft PRs until merged",
-      "note": "repo-assist/basics-changelog-1487-1488 ([Unreleased] entries for #1487/#1488) and repo-assist/test-tap-reveal-hold-clock (withClock hook + 6 tests). Numbers materialize at publish; next run resolves them via list_pull_requests and maintains CI/conflicts."
+      "item": "track #1496 and #1497 until merged",
+      "note": "Both gate-green + vigil-passed, awaiting maintainer review. #1497 head 8c73bb97 (addTearDown fix pushed 11-27); its Analyze/Codegen drift CI runs sit in waiting (workflow-approval gate). No further work queued unless new review findings land."
     },
     {
       "task": 2,
       "item": "issue sweep",
-      "note": "Cursor 1486. Off-limits: large-file-simplifier (#1491 next maintainer target; #1485 done via #1487), duplicate-code group #1492-#1495 routed to @copilot, perf-improver, rotating reports (#1461/#1472), #1286/#1192 monthly lanes. #1251 wontfix. #1392/#1383 closed not_planned 11-20."
+      "note": "Cursor 1486. Off-limits: large-file-simplifier (#1491 next maintainer target; #1485 done via #1487), duplicate-code #1492-#1495 (@copilot), perf-improver (own PR #1498), rotating reports (#1461/#1472), #1286/#1192 monthly lanes. #1251 wontfix; #1392/#1383 closed 11-20."
     }
   ]
 }
