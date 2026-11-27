@@ -31,6 +31,12 @@ DateTime _defaultClock() => DateTime.now();
 
 @riverpod
 class TapRevealHoldCtrl extends _$TapRevealHoldCtrl {
+  TapRevealHoldCtrl() : _clock = _defaultClock;
+
+  TapRevealHoldCtrl.withClock(this._clock);
+
+  final TapRevealClock _clock;
+
   Timer? _timer;
 
   @override
@@ -48,7 +54,7 @@ class TapRevealHoldCtrl extends _$TapRevealHoldCtrl {
       return;
     }
     _cancelTimer();
-    final now = _defaultClock();
+    final now = _clock();
     final expires = now.add(Duration(seconds: holdSeconds));
     state = TapRevealHold(cueId: cueId, expiresAt: expires);
     _timer = Timer(Duration(seconds: holdSeconds), _onTimerFire);

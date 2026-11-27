@@ -58,7 +58,7 @@ final class TapRevealHoldCtrlProvider
   }
 }
 
-String _$tapRevealHoldCtrlHash() => r'078eb53cd0ac6455faeab06c9a3762fff6293dde';
+String _$tapRevealHoldCtrlHash() => r'8350dbe1de14535ed232adf88b5032c0442394b5';
 
 final class TapRevealHoldCtrlFamily extends $Family
     with
