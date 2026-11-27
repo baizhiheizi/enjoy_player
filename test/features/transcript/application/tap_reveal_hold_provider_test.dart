@@ -208,6 +208,7 @@ void main() {
     test('disposing the provider mid-hold cancels the timer without error', () {
       fakeAsync((async) {
         final container = ProviderContainer();
+        addTearDown(container.dispose);
         final sub = container.listen(
           tapRevealHoldCtrlProvider('m4'),
           (_, _) {},
