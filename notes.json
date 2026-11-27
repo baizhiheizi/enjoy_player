@@ -4,14 +4,7 @@
     "labelling_after": null,
     "investigation_after": 1486
   },
-  "issues": [
-    {
-      "number": 1392,
-      "state": "awaiting_approval",
-      "updated_at": "2026-11-24",
-      "note": "weekly-research timeout 15->45m: agent cannot push workflow files (workflows scope). Issue body carries the manual-PR steps; maintainer must act. Do not retry."
-    }
-  ],
+  "issues": [],
   "fixes": [],
   "checks": [
     {
@@ -22,34 +15,34 @@
     },
     {
       "area": "ci",
-      "checked_at": "2026-11-26",
-      "result": "Lockfile refresh PR #1488 (branch repo-assist/eng-lockfile-refresh-20261126): flutter_svg 2.5.1 + posthog 5.61.3, lock-only, within constraints; changelog commit 90719345 local-only pending PR number. Majors maintainer-held. Main green; #1487 in flight.",
-      "follow_up": "next run: push changelog commit onto the PR branch once the number is resolvable (PR will be listed; entry text in monthly review item)"
-    },
-    {
-      "area": "docs",
-      "checked_at": "2026-11-26",
-      "result": "#1473 (ADR-0108 citation) merged 2026-11-25 as af12a15c; docs-drift findings resolved by #1484, which reopened [Unreleased] for seven post-v0.11.0 commits.",
+      "checked_at": "2026-11-27",
+      "result": "#1488 lockfile refresh merged 2026-11-26 as 879217c0. pub outdated: every remaining direct-dep gap is a major (ai_sdk 3, cached_network_image 4, file_picker 13, go_router 18, google_fonts 9, posthog 6, etc.), maintainer-held. No refresh PR warranted.",
       "follow_up": null
     },
     {
+      "area": "docs",
+      "checked_at": "2026-11-27",
+      "result": "[Unreleased] was missing entries for #1487/#1488. Draft PR on repo-assist/basics-changelog-1487-1488 adds both in the #1269 style. House pattern: changelog entries land in periodic docs passes, not per-PR. #1383/#1392 closed not_planned 11-20.",
+      "follow_up": "after both new PRs merge, the next docs pass adds their entries"
+    },
+    {
       "area": "qa",
-      "checked_at": "2026-11-26",
-      "result": "No gap worth a PR: #1471/#1478 carried their own suites; 113 skip: usages all legitimate (microbenchmarks, platform gates, native-lib availability); full local suite 7554 passed / 71 skipped on the refresh branch.",
+      "checked_at": "2026-11-27",
+      "result": "2026-11-27 survey: tap_reveal_hold_provider documented a withClock hook that never existed; draft PR adds the constructor plus 6 fakeAsync cases, gates green. sync maxPages callback declined (cap path covered by the service test). 11-26: full suite 7554 passed / 71 skipped.",
       "follow_up": null
     }
   ],
   "completed_actions": [],
   "priorities": [
     {
-      "task": 4,
-      "item": "push changelog commit to #1488 PR branch",
-      "note": "Changelog commit 90719345 is local-only; next run: find PR 'chore(deps): flutter_svg 2.5.1 / posthog 5.61.3', push the entry commit via push_to_pull_request_branch with its number. Entry text is in the monthly review item."
+      "task": 6,
+      "item": "track two draft PRs until merged",
+      "note": "repo-assist/basics-changelog-1487-1488 ([Unreleased] entries for #1487/#1488) and repo-assist/test-tap-reveal-hold-clock (withClock hook + 6 tests). Numbers materialize at publish; next run resolves them via list_pull_requests and maintains CI/conflicts."
     },
     {
       "task": 2,
       "item": "issue sweep",
-      "note": "Cursor 1486. Off-limits: large-file-simplifier (#1485 -> #1487 maintainer), duplicate-code -> @copilot (incl. budget report #1486), perf-improver, rotating reports. #1251 wontfix."
+      "note": "Cursor 1486. Off-limits: large-file-simplifier (#1491 next maintainer target; #1485 done via #1487), duplicate-code group #1492-#1495 routed to @copilot, perf-improver, rotating reports (#1461/#1472), #1286/#1192 monthly lanes. #1251 wontfix. #1392/#1383 closed not_planned 11-20."
     }
   ]
 }
