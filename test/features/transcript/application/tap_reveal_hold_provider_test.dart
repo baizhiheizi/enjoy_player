@@ -12,13 +12,13 @@ void main() {
         final basis = DateTime.utc(2026, 1, 1, 12);
         final container = ProviderContainer(
           overrides: [
-            tapRevealHoldCtrlProvider.overrideWith(
-              () => TapRevealHoldCtrl.withClock(() => basis),
+            tapRevealHoldCtrlProvider.overrideWith2(
+              (_) => TapRevealHoldCtrl.withClock(() => basis),
             ),
           ],
         );
         addTearDown(container.dispose);
-        container.listen(tapRevealHoldCtrlProvider('m1'), (_, __) {});
+        container.listen(tapRevealHoldCtrlProvider('m1'), (_, _) {});
 
         final ctrl = container.read(tapRevealHoldCtrlProvider('m1').notifier);
         ctrl.setHold(cueId: 'cue-1', holdSeconds: 30);
@@ -42,13 +42,13 @@ void main() {
         var now = basis;
         final container = ProviderContainer(
           overrides: [
-            tapRevealHoldCtrlProvider.overrideWith(
-              () => TapRevealHoldCtrl.withClock(() => now),
+            tapRevealHoldCtrlProvider.overrideWith2(
+              (_) => TapRevealHoldCtrl.withClock(() => now),
             ),
           ],
         );
         addTearDown(container.dispose);
-        container.listen(tapRevealHoldCtrlProvider('m1'), (_, __) {});
+        container.listen(tapRevealHoldCtrlProvider('m1'), (_, _) {});
 
         final ctrl = container.read(tapRevealHoldCtrlProvider('m1').notifier);
         ctrl.setHold(cueId: 'cue-1', holdSeconds: 30);
@@ -80,13 +80,13 @@ void main() {
         final basis = DateTime.utc(2026, 1, 1, 12);
         final container = ProviderContainer(
           overrides: [
-            tapRevealHoldCtrlProvider.overrideWith(
-              () => TapRevealHoldCtrl.withClock(() => basis),
+            tapRevealHoldCtrlProvider.overrideWith2(
+              (_) => TapRevealHoldCtrl.withClock(() => basis),
             ),
           ],
         );
         addTearDown(container.dispose);
-        container.listen(tapRevealHoldCtrlProvider('m1'), (_, __) {});
+        container.listen(tapRevealHoldCtrlProvider('m1'), (_, _) {});
 
         final ctrl = container.read(tapRevealHoldCtrlProvider('m1').notifier);
         ctrl.setHold(cueId: 'cue-1', holdSeconds: 30);
@@ -107,13 +107,13 @@ void main() {
         final basis = DateTime.utc(2026, 1, 1, 12);
         final container = ProviderContainer(
           overrides: [
-            tapRevealHoldCtrlProvider.overrideWith(
-              () => TapRevealHoldCtrl.withClock(() => basis),
+            tapRevealHoldCtrlProvider.overrideWith2(
+              (_) => TapRevealHoldCtrl.withClock(() => basis),
             ),
           ],
         );
         addTearDown(container.dispose);
-        container.listen(tapRevealHoldCtrlProvider('m1'), (_, __) {});
+        container.listen(tapRevealHoldCtrlProvider('m1'), (_, _) {});
 
         final ctrl = container.read(tapRevealHoldCtrlProvider('m1').notifier);
         ctrl.setHold(cueId: 'cue-1', holdSeconds: 30);
@@ -130,13 +130,13 @@ void main() {
         final basis = DateTime.utc(2026, 1, 1, 12);
         final container = ProviderContainer(
           overrides: [
-            tapRevealHoldCtrlProvider.overrideWith(
-              () => TapRevealHoldCtrl.withClock(() => basis),
+            tapRevealHoldCtrlProvider.overrideWith2(
+              (_) => TapRevealHoldCtrl.withClock(() => basis),
             ),
           ],
         );
         addTearDown(container.dispose);
-        container.listen(tapRevealHoldCtrlProvider('m1'), (_, __) {});
+        container.listen(tapRevealHoldCtrlProvider('m1'), (_, _) {});
 
         container.read(tapRevealHoldCtrlProvider('m1').notifier).clear();
 
@@ -151,13 +151,13 @@ void main() {
         final basis = DateTime.utc(2026, 1, 1, 12);
         final container = ProviderContainer(
           overrides: [
-            tapRevealHoldCtrlProvider.overrideWith(
-              () => TapRevealHoldCtrl.withClock(() => basis),
+            tapRevealHoldCtrlProvider.overrideWith2(
+              (_) => TapRevealHoldCtrl.withClock(() => basis),
             ),
           ],
         );
         addTearDown(container.dispose);
-        container.listen(tapRevealHoldProvider('m2'), (_, __) {});
+        container.listen(tapRevealHoldProvider('m2'), (_, _) {});
 
         expect(container.read(tapRevealHoldProvider('m2')), isNull);
 
@@ -174,6 +174,55 @@ void main() {
 
         async.elapse(const Duration(seconds: 15));
         expect(container.read(tapRevealHoldProvider('m2')), isNull);
+      });
+    });
+
+    test('the default constructor uses the wall clock for expiry', () {
+      fakeAsync((async) {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        container.listen(tapRevealHoldCtrlProvider('m3'), (_, _) {});
+
+        final before = DateTime.now();
+        container
+            .read(tapRevealHoldCtrlProvider('m3').notifier)
+            .setHold(cueId: 'cue-1', holdSeconds: 30);
+        final after = DateTime.now();
+
+        final hold = container.read(tapRevealHoldCtrlProvider('m3'))!;
+        expect(hold.cueId, 'cue-1');
+        expect(
+          hold.expiresAt.isBefore(before.add(const Duration(seconds: 30))),
+          isFalse,
+        );
+        expect(
+          hold.expiresAt.isAfter(after.add(const Duration(seconds: 30))),
+          isFalse,
+        );
+
+        async.elapse(const Duration(seconds: 30));
+        expect(container.read(tapRevealHoldCtrlProvider('m3')), isNull);
+      });
+    });
+
+    test('disposing the provider mid-hold cancels the timer without error', () {
+      fakeAsync((async) {
+        final container = ProviderContainer();
+        final sub = container.listen(
+          tapRevealHoldCtrlProvider('m4'),
+          (_, _) {},
+        );
+        container
+            .read(tapRevealHoldCtrlProvider('m4').notifier)
+            .setHold(cueId: 'cue-1', holdSeconds: 30);
+        expect(async.nonPeriodicTimerCount, 1);
+
+        sub.close();
+        async.elapse(Duration.zero);
+        expect(async.nonPeriodicTimerCount, 0);
+
+        async.elapse(const Duration(seconds: 60));
+        expect(async.nonPeriodicTimerCount, 0);
       });
     });
   });
