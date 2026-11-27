@@ -28,6 +28,12 @@ The player parks its video surface under anchored popovers (ADR-0066). That patt
 
 A fourth anchored popover is now a one-liner instead of a copy of the skeleton.
 
+## Amendment — 2026-11-28: shared sheet title header
+
+Modal bottom sheets each hand-built their own title block: the padded drag handle followed by a `Padding` wrapping a `titleMedium` / `titleLarge` title. Five feature sheets carried five copies, and the copies had already drifted — the title's bottom inset was `space4`, `space8` or `space12` depending on the sheet, and one sheet hardcoded raw `24` / `8` / `16` literals instead of tokens. Core shipped `PaddedSheetDragHandle` but no title primitive, so every new sheet re-derived the header.
+
+**Decision**: add **`SheetHeader`** to `lib/core/theme/widgets/`. It owns the drag handle and the padded title (plus an optional muted subtitle) and parameterizes what actually varies: the title text, a `SheetHeaderStyle` variant (`medium` = `titleMedium` at weight 600, `large` = `titleLarge`), and the optional subtitle. The five sheets now render a `SheetHeader` instead of assembling the block by hand, so a typography or inset change lands in one place.
+
 ## Consequences
 
 - **Pros**: One visual/tactile language; easier a11y sweeps (focus + cursor + tooltip patterns); fewer ad-hoc `FilledButton` variants; one place for popover motion and barrier semantics.

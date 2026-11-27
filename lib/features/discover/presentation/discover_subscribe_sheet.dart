@@ -8,8 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
-import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
+import 'package:enjoy_player/core/theme/widgets/sheet_header.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/data/worker_feed_exception.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -85,45 +86,57 @@ class _DiscoverSubscribeSheetState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final t = EnjoyThemeTokens.of(context);
 
     return Padding(
       padding: EdgeInsets.only(bottom: keyboardInset),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          padding: EdgeInsets.only(bottom: t.space24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const PaddedSheetDragHandle(),
-              Text(
-                l10n.discoverSubscribeTitle,
-                style: Theme.of(context).textTheme.titleLarge,
+              SheetHeader(
+                title: l10n.discoverSubscribeTitle,
+                style: SheetHeaderStyle.large,
               ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.discoverSubscribeHint,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: t.space24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l10n.discoverSubscribeHint,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    SizedBox(height: t.space16),
+                    TextField(
+                      controller: _controller,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: l10n.discoverSubscribePlaceholder,
+                        border: const OutlineInputBorder(),
+                      ),
+                      enabled: !_submitting,
+                      onSubmitted: _submitting
+                          ? null
+                          : (_) => unawaited(_submit()),
+                    ),
+                    SizedBox(height: t.space16),
+                    FilledButton(
+                      onPressed: _submitting
+                          ? null
+                          : () => unawaited(_submit()),
+                      child: _submitting
+                          ? const LoadingIcon(size: 20)
+                          : Text(l10n.discoverSubscribeAction),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _controller,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: l10n.discoverSubscribePlaceholder,
-                  border: const OutlineInputBorder(),
-                ),
-                enabled: !_submitting,
-                onSubmitted: _submitting ? null : (_) => unawaited(_submit()),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _submitting ? null : () => unawaited(_submit()),
-                child: _submitting
-                    ? const LoadingIcon(size: 20)
-                    : Text(l10n.discoverSubscribeAction),
               ),
             ],
           ),

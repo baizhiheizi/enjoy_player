@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
-import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
+import 'package:enjoy_player/core/theme/widgets/sheet_header.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_actions.dart';
@@ -272,10 +272,9 @@ class DiscoverManageChannelsView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const PaddedSheetDragHandle(),
-            Padding(
-              padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, t.space8),
-              child: Text(l10n.discoverManageChannels, style: tt.titleLarge),
+            SheetHeader(
+              title: l10n.discoverManageChannels,
+              style: SheetHeaderStyle.large,
             ),
             Expanded(child: scrollBody),
           ],

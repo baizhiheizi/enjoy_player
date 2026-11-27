@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
-import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
+import 'package:enjoy_player/core/theme/widgets/sheet_header.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_dock_primitives.dart'
     show formatRateCore;
@@ -36,21 +36,7 @@ Future<void> showPlaybackRateSheet({
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const PaddedSheetDragHandle(),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  t.space20,
-                  t.space4,
-                  t.space20,
-                  t.space8,
-                ),
-                child: Text(
-                  l10n.speed,
-                  style: Theme.of(sheetCtx).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              SheetHeader(title: l10n.speed),
               for (final option in kPlaybackRatePresets)
                 ListTile(
                   title: Text(l10n.playbackRateTimes(formatRateCore(option))),

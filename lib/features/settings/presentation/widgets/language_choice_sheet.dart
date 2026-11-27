@@ -8,7 +8,7 @@ import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
-import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
+import 'package:enjoy_player/core/theme/widgets/sheet_header.dart';
 
 /// One row in [showLanguageChoiceSheet].
 class LanguageChoiceOption {
@@ -41,21 +41,7 @@ Future<String?> showLanguageChoiceSheet({
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const PaddedSheetDragHandle(),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    t.space20,
-                    t.space4,
-                    t.space20,
-                    t.space12,
-                  ),
-                  child: Text(
-                    title,
-                    style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                SheetHeader(title: title),
                 Flexible(
                   child: ListView.builder(
                     shrinkWrap: true,
