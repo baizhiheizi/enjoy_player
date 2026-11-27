@@ -59,7 +59,7 @@ final class TranscriptFetchCtrlProvider
 }
 
 String _$transcriptFetchCtrlHash() =>
-    r'2b3ce7374c4fb853263b5dc04ddfa77d5291e3d6';
+    r'a5150fcfd4efb1d3c4f28da9c5bcdb19efc2fa7b';
 
 final class TranscriptFetchCtrlFamily extends $Family
     with

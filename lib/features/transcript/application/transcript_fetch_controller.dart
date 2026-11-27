@@ -9,6 +9,7 @@ import '../../../core/analytics/analytics_events.dart';
 import '../../../core/analytics/analytics_failure_reason.dart';
 import '../../../core/analytics/analytics_provider.dart';
 import '../../../core/application/app_preferences_provider.dart';
+import '../../../core/application/single_flight_gate.dart';
 import '../../../core/riverpod/async_value_x.dart';
 import '../domain/transcript_fetch_status.dart';
 import 'transcript_repository_provider.dart';
@@ -17,7 +18,7 @@ part 'transcript_fetch_controller.g.dart';
 
 @Riverpod(keepAlive: true)
 class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
-  Future<void>? _inFlight;
+  final SingleFlightGate _gate = SingleFlightGate();
 
   @override
   TranscriptFetchUiState build(String mediaId) {
@@ -43,8 +44,9 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
 
   /// Resolves transcripts on media open (primary, sidecar, optional cloud).
   Future<void> resolveOnOpen({required bool signedIn}) async {
-    if (_inFlight != null) {
-      await _inFlight;
+    final pending = _gate.pending;
+    if (pending != null) {
+      await pending;
       return;
     }
 
@@ -56,18 +58,14 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
       );
     }
 
-    _inFlight = _runResolve(signedIn: signedIn, forceCloud: false);
-    try {
-      await _inFlight;
-    } finally {
-      _inFlight = null;
-    }
+    await _gate.run(_runResolve(signedIn: signedIn, forceCloud: false));
   }
 
   /// Forces a cloud refresh from the subtitle picker or error retry.
   Future<void> refreshFromCloud({required bool signedIn}) async {
-    if (_inFlight != null) {
-      await _inFlight;
+    final pending = _gate.pending;
+    if (pending != null) {
+      await pending;
       return;
     }
 
@@ -78,16 +76,13 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
       );
     }
 
-    _inFlight = _runResolve(
-      signedIn: signedIn,
-      forceCloud: true,
-      analyticsSource: AnalyticsEvents.sourceYoutube,
+    await _gate.run(
+      _runResolve(
+        signedIn: signedIn,
+        forceCloud: true,
+        analyticsSource: AnalyticsEvents.sourceYoutube,
+      ),
     );
-    try {
-      await _inFlight;
-    } finally {
-      _inFlight = null;
-    }
   }
 
   Future<void> _runResolve({

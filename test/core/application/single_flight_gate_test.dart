@@ -3,7 +3,7 @@ library;
 
 import 'dart:async';
 
-import 'package:enjoy_player/features/player/application/single_flight_gate.dart';
+import 'package:enjoy_player/core/application/single_flight_gate.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

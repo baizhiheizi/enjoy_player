@@ -37,6 +37,7 @@ import 'package:enjoy_player/features/asr/data/asr_long_form_attempt_store.dart'
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
 import 'package:enjoy_player/core/analytics/analytics_failure_reason.dart';
 import 'package:enjoy_player/core/analytics/analytics_provider.dart';
+import 'package:enjoy_player/core/application/single_flight_gate.dart';
 import 'package:enjoy_player/features/asr/domain/asr_audio_extraction_failure.dart';
 import 'package:enjoy_player/features/asr/domain/asr_long_form_constants.dart';
 import 'package:enjoy_player/features/asr/domain/asr_long_form_job_exception.dart';
@@ -52,7 +53,7 @@ const _uuid = Uuid();
 @Riverpod(keepAlive: true)
 class AsrGenerationController extends _$AsrGenerationController {
   Completer<void>? _cancelToken;
-  Future<void>? _inFlight;
+  final SingleFlightGate _gate = SingleFlightGate();
 
   @override
   AsyncValue<AsrGenerationJob?> build(String mediaId) {
@@ -65,7 +66,7 @@ class AsrGenerationController extends _$AsrGenerationController {
   }
 
   /// Whether a generation is currently in flight for [mediaId].
-  bool get isInFlight => _inFlight != null;
+  bool get isInFlight => _gate.inFlight;
 
   /// Starts (or supersedes) a generation pass. Returns a [Future] that
   /// completes when the pass is done (success, error, or cancellation).
@@ -113,21 +114,15 @@ class AsrGenerationController extends _$AsrGenerationController {
       ),
     );
 
-    final future = _run(
-      cancel: cancel,
-      requestedLanguage: effectiveLanguage,
-      fallbackLanguage: trackFallbackLanguage,
-      mediaSourceUri: mediaSourceUri,
-      kind: kind,
+    await _gate.run(
+      _run(
+        cancel: cancel,
+        requestedLanguage: effectiveLanguage,
+        fallbackLanguage: trackFallbackLanguage,
+        mediaSourceUri: mediaSourceUri,
+        kind: kind,
+      ),
     );
-    _inFlight = future;
-    try {
-      await future;
-    } finally {
-      if (identical(_inFlight, future)) {
-        _inFlight = null;
-      }
-    }
   }
 
   /// Cancels the in-flight job (if any) for [mediaId]. The job's future

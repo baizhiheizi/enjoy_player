@@ -3,9 +3,9 @@ library;
 
 import 'dart:async';
 
+import 'package:enjoy_player/core/application/single_flight_gate.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
-import 'package:enjoy_player/features/player/application/single_flight_gate.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
 import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
