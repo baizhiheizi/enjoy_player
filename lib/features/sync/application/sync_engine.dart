@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:enjoy_player/core/application/in_flight_op.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -57,7 +57,7 @@ class SyncEngine {
   /// (issue #752). Injectable so tests can pin wall time.
   final SyncRetryPolicy _retryPolicy;
 
-  Completer<SyncResult>? _drainGate;
+  final InFlightOp<SyncResult> _drainFlight = InFlightOp<SyncResult>();
   var _drainAgain = false;
   var _resetFailedPending = false;
 
@@ -94,33 +94,24 @@ class SyncEngine {
       _resetFailedPending = true;
     }
 
-    final existing = _drainGate;
+    final existing = _drainFlight.pending;
     if (existing != null) {
       _drainAgain = true;
-      return existing.future;
+      return existing;
     }
 
-    final gate = Completer<SyncResult>();
-    _drainGate = gate;
+    return _drainFlight.run(_drain);
+  }
 
-    try {
-      SyncResult? last;
-      do {
-        _drainAgain = false;
-        final resetFailed = _resetFailedPending;
-        _resetFailedPending = false;
-        last = await _drainOnce(SyncOptions(resetFailed: resetFailed));
-      } while (_drainAgain);
-      gate.complete(last);
-      return last;
-    } catch (e, st) {
-      if (!gate.isCompleted) {
-        gate.completeError(e, st);
-      }
-      rethrow;
-    } finally {
-      _drainGate = null;
-    }
+  Future<SyncResult> _drain() async {
+    SyncResult last;
+    do {
+      _drainAgain = false;
+      final resetFailed = _resetFailedPending;
+      _resetFailedPending = false;
+      last = await _drainOnce(SyncOptions(resetFailed: resetFailed));
+    } while (_drainAgain);
+    return last;
   }
 
   Future<SyncResult> _drainOnce(SyncOptions options) async {

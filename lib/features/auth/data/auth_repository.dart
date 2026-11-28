@@ -9,6 +9,7 @@ import 'package:flutter/services.dart' show PlatformException;
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/core/application/in_flight_op.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
@@ -97,7 +98,7 @@ class AuthRepository {
   /// and [clearSession] would fire — signing the user out. Sharing a single
   /// in-flight `Future` keeps a burst of parallel 401s down to one refresh
   /// round-trip.
-  Completer<bool>? _inFlightRefresh;
+  final InFlightOp<bool> _refreshFlight = InFlightOp<bool>();
 
   Future<UserProfile> signInGoogle({required String idToken}) =>
       _completeSignIn(
@@ -167,44 +168,31 @@ class AuthRepository {
     );
   }
 
-  Future<bool> refreshSession() async {
-    final inFlight = _inFlightRefresh;
-    if (inFlight != null) {
-      return inFlight.future;
-    }
+  Future<bool> refreshSession() => _refreshFlight.run(_refreshSession);
 
-    final completer = Completer<bool>();
-    _inFlightRefresh = completer;
+  Future<bool> _refreshSession() async {
+    final refresh = await _tokenStore.readRefreshToken();
+    if (refresh == null || refresh.isEmpty) {
+      return false;
+    }
     try {
-      final refresh = await _tokenStore.readRefreshToken();
-      if (refresh == null || refresh.isEmpty) {
-        completer.complete(false);
-        return false;
-      }
-      try {
-        final m = await _authApi.refresh(refreshToken: refresh);
-        final tokens = AuthTokenResponse.fromJson(m);
-        await _persistTokens(tokens);
-        completer.complete(true);
-        return true;
-      } on ApiException catch (e) {
-        _log.warning('refresh session failed', e);
-        if (_shouldRevokeSessionOnApiException(e)) {
-          try {
-            await clearSession();
-          } catch (e2, st2) {
-            _log.warning('clearSession failed during refresh', e2, st2);
-          }
+      final m = await _authApi.refresh(refreshToken: refresh);
+      final tokens = AuthTokenResponse.fromJson(m);
+      await _persistTokens(tokens);
+      return true;
+    } on ApiException catch (e) {
+      _log.warning('refresh session failed', e);
+      if (_shouldRevokeSessionOnApiException(e)) {
+        try {
+          await clearSession();
+        } catch (e2, st2) {
+          _log.warning('clearSession failed during refresh', e2, st2);
         }
-        completer.complete(false);
-        return false;
-      } catch (e, st) {
-        _log.warning('refresh session failed', e, st);
-        completer.complete(false);
-        return false;
       }
-    } finally {
-      _inFlightRefresh = null;
+      return false;
+    } catch (e, st) {
+      _log.warning('refresh session failed', e, st);
+      return false;
     }
   }
 
