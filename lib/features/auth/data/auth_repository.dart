@@ -221,8 +221,8 @@ class AuthRepository {
   ///
   /// A rejected session (HTTP 401 or 403) clears the local tokens before the
   /// [AuthFailure] surfaces — see [AuthFailureCode.sessionRevoked]. Pass
-  /// `revokeSession: false` for calls that run without a session (sign-in,
-  /// OTP request).
+  /// `revokeSession: false` for calls that run without an established session
+  /// (sign-in, OTP request, and the profile fetch that follows a sign-in).
   Future<T> _guardApi<T>(
     Future<T> Function() call, {
     bool revokeSession = true,
@@ -241,12 +241,15 @@ class AuthRepository {
     }
   }
 
-  Future<UserProfile> fetchProfile() => _guardApi(() async {
-    final m = await _authApi.profile();
-    final profile = UserProfile.fromJson(m);
-    await _cacheProfile(profile);
-    return profile;
-  });
+  Future<UserProfile> fetchProfile() => _fetchProfile(revokeSession: true);
+
+  Future<UserProfile> _fetchProfile({required bool revokeSession}) =>
+      _guardApi(() async {
+        final m = await _authApi.profile();
+        final profile = UserProfile.fromJson(m);
+        await _cacheProfile(profile);
+        return profile;
+      }, revokeSession: revokeSession);
 
   Future<UserProfile> updateProfile(UpdateProfileRequest request) =>
       _guardApi(() async {
@@ -464,7 +467,7 @@ class AuthRepository {
           await _cacheProfile(tokens.user!);
           return tokens.user!;
         }
-        return await fetchProfile();
+        return await _fetchProfile(revokeSession: false);
       }, revokeSession: false);
     } on FormatException catch (e) {
       throw AuthFailure(e.message, code: AuthFailureCode.invalidCredentials);

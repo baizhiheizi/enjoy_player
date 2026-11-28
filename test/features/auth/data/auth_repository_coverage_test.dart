@@ -67,6 +67,15 @@ class _InMemorySecureTokenStore extends SecureTokenStore {
   }
 }
 
+/// Token store whose session wipe fails, so a storage error cannot be
+/// mistaken for the auth failure it should not mask.
+class _ThrowingClearTokenStore extends _InMemorySecureTokenStore {
+  @override
+  Future<void> clearAllAuthSecrets() async {
+    throw StateError('secure storage unavailable');
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -270,6 +279,45 @@ void main() {
       expect(profile.id, 'u2');
       expect(callCount, 2);
     });
+
+    test(
+      'does not clear the session when the follow-up profile fetch is refused',
+      () async {
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/v1/auth/google') {
+            return http.Response(
+              jsonEncode({
+                'accessToken': 'at-3',
+                'refreshToken': 'rt-3',
+                'expiresIn': 3600,
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (request.url.path == '/api/v1/profile') {
+            return http.Response('forbidden', 403);
+          }
+          fail('Unexpected ${request.url.path}');
+        });
+        final repo = buildRepo(client, accessToken: 'at-3');
+
+        expect(
+          () => repo.signInGoogle(idToken: 'tok'),
+          throwsA(
+            isA<AuthFailure>().having(
+              (f) => f.code,
+              'code',
+              AuthFailureCode.sessionRevoked,
+            ),
+          ),
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(await tokenStore.readAccessToken(), 'at-3');
+        expect(await tokenStore.readRefreshToken(), 'rt-3');
+      },
+    );
 
     test('throws AuthFailure on API error', () async {
       final client = MockClient((_) async => http.Response('bad', 400));
@@ -560,6 +608,26 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(await tokenStore.readAccessToken(), isNull);
       expect(await tokenStore.readRefreshToken(), isNull);
+    });
+
+    test('a failing session clear does not mask the AuthFailure', () async {
+      final store = _ThrowingClearTokenStore();
+      await store.writeAccessToken('tok-wipe');
+      final client = MockClient(
+        (_) async => http.Response('unauthorized', 401),
+      );
+      final repo = buildRepoWithStore(client, store);
+
+      expect(
+        () => repo.fetchProfile(),
+        throwsA(
+          isA<AuthFailure>().having(
+            (f) => f.code,
+            'code',
+            AuthFailureCode.sessionRevoked,
+          ),
+        ),
+      );
     });
 
     test('throws AuthFailure without clearing session on 500', () async {
