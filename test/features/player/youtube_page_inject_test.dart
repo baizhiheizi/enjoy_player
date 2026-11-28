@@ -1,8 +1,57 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_inject_bootstrap.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_inject_captions.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_inject_enforcement.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_inject_events.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_inject_setup.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_page_inject.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('kYoutubeMobileWatchInjectScript assembly', () {
+    test('matches the pre-split payload byte for byte', () {
+      expect(
+        sha256.convert(utf8.encode(kYoutubeMobileWatchInjectScript)).toString(),
+        'ce6fa9ffac212cb89e922e0e385bf247761d330906e692cee348a2a90991fd0e',
+        reason:
+            'The watch-page payload changed. Bump this digest deliberately in '
+            'the same commit as the JavaScript edit.',
+      );
+    });
+
+    test('is the concatenation of the five payload slices', () {
+      expect(
+        kYoutubeMobileWatchInjectScript,
+        kYoutubeInjectBootstrapScript +
+            kYoutubeInjectCaptionsScript +
+            kYoutubeInjectEventsScript +
+            kYoutubeInjectEnforcementScript +
+            kYoutubeInjectSetupScript,
+      );
+    });
+
+    test('keeps the slices in payload order', () {
+      final script = kYoutubeMobileWatchInjectScript;
+      final markers = <String>[
+        '(function(){',
+        'function installInlineGuards(){',
+        'function hookVideo(video){',
+        'function enforce(){',
+        'function setup(){',
+        '})();',
+      ];
+      var previous = -1;
+      for (final marker in markers) {
+        final index = script.indexOf(marker);
+        expect(index, greaterThan(previous), reason: '$marker is out of order');
+        previous = index;
+      }
+    });
+  });
+
   group('YoutubeWebViewBridge play script', () {
     test('preserves audible state and reports rejected play promises', () {
       expect(
