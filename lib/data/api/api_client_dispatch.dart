@@ -23,13 +23,6 @@ bool _shouldEncodeJsonInIsolate(Object? body) {
   return false;
 }
 
-String _trimTrailingSlash(String url) {
-  if (url.endsWith('/')) {
-    return url.substring(0, url.length - 1);
-  }
-  return url;
-}
-
 mixin _ApiClientDispatch on _ApiClientDecoding {
   http.Client get _client;
   GetBaseUrl get getBaseUrl;
@@ -38,7 +31,7 @@ mixin _ApiClientDispatch on _ApiClientDecoding {
 
   /// Resolves a relative API [path] against the configured base URL.
   Future<Uri> _resolveApiUrl(String path) async {
-    final base = _trimTrailingSlash(await getBaseUrl());
+    final base = trimTrailingSlashes(await getBaseUrl());
     final uriBase = Uri.parse(base);
     final pathUri = Uri.parse(path);
     return uriBase.resolveUri(pathUri);

@@ -11,6 +11,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/validation/trim_trailing_slashes.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
@@ -154,7 +155,7 @@ class AuthRepository {
     required String codeChallenge,
     required String state,
   }) async {
-    final base = _trimTrailingSlash(await _getBaseUrl());
+    final base = trimTrailingSlashes(await _getBaseUrl());
     return Uri.parse('$base/api/v1/auth/authorize').replace(
       queryParameters: {
         'client_id': 'enjoy_player',
@@ -485,13 +486,6 @@ class AuthRepository {
 
   Future<void> _cacheProfile(UserProfile profile) async {
     await _tokenStore.writeCachedProfileJson(jsonEncode(profile.toJson()));
-  }
-
-  static String _trimTrailingSlash(String url) {
-    if (url.endsWith('/')) {
-      return url.substring(0, url.length - 1);
-    }
-    return url;
   }
 }
 

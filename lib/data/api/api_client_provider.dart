@@ -4,6 +4,7 @@ library;
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/core/validation/trim_trailing_slashes.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -37,9 +38,7 @@ String normalizeApiBaseUrl(String raw, String defaultWhenEmpty) {
   if (s.isEmpty) {
     s = defaultWhenEmpty;
   }
-  while (s.endsWith('/')) {
-    s = s.substring(0, s.length - 1);
-  }
+  s = trimTrailingSlashes(s);
   if (!s.startsWith('http://') && !s.startsWith('https://')) {
     s = 'https://$s';
   }
