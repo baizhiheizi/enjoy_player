@@ -2,7 +2,7 @@
   "version": 1,
   "cursors": {
     "labelling_after": null,
-    "investigation_after": 1486
+    "investigation_after": 1508
   },
   "issues": [],
   "fixes": [],
@@ -10,39 +10,44 @@
     {
       "area": "release",
       "checked_at": "2026-11-26",
-      "result": "v0.11.0 Release object published 2026-11-25 03:39 UTC (Apple job green after ASC-API-key notary fix 188ae997/04e3ae8a). Backfill v0.10.2/v0.10.0/v0.9.0 Release objects still missing; maintainer-only.",
+      "result": "v0.11.0 Release object published 2026-11-25 03:39 UTC. Backfill v0.10.2/v0.10.0/v0.9.0 Release objects still missing; maintainer-only.",
       "follow_up": "monthly item narrowed to the backfill"
     },
     {
       "area": "ci",
-      "checked_at": "2026-11-27",
-      "result": "#1488 lockfile refresh merged 2026-11-26 (879217c0). pub outdated: every direct-dep gap is a major, maintainer-held; no refresh PR. 11-27: #1497 bot-published CI runs (Analyze/Codegen drift) sat in waiting ~12h, a workflow-approval gate; surfaced in #1216.",
+      "checked_at": "2026-11-28",
+      "result": "Task 4 pass, no action: deps majors maintainer-held; no Dependabot PRs; actions SHA-pinned and current (cosmetic tag-vs-SHA stragglers in release/build plumbing left alone).",
       "follow_up": null
     },
     {
       "area": "docs",
-      "checked_at": "2026-11-27",
-      "result": "#1496 (branch repo-assist/basics-changelog-1487-1488) adds [Unreleased] entries for #1487/#1488 in the #1269 style; gate-green, vigil pass, awaiting review. House pattern: changelog entries land in periodic docs passes, not per-PR.",
-      "follow_up": "after #1496 merges, the next docs pass covers newer merges"
+      "checked_at": "2026-11-28",
+      "result": "#1496 changelog PR merged 2026-11-27. No open changelog PR; next docs pass covers post-#1496 merges.",
+      "follow_up": "queue a changelog pass once more merges accumulate"
     },
     {
       "area": "qa",
-      "checked_at": "2026-11-27",
-      "result": "#1497 (repo-assist/test-tap-reveal-hold-clock): withClock hook + 8 fakeAsync cases. Vigil r1 blockers fixed by d533981 (overrideWith2, dispose coverage); r2 pass; addTearDown nit pushed 8c73bb97. Gates green, suite 7562 passed. sync maxPages declined (cap covered by service test).",
-      "follow_up": "track both PRs until merged"
+      "checked_at": "2026-11-28",
+      "result": "Duplicate-code batch #1505-#1508: #1505 and #1508 fixed via gate-green draft PRs (temp ids #1509/1510), #1507 audited-unimplemented. Maintainer merged #1496/#1497/#1498 on 11-27; #1491 done via #1504.",
+      "follow_up": "verify 1505/1508/1506 close at merge"
     }
   ],
   "completed_actions": [],
   "priorities": [
     {
       "task": 6,
-      "item": "track #1496 and #1497 until merged",
-      "note": "Both gate-green + vigil-passed, awaiting maintainer review. #1497 head 8c73bb97 (addTearDown fix pushed 11-27); its Analyze/Codegen drift CI runs sit in waiting (workflow-approval gate). No further work queued unless new review findings land."
+      "item": "track fix-issue-1505 and fix-issue-1508 PRs until merged",
+      "note": "Branches repo-assist/fix-issue-1505-in-flight-op (InFlightOp<T> slot; auth/azure/sync migrated) and repo-assist/fix-issue-1508-trailing-slash (shared trimTrailingSlashes; 4 copies replaced). Gates green; numbers assigned at publish."
+    },
+    {
+      "task": 2,
+      "item": "#1507 audited-unimplemented",
+      "note": "Dedup declined 2026-11-28: closure/state plumbing worse than 2x12 adjacent lines; codegen fights inheritance; #1503 divergence deliberate. Recommended wontfix unless a third URL notifier appears. Do not re-implement without maintainer direction."
     },
     {
       "task": 2,
       "item": "issue sweep",
-      "note": "Cursor 1486. Off-limits: large-file-simplifier (#1491 next maintainer target; #1485 done via #1487), duplicate-code #1492-#1495 (@copilot), perf-improver (own PR #1498), rotating reports (#1461/#1472), #1286/#1192 monthly lanes. #1251 wontfix; #1392/#1383 closed 11-20."
+      "note": "Cursor 1508 (end reached, reset next run). Off-limits: rotating reports, monthly lanes, large-file lane (done via #1504), duplicate-code group #1506 (1505+1508 have PRs, 1507 audited)."
     }
   ]
 }
