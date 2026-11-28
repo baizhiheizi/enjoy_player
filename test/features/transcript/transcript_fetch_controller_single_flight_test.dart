@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:drift/native.dart';
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_fetch_controller.dart';
@@ -8,6 +9,16 @@ import 'package:enjoy_player/features/transcript/application/transcript_reposito
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// Prefs notifier that reports learning `en-US` / native `zh-CN`.
+class _PrefsCtrl extends AppPreferencesCtrl {
+  @override
+  Future<AppPreferencesState> build() async => const AppPreferencesState(
+    locale: kAppDefaultDisplayLocale,
+    learningLanguage: 'en-US',
+    nativeLanguage: 'zh-CN',
+  );
+}
 
 /// Repository whose `resolveOnOpen` blocks on a per-call gate, so a test can
 /// tell a joined caller apart from one that started a second resolve.
@@ -45,6 +56,7 @@ void main() {
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
         transcriptRepositoryProvider.overrideWithValue(repo),
+        appPreferencesCtrlProvider.overrideWith(_PrefsCtrl.new),
       ],
     );
   });
@@ -112,4 +124,24 @@ void main() {
     await refresh;
     expect(repo.callCount, 1);
   });
+
+  test(
+    'two concurrent signed-in resolves claim the slot exactly once',
+    () async {
+      final ctrl = container.read(
+        transcriptFetchCtrlProvider('media-1').notifier,
+      );
+
+      final first = ctrl.resolveOnOpen(signedIn: true);
+      final second = ctrl.resolveOnOpen(signedIn: true);
+      await pumpEventQueue();
+
+      expect(repo.callCount, 1);
+
+      repo.gates.first.complete();
+      await first;
+      await second;
+      expect(repo.callCount, 1);
+    },
+  );
 }

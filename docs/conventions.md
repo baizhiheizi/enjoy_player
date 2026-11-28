@@ -33,7 +33,7 @@ Prefer `package:enjoy_player/...` for cross-layer imports in presentation code t
 - SQLite access goes through Drift DAOs backed by `AppDatabase`; do not add raw SQL in UI or feature widgets.
 - Use `package:logging` through project logging helpers; do not call `print()`.
 - Do not construct `media_kit` `Player()` outside `MediaKitPlayerEngine` / `PlayerController`.
-- Do not hand-roll an "only one op at a time" slot. Use [`SingleFlightGate`](../lib/core/application/single_flight_gate.dart) — it claims the slot synchronously and releases it only for the op that still owns it, so a draining op cannot clear a newer op's claim. The per-site policy (what an op is, when it may be cancelled) stays at the call site.
+- Do not hand-roll an "only one op at a time" slot for a `Future<void>` op. Use [`SingleFlightGate`](../lib/core/application/single_flight_gate.dart) — it claims the slot synchronously and releases it only for the op that still owns it, so a draining op cannot clear a newer op's claim. The per-site policy (what an op is, when it may be cancelled) stays at the call site. Ops that carry a **return value** keep their own slot: the gate is `Future<void>`-shaped, so `AuthRepository.refreshSession()` (`Completer<bool>`) and `DiscoverRefreshState.refresh()` (`Future<DiscoverRefreshResult>`) are not covered by it — moving those needs a value-carrying gate.
 
 ## Comments (zero-comment policy)
 

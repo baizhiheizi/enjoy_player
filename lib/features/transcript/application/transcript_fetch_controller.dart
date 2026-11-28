@@ -50,6 +50,10 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
       return;
     }
 
+    await _gate.run(_resolveOnOpen(signedIn: signedIn));
+  }
+
+  Future<void> _resolveOnOpen({required bool signedIn}) async {
     final shouldShowLoading = signedIn && !await _alreadyCloudFetched();
     if (shouldShowLoading && ref.mounted) {
       state = state.copyWith(
@@ -58,7 +62,7 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
       );
     }
 
-    await _gate.run(_runResolve(signedIn: signedIn, forceCloud: false));
+    await _runResolve(signedIn: signedIn, forceCloud: false);
   }
 
   /// Forces a cloud refresh from the subtitle picker or error retry.
@@ -69,6 +73,10 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
       return;
     }
 
+    await _gate.run(_refreshFromCloud(signedIn: signedIn));
+  }
+
+  Future<void> _refreshFromCloud({required bool signedIn}) async {
     if (signedIn && ref.mounted) {
       state = state.copyWith(
         status: TranscriptFetchStatus.loading,
@@ -76,12 +84,10 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
       );
     }
 
-    await _gate.run(
-      _runResolve(
-        signedIn: signedIn,
-        forceCloud: true,
-        analyticsSource: AnalyticsEvents.sourceYoutube,
-      ),
+    await _runResolve(
+      signedIn: signedIn,
+      forceCloud: true,
+      analyticsSource: AnalyticsEvents.sourceYoutube,
     );
   }
 
