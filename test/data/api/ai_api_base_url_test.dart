@@ -48,6 +48,20 @@ void main() {
   });
 
   test(
+    'AiApiBaseUrl migrates persisted legacy worker.enjoy.bot override to enjoy.bot',
+    () async {
+      await db.settingsDao.setValue(
+        SettingsKeys.apiAiBaseUrl.name,
+        'https://worker.enjoy.bot/',
+      );
+
+      final resolved = await container.read(aiApiBaseUrlProvider.future);
+
+      expect(resolved, 'https://enjoy.bot');
+    },
+  );
+
+  test(
     'clearOverride removes the row and rebuilds to the unified default',
     () async {
       await db.settingsDao.setValue(

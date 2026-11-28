@@ -57,6 +57,7 @@ void main() {
 
         expect(captured, isNotNull);
         expect(captured!.method, 'GET');
+        expect(captured!.url.path, '/api/v1/youtube/transcripts');
         expect(captured!.url.queryParameters['video_id'], 'abc12345678');
         expect(captured!.url.queryParameters['language'], 'en');
         expect(result, isNotNull);
@@ -113,6 +114,8 @@ void main() {
 
         expect(result, isTrue);
         expect(captured, isNotNull);
+        expect(captured!.method, 'POST');
+        expect(captured!.url.path, '/api/v1/youtube/transcripts');
         final body = jsonDecode(captured!.body) as Map<String, dynamic>;
         expect(body['format'], 'enjoy');
         expect(body['video_id'], 'abc12345678');
@@ -262,7 +265,9 @@ void main() {
 
     group('fetchClientProfiles', () {
       test('extracts the profiles list from the worker envelope', () async {
+        http.Request? captured;
         final mock = MockClient((request) async {
+          captured = request;
           return http.Response(
             jsonEncode({
               'version': '2026-07-12',
@@ -290,6 +295,9 @@ void main() {
 
         final api = YoutubeTranscriptsApi(apiClient(mock));
         final profiles = await api.fetchClientProfiles();
+        expect(captured, isNotNull);
+        expect(captured!.method, 'GET');
+        expect(captured!.url.path, '/api/v1/youtube/client_profiles');
         expect(profiles, hasLength(2));
         expect(profiles[0]['name'], 'IOS');
         expect(profiles[0]['version'], '20.12.1');

@@ -63,6 +63,10 @@ void main() {
     );
 
     expect(httpClient.requests.single, isA<http.MultipartRequest>());
+    expect(
+      httpClient.requests.single.url.path,
+      '/api/v1/ai/audio/transcriptions',
+    );
     httpClient.close();
   });
 
@@ -95,7 +99,7 @@ void main() {
     ]);
     final apiClient = ApiClient(
       httpClient: httpClient,
-      getBaseUrl: () async => 'https://worker.enjoy.bot',
+      getBaseUrl: () async => 'https://enjoy.bot',
       getAccessToken: () async => 'token',
     );
     final cap = EnjoyAsrCapability(
@@ -122,8 +126,17 @@ void main() {
     expect(phases, contains(AsrLongFormClientPhase.uploading));
     expect(phases, contains(AsrLongFormClientPhase.polling));
     expect(httpClient.requests[0].method, 'PUT');
+    expect(
+      httpClient.requests[0].url.path,
+      startsWith('/api/v1/ai/audio/media/'),
+    );
     expect(httpClient.requests[1].method, 'POST');
+    expect(httpClient.requests[1].url.path, '/api/v1/ai/audio/transcriptions');
     expect(httpClient.requests[1], isNot(isA<http.MultipartRequest>()));
+    expect(
+      httpClient.requests[2].url.path,
+      '/api/v1/ai/audio/transcriptions/job-1',
+    );
     httpClient.close();
   });
 

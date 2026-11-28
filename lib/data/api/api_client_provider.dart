@@ -46,6 +46,17 @@ String normalizeApiBaseUrl(String raw, String defaultWhenEmpty) {
   return s;
 }
 
+/// Normalizes a user-entered AI origin, mapping legacy `worker.enjoy.bot`
+/// overrides to [kDefaultAiApiBaseUrl].
+String normalizeAiApiBaseUrl(String raw) {
+  final normalized = normalizeApiBaseUrl(raw, kDefaultAiApiBaseUrl);
+  final uri = Uri.tryParse(normalized);
+  if (uri != null && uri.host.toLowerCase() == 'worker.enjoy.bot') {
+    return kDefaultAiApiBaseUrl;
+  }
+  return normalized;
+}
+
 @Riverpod(keepAlive: true)
 http.Client httpClient(Ref ref) {
   final c = http.Client();
@@ -80,12 +91,12 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
   Future<String> build() async {
     final db = ref.watch(deviceGlobalAppDatabaseProvider);
     final raw = await db.settingsDao.readSetting(SettingsKeys.apiAiBaseUrl);
-    return normalizeApiBaseUrl(raw, kDefaultAiApiBaseUrl);
+    return normalizeAiApiBaseUrl(raw);
   }
 
   /// Persists and refreshes [aiApiClientProvider].
   Future<void> setBaseUrl(String input) async {
-    final normalized = normalizeApiBaseUrl(input, kDefaultAiApiBaseUrl);
+    final normalized = normalizeAiApiBaseUrl(input);
     await ref
         .read(deviceGlobalAppDatabaseProvider)
         .settingsDao
