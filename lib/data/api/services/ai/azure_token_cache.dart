@@ -93,7 +93,7 @@ final class AzureTokenCache {
       return value;
     }
 
-    return _fetchFlight.run(fetch);
+    return _fetchFlight.run((_) => fetch());
   }
 
   void clear() {

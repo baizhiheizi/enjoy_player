@@ -168,14 +168,14 @@ class AuthRepository {
     );
   }
 
-  Future<bool> refreshSession() => _refreshFlight.run(_refreshSession);
+  Future<bool> refreshSession() => _refreshFlight.run((_) => _refreshSession());
 
   Future<bool> _refreshSession() async {
-    final refresh = await _tokenStore.readRefreshToken();
-    if (refresh == null || refresh.isEmpty) {
-      return false;
-    }
     try {
+      final refresh = await _tokenStore.readRefreshToken();
+      if (refresh == null || refresh.isEmpty) {
+        return false;
+      }
       final m = await _authApi.refresh(refreshToken: refresh);
       final tokens = AuthTokenResponse.fromJson(m);
       await _persistTokens(tokens);

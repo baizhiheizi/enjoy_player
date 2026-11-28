@@ -103,7 +103,7 @@ class SyncEngine {
     return _drainFlight.run(_drain);
   }
 
-  Future<SyncResult> _drain() async {
+  Future<SyncResult> _drain(void Function() release) async {
     SyncResult last;
     do {
       _drainAgain = false;
@@ -111,6 +111,7 @@ class SyncEngine {
       _resetFailedPending = false;
       last = await _drainOnce(SyncOptions(resetFailed: resetFailed));
     } while (_drainAgain);
+    release();
     return last;
   }
 
