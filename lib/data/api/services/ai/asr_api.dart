@@ -1,4 +1,4 @@
-/// `POST /audio/transcriptions` (Whisper short-clip + Deepgram long-form).
+/// `POST /api/v1/ai/audio/transcriptions` (short-clip + long-form ASR).
 library;
 
 import 'package:enjoy_player/data/api/rest_api.dart';
@@ -7,7 +7,7 @@ import 'package:enjoy_player/features/asr/domain/asr_long_form_models.dart';
 class AsrApi extends RestApi {
   AsrApi(super.client);
 
-  static const _path = '/audio/transcriptions';
+  static const _path = '/api/v1/ai/audio/transcriptions';
 
   /// Short-clip Whisper path (`multipart/form-data`).
   Future<Map<String, dynamic>> transcribe({

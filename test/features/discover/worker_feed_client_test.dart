@@ -44,6 +44,30 @@ void main() {
       expect(result.feedResult.entries.first.videoId, 'dQw4w9WgXcQ');
       expect(result.feedResult.entries.first.durationSeconds, 212);
     });
+
+    test(
+      'rewrites legacy worker.enjoy.bot/youtube feed URL to enjoy.bot/api/v1/youtube',
+      () async {
+        Uri? capturedUri;
+        final mockClient = MockClient((request) async {
+          capturedUri = request.url;
+          return http.Response(
+            '{"version":"https://jsonfeed.org/version/1.1","title":"TED - YouTube","items":[]}',
+            200,
+          );
+        });
+
+        final client = YoutubeFeedClient(httpClient: mockClient);
+        await client.fetchFeed(
+          'https://worker.enjoy.bot/youtube/channel/UC_legacy?format=json',
+        );
+
+        expect(
+          capturedUri.toString(),
+          'https://enjoy.bot/api/v1/youtube/channel/UC_legacy?format=json',
+        );
+      },
+    );
   });
 
   group('handle-to-ID canonicalization', () {

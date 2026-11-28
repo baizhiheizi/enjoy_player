@@ -2117,7 +2117,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAiApiBaseUrl => 'AI API 基础地址';
 
   @override
-  String get settingsAiApiBaseUrlHint => '示例：https://worker.enjoy.bot';
+  String get settingsAiApiBaseUrlHint => '示例：https://enjoy.bot';
 
   @override
   String get settingsAiApiBaseUrlSave => '保存 AI API 地址';
@@ -6269,7 +6269,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get settingsAiApiBaseUrl => 'AI API 基础地址';
 
   @override
-  String get settingsAiApiBaseUrlHint => '示例：https://worker.enjoy.bot';
+  String get settingsAiApiBaseUrlHint => '示例：https://enjoy.bot';
 
   @override
   String get settingsAiApiBaseUrlSave => '保存 AI API 地址';

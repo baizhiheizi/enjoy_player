@@ -71,7 +71,7 @@ void main() {
       );
       expect(captured, isNotNull);
       expect(captured!.method, 'POST');
-      expect(captured!.url.path, '/pronounce');
+      expect(captured!.url.path, '/api/v1/ai/pronounce');
       final body = jsonDecode(captured!.body) as Map<String, dynamic>;
       expect(body['text'], 'こんにちは');
       expect(body['locale'], 'ja-JP');

@@ -9,12 +9,9 @@ import 'package:enjoy_player/data/db/settings_keys.dart';
 
 /// Regression tests for [AiApiBaseUrl] default behaviour.
 ///
-/// Bug history: `abcdee4` ("perf(ai): … couple AI URL to API URL", #105/#120)
-/// changed [AiApiBaseUrl.build] so that, with no persisted `apiAiBaseUrl`
-/// override, it returned `apiBaseUrlProvider.future` (the public API
-/// origin, `https://enjoy.bot`). That broke every AI route — most visibly
-/// `POST /youtube/transcripts`, which is hosted on the worker origin
-/// `https://worker.enjoy.bot` and 404s on the public API.
+/// With no persisted `apiAiBaseUrl` override, [AiApiBaseUrl.build] resolves to
+/// [kDefaultAiApiBaseUrl] (`https://enjoy.bot`), and persisted overrides +
+/// `clearOverride()` continue to work independently.
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
@@ -30,12 +27,12 @@ void main() {
   });
 
   test(
-    'AiApiBaseUrl defaults to worker origin when no override is persisted',
+    'AiApiBaseUrl defaults to kDefaultAiApiBaseUrl when no override is persisted',
     () async {
       final resolved = await container.read(aiApiBaseUrlProvider.future);
 
-      expect(resolved, 'https://worker.enjoy.bot');
-      expect(resolved, isNot('https://enjoy.bot'));
+      expect(resolved, 'https://enjoy.bot');
+      expect(resolved, kDefaultAiApiBaseUrl);
     },
   );
 
@@ -51,7 +48,7 @@ void main() {
   });
 
   test(
-    'clearOverride removes the row and rebuilds to the worker default',
+    'clearOverride removes the row and rebuilds to the unified default',
     () async {
       await db.settingsDao.setValue(
         SettingsKeys.apiAiBaseUrl.name,
@@ -72,7 +69,7 @@ void main() {
       container.invalidate(aiApiBaseUrlProvider);
 
       final resolved = await container.read(aiApiBaseUrlProvider.future);
-      expect(resolved, 'https://worker.enjoy.bot');
+      expect(resolved, 'https://enjoy.bot');
     },
   );
 }

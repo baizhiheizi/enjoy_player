@@ -12,7 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 const _channelId = 'UCAuUUnT6oDeKwE6v1NGQxug';
-const _workerBase = 'https://worker.enjoy.bot';
+const _workerBase = 'https://enjoy.bot';
 
 String _jsonFeedBody({
   String title = 'Test Channel - YouTube',
@@ -107,7 +107,8 @@ void main() {
           displayName: 'TED',
           source: YoutubeSubscriptionSource.recommended,
           thumbnailUrl: 'https://example.com/thumb.jpg',
-          feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+          feedUrl:
+              '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
         );
 
         final result = await repo.getSubscription(_channelId);
@@ -119,7 +120,7 @@ void main() {
         expect(result.sourceType, YoutubeSourceType.channel);
         expect(
           result.feedUrl,
-          '$_workerBase/youtube/channel/$_channelId?format=json',
+          '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
         );
       });
     });
@@ -158,7 +159,8 @@ void main() {
           displayName: 'TED',
           source: YoutubeSubscriptionSource.recommended,
           thumbnailUrl: 'https://example.com/old.jpg',
-          feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+          feedUrl:
+              '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
         );
 
         final original = await db.youtubeChannelSubscriptionDao.getByChannelId(
@@ -180,7 +182,7 @@ void main() {
         expect(updated.thumbnailUrl, 'https://example.com/old.jpg');
         expect(
           updated.feedUrl,
-          '$_workerBase/youtube/channel/$_channelId?format=json',
+          '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
         );
         expect(updated.language, original.language);
       });
@@ -237,7 +239,7 @@ void main() {
           expect(row.sourceType, YoutubeSourceType.channel);
           expect(
             row.feedUrl,
-            '$_workerBase/youtube/channel/$_channelId?format=json',
+            '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
           );
         },
       );
@@ -596,7 +598,7 @@ void main() {
         expect(row!.sourceType, YoutubeSourceType.channel);
         expect(
           row.feedUrl,
-          '$_workerBase/youtube/channel/$_channelId?format=json',
+          '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
         );
       });
 
@@ -645,7 +647,8 @@ void main() {
             displayName: 'TED',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: DateTime.now().subtract(const Duration(days: 30)),
             lastFetchedAt: DateTime.now(),
             language: 'und',
@@ -673,7 +676,8 @@ void main() {
             displayName: 'TED',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: DateTime.now().subtract(const Duration(days: 30)),
             lastFetchedAt: DateTime.now(),
             language: 'und',
@@ -701,7 +705,8 @@ void main() {
             displayName: 'TED',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: DateTime.now(),
             language: 'und',
           ),
@@ -727,7 +732,8 @@ void main() {
             displayName: 'TED',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: DateTime.now().subtract(const Duration(days: 30)),
             lastFetchedAt: DateTime.now().subtract(const Duration(hours: 2)),
             language: 'und',
@@ -756,7 +762,8 @@ void main() {
             displayName: 'TED',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: DateTime.now().subtract(const Duration(days: 30)),
             lastFetchedAt: DateTime.now().subtract(const Duration(hours: 2)),
             language: 'und',
@@ -797,7 +804,7 @@ void main() {
         expect(result.refreshedChannels, 1);
         expect(
           requestedUrl,
-          '$_workerBase/youtube/channel/$_channelId?format=json',
+          '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
         );
       });
 
@@ -830,7 +837,7 @@ void main() {
         expect(result.refreshedChannels, 1);
         expect(
           requestedUrl,
-          '$_workerBase/youtube/channel/$_channelId?format=json',
+          '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
         );
       });
 
@@ -873,7 +880,8 @@ void main() {
             displayName: 'TED',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: DateTime.now().subtract(const Duration(days: 30)),
             lastFetchedAt: DateTime.now().subtract(const Duration(hours: 2)),
             language: 'en',
@@ -915,7 +923,8 @@ void main() {
             thumbnailUrl: 'https://example.com/old.jpg',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: subscribedAt,
             lastFetchedAt: DateTime.now().subtract(const Duration(hours: 2)),
             language: 'en',
@@ -956,7 +965,8 @@ void main() {
             thumbnailUrl: 'https://example.com/existing.jpg',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: DateTime.now().subtract(const Duration(days: 30)),
             lastFetchedAt: DateTime.now().subtract(const Duration(hours: 2)),
             language: 'und',
@@ -993,7 +1003,7 @@ void main() {
             source: YoutubeSubscriptionSource.user,
             sourceType: YoutubeSourceType.channel,
             feedUrl:
-                '$_workerBase/youtube/channel/UCgoodChannel00000000000?format=json',
+                '$_workerBase/api/v1/youtube/channel/UCgoodChannel00000000000?format=json',
             subscribedAt: DateTime.now(),
             lastFetchedAt: oldFetch,
             language: 'und',
@@ -1006,7 +1016,7 @@ void main() {
             source: YoutubeSubscriptionSource.user,
             sourceType: YoutubeSourceType.channel,
             feedUrl:
-                '$_workerBase/youtube/channel/UCbadChannel000000000000?format=json',
+                '$_workerBase/api/v1/youtube/channel/UCbadChannel000000000000?format=json',
             subscribedAt: DateTime.now(),
             lastFetchedAt: oldFetch,
             language: 'und',
@@ -1041,7 +1051,7 @@ void main() {
               displayName: 'Channel $i',
               source: YoutubeSubscriptionSource.user,
               sourceType: YoutubeSourceType.channel,
-              feedUrl: '$_workerBase/youtube/channel/$id?format=json',
+              feedUrl: '$_workerBase/api/v1/youtube/channel/$id?format=json',
               subscribedAt: DateTime.now(),
               lastFetchedAt: oldFetch,
               language: 'und',
@@ -1071,7 +1081,8 @@ void main() {
             displayName: 'TED',
             source: YoutubeSubscriptionSource.recommended,
             sourceType: YoutubeSourceType.channel,
-            feedUrl: '$_workerBase/youtube/channel/$_channelId?format=json',
+            feedUrl:
+                '$_workerBase/api/v1/youtube/channel/$_channelId?format=json',
             subscribedAt: DateTime.now().subtract(const Duration(days: 30)),
             lastFetchedAt: DateTime.now().subtract(const Duration(hours: 2)),
             language: 'und',

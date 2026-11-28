@@ -61,8 +61,8 @@ class YoutubeTranscriptsApi extends RestApi
     implements YoutubeTranscriptsClient {
   YoutubeTranscriptsApi(super.client);
 
-  static const _transcriptsPath = '/youtube/transcripts';
-  static const _profilesPath = '/youtube/client-profiles';
+  static const _transcriptsPath = '/api/v1/youtube/transcripts';
+  static const _profilesPath = '/api/v1/youtube/client_profiles';
 
   /// Fire-and-forget: log at WARNING and return [fallback] on any failure.
   Future<T> _swallow<T>(

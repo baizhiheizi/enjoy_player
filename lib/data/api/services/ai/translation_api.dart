@@ -1,4 +1,4 @@
-/// `POST /translations`.
+/// `POST /api/v1/ai/translations`.
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
@@ -7,7 +7,7 @@ import 'package:enjoy_player/data/api/rest_api.dart';
 class TranslationApi extends RestApi {
   TranslationApi(super.client);
 
-  static const _path = '/translations';
+  static const _path = '/api/v1/ai/translations';
 
   Future<JsonMap> translate({
     required String text,

@@ -18,7 +18,7 @@ Map<String, dynamic> _decode(String body) =>
 
 void main() {
   group('ChatApi.completions', () {
-    test('POSTs to /chat/completions with mapped messages', () async {
+    test('POSTs to /api/v1/ai/chat/completions with mapped messages', () async {
       http.Request? captured;
       final mock = MockClient((request) async {
         captured = request;
@@ -37,7 +37,7 @@ void main() {
       );
 
       expect(captured!.method, 'POST');
-      expect(captured!.url.path, '/chat/completions');
+      expect(captured!.url.path, '/api/v1/ai/chat/completions');
       final body = _decode(captured!.body);
       expect(body['temperature'], 0.7);
       expect(body['max_tokens'], 256);

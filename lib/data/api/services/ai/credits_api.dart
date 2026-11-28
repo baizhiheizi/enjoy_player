@@ -1,4 +1,4 @@
-/// Worker credits APIs — usage audit + wallet summary.
+/// Enjoy credits APIs — usage audit + wallet summary.
 library;
 
 import 'package:enjoy_player/core/json/json_cast.dart';
@@ -11,8 +11,8 @@ import 'package:enjoy_player/features/credits/domain/credits_usage_page.dart';
 class CreditsApi extends RestApi {
   CreditsApi(super.client);
 
-  static const _usagesPath = '/credits/usages';
-  static const _summaryPath = '/credits/summary';
+  static const _usagesPath = '/api/v1/credits/usages';
+  static const _summaryPath = '/api/v1/credits/summary';
 
   /// [limit] is clamped server-side to \[1, 100\]; default 50 matches Worker.
   Future<CreditsUsagePage> getUsages({

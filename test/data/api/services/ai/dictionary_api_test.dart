@@ -17,7 +17,7 @@ Map<String, dynamic> _decode(String body) =>
 
 void main() {
   group('DictionaryApi.query', () {
-    test('POSTs to /dictionary/query with all arguments', () async {
+    test('POSTs to /api/v1/ai/dictionary/query with all arguments', () async {
       http.Request? captured;
       final mock = MockClient((request) async {
         captured = request;
@@ -33,7 +33,7 @@ void main() {
       );
 
       expect(captured!.method, 'POST');
-      expect(captured!.url.path, '/dictionary/query');
+      expect(captured!.url.path, '/api/v1/ai/dictionary/query');
       final body = _decode(captured!.body);
       expect(body['word'], 'hello');
       expect(body['source_lang'], 'en');

@@ -1,4 +1,4 @@
-/// `POST /pronounce`.
+/// `POST /api/v1/ai/pronounce`.
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
@@ -7,7 +7,7 @@ import 'package:enjoy_player/data/api/rest_api.dart';
 class PronounceApi extends RestApi {
   PronounceApi(super.client);
 
-  static const _path = '/pronounce';
+  static const _path = '/api/v1/ai/pronounce';
 
   Future<JsonMap> pronounce({
     required String text,

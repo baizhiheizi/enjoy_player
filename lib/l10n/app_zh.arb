@@ -907,7 +907,7 @@
   "settingsApiBaseUrlHint": "示例：https://enjoy.bot",
   "settingsApiBaseUrlSave": "保存 API 地址",
   "settingsAiApiBaseUrl": "AI API 基础地址",
-  "settingsAiApiBaseUrlHint": "示例：https://worker.enjoy.bot",
+  "settingsAiApiBaseUrlHint": "示例：https://enjoy.bot",
   "settingsAiApiBaseUrlSave": "保存 AI API 地址",
   "settingsAiApiBaseUrlUseDefault": "使用主 API 地址",
   "settingsAiApiBaseUrlCleared": "AI API 现在跟随主 API 地址。",
