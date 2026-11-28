@@ -1,4 +1,4 @@
-/// `POST /chat/completions` (OpenAI-compatible).
+/// `POST /api/v1/ai/chat/completions` (OpenAI-compatible).
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
@@ -8,7 +8,7 @@ import 'package:enjoy_player/features/ai/domain/chat_message.dart';
 class ChatApi extends RestApi {
   ChatApi(super.client);
 
-  static const _path = '/chat/completions';
+  static const _path = '/api/v1/ai/chat/completions';
 
   Future<JsonMap> completions({
     required List<ChatMessage> messages,

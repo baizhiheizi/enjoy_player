@@ -10,6 +10,15 @@ void main() {
   });
 
   group('parse channel URL', () {
+    test('defaults to https://enjoy.bot/api/v1/youtube', () {
+      final defaultParser = YoutubeUrlParser();
+      final result = defaultParser.parse('UCAuUUnT6oDeKwE6v1NGQxug');
+      expect(
+        result.feedUrl,
+        'https://enjoy.bot/api/v1/youtube/channel/UCAuUUnT6oDeKwE6v1NGQxug?format=json',
+      );
+    });
+
     test('parses /channel/UC... URL', () {
       final result = parser.parse(
         'https://www.youtube.com/channel/UCAuUUnT6oDeKwE6v1NGQxug',
@@ -18,7 +27,7 @@ void main() {
       expect(result.canonicalId, 'UCAuUUnT6oDeKwE6v1NGQxug');
       expect(
         result.feedUrl,
-        'https://worker.test/youtube/channel/UCAuUUnT6oDeKwE6v1NGQxug?format=json',
+        'https://worker.test/api/v1/youtube/channel/UCAuUUnT6oDeKwE6v1NGQxug?format=json',
       );
     });
 
@@ -40,7 +49,7 @@ void main() {
       expect(result.canonicalId, '@TED');
       expect(
         result.feedUrl,
-        'https://worker.test/youtube/user/@TED?format=json',
+        'https://worker.test/api/v1/youtube/user/@TED?format=json',
       );
     });
 
@@ -66,7 +75,7 @@ void main() {
       expect(result.canonicalId, 'PLqQ1RwlxOgeLTJ1f3fNMSwhjVgaWKo_9Z');
       expect(
         result.feedUrl,
-        'https://worker.test/youtube/playlist/PLqQ1RwlxOgeLTJ1f3fNMSwhjVgaWKo_9Z?format=json',
+        'https://worker.test/api/v1/youtube/playlist/PLqQ1RwlxOgeLTJ1f3fNMSwhjVgaWKo_9Z?format=json',
       );
     });
 

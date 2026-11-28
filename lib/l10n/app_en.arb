@@ -1202,7 +1202,7 @@
   "settingsApiBaseUrlHint": "Example: https://enjoy.bot",
   "settingsApiBaseUrlSave": "Save API URL",
   "settingsAiApiBaseUrl": "AI API base URL",
-  "settingsAiApiBaseUrlHint": "Example: https://worker.enjoy.bot",
+  "settingsAiApiBaseUrlHint": "Example: https://enjoy.bot",
   "settingsAiApiBaseUrlSave": "Save AI API URL",
   "settingsAiApiBaseUrlUseDefault": "Use API URL",
   "settingsAiApiBaseUrlCleared": "AI API now follows the main API URL.",

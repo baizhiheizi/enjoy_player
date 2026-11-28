@@ -131,7 +131,7 @@ class DiscoverRepository {
       source: YoutubeSubscriptionSource.recommended,
       sourceType: YoutubeSourceType.channel,
       feedUrl:
-          '${_urlParser.workerBaseUrl}/youtube/channel/${channel.channelId}?format=json',
+          '${_urlParser.workerBaseUrl}/api/v1/youtube/channel/${channel.channelId}?format=json',
     );
   }
 
@@ -152,7 +152,7 @@ class DiscoverRepository {
     if (fetchResult.canonicalChannelId != null) {
       sourceType = YoutubeSourceType.channel;
       feedUrl =
-          '${_urlParser.workerBaseUrl}/youtube/channel/$canonicalId?format=json';
+          '${_urlParser.workerBaseUrl}/api/v1/youtube/channel/$canonicalId?format=json';
     }
 
     final now = DateTime.now();
@@ -355,7 +355,8 @@ class DiscoverRepository {
     final id = sub.channelId;
     var feedUrl = sub.feedUrl;
     if (feedUrl == null || feedUrl.isEmpty) {
-      feedUrl = '${_urlParser.workerBaseUrl}/youtube/channel/$id?format=json';
+      feedUrl =
+          '${_urlParser.workerBaseUrl}/api/v1/youtube/channel/$id?format=json';
       _log.info('Repairing missing feed URL for subscription $id');
       await _db.youtubeChannelSubscriptionDao.updateFeedUrl(id, feedUrl);
     }

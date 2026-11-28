@@ -54,7 +54,7 @@ void main() {
 
     expect(captured, isNotNull);
     final uri = captured!.url;
-    expect(uri.path, '/credits/usages');
+    expect(uri.path, '/api/v1/credits/usages');
     expect(uri.queryParameters['start_date'], '2024-01-01');
     expect(uri.queryParameters['end_date'], '2024-01-31');
     expect(uri.queryParameters['service_type'], 'llm');

@@ -17,7 +17,7 @@ Map<String, dynamic> _decode(String body) =>
 
 void main() {
   group('TranslationApi.translate', () {
-    test('POSTs to /translations with all arguments', () async {
+    test('POSTs to /api/v1/ai/translations with all arguments', () async {
       http.Request? captured;
       final mock = MockClient((request) async {
         captured = request;
@@ -33,7 +33,7 @@ void main() {
       );
 
       expect(captured!.method, 'POST');
-      expect(captured!.url.path, '/translations');
+      expect(captured!.url.path, '/api/v1/ai/translations');
       final body = _decode(captured!.body);
       expect(body['text'], 'hello');
       expect(body['source_lang'], 'en');

@@ -1,4 +1,4 @@
-/// `POST /dictionary/query`.
+/// `POST /api/v1/ai/dictionary/query`.
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
@@ -7,7 +7,7 @@ import 'package:enjoy_player/data/api/rest_api.dart';
 class DictionaryApi extends RestApi {
   DictionaryApi(super.client);
 
-  static const _path = '/dictionary/query';
+  static const _path = '/api/v1/ai/dictionary/query';
 
   Future<JsonMap> query({
     required String word,

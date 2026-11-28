@@ -379,5 +379,5 @@ abstract final class SettingsKeys {
 /// Default Enjoy API origin (no trailing slash).
 const String kDefaultApiBaseUrl = 'https://enjoy.bot';
 
-/// Default Enjoy Worker origin for AI endpoints (no trailing slash).
-const String kDefaultAiApiBaseUrl = 'https://worker.enjoy.bot';
+/// Default Enjoy AI gateway origin (no trailing slash).
+const String kDefaultAiApiBaseUrl = 'https://enjoy.bot';

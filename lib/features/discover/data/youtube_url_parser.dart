@@ -9,7 +9,7 @@ import 'package:enjoy_player/features/discover/domain/youtube_source.dart';
 class YoutubeUrlParser {
   YoutubeUrlParser({this.workerBaseUrl = _kDefaultWorkerBaseUrl});
 
-  static const _kDefaultWorkerBaseUrl = 'https://worker.enjoy.bot';
+  static const _kDefaultWorkerBaseUrl = 'https://enjoy.bot';
 
   final String workerBaseUrl;
 
@@ -37,7 +37,7 @@ class YoutubeUrlParser {
       return ParsedYoutubeUrl(
         sourceType: YoutubeSourceType.channel,
         canonicalId: id,
-        feedUrl: '$workerBaseUrl/youtube/channel/$id?format=json',
+        feedUrl: '$workerBaseUrl/api/v1/youtube/channel/$id?format=json',
       );
     }
 
@@ -47,7 +47,7 @@ class YoutubeUrlParser {
       return ParsedYoutubeUrl(
         sourceType: YoutubeSourceType.playlist,
         canonicalId: id,
-        feedUrl: '$workerBaseUrl/youtube/playlist/$id?format=json',
+        feedUrl: '$workerBaseUrl/api/v1/youtube/playlist/$id?format=json',
       );
     }
 
@@ -58,7 +58,7 @@ class YoutubeUrlParser {
         return ParsedYoutubeUrl(
           sourceType: YoutubeSourceType.channel,
           canonicalId: handle,
-          feedUrl: '$workerBaseUrl/youtube/user/$handle?format=json',
+          feedUrl: '$workerBaseUrl/api/v1/youtube/user/$handle?format=json',
         );
       }
     }
@@ -74,7 +74,7 @@ class YoutubeUrlParser {
         return ParsedYoutubeUrl(
           sourceType: YoutubeSourceType.channel,
           canonicalId: id,
-          feedUrl: '$workerBaseUrl/youtube/channel/$id?format=json',
+          feedUrl: '$workerBaseUrl/api/v1/youtube/channel/$id?format=json',
         );
       }
     }
@@ -86,7 +86,7 @@ class YoutubeUrlParser {
         return ParsedYoutubeUrl(
           sourceType: YoutubeSourceType.channel,
           canonicalId: handle,
-          feedUrl: '$workerBaseUrl/youtube/user/$handle?format=json',
+          feedUrl: '$workerBaseUrl/api/v1/youtube/user/$handle?format=json',
         );
       }
       if (first == 'user' && uri.pathSegments.length >= 2) {
@@ -94,7 +94,7 @@ class YoutubeUrlParser {
         return ParsedYoutubeUrl(
           sourceType: YoutubeSourceType.channel,
           canonicalId: handle,
-          feedUrl: '$workerBaseUrl/youtube/user/$handle?format=json',
+          feedUrl: '$workerBaseUrl/api/v1/youtube/user/$handle?format=json',
         );
       }
     }
@@ -105,7 +105,7 @@ class YoutubeUrlParser {
         return ParsedYoutubeUrl(
           sourceType: YoutubeSourceType.playlist,
           canonicalId: list,
-          feedUrl: '$workerBaseUrl/youtube/playlist/$list?format=json',
+          feedUrl: '$workerBaseUrl/api/v1/youtube/playlist/$list?format=json',
         );
       }
     }

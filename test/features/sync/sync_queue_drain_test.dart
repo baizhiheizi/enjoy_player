@@ -225,7 +225,7 @@ void main() {
         final uploads = <String>[];
         final mock = MockClient((request) async {
           if (request.method == 'POST' &&
-              request.url.path == '/youtube/transcripts') {
+              request.url.path == '/api/v1/youtube/transcripts') {
             uploads.add('${request.method} ${request.url.path}');
             return http.Response(
               '{}',
@@ -287,7 +287,7 @@ void main() {
         final result = await engine.processQueue(const SyncOptions());
         expect(result.success, isTrue);
         expect(result.synced, 1);
-        expect(uploads, ['POST /youtube/transcripts']);
+        expect(uploads, ['POST /api/v1/youtube/transcripts']);
         expect(await queue.pendingItems(), isEmpty);
       },
     );

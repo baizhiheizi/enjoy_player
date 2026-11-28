@@ -63,7 +63,22 @@ class WorkerFeedFetchResult {
   final String? canonicalChannelId;
 }
 
-/// HTTP client that fetches YouTube feeds from the worker RSSHub proxy
+/// Rewrites persisted legacy `worker.enjoy.bot/youtube/*` feed URLs to
+/// `https://enjoy.bot/api/v1/youtube/*`.
+Uri normalizeLegacyFeedUri(Uri uri) {
+  if (uri.host.toLowerCase() == 'worker.enjoy.bot' &&
+      uri.path.startsWith('/youtube/')) {
+    return Uri(
+      scheme: 'https',
+      host: 'enjoy.bot',
+      path: '/api/v1${uri.path}',
+      query: uri.hasQuery ? uri.query : null,
+    );
+  }
+  return uri;
+}
+
+/// HTTP client that fetches YouTube feeds from the RSSHub proxy
 /// with bearer auth.
 class YoutubeFeedClient {
   YoutubeFeedClient({
@@ -80,17 +95,18 @@ class YoutubeFeedClient {
   /// Fetches a feed from [feedUrl], parses it, and returns a [WorkerFeedFetchResult].
   ///
   /// If a token provider is configured, includes the bearer auth header
-  /// required by the worker.
+  /// required by the server.
   Future<WorkerFeedFetchResult> fetchFeed(String feedUrl) async {
-    final uri = Uri.tryParse(feedUrl);
-    if (uri == null || !uri.hasScheme) {
+    final parsedUri = Uri.tryParse(feedUrl);
+    if (parsedUri == null || !parsedUri.hasScheme) {
       throw WorkerFeedException(
         kind: WorkerFeedErrorKind.httpError,
         message: 'Invalid feed URL: $feedUrl',
       );
     }
 
-    _log.info('Fetching worker feed: $feedUrl');
+    final uri = normalizeLegacyFeedUri(parsedUri);
+    _log.info('Fetching feed: $uri');
 
     final request = http.Request('GET', uri);
 

@@ -1,4 +1,4 @@
-/// `PUT /audio/media/:media_reference` — Worker DEEPGRAM_ASR upload.
+/// `PUT /api/v1/ai/audio/media/:media_reference` — R2 audio source upload.
 library;
 
 import 'dart:io';
@@ -10,7 +10,7 @@ class AsrMediaUploadApi extends RestApi {
   AsrMediaUploadApi(super.client);
 
   /// Uploads [filePath] or [bytes] and returns the opaque [mediaReference]
-  /// confirmed by the Worker (same as requested when the server echoes it).
+  /// confirmed by the server (same as requested when the server echoes it).
   Future<({String mediaReference, int byteLength})> upload({
     required String mediaReference,
     List<int>? bytes,
@@ -21,12 +21,12 @@ class AsrMediaUploadApi extends RestApi {
     final hasFile = filePath != null && filePath.isNotEmpty;
     final map = hasFile
         ? await client.putFileJson(
-            '/audio/media/$encoded',
+            '/api/v1/ai/audio/media/$encoded',
             filePath: filePath,
             contentType: contentType,
           )
         : await client.putBytesJson(
-            '/audio/media/$encoded',
+            '/api/v1/ai/audio/media/$encoded',
             bytes: bytes ?? const [],
             contentType: contentType,
           );

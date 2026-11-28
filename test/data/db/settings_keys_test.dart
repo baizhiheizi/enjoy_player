@@ -153,7 +153,7 @@ void main() {
   group('default api origins', () {
     test('kDefaultApiBaseUrl / kDefaultAiApiBaseUrl are stable URLs', () {
       expect(kDefaultApiBaseUrl, 'https://enjoy.bot');
-      expect(kDefaultAiApiBaseUrl, 'https://worker.enjoy.bot');
+      expect(kDefaultAiApiBaseUrl, 'https://enjoy.bot');
       expect(kDefaultApiBaseUrl.endsWith('/'), isFalse);
       expect(kDefaultAiApiBaseUrl.endsWith('/'), isFalse);
     });
