@@ -6,14 +6,10 @@
 /// also need it (see `lib/features/ai/data/byok/byok_http_client.dart`).
 library;
 
+import 'package:enjoy_player/core/validation/trim_trailing_slashes.dart';
+
 export 'package:enjoy_player/core/validation/byok_url_guard.dart'
     show isByokBaseUrlAllowed;
 
 /// Strip trailing `/` characters from a BYOK base URL.
-String normalizeByokBaseUrl(String raw) {
-  var url = raw.trim();
-  while (url.endsWith('/')) {
-    url = url.substring(0, url.length - 1);
-  }
-  return url;
-}
+String normalizeByokBaseUrl(String raw) => trimTrailingSlashes(raw.trim());

@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:enjoy_player/core/json/gated_json_decode.dart';
 import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/validation/trim_trailing_slashes.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/case_conversion.dart';
 import 'package:enjoy_player/data/api/json_isolate.dart';
