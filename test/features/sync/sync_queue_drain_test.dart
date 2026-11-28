@@ -360,6 +360,71 @@ void main() {
       expect(deleteCalls, 2);
       expect(await queue.pendingItems(), isEmpty);
     });
+
+    test(
+      'a drain request after the settled drain starts a fresh drain',
+      () async {
+        var deleteCalls = 0;
+        final mock = MockClient((request) async {
+          if (request.method == 'DELETE') {
+            deleteCalls++;
+            return http.Response(
+              '{}',
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response('unexpected', 500);
+        });
+
+        final client = ApiClient(
+          httpClient: mock,
+          getBaseUrl: () async => 'https://enjoy.example.com',
+          getAccessToken: () async => 'tok',
+        );
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final queue = SyncQueueRepository(db);
+        final engine = SyncEngine(
+          db: db,
+          queue: queue,
+          upload: SyncUploadService(
+            db: db,
+            audioApi: AudioApi(client),
+            videoApi: VideoApi(client),
+            recordingApi: RecordingApi(client),
+            vocabularyApi: VocabularyApi(client),
+          ),
+          download: SyncDownloadService(
+            db: db,
+            audioApi: AudioApi(client),
+            videoApi: VideoApi(client),
+            recordingApi: RecordingApi(client),
+            vocabularyApi: VocabularyApi(client),
+          ),
+          youtubeTranscripts: YoutubeTranscriptsApi(client),
+        );
+
+        await queue.addOrUpsert(
+          entityType: 'video',
+          entityId: 'v1',
+          action: 'delete',
+        );
+        final first = await engine.processQueue(const SyncOptions());
+        expect(first.synced, 1);
+
+        await queue.addOrUpsert(
+          entityType: 'video',
+          entityId: 'v2',
+          action: 'delete',
+        );
+        final second = await engine.processQueue(const SyncOptions());
+        expect(second.synced, 1);
+
+        expect(deleteCalls, 2);
+        expect(await queue.pendingItems(), isEmpty);
+      },
+    );
   });
 
   group('scheduleSyncQueueDrain + SyncEngine', () {

@@ -1,8 +1,7 @@
 /// Short-lived Azure Speech token cache (Enjoy worker `POST /azure/tokens`).
 library;
 
-import 'dart:async';
-
+import 'package:enjoy_player/core/application/in_flight_op.dart';
 import 'package:enjoy_player/data/api/services/ai/azure_token_api.dart';
 import 'package:meta/meta.dart';
 
@@ -30,8 +29,9 @@ final class AzureTokenCache {
   /// In-flight fetch shared by concurrent callers. Without this, two
   /// `getToken` calls that both miss the cache (e.g. on a cold start
   /// or right after `clear()`) would each hit the worker, doubling
-  /// the call budget. The completer is cleared once the fetch settles.
-  Future<({String token, String region})>? _inFlight;
+  /// the call budget. The slot is cleared once the fetch settles.
+  final InFlightOp<({String token, String region})> _fetchFlight =
+      InFlightOp<({String token, String region})>();
 
   /// Forwards the worker-side cost signal that matches [purpose].
   ///
@@ -59,7 +59,7 @@ final class AzureTokenCache {
       return c;
     }
 
-    final existing = _inFlight;
+    final existing = _fetchFlight.pending;
     if (existing != null) {
       return existing;
     }
@@ -93,13 +93,7 @@ final class AzureTokenCache {
       return value;
     }
 
-    final pending = fetch();
-    _inFlight = pending;
-    try {
-      return await pending;
-    } finally {
-      _inFlight = null;
-    }
+    return _fetchFlight.run((_) => fetch());
   }
 
   void clear() {

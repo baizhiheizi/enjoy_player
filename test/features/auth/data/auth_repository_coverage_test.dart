@@ -11,6 +11,7 @@ import 'package:enjoy_player/features/auth/data/auth_repository.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:http/http.dart' as http;
@@ -73,6 +74,15 @@ class _ThrowingClearTokenStore extends _InMemorySecureTokenStore {
   @override
   Future<void> clearAllAuthSecrets() async {
     throw StateError('secure storage unavailable');
+  }
+}
+
+/// Token store whose refresh-token read fails, so the refresh contract can be
+/// exercised on the storage-error path.
+class _ThrowingReadTokenStore extends _InMemorySecureTokenStore {
+  @override
+  Future<String?> readRefreshToken() async {
+    throw PlatformException(code: 'storage_unavailable');
   }
 }
 
@@ -1278,6 +1288,24 @@ void main() {
 
       expect(ok, isFalse);
     });
+
+    test(
+      'concurrent refreshes all answer false when the token read throws',
+      () async {
+        final client = MockClient((_) async {
+          fail('should not call network');
+        });
+        final repo = buildRepoWithStore(client, _ThrowingReadTokenStore());
+
+        final results = await Future.wait([
+          repo.refreshSession(),
+          repo.refreshSession(),
+          repo.refreshSession(),
+        ]).timeout(const Duration(seconds: 5));
+
+        expect(results, everyElement(isFalse));
+      },
+    );
   });
 
   group('authFailureCodeForApiException (extended)', () {
