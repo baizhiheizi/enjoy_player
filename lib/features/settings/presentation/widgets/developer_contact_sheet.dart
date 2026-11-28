@@ -11,7 +11,7 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
-import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
+import 'package:enjoy_player/core/theme/widgets/sheet_header.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Opens the developer contact sheet (Email / WeChat / Mixin, tap to copy).
@@ -29,34 +29,9 @@ Future<void> showDeveloperContactSheet(BuildContext context) {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const PaddedSheetDragHandle(),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  t.space20,
-                  t.space4,
-                  t.space20,
-                  t.space4,
-                ),
-                child: Text(
-                  l10n.settingsAboutContactTitle,
-                  style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  t.space20,
-                  0,
-                  t.space20,
-                  t.space12,
-                ),
-                child: Text(
-                  l10n.settingsAboutContactSubtitle,
-                  style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(ctx).colorScheme.onSurfaceVariant,
-                  ),
-                ),
+              SheetHeader(
+                title: l10n.settingsAboutContactTitle,
+                subtitle: l10n.settingsAboutContactSubtitle,
               ),
               _ContactCopyRow(
                 icon: EnjoyIcons.mail,
