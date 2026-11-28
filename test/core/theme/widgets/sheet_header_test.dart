@@ -18,11 +18,15 @@ EnjoyThemeTokens _tokens() => EnjoyThemeTokens.build(
 );
 
 void main() {
-  testWidgets('renders the title above the drag handle', (tester) async {
+  testWidgets('renders the drag handle above the title', (tester) async {
     await tester.pumpWidget(_host(child: const SheetHeader(title: 'Speed')));
 
     expect(find.text('Speed'), findsOneWidget);
     expect(find.byType(PaddedSheetDragHandle), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.byType(PaddedSheetDragHandle)).dy,
+      lessThan(tester.getTopLeft(find.text('Speed')).dy),
+    );
   });
 
   testWidgets('medium style uses a w600 titleMedium', (tester) async {
