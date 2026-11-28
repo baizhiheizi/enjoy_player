@@ -1,4 +1,5 @@
-/// One generation-guard / single-flight primitive for engine-adjacent async work.
+/// One generation-guard / single-flight primitive for async work that must not
+/// overlap.
 library;
 
 /// Monotonic generation guard plus an identity-guarded in-flight slot.
