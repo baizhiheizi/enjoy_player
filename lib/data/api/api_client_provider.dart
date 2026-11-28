@@ -64,22 +64,48 @@ http.Client httpClient(Ref ref) {
   return c;
 }
 
+String _normalizeBase(String raw) =>
+    normalizeApiBaseUrl(raw, kDefaultApiBaseUrl);
+
+Future<String> _readBaseUrl(
+  Ref ref,
+  SettingKey<String> key,
+  String Function(String raw) normalize,
+) async {
+  final db = ref.watch(deviceGlobalAppDatabaseProvider);
+  final raw = await db.settingsDao.readSetting(key);
+  return normalize(raw);
+}
+
+Future<String> _persistBaseUrl(
+  Ref ref,
+  SettingKey<String> key,
+  String input,
+  String Function(String raw) normalize,
+) async {
+  final normalized = normalize(input);
+  await ref
+      .read(deviceGlobalAppDatabaseProvider)
+      .settingsDao
+      .writeSetting(key, normalized);
+  return normalized;
+}
+
 @Riverpod(keepAlive: true)
 class ApiBaseUrl extends _$ApiBaseUrl {
   @override
-  Future<String> build() async {
-    final db = ref.watch(deviceGlobalAppDatabaseProvider);
-    final raw = await db.settingsDao.readSetting(SettingsKeys.apiBaseUrl);
-    return normalizeApiBaseUrl(raw, kDefaultApiBaseUrl);
+  Future<String> build() {
+    return _readBaseUrl(ref, SettingsKeys.apiBaseUrl, _normalizeBase);
   }
 
   /// Persists and refreshes [apiClientProvider].
   Future<void> setBaseUrl(String input) async {
-    final normalized = normalizeApiBaseUrl(input, kDefaultApiBaseUrl);
-    await ref
-        .read(deviceGlobalAppDatabaseProvider)
-        .settingsDao
-        .writeSetting(SettingsKeys.apiBaseUrl, normalized);
+    final normalized = await _persistBaseUrl(
+      ref,
+      SettingsKeys.apiBaseUrl,
+      input,
+      _normalizeBase,
+    );
     state = AsyncData(normalized);
     ref.invalidate(apiClientProvider);
   }
@@ -88,19 +114,18 @@ class ApiBaseUrl extends _$ApiBaseUrl {
 @Riverpod(keepAlive: true)
 class AiApiBaseUrl extends _$AiApiBaseUrl {
   @override
-  Future<String> build() async {
-    final db = ref.watch(deviceGlobalAppDatabaseProvider);
-    final raw = await db.settingsDao.readSetting(SettingsKeys.apiAiBaseUrl);
-    return normalizeAiApiBaseUrl(raw);
+  Future<String> build() {
+    return _readBaseUrl(ref, SettingsKeys.apiAiBaseUrl, normalizeAiApiBaseUrl);
   }
 
   /// Persists and refreshes [aiApiClientProvider].
   Future<void> setBaseUrl(String input) async {
-    final normalized = normalizeAiApiBaseUrl(input);
-    await ref
-        .read(deviceGlobalAppDatabaseProvider)
-        .settingsDao
-        .writeSetting(SettingsKeys.apiAiBaseUrl, normalized);
+    final normalized = await _persistBaseUrl(
+      ref,
+      SettingsKeys.apiAiBaseUrl,
+      input,
+      normalizeAiApiBaseUrl,
+    );
     state = AsyncData(normalized);
     ref.invalidate(aiApiClientProvider);
   }
