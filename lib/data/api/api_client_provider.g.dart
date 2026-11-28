@@ -74,7 +74,7 @@ final class ApiBaseUrlProvider
   ApiBaseUrl create() => ApiBaseUrl();
 }
 
-String _$apiBaseUrlHash() => r'dfeaeaefd59298be95cd8f23ddbed7e4c39d440d';
+String _$apiBaseUrlHash() => r'72c6f5f9838cc2a5adb7a4b214eba1492328d940';
 
 abstract class _$ApiBaseUrl extends $AsyncNotifier<String> {
   FutureOr<String> build();
@@ -118,7 +118,7 @@ final class AiApiBaseUrlProvider
   AiApiBaseUrl create() => AiApiBaseUrl();
 }
 
-String _$aiApiBaseUrlHash() => r'a298906d3ada556991c523b38a7b0b90471bedb4';
+String _$aiApiBaseUrlHash() => r'414bde6146c1fdb50f92bb072db0aed43c15d27c';
 
 abstract class _$AiApiBaseUrl extends $AsyncNotifier<String> {
   FutureOr<String> build();
