@@ -34,6 +34,12 @@ While a video is open, the player WebView [`shouldOverrideUrlLoading`](../../lib
 
 **Why**: YouTube’s mobile watch page often redirects through **passive Google sign-in** when no session cookies exist. In embedded WebViews (especially **release** builds on any platform), that chain can finish without a playable `<video>` — infinite loading. Blocking account navigations in the player keeps anonymous playback on the watch page; the engine reloads the watch URL when sign-in is cancelled. Use **YouTube login** when a signed-in session is needed.
 
+## Watch-page injection
+
+Every watch-page `onLoadStop` evaluates one JavaScript payload — [`kYoutubeMobileWatchInjectScript`](../../lib/features/player/application/engines/youtube/youtube_page_inject.dart) — into the page. The payload is held as five contiguous slices in [`engines/youtube/`](../../lib/features/player/application/engines/youtube/): **bootstrap** (single-inject guard, focus pin, video discovery), **captions** (CSS, `<track>` disabling, player-API module unload), **events** (`<video>` hooks and the page-to-Dart state hand-off), **enforcement** (DOM observers, the coalesced sweep, the ad hand-off) and **setup** (session bootstrap, SPA history guard). `youtube_page_inject.dart` concatenates them in order; the result is byte-identical to the single-payload script the slices replaced.
+
+[`youtube_page_inject_test.dart`](../../test/features/player/youtube_page_inject_test.dart) pins that payload with a SHA-256 digest, so a JavaScript edit must bump the digest in the same commit.
+
 ## Transcripts
 
 Captions are fetched **directly from YouTube** (InnerTube `/player` + `fmt=json3`
